@@ -517,6 +517,7 @@ export default function ProjetoDetailPage() {
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url, contract_documents: local.contract_documents || [],
         payment_method: local.payment_method || null, payment_config: local.payment_config || null,
+        project_mode: (local as any).project_mode || 'pontual',
       };
       // Auto-calculate total time when marking as concluded
       if (local.status === 'concluido' && project?.status !== 'concluido') {
