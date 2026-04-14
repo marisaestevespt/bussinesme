@@ -1,32 +1,32 @@
 ---
-name: UI Redesign - Organic Warmth
-description: Design system uses soft cream/sand backgrounds, muted terracotta primary, sage-green accent, rounded-2xl cards, diffuse warm shadows, Plus Jakarta Sans display font.
+name: UI Identity - Amber Gold
+description: Lirah identity uses warm amber/gold primary, dark charcoal accent, cream backgrounds, gradient headers, Plus Jakarta Sans display font. Inspired by Crextio/Skillex dashboards.
 type: design
 ---
 
 ## Palette (Light)
-- Background: soft cream `hsl(36 33% 96%)`
-- Card: warm white `hsl(38 30% 98%)`
-- Primary: muted terracotta `hsl(16 55% 48%)`
-- Accent: sage green `hsl(150 25% 48%)`
-- Secondary: sand `hsl(36 25% 92%)`
-- Borders: soft, 60% opacity `border-border/60`
+- Background: warm cream `hsl(40 30% 96%)`
+- Card: off-white `hsl(42 25% 99%)`
+- Primary: amber/gold `hsl(40 90% 50%)` — THE signature color
+- Accent: dark charcoal `hsl(30 10% 15%)` — for contrast (active sidebar items)
+- Secondary: warm sand `hsl(38 22% 92%)`
+- Foreground: warm dark `hsl(30 15% 12%)`
 
-## Design Principles (from user inspirations)
-- Soft cream/sand backgrounds — never pure white
-- Rounded-2xl corners on cards, rounded-xl on buttons
-- Diffuse warm-tinted shadows (rgba with brown/amber tones)
-- Generous whitespace and breathing room
-- Subtle borders (60% opacity)
-- Human, organic feel — avoid "AI look"
-- Nature-inspired accent colors (sage, moss, terracotta)
+## Identity Principles
+- Amber/gold is the signature — used for primary actions, glows, highlights
+- Dark charcoal accent for high-contrast elements (active nav, key buttons)
+- Gradient headers: subtle warm gold wash (gradient-start → gradient-end)
+- Cream backgrounds, never pure white
+- Rounded-2xl cards, rounded-xl buttons/nav items
+- Warm-tinted shadows (rgba with brown/amber tones)
+- Generous whitespace
+- Inspired by Crextio, Skillex, Be.run dashboards
 
 ## Typography
 - Display: Plus Jakarta Sans
 - Body: Inter
-- Letter-spacing: -0.01em body, -0.025em headings
 
-## Shadows
-- Warm-tinted with rgba(120, 90, 60, ...) base
-- Subtle → Card → Elevated progression
-- No harsh drop shadows
+## Sidebar
+- Active items: bg-accent (dark charcoal) with accent-foreground (light)
+- Hover: bg-primary/10 (soft gold highlight)
+- Icon backgrounds: bg-primary/10
