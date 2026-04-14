@@ -36,7 +36,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </div>
             </header>
             <TabsBar />
-            <main className="flex-1 p-4 sm:p-8 overflow-auto">
+            <main className="flex-1 p-5 sm:p-10 lg:p-12 overflow-auto">
               {children}
             </main>
             <OnboardingTour />
