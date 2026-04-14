@@ -178,6 +178,7 @@ export function SettingsIdentity() {
     setSupportHours((settings as any).support_hours || '');
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
+    setUseSystemTheme((settings as any).use_system_theme ?? true);
     setColors({
       primary: hslToHex(settings.primary_color),
       secondary: hslToHex(settings.secondary_color),
