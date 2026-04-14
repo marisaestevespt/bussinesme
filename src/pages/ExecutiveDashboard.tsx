@@ -109,8 +109,6 @@ export default function ExecutiveDashboard() {
           </Card>
         </div>
 
-        {/* Monthly Report — below Gestão card */}
-        <MonthlyReportSection />
 
         {/* Este Mês (destaque) + Este Ano + Brain Dump */}
         <div className="grid gap-6 lg:grid-cols-3">
