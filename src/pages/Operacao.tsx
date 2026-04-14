@@ -1064,10 +1064,14 @@ export default function OperacaoPage() {
                   </TableHeader>
                   <TableBody>
                     {clients.filter(c => c.status === expandedStatus).map(c => {
-                      const pendingItems = expandedStatus === 'em_onboarding'
-                        ? allOnboarding.filter(o => o.client_id === c.id)
-                        : expandedStatus === 'em_offboarding'
-                        ? allOffboarding.filter(o => o.client_id === c.id)
+                      // Find pending deliverables from onboarding phases for this client
+                      const onboardingPhaseIds = new Set(
+                        onboardingPhases
+                          .filter(ph => projects.find(p => p.id === ph.project_id && (p as any).client_id === c.id))
+                          .map(ph => ph.id)
+                      );
+                      const pendingItems = (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding')
+                        ? onboardingDeliverables.filter(d => onboardingPhaseIds.has(d.phase_id))
                         : [];
                       return (
                         <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
