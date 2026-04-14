@@ -470,6 +470,12 @@ export default function ReuniaoDetailPage() {
 
   const participantProfiles = profiles.filter(p => participants.some(pp => pp.profile_id === p.id));
 
+  const getPhotoUrl = (profile: Profile | undefined) => {
+    if (!profile) return '';
+    const tm = teamMembers.find(t => t.profile_id === profile.id || t.full_name === profile.full_name);
+    return tm?.photo_url || profile.avatar_url || '';
+  };
+
   if (isLoading || !m) {
     return (
       <AppLayout>
