@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 // ─── Note box ──────────────────────────────────────────────────
 export function NoteBox({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-lg p-3 text-xs leading-relaxed bg-accent/10 border-l-[3px] border-accent text-accent-foreground">
+    <div className="rounded-lg p-3 text-xs leading-relaxed bg-accent/10 border-l-[3px] border-accent text-foreground">
       {children}
     </div>
   );
