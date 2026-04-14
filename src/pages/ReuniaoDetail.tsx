@@ -738,23 +738,70 @@ export default function ReuniaoDetailPage() {
           )}
 
           {/* Participantes */}
-          {participantProfiles.length > 0 && (
-            <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-                <Users className="h-3.5 w-3.5" /> Participantes
-              </div>
-              <div className="px-3 py-1.5 flex-1">
-                <div className="flex -space-x-1">
-                  {participantProfiles.map(p => (
-                    <Avatar key={p.id} className="h-7 w-7 border-2 border-background">
-                      <AvatarImage src={p.avatar_url ?? undefined} />
-                      <AvatarFallback className="text-[10px]">{initials(p.full_name)}</AvatarFallback>
-                    </Avatar>
-                  ))}
-                </div>
+          <div className="flex items-start min-h-[40px] hover:bg-muted/30 transition-colors">
+            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 py-2 text-xs font-medium text-muted-foreground">
+              <Users className="h-3.5 w-3.5" /> Participantes
+            </div>
+            <div className="px-3 py-1.5 flex-1">
+              <div className="flex flex-wrap gap-1.5 items-center">
+                {participants.map(p => {
+                  const profile = profiles.find(pr => pr.id === p.profile_id);
+                  return (
+                    <div key={p.id} className="flex items-center gap-1.5 rounded-full border bg-muted/30 pl-1 pr-2 py-0.5 text-sm group">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={profile?.avatar_url || ''} />
+                        <AvatarFallback className="text-[8px]">{initials(profile?.full_name || null)}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs">{profile?.full_name || '—'}</span>
+                      <button
+                        onClick={async () => {
+                          await supabase.from('meeting_participants').delete().eq('id', p.id);
+                          qc.invalidateQueries({ queryKey: ['meeting_participants', id] });
+                        }}
+                        className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+                {(() => {
+                  const participantIds = new Set(participants.map(p => p.profile_id));
+                  const available = profiles.filter(p => !participantIds.has(p.id));
+                  if (available.length === 0) return null;
+                  return (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 rounded-full">
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-1" align="start">
+                        <ScrollArea className="max-h-[200px]">
+                          {available.map(p => (
+                            <button
+                              key={p.id}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted/50 rounded-md transition-colors"
+                              onClick={async () => {
+                                await supabase.from('meeting_participants').insert({ meeting_id: id!, profile_id: p.id });
+                                qc.invalidateQueries({ queryKey: ['meeting_participants', id] });
+                              }}
+                            >
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={p.avatar_url || ''} />
+                                <AvatarFallback className="text-[8px]">{initials(p.full_name)}</AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs">{p.full_name}</span>
+                            </button>
+                          ))}
+                        </ScrollArea>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })()}
               </div>
             </div>
-          )}
+          </div>
 
           {/* Link de acesso */}
           <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
