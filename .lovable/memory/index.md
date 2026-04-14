@@ -38,12 +38,14 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 
 ## Memories
 - [AI assistant](mem://features/ai-assistant.md) — Lirah AI floating chat with DB tools for queries and actions
+- [Backups](mem://features/backups.md) — Weekly automated backups + reset instance (moved to Backups tab)
 - [Brand name](mem://design/brand-name.md) — Lirah: acronym meaning, lyre symbolism, usage locations
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
 - [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
 - [Client portal](mem://features/client-portal.md) — Client Portal system: public pages via /portal/[token] with OTP auth
 - [Fiscal management](mem://features/fiscal-management.md) — Fiscal deadlines, IVA/IRS/SS rules
 - [Meeting types](mem://features/meeting-types.md) — Meeting type enum and distinct layouts per type
+- [Monthly reports](mem://features/monthly-reports.md) — Auto monthly reports from all modules, Executive Room UI, cron on 2nd
 - [New client flow](mem://features/new-client-flow.md) — Lead conversion auto-creates project, portal with FAQs
 - [Onboarding system](mem://features/onboarding-system.md) — Onboarding tour and setup wizard
 - [Pagination](mem://features/pagination.md) — Infinite scroll pagination system
