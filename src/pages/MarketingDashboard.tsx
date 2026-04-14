@@ -18,7 +18,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3, Users,
-  Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon,
+  Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon, Loader2,
 } from 'lucide-react';
 
 const CHANNEL_EMOJI: Record<string, string> = {
@@ -59,6 +59,7 @@ export default function MarketingDashboard() {
 
   const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
   const [editChannelLink, setEditChannelLink] = useState('');
+  const [creatingContent, setCreatingContent] = useState(false);
   // Queries
   const { data: channels = [] } = useQuery({
     queryKey: ['marketing-channels'],
@@ -127,22 +128,27 @@ export default function MarketingDashboard() {
 
 
   const createContent = async () => {
-    const { data, error } = await supabase.from('content_items').insert({
-      title: 'Novo Conteúdo', created_by: user?.id,
-    } as any).select('id').single() as { data: { id: string } | null; error: any };
-    if (error || !data) { toast.error('Erro ao criar'); return; }
-    // Auto-create production task linked to content
-    await supabase.from('tasks').insert({
-      name: '[Conteúdo] Novo Conteúdo — Em ideia',
-      content_id: data.id,
-      tag: 'Conteúdo',
-      department: 'marketing',
-      status: 'por_comecar',
-      priority: 'media',
-      created_by: user?.id,
-    } as any);
-    queryClient.invalidateQueries({ queryKey: ['content-items'] });
-    navigate(`/hub/marketing/conteudos/${data.id}`);
+    if (creatingContent) return;
+    setCreatingContent(true);
+    try {
+      const { data, error } = await supabase.from('content_items').insert({
+        title: 'Novo Conteúdo', created_by: user?.id,
+      } as any).select('id').single() as { data: { id: string } | null; error: any };
+      if (error || !data) { toast.error('Erro ao criar'); return; }
+      // Auto-create production task linked to content (fire-and-forget)
+      supabase.from('tasks').insert({
+        name: '[Conteúdo] Novo Conteúdo — Em ideia',
+        content_id: data.id,
+        tag: 'Conteúdo',
+        department: 'marketing',
+        status: 'por_comecar',
+        priority: 'media',
+        created_by: user?.id,
+      } as any).then(() => queryClient.invalidateQueries({ queryKey: ['content-items'] }));
+      navigate(`/hub/marketing/conteudos/${data.id}`);
+    } finally {
+      setCreatingContent(false);
+    }
   };
 
   return (
@@ -227,8 +233,9 @@ export default function MarketingDashboard() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Conteúdos a sair esta semana</h2>
-              <Button size="sm" onClick={createContent}>
-                <Plus className="h-3.5 w-3.5 mr-1" />Novo Conteúdo
+              <Button size="sm" onClick={createContent} disabled={creatingContent}>
+                {creatingContent ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
+                {creatingContent ? 'A criar...' : 'Novo Conteúdo'}
               </Button>
             </div>
             {weekContent.length === 0 ? (
@@ -276,8 +283,9 @@ export default function MarketingDashboard() {
           <section className="space-y-4 pb-10">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Calendário de Conteúdos</h2>
-              <Button size="sm" onClick={createContent}>
-                <Plus className="h-3.5 w-3.5 mr-1" />Novo Conteúdo
+              <Button size="sm" onClick={createContent} disabled={creatingContent}>
+                {creatingContent ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
+                {creatingContent ? 'A criar...' : 'Novo Conteúdo'}
               </Button>
             </div>
             <ContentCalendar items={contentItems} channels={channels} contentChannelLinks={contentChannelLinks} profiles={profiles} attachments={contentAttachments} />
