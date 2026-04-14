@@ -676,10 +676,10 @@ export default function OperacaoPage() {
                   <span className="text-sm text-muted-foreground font-medium">dias</span>
                 </div>
                 <Link to={`/hub/projetos/${nextDelivery.projectId || nextDelivery.id}`} className="group">
-                  <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{nextDelivery.name}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {nextDelivery.projectName && `${nextDelivery.projectName} · `}
-                    {format(new Date(nextDelivery.deadline), 'dd MMM yyyy', { locale: pt })}
+                  <p className="text-sm font-semibold group-hover:text-primary transition-colors leading-snug">{nextDelivery.name}</p>
+                  {nextDelivery.projectName && <p className="text-xs text-muted-foreground mt-1">{nextDelivery.projectName}</p>}
+                  <p className="text-xs font-medium text-primary mt-1.5">
+                    📅 {format(new Date(nextDelivery.deadline), "dd 'de' MMMM yyyy", { locale: pt })}
                   </p>
                 </Link>
               </CardContent>
