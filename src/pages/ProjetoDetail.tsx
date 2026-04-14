@@ -825,9 +825,9 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* Progresso */}
-            {!isRecorrente && (
+            {(!isRecorrente || isServicoMensal) && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Progresso</span>
+                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isServicoMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
                   <Progress value={getProjectProgress()} className="h-2 max-w-xs" />
                   <span className="text-sm font-medium">{getProjectProgress()}%</span>
