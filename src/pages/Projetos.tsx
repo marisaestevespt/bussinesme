@@ -166,6 +166,7 @@ export default function ProjetosPage() {
   const [fMembers, setFMembers] = useState<string[]>([]);
   const [fNotes, setFNotes] = useState('');
   const [fMode, setFMode] = useState('pontual');
+  const [fProduct, setFProduct] = useState<string>('');
 
   const projectsQuery = useInfiniteQuery<InfinitePageResult<Project>>({
     queryKey: ['projects'],
