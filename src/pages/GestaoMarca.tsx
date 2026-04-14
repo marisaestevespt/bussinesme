@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -876,7 +877,7 @@ export default function GestaoMarcaPage() {
                 ) : (
                   <div className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none">
                     {selectedVisual.description ? (
-                      <div dangerouslySetInnerHTML={{ __html: selectedVisual.description }} />
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedVisual.description) }} />
                     ) : (
                       <p className="italic">Sem descrição.</p>
                     )}

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import DOMPurify from "dompurify";
 import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle, Paperclip, FileText, Image as ImageIcon, Download, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -332,7 +333,7 @@ export function FloatingAiChat() {
       }
       if (processed.startsWith("### ")) processed = `<span class="font-semibold text-sm block mt-2 mb-1">${processed.slice(4)}</span>`;
       else if (processed.startsWith("## ")) processed = `<span class="font-bold text-sm block mt-2 mb-1">${processed.slice(3)}</span>`;
-      return <span key={i} className={cn("block", line === "" && "h-2")} dangerouslySetInnerHTML={{ __html: processed || "&nbsp;" }} />;
+      return <span key={i} className={cn("block", line === "" && "h-2")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(processed || "&nbsp;") }} />;
     });
   };
 
