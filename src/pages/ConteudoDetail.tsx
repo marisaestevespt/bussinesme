@@ -112,6 +112,7 @@ export default function ConteudoDetailPage() {
         product_name: item.product_name || '', product_id: (item as any).product_id || '',
         project_id: item.project_id || '',
         assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
+        body_template: (item as any).body_template || null,
       });
     }
   }, [item]);
