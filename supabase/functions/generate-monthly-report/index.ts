@@ -16,16 +16,25 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify owner role via JWT
+    // Verify owner role via JWT, or allow cron calls via anon key (no user context)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Não autorizado");
 
-    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
-    const { data: { user } } = await anonClient.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (!user) throw new Error("Sessão inválida");
+    const token = authHeader.replace("Bearer ", "");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    let userId: string | null = null;
 
-    const { data: isOwner } = await supabase.rpc("has_role", { _user_id: user.id, _role: "owner" });
-    if (!isOwner) throw new Error("Apenas o owner pode gerar relatórios");
+    // If token is the anon key, it's a cron call — skip owner check
+    if (token !== anonKey) {
+      const anonClient = createClient(supabaseUrl, anonKey);
+      const { data: { user } } = await anonClient.auth.getUser(token);
+      if (!user) throw new Error("Sessão inválida");
+
+      const { data: isOwner } = await supabase.rpc("has_role", { _user_id: user.id, _role: "owner" });
+      if (!isOwner) throw new Error("Apenas o owner pode gerar relatórios");
+      userId = user.id;
+    }
+
 
     // Parse body for month/year or use previous month
     let { month, year } = await req.json().catch(() => ({}));
