@@ -460,8 +460,14 @@ export default function OperacaoPage() {
       const isTarefasLivres = (p as any).task_mode === 'tarefas_livres';
       const prog = isTarefasLivres ? null : (projectProgress.get(p.id) ?? p.progress);
       let health: 'green' | 'yellow' | 'red' = 'green';
-      // Skip progress-based health for "tarefas livres" projects
-      if (!isTarefasLivres && prog !== null) {
+
+      if (isTarefasLivres) {
+        // Only red if project has overdue tasks
+        const hasOverdue = tasks.some(t =>
+          t.project_id === p.id && t.status !== 'concluida' && t.deadline && isBefore(new Date(t.deadline), today)
+        );
+        if (hasOverdue) health = 'red';
+      } else if (prog !== null) {
         if (p.deadline) {
           const daysLeft = differenceInDays(new Date(p.deadline), today);
           const expectedProg = p.deadline ? Math.max(0, Math.min(100, ((differenceInDays(today, new Date(p.start_date || p.created_at))) / Math.max(1, differenceInDays(new Date(p.deadline), new Date(p.start_date || p.created_at)))) * 100)) : 0;
@@ -470,12 +476,12 @@ export default function OperacaoPage() {
         }
         if (prog === 0 && differenceInDays(today, new Date(p.start_date || p.created_at)) > 7) health = 'red';
       }
-      return { ...p, prog: prog ?? 0, health };
+      return { ...p, prog: prog ?? -1, health, isTarefasLivres };
     }).sort((a, b) => {
       const order = { red: 0, yellow: 1, green: 2 };
       return order[a.health] - order[b.health];
     });
-  }, [allActiveProjects, projectProgress, today]);
+  }, [allActiveProjects, projectProgress, tasks, today]);
 
   // ── Delivery timeline (next 14 days) — includes deliverables ──
   const deliveryTimeline = useMemo(() => {
