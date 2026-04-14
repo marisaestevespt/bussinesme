@@ -103,9 +103,8 @@ export default function MarketingPublicoAlvo() {
               </p>
               <div className="border-t border-border pt-5 grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
-                  { value: '3', label: 'Personas identificadas' },
-                  { value: '5', label: 'Níveis de consciência' },
                   { value: String(sections?.length || 0), label: 'Secções de análise' },
+                  { value: String(navGroups.length), label: 'Grupos temáticos' },
                 ].map(stat => (
                   <div key={stat.label}>
                     <p className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</p>
@@ -117,7 +116,7 @@ export default function MarketingPublicoAlvo() {
           </Card>
 
           {/* ═══ TAB NAV ═══ */}
-          <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
+          <div className="sticky top-14 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
             <ScrollArea className="w-full">
               <div className="flex items-center gap-1">
                 {navGroups.map((group, gi) => (
