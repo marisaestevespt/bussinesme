@@ -344,6 +344,34 @@ export default function ProdutoDetailPage() {
                   <SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              {/* ── Configuração de Projeto ── */}
+              <div className="col-span-full pt-2 pb-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Configuração de Projeto</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Modo do Projeto</Label>
+                <Select value={(form as any).default_project_mode || 'pontual'} onValueChange={v => update('default_project_mode', v)} disabled={!isOwner}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pontual">📌 Pontual</SelectItem>
+                    <SelectItem value="recorrente">🔄 Recorrente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Modo Operacional</Label>
+                <Select value={(form as any).task_mode || 'fases'} onValueChange={v => update('task_mode', v)} disabled={!isOwner}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
+                    <SelectItem value="tarefas_fixas">📋 Tarefas Fixas Mensais</SelectItem>
+                    <SelectItem value="tarefas_livres">✏️ Tarefas Livres</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-full pt-2 pb-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detalhes Comerciais</p>
+              </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Tipo de Produto</Label>
                 <Select value={form.product_type || ''} onValueChange={v => update('product_type', v)} disabled={!isOwner}>

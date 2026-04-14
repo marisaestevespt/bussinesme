@@ -187,7 +187,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       if (productName) {
         const { data: matchedProduct } = await supabase
           .from('products')
-          .select('id, product_type, sales_type, cycle_duration')
+          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode')
           .eq('name', productName)
           .maybeSingle();
 
@@ -198,7 +198,10 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           deadline = format(end, 'yyyy-MM-dd');
         }
 
-        const isRecurringLead = matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
+        const isRecurringLead = (matchedProduct as any)?.default_project_mode === 'recorrente' || matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
+        const projectMode = (matchedProduct as any)?.default_project_mode || (isRecurringLead ? 'recorrente' : 'pontual');
+        const taskMode = (matchedProduct as any)?.task_mode || 'fases';
+
         const { data: newProject } = await supabase.from('projects').insert({
           name: `${productName} — ${form.name || 'Cliente'}`,
           type: isRecurringLead ? 'cliente_servico_mensal' : 'cliente_projeto_unico',
@@ -210,8 +213,10 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           product_id: matchedProduct?.id || null,
           product_name: productName,
           start_date: format(new Date(), 'yyyy-MM-dd'),
-          deadline,
-        }).select('id').single();
+          deadline: projectMode === 'recorrente' ? null : deadline,
+          project_mode: projectMode,
+          task_mode: taskMode,
+        } as any).select('id').single();
 
         createdProjectId = newProject?.id || null;
 
