@@ -33,22 +33,28 @@ function contrastForeground(bgHsl: string): string {
 }
 
 function applyTheme(settings: BusinessSettings) {
+  // If using system theme, only apply fonts — CSS tokens handle colors
+  const useSystem = (settings as any).use_system_theme ?? true;
   const root = document.documentElement;
-  root.style.setProperty('--primary', settings.primary_color);
-  root.style.setProperty('--primary-foreground', contrastForeground(settings.primary_color));
-  root.style.setProperty('--brand-primary', settings.primary_color);
-  root.style.setProperty('--secondary', settings.secondary_color);
-  root.style.setProperty('--secondary-foreground', contrastForeground(settings.secondary_color));
-  root.style.setProperty('--brand-secondary', settings.secondary_color);
-  root.style.setProperty('--background', settings.background_color);
-  root.style.setProperty('--foreground', settings.text_color);
-  root.style.setProperty('--card-foreground', settings.text_color);
-  root.style.setProperty('--popover-foreground', settings.text_color);
-  const accentColor = settings.accent_color || settings.secondary_color;
-  root.style.setProperty('--accent', accentColor);
-  root.style.setProperty('--accent-foreground', contrastForeground(accentColor));
-  root.style.setProperty('--sidebar-primary', settings.primary_color);
-  root.style.setProperty('--sidebar-primary-foreground', contrastForeground(settings.primary_color));
+
+  if (!useSystem) {
+    root.style.setProperty('--primary', settings.primary_color);
+    root.style.setProperty('--primary-foreground', contrastForeground(settings.primary_color));
+    root.style.setProperty('--brand-primary', settings.primary_color);
+    root.style.setProperty('--secondary', settings.secondary_color);
+    root.style.setProperty('--secondary-foreground', contrastForeground(settings.secondary_color));
+    root.style.setProperty('--brand-secondary', settings.secondary_color);
+    root.style.setProperty('--background', settings.background_color);
+    root.style.setProperty('--foreground', settings.text_color);
+    root.style.setProperty('--card-foreground', settings.text_color);
+    root.style.setProperty('--popover-foreground', settings.text_color);
+    const accentColor = settings.accent_color || settings.secondary_color;
+    root.style.setProperty('--accent', accentColor);
+    root.style.setProperty('--accent-foreground', contrastForeground(accentColor));
+    root.style.setProperty('--sidebar-primary', settings.primary_color);
+    root.style.setProperty('--sidebar-primary-foreground', contrastForeground(settings.primary_color));
+  }
+
   root.style.setProperty('--font-display', `'${settings.font_display}'`);
   root.style.setProperty('--font-body', `'${settings.font_body}'`);
 }
