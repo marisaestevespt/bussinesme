@@ -137,7 +137,7 @@ export default function SecretariaPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
         <PageHeader title={`${greetingText()}, ${firstName}.`} subtitle={format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })} />
 
