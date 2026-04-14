@@ -72,7 +72,7 @@ const TAG_STYLES = {
   info: 'bg-info/10 text-info',
   success: 'bg-success/10 text-success',
   warning: 'bg-warning/10 text-warning',
-  accent: 'bg-accent/10 text-accent',
+  accent: 'bg-accent-foreground/15 text-accent-foreground',
   muted: 'bg-muted text-muted-foreground',
   destructive: 'bg-destructive/10 text-destructive',
 } as const;
