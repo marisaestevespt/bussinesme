@@ -207,7 +207,7 @@ export default function OperacaoPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['op-projects'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at,cover_url,project_mode,task_mode').order('deadline', { ascending: true });
+      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at,cover_url,project_mode,task_mode,client_id').order('deadline', { ascending: true });
       return (data || []) as (Project & { project_mode: string | null; task_mode: string | null })[];
     },
   });
@@ -236,19 +236,28 @@ export default function OperacaoPage() {
     },
   });
 
-  const { data: allOnboarding = [] } = useQuery({
-    queryKey: ['op-all-onboarding'],
+  // Fetch pending onboarding deliverables (from project_phases with is_onboarding + project_deliverables)
+  const { data: onboardingDeliverables = [] } = useQuery({
+    queryKey: ['op-onboarding-deliverables'],
     queryFn: async () => {
-      const { data } = await (supabase.from('client_onboarding' as any) as any).select('client_id,activity,completed,phase').eq('completed', false);
-      return (data || []) as unknown as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+      const { data } = await supabase
+        .from('project_deliverables')
+        .select('id, name, status, phase_id, project_id, sort_order')
+        .neq('status', 'concluido');
+      if (!data) return [];
+      // We'll filter by is_onboarding phase in the component using phases data
+      return data as { id: string; name: string; status: string; phase_id: string; project_id: string; sort_order: number }[];
     },
   });
 
-  const { data: allOffboarding = [] } = useQuery({
-    queryKey: ['op-all-offboarding'],
+  const { data: onboardingPhases = [] } = useQuery({
+    queryKey: ['op-onboarding-phases'],
     queryFn: async () => {
-      const { data } = await (supabase.from('client_offboarding' as any) as any).select('client_id,activity,completed,phase').eq('completed', false);
-      return (data || []) as unknown as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+      const { data } = await supabase
+        .from('project_phases')
+        .select('id, project_id, name, is_onboarding')
+        .eq('is_onboarding', true);
+      return (data || []) as { id: string; project_id: string; name: string; is_onboarding: boolean }[];
     },
   });
 
@@ -1055,10 +1064,14 @@ export default function OperacaoPage() {
                   </TableHeader>
                   <TableBody>
                     {clients.filter(c => c.status === expandedStatus).map(c => {
-                      const pendingItems = expandedStatus === 'em_onboarding'
-                        ? allOnboarding.filter(o => o.client_id === c.id)
-                        : expandedStatus === 'em_offboarding'
-                        ? allOffboarding.filter(o => o.client_id === c.id)
+                      // Find pending deliverables from onboarding phases for this client
+                      const onboardingPhaseIds = new Set(
+                        onboardingPhases
+                          .filter(ph => projects.find(p => p.id === ph.project_id && (p as any).client_id === c.id))
+                          .map(ph => ph.id)
+                      );
+                      const pendingItems = (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding')
+                        ? onboardingDeliverables.filter(d => onboardingPhaseIds.has(d.phase_id))
                         : [];
                       return (
                         <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
@@ -1071,12 +1084,15 @@ export default function OperacaoPage() {
                                 <span className="text-xs text-muted-foreground">Sem checklist</span>
                               ) : (
                                 <ul className="space-y-0.5">
-                                  {pendingItems.map((item, i) => (
-                                    <li key={i} className="text-xs text-destructive flex items-center gap-1">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-                                      {item.phase ? `${item.phase}: ` : ''}{item.activity}
-                                    </li>
-                                  ))}
+                                  {pendingItems.map((item) => {
+                                    const phaseName = onboardingPhases.find(ph => ph.id === item.phase_id)?.name;
+                                    return (
+                                      <li key={item.id} className="text-xs text-destructive flex items-center gap-1">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                                        {phaseName ? `${phaseName}: ` : ''}{item.name}
+                                      </li>
+                                    );
+                                  })}
                                 </ul>
                               )}
                             </TableCell>
