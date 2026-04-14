@@ -52,6 +52,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Planning improvements](mem://features/planning-improvements.md) — Planning module improvements
 - [Phases flow](mem://features/phases-flow.md) — Product→Project→Portal phases/deliverables single source of truth
 - [Product deliverable templates](mem://features/product-deliverable-templates.md) — Product deliverable templates
+- [Product project config](mem://features/product-project-config.md) — Products define default_project_mode and task_mode that auto-fill projects
 - [Products](mem://features/produtos.md) — Product detail page structure and tab organization
 - [Routines system](mem://features/routines-system.md) — Routines auto-generate tasks via daily cron; managed in Tarefas > Rotinas tab
 - [Secretaria refactor](mem://features/secretaria-refactor.md) — Secretaria.tsx refactored to lazy-loaded tabs
