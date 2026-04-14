@@ -83,19 +83,109 @@ export function MonthlyReportSection() {
   };
 
   const handleDownload = (reportData: any, year: number, month: number) => {
-    try {
-      const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `relatorio-${year}-${String(month).padStart(2, '0')}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error('Erro ao fazer download');
-    }
+    const label = reportData.period?.label || `${MONTH_NAMES[month - 1]} ${year}`;
+    const f = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) { toast.error('Popup bloqueado'); return; }
+
+    const fin = reportData.financial || {};
+    const com = reportData.commercial || {};
+    const cli = reportData.clients || {};
+    const ops = reportData.operations || {};
+    const team = reportData.team || {};
+    const crm = reportData.crm || {};
+
+    const topProductsHtml = (com.topProducts || []).map(([name, value]: [string, number]) =>
+      `<tr><td>${name}</td><td style="text-align:right;font-weight:600">€${f(value)}</td></tr>`
+    ).join('');
+
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Relatório ${label}</title>
+<style>
+  @page { size: A4; margin: 18mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.5; }
+  .header { border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header .date { font-size: 10px; color: #6b7280; }
+  h2 { font-size: 13px; font-weight: 700; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; color: #374151; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi { border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; }
+  .kpi .label { font-size: 9px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.3px; }
+  .kpi .value { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .kpi .sub { font-size: 9px; color: #6b7280; margin-top: 1px; }
+  .section-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; }
+  .card h3 { font-size: 11px; font-weight: 600; margin-bottom: 6px; }
+  .row { display: flex; justify-content: space-between; font-size: 10px; padding: 3px 0; }
+  .row .lbl { color: #6b7280; }
+  .row .val { font-weight: 600; }
+  .green { color: #059669; }
+  .red { color: #dc2626; }
+  .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 4px 0; }
+  .progress-fill { height: 100%; background: #3b82f6; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  th, td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+  th { font-weight: 600; background: #f9fafb; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head><body>
+  <div class="header">
+    <h1>Relatório Mensal — ${label}</h1>
+    <span class="date">Gerado em ${new Date(reportData.generatedAt || Date.now()).toLocaleDateString('pt-PT')}</span>
+  </div>
+
+  <h2>Financeiro</h2>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="label">Receita</div><div class="value">€${f(fin.revenue || 0)}</div></div>
+    <div class="kpi"><div class="label">Despesas</div><div class="value">€${f(fin.expenses || 0)}</div></div>
+    <div class="kpi"><div class="label">Margem</div><div class="value">€${f(fin.margin || 0)}</div><div class="sub">${(fin.marginPct || 0).toFixed(1)}%</div></div>
+  </div>
+
+  <h2>Comercial</h2>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="label">Vendas no mês</div><div class="value">${com.salesCount || 0}</div><div class="sub">€${f(com.totalSales || 0)}</div></div>
+    <div class="kpi"><div class="label">Total YTD</div><div class="value">€${f(com.totalYtd || 0)}</div></div>
+    <div class="kpi">
+      <div class="label">Meta Anual</div><div class="value">${(com.progressPct || 0).toFixed(1)}%</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(com.progressPct || 0, 100)}%"></div></div>
+      <div class="sub">€${f(com.totalYtd || 0)} / €${f(com.annualGoal || 0)}</div>
+    </div>
+  </div>
+
+  ${topProductsHtml ? `<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="text-align:right">Valor</th></tr></thead><tbody>${topProductsHtml}</tbody></table>` : ''}
+
+  <h2>Clientes & CRM</h2>
+  <div class="section-grid">
+    <div class="card"><h3>Clientes</h3>
+      <div class="row"><span class="lbl">Ativos</span><span class="val">${cli.activeCount || 0}</span></div>
+      <div class="row"><span class="lbl">Novos</span><span class="val">${cli.newCount || 0}</span></div>
+      ${cli.avgNps != null ? `<div class="row"><span class="lbl">NPS médio</span><span class="val">${cli.avgNps.toFixed(1)}</span></div>` : ''}
+    </div>
+    <div class="card"><h3>CRM</h3>
+      <div class="row"><span class="lbl">Leads convertidas</span><span class="val green">${crm.leadsConverted || 0}</span></div>
+      <div class="row"><span class="lbl">Leads perdidas</span><span class="val red">${crm.leadsLost || 0}</span></div>
+    </div>
+    <div class="card"><h3>Equipa</h3>
+      <div class="row"><span class="lbl">Horas registadas</span><span class="val">${team.totalHours || 0}h</span></div>
+      <div class="row"><span class="lbl">Membros ativos</span><span class="val">${team.activeMembers || 0}</span></div>
+      <div class="row"><span class="lbl">Média p/ membro</span><span class="val">${team.avgHoursPerMember || 0}h</span></div>
+    </div>
+  </div>
+
+  <h2>Operações</h2>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="label">Tarefas Concluídas</div><div class="value">${ops.tasksCompleted || 0}</div><div class="sub">${ops.tasksPending || 0} pendentes</div></div>
+    <div class="kpi"><div class="label">Reuniões</div><div class="value">${ops.meetingsHeld || 0}</div></div>
+    <div class="kpi"><div class="label">Entregáveis Concluídos</div><div class="value">${ops.deliverablesCompleted || 0}</div></div>
+  </div>
+</body></html>`);
+
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.onafterprint = () => printWindow.close();
+      setTimeout(() => { try { printWindow.close(); } catch {} }, 5000);
+    }, 400);
   };
 
   // Build month options for the last 12 months
