@@ -14,7 +14,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3, BookOpen } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Package, UserCheck, Download, BarChart3, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
 
@@ -51,8 +51,6 @@ export default function FinanceiroPage() {
   const ivaExempt = s?.iva_exempt ?? false;
   const ssExempt = s?.ss_exempt ?? false;
   const isContabOrganizada = (s?.tax_irs_regime || '') === 'contabilidade_organizada';
-  const teamType = s?.team_type || 'externa';
-  const hasInternalTeam = teamType === 'interna' || teamType === 'ambas';
 
   const SECTIONS_ROW1 = useMemo(() => {
     return ALL_SECTIONS_ROW1.filter(sec => {
