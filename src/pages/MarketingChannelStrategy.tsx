@@ -126,10 +126,10 @@ export default function MarketingChannelStrategy() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         <PageHeader title={channel.name} subtitle="Estratégia por Canal" />
 
-        <div className="w-full px-4 py-8 space-y-10">
+        <div className="space-y-6">
           <BackNavigation parentRoute="/hub/marketing/estrategia" parentLabel="Estratégia" />
 
           {/* Callout - Posicionamento do Canal */}

@@ -541,7 +541,7 @@ export default function ClienteDetailPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 w-full">
+      <div className="space-y-6 w-full">
         {/* Pending payments alert for offboarding */}
         {form.status === 'em_offboarding' && clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').length > 0 && (
           <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">

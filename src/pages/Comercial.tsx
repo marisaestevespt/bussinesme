@@ -25,7 +25,7 @@ export default function ComercialPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-8">
+      <div className="space-y-6">
         <PageHeader title="Comercial" subtitle="Gestão comercial, vendas e metas do negócio." />
 
         {/* Navigation cards */}

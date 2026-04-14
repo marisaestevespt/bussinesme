@@ -168,7 +168,7 @@ export default function ChannelPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         {/* Header */}
         <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>
@@ -179,7 +179,7 @@ export default function ChannelPage() {
           </h1>
         </div>
 
-        <div className="w-full px-4 py-8 space-y-10">
+        <div className="space-y-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {isWebsite ? (

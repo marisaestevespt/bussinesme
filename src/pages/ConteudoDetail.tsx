@@ -265,7 +265,7 @@ export default function ConteudoDetailPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         <div className="w-full py-8 px-6 flex flex-col items-center gap-1" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Conteúdo</p>
           {statusOpt && <Badge className={cn("text-xs", statusOpt.color)}>{statusOpt.label}</Badge>}

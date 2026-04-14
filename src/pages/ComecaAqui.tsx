@@ -153,12 +153,11 @@ export default function ComecaAquiPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
-        {/* Cover */}
+      <div className="space-y-6">
         <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
         <PageHeader title="Começa Aqui" />
 
-        <div className="w-full px-4 py-10 space-y-12">
+        <div className="space-y-12">
           {/* Welcome text */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">

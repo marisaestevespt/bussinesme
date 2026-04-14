@@ -85,7 +85,7 @@ export default function ExecutiveRecommendations() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <BackNavigation parentRoute="/executive" parentLabel="Executive Room" />
         <PageHeader title="Caixa das Recomendações" subtitle="Todas as recomendações da equipa" />
 

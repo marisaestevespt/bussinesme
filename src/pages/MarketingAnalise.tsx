@@ -642,9 +642,9 @@ export default function MarketingAnalisePage() {
   if (selectedMonth !== null) {
     return (
       <AppLayout>
-        <div className="flex flex-col min-h-screen">
+        <div className="space-y-6">
           <PageHeader title="Análise de Marketing" />
-          <div className="w-full px-4 py-8 space-y-6">
+          <div className="space-y-6">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
             <MonthDetail month={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
           </div>
@@ -655,9 +655,9 @@ export default function MarketingAnalisePage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         <PageHeader title="Análise de Marketing" />
-        <div className="w-full px-4 py-8 space-y-6">
+        <div className="space-y-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           <YearSelector year={year} onChange={setYear} />

@@ -37,7 +37,7 @@ export default function RecursosHumanosSubPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <BackNavigation />
         <PageHeader title={title} />
         {renderContent()}

@@ -56,9 +56,9 @@ export default function MarketingSubPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         <PageHeader title={page.title} subtitle="Marketing e Branding" />
-        <div className="w-full px-4 py-8">
+        <div>
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
           <RichTextEditor content={content} onChange={setContent} editable={isOwner} />
           {isOwner && (

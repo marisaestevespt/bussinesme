@@ -147,10 +147,10 @@ export default function MarketingDashboard() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         <PageHeader title="Marketing e Branding" subtitle="Estratégia de marketing, conteúdo e canais de comunicação." />
 
-        <div className="w-full px-4 py-10 space-y-12">
+        <div className="space-y-6">
 
           {/* Section 1: Marketing 360 */}
           <section className="space-y-4">

@@ -710,7 +710,7 @@ export default function FornecedoresPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-4">
+      <div className="space-y-6">
         <BackNavigation />
         <PageHeader title="Fornecedores" />
         <div className="flex justify-end">
