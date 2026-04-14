@@ -9270,6 +9270,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_audit_entry: {
+        Args: {
+          _action: string
+          _entity_id?: string
+          _entity_type: string
+          _metadata?: Json
+        }
+        Returns: undefined
+      }
       notify_portal_meeting_confirmed: {
         Args: {
           _client_name: string
