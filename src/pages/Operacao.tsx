@@ -427,8 +427,10 @@ export default function OperacaoPage() {
 
   const recurrentesWithoutDeliverables = useMemo(() => {
     const projectIdsWithDeliverables = new Set(deliverables.map(d => d.project_id));
-    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => !projectIdsWithDeliverables.has(p.id));
-  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables]);
+    const phasesSet = new Set(projectsWithPhases);
+    // Only alert recurrentes that have phases (use deliverables system) but no deliverables defined
+    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => phasesSet.has(p.id) && !projectIdsWithDeliverables.has(p.id));
+  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables, projectsWithPhases]);
 
   const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length + overdueDeliverables.length + recurrentesWithoutDeliverables.length;
 
