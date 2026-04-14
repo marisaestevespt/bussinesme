@@ -16,20 +16,20 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--gradient-end)) 80%)`,
+          background: `linear-gradient(135deg, hsl(var(--primary) / 0.10) 0%, hsl(var(--primary) / 0.04) 50%, hsl(var(--gradient-end)) 100%)`,
         }}
       />
 
       {/* Decorative accent orb — more visible */}
       <div
-        className="absolute -top-8 -right-8 w-56 h-56 rounded-full opacity-[0.07] blur-3xl"
+        className="absolute -top-8 -right-8 w-56 h-56 rounded-full opacity-[0.10] blur-3xl"
         style={{ background: `hsl(var(--gradient-accent))` }}
       />
 
       {/* Left edge accent bar */}
       <div
         className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full"
-        style={{ background: `hsl(var(--primary) / 0.25)` }}
+        style={{ background: `hsl(var(--primary) / 0.35)` }}
       />
 
       <div className="relative flex items-start justify-between">
