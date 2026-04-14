@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { cn } from '@/lib/utils';
 
 interface Profile {
