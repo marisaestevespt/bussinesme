@@ -27,6 +27,7 @@ export function SettingsUsers() {
   const [emailDialog, setEmailDialog] = useState<{ open: boolean; profile: any | null }>({ open: false, profile: null });
   const [newEmail, setNewEmail] = useState('');
   const [saving, setSaving] = useState(false);
+  const { getPhotoUrl } = useTeamPhotos();
 
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ['settings-profiles'],
