@@ -537,7 +537,7 @@ function PostCard({
         <h2 className="text-lg font-semibold mb-2">{post.title}</h2>
         <div className="flex items-center gap-2 mb-4">
           <Avatar className="h-7 w-7">
-            <AvatarImage src={getPhotoUrl(profile?)} />
+            <AvatarImage src={getPhotoUrl(profile)} />
             <AvatarFallback className="text-xs">{getInitials(profile?.full_name || null)}</AvatarFallback>
           </Avatar>
           <span className="text-sm text-muted-foreground">{profile?.full_name || 'Membro'}</span>
@@ -620,7 +620,7 @@ function PostCard({
               return (
                 <div key={comment.id} className="flex gap-2.5">
                   <Avatar className="h-6 w-6 mt-0.5">
-                    <AvatarImage src={getPhotoUrl(cp?)} />
+                    <AvatarImage src={getPhotoUrl(cp)} />
                     <AvatarFallback className="text-[10px]">{getInitials(cp?.full_name || null)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
