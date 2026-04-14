@@ -360,13 +360,23 @@ export function SettingsIdentity() {
 
       {/* ── Cores da Marca (5) ── */}
       <Section icon={Palette} title="Cores da Marca">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <ColorField label="Cor primária" value={colors.primary} onChange={updateColor('primary')} />
-          <ColorField label="Cor secundária" value={colors.secondary} onChange={updateColor('secondary')} />
-          <ColorField label="Cor de destaque" value={colors.accent} onChange={updateColor('accent')} />
-          <ColorField label="Fundo" value={colors.background} onChange={updateColor('background')} />
-          <ColorField label="Texto" value={colors.text} onChange={updateColor('text')} />
+        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-medium">Usar tema do sistema (Lirah)</Label>
+            <p className="text-xs text-muted-foreground">Usa a paleta predefinida do sistema. Desativa para personalizar as cores.</p>
+          </div>
+          <Switch checked={useSystemTheme} onCheckedChange={setUseSystemTheme} />
         </div>
+
+        {!useSystemTheme && (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <ColorField label="Cor primária" value={colors.primary} onChange={updateColor('primary')} />
+            <ColorField label="Cor secundária" value={colors.secondary} onChange={updateColor('secondary')} />
+            <ColorField label="Cor de destaque" value={colors.accent} onChange={updateColor('accent')} />
+            <ColorField label="Fundo" value={colors.background} onChange={updateColor('background')} />
+            <ColorField label="Texto" value={colors.text} onChange={updateColor('text')} />
+          </div>
+        )}
 
         {/* Login background */}
         <div className="space-y-2">
