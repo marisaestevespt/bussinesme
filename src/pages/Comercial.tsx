@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen, UserCheck, Package, GitBranch, ArrowRight, BarChart3 } from 'lucide-react';
 import { CommercialOverview } from '@/components/commercial/CommercialOverview';
 import { Separator } from '@/components/ui/separator';
-import { AiInsightsPanel } from '@/components/AiInsightsPanel';
+
 
 const SECTIONS = [
   { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
@@ -52,13 +52,6 @@ export default function ComercialPage() {
         <CommercialOverview />
 
         <Separator />
-
-        {/* AI Analysis */}
-        <AiInsightsPanel
-          type="commercial"
-          title="Análise Comercial AI"
-          buttonLabel="Analisar com AI"
-        />
       </div>
     </AppLayout>
   );

@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle, Calculator, Zap, FileText } from 'lucide-react';
-import { AiInsightsPanel } from '@/components/AiInsightsPanel';
+
 import { useExecutiveData } from '@/hooks/useExecutiveData';
 import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { ExecutiveKpiAlerts } from '@/components/executive/ExecutiveKpiAlerts';
@@ -49,12 +49,8 @@ export default function ExecutiveDashboard() {
         {/* Strategic Business Health Metrics */}
         <StrategicMetricsSection />
 
-        {/* AI Executive Briefing */}
-        <AiInsightsPanel
-          type="executive"
-          title="Briefing Executivo AI"
-          buttonLabel="Gerar briefing AI"
-        />
+
+
 
         {/* Navigation Cards — 2 columns */}
         <div className="grid gap-6 md:grid-cols-2">
