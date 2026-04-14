@@ -81,6 +81,7 @@ interface Project {
   notes: string | null;
   created_at: string;
   cover_url: string | null;
+  project_mode: string | null;
 }
 
 interface Profile {
