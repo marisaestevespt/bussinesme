@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Package, CheckCircle2, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 import { format, isAfter, subDays, startOfMonth, endOfMonth, addMonths, addDays, getDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
