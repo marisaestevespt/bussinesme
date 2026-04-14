@@ -94,8 +94,7 @@ export default function DefinicoesPage() {
           {tab === 'auditoria' && <SettingsAuditLog />}
         </div>
 
-        {/* Reset section - owner only */}
-        {isOwner && <ResetSection />}
+        {/* Reset section moved to SettingsBackups */}
       </div>
     </AppLayout>
   );
