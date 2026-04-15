@@ -9,12 +9,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import type { MarketingChannel } from '@/lib/marketing-constants';
+
+const DIST_COLUMNS = [
+  { key: 'segunda', label: 'Seg', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
+  { key: 'terca', label: 'Ter', headerBg: 'bg-[hsl(25,35%,93%)] dark:bg-[hsl(25,30%,15%)]', headerText: 'text-[hsl(25,50%,45%)] dark:text-[hsl(25,50%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(25,50%,70%)]' },
+  { key: 'quarta', label: 'Qua', headerBg: 'bg-[hsl(33,30%,92%)] dark:bg-[hsl(33,25%,15%)]', headerText: 'text-[hsl(33,40%,42%)] dark:text-[hsl(33,40%,62%)]', cardBorder: 'border-l-[3px] border-[hsl(33,40%,65%)]' },
+  { key: 'quinta', label: 'Qui', headerBg: 'bg-[hsl(10,35%,93%)] dark:bg-[hsl(10,30%,15%)]', headerText: 'text-[hsl(10,45%,48%)] dark:text-[hsl(10,45%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(10,45%,70%)]' },
+  { key: 'sexta', label: 'Sex', headerBg: 'bg-[hsl(18,30%,92%)] dark:bg-[hsl(18,25%,15%)]', headerText: 'text-[hsl(18,40%,44%)] dark:text-[hsl(18,40%,64%)]', cardBorder: 'border-l-[3px] border-[hsl(18,40%,68%)]' },
+  { key: 'sabado', label: 'Sáb', headerBg: 'bg-[hsl(200,30%,93%)] dark:bg-[hsl(200,25%,15%)]', headerText: 'text-[hsl(200,40%,45%)] dark:text-[hsl(200,40%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(200,40%,70%)]' },
+  { key: 'domingo', label: 'Dom', headerBg: 'bg-[hsl(160,28%,92%)] dark:bg-[hsl(160,22%,15%)]', headerText: 'text-[hsl(160,35%,40%)] dark:text-[hsl(160,35%,60%)]', cardBorder: 'border-l-[3px] border-[hsl(160,35%,65%)]' },
+  { key: 'mensal', label: 'Mensal', headerBg: 'bg-[hsl(270,25%,93%)] dark:bg-[hsl(270,20%,15%)]', headerText: 'text-[hsl(270,30%,48%)] dark:text-[hsl(270,30%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(270,30%,70%)]' },
+];
 
 export default function MarketingChannelStrategy() {
   const { channelId } = useParams<{ channelId: string }>();
