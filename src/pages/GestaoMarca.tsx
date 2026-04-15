@@ -999,7 +999,7 @@ export default function GestaoMarcaPage() {
 
               {/* Uploads */}
               {isOwner && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <label className="cursor-pointer">
                     <Button variant="outline" size="sm" asChild>
                       <span><ImageIcon className="h-3.5 w-3.5 mr-1" />Carregar imagens</span>
@@ -1012,6 +1012,9 @@ export default function GestaoMarcaPage() {
                     </Button>
                     <input type="file" multiple className="hidden" onChange={e => uploadVisualFile(e, 'file')} disabled={uploadingVisual} />
                   </label>
+                  <Button variant="outline" size="sm" onClick={() => setAddingVisualLink(true)}>
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" />Adicionar link
+                  </Button>
                 </div>
               )}
 
