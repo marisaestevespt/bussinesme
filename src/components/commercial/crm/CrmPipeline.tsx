@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
 import { useCrmStages } from '@/hooks/useCrmStages';
+import { useCrmLabels } from '@/hooks/useCrmLabels';
+import { CrmLabelBadges } from './CrmLabelPicker';
 import { format } from 'date-fns';
 import { AlertTriangle, Clock, Phone, Mail, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -38,6 +40,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [newStageName, setNewStageName] = useState('');
   const { stages, addStage, removeStage } = useCrmStages();
+  const { labels, leadLabelsMap } = useCrmLabels();
 
   const columns = useMemo(() => stages.map(s => ({
     ...s,
@@ -103,6 +106,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                       >
                         <div className="space-y-1.5">
                           <p className="font-bold text-sm truncate text-foreground">{lead.name}</p>
+                          <CrmLabelBadges labelIds={leadLabelsMap[lead.id] || []} labels={labels} />
                           {lead.email && (
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
                               <Mail className="h-3 w-3 shrink-0 text-primary/60" />{lead.email}
