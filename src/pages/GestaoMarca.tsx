@@ -612,7 +612,7 @@ export default function GestaoMarcaPage() {
                           </div>
                         ) : (
                           <button
-                            className={cn('w-full text-left px-3 py-2 text-sm hover:bg-muted/30 transition-colors', group.addColor)}
+                            className={cn('w-full text-left px-3 py-4 text-sm hover:bg-muted/30 transition-colors', group.addColor)}
                             onClick={() => setAddingToGroup(group.key)}
                           >
                             + New page
