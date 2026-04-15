@@ -34,12 +34,10 @@ function FuIcon({ state }: { state: FollowUpState }) {
   return null;
 }
 
-export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelineProps) {
+export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpen, onManageStagesChange }: CrmPipelineProps) {
   const [dragOver, setDragOver] = useState<string | null>(null);
-  const [manageOpen, setManageOpen] = useState(false);
   const [newStageName, setNewStageName] = useState('');
   const { stages, addStage, removeStage } = useCrmStages();
-  const { isOwner } = useAuth();
 
   const columns = useMemo(() => stages.map(s => ({
     ...s,
