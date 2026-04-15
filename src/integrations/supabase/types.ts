@@ -4413,6 +4413,59 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_goals: {
+        Row: {
+          channel_id: string | null
+          created_at: string
+          current_value: number
+          id: string
+          metric_key: string
+          metric_label: string
+          month: number
+          notes: string | null
+          sort_order: number
+          target_value: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          channel_id?: string | null
+          created_at?: string
+          current_value?: number
+          id?: string
+          metric_key?: string
+          metric_label?: string
+          month: number
+          notes?: string | null
+          sort_order?: number
+          target_value?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          channel_id?: string | null
+          created_at?: string
+          current_value?: number
+          id?: string
+          metric_key?: string
+          metric_label?: string
+          month?: number
+          notes?: string | null
+          sort_order?: number
+          target_value?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_goals_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_ideas: {
         Row: {
           category: string
@@ -8395,33 +8448,6 @@ export type Database = {
           pilar?: string
           sort_order?: number
           tipos_conteudo?: string
-        }
-        Relationships: []
-      }
-      strategy_monthly_objectives: {
-        Row: {
-          created_at: string
-          id: string
-          month: number
-          objective: string
-          sort_order: number
-          year: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          month: number
-          objective?: string
-          sort_order?: number
-          year: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          month?: number
-          objective?: string
-          sort_order?: number
-          year?: number
         }
         Relationships: []
       }

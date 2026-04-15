@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -611,6 +613,78 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
           }
         </CardContent></Card>
       </div>
+    </section>
+  );
+}
+
+// ─── Marketing Goals Section ───
+interface MarketingGoalsSectionProps {
+  currentMonth: number;
+  currentYear?: number;
+}
+
+export function MarketingGoalsSection({ currentMonth, currentYear }: MarketingGoalsSectionProps) {
+  const year = currentYear || new Date().getFullYear();
+
+  const { data: goals = [] } = useQuery({
+    queryKey: ['marketing-goals', year, currentMonth],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('marketing_goals')
+        .select('*')
+        .eq('year', year)
+        .eq('month', currentMonth)
+        .order('sort_order') as any;
+      return (data || []) as { id: string; metric_label: string; target_value: number; current_value: number; channel_id: string | null; notes: string | null }[];
+    },
+  });
+
+  const { data: channels = [] } = useQuery({
+    queryKey: ['marketing-channels-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_channels').select('id, name').order('sort_order') as any;
+      return (data || []) as { id: string; name: string }[];
+    },
+  });
+
+  const getChannelName = (id: string | null) => id ? channels.find(c => c.id === id)?.name || null : null;
+
+  if (goals.length === 0) return null;
+
+  return (
+    <section className="space-y-4">
+      <h2 className="text-base font-semibold">Metas de Marketing</h2>
+      <Card><div className="overflow-x-auto">
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>Métrica</TableHead>
+            <TableHead>Canal</TableHead>
+            <TableHead className="text-right">Alvo</TableHead>
+            <TableHead className="text-right">Atual</TableHead>
+            <TableHead className="text-right">Progresso</TableHead>
+          </TableRow></TableHeader>
+          <TableBody>
+            {goals.map(g => {
+              const pct = g.target_value > 0 ? Math.round((g.current_value / g.target_value) * 100) : 0;
+              const achieved = pct >= 100;
+              const channelName = getChannelName(g.channel_id);
+              return (
+                <TableRow key={g.id}>
+                  <TableCell className="text-sm font-medium">{g.metric_label}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{channelName || 'Geral'}</TableCell>
+                  <TableCell className="text-xs text-right">{g.target_value}</TableCell>
+                  <TableCell className="text-xs text-right">{g.current_value}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant={achieved ? 'default' : 'secondary'} className={cn('text-[10px]', achieved && 'bg-emerald-500 hover:bg-emerald-600')}>
+                      {pct}%
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div></Card>
     </section>
   );
 }

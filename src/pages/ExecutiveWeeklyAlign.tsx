@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
 import { WeeklyKpiCards, CapacityFinancialCards } from '@/components/executive/WeeklyAlignKpis';
 import { WeeklyStrategicMetrics } from '@/components/executive/WeeklyStrategicMetrics';
-import { MetasSection, AgendaSection, VendasSection, LeadsSection, ClientesSection, NpsSection, ExpiringContractsSection, OperacaoSection } from '@/components/executive/WeeklyAlignSections';
+import { MetasSection, AgendaSection, VendasSection, LeadsSection, ClientesSection, NpsSection, ExpiringContractsSection, OperacaoSection, MarketingGoalsSection } from '@/components/executive/WeeklyAlignSections';
 import { RoutinesSection } from '@/components/executive/WeeklyAlignRoutines';
 import { ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { toast } from 'sonner';
@@ -150,6 +150,8 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
         <MetasSection planning={planning} currentMonth={wa.currentMonth} onOpenDetail={openDetail} />
+        <Separator />
+        <MarketingGoalsSection currentMonth={wa.currentMonth} />
         <Separator />
         <AgendaSection events={wa.events} onOpenDetail={openDetail} />
         <Separator />

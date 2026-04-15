@@ -1,23 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
-  ChevronLeft, ChevronRight, Plus, Trash2, Check, X, Pencil, ExternalLink,
+  ChevronLeft, ChevronRight, Plus, Trash2, Pencil,
 } from 'lucide-react';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
+import { useEffect } from 'react';
 
 const DIST_COLUMNS = [
   { key: 'segunda', label: 'Segunda-Feira' },
@@ -40,8 +44,35 @@ const MONTH_NAMES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
+const METRIC_SUGGESTIONS = [
+  { key: 'followers', label: 'Seguidores' },
+  { key: 'followers_growth', label: 'Crescimento de Seguidores' },
+  { key: 'engagement_rate', label: 'Taxa de Engagement (%)' },
+  { key: 'reach', label: 'Alcance' },
+  { key: 'impressions', label: 'Impressões' },
+  { key: 'clicks', label: 'Cliques' },
+  { key: 'leads', label: 'Leads Gerados' },
+  { key: 'subscribers', label: 'Subscritores' },
+  { key: 'views', label: 'Visualizações' },
+  { key: 'conversions', label: 'Conversões' },
+  { key: 'traffic', label: 'Tráfego do Site' },
+  { key: 'custom', label: 'Personalizado' },
+];
+
+interface MarketingGoal {
+  id: string;
+  year: number;
+  month: number;
+  channel_id: string | null;
+  metric_key: string;
+  metric_label: string;
+  target_value: number;
+  current_value: number;
+  notes: string | null;
+  sort_order: number;
+}
+
 export default function MarketingEstrategia() {
-  const navigate = useNavigate();
   const { isOwner } = useAuth();
   const qc = useQueryClient();
 
@@ -78,51 +109,86 @@ export default function MarketingEstrategia() {
     },
   });
 
-  // ---- Monthly objectives ----
+  // ---- Marketing Goals ----
   const now = new Date();
-  const [objMonth, setObjMonth] = useState(now.getMonth() + 1);
-  const [objYear, setObjYear] = useState(now.getFullYear());
-  const [newObj, setNewObj] = useState('');
+  const [goalMonth, setGoalMonth] = useState(now.getMonth() + 1);
+  const [goalYear, setGoalYear] = useState(now.getFullYear());
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<MarketingGoal | null>(null);
+  const [goalForm, setGoalForm] = useState({ channel_id: '', metric_key: 'followers', metric_label: 'Seguidores', target_value: '', current_value: '', notes: '' });
 
-  const { data: monthlyObjectives = [] } = useQuery({
-    queryKey: ['strategy-monthly-objectives', objYear, objMonth],
+  const { data: marketingGoals = [] } = useQuery({
+    queryKey: ['marketing-goals', goalYear, goalMonth],
     queryFn: async () => {
       const { data } = await supabase
-        .from('strategy_monthly_objectives')
+        .from('marketing_goals')
         .select('*')
-        .eq('year', objYear)
-        .eq('month', objMonth)
+        .eq('year', goalYear)
+        .eq('month', goalMonth)
         .order('sort_order') as any;
-      return (data || []) as { id: string; year: number; month: number; objective: string; sort_order: number }[];
+      return (data || []) as MarketingGoal[];
     },
   });
 
   const prevMonth = () => {
-    if (objMonth === 1) { setObjMonth(12); setObjYear(y => y - 1); }
-    else setObjMonth(m => m - 1);
+    if (goalMonth === 1) { setGoalMonth(12); setGoalYear(y => y - 1); }
+    else setGoalMonth(m => m - 1);
   };
   const nextMonth = () => {
-    if (objMonth === 12) { setObjMonth(1); setObjYear(y => y + 1); }
-    else setObjMonth(m => m + 1);
+    if (goalMonth === 12) { setGoalMonth(1); setGoalYear(y => y + 1); }
+    else setGoalMonth(m => m + 1);
   };
 
-  const addObjective = async () => {
-    if (!newObj.trim()) return;
-    await supabase.from('strategy_monthly_objectives').insert({
-      year: objYear, month: objMonth, objective: newObj.trim(), sort_order: monthlyObjectives.length,
-    } as any);
-    setNewObj('');
-    qc.invalidateQueries({ queryKey: ['strategy-monthly-objectives', objYear, objMonth] });
+  const openNewGoal = () => {
+    setEditingGoal(null);
+    setGoalForm({ channel_id: '', metric_key: 'followers', metric_label: 'Seguidores', target_value: '', current_value: '', notes: '' });
+    setGoalDialogOpen(true);
   };
 
-  const deleteObjective = async (id: string) => {
-    await supabase.from('strategy_monthly_objectives').delete().eq('id', id);
-    qc.invalidateQueries({ queryKey: ['strategy-monthly-objectives', objYear, objMonth] });
+  const openEditGoal = (g: MarketingGoal) => {
+    setEditingGoal(g);
+    setGoalForm({
+      channel_id: g.channel_id || '',
+      metric_key: g.metric_key,
+      metric_label: g.metric_label,
+      target_value: String(g.target_value || ''),
+      current_value: String(g.current_value || ''),
+      notes: g.notes || '',
+    });
+    setGoalDialogOpen(true);
   };
 
-  const updateObjective = async (id: string, value: string) => {
-    await supabase.from('strategy_monthly_objectives').update({ objective: value } as any).eq('id', id);
-    qc.invalidateQueries({ queryKey: ['strategy-monthly-objectives', objYear, objMonth] });
+  const saveGoal = async () => {
+    const payload = {
+      year: goalYear,
+      month: goalMonth,
+      channel_id: goalForm.channel_id || null,
+      metric_key: goalForm.metric_key,
+      metric_label: goalForm.metric_label,
+      target_value: Number(goalForm.target_value) || 0,
+      current_value: Number(goalForm.current_value) || 0,
+      notes: goalForm.notes || null,
+      sort_order: editingGoal ? editingGoal.sort_order : marketingGoals.length,
+    };
+    if (editingGoal) {
+      await supabase.from('marketing_goals').update(payload as any).eq('id', editingGoal.id);
+    } else {
+      await supabase.from('marketing_goals').insert(payload as any);
+    }
+    qc.invalidateQueries({ queryKey: ['marketing-goals', goalYear, goalMonth] });
+    setGoalDialogOpen(false);
+    toast.success('Meta guardada');
+  };
+
+  const deleteGoal = async (id: string) => {
+    await supabase.from('marketing_goals').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['marketing-goals', goalYear, goalMonth] });
+    toast.success('Meta removida');
+  };
+
+  const updateCurrentValue = async (id: string, value: string) => {
+    await supabase.from('marketing_goals').update({ current_value: Number(value) || 0 } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['marketing-goals', goalYear, goalMonth] });
   };
 
   // ---- Helpers ----
@@ -184,6 +250,11 @@ export default function MarketingEstrategia() {
 
   const activeChannels = channels.filter(c => c.is_active);
 
+  const getChannelName = (channelId: string | null) => {
+    if (!channelId) return null;
+    return channels.find(c => c.id === channelId)?.name || null;
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -193,10 +264,9 @@ export default function MarketingEstrategia() {
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {/* ══════════════════════════════════════════════════════════════ */}
-          {/* SECÇÃO 1: Linha Editorial + Posicionamento + Público-Alvo + Links */}
+          {/* SECÇÃO 1: Foco + Linha Editorial + Posicionamento + Links */}
           {/* ══════════════════════════════════════════════════════════════ */}
 
-          {/* Foco */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-3">Foco Estratégico</h2>
             <Textarea
@@ -239,18 +309,15 @@ export default function MarketingEstrategia() {
                         <tr key={line.id} className="border-b last:border-0 group">
                           <td className="p-2">
                             <Input value={line.pilar} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
-                              onChange={e => updateEditorialLine(line.id, 'pilar', e.target.value)}
-                              placeholder="Ex: Educação" readOnly={!isOwner} />
+                              onChange={e => updateEditorialLine(line.id, 'pilar', e.target.value)} placeholder="Ex: Educação" readOnly={!isOwner} />
                           </td>
                           <td className="p-2">
                             <Input value={line.descricao} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
-                              onChange={e => updateEditorialLine(line.id, 'descricao', e.target.value)}
-                              placeholder="Descrição do pilar" readOnly={!isOwner} />
+                              onChange={e => updateEditorialLine(line.id, 'descricao', e.target.value)} placeholder="Descrição do pilar" readOnly={!isOwner} />
                           </td>
                           <td className="p-2">
                             <Input value={line.tipos_conteudo} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
-                              onChange={e => updateEditorialLine(line.id, 'tipos_conteudo', e.target.value)}
-                              placeholder="Tipos de conteúdo" readOnly={!isOwner} />
+                              onChange={e => updateEditorialLine(line.id, 'tipos_conteudo', e.target.value)} placeholder="Tipos de conteúdo" readOnly={!isOwner} />
                           </td>
                           {isOwner && (
                             <td className="p-2">
@@ -272,7 +339,7 @@ export default function MarketingEstrategia() {
             <section>
               <h2 className="text-lg font-semibold text-foreground mb-3">Posicionamento da Marca</h2>
               <Card>
-                <CardContent className="p-4 space-y-4">
+                <CardContent className="p-4">
                   <Textarea
                     value={posicionamento}
                     onChange={e => setPosicionamento(e.target.value)}
@@ -286,7 +353,7 @@ export default function MarketingEstrategia() {
             </section>
           </div>
 
-          {/* Público-Alvo + Links Relacionados */}
+          {/* Links rápidos */}
           <div className="flex flex-wrap items-center gap-3">
             <Link to="/hub/marketing/estrategia/publico-alvo"
               className="flex items-center gap-3 px-5 py-3 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all">
@@ -317,61 +384,108 @@ export default function MarketingEstrategia() {
           <Separator />
 
           {/* ══════════════════════════════════════════════════════════════ */}
-          {/* SECÇÃO 2: Objetivos Mensais de Marketing */}
+          {/* SECÇÃO 2: Metas de Marketing (mensuráveis) */}
           {/* ══════════════════════════════════════════════════════════════ */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Objetivos Mensais</h2>
+              <h2 className="text-lg font-semibold text-foreground">Metas de Marketing</h2>
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={prevMonth}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm font-medium min-w-[140px] text-center">
-                  {MONTH_NAMES[objMonth - 1]} {objYear}
+                  {MONTH_NAMES[goalMonth - 1]} {goalYear}
                 </span>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={nextMonth}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
+                {isOwner && (
+                  <Button variant="outline" size="sm" className="ml-2" onClick={openNewGoal}>
+                    <Plus className="h-3.5 w-3.5 mr-1" />Nova Meta
+                  </Button>
+                )}
               </div>
             </div>
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                {monthlyObjectives.length === 0 && !isOwner && (
-                  <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum objetivo definido para este mês.</p>
-                )}
-                {monthlyObjectives.map(obj => (
-                  <div key={obj.id} className="flex items-start gap-2 group">
-                    <span className="text-primary mt-1.5 text-xs">●</span>
-                    <Input
-                      value={obj.objective}
-                      className="flex-1 h-8 text-sm border-transparent hover:border-input focus:border-input"
-                      onChange={e => updateObjective(obj.id, e.target.value)}
-                      readOnly={!isOwner}
-                    />
-                    {isOwner && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
-                        onClick={() => deleteObjective(obj.id)}>
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                {isOwner && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <Input
-                      value={newObj}
-                      onChange={e => setNewObj(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && addObjective()}
-                      placeholder="Adicionar objetivo..."
-                      className="flex-1 h-8 text-sm"
-                    />
-                    <Button size="sm" variant="outline" className="h-8" onClick={addObjective} disabled={!newObj.trim()}>
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+
+            {marketingGoals.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground text-sm italic">
+                  Nenhuma meta definida para este mês.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {marketingGoals.map(g => {
+                  const channelName = getChannelName(g.channel_id);
+                  const pct = g.target_value > 0 ? Math.round((g.current_value / g.target_value) * 100) : 0;
+                  const achieved = pct >= 100;
+                  return (
+                    <Card key={g.id} className="group relative">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{g.metric_label}</p>
+                            {channelName && (
+                              <Badge variant="secondary" className="text-[10px] mt-1">
+                                {CHANNEL_EMOJI[channelName] || '📢'} {channelName}
+                              </Badge>
+                            )}
+                            {!channelName && (
+                              <Badge variant="outline" className="text-[10px] mt-1">Geral</Badge>
+                            )}
+                          </div>
+                          {isOwner && (
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}>
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Progress */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-2xl font-bold text-foreground">{g.current_value}</span>
+                            <span className="text-sm text-muted-foreground">/ {g.target_value}</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={cn('h-full rounded-full transition-all', achieved ? 'bg-emerald-500' : 'bg-primary')}
+                              style={{ width: `${Math.min(pct, 100)}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className={cn('text-xs font-medium', achieved ? 'text-emerald-600' : pct >= 75 ? 'text-primary' : 'text-muted-foreground')}>
+                              {pct}%
+                            </span>
+                            {achieved && <Badge className="text-[10px] bg-emerald-500 hover:bg-emerald-600">Atingida ✓</Badge>}
+                          </div>
+                        </div>
+
+                        {/* Quick update current value */}
+                        {isOwner && (
+                          <div className="pt-1 border-t">
+                            <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Valor atual</label>
+                            <Input
+                              type="number"
+                              className="h-7 text-sm mt-1"
+                              defaultValue={g.current_value}
+                              onBlur={e => updateCurrentValue(g.id, e.target.value)}
+                            />
+                          </div>
+                        )}
+
+                        {g.notes && <p className="text-xs text-muted-foreground">{g.notes}</p>}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           <Separator />
@@ -419,19 +533,14 @@ export default function MarketingEstrategia() {
                         <Card key={card.id} className="group relative">
                           <CardContent className="p-2.5 space-y-1.5">
                             <Input value={card.title} className="h-7 text-xs font-medium border-transparent hover:border-input focus:border-input p-1"
-                              onChange={e => updateDistCard(card.id, 'title', e.target.value)}
-                              placeholder="Nome" readOnly={!isOwner} />
-                            {card.channel && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">{card.channel}</Badge>
-                            )}
+                              onChange={e => updateDistCard(card.id, 'title', e.target.value)} placeholder="Nome" readOnly={!isOwner} />
+                            {card.channel && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">{card.channel}</Badge>}
                             {isOwner && (
                               <Input value={card.channel || ''} className="h-6 text-[10px] border-transparent hover:border-input focus:border-input p-1"
-                                onChange={e => updateDistCard(card.id, 'channel', e.target.value)}
-                                placeholder="Canal" />
+                                onChange={e => updateDistCard(card.id, 'channel', e.target.value)} placeholder="Canal" />
                             )}
                             <Input value={card.description || ''} className="h-6 text-[10px] border-transparent hover:border-input focus:border-input p-1"
-                              onChange={e => updateDistCard(card.id, 'description', e.target.value)}
-                              placeholder="Descrição" readOnly={!isOwner} />
+                              onChange={e => updateDistCard(card.id, 'description', e.target.value)} placeholder="Descrição" readOnly={!isOwner} />
                             {isOwner && (
                               <Button variant="ghost" size="icon"
                                 className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100"
@@ -456,6 +565,71 @@ export default function MarketingEstrategia() {
           </section>
         </div>
       </div>
+
+      {/* ── Goal Dialog ── */}
+      <Dialog open={goalDialogOpen} onOpenChange={setGoalDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingGoal ? 'Editar Meta' : 'Nova Meta de Marketing'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs">Canal (opcional)</Label>
+              <Select value={goalForm.channel_id} onValueChange={v => setGoalForm(f => ({ ...f, channel_id: v === '__none__' ? '' : v }))}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Geral (sem canal)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Geral (sem canal)</SelectItem>
+                  {activeChannels.map(ch => (
+                    <SelectItem key={ch.id} value={ch.id}>{CHANNEL_EMOJI[ch.name] || '📢'} {ch.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-xs">Métrica</Label>
+              <Select value={goalForm.metric_key} onValueChange={v => {
+                const suggestion = METRIC_SUGGESTIONS.find(s => s.key === v);
+                setGoalForm(f => ({ ...f, metric_key: v, metric_label: suggestion?.label || f.metric_label }));
+              }}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {METRIC_SUGGESTIONS.map(m => (
+                    <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {goalForm.metric_key === 'custom' && (
+              <div>
+                <Label className="text-xs">Nome da métrica</Label>
+                <Input className="mt-1" value={goalForm.metric_label} onChange={e => setGoalForm(f => ({ ...f, metric_label: e.target.value }))} placeholder="Nome personalizado" />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Valor alvo</Label>
+                <Input type="number" className="mt-1" value={goalForm.target_value} onChange={e => setGoalForm(f => ({ ...f, target_value: e.target.value }))} placeholder="0" />
+              </div>
+              <div>
+                <Label className="text-xs">Valor atual</Label>
+                <Input type="number" className="mt-1" value={goalForm.current_value} onChange={e => setGoalForm(f => ({ ...f, current_value: e.target.value }))} placeholder="0" />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-xs">Notas (opcional)</Label>
+              <Textarea className="mt-1" rows={2} value={goalForm.notes} onChange={e => setGoalForm(f => ({ ...f, notes: e.target.value }))} placeholder="Contexto ou estratégia para atingir esta meta..." />
+            </div>
+
+            <Button className="w-full" onClick={saveGoal}>
+              {editingGoal ? 'Guardar alterações' : 'Criar Meta'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
