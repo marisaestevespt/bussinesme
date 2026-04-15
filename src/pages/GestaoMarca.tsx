@@ -93,6 +93,10 @@ export default function GestaoMarcaPage() {
   const [editingPuv, setEditingPuv] = useState(false);
   const [tempPuv, setTempPuv] = useState('');
 
+  // About text
+  const [editingAbout, setEditingAbout] = useState(false);
+  const [tempAbout, setTempAbout] = useState('');
+
   // Links
   const [showAddLink, setShowAddLink] = useState<'folder' | 'shortcut' | null>(null);
   const [linkLabel, setLinkLabel] = useState('');
@@ -200,6 +204,15 @@ export default function GestaoMarcaPage() {
     const { error } = await supabase.from('business_settings').update({ proposta_unica_valor: tempPuv } as any).eq('id', settings.id);
     if (error) toast.error('Erro ao guardar');
     else { toast.success('Guardado'); refetchSettings(); setEditingPuv(false); }
+  };
+
+  const aboutText = (settings as any)?.about_text || '';
+
+  const saveAbout = async () => {
+    if (!settings) return;
+    const { error } = await supabase.from('business_settings').update({ about_text: tempAbout } as any).eq('id', settings.id);
+    if (error) toast.error('Erro ao guardar');
+    else { toast.success('Guardado'); refetchSettings(); setEditingAbout(false); }
   };
 
   // ── Links mutations ──
