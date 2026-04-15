@@ -1100,6 +1100,24 @@ export default function GestaoMarcaPage() {
           </Button>
         </DialogContent>
       </Dialog>
+
+      {/* ── Add Visual Card Dialog ── */}
+      <Dialog open={showAddVisualCard} onOpenChange={open => { if (!open) { setShowAddVisualCard(false); setNewVisualTitle(''); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova Categoria Visual</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Nome da categoria</label>
+              <Input value={newVisualTitle} onChange={e => setNewVisualTitle(e.target.value)} placeholder="Ex: Logótipo, Paleta de Cores, Tipografia..." onKeyDown={e => e.key === 'Enter' && addVisualCard()} autoFocus />
+            </div>
+            <Button className="w-full" disabled={!newVisualTitle.trim()} onClick={addVisualCard}>
+              <Plus className="h-3.5 w-3.5 mr-1" />Criar Categoria
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
