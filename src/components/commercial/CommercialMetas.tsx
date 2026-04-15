@@ -185,7 +185,7 @@ export function CommercialMetas() {
       <section>
         <h3 className="text-lg font-semibold mb-3">Meta Anual</h3>
         <Card className="bg-card/60">
-          <CardContent className="pt-6">
+          <CardContent className="py-6">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div><p className="text-sm text-muted-foreground">Ano</p><p className="text-lg font-medium">{data.year}</p></div>
               <div>
