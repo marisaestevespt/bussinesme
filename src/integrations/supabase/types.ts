@@ -8400,7 +8400,9 @@ export type Database = {
           column_key: string
           created_at: string
           description: string | null
+          files: Json | null
           id: string
+          link_url: string | null
           sort_order: number
           title: string
         }
@@ -8409,7 +8411,9 @@ export type Database = {
           column_key: string
           created_at?: string
           description?: string | null
+          files?: Json | null
           id?: string
+          link_url?: string | null
           sort_order?: number
           title?: string
         }
@@ -8418,7 +8422,9 @@ export type Database = {
           column_key?: string
           created_at?: string
           description?: string | null
+          files?: Json | null
           id?: string
+          link_url?: string | null
           sort_order?: number
           title?: string
         }
