@@ -36,6 +36,7 @@ import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection
 import { CustomFieldsSection } from '@/components/CustomFieldsSection';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog';
+import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
 
 // ─── Meetings query ─────────────────────────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
@@ -784,6 +785,8 @@ export default function ClienteDetailPage() {
 
           {/* ─── Tab 2: Gestão do Cliente ──────────────────── */}
           <TabsContent value="gestao" className="space-y-6 mt-4">
+            {/* Financial Health */}
+            {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
             {/* Meetings */}
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
