@@ -261,13 +261,28 @@ export default function MarketingFunilDetail() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-3">Plataforma(s)</h2>
             {editing ? (
-              <div className="flex flex-wrap gap-3">
-                {PLATAFORMAS.map(p => (
-                  <label key={p} className="flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={form.plataformas.includes(p)} onCheckedChange={() => toggleMulti('plataformas', p)} />
-                    <span className="text-sm">{p}</span>
-                  </label>
-                ))}
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-3">
+                  {allPlataformas.map(p => (
+                    <label key={p} className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox checked={form.plataformas.includes(p)} onCheckedChange={() => toggleMulti('plataformas', p)} />
+                      <span className="text-sm">{p}</span>
+                    </label>
+                  ))}
+                </div>
+                {addingPlat ? (
+                  <div className="flex gap-2 items-center">
+                    <Input value={newPlat} onChange={e => setNewPlat(e.target.value)} placeholder="Nova plataforma" className="h-8 w-48" autoFocus />
+                    <Button size="sm" variant="outline" className="h-8" disabled={!newPlat.trim()} onClick={() => {
+                      const val = newPlat.trim();
+                      setForm(f => ({ ...f, plataformas: [...f.plataformas, val] }));
+                      setNewPlat(''); setAddingPlat(false);
+                    }}>OK</Button>
+                    <Button size="sm" variant="ghost" className="h-8" onClick={() => { setAddingPlat(false); setNewPlat(''); }}>Cancelar</Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => setAddingPlat(true)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar nova</Button>
+                )}
               </div>
             ) : (
               <div className="flex flex-wrap gap-1.5">
