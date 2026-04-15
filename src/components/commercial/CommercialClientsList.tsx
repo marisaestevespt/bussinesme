@@ -38,11 +38,8 @@ export function CommercialClientsList() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [productFilter, setProductFilter] = useState<string>('all');
-  
 
-  // Unique values for filter dropdowns
   const products = useMemo(() => [...new Set(items.map(c => c.current_product).filter(Boolean))].sort(), [items]);
-  
 
   const filtered = useMemo(() => {
     let result = items;
@@ -76,7 +73,6 @@ export function CommercialClientsList() {
     setSearch('');
     setStatusFilter('all');
     setProductFilter('all');
-    
   };
 
   return (
@@ -117,7 +113,6 @@ export function CommercialClientsList() {
           </SelectContent>
         </Select>
 
-
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
             <X className="h-3.5 w-3.5" /> Limpar
@@ -133,7 +128,7 @@ export function CommercialClientsList() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-8 gap-2">
+          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-9 gap-2">
             <span>ID</span>
             <span>Data de Início</span>
             <span>Status</span>
@@ -141,6 +136,7 @@ export function CommercialClientsList() {
             <span>E-mail</span>
             <span>Whatsapp</span>
             <span>Produto Atual</span>
+            <span>Saúde Fin.</span>
             <span>Fim de Ciclo</span>
           </div>
           {filtered.length === 0 ? (
@@ -148,26 +144,34 @@ export function CommercialClientsList() {
               {items.length === 0 ? 'Sem clientes registados' : 'Nenhum cliente corresponde aos filtros'}
             </p>
           ) : (
-            filtered.map(c => (
-              <div
-                key={c.id}
-                className="px-4 py-2.5 text-sm grid grid-cols-8 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
-                onClick={() => navigate(`/hub/clientes/${c.id}`)}
-              >
-                <span className="font-mono text-xs">{c.client_id}</span>
-                <span>{c.start_date ? format(parseISO(c.start_date), 'dd/MM/yyyy') : '—'}</span>
-                <span>
-                  <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
-                    {STATUS_BADGE[c.status]?.label || c.status}
-                  </Badge>
-                </span>
-                <span className="truncate">{c.full_name}</span>
-                <span className="truncate text-muted-foreground">{c.email || '—'}</span>
-                <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
-                <span className="truncate">{c.current_product || '—'}</span>
-                <span><EndOfCycleBadge date={c.end_of_cycle} /></span>
-              </div>
-            ))
+            filtered.map(c => {
+              const health = getHealth(c.full_name);
+              return (
+                <div
+                  key={c.id}
+                  className="px-4 py-2.5 text-sm grid grid-cols-9 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                  onClick={() => navigate(`/hub/clientes/${c.id}`)}
+                >
+                  <span className="font-mono text-xs">{c.client_id}</span>
+                  <span>{c.start_date ? format(parseISO(c.start_date), 'dd/MM/yyyy') : '—'}</span>
+                  <span>
+                    <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
+                      {STATUS_BADGE[c.status]?.label || c.status}
+                    </Badge>
+                  </span>
+                  <span className="truncate">{c.full_name}</span>
+                  <span className="truncate text-muted-foreground">{c.email || '—'}</span>
+                  <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
+                  <span className="truncate">{c.current_product || '—'}</span>
+                  <span>
+                    <Badge variant="outline" className={HEALTH_BADGE[health.status]?.className || ''}>
+                      {health.label}
+                    </Badge>
+                  </span>
+                  <span><EndOfCycleBadge date={c.end_of_cycle} /></span>
+                </div>
+              );
+            })
           )}
         </CardContent>
       </Card>
