@@ -159,7 +159,6 @@ export default function ClientesPage() {
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <CardTitle className="text-base font-semibold">Lista de Clientes & Alunos</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">Mostrando {items.length} de {clients.totalCount}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Tabs value={tab} onValueChange={v => setTab(v as any)}>
