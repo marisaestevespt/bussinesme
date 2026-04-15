@@ -354,7 +354,6 @@ export default function GestaoMarcaPage() {
     setAddingVisualLink(false);
     toast.success('Link adicionado');
   };
-  };
 
   // ── Competitor mutations ──
 
