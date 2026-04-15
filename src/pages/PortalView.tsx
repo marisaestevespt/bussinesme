@@ -74,12 +74,14 @@ export default function PortalViewPage() {
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
     let portalData: any = null;
     if (isUUID) {
-      const { data } = await sb('client_portals').select('*').eq('token', token).maybeSingle();
-      portalData = data;
+      const { data } = await (supabase as any).rpc('get_portal_by_token', { _token: token });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) portalData = { ...row, token };
     }
     if (!portalData) {
-      const { data } = await sb('client_portals').select('*').eq('slug', token).eq('is_active', true).maybeSingle();
-      portalData = data;
+      const { data } = await (supabase as any).rpc('get_portal_by_slug', { _slug: token });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) portalData = { ...row, slug: token };
     }
     if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
     const session = localStorage.getItem(`portal_session_${portalData.id}`);

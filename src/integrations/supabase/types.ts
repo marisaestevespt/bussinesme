@@ -9190,6 +9190,24 @@ export type Database = {
           token: string
         }[]
       }
+      get_portal_by_token: {
+        Args: { _token: string }
+        Returns: {
+          client_id: string
+          id: string
+          is_active: boolean
+          portal_type: Database["public"]["Enums"]["portal_type"]
+          show_faqs: boolean
+          show_materials: boolean
+          show_meetings: boolean
+          show_monthly_summary: boolean
+          show_onboarding: boolean
+          show_payments: boolean
+          show_timeline: boolean
+          show_workspace: boolean
+          slug: string
+        }[]
+      }
       get_portal_client_context: {
         Args: { _token: string }
         Returns: {
@@ -9303,6 +9321,7 @@ export type Database = {
         Args: { _email: string; _token: string }
         Returns: boolean
       }
+      portal_record_visit: { Args: { _token: string }; Returns: undefined }
       portal_submit_initial_questions: {
         Args: { _token: string }
         Returns: boolean
