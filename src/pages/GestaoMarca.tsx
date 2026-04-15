@@ -114,6 +114,9 @@ export default function GestaoMarcaPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showAddVisualCard, setShowAddVisualCard] = useState(false);
   const [newVisualTitle, setNewVisualTitle] = useState('');
+  const [addingVisualLink, setAddingVisualLink] = useState(false);
+  const [visualLinkLabel, setVisualLinkLabel] = useState('');
+  const [visualLinkUrl, setVisualLinkUrl] = useState('');
 
   // Competitors
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
