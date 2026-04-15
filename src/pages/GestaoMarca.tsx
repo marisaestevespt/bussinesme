@@ -74,11 +74,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal', color: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-900' },
-  { key: 'mercado', label: 'Mercado', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-900' },
-  { key: 'posicionamento', label: 'Posicionamento', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-900' },
-  { key: 'identidade', label: 'Identidade', color: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300', border: 'border-red-200 dark:border-red-900' },
-  { key: 'impacto', label: 'Impacto', color: 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300', border: 'border-teal-200 dark:border-teal-900' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-orange-100 dark:bg-orange-950', headerText: 'text-orange-600 dark:text-orange-300', dotBg: 'bg-orange-400', addColor: 'text-orange-500' },
+  { key: 'mercado', label: 'Mercado', headerBg: 'bg-yellow-100 dark:bg-yellow-950', headerText: 'text-yellow-700 dark:text-yellow-300', dotBg: 'bg-yellow-500', addColor: 'text-yellow-600' },
+  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-blue-100 dark:bg-blue-950', headerText: 'text-blue-600 dark:text-blue-300', dotBg: 'bg-blue-400', addColor: 'text-blue-500' },
+  { key: 'identidade', label: 'Identidade', headerBg: 'bg-red-100 dark:bg-red-950', headerText: 'text-red-600 dark:text-red-300', dotBg: 'bg-red-400', addColor: 'text-red-500' },
+  { key: 'impacto', label: 'Impacto', headerBg: 'bg-teal-100 dark:bg-teal-950', headerText: 'text-teal-600 dark:text-teal-300', dotBg: 'bg-teal-400', addColor: 'text-teal-500' },
 ];
 
 // ── Page ──
