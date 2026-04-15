@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
 import { useCrmStages } from '@/hooks/useCrmStages';
+import { useCrmLabels } from '@/hooks/useCrmLabels';
+import { CrmLabelBadges } from './CrmLabelPicker';
 import { format } from 'date-fns';
 import { AlertTriangle, Clock, Phone, Mail, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
