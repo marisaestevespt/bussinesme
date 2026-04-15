@@ -17,14 +17,14 @@ import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 
 const DIST_COLUMNS = [
-  { key: 'segunda', label: 'Segunda-Feira' },
-  { key: 'terca', label: 'Terça-Feira' },
-  { key: 'quarta', label: 'Quarta-Feira' },
-  { key: 'quinta', label: 'Quinta-Feira' },
-  { key: 'sexta', label: 'Sexta-Feira' },
-  { key: 'sabado', label: 'Sábado' },
-  { key: 'domingo', label: 'Domingo' },
-  { key: 'mensal', label: 'Mensal' },
+  { key: 'segunda', label: 'Segunda', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', addColor: 'text-[hsl(351,35%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
+  { key: 'terca', label: 'Terça', headerBg: 'bg-[hsl(25,35%,93%)] dark:bg-[hsl(25,30%,15%)]', headerText: 'text-[hsl(25,50%,45%)] dark:text-[hsl(25,50%,65%)]', addColor: 'text-[hsl(25,45%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(25,50%,70%)]' },
+  { key: 'quarta', label: 'Quarta', headerBg: 'bg-[hsl(33,30%,92%)] dark:bg-[hsl(33,25%,15%)]', headerText: 'text-[hsl(33,40%,42%)] dark:text-[hsl(33,40%,62%)]', addColor: 'text-[hsl(33,35%,52%)]', cardBorder: 'border-l-[3px] border-[hsl(33,40%,65%)]' },
+  { key: 'quinta', label: 'Quinta', headerBg: 'bg-[hsl(10,35%,93%)] dark:bg-[hsl(10,30%,15%)]', headerText: 'text-[hsl(10,45%,48%)] dark:text-[hsl(10,45%,65%)]', addColor: 'text-[hsl(10,40%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(10,45%,70%)]' },
+  { key: 'sexta', label: 'Sexta', headerBg: 'bg-[hsl(18,30%,92%)] dark:bg-[hsl(18,25%,15%)]', headerText: 'text-[hsl(18,40%,44%)] dark:text-[hsl(18,40%,64%)]', addColor: 'text-[hsl(18,35%,54%)]', cardBorder: 'border-l-[3px] border-[hsl(18,40%,68%)]' },
+  { key: 'sabado', label: 'Sábado', headerBg: 'bg-[hsl(200,30%,93%)] dark:bg-[hsl(200,25%,15%)]', headerText: 'text-[hsl(200,40%,45%)] dark:text-[hsl(200,40%,65%)]', addColor: 'text-[hsl(200,35%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(200,40%,70%)]' },
+  { key: 'domingo', label: 'Domingo', headerBg: 'bg-[hsl(160,28%,92%)] dark:bg-[hsl(160,22%,15%)]', headerText: 'text-[hsl(160,35%,40%)] dark:text-[hsl(160,35%,60%)]', addColor: 'text-[hsl(160,30%,50%)]', cardBorder: 'border-l-[3px] border-[hsl(160,35%,65%)]' },
+  { key: 'mensal', label: 'Mensal', headerBg: 'bg-[hsl(270,25%,93%)] dark:bg-[hsl(270,20%,15%)]', headerText: 'text-[hsl(270,30%,48%)] dark:text-[hsl(270,30%,65%)]', addColor: 'text-[hsl(270,25%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(270,30%,70%)]' },
 ];
 
 const CHANNEL_EMOJI: Record<string, string> = {
@@ -171,19 +171,34 @@ export default function MarketingEstrategia() {
             </section>
           </div>
 
-          {/* Links rápidos */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Link to="/hub/marketing/estrategia/publico-alvo" className="flex items-center gap-3 px-5 py-3 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all">
-              <span className="text-xl">🎯</span>
-              <div><span className="text-sm font-medium text-foreground">Público-Alvo</span><p className="text-xs text-muted-foreground">Personas, dores e jornada</p></div>
+          {/* Links rápidos — full width colorful cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Link to="/hub/marketing/estrategia/publico-alvo" className="group flex items-center gap-4 p-5 rounded-2xl border-2 border-[hsl(351,30%,88%)] bg-[hsl(351,30%,96%)] dark:bg-[hsl(351,25%,14%)] dark:border-[hsl(351,25%,22%)] hover:border-primary/40 hover:shadow-md transition-all">
+              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[hsl(351,40%,90%)] dark:bg-[hsl(351,30%,20%)] group-hover:scale-110 transition-transform">
+                <span className="text-2xl">🎯</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-semibold text-foreground">Público-Alvo</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Personas, dores e jornada</p>
+              </div>
             </Link>
-            <Link to="/hub/marketing/gestao-marca" className="flex items-center gap-3 px-5 py-3 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all">
-              <span className="text-xl">🎨</span>
-              <div><span className="text-sm font-medium text-foreground">Gestão de Marca</span><p className="text-xs text-muted-foreground">Identidade e branding</p></div>
+            <Link to="/hub/marketing/gestao-marca" className="group flex items-center gap-4 p-5 rounded-2xl border-2 border-[hsl(25,35%,87%)] bg-[hsl(25,35%,95%)] dark:bg-[hsl(25,28%,14%)] dark:border-[hsl(25,25%,22%)] hover:border-primary/40 hover:shadow-md transition-all">
+              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[hsl(25,40%,88%)] dark:bg-[hsl(25,30%,20%)] group-hover:scale-110 transition-transform">
+                <span className="text-2xl">🎨</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-semibold text-foreground">Gestão de Marca</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Identidade e branding</p>
+              </div>
             </Link>
-            <Link to="/hub/marketing/banco-ideias" className="flex items-center gap-3 px-5 py-3 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all">
-              <span className="text-xl">💡</span>
-              <div><span className="text-sm font-medium text-foreground">Banco de Ideias</span><p className="text-xs text-muted-foreground">Conteúdos e inspiração</p></div>
+            <Link to="/hub/marketing/banco-ideias" className="group flex items-center gap-4 p-5 rounded-2xl border-2 border-[hsl(38,40%,85%)] bg-[hsl(38,40%,95%)] dark:bg-[hsl(38,28%,14%)] dark:border-[hsl(38,25%,22%)] hover:border-primary/40 hover:shadow-md transition-all">
+              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[hsl(38,45%,86%)] dark:bg-[hsl(38,30%,20%)] group-hover:scale-110 transition-transform">
+                <span className="text-2xl">💡</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-semibold text-foreground">Banco de Ideias</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Conteúdos e inspiração</p>
+              </div>
             </Link>
           </div>
 
@@ -217,10 +232,13 @@ export default function MarketingEstrategia() {
                 const colCards = distCards.filter(c => c.column_key === col.key);
                 return (
                   <div key={col.key} className="flex flex-col">
-                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center pb-2 border-b mb-2">{col.label}</div>
+                    <div className={cn('rounded-lg px-2 py-2 mb-2 text-center', col.headerBg)}>
+                      <span className={cn('text-xs font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
+                      <span className={cn('ml-1.5 text-[10px] font-medium', col.headerText, 'opacity-60')}>({colCards.length})</span>
+                    </div>
                     <div className="space-y-2 flex-1 min-h-[120px]">
                       {colCards.map(card => (
-                        <Card key={card.id} className="group relative">
+                        <Card key={card.id} className={cn('group relative', col.cardBorder)}>
                           <CardContent className="p-2.5 space-y-1.5">
                             <Input value={card.title} className="h-7 text-xs font-medium border-transparent hover:border-input focus:border-input p-1" onChange={e => updateDistCard(card.id, 'title', e.target.value)} placeholder="Nome" readOnly={!isOwner} />
                             {card.channel && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">{card.channel}</Badge>}
@@ -231,7 +249,7 @@ export default function MarketingEstrategia() {
                         </Card>
                       ))}
                     </div>
-                    {isOwner && <Button variant="ghost" size="sm" className="w-full mt-2 text-xs text-muted-foreground" onClick={() => addDistCard(col.key)}><Plus className="h-3 w-3 mr-1" />Adicionar</Button>}
+                    {isOwner && <Button variant="ghost" size="sm" className={cn('w-full mt-2 text-xs', col.addColor)} onClick={() => addDistCard(col.key)}><Plus className="h-3 w-3 mr-1" />Adicionar</Button>}
                   </div>
                 );
               })}
