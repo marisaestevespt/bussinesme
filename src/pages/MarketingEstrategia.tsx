@@ -289,13 +289,17 @@ export default function MarketingEstrategia() {
               <p className="text-sm text-muted-foreground italic">Nenhum canal ativo. Ativa canais nas Definições.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {activeChannels.map(ch => (
-                  <Link key={ch.id} to={`/hub/marketing/estrategia/canal/${ch.id}`}
-                    className="flex flex-col items-center gap-2 p-5 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all text-center">
-                    <span className="text-2xl">{CHANNEL_EMOJI[ch.name] || '📢'}</span>
-                    <span className="text-sm font-medium text-foreground">{ch.name}</span>
-                  </Link>
-                ))}
+                {activeChannels.map(ch => {
+                  const bgImg = CHANNEL_IMAGE[ch.name] || channelDefault;
+                  return (
+                    <Link key={ch.id} to={`/hub/marketing/estrategia/canal/${ch.id}`}
+                      className="relative flex items-end rounded-xl border overflow-hidden hover:border-primary/30 hover:shadow-md transition-all group h-28">
+                      <img src={bgImg} alt={ch.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <span className="relative z-10 text-sm font-semibold text-white px-4 pb-3 drop-shadow-md">{ch.name}</span>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </section>
