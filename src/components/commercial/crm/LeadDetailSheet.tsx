@@ -14,6 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload, X } from 'lucide-react';
+import { CrmLabelPicker, CrmLabelBadges } from './CrmLabelPicker';
+import { useCrmLabels } from '@/hooks/useCrmLabels';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
@@ -39,6 +41,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
   const { stages: CRM_STATUSES } = useCrmStages();
   const { data: commercialMembers = [] } = useCommercialMembers();
+  const { labels, leadLabelsMap } = useCrmLabels();
   const [form, setForm] = useState<any>({});
   const [interactionDialog, setInteractionDialog] = useState(false);
   const [newAction, setNewAction] = useState('');
