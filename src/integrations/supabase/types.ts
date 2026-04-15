@@ -2301,6 +2301,38 @@ export type Database = {
           },
         ]
       }
+      crm_labels: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          pipeline_id: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          pipeline_id?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          pipeline_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_labels_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "crm_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_lead_actions: {
         Row: {
           completed: boolean
@@ -2329,6 +2361,42 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "crm_lead_actions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_lead_labels: {
+        Row: {
+          created_at: string
+          id: string
+          label_id: string
+          lead_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label_id: string
+          lead_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label_id?: string
+          lead_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_lead_labels_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "crm_labels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_lead_labels_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "crm_leads"
@@ -2406,6 +2474,42 @@ export type Database = {
             columns: ["responsible_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_pipeline_labels: {
+        Row: {
+          created_at: string
+          id: string
+          label_id: string
+          pipeline_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label_id: string
+          pipeline_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label_id?: string
+          pipeline_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_pipeline_labels_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "crm_labels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_pipeline_labels_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "crm_pipelines"
             referencedColumns: ["id"]
           },
         ]
