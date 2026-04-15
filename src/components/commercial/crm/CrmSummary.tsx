@@ -34,15 +34,16 @@ interface CrmSummaryProps {
 
 export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThisMonth, allLeads, onOpenLead }: CrmSummaryProps) {
   const navigate = useNavigate();
+  const { stages } = useCrmStages();
   const chartData = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const lead of allLeads) {
       counts[lead.status] = (counts[lead.status] || 0) + 1;
     }
-    return CRM_STATUSES
+    return stages
       .map(s => ({ status: s.value, label: s.label, count: counts[s.value] || 0 }))
       .filter(d => d.count > 0);
-  }, [allLeads]);
+  }, [allLeads, stages]);
 
   return (
     <div className="space-y-4">
