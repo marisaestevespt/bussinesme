@@ -429,9 +429,23 @@ export default function GestaoMarcaPage() {
           <Card className="overflow-hidden">
             <CardContent className="p-6">
               <div className="flex items-start gap-6">
-                {settings?.logo_url && (
+                {isOwner ? (
+                  <label className="cursor-pointer group relative">
+                    {settings?.logo_url ? (
+                      <img src={settings.logo_url} alt={settings.business_name} className="h-20 w-20 rounded-xl object-contain border bg-muted/30 p-2 shrink-0 group-hover:opacity-70 transition-opacity" />
+                    ) : (
+                      <div className="h-20 w-20 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center shrink-0 group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
+                        <Upload className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-background/60">
+                      <Upload className="h-4 w-4 text-foreground" />
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
+                  </label>
+                ) : settings?.logo_url ? (
                   <img src={settings.logo_url} alt={settings.business_name} className="h-20 w-20 rounded-xl object-contain border bg-muted/30 p-2 shrink-0" />
-                )}
+                ) : null}
                 <div className="flex-1 space-y-3">
                   <h2 className="text-2xl font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
                   <div>
@@ -548,10 +562,10 @@ export default function GestaoMarcaPage() {
                 return (
                   <div key={group.key} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</h3>
-                      <span className="text-[10px] text-muted-foreground/60 bg-muted rounded-full px-1.5">{items.length}</span>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/70">{group.label}</h3>
+                      <span className="text-[10px] text-foreground/50 bg-muted rounded-full px-1.5">{items.length}</span>
                     </div>
-                    <div className="space-y-1.5 min-h-[60px]">
+                    <div className="space-y-1.5 min-h-[60px] bg-muted/20 rounded-lg p-2 border border-border/50">
                       {items.map(item => (
                         <Card
                           key={item.id}
@@ -559,7 +573,7 @@ export default function GestaoMarcaPage() {
                           onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); }}
                         >
                           <CardContent className="p-3 flex items-center justify-between">
-                            <span className="text-sm text-foreground">{item.title}</span>
+                            <span className="text-sm text-foreground font-medium">{item.title}</span>
                             {isOwner && (
                               <Button
                                 variant="ghost"
