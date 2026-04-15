@@ -74,7 +74,7 @@ export function CommercialClientsList() {
     setSearch('');
     setStatusFilter('all');
     setProductFilter('all');
-    setPaymentFilter('all');
+    
   };
 
   return (
