@@ -459,26 +459,31 @@ export default function GestaoMarcaPage() {
           {/* ── Brand Card ── */}
           <Card className="overflow-hidden">
             <CardContent className="p-6">
-              <div className="flex items-start gap-6">
+              <div className="flex flex-col md:flex-row items-start gap-6">
+                {/* Logo - bigger */}
                 {isOwner ? (
-                  <label className="cursor-pointer group relative">
+                  <label className="cursor-pointer group relative shrink-0">
                     {settings?.logo_url ? (
-                      <img src={settings.logo_url} alt={settings.business_name} className="h-20 w-20 rounded-xl object-contain border bg-muted/30 p-2 shrink-0 group-hover:opacity-70 transition-opacity" />
+                      <img src={settings.logo_url} alt={settings.business_name} className="h-32 w-32 rounded-xl object-contain border bg-muted/30 p-3 group-hover:opacity-70 transition-opacity" />
                     ) : (
-                      <div className="h-20 w-20 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center shrink-0 group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
-                        <Upload className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
+                      <div className="h-32 w-32 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
+                        <Upload className="h-6 w-6 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
                       </div>
                     )}
                     <div className="absolute inset-0 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-background/60">
-                      <Upload className="h-4 w-4 text-foreground" />
+                      <Upload className="h-5 w-5 text-foreground" />
                     </div>
                     <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
                   </label>
                 ) : settings?.logo_url ? (
-                  <img src={settings.logo_url} alt={settings.business_name} className="h-20 w-20 rounded-xl object-contain border bg-muted/30 p-2 shrink-0" />
+                  <img src={settings.logo_url} alt={settings.business_name} className="h-32 w-32 rounded-xl object-contain border bg-muted/30 p-3 shrink-0" />
                 ) : null}
-                <div className="flex-1 space-y-3">
+
+                <div className="flex-1 space-y-4 min-w-0">
+                  {/* Name */}
                   <h2 className="text-2xl font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
+
+                  {/* PUV */}
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Proposta Única de Valor</p>
@@ -499,6 +504,31 @@ export default function GestaoMarcaPage() {
                     ) : (
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         {puv || <span className="italic">Ainda não definida.</span>}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* About / Texto de Apresentação */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Texto de Apresentação</p>
+                      {isOwner && !editingAbout && (
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setTempAbout(aboutText); setEditingAbout(true); }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                    {editingAbout ? (
+                      <div className="space-y-2">
+                        <Textarea value={tempAbout} onChange={e => setTempAbout(e.target.value)} rows={5} placeholder="Escreve um texto de apresentação da marca..." />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={saveAbout}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingAbout(false)}><X className="h-3.5 w-3.5 mr-1" />Cancelar</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                        {aboutText || <span className="italic">Ainda não definido.</span>}
                       </p>
                     )}
                   </div>
