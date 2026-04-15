@@ -74,11 +74,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-orange-50 dark:bg-orange-950/40', headerText: 'text-orange-400 dark:text-orange-400', dotBg: 'bg-orange-300', addColor: 'text-orange-300 dark:text-orange-500' },
-  { key: 'mercado', label: 'Mercado', headerBg: 'bg-yellow-50 dark:bg-yellow-950/40', headerText: 'text-yellow-500 dark:text-yellow-400', dotBg: 'bg-yellow-400', addColor: 'text-yellow-400 dark:text-yellow-500' },
-  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-blue-50 dark:bg-blue-950/40', headerText: 'text-blue-400 dark:text-blue-400', dotBg: 'bg-blue-300', addColor: 'text-blue-300 dark:text-blue-500' },
-  { key: 'identidade', label: 'Identidade', headerBg: 'bg-red-50 dark:bg-red-950/40', headerText: 'text-red-400 dark:text-red-400', dotBg: 'bg-red-300', addColor: 'text-red-300 dark:text-red-500' },
-  { key: 'impacto', label: 'Impacto', headerBg: 'bg-teal-50 dark:bg-teal-950/40', headerText: 'text-teal-400 dark:text-teal-400', dotBg: 'bg-teal-300', addColor: 'text-teal-300 dark:text-teal-500' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-rose-50 dark:bg-rose-950/30', headerText: 'text-rose-400 dark:text-rose-400', dotBg: 'bg-rose-300', addColor: 'text-rose-300 dark:text-rose-500' },
+  { key: 'mercado', label: 'Mercado', headerBg: 'bg-amber-50/70 dark:bg-amber-950/30', headerText: 'text-amber-500 dark:text-amber-400', dotBg: 'bg-amber-300', addColor: 'text-amber-400 dark:text-amber-500' },
+  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-stone-100 dark:bg-stone-900/40', headerText: 'text-stone-500 dark:text-stone-400', dotBg: 'bg-stone-400', addColor: 'text-stone-400 dark:text-stone-500' },
+  { key: 'identidade', label: 'Identidade', headerBg: 'bg-pink-50 dark:bg-pink-950/30', headerText: 'text-pink-400 dark:text-pink-400', dotBg: 'bg-pink-300', addColor: 'text-pink-300 dark:text-pink-500' },
+  { key: 'impacto', label: 'Impacto', headerBg: 'bg-orange-50/60 dark:bg-orange-950/30', headerText: 'text-orange-400 dark:text-orange-400', dotBg: 'bg-orange-300', addColor: 'text-orange-300 dark:text-orange-500' },
 ];
 
 // ── Page ──
