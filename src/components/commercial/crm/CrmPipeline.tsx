@@ -106,6 +106,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                       >
                         <div className="space-y-1.5">
                           <p className="font-bold text-sm truncate text-foreground">{lead.name}</p>
+                          <CrmLabelBadges labelIds={leadLabelsMap[lead.id] || []} labels={labels} />
                           {lead.email && (
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
                               <Mail className="h-3 w-3 shrink-0 text-primary/60" />{lead.email}
