@@ -79,13 +79,13 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                 onDrop={e => handleDrop(e, col.value)}
               >
                 {/* Column header */}
-                <div className={`px-3 py-2.5 border-b rounded-t-xl ${isWon ? 'bg-success/10 border-success/20' : isLost ? 'bg-destructive/10 border-destructive/20' : 'bg-secondary/60'}`}>
+                <div className={`px-3 py-3 border-b rounded-t-xl ${isWon ? 'bg-success/15 border-success/30' : isLost ? 'bg-destructive/15 border-destructive/30' : 'bg-primary/10 border-primary/20'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wide truncate">{col.label}</span>
-                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-semibold">{col.leads.length}</Badge>
+                      <span className={`text-sm font-bold uppercase tracking-wide truncate ${isWon ? 'text-success' : isLost ? 'text-destructive' : 'text-primary'}`}>{col.label}</span>
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-bold bg-foreground/10">{col.leads.length}</Badge>
                     </div>
-                    <span className="text-xs font-semibold text-primary">{col.total.toLocaleString('pt-PT')}€</span>
+                    <span className="text-xs font-bold text-foreground">{col.total.toLocaleString('pt-PT')}€</span>
                   </div>
                 </div>
 
