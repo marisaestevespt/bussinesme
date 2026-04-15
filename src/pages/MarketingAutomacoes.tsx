@@ -124,12 +124,12 @@ export default function MarketingAutomacoes() {
                     const st = STATUSES.find(s => s.value === a.status) || STATUSES[0];
                     return (
                       <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/marketing/automacoes/${a.id}`)}>
-                        <TableCell className="font-medium">{a.name}</TableCell>
-                        <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{a.plataforma || '—'}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground truncate max-w-[160px]">{a.oferta_final || '—'}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground truncate max-w-[180px]">{a.objetivo || '—'}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{format(new Date(a.updated_at), 'dd MMM yyyy', { locale: pt })}</TableCell>
+                        <TableCell className="font-medium whitespace-nowrap">{a.name}</TableCell>
+                        <TableCell className="whitespace-nowrap"><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{a.plataforma || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{a.oferta_final || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap max-w-[220px] truncate">{a.objetivo || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{format(new Date(a.updated_at), 'dd MMM yyyy', { locale: pt })}</TableCell>
                         {isOwner && (
                           <TableCell>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteAuto(a.id); }}>
