@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
-  ChevronLeft, Plus, Trash2, Check, X, Pencil, ExternalLink,
+  ChevronLeft, ChevronRight, Plus, Trash2, Check, X, Pencil, ExternalLink,
 } from 'lucide-react';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -34,6 +34,11 @@ const CHANNEL_EMOJI: Record<string, string> = {
   'Instagram': '📸', 'Youtube': '🎬', 'Facebook': '👥', 'TikTok': '🎵',
   'LinkedIn': '💼', 'Pinterest': '📌', 'Website': '🌐', 'Email Marketing': '📧',
 };
+
+const MONTH_NAMES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
 
 export default function MarketingEstrategia() {
   const navigate = useNavigate();
@@ -72,6 +77,53 @@ export default function MarketingEstrategia() {
       return data || [];
     },
   });
+
+  // ---- Monthly objectives ----
+  const now = new Date();
+  const [objMonth, setObjMonth] = useState(now.getMonth() + 1);
+  const [objYear, setObjYear] = useState(now.getFullYear());
+  const [newObj, setNewObj] = useState('');
+
+  const { data: monthlyObjectives = [] } = useQuery({
+    queryKey: ['strategy-monthly-objectives', objYear, objMonth],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('strategy_monthly_objectives')
+        .select('*')
+        .eq('year', objYear)
+        .eq('month', objMonth)
+        .order('sort_order') as any;
+      return (data || []) as { id: string; year: number; month: number; objective: string; sort_order: number }[];
+    },
+  });
+
+  const prevMonth = () => {
+    if (objMonth === 1) { setObjMonth(12); setObjYear(y => y - 1); }
+    else setObjMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (objMonth === 12) { setObjMonth(1); setObjYear(y => y + 1); }
+    else setObjMonth(m => m + 1);
+  };
+
+  const addObjective = async () => {
+    if (!newObj.trim()) return;
+    await supabase.from('strategy_monthly_objectives').insert({
+      year: objYear, month: objMonth, objective: newObj.trim(), sort_order: monthlyObjectives.length,
+    } as any);
+    setNewObj('');
+    qc.invalidateQueries({ queryKey: ['strategy-monthly-objectives', objYear, objMonth] });
+  };
+
+  const deleteObjective = async (id: string) => {
+    await supabase.from('strategy_monthly_objectives').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-monthly-objectives', objYear, objMonth] });
+  };
+
+  const updateObjective = async (id: string, value: string) => {
+    await supabase.from('strategy_monthly_objectives').update({ objective: value } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-monthly-objectives', objYear, objMonth] });
+  };
 
   // ---- Helpers ----
   const getSetting = (key: string) => settings.find(s => s.key === key)?.value || '';
@@ -135,15 +187,18 @@ export default function MarketingEstrategia() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
         <PageHeader title="Estratégia" subtitle="Marketing 360" />
 
         <div className="space-y-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
-          {/* FOCO */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/* SECÇÃO 1: Linha Editorial + Posicionamento + Público-Alvo + Links */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+
+          {/* Foco */}
           <section>
-            <h2 className="text-lg font-semibold text-foreground mb-3">Foco</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Foco Estratégico</h2>
             <Textarea
               value={foco}
               onChange={e => setFoco(e.target.value)}
@@ -154,9 +209,6 @@ export default function MarketingEstrategia() {
             />
           </section>
 
-          <Separator />
-
-          {/* LINHA EDITORIAL + POSICIONAMENTO */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Linha Editorial */}
             <section>
@@ -229,28 +281,129 @@ export default function MarketingEstrategia() {
                     className="min-h-[100px] resize-none"
                     readOnly={!isOwner}
                   />
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Links Relacionados</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Link to="/hub/marketing/gestao-marca">
-                        <Badge variant="outline" className="cursor-pointer hover:bg-muted/50">Gestão de Marca</Badge>
-                      </Link>
-                      <Link to="/hub/marketing/estrategia/publico-alvo">
-                        <Badge variant="outline" className="cursor-pointer hover:bg-muted/50">Público Alvo e Persona</Badge>
-                      </Link>
-                      <Link to="/hub/marketing/banco-ideias">
-                        <Badge variant="outline" className="cursor-pointer hover:bg-muted/50">Banco de Ideias</Badge>
-                      </Link>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </section>
           </div>
 
+          {/* Público-Alvo + Links Relacionados */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link to="/hub/marketing/estrategia/publico-alvo"
+              className="flex items-center gap-3 px-5 py-3 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all">
+              <span className="text-xl">🎯</span>
+              <div>
+                <span className="text-sm font-medium text-foreground">Público-Alvo</span>
+                <p className="text-xs text-muted-foreground">Personas, dores e jornada</p>
+              </div>
+            </Link>
+            <Link to="/hub/marketing/gestao-marca"
+              className="flex items-center gap-3 px-5 py-3 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all">
+              <span className="text-xl">🎨</span>
+              <div>
+                <span className="text-sm font-medium text-foreground">Gestão de Marca</span>
+                <p className="text-xs text-muted-foreground">Identidade e branding</p>
+              </div>
+            </Link>
+            <Link to="/hub/marketing/banco-ideias"
+              className="flex items-center gap-3 px-5 py-3 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all">
+              <span className="text-xl">💡</span>
+              <div>
+                <span className="text-sm font-medium text-foreground">Banco de Ideias</span>
+                <p className="text-xs text-muted-foreground">Conteúdos e inspiração</p>
+              </div>
+            </Link>
+          </div>
+
           <Separator />
 
-          {/* DISTRIBUIÇÃO DE CONTEÚDO */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/* SECÇÃO 2: Objetivos Mensais de Marketing */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Objetivos Mensais</h2>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={prevMonth}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium min-w-[140px] text-center">
+                  {MONTH_NAMES[objMonth - 1]} {objYear}
+                </span>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={nextMonth}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <Card>
+              <CardContent className="p-4 space-y-3">
+                {monthlyObjectives.length === 0 && !isOwner && (
+                  <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum objetivo definido para este mês.</p>
+                )}
+                {monthlyObjectives.map(obj => (
+                  <div key={obj.id} className="flex items-start gap-2 group">
+                    <span className="text-primary mt-1.5 text-xs">●</span>
+                    <Input
+                      value={obj.objective}
+                      className="flex-1 h-8 text-sm border-transparent hover:border-input focus:border-input"
+                      onChange={e => updateObjective(obj.id, e.target.value)}
+                      readOnly={!isOwner}
+                    />
+                    {isOwner && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
+                        onClick={() => deleteObjective(obj.id)}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                {isOwner && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <Input
+                      value={newObj}
+                      onChange={e => setNewObj(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && addObjective()}
+                      placeholder="Adicionar objetivo..."
+                      className="flex-1 h-8 text-sm"
+                    />
+                    <Button size="sm" variant="outline" className="h-8" onClick={addObjective} disabled={!newObj.trim()}>
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+
+          <Separator />
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/* SECÇÃO 3: Estratégia por Canal */}
+          {/* ══════════════════════════════════════════════════════════════ */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Estratégia por Canal</h2>
+            {activeChannels.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">Nenhum canal ativo. Ativa canais nas Definições.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {activeChannels.map(ch => {
+                  const emoji = CHANNEL_EMOJI[ch.name] || '📢';
+                  return (
+                    <Link key={ch.id} to={`/hub/marketing/estrategia/canal/${ch.id}`}
+                      className="flex flex-col items-center gap-2 p-5 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all text-center">
+                      <span className="text-2xl">{emoji}</span>
+                      <span className="text-sm font-medium text-foreground">{ch.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* ══════════════════════════════════════════════════════════════ */}
+          {/* SECÇÃO 4: Distribuição de Conteúdo */}
+          {/* ══════════════════════════════════════════════════════════════ */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4">Distribuição de Conteúdo</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -300,44 +453,6 @@ export default function MarketingEstrategia() {
                 );
               })}
             </div>
-          </section>
-
-          <Separator />
-
-          {/* MAPA DO PÚBLICO-ALVO */}
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-4">Público-Alvo</h2>
-            <Link to="/hub/marketing/estrategia/publico-alvo"
-              className="flex items-center gap-4 p-5 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm hq-transition max-w-md">
-              <span className="text-2xl">🎯</span>
-              <div>
-                <span className="text-sm font-medium text-foreground">Mapa do Público-Alvo</span>
-                <p className="text-xs text-muted-foreground mt-0.5">Personas, dores, desejos e jornada de compra</p>
-              </div>
-            </Link>
-          </section>
-
-          <Separator />
-
-          {/* ESTRATÉGIA POR CANAL */}
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-4">Estratégia por Canal</h2>
-            {activeChannels.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">Nenhum canal ativo. Ativa canais nas Definições.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {activeChannels.map(ch => {
-                  const emoji = CHANNEL_EMOJI[ch.name] || '📢';
-                  return (
-                    <Link key={ch.id} to={`/hub/marketing/estrategia/canal/${ch.id}`}
-                      className="flex flex-col items-center gap-2 p-5 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm hq-transition text-center">
-                      <span className="text-2xl">{emoji}</span>
-                      <span className="text-sm font-medium text-foreground">{ch.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
           </section>
         </div>
       </div>
