@@ -132,6 +132,44 @@ export default function MarketingChannelStrategy() {
     qc.invalidateQueries({ queryKey: ['strategy-channel-frames', channelId] });
   };
 
+  // Distribution cards for this channel
+  const { data: distCards = [] } = useQuery({
+    queryKey: ['strategy-distribution-cards'],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_distribution_cards').select('*').order('sort_order') as any;
+      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; sort_order: number }[];
+    },
+  });
+
+  const channelDistCards = distCards.filter(c => c.channel === channel?.name);
+
+  const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
+  const [distForm, setDistForm] = useState({ title: '', description: '' });
+
+  const openAddDist = (columnKey: string) => {
+    setDistForm({ title: '', description: '' });
+    setDistDialog({ open: true, columnKey });
+  };
+  const openEditDist = (card: { id: string; column_key: string; title: string; description: string | null }) => {
+    setDistForm({ title: card.title, description: card.description || '' });
+    setDistDialog({ open: true, columnKey: card.column_key, editId: card.id });
+  };
+  const saveDist = async () => {
+    if (!distForm.title.trim() || !channel) return;
+    if (distDialog.editId) {
+      await supabase.from('strategy_distribution_cards').update({ title: distForm.title, description: distForm.description } as any).eq('id', distDialog.editId);
+    } else {
+      const colCards = channelDistCards.filter(c => c.column_key === distDialog.columnKey);
+      await supabase.from('strategy_distribution_cards').insert({ column_key: distDialog.columnKey, title: distForm.title, channel: channel.name, description: distForm.description, sort_order: colCards.length } as any);
+    }
+    qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
+    setDistDialog({ open: false, columnKey: '' });
+  };
+  const deleteDist = async (id: string) => {
+    await supabase.from('strategy_distribution_cards').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
+  };
+
   if (!channel) return (
     <AppLayout>
       <div className="flex items-center justify-center min-h-screen">
