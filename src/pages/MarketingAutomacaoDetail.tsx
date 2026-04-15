@@ -185,18 +185,21 @@ export default function MarketingAutomacaoDetail() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
-          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Automação</p>
-          <div className="flex items-center gap-3">
+        {/* Hero banner */}
+        <div className="w-full rounded-xl py-12 px-8 flex flex-col items-center gap-3 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))' }}>
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, hsl(var(--accent)), transparent 50%), radial-gradient(circle at 80% 50%, hsl(var(--secondary)), transparent 50%)' }} />
+          <p className="text-[11px] uppercase tracking-[0.2em] font-medium relative" style={{ color: 'hsl(var(--primary-foreground) / 0.6)' }}>Automação</p>
+          <div className="flex items-center gap-3 relative">
             {editing ? (
               <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0"
+                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 focus-visible:ring-0"
                 style={{ color: 'hsl(var(--primary-foreground))' }} />
             ) : (
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>{form.name}</h1>
             )}
-            <Badge className={cn('text-xs', st.color)}>{st.label}</Badge>
           </div>
+          <Badge className={cn('text-xs mt-1', st.color)}>{st.label}</Badge>
         </div>
 
         <div className="space-y-6">
@@ -219,61 +222,73 @@ export default function MarketingAutomacaoDetail() {
             )}
           </div>
 
-          {/* Meta fields */}
+          {/* Meta fields in highlighted cards */}
           {editing ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Status</label>
-                <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Plataforma</label>
-                {addingPlatform ? (
-                  <div className="flex gap-2">
-                    <Input value={newPlatform} onChange={e => setNewPlatform(e.target.value)} placeholder="Nome da plataforma" className="h-9" autoFocus />
-                    <Button size="sm" variant="outline" className="h-9" disabled={!newPlatform.trim()} onClick={() => {
-                      setForm(f => ({ ...f, plataforma: newPlatform.trim() }));
-                      setAddingPlatform(false);
-                      setNewPlatform('');
-                    }}>OK</Button>
-                    <Button size="sm" variant="ghost" className="h-9" onClick={() => { setAddingPlatform(false); setNewPlatform(''); }}>Cancelar</Button>
-                  </div>
-                ) : (
-                  <Select value={form.plataforma} onValueChange={v => {
-                    if (v === '___add_new___') { setAddingPlatform(true); return; }
-                    setForm(f => ({ ...f, plataforma: v }));
-                  }}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                    <SelectContent>
-                      {allPlataformas.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                      <SelectItem value="___add_new___" className="text-primary font-medium">+ Adicionar nova...</SelectItem>
-                    </SelectContent>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
+                  <label className="text-xs font-medium text-muted-foreground">Status</label>
+                  <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                    <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                   </Select>
-                )}
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Oferta Final</label>
-                <Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))}
-                  className="h-9" placeholder="Produto/Plataforma/Outro Final" />
-              </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
+                  <label className="text-xs font-medium text-muted-foreground">Plataforma</label>
+                  {addingPlatform ? (
+                    <div className="flex gap-2 mt-1">
+                      <Input value={newPlatform} onChange={e => setNewPlatform(e.target.value)} placeholder="Nome da plataforma" className="h-9" autoFocus />
+                      <Button size="sm" variant="outline" className="h-9" disabled={!newPlatform.trim()} onClick={() => {
+                        setForm(f => ({ ...f, plataforma: newPlatform.trim() }));
+                        setAddingPlatform(false);
+                        setNewPlatform('');
+                      }}>OK</Button>
+                      <Button size="sm" variant="ghost" className="h-9" onClick={() => { setAddingPlatform(false); setNewPlatform(''); }}>Cancelar</Button>
+                    </div>
+                  ) : (
+                    <Select value={form.plataforma} onValueChange={v => {
+                      if (v === '___add_new___') { setAddingPlatform(true); return; }
+                      setForm(f => ({ ...f, plataforma: v }));
+                    }}>
+                      <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        {allPlataformas.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                        <SelectItem value="___add_new___" className="text-primary font-medium">+ Adicionar nova...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
+                  <label className="text-xs font-medium text-muted-foreground">Oferta Final</label>
+                  <Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))}
+                    className="h-9 mt-1" placeholder="Produto/Plataforma/Outro Final" />
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Status</label>
-                <p className="text-sm mt-1"><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></p>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Plataforma</label>
-                <p className="text-sm mt-1">{form.plataforma || '—'}</p>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Oferta Final</label>
-                <p className="text-sm mt-1">{form.oferta_final || '—'}</p>
-              </div>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Status</label>
+                  <p className="mt-2"><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></p>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Plataforma</label>
+                  <p className="text-sm font-medium mt-2">{form.plataforma || '—'}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Oferta Final</label>
+                  <p className="text-sm font-medium mt-2">{form.oferta_final || '—'}</p>
+                </CardContent>
+              </Card>
             </div>
           )}
 
