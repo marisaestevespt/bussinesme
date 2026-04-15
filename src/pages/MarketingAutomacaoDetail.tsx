@@ -186,25 +186,34 @@ export default function MarketingAutomacaoDetail() {
     <AppLayout>
       <div className="space-y-6">
         {/* Hero banner */}
-        <div className="w-full rounded-xl py-12 px-8 flex flex-col items-center gap-3 relative overflow-hidden"
+        <div className="w-full rounded-xl py-10 px-8 flex flex-col items-start gap-2 relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))' }}>
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, hsl(var(--accent)), transparent 50%), radial-gradient(circle at 80% 50%, hsl(var(--secondary)), transparent 50%)' }} />
           <p className="text-[11px] uppercase tracking-[0.2em] font-medium relative" style={{ color: 'hsl(var(--primary-foreground) / 0.6)' }}>Automação</p>
-          <div className="flex items-center gap-3 relative">
+          <div className="relative">
             {editing ? (
               <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 focus-visible:ring-0"
+                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none h-auto p-0 focus-visible:ring-0"
                 style={{ color: 'hsl(var(--primary-foreground))' }} />
             ) : (
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>{form.name}</h1>
             )}
           </div>
-          <Badge className={cn('text-xs mt-1', st.color)}>{st.label}</Badge>
         </div>
 
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <BackNavigation parentRoute="/hub/marketing/automacoes" parentLabel="Automações" />
+            <div className="flex items-center gap-3">
+              <BackNavigation parentRoute="/hub/marketing/automacoes" parentLabel="Automações" />
+              {editing ? (
+                <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                  <SelectTrigger className="h-8 w-auto gap-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              ) : (
+                <Badge className={cn('text-xs', st.color)}>{st.label}</Badge>
+              )}
+            </div>
             {isOwner && !editing && (
               <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
                 <Pencil className="h-3.5 w-3.5 mr-1" />Editar
@@ -224,16 +233,7 @@ export default function MarketingAutomacaoDetail() {
 
           {/* Meta fields in highlighted cards */}
           {editing ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card className="border-primary/15 bg-primary/[0.04]">
-                <CardContent className="p-4">
-                  <label className="text-xs font-medium text-muted-foreground">Status</label>
-                  <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                    <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                    <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className="border-primary/15 bg-primary/[0.04]">
                 <CardContent className="p-4">
                   <label className="text-xs font-medium text-muted-foreground">Plataforma</label>
@@ -270,13 +270,7 @@ export default function MarketingAutomacaoDetail() {
               </Card>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card className="border-primary/15 bg-primary/[0.04]">
-                <CardContent className="p-4">
-                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Status</label>
-                  <p className="mt-2"><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className="border-primary/15 bg-primary/[0.04]">
                 <CardContent className="p-4">
                   <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Plataforma</label>
