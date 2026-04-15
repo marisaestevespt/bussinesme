@@ -11,8 +11,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 
@@ -99,9 +102,9 @@ export default function MarketingEstrategia() {
     qc.invalidateQueries({ queryKey: ['strategy-editorial-lines'] });
   };
 
-  const addDistCard = async (columnKey: string) => {
+  const addDistCard = async (columnKey: string, title: string, channel: string, description: string) => {
     const colCards = distCards.filter(c => c.column_key === columnKey);
-    await supabase.from('strategy_distribution_cards').insert({ column_key: columnKey, title: '', channel: '', description: '', sort_order: colCards.length } as any);
+    await supabase.from('strategy_distribution_cards').insert({ column_key: columnKey, title, channel, description, sort_order: colCards.length } as any);
     qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
   };
   const updateDistCard = async (id: string, field: string, value: string) => {
@@ -114,6 +117,29 @@ export default function MarketingEstrategia() {
   };
 
   const activeChannels = channels.filter(c => c.is_active);
+
+  // Distribution card dialog state
+  const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
+  const [distForm, setDistForm] = useState({ title: '', channel: '', description: '' });
+
+  const openAddDialog = (columnKey: string) => {
+    setDistForm({ title: '', channel: '', description: '' });
+    setDistDialog({ open: true, columnKey });
+  };
+  const openEditDialog = (card: { id: string; column_key: string; title: string; channel: string | null; description: string | null }) => {
+    setDistForm({ title: card.title, channel: card.channel || '', description: card.description || '' });
+    setDistDialog({ open: true, columnKey: card.column_key, editId: card.id });
+  };
+  const saveDistDialog = async () => {
+    if (!distForm.title.trim()) return;
+    if (distDialog.editId) {
+      await supabase.from('strategy_distribution_cards').update({ title: distForm.title, channel: distForm.channel, description: distForm.description } as any).eq('id', distDialog.editId);
+    } else {
+      await addDistCard(distDialog.columnKey, distForm.title, distForm.channel, distForm.description);
+    }
+    qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
+    setDistDialog({ open: false, columnKey: '' });
+  };
 
   return (
     <AppLayout>
@@ -238,23 +264,55 @@ export default function MarketingEstrategia() {
                     </div>
                     <div className="space-y-2 flex-1 min-h-[120px]">
                       {colCards.map(card => (
-                        <Card key={card.id} className={cn('group relative', col.cardBorder)}>
-                          <CardContent className="p-2.5 space-y-1.5">
-                            <Input value={card.title} className="h-7 text-xs font-medium border-transparent hover:border-input focus:border-input p-1" onChange={e => updateDistCard(card.id, 'title', e.target.value)} placeholder="Nome" readOnly={!isOwner} />
+                        <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDialog(card)}>
+                          <CardContent className="p-2.5 space-y-1">
+                            <p className="text-xs font-medium text-foreground truncate">{card.title || 'Sem título'}</p>
                             {card.channel && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">{card.channel}</Badge>}
-                            {isOwner && <Input value={card.channel || ''} className="h-6 text-[10px] border-transparent hover:border-input focus:border-input p-1" onChange={e => updateDistCard(card.id, 'channel', e.target.value)} placeholder="Canal" />}
-                            <Input value={card.description || ''} className="h-6 text-[10px] border-transparent hover:border-input focus:border-input p-1" onChange={e => updateDistCard(card.id, 'description', e.target.value)} placeholder="Descrição" readOnly={!isOwner} />
-                            {isOwner && <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100" onClick={() => deleteDistCard(card.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>}
+                            {card.description && <p className="text-[10px] text-muted-foreground truncate">{card.description}</p>}
+                            {isOwner && <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDistCard(card.id); }}><Trash2 className="h-3 w-3 text-destructive" /></Button>}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
-                    {isOwner && <Button variant="ghost" size="sm" className={cn('w-full mt-2 text-xs', col.addColor)} onClick={() => addDistCard(col.key)}><Plus className="h-3 w-3 mr-1" />Adicionar</Button>}
+                    {isOwner && <Button variant="ghost" size="sm" className={cn('w-full mt-2 text-xs', col.addColor)} onClick={() => openAddDialog(col.key)}><Plus className="h-3 w-3 mr-1" />Adicionar</Button>}
                   </div>
                 );
               })}
             </div>
           </section>
+
+          {/* Distribution card dialog */}
+          <Dialog open={distDialog.open} onOpenChange={open => !open && setDistDialog({ open: false, columnKey: '' })}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{distDialog.editId ? 'Editar Conteúdo' : 'Novo Conteúdo'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs">Nome</Label>
+                  <Input value={distForm.title} onChange={e => setDistForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Post educativo" />
+                </div>
+                <div>
+                  <Label className="text-xs">Canal</Label>
+                  <Select value={distForm.channel} onValueChange={v => setDistForm(f => ({ ...f, channel: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar canal" /></SelectTrigger>
+                    <SelectContent>
+                      {activeChannels.map(ch => (
+                        <SelectItem key={ch.id} value={ch.name}>{CHANNEL_EMOJI[ch.name] || '📢'} {ch.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Descrição</Label>
+                  <Textarea value={distForm.description} onChange={e => setDistForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes do conteúdo" className="resize-none min-h-[60px]" />
+                </div>
+                <Button className="w-full" onClick={saveDistDialog} disabled={!distForm.title.trim()}>
+                  {distDialog.editId ? 'Guardar' : 'Adicionar'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </AppLayout>
