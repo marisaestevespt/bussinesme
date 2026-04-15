@@ -72,7 +72,7 @@ export default function MarketingFunis() {
 
   const create = async () => {
     if (!form.name.trim()) return;
-    await supabase.from('marketing_funnels').insert({
+    const { error } = await supabase.from('marketing_funnels').insert({
       name: form.name, status: form.status,
       oferta_final: form.oferta_final || null,
       objetivo: form.objetivo || null,
@@ -80,6 +80,11 @@ export default function MarketingFunis() {
       product_name: form.product_name || null,
       created_by: user?.id,
     } as any);
+    if (error) {
+      console.error('Insert error:', error);
+      toast.error('Erro ao criar funil: ' + error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ['marketing-funnels'] });
     setShowNew(false);
     setForm({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '', product_name: '' });
