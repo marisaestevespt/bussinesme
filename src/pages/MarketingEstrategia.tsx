@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { Plus, Trash2, Pencil } from 'lucide-react';
+import { Plus, Trash2, Pencil, ExternalLink, Paperclip, X, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 
@@ -59,7 +60,7 @@ export default function MarketingEstrategia() {
     queryKey: ['strategy-distribution-cards'],
     queryFn: async () => {
       const { data } = await supabase.from('strategy_distribution_cards').select('*').order('sort_order') as any;
-      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; sort_order: number }[];
+      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; link_url: string | null; files: any[] | null; sort_order: number }[];
     },
   });
 
@@ -120,22 +121,46 @@ export default function MarketingEstrategia() {
 
   // Distribution card dialog state
   const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
-  const [distForm, setDistForm] = useState({ title: '', channel: '', description: '' });
+  const [distForm, setDistForm] = useState({ title: '', channel: '', description: '', link_url: '', files: [] as { name: string; url: string }[] });
+  const [uploading, setUploading] = useState(false);
 
   const openAddDialog = (columnKey: string) => {
-    setDistForm({ title: '', channel: '', description: '' });
+    setDistForm({ title: '', channel: '', description: '', link_url: '', files: [] });
     setDistDialog({ open: true, columnKey });
   };
-  const openEditDialog = (card: { id: string; column_key: string; title: string; channel: string | null; description: string | null }) => {
-    setDistForm({ title: card.title, channel: card.channel || '', description: card.description || '' });
+  const openEditDialog = (card: any) => {
+    setDistForm({ title: card.title, channel: card.channel || '', description: card.description || '', link_url: card.link_url || '', files: card.files || [] });
     setDistDialog({ open: true, columnKey: card.column_key, editId: card.id });
+  };
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const path = `dist-cards/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from('content-files').upload(path, file);
+    if (error) { toast.error('Erro ao enviar ficheiro'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('content-files').getPublicUrl(path);
+    setDistForm(f => ({ ...f, files: [...f.files, { name: file.name, url: urlData.publicUrl }] }));
+    setUploading(false);
+    e.target.value = '';
+  };
+  const removeFile = (idx: number) => {
+    setDistForm(f => ({ ...f, files: f.files.filter((_, i) => i !== idx) }));
   };
   const saveDistDialog = async () => {
     if (!distForm.title.trim()) return;
+    const payload = { title: distForm.title, channel: distForm.channel, description: distForm.description, link_url: distForm.link_url || null, files: distForm.files } as any;
     if (distDialog.editId) {
-      await supabase.from('strategy_distribution_cards').update({ title: distForm.title, channel: distForm.channel, description: distForm.description } as any).eq('id', distDialog.editId);
+      await supabase.from('strategy_distribution_cards').update(payload).eq('id', distDialog.editId);
     } else {
       await addDistCard(distDialog.columnKey, distForm.title, distForm.channel, distForm.description);
+      // Update the just-created card with link/files
+      if (distForm.link_url || distForm.files.length > 0) {
+        const { data: latest } = await supabase.from('strategy_distribution_cards').select('id').eq('column_key', distDialog.columnKey).order('created_at', { ascending: false }).limit(1) as any;
+        if (latest?.[0]) {
+          await supabase.from('strategy_distribution_cards').update({ link_url: distForm.link_url || null, files: distForm.files } as any).eq('id', latest[0].id);
+        }
+      }
     }
     qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
     setDistDialog({ open: false, columnKey: '' });
