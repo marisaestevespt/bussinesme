@@ -111,6 +111,9 @@ export default function GestaoMarcaPage() {
   const [visualDesc, setVisualDesc] = useState('');
   const [editingVisualDesc, setEditingVisualDesc] = useState(false);
   const [uploadingVisual, setUploadingVisual] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showAddVisualCard, setShowAddVisualCard] = useState(false);
+  const [newVisualTitle, setNewVisualTitle] = useState('');
 
   // Competitors
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
@@ -295,6 +298,39 @@ export default function GestaoMarcaPage() {
     e.target.value = '';
   };
 
+  // ── Logo upload ──
+  const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0] || !settings) return;
+    setUploadingLogo(true);
+    const file = e.target.files[0];
+    const path = `logos/${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage.from('logos').upload(path, file);
+    if (uploadError) { toast.error('Erro ao carregar logo'); setUploadingLogo(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
+    await supabase.from('business_settings').update({ logo_url: publicUrl } as any).eq('id', settings.id);
+    refetchSettings();
+    setUploadingLogo(false);
+    toast.success('Logo atualizado');
+    e.target.value = '';
+  };
+
+  // ── Add visual card ──
+  const addVisualCard = async () => {
+    if (!newVisualTitle.trim()) return;
+    await supabase.from('brand_visual_cards').insert({ title: newVisualTitle, sort_order: visualCards.length } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
+    setNewVisualTitle('');
+    setShowAddVisualCard(false);
+    toast.success('Categoria adicionada');
+  };
+
+  const deleteVisualCard = async (id: string) => {
+    await supabase.from('brand_visual_files').delete().eq('card_id', id);
+    await supabase.from('brand_visual_cards').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
+    toast.success('Categoria removida');
+  };
+
   const deleteVisualFile = async (fileId: string) => {
     await supabase.from('brand_visual_files').delete().eq('id', fileId);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual?.id] });
@@ -393,9 +429,23 @@ export default function GestaoMarcaPage() {
           <Card className="overflow-hidden">
             <CardContent className="p-6">
               <div className="flex items-start gap-6">
-                {settings?.logo_url && (
+                {isOwner ? (
+                  <label className="cursor-pointer group relative">
+                    {settings?.logo_url ? (
+                      <img src={settings.logo_url} alt={settings.business_name} className="h-20 w-20 rounded-xl object-contain border bg-muted/30 p-2 shrink-0 group-hover:opacity-70 transition-opacity" />
+                    ) : (
+                      <div className="h-20 w-20 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center shrink-0 group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
+                        <Upload className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-background/60">
+                      <Upload className="h-4 w-4 text-foreground" />
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
+                  </label>
+                ) : settings?.logo_url ? (
                   <img src={settings.logo_url} alt={settings.business_name} className="h-20 w-20 rounded-xl object-contain border bg-muted/30 p-2 shrink-0" />
-                )}
+                ) : null}
                 <div className="flex-1 space-y-3">
                   <h2 className="text-2xl font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
                   <div>
@@ -512,10 +562,10 @@ export default function GestaoMarcaPage() {
                 return (
                   <div key={group.key} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</h3>
-                      <span className="text-[10px] text-muted-foreground/60 bg-muted rounded-full px-1.5">{items.length}</span>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/70">{group.label}</h3>
+                      <span className="text-[10px] text-foreground/50 bg-muted rounded-full px-1.5">{items.length}</span>
                     </div>
-                    <div className="space-y-1.5 min-h-[60px]">
+                    <div className="space-y-1.5 min-h-[60px] bg-muted/20 rounded-lg p-2 border border-border/50">
                       {items.map(item => (
                         <Card
                           key={item.id}
@@ -523,7 +573,7 @@ export default function GestaoMarcaPage() {
                           onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); }}
                         >
                           <CardContent className="p-3 flex items-center justify-between">
-                            <span className="text-sm text-foreground">{item.title}</span>
+                            <span className="text-sm text-foreground font-medium">{item.title}</span>
                             {isOwner && (
                               <Button
                                 variant="ghost"
@@ -575,27 +625,62 @@ export default function GestaoMarcaPage() {
 
           {/* ── Identidade Visual ── */}
           <section className="space-y-6 pb-10">
-            <h2 className="text-xl font-semibold text-foreground">Identidade Visual</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {visualCards.map(card => (
-                <Card
-                  key={card.id}
-                  className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden"
-                  onClick={() => { setSelectedVisual(card); setVisualDesc(card.description || ''); setEditingVisualDesc(false); }}
-                >
-                  <div className="aspect-[4/3] bg-muted/40 flex items-center justify-center overflow-hidden">
-                    {card.cover_url ? (
-                      <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-                    )}
-                  </div>
-                  <CardContent className="p-3">
-                    <p className="text-sm font-medium text-foreground text-center">{card.title}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Identidade Visual</h2>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={() => setShowAddVisualCard(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Nova Categoria
+                </Button>
+              )}
             </div>
+
+            {visualCards.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center space-y-3">
+                  <ImageIcon className="h-10 w-10 mx-auto text-muted-foreground/40" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Nenhuma categoria criada</p>
+                    <p className="text-xs text-muted-foreground mt-1">Cria categorias como "Logótipo", "Paleta de Cores", "Tipografia", "Mockups" para organizar a identidade visual.</p>
+                  </div>
+                  {isOwner && (
+                    <Button variant="outline" size="sm" onClick={() => setShowAddVisualCard(true)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" />Criar primeira categoria
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {visualCards.map(card => (
+                  <Card
+                    key={card.id}
+                    className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden group relative"
+                    onClick={() => { setSelectedVisual(card); setVisualDesc(card.description || ''); setEditingVisualDesc(false); }}
+                  >
+                    <div className="aspect-[4/3] bg-muted/40 flex items-center justify-center overflow-hidden">
+                      {card.cover_url ? (
+                        <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <CardContent className="p-3">
+                      <p className="text-sm font-medium text-foreground text-center">{card.title}</p>
+                    </CardContent>
+                    {isOwner && (
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); deleteVisualCard(card.id); }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
           </section>
 
         </div>
@@ -1013,6 +1098,24 @@ export default function GestaoMarcaPage() {
           <Button className="w-full mt-2" disabled={!compForm.name.trim()} onClick={saveCompetitor}>
             <Check className="h-3.5 w-3.5 mr-1" />{editingCompetitor ? 'Guardar' : 'Adicionar'}
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Add Visual Card Dialog ── */}
+      <Dialog open={showAddVisualCard} onOpenChange={open => { if (!open) { setShowAddVisualCard(false); setNewVisualTitle(''); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova Categoria Visual</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Nome da categoria</label>
+              <Input value={newVisualTitle} onChange={e => setNewVisualTitle(e.target.value)} placeholder="Ex: Logótipo, Paleta de Cores, Tipografia..." onKeyDown={e => e.key === 'Enter' && addVisualCard()} autoFocus />
+            </div>
+            <Button className="w-full" disabled={!newVisualTitle.trim()} onClick={addVisualCard}>
+              <Plus className="h-3.5 w-3.5 mr-1" />Criar Categoria
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </AppLayout>
