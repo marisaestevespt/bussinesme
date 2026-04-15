@@ -131,7 +131,7 @@ export function CommercialClientsList() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-9 gap-2">
+          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-8 gap-2">
             <span>ID</span>
             <span>Data de Início</span>
             <span>Status</span>
@@ -139,7 +139,6 @@ export function CommercialClientsList() {
             <span>E-mail</span>
             <span>Whatsapp</span>
             <span>Produto Atual</span>
-            <span>F. Pagamento</span>
             <span>Fim de Ciclo</span>
           </div>
           {filtered.length === 0 ? (
@@ -150,7 +149,7 @@ export function CommercialClientsList() {
             filtered.map(c => (
               <div
                 key={c.id}
-                className="px-4 py-2.5 text-sm grid grid-cols-9 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                className="px-4 py-2.5 text-sm grid grid-cols-8 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
                 onClick={() => navigate(`/hub/clientes/${c.id}`)}
               >
                 <span className="font-mono text-xs">{c.client_id}</span>
@@ -164,7 +163,6 @@ export function CommercialClientsList() {
                 <span className="truncate text-muted-foreground">{c.email || '—'}</span>
                 <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
                 <span className="truncate">{c.current_product || '—'}</span>
-                <span className="text-muted-foreground">{c.payment_method || '—'}</span>
                 <span><EndOfCycleBadge date={c.end_of_cycle} /></span>
               </div>
             ))
