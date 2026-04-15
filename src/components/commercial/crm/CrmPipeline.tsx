@@ -9,7 +9,7 @@ import { useCrmStages } from '@/hooks/useCrmStages';
 import { format } from 'date-fns';
 import { AlertTriangle, Clock, Phone, Mail, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useAuth } from '@/hooks/useAuth';
+
 
 interface CrmPipelineProps {
   leads: any[];
