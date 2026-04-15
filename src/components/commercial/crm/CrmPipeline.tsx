@@ -37,7 +37,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
   const [manageOpen, setManageOpen] = useState(false);
   const [newStageName, setNewStageName] = useState('');
   const { stages, addStage, removeStage } = useCrmStages();
-  const { isOwner } = usePermissions();
+  const { isOwner } = useAuth();
 
   const columns = useMemo(() => stages.map(s => ({
     ...s,
