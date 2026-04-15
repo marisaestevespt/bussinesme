@@ -560,9 +560,9 @@ export default function GestaoMarcaPage() {
               {KANBAN_GROUPS.map(group => {
                 const items = kanbanItems.filter(i => i.group_key === group.key);
                 return (
-                  <div key={group.key} className="space-y-0">
+                  <div key={group.key} className="space-y-0 shadow-md rounded-lg overflow-hidden">
                     {/* Notion-style colored header */}
-                    <div className={cn('flex items-center justify-between rounded-t-lg px-3 py-3 shadow-md', group.headerBg)}>
+                    <div className={cn('flex items-center justify-between px-3 py-3', group.headerBg)}>
                       <div className="flex items-center gap-1.5">
                         <span className={cn('text-xs font-semibold', group.headerText)}>// {group.label}</span>
                       </div>
