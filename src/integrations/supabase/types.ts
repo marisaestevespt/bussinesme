@@ -8398,6 +8398,33 @@ export type Database = {
         }
         Relationships: []
       }
+      strategy_monthly_objectives: {
+        Row: {
+          created_at: string
+          id: string
+          month: number
+          objective: string
+          sort_order: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: number
+          objective?: string
+          sort_order?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number
+          objective?: string
+          sort_order?: number
+          year?: number
+        }
+        Relationships: []
+      }
       strategy_settings: {
         Row: {
           created_at: string
