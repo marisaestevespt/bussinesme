@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, List, SlidersHorizontal, X, Pencil } from 'lucide-react';
+import { Plus, LayoutGrid, List, SlidersHorizontal, X, Pencil, Settings2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useCrmData } from '@/hooks/useCrmData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { CrmSummary } from './crm/CrmSummary';
@@ -19,7 +20,9 @@ export function CommercialCRM() {
   const [view, setView] = useState<ViewType>('pipeline');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [manageStagesOpen, setManageStagesOpen] = useState(false);
   const qc = useQueryClient();
+  const { isOwner } = useAuth();
 
   const { allLeads, activeLeads, leadsToContact, pipelineValue, winsThisMonth, upsertLead, deleteLead } = useCrmData();
   const { productGoals } = useCommercialData();
@@ -189,12 +192,19 @@ export function CommercialCRM() {
             <Plus className="h-4 w-4 mr-1" /> Vista
           </Button>
         </div>
-        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
+        <div className="flex items-center gap-2">
+          {isOwner && (
+            <Button variant="outline" size="sm" onClick={() => setManageStagesOpen(true)}>
+              <Settings2 className="h-3.5 w-3.5 mr-1" /> Gerir Etapas
+            </Button>
+          )}
+          <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
+        </div>
       </div>
 
       {/* Views */}
       {view === 'pipeline' ? (
-        <CrmPipeline leads={allLeads} onOpenLead={openLead} onUpdateStatus={handleUpdateStatus} />
+        <CrmPipeline leads={allLeads} onOpenLead={openLead} onUpdateStatus={handleUpdateStatus} manageStagesOpen={manageStagesOpen} onManageStagesChange={setManageStagesOpen} />
       ) : view === 'list' ? (
         <CrmListView leads={allLeads} onOpenLead={openLead} />
       ) : activeCustomView ? (
