@@ -58,7 +58,7 @@ export default function ClientesPage() {
   const renderClientRow = (c: Client) => (
     <div
       key={c.id}
-      className="px-4 py-2.5 text-sm border-b hover:bg-muted/50 cursor-pointer"
+      className="px-6 py-2.5 text-sm border-b hover:bg-muted/50 cursor-pointer"
       onClick={() => navigate(`/hub/clientes/${c.id}`)}
     >
       {/* Desktop: grid row */}
@@ -155,7 +155,7 @@ export default function ClientesPage() {
 
         {/* Client list with tabs */}
         <Card className="shadow-sm">
-          <CardHeader className="pb-3 pt-5 px-6">
+          <CardHeader className="pb-4 pt-5 px-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <CardTitle className="text-base font-semibold">Lista de Clientes & Alunos</CardTitle>
@@ -186,7 +186,7 @@ export default function ClientesPage() {
               isFetchingNextPage={clients.isFetchingNextPage}
               fetchNextPage={clients.fetchNextPage}
             >
-              <div className="hidden md:grid bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid-cols-6 gap-2">
+              <div className="hidden md:grid bg-primary text-primary-foreground px-6 py-2.5 font-medium text-xs grid-cols-6 gap-2">
                 <span>ID</span>
                 <span>Status</span>
                 <span>Nome</span>
