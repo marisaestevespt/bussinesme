@@ -137,13 +137,14 @@ export default function MarketingAutomacaoDetail() {
     val ? <p className="text-sm text-foreground whitespace-pre-wrap">{val}</p>
         : <p className="text-sm text-muted-foreground italic">{placeholder}</p>;
 
-  const staticList = (items: string[], placeholder: string, numbered = false) => (
+  const staticList = (items: string[], placeholder: string, numbered = false, bulleted = false) => (
     <Card>
       <CardContent className="p-4 space-y-1">
         {items.length === 0 && <p className="text-sm text-muted-foreground italic">{placeholder}</p>}
         {items.map((val, idx) => (
           <div key={idx} className="flex items-start gap-2">
             {numbered && <span className="text-xs font-mono text-muted-foreground w-5 shrink-0 pt-0.5">{idx + 1}.</span>}
+            {bulleted && <span className="text-muted-foreground shrink-0 pt-0.5">•</span>}
             <p className="text-sm text-foreground">{val || '—'}</p>
           </div>
         ))}
