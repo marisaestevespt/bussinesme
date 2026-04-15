@@ -16,7 +16,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload, X } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
+import { CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
+import { useCrmStages } from '@/hooks/useCrmStages';
 import { useCrmData } from '@/hooks/useCrmData';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
