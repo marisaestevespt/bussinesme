@@ -340,6 +340,15 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                     <SelectContent>{CRM_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                {form.id && (
+                  <div className="col-span-2">
+                    <Label>Etiquetas</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <CrmLabelBadges labelIds={leadLabelsMap[form.id] || []} labels={labels} />
+                      <CrmLabelPicker leadId={form.id} selectedLabelIds={leadLabelsMap[form.id] || []} />
+                    </div>
+                  </div>
+                )}
                 <div><Label>Email</Label><Input value={form.email || ''} onChange={e => set({ email: e.target.value })} /></div>
                 <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => set({ phone: e.target.value })} /></div>
                 <div className="col-span-2">
