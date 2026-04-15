@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, ExternalLink, Paperclip, X, Upload } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 
@@ -137,30 +137,47 @@ export default function MarketingChannelStrategy() {
     queryKey: ['strategy-distribution-cards'],
     queryFn: async () => {
       const { data } = await supabase.from('strategy_distribution_cards').select('*').order('sort_order') as any;
-      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; sort_order: number }[];
+      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; link_url: string | null; files: any[] | null; sort_order: number }[];
     },
   });
 
   const channelDistCards = distCards.filter(c => c.channel === channel?.name);
 
   const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
-  const [distForm, setDistForm] = useState({ title: '', description: '' });
+  const [distForm, setDistForm] = useState({ title: '', description: '', link_url: '', files: [] as { name: string; url: string }[] });
+  const [uploading, setUploading] = useState(false);
 
   const openAddDist = (columnKey: string) => {
-    setDistForm({ title: '', description: '' });
+    setDistForm({ title: '', description: '', link_url: '', files: [] });
     setDistDialog({ open: true, columnKey });
   };
-  const openEditDist = (card: { id: string; column_key: string; title: string; description: string | null }) => {
-    setDistForm({ title: card.title, description: card.description || '' });
+  const openEditDist = (card: any) => {
+    setDistForm({ title: card.title, description: card.description || '', link_url: card.link_url || '', files: card.files || [] });
     setDistDialog({ open: true, columnKey: card.column_key, editId: card.id });
+  };
+  const handleDistFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const path = `dist-cards/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from('content-files').upload(path, file);
+    if (error) { toast.error('Erro ao enviar ficheiro'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('content-files').getPublicUrl(path);
+    setDistForm(f => ({ ...f, files: [...f.files, { name: file.name, url: urlData.publicUrl }] }));
+    setUploading(false);
+    e.target.value = '';
+  };
+  const removeDistFile = (idx: number) => {
+    setDistForm(f => ({ ...f, files: f.files.filter((_, i) => i !== idx) }));
   };
   const saveDist = async () => {
     if (!distForm.title.trim() || !channel) return;
+    const payload = { title: distForm.title, description: distForm.description, link_url: distForm.link_url || null, files: distForm.files } as any;
     if (distDialog.editId) {
-      await supabase.from('strategy_distribution_cards').update({ title: distForm.title, description: distForm.description } as any).eq('id', distDialog.editId);
+      await supabase.from('strategy_distribution_cards').update(payload).eq('id', distDialog.editId);
     } else {
       const colCards = channelDistCards.filter(c => c.column_key === distDialog.columnKey);
-      await supabase.from('strategy_distribution_cards').insert({ column_key: distDialog.columnKey, title: distForm.title, channel: channel.name, description: distForm.description, sort_order: colCards.length } as any);
+      await supabase.from('strategy_distribution_cards').insert({ ...payload, column_key: distDialog.columnKey, channel: channel.name, sort_order: colCards.length } as any);
     }
     qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
     setDistDialog({ open: false, columnKey: '' });
@@ -359,6 +376,10 @@ export default function MarketingChannelStrategy() {
                           <CardContent className="p-2 space-y-0.5">
                             <p className="text-[11px] font-medium text-foreground truncate">{card.title}</p>
                             {card.description && <p className="text-[9px] text-muted-foreground truncate">{card.description}</p>}
+                            <div className="flex items-center gap-1">
+                              {card.link_url && <ExternalLink className="h-2 w-2 text-info" />}
+                              {(card.files as any[])?.length > 0 && <Paperclip className="h-2 w-2 text-muted-foreground" />}
+                            </div>
                             {isOwner && <Button variant="ghost" size="icon" className="absolute top-0.5 right-0.5 h-4 w-4 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDist(card.id); }}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>}
                           </CardContent>
                         </Card>
@@ -397,7 +418,30 @@ export default function MarketingChannelStrategy() {
                   <Label className="text-xs">Descrição</Label>
                   <Textarea value={distForm.description} onChange={e => setDistForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes" className="resize-none min-h-[60px]" />
                 </div>
-                <Button className="w-full" onClick={saveDist} disabled={!distForm.title.trim()}>
+                <div>
+                  <Label className="text-xs">Link</Label>
+                  <Input value={distForm.link_url} onChange={e => setDistForm(f => ({ ...f, link_url: e.target.value }))} placeholder="https://..." />
+                </div>
+                <div>
+                  <Label className="text-xs">Ficheiros</Label>
+                  <div className="space-y-1.5 mt-1">
+                    {distForm.files.map((file, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1">
+                        <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" />
+                        <a href={file.url} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate flex-1">{file.name}</a>
+                        {isOwner && <Button variant="ghost" size="icon" className="h-4 w-4 shrink-0" onClick={() => removeDistFile(idx)}><X className="h-2.5 w-2.5" /></Button>}
+                      </div>
+                    ))}
+                    {isOwner && (
+                      <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                        <Upload className="h-3 w-3" />
+                        {uploading ? 'A enviar...' : 'Adicionar ficheiro'}
+                        <input type="file" className="hidden" onChange={handleDistFileUpload} disabled={uploading} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+                <Button className="w-full" onClick={saveDist} disabled={!distForm.title.trim() || uploading}>
                   {distDialog.editId ? 'Guardar' : 'Adicionar'}
                 </Button>
               </div>
