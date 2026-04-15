@@ -340,6 +340,22 @@ export default function GestaoMarcaPage() {
     toast.success('Ficheiro removido');
   };
 
+  const addVisualLink = async () => {
+    if (!visualLinkLabel.trim() || !visualLinkUrl.trim() || !selectedVisual) return;
+    await supabase.from('brand_visual_files').insert({
+      card_id: selectedVisual.id,
+      file_url: visualLinkUrl,
+      file_name: visualLinkLabel,
+      file_type: 'link',
+    } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual.id] });
+    setVisualLinkLabel('');
+    setVisualLinkUrl('');
+    setAddingVisualLink(false);
+    toast.success('Link adicionado');
+  };
+  };
+
   // ── Competitor mutations ──
 
   const resetCompForm = () => setCompForm({ name: '', type: 'direta', instagram: '', website: '', produtos: '', precos: '', plataformas: '', posicionamento: '', comunicacao: '' });
