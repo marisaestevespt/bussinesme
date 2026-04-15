@@ -74,11 +74,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal', color: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-900' },
-  { key: 'mercado', label: 'Mercado', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-900' },
-  { key: 'posicionamento', label: 'Posicionamento', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-900' },
-  { key: 'identidade', label: 'Identidade', color: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300', border: 'border-red-200 dark:border-red-900' },
-  { key: 'impacto', label: 'Impacto', color: 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300', border: 'border-teal-200 dark:border-teal-900' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-orange-100 dark:bg-orange-950', headerText: 'text-orange-600 dark:text-orange-300', dotBg: 'bg-orange-400', addColor: 'text-orange-500' },
+  { key: 'mercado', label: 'Mercado', headerBg: 'bg-yellow-100 dark:bg-yellow-950', headerText: 'text-yellow-700 dark:text-yellow-300', dotBg: 'bg-yellow-500', addColor: 'text-yellow-600' },
+  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-blue-100 dark:bg-blue-950', headerText: 'text-blue-600 dark:text-blue-300', dotBg: 'bg-blue-400', addColor: 'text-blue-500' },
+  { key: 'identidade', label: 'Identidade', headerBg: 'bg-red-100 dark:bg-red-950', headerText: 'text-red-600 dark:text-red-300', dotBg: 'bg-red-400', addColor: 'text-red-500' },
+  { key: 'impacto', label: 'Impacto', headerBg: 'bg-teal-100 dark:bg-teal-950', headerText: 'text-teal-600 dark:text-teal-300', dotBg: 'bg-teal-400', addColor: 'text-teal-500' },
 ];
 
 // ── Page ──
@@ -554,66 +554,72 @@ export default function GestaoMarcaPage() {
           <Separator />
 
           {/* ── Branding e Primal Branding ── */}
-          <section className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground">Branding e Primal Branding</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <section className="space-y-5">
+            <h2 className="text-xl font-semibold text-foreground">Branding & Primal Branding</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
               {KANBAN_GROUPS.map(group => {
                 const items = kanbanItems.filter(i => i.group_key === group.key);
                 return (
-                  <div key={group.key} className="space-y-2">
-                    <div className={cn('flex items-center justify-between rounded-lg px-3 py-1.5', group.color)}>
-                      <h3 className="text-xs font-bold uppercase tracking-wider">// {group.label}</h3>
-                      <span className="text-xs font-semibold">{items.length}</span>
+                  <div key={group.key} className="space-y-0">
+                    {/* Notion-style colored header */}
+                    <div className={cn('flex items-center justify-between rounded-t-lg px-3 py-2', group.headerBg)}>
+                      <div className="flex items-center gap-1.5">
+                        <span className={cn('text-xs font-semibold', group.headerText)}>// {group.label}</span>
+                      </div>
+                      <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
                     </div>
-                    <div className={cn('space-y-1.5 min-h-[60px] rounded-lg p-2 border', group.border, 'bg-muted/10')}>
+                    {/* Items list */}
+                    <div className="space-y-0 bg-muted/5 border-x border-b rounded-b-lg">
                       {items.map(item => (
-                        <Card
+                        <div
                           key={item.id}
-                          className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 group"
+                          className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors group"
                           onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); }}
                         >
-                          <CardContent className="p-3 flex items-center justify-between">
-                            <span className="text-sm text-foreground font-medium">{item.title}</span>
-                            {isOwner && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0"
-                                onClick={(e) => { e.stopPropagation(); deleteKanbanItem(item.id); }}
-                              >
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    {isOwner && (
-                      addingToGroup === group.key ? (
-                        <div className="space-y-1.5">
-                          <Input
-                            value={newItemTitle}
-                            onChange={e => setNewItemTitle(e.target.value)}
-                            placeholder="Nome do item..."
-                            className="h-8 text-xs"
-                            autoFocus
-                            onKeyDown={e => e.key === 'Enter' && addKanbanItem()}
-                          />
-                          <div className="flex gap-1">
-                            <Button size="sm" className="h-7 text-xs" onClick={addKanbanItem}>
-                              <Check className="h-3 w-3 mr-1" />Adicionar
+                          <span className="text-base leading-none">📄</span>
+                          <span className="text-sm text-foreground flex-1 truncate">{item.title}</span>
+                          {isOwner && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0"
+                              onClick={(e) => { e.stopPropagation(); deleteKanbanItem(item.id); }}
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setAddingToGroup(null); setNewItemTitle(''); }}>
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          )}
                         </div>
-                      ) : (
-                        <Button variant="ghost" size="sm" className="w-full h-7 text-xs text-muted-foreground" onClick={() => setAddingToGroup(group.key)}>
-                          <Plus className="h-3 w-3 mr-1" />Novo item
-                        </Button>
-                      )
-                    )}
+                      ))}
+                      {isOwner && (
+                        addingToGroup === group.key ? (
+                          <div className="p-2 space-y-1.5">
+                            <Input
+                              value={newItemTitle}
+                              onChange={e => setNewItemTitle(e.target.value)}
+                              placeholder="Nome do item..."
+                              className="h-8 text-xs"
+                              autoFocus
+                              onKeyDown={e => e.key === 'Enter' && addKanbanItem()}
+                            />
+                            <div className="flex gap-1">
+                              <Button size="sm" className="h-7 text-xs" onClick={addKanbanItem}>
+                                <Check className="h-3 w-3 mr-1" />Adicionar
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setAddingToGroup(null); setNewItemTitle(''); }}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            className={cn('w-full text-left px-3 py-2 text-sm hover:bg-muted/30 transition-colors', group.addColor)}
+                            onClick={() => setAddingToGroup(group.key)}
+                          >
+                            + New page
+                          </button>
+                        )
+                      )}
+                    </div>
                   </div>
                 );
               })}
