@@ -127,8 +127,47 @@ export default function MarketingFunilDetail() {
   const updateEtapa = (idx: number, field: keyof Etapa, val: string) => {
     setForm(f => ({ ...f, etapas: f.etapas.map((e, i) => i === idx ? { ...e, [field]: val } : e) }));
   };
-  const addEtapa = () => setForm(f => ({ ...f, etapas: [...f.etapas, { nome: '', descricao: '', condicao: '' }] }));
+  const addEtapa = () => setForm(f => ({ ...f, etapas: [...f.etapas, { nome: '', descricao: '', condicao: '', documentos: [] }] }));
   const removeEtapa = (idx: number) => setForm(f => ({ ...f, etapas: f.etapas.filter((_, i) => i !== idx) }));
+
+  // Stage detail dialog
+  const [stageDialogIdx, setStageDialogIdx] = useState<number | null>(null);
+  const [uploadingStageDoc, setUploadingStageDoc] = useState(false);
+  const stageFileRef = useRef<HTMLInputElement>(null);
+  const [stageTextDoc, setStageTextDoc] = useState('');
+  const [addingTextDoc, setAddingTextDoc] = useState(false);
+
+  const stageDialogEtapa = stageDialogIdx !== null ? form.etapas[stageDialogIdx] : null;
+  const stageDocumentos = stageDialogEtapa?.documentos || [];
+
+  const updateStageDoc = (docs: EtapaDoc[]) => {
+    if (stageDialogIdx === null) return;
+    setForm(f => ({ ...f, etapas: f.etapas.map((e, i) => i === stageDialogIdx ? { ...e, documentos: docs } : e) }));
+  };
+
+  const handleStageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || stageDialogIdx === null) return;
+    setUploadingStageDoc(true);
+    const ext = file.name.split('.').pop();
+    const path = `funnels/${id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('commercial-files').upload(path, file);
+    if (error) { toast.error('Erro ao carregar ficheiro'); setUploadingStageDoc(false); return; }
+    const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
+    const newDoc: EtapaDoc = { name: file.name, url: urlData.publicUrl, type: 'file' };
+    updateStageDoc([...stageDocumentos, newDoc]);
+    setUploadingStageDoc(false);
+    if (stageFileRef.current) stageFileRef.current.value = '';
+  };
+
+  const addTextDocument = () => {
+    if (!stageTextDoc.trim()) return;
+    const newDoc: EtapaDoc = { name: `Nota ${stageDocumentos.length + 1}`, url: '', type: 'text', content: stageTextDoc.trim() };
+    updateStageDoc([...stageDocumentos, newDoc]);
+    setStageTextDoc(''); setAddingTextDoc(false);
+  };
+
+  const removeStageDoc = (docIdx: number) => updateStageDoc(stageDocumentos.filter((_, i) => i !== docIdx));
 
   const staticText = (val: string, placeholder: string) =>
     val ? <p className="text-sm text-foreground whitespace-pre-wrap">{val}</p>
