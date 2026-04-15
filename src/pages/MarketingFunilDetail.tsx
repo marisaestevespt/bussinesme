@@ -106,6 +106,13 @@ export default function MarketingFunilDetail() {
 
   const cancelEdit = () => { if (item) syncForm(item); setEditing(false); };
 
+  // Stage detail dialog (hooks must be before early return)
+  const [stageDialogIdx, setStageDialogIdx] = useState<number | null>(null);
+  const [uploadingStageDoc, setUploadingStageDoc] = useState(false);
+  const stageFileRef = useRef<HTMLInputElement>(null);
+  const [stageTextDoc, setStageTextDoc] = useState('');
+  const [addingTextDoc, setAddingTextDoc] = useState(false);
+
   if (isLoading || !item) return (
     <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
   );
@@ -129,13 +136,6 @@ export default function MarketingFunilDetail() {
   };
   const addEtapa = () => setForm(f => ({ ...f, etapas: [...f.etapas, { nome: '', descricao: '', condicao: '', documentos: [] }] }));
   const removeEtapa = (idx: number) => setForm(f => ({ ...f, etapas: f.etapas.filter((_, i) => i !== idx) }));
-
-  // Stage detail dialog
-  const [stageDialogIdx, setStageDialogIdx] = useState<number | null>(null);
-  const [uploadingStageDoc, setUploadingStageDoc] = useState(false);
-  const stageFileRef = useRef<HTMLInputElement>(null);
-  const [stageTextDoc, setStageTextDoc] = useState('');
-  const [addingTextDoc, setAddingTextDoc] = useState(false);
 
   const stageDialogEtapa = stageDialogIdx !== null ? form.etapas[stageDialogIdx] : null;
   const stageDocumentos = stageDialogEtapa?.documentos || [];
