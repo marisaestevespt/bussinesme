@@ -355,7 +355,9 @@ export default function MarketingFunilDetail() {
               {editing && <Button variant="outline" size="sm" onClick={addEtapa}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar Etapa</Button>}
             </div>
             <div className="space-y-4">
-              {form.etapas.map((etapa, idx) => (
+              {form.etapas.map((etapa, idx) => {
+                const docCount = etapa.documentos?.length || 0;
+                return (
                 <Card key={idx}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center gap-2">
@@ -366,12 +368,23 @@ export default function MarketingFunilDetail() {
                             onChange={e => updateEtapa(idx, 'nome', e.target.value)}
                             placeholder="Nome da etapa"
                             className="h-8 text-sm font-semibold flex-1" />
+                          <Button variant="outline" size="sm" className="h-7 shrink-0 gap-1" onClick={() => setStageDialogIdx(idx)}>
+                            <Paperclip className="h-3 w-3" />
+                            {docCount > 0 && <span className="text-xs">{docCount}</span>}
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeEtapa(idx)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </>
                       ) : (
-                        <p className="text-sm font-semibold">{etapa.nome || '—'}</p>
+                        <>
+                          <p className="text-sm font-semibold flex-1">{etapa.nome || '—'}</p>
+                          {docCount > 0 && (
+                            <Button variant="ghost" size="sm" className="h-7 gap-1 text-muted-foreground" onClick={() => setStageDialogIdx(idx)}>
+                              <Paperclip className="h-3 w-3" /><span className="text-xs">{docCount} doc{docCount > 1 ? 's' : ''}</span>
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                     {editing ? (
@@ -395,7 +408,8 @@ export default function MarketingFunilDetail() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
               {form.etapas.length === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">Nenhuma etapa adicionada.</p>}
             </div>
           </section>
