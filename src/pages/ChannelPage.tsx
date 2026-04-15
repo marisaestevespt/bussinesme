@@ -310,7 +310,10 @@ export default function ChannelPage() {
 
               <Separator />
 
+              {/* Distribution cards for this channel */}
+              <ChannelDistributionCards channelName={channel.name} />
 
+              <Separator />
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-foreground">Páginas</h2>
