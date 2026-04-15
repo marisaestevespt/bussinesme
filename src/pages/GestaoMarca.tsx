@@ -114,6 +114,9 @@ export default function GestaoMarcaPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showAddVisualCard, setShowAddVisualCard] = useState(false);
   const [newVisualTitle, setNewVisualTitle] = useState('');
+  const [addingVisualLink, setAddingVisualLink] = useState(false);
+  const [visualLinkLabel, setVisualLinkLabel] = useState('');
+  const [visualLinkUrl, setVisualLinkUrl] = useState('');
 
   // Competitors
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
@@ -335,6 +338,21 @@ export default function GestaoMarcaPage() {
     await supabase.from('brand_visual_files').delete().eq('id', fileId);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual?.id] });
     toast.success('Ficheiro removido');
+  };
+
+  const addVisualLink = async () => {
+    if (!visualLinkLabel.trim() || !visualLinkUrl.trim() || !selectedVisual) return;
+    await supabase.from('brand_visual_files').insert({
+      card_id: selectedVisual.id,
+      file_url: visualLinkUrl,
+      file_name: visualLinkLabel,
+      file_type: 'link',
+    } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual.id] });
+    setVisualLinkLabel('');
+    setVisualLinkUrl('');
+    setAddingVisualLink(false);
+    toast.success('Link adicionado');
   };
 
   // ── Competitor mutations ──
@@ -980,7 +998,7 @@ export default function GestaoMarcaPage() {
 
               {/* Uploads */}
               {isOwner && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <label className="cursor-pointer">
                     <Button variant="outline" size="sm" asChild>
                       <span><ImageIcon className="h-3.5 w-3.5 mr-1" />Carregar imagens</span>
@@ -993,6 +1011,9 @@ export default function GestaoMarcaPage() {
                     </Button>
                     <input type="file" multiple className="hidden" onChange={e => uploadVisualFile(e, 'file')} disabled={uploadingVisual} />
                   </label>
+                  <Button variant="outline" size="sm" onClick={() => setAddingVisualLink(true)}>
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" />Adicionar link
+                  </Button>
                 </div>
               )}
 
@@ -1030,6 +1051,44 @@ export default function GestaoMarcaPage() {
                       <div key={file.id} className="flex items-center gap-2 group">
                         <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
                           <FileText className="h-3.5 w-3.5 shrink-0" />
+                          {file.file_name}
+                        </a>
+                        {isOwner && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add link form */}
+              {addingVisualLink && isOwner && (
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-muted-foreground">Nome</label>
+                    <Input value={visualLinkLabel} onChange={e => setVisualLinkLabel(e.target.value)} placeholder="Ex: Google Drive, Canva..." className="h-8 text-sm" autoFocus />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-muted-foreground">URL</label>
+                    <Input value={visualLinkUrl} onChange={e => setVisualLinkUrl(e.target.value)} placeholder="https://..." className="h-8 text-sm" onKeyDown={e => e.key === 'Enter' && addVisualLink()} />
+                  </div>
+                  <Button size="sm" className="h-8" disabled={!visualLinkLabel.trim() || !visualLinkUrl.trim()} onClick={addVisualLink}><Check className="h-3 w-3" /></Button>
+                  <Button size="sm" variant="ghost" className="h-8" onClick={() => { setAddingVisualLink(false); setVisualLinkLabel(''); setVisualLinkUrl(''); }}><X className="h-3 w-3" /></Button>
+                </div>
+              )}
+
+              {/* Links */}
+              {visualFiles.filter(f => f.file_type === 'link').length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Links</p>
+                  <div className="space-y-1.5">
+                    {visualFiles.filter(f => f.file_type === 'link').map(file => (
+                      <div key={file.id} className="flex items-center gap-2 group">
+                        <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                           {file.file_name}
                         </a>
                         {isOwner && (
