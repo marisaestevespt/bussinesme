@@ -336,7 +336,7 @@ export default function MarketingAutomacaoDetail() {
           <Separator />
           {renderEditableList('Fluxo da Automação', 'fluxo', 'Ex: Email de boas-vindas enviado', true)}
           <Separator />
-          {renderEditableList('Condições e Excepções', 'condicoes', 'Se acontecer X, fazer Y.')}
+          {renderEditableList('Condições e Excepções', 'condicoes', 'Se acontecer X, fazer Y.', false, true)}
           <Separator />
 
           {/* Links */}
