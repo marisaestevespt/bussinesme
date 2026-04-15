@@ -40,6 +40,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [newStageName, setNewStageName] = useState('');
   const { stages, addStage, removeStage } = useCrmStages();
+  const { labels, leadLabelsMap } = useCrmLabels();
 
   const columns = useMemo(() => stages.map(s => ({
     ...s,
