@@ -9,12 +9,14 @@ import { useCrmStages } from '@/hooks/useCrmStages';
 import { format } from 'date-fns';
 import { AlertTriangle, Clock, Phone, Mail, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useAuth } from '@/hooks/useAuth';
+
 
 interface CrmPipelineProps {
   leads: any[];
   onOpenLead: (lead: any) => void;
   onUpdateStatus: (leadId: string, newStatus: string) => void;
+  manageStagesOpen: boolean;
+  onManageStagesChange: (open: boolean) => void;
 }
 
 function fuBadgeClass(state: FollowUpState) {
@@ -32,12 +34,10 @@ function FuIcon({ state }: { state: FollowUpState }) {
   return null;
 }
 
-export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelineProps) {
+export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpen, onManageStagesChange }: CrmPipelineProps) {
   const [dragOver, setDragOver] = useState<string | null>(null);
-  const [manageOpen, setManageOpen] = useState(false);
   const [newStageName, setNewStageName] = useState('');
   const { stages, addStage, removeStage } = useCrmStages();
-  const { isOwner } = useAuth();
 
   const columns = useMemo(() => stages.map(s => ({
     ...s,
@@ -65,13 +65,6 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
 
   return (
     <>
-      <div className="flex justify-end mb-2">
-        {isOwner && (
-          <Button variant="outline" size="sm" onClick={() => setManageOpen(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Gerir Etapas
-          </Button>
-        )}
-      </div>
       <ScrollArea className="w-full">
         <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 290}px` }}>
           {columns.map(col => (
@@ -139,7 +132,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
       </ScrollArea>
 
       {/* Manage stages dialog */}
-      <Dialog open={manageOpen} onOpenChange={setManageOpen}>
+      <Dialog open={manageStagesOpen} onOpenChange={onManageStagesChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Gerir Etapas do CRM</DialogTitle>
