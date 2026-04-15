@@ -196,6 +196,65 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
     },
   });
 
+  // ── Marketing Goals ──
+  const METRIC_SUGGESTIONS = [
+    { key: 'followers', label: 'Seguidores' },
+    { key: 'followers_growth', label: 'Crescimento de Seguidores' },
+    { key: 'engagement_rate', label: 'Taxa de Engagement (%)' },
+    { key: 'reach', label: 'Alcance' },
+    { key: 'impressions', label: 'Impressões' },
+    { key: 'clicks', label: 'Cliques' },
+    { key: 'leads', label: 'Leads Gerados' },
+    { key: 'subscribers', label: 'Subscritores' },
+    { key: 'views', label: 'Visualizações' },
+    { key: 'conversions', label: 'Conversões' },
+    { key: 'traffic', label: 'Tráfego do Site' },
+    { key: 'custom', label: 'Personalizado' },
+  ];
+  const CHANNEL_EMOJI: Record<string, string> = {
+    'Instagram': '📸', 'Youtube': '🎬', 'Facebook': '👥', 'TikTok': '🎵',
+    'LinkedIn': '💼', 'Pinterest': '📌', 'Website': '🌐', 'Email Marketing': '📧',
+  };
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<any>(null);
+  const [goalForm, setGoalForm] = useState({ channel_id: '', metric_key: 'followers', metric_label: 'Seguidores', target_value: '', current_value: '', notes: '' });
+
+  const { data: marketingGoals = [] } = useQuery({
+    queryKey: ['marketing-goals', year, month],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_goals').select('*').eq('year', year).eq('month', month).order('sort_order') as any;
+      return (data || []) as any[];
+    },
+  });
+
+  const openNewGoal = () => {
+    setEditingGoal(null);
+    setGoalForm({ channel_id: '', metric_key: 'followers', metric_label: 'Seguidores', target_value: '', current_value: '', notes: '' });
+    setGoalDialogOpen(true);
+  };
+  const openEditGoal = (g: any) => {
+    setEditingGoal(g);
+    setGoalForm({ channel_id: g.channel_id || '', metric_key: g.metric_key, metric_label: g.metric_label, target_value: String(g.target_value || ''), current_value: String(g.current_value || ''), notes: g.notes || '' });
+    setGoalDialogOpen(true);
+  };
+  const saveGoal = async () => {
+    const payload = { year, month, channel_id: goalForm.channel_id || null, metric_key: goalForm.metric_key, metric_label: goalForm.metric_label, target_value: Number(goalForm.target_value) || 0, current_value: Number(goalForm.current_value) || 0, notes: goalForm.notes || null, sort_order: editingGoal ? editingGoal.sort_order : marketingGoals.length };
+    if (editingGoal) await supabase.from('marketing_goals').update(payload as any).eq('id', editingGoal.id);
+    else await supabase.from('marketing_goals').insert(payload as any);
+    queryClient.invalidateQueries({ queryKey: ['marketing-goals', year, month] });
+    setGoalDialogOpen(false);
+    toast.success('Meta guardada');
+  };
+  const deleteGoal = async (id: string) => {
+    await supabase.from('marketing_goals').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['marketing-goals', year, month] });
+  };
+  const updateGoalCurrentValue = async (id: string, value: string) => {
+    await supabase.from('marketing_goals').update({ current_value: Number(value) || 0 } as any).eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['marketing-goals', year, month] });
+  };
+  const getChannelName = (id: string | null) => id ? channels.find(c => c.id === id)?.name || null : null;
+
   const saveAnalysis = useCallback(async (field: string, value: string) => {
     if (analysis?.id) {
       await supabase.from('marketing_monthly_analysis').update({ [field]: value || null } as any).eq('id', analysis.id);
