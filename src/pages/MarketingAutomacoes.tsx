@@ -64,7 +64,7 @@ export default function MarketingAutomacoes() {
 
   const create = async () => {
     if (!form.name.trim()) return;
-    await supabase.from('marketing_automations').insert({
+    const { error } = await supabase.from('marketing_automations').insert({
       name: form.name, status: form.status,
       oferta_final: form.oferta_final || null,
       objetivo: form.objetivo || null,
@@ -73,6 +73,11 @@ export default function MarketingAutomacoes() {
       product_name: form.product_name || null,
       created_by: user?.id,
     } as any);
+    if (error) {
+      console.error('Insert error:', error);
+      toast.error('Erro ao criar automação: ' + error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ['marketing-automations'] });
     setShowNew(false);
     setForm({ name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '', product_name: '' });
