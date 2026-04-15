@@ -21,6 +21,17 @@ import {
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon, Loader2,
 } from 'lucide-react';
 
+const CHANNEL_IMAGES: Record<string, string> = {};
+const channelImageModules = import.meta.glob('/src/assets/channels/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
+Object.entries(channelImageModules).forEach(([path, url]) => {
+  const name = path.split('/').pop()?.replace('.jpg', '') || '';
+  CHANNEL_IMAGES[name] = url;
+});
+
+const getChannelImageKey = (name: string): string => {
+  return name.toLowerCase().replace(/\s+/g, '-');
+};
+
 const CHANNEL_EMOJI: Record<string, string> = {
   'Instagram': '📸',
   'Youtube': '🎬',
