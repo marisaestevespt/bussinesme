@@ -9,12 +9,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import type { MarketingChannel } from '@/lib/marketing-constants';
+
+const DIST_COLUMNS = [
+  { key: 'segunda', label: 'Seg', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
+  { key: 'terca', label: 'Ter', headerBg: 'bg-[hsl(25,35%,93%)] dark:bg-[hsl(25,30%,15%)]', headerText: 'text-[hsl(25,50%,45%)] dark:text-[hsl(25,50%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(25,50%,70%)]' },
+  { key: 'quarta', label: 'Qua', headerBg: 'bg-[hsl(33,30%,92%)] dark:bg-[hsl(33,25%,15%)]', headerText: 'text-[hsl(33,40%,42%)] dark:text-[hsl(33,40%,62%)]', cardBorder: 'border-l-[3px] border-[hsl(33,40%,65%)]' },
+  { key: 'quinta', label: 'Qui', headerBg: 'bg-[hsl(10,35%,93%)] dark:bg-[hsl(10,30%,15%)]', headerText: 'text-[hsl(10,45%,48%)] dark:text-[hsl(10,45%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(10,45%,70%)]' },
+  { key: 'sexta', label: 'Sex', headerBg: 'bg-[hsl(18,30%,92%)] dark:bg-[hsl(18,25%,15%)]', headerText: 'text-[hsl(18,40%,44%)] dark:text-[hsl(18,40%,64%)]', cardBorder: 'border-l-[3px] border-[hsl(18,40%,68%)]' },
+  { key: 'sabado', label: 'Sáb', headerBg: 'bg-[hsl(200,30%,93%)] dark:bg-[hsl(200,25%,15%)]', headerText: 'text-[hsl(200,40%,45%)] dark:text-[hsl(200,40%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(200,40%,70%)]' },
+  { key: 'domingo', label: 'Dom', headerBg: 'bg-[hsl(160,28%,92%)] dark:bg-[hsl(160,22%,15%)]', headerText: 'text-[hsl(160,35%,40%)] dark:text-[hsl(160,35%,60%)]', cardBorder: 'border-l-[3px] border-[hsl(160,35%,65%)]' },
+  { key: 'mensal', label: 'Mensal', headerBg: 'bg-[hsl(270,25%,93%)] dark:bg-[hsl(270,20%,15%)]', headerText: 'text-[hsl(270,30%,48%)] dark:text-[hsl(270,30%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(270,30%,70%)]' },
+];
 
 export default function MarketingChannelStrategy() {
   const { channelId } = useParams<{ channelId: string }>();
@@ -114,6 +130,44 @@ export default function MarketingChannelStrategy() {
   const deleteFrame = async (id: string) => {
     await supabase.from('strategy_channel_frames').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['strategy-channel-frames', channelId] });
+  };
+
+  // Distribution cards for this channel
+  const { data: distCards = [] } = useQuery({
+    queryKey: ['strategy-distribution-cards'],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_distribution_cards').select('*').order('sort_order') as any;
+      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; sort_order: number }[];
+    },
+  });
+
+  const channelDistCards = distCards.filter(c => c.channel === channel?.name);
+
+  const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
+  const [distForm, setDistForm] = useState({ title: '', description: '' });
+
+  const openAddDist = (columnKey: string) => {
+    setDistForm({ title: '', description: '' });
+    setDistDialog({ open: true, columnKey });
+  };
+  const openEditDist = (card: { id: string; column_key: string; title: string; description: string | null }) => {
+    setDistForm({ title: card.title, description: card.description || '' });
+    setDistDialog({ open: true, columnKey: card.column_key, editId: card.id });
+  };
+  const saveDist = async () => {
+    if (!distForm.title.trim() || !channel) return;
+    if (distDialog.editId) {
+      await supabase.from('strategy_distribution_cards').update({ title: distForm.title, description: distForm.description } as any).eq('id', distDialog.editId);
+    } else {
+      const colCards = channelDistCards.filter(c => c.column_key === distDialog.columnKey);
+      await supabase.from('strategy_distribution_cards').insert({ column_key: distDialog.columnKey, title: distForm.title, channel: channel.name, description: distForm.description, sort_order: colCards.length } as any);
+    }
+    qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
+    setDistDialog({ open: false, columnKey: '' });
+  };
+  const deleteDist = async (id: string) => {
+    await supabase.from('strategy_distribution_cards').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
   };
 
   if (!channel) return (
@@ -284,6 +338,71 @@ export default function MarketingChannelStrategy() {
               </CardContent>
             </Card>
           </section>
+
+          <Separator />
+
+          {/* Distribuição de Conteúdo deste canal */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Distribuição de Conteúdo</h2>
+            <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
+              {DIST_COLUMNS.map(col => {
+                const colCards = channelDistCards.filter(c => c.column_key === col.key);
+                return (
+                  <div key={col.key} className="flex flex-col">
+                    <div className={cn('rounded-lg px-1.5 py-1.5 mb-2 text-center', col.headerBg)}>
+                      <span className={cn('text-[10px] font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
+                      {colCards.length > 0 && <span className={cn('ml-1 text-[9px] font-medium opacity-60', col.headerText)}>({colCards.length})</span>}
+                    </div>
+                    <div className="space-y-1.5 flex-1 min-h-[80px]">
+                      {colCards.map(card => (
+                        <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDist(card)}>
+                          <CardContent className="p-2 space-y-0.5">
+                            <p className="text-[11px] font-medium text-foreground truncate">{card.title}</p>
+                            {card.description && <p className="text-[9px] text-muted-foreground truncate">{card.description}</p>}
+                            {isOwner && <Button variant="ghost" size="icon" className="absolute top-0.5 right-0.5 h-4 w-4 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDist(card.id); }}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    {isOwner && <Button variant="ghost" size="sm" className="w-full mt-1 text-[10px] text-muted-foreground h-6" onClick={() => openAddDist(col.key)}><Plus className="h-2.5 w-2.5 mr-0.5" />Adicionar</Button>}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Distribution dialog */}
+          <Dialog open={distDialog.open} onOpenChange={open => !open && setDistDialog({ open: false, columnKey: '' })}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{distDialog.editId ? 'Editar Conteúdo' : 'Novo Conteúdo'} — {channel.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs">Nome</Label>
+                  <Input value={distForm.title} onChange={e => setDistForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Post educativo" />
+                </div>
+                <div>
+                  <Label className="text-xs">Dia</Label>
+                  <Select value={distDialog.columnKey} onValueChange={v => setDistDialog(d => ({ ...d, columnKey: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {DIST_COLUMNS.map(col => (
+                        <SelectItem key={col.key} value={col.key}>{col.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Descrição</Label>
+                  <Textarea value={distForm.description} onChange={e => setDistForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes" className="resize-none min-h-[60px]" />
+                </div>
+                <Button className="w-full" onClick={saveDist} disabled={!distForm.title.trim()}>
+                  {distDialog.editId ? 'Guardar' : 'Adicionar'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <Separator />
 
