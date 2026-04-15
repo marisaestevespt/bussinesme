@@ -15,6 +15,8 @@ interface CrmPipelineProps {
   leads: any[];
   onOpenLead: (lead: any) => void;
   onUpdateStatus: (leadId: string, newStatus: string) => void;
+  manageStagesOpen: boolean;
+  onManageStagesChange: (open: boolean) => void;
 }
 
 function fuBadgeClass(state: FollowUpState) {
