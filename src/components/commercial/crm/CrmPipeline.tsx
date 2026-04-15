@@ -66,20 +66,20 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
   return (
     <>
       <ScrollArea className="w-full">
-        <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 290}px` }}>
+        <div className="flex gap-4 pb-4" style={{ minWidth: `${columns.length * 320}px` }}>
           {columns.map(col => {
             const isWon = col.value === 'ganho';
             const isLost = col.value === 'perdido';
             return (
               <div
                 key={col.value}
-                className={`flex flex-col w-[280px] shrink-0 rounded-xl border transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40 border-primary/30' : ''} ${isWon ? 'bg-success/5 border-success/20' : isLost ? 'bg-destructive/5 border-destructive/20' : 'bg-card/60'}`}
+                className={`flex flex-col w-[310px] shrink-0 rounded-xl border transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40 border-primary/30' : ''} ${isWon ? 'bg-success/5 border-success/20' : isLost ? 'bg-destructive/5 border-destructive/20' : 'bg-card/60'}`}
                 onDragOver={e => { e.preventDefault(); setDragOver(col.value); }}
                 onDragLeave={() => setDragOver(null)}
                 onDrop={e => handleDrop(e, col.value)}
               >
                 {/* Column header */}
-                <div className={`px-3 py-3 border-b rounded-t-xl ${isWon ? 'bg-success/15 border-success/30' : isLost ? 'bg-destructive/15 border-destructive/30' : 'bg-primary/10 border-primary/20'}`}>
+                <div className={`px-4 py-3.5 border-b rounded-t-xl ${isWon ? 'bg-success/15 border-success/30' : isLost ? 'bg-destructive/15 border-destructive/30' : 'bg-primary/10 border-primary/20'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-bold uppercase tracking-wide truncate ${isWon ? 'text-success' : isLost ? 'text-destructive' : 'text-primary'}`}>{col.label}</span>
@@ -90,7 +90,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                 </div>
 
                 {/* Cards */}
-                <div className="p-2 space-y-2 flex-1 min-h-[80px]">
+                <div className="p-3 space-y-3 flex-1 min-h-[80px]">
                   {col.leads.map(lead => {
                     const fuState = getFollowUpState(lead.next_followup);
                     return (
@@ -99,23 +99,23 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                         draggable
                         onDragStart={e => handleDragStart(e, lead.id)}
                         onClick={() => onOpenLead(lead)}
-                        className="p-3 cursor-pointer hover:shadow-lg hover:border-primary/20 transition-all duration-150 border-border/60 shadow-sm"
+                        className="p-4 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 transition-all duration-200 border-border/70 shadow-md bg-card"
                       >
-                        <div className="space-y-1">
-                          <p className="font-semibold text-sm truncate">{lead.name}</p>
+                        <div className="space-y-1.5">
+                          <p className="font-bold text-sm truncate text-foreground">{lead.name}</p>
                           {lead.email && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-                              <Mail className="h-3 w-3 shrink-0" />{lead.email}
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+                              <Mail className="h-3 w-3 shrink-0 text-primary/60" />{lead.email}
                             </div>
                           )}
                           {lead.phone && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Phone className="h-3 w-3 shrink-0" />{lead.phone}
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Phone className="h-3 w-3 shrink-0 text-primary/60" />{lead.phone}
                             </div>
                           )}
                         </div>
 
-                        <div className="mt-3 pt-2.5 border-t border-border/50 space-y-1">
+                        <div className="mt-3 pt-3 border-t border-border/40 space-y-1.5">
                           <div className={`flex items-center gap-1 text-xs ${fuBadgeClass(fuState)}`}>
                             <FuIcon state={fuState} />
                             <span className="text-muted-foreground">Próximo FU:</span> {lead.next_followup ? format(new Date(lead.next_followup), 'dd/MM/yyyy') : '—'}
@@ -123,8 +123,9 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                           <div className="text-xs text-muted-foreground truncate">
                             <span>Notas:</span> {lead.followup_notes || '—'}
                           </div>
-                          <div className="text-xs">
-                            <span className="text-muted-foreground">Valor:</span> <span className="font-bold text-primary">{Number(lead.estimated_value || 0).toLocaleString('pt-PT')}€</span>
+                          <div className="flex items-center justify-between text-xs pt-1">
+                            <span className="text-muted-foreground">Valor:</span>
+                            <span className="font-bold text-base text-primary">{Number(lead.estimated_value || 0).toLocaleString('pt-PT')}€</span>
                           </div>
                         </div>
                       </Card>
