@@ -82,6 +82,7 @@ function DateFilter({ label, value, onChange }: { label: string; value: string; 
 export function CrmCustomView({ leads, onOpenLead, initialFilters, onSaveFilters }: CrmCustomViewProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters || EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(true);
+  const { stages: CRM_STATUSES } = useCrmStages();
 
   const set = (partial: Partial<Filters>) => setFilters(prev => ({ ...prev, ...partial }));
 
