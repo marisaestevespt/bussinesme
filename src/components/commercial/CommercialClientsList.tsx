@@ -36,11 +36,11 @@ export function CommercialClientsList() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [productFilter, setProductFilter] = useState<string>('all');
-  const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  
 
   // Unique values for filter dropdowns
   const products = useMemo(() => [...new Set(items.map(c => c.current_product).filter(Boolean))].sort(), [items]);
-  const paymentMethods = useMemo(() => [...new Set(items.map(c => c.payment_method).filter(Boolean))].sort(), [items]);
+  
 
   const filtered = useMemo(() => {
     let result = items;
@@ -54,7 +54,6 @@ export function CommercialClientsList() {
         c.client_id?.toLowerCase().includes(q) ||
         c.current_product?.toLowerCase().includes(q) ||
         c.nif?.toLowerCase().includes(q) ||
-        c.payment_method?.toLowerCase().includes(q) ||
         c.observations?.toLowerCase().includes(q)
       );
     }
@@ -65,20 +64,17 @@ export function CommercialClientsList() {
     if (productFilter !== 'all') {
       result = result.filter(c => c.current_product === productFilter);
     }
-    if (paymentFilter !== 'all') {
-      result = result.filter(c => c.payment_method === paymentFilter);
-    }
 
     return result;
-  }, [items, search, statusFilter, productFilter, paymentFilter]);
+  }, [items, search, statusFilter, productFilter]);
 
-  const hasFilters = search || statusFilter !== 'all' || productFilter !== 'all' || paymentFilter !== 'all';
+  const hasFilters = search || statusFilter !== 'all' || productFilter !== 'all';
 
   const clearFilters = () => {
     setSearch('');
     setStatusFilter('all');
     setProductFilter('all');
-    setPaymentFilter('all');
+    
   };
 
   return (
@@ -119,17 +115,6 @@ export function CommercialClientsList() {
           </SelectContent>
         </Select>
 
-        <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="F. Pagamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as Formas</SelectItem>
-            {paymentMethods.map(p => (
-              <SelectItem key={p!} value={p!}>{p}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
@@ -146,7 +131,7 @@ export function CommercialClientsList() {
       {/* Table */}
       <Card>
         <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-9 gap-2">
+          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-8 gap-2">
             <span>ID</span>
             <span>Data de Início</span>
             <span>Status</span>
@@ -154,7 +139,6 @@ export function CommercialClientsList() {
             <span>E-mail</span>
             <span>Whatsapp</span>
             <span>Produto Atual</span>
-            <span>F. Pagamento</span>
             <span>Fim de Ciclo</span>
           </div>
           {filtered.length === 0 ? (
@@ -165,7 +149,7 @@ export function CommercialClientsList() {
             filtered.map(c => (
               <div
                 key={c.id}
-                className="px-4 py-2.5 text-sm grid grid-cols-9 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                className="px-4 py-2.5 text-sm grid grid-cols-8 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
                 onClick={() => navigate(`/hub/clientes/${c.id}`)}
               >
                 <span className="font-mono text-xs">{c.client_id}</span>
@@ -179,7 +163,6 @@ export function CommercialClientsList() {
                 <span className="truncate text-muted-foreground">{c.email || '—'}</span>
                 <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
                 <span className="truncate">{c.current_product || '—'}</span>
-                <span className="text-muted-foreground">{c.payment_method || '—'}</span>
                 <span><EndOfCycleBadge date={c.end_of_cycle} /></span>
               </div>
             ))
