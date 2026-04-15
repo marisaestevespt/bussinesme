@@ -439,6 +439,89 @@ export default function MarketingFunilDetail() {
           </section>
         </div>
       </div>
+      {/* Stage Documents Dialog */}
+      <Dialog open={stageDialogIdx !== null} onOpenChange={open => { if (!open) { setStageDialogIdx(null); setAddingTextDoc(false); setStageTextDoc(''); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Paperclip className="h-4 w-4" />
+              Documentos — {stageDialogEtapa?.nome || `Etapa ${(stageDialogIdx ?? 0) + 1}`}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            {/* Existing documents */}
+            {stageDocumentos.length > 0 ? (
+              <div className="space-y-3">
+                {stageDocumentos.map((doc, dIdx) => (
+                  <Card key={dIdx}>
+                    <CardContent className="p-3">
+                      <div className="flex items-start gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{doc.name}</p>
+                          {doc.type === 'text' && doc.content && (
+                            <p className="text-sm text-foreground whitespace-pre-wrap mt-1 bg-muted/50 rounded p-2">{doc.content}</p>
+                          )}
+                          {doc.type === 'file' && doc.url && (
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                              <ExternalLink className="h-3 w-3" />Abrir ficheiro
+                            </a>
+                          )}
+                        </div>
+                        {editing && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeStageDoc(dIdx)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum documento associado a esta etapa.</p>
+            )}
+
+            {/* Add documents (only in editing mode) */}
+            {editing && (
+              <div className="space-y-3 border-t pt-3">
+                <div className="flex gap-2">
+                  <input ref={stageFileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" className="hidden" onChange={handleStageFileUpload} />
+                  <Button variant="outline" size="sm" disabled={uploadingStageDoc} onClick={() => stageFileRef.current?.click()}>
+                    <Upload className="h-3.5 w-3.5 mr-1" />
+                    {uploadingStageDoc ? 'A carregar...' : 'Carregar ficheiro'}
+                  </Button>
+                  {!addingTextDoc && (
+                    <Button variant="outline" size="sm" onClick={() => setAddingTextDoc(true)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" />Adicionar nota de texto
+                    </Button>
+                  )}
+                </div>
+                {addingTextDoc && (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={stageTextDoc}
+                      onChange={e => setStageTextDoc(e.target.value)}
+                      placeholder="Escreve aqui a nota ou texto que queres associar a esta etapa..."
+                      className="min-h-[120px] resize-none"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" disabled={!stageTextDoc.trim()} onClick={addTextDocument}>
+                        <Check className="h-3.5 w-3.5 mr-1" />Adicionar
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => { setAddingTextDoc(false); setStageTextDoc(''); }}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
