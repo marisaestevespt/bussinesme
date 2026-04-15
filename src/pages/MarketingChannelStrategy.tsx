@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, ExternalLink, Paperclip, X, Upload } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 
@@ -137,30 +137,47 @@ export default function MarketingChannelStrategy() {
     queryKey: ['strategy-distribution-cards'],
     queryFn: async () => {
       const { data } = await supabase.from('strategy_distribution_cards').select('*').order('sort_order') as any;
-      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; sort_order: number }[];
+      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; link_url: string | null; files: any[] | null; sort_order: number }[];
     },
   });
 
   const channelDistCards = distCards.filter(c => c.channel === channel?.name);
 
   const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
-  const [distForm, setDistForm] = useState({ title: '', description: '' });
+  const [distForm, setDistForm] = useState({ title: '', description: '', link_url: '', files: [] as { name: string; url: string }[] });
+  const [uploading, setUploading] = useState(false);
 
   const openAddDist = (columnKey: string) => {
-    setDistForm({ title: '', description: '' });
+    setDistForm({ title: '', description: '', link_url: '', files: [] });
     setDistDialog({ open: true, columnKey });
   };
-  const openEditDist = (card: { id: string; column_key: string; title: string; description: string | null }) => {
-    setDistForm({ title: card.title, description: card.description || '' });
+  const openEditDist = (card: any) => {
+    setDistForm({ title: card.title, description: card.description || '', link_url: card.link_url || '', files: card.files || [] });
     setDistDialog({ open: true, columnKey: card.column_key, editId: card.id });
+  };
+  const handleDistFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const path = `dist-cards/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from('content-files').upload(path, file);
+    if (error) { toast.error('Erro ao enviar ficheiro'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('content-files').getPublicUrl(path);
+    setDistForm(f => ({ ...f, files: [...f.files, { name: file.name, url: urlData.publicUrl }] }));
+    setUploading(false);
+    e.target.value = '';
+  };
+  const removeDistFile = (idx: number) => {
+    setDistForm(f => ({ ...f, files: f.files.filter((_, i) => i !== idx) }));
   };
   const saveDist = async () => {
     if (!distForm.title.trim() || !channel) return;
+    const payload = { title: distForm.title, description: distForm.description, link_url: distForm.link_url || null, files: distForm.files } as any;
     if (distDialog.editId) {
-      await supabase.from('strategy_distribution_cards').update({ title: distForm.title, description: distForm.description } as any).eq('id', distDialog.editId);
+      await supabase.from('strategy_distribution_cards').update(payload).eq('id', distDialog.editId);
     } else {
       const colCards = channelDistCards.filter(c => c.column_key === distDialog.columnKey);
-      await supabase.from('strategy_distribution_cards').insert({ column_key: distDialog.columnKey, title: distForm.title, channel: channel.name, description: distForm.description, sort_order: colCards.length } as any);
+      await supabase.from('strategy_distribution_cards').insert({ ...payload, column_key: distDialog.columnKey, channel: channel.name, sort_order: colCards.length } as any);
     }
     qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
     setDistDialog({ open: false, columnKey: '' });
