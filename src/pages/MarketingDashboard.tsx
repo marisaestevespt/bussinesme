@@ -203,9 +203,9 @@ export default function MarketingDashboard() {
                 return (
                   <div key={ch.id} className="group relative">
                     <Link to={`/hub/marketing/canal/${ch.id}`}>
-                      <Card className="hq-transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full">
+                      <Card className="hq-transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full bg-secondary/40">
                         <CardContent className="flex flex-col items-center text-center p-5 gap-3">
-                          <div className="rounded-full bg-muted/40 w-12 h-12 overflow-hidden">
+                          <div className="rounded-full w-12 h-12 overflow-hidden ring-2 ring-primary/10">
                             <img src={imgSrc} alt={ch.name} className="w-full h-full object-cover" />
                           </div>
                           <div>
