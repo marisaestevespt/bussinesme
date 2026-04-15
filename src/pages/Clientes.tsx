@@ -58,7 +58,7 @@ export default function ClientesPage() {
   const renderClientRow = (c: Client) => (
     <div
       key={c.id}
-      className="px-4 py-2.5 text-sm border-b hover:bg-muted/50 cursor-pointer"
+      className="px-6 py-2.5 text-sm border-b hover:bg-muted/50 cursor-pointer"
       onClick={() => navigate(`/hub/clientes/${c.id}`)}
     >
       {/* Desktop: grid row */}
