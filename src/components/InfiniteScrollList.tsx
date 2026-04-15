@@ -49,7 +49,7 @@ export function InfiniteScrollList({
   return (
     <div>
       {showCounter && totalCount !== null && (
-        <p className="text-xs text-muted-foreground mb-2">
+        <p className="text-xs text-muted-foreground mb-2 px-6">
           Mostrando {loadedCount} de {totalCount}
         </p>
       )}
