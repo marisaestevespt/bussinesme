@@ -68,6 +68,10 @@ export default function MarketingFunilDetail() {
   const { products: productsQuery } = useProducts();
   const productsList = productsQuery.data || [];
   const [saving, setSaving] = useState(false);
+  const [newEntry, setNewEntry] = useState('');
+  const [addingEntry, setAddingEntry] = useState(false);
+  const [newPlat, setNewPlat] = useState('');
+  const [addingPlat, setAddingPlat] = useState(false);
 
   const syncForm = (data: FunnelFull) => {
     setForm({
