@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, Eye } from 'lucide-react';
+import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, Eye, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 
 const STATUSES = [
@@ -109,8 +109,11 @@ export default function MarketingFunilDetail() {
   // Stage detail dialog (hooks must be before early return)
   const [stageDialogIdx, setStageDialogIdx] = useState<number | null>(null);
   const [uploadingStageDoc, setUploadingStageDoc] = useState(false);
+  const [expandedDocIdx, setExpandedDocIdx] = useState<number | null>(null);
+  const [editingDocName, setEditingDocName] = useState<{ idx: number; value: string } | null>(null);
   const stageFileRef = useRef<HTMLInputElement>(null);
   const [stageTextDoc, setStageTextDoc] = useState('');
+  const [stageTextDocName, setStageTextDocName] = useState('');
   const [addingTextDoc, setAddingTextDoc] = useState(false);
 
   if (isLoading || !item) return (
@@ -162,9 +165,13 @@ export default function MarketingFunilDetail() {
 
   const addTextDocument = () => {
     if (!stageTextDoc.trim()) return;
-    const newDoc: EtapaDoc = { name: `Nota ${stageDocumentos.length + 1}`, url: '', type: 'text', content: stageTextDoc.trim() };
+    const newDoc: EtapaDoc = { name: stageTextDocName.trim() || `Nota ${stageDocumentos.length + 1}`, url: '', type: 'text', content: stageTextDoc.trim() };
     updateStageDoc([...stageDocumentos, newDoc]);
-    setStageTextDoc(''); setAddingTextDoc(false);
+    setStageTextDoc(''); setStageTextDocName(''); setAddingTextDoc(false);
+  };
+
+  const renameStageDoc = (dIdx: number, newName: string) => {
+    updateStageDoc(stageDocumentos.map((d, i) => i === dIdx ? { ...d, name: newName } : d));
   };
 
   const removeStageDoc = (docIdx: number) => updateStageDoc(stageDocumentos.filter((_, i) => i !== docIdx));
@@ -451,7 +458,7 @@ export default function MarketingFunilDetail() {
         </div>
       </div>
       {/* Stage Documents Dialog */}
-      <Dialog open={stageDialogIdx !== null} onOpenChange={open => { if (!open) { setStageDialogIdx(null); setAddingTextDoc(false); setStageTextDoc(''); } }}>
+      <Dialog open={stageDialogIdx !== null} onOpenChange={open => { if (!open) { setStageDialogIdx(null); setAddingTextDoc(false); setStageTextDoc(''); setStageTextDocName(''); setExpandedDocIdx(null); setEditingDocName(null); } }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -460,41 +467,68 @@ export default function MarketingFunilDetail() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 mt-2">
-            {/* Existing documents */}
+          <div className="space-y-2 mt-2">
             {stageDocumentos.length > 0 ? (
-              <div className="space-y-3">
-                {stageDocumentos.map((doc, dIdx) => (
-                  <Card key={dIdx}>
-                    <CardContent className="p-3">
-                      <div className="flex items-start gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{doc.name}</p>
-                          {doc.type === 'text' && doc.content && (
-                            <p className="text-sm text-foreground whitespace-pre-wrap mt-1 bg-muted/50 rounded p-2">{doc.content}</p>
-                          )}
-                          {doc.type === 'file' && doc.url && (
-                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                              <ExternalLink className="h-3 w-3" />Abrir ficheiro
-                            </a>
-                          )}
-                        </div>
+              <div className="space-y-1">
+                {stageDocumentos.map((doc, dIdx) => {
+                  const isExpanded = expandedDocIdx === dIdx;
+                  const isEditingName = editingDocName?.idx === dIdx;
+                  return (
+                    <div key={dIdx} className="border rounded-md">
+                      <div
+                        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setExpandedDocIdx(isExpanded ? null : dIdx)}
+                      >
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${isExpanded ? '' : '-rotate-90'}`} />
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        {isEditingName ? (
+                          <Input
+                            value={editingDocName.value}
+                            onChange={e => setEditingDocName({ idx: dIdx, value: e.target.value })}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') { renameStageDoc(dIdx, editingDocName.value); setEditingDocName(null); }
+                              if (e.key === 'Escape') setEditingDocName(null);
+                            }}
+                            onBlur={() => { renameStageDoc(dIdx, editingDocName.value); setEditingDocName(null); }}
+                            className="h-7 text-sm flex-1"
+                            autoFocus
+                            onClick={e => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span className="text-sm font-medium flex-1 truncate">{doc.name}</span>
+                        )}
+                        <Badge variant="outline" className="text-[10px] shrink-0">{doc.type === 'file' ? 'Ficheiro' : 'Nota'}</Badge>
+                        {editing && !isEditingName && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); setEditingDocName({ idx: dIdx, value: doc.name }); }}>
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        )}
                         {editing && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeStageDoc(dIdx)}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); removeStageDoc(dIdx); }}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      {isExpanded && (
+                        <div className="px-3 pb-3 pt-1 border-t">
+                          {doc.type === 'text' && doc.content && (
+                            <p className="text-sm text-foreground whitespace-pre-wrap bg-muted/50 rounded p-3">{doc.content}</p>
+                          )}
+                          {doc.type === 'file' && doc.url && (
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
+                              <ExternalLink className="h-3 w-3" />Abrir ficheiro
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum documento associado a esta etapa.</p>
             )}
 
-            {/* Add documents (only in editing mode) */}
             {editing && (
               <div className="space-y-3 border-t pt-3">
                 <div className="flex gap-2">
@@ -511,18 +545,24 @@ export default function MarketingFunilDetail() {
                 </div>
                 {addingTextDoc && (
                   <div className="space-y-2">
+                    <Input
+                      value={stageTextDocName}
+                      onChange={e => setStageTextDocName(e.target.value)}
+                      placeholder="Nome da nota (ex: Briefing, Checklist...)"
+                      className="h-8"
+                      autoFocus
+                    />
                     <Textarea
                       value={stageTextDoc}
                       onChange={e => setStageTextDoc(e.target.value)}
                       placeholder="Escreve aqui a nota ou texto que queres associar a esta etapa..."
                       className="min-h-[120px] resize-none"
-                      autoFocus
                     />
                     <div className="flex gap-2">
                       <Button size="sm" disabled={!stageTextDoc.trim()} onClick={addTextDocument}>
                         <Check className="h-3.5 w-3.5 mr-1" />Adicionar
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => { setAddingTextDoc(false); setStageTextDoc(''); }}>
+                      <Button variant="ghost" size="sm" onClick={() => { setAddingTextDoc(false); setStageTextDoc(''); setStageTextDocName(''); }}>
                         Cancelar
                       </Button>
                     </div>
