@@ -13,10 +13,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload, X } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
+import { CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
+import { useCrmStages } from '@/hooks/useCrmStages';
 import { useCrmData } from '@/hooks/useCrmData';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -36,6 +37,7 @@ interface LeadDetailSheetProps {
 export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
   const navigate = useNavigate();
   const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
+  const { stages: CRM_STATUSES } = useCrmStages();
   const { data: commercialMembers = [] } = useCommercialMembers();
   const [form, setForm] = useState<any>({});
   const [interactionDialog, setInteractionDialog] = useState(false);
@@ -375,17 +377,24 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 </div>
                 <div>
                   <Label>Próximo Follow-up</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.next_followup && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {form.next_followup ? format(form.next_followup, 'dd/MM/yyyy') : 'Selecionar'}
+                  <div className="flex gap-1">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !form.next_followup && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {form.next_followup ? format(form.next_followup, 'dd/MM/yyyy') : 'Selecionar'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={form.next_followup} onSelect={d => set({ next_followup: d })} className="p-3 pointer-events-auto" />
+                      </PopoverContent>
+                    </Popover>
+                    {form.next_followup && (
+                      <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => set({ next_followup: undefined })}>
+                        <X className="h-4 w-4" />
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={form.next_followup} onSelect={d => set({ next_followup: d })} className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label>Valor Estimado (€)</Label>

@@ -2236,6 +2236,33 @@ export type Database = {
           },
         ]
       }
+      crm_custom_stages: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: []
+      }
       crm_interactions: {
         Row: {
           created_at: string

@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock, GitBranchPlus } from 'lucide-react';
 import { format } from 'date-fns';
-import { getFollowUpState, statusLabel, CRM_STATUSES } from '@/hooks/useCrmData';
+import { getFollowUpState, statusLabel } from '@/hooks/useCrmData';
+import { useCrmStages } from '@/hooks/useCrmStages';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -33,15 +34,16 @@ interface CrmSummaryProps {
 
 export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThisMonth, allLeads, onOpenLead }: CrmSummaryProps) {
   const navigate = useNavigate();
+  const { stages } = useCrmStages();
   const chartData = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const lead of allLeads) {
       counts[lead.status] = (counts[lead.status] || 0) + 1;
     }
-    return CRM_STATUSES
+    return stages
       .map(s => ({ status: s.value, label: s.label, count: counts[s.value] || 0 }))
       .filter(d => d.count > 0);
-  }, [allLeads]);
+  }, [allLeads, stages]);
 
   return (
     <div className="space-y-4">

@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CRM_STATUSES, statusLabel, getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
+import { statusLabel, getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
+import { useCrmStages } from '@/hooks/useCrmStages';
 import { format } from 'date-fns';
 import { AlertTriangle, Clock, CalendarIcon, Filter, X, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -81,6 +82,7 @@ function DateFilter({ label, value, onChange }: { label: string; value: string; 
 export function CrmCustomView({ leads, onOpenLead, initialFilters, onSaveFilters }: CrmCustomViewProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters || EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(true);
+  const { stages: CRM_STATUSES } = useCrmStages();
 
   const set = (partial: Partial<Filters>) => setFilters(prev => ({ ...prev, ...partial }));
 
