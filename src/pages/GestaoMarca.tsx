@@ -74,11 +74,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-rose-50 dark:bg-rose-950/30', headerText: 'text-rose-400 dark:text-rose-400', dotBg: 'bg-rose-300', addColor: 'text-rose-300 dark:text-rose-500' },
-  { key: 'mercado', label: 'Mercado', headerBg: 'bg-amber-50/70 dark:bg-amber-950/30', headerText: 'text-amber-500 dark:text-amber-400', dotBg: 'bg-amber-300', addColor: 'text-amber-400 dark:text-amber-500' },
-  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-stone-100 dark:bg-stone-900/40', headerText: 'text-stone-500 dark:text-stone-400', dotBg: 'bg-stone-400', addColor: 'text-stone-400 dark:text-stone-500' },
-  { key: 'identidade', label: 'Identidade', headerBg: 'bg-pink-50 dark:bg-pink-950/30', headerText: 'text-pink-400 dark:text-pink-400', dotBg: 'bg-pink-300', addColor: 'text-pink-300 dark:text-pink-500' },
-  { key: 'impacto', label: 'Impacto', headerBg: 'bg-orange-50/60 dark:bg-orange-950/30', headerText: 'text-orange-400 dark:text-orange-400', dotBg: 'bg-orange-300', addColor: 'text-orange-300 dark:text-orange-500' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', dotBg: '', addColor: 'text-[hsl(351,35%,55%)]' },
+  { key: 'mercado', label: 'Mercado', headerBg: 'bg-[hsl(25,35%,93%)] dark:bg-[hsl(25,30%,15%)]', headerText: 'text-[hsl(25,50%,45%)] dark:text-[hsl(25,50%,65%)]', dotBg: '', addColor: 'text-[hsl(25,45%,55%)]' },
+  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-[hsl(33,30%,92%)] dark:bg-[hsl(33,25%,15%)]', headerText: 'text-[hsl(33,40%,42%)] dark:text-[hsl(33,40%,62%)]', dotBg: '', addColor: 'text-[hsl(33,35%,52%)]' },
+  { key: 'identidade', label: 'Identidade', headerBg: 'bg-[hsl(10,35%,93%)] dark:bg-[hsl(10,30%,15%)]', headerText: 'text-[hsl(10,45%,48%)] dark:text-[hsl(10,45%,65%)]', dotBg: '', addColor: 'text-[hsl(10,40%,55%)]' },
+  { key: 'impacto', label: 'Impacto', headerBg: 'bg-[hsl(18,30%,92%)] dark:bg-[hsl(18,25%,15%)]', headerText: 'text-[hsl(18,40%,44%)] dark:text-[hsl(18,40%,64%)]', dotBg: '', addColor: 'text-[hsl(18,35%,54%)]' },
 ];
 
 // ── Page ──
