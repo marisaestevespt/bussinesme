@@ -198,13 +198,16 @@ export default function MarketingDashboard() {
             <h2 className="text-xl font-semibold text-foreground">Canais</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {channels.filter(ch => ch.is_active).map(ch => {
-                const emoji = CHANNEL_EMOJI[ch.name] || '📢';
+                const imgKey = getChannelImageKey(ch.name);
+                const imgSrc = CHANNEL_IMAGES[imgKey] || CHANNEL_IMAGES['default'];
                 return (
                   <div key={ch.id} className="group relative flex flex-col rounded-xl border bg-card overflow-hidden">
                     <Link to={`/hub/marketing/canal/${ch.id}`}
-                      className="flex flex-col items-center gap-2 p-4 hover:bg-muted/50 hq-transition text-center flex-1">
-                      <span className="text-2xl">{emoji}</span>
-                      <span className="text-sm font-medium text-foreground">{ch.name}</span>
+                      className="flex flex-col items-center gap-2 hover:opacity-90 hq-transition text-center flex-1">
+                      <div className="w-full aspect-[4/3] overflow-hidden">
+                        <img src={imgSrc} alt={ch.name} className="w-full h-full object-cover" />
+                      </div>
+                      <span className="text-sm font-medium text-foreground pb-2">{ch.name}</span>
                     </Link>
                     <div className="border-t px-3 py-2 flex items-center gap-1.5 min-h-[36px]">
                       {editingChannelId === ch.id ? (
