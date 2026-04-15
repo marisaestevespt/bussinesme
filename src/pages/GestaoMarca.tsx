@@ -74,11 +74,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal' },
-  { key: 'mercado', label: 'Mercado' },
-  { key: 'posicionamento', label: 'Posicionamento' },
-  { key: 'identidade', label: 'Identidade' },
-  { key: 'impacto', label: 'Impacto' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal', color: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-900' },
+  { key: 'mercado', label: 'Mercado', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-900' },
+  { key: 'posicionamento', label: 'Posicionamento', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-900' },
+  { key: 'identidade', label: 'Identidade', color: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300', border: 'border-red-200 dark:border-red-900' },
+  { key: 'impacto', label: 'Impacto', color: 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300', border: 'border-teal-200 dark:border-teal-900' },
 ];
 
 // ── Page ──
@@ -561,11 +561,11 @@ export default function GestaoMarcaPage() {
                 const items = kanbanItems.filter(i => i.group_key === group.key);
                 return (
                   <div key={group.key} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/70">{group.label}</h3>
-                      <span className="text-[10px] text-foreground/50 bg-muted rounded-full px-1.5">{items.length}</span>
+                    <div className={cn('flex items-center justify-between rounded-lg px-3 py-1.5', group.color)}>
+                      <h3 className="text-xs font-bold uppercase tracking-wider">// {group.label}</h3>
+                      <span className="text-xs font-semibold">{items.length}</span>
                     </div>
-                    <div className="space-y-1.5 min-h-[60px] bg-muted/20 rounded-lg p-2 border border-border/50">
+                    <div className={cn('space-y-1.5 min-h-[60px] rounded-lg p-2 border', group.border, 'bg-muted/10')}>
                       {items.map(item => (
                         <Card
                           key={item.id}
