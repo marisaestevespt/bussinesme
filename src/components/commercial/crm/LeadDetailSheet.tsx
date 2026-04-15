@@ -37,6 +37,7 @@ interface LeadDetailSheetProps {
 export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
   const navigate = useNavigate();
   const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
+  const { stages: CRM_STATUSES } = useCrmStages();
   const { data: commercialMembers = [] } = useCommercialMembers();
   const [form, setForm] = useState<any>({});
   const [interactionDialog, setInteractionDialog] = useState(false);
