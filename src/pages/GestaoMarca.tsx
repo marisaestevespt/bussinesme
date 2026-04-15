@@ -625,27 +625,62 @@ export default function GestaoMarcaPage() {
 
           {/* ── Identidade Visual ── */}
           <section className="space-y-6 pb-10">
-            <h2 className="text-xl font-semibold text-foreground">Identidade Visual</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {visualCards.map(card => (
-                <Card
-                  key={card.id}
-                  className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden"
-                  onClick={() => { setSelectedVisual(card); setVisualDesc(card.description || ''); setEditingVisualDesc(false); }}
-                >
-                  <div className="aspect-[4/3] bg-muted/40 flex items-center justify-center overflow-hidden">
-                    {card.cover_url ? (
-                      <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-                    )}
-                  </div>
-                  <CardContent className="p-3">
-                    <p className="text-sm font-medium text-foreground text-center">{card.title}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Identidade Visual</h2>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={() => setShowAddVisualCard(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Nova Categoria
+                </Button>
+              )}
             </div>
+
+            {visualCards.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center space-y-3">
+                  <ImageIcon className="h-10 w-10 mx-auto text-muted-foreground/40" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Nenhuma categoria criada</p>
+                    <p className="text-xs text-muted-foreground mt-1">Cria categorias como "Logótipo", "Paleta de Cores", "Tipografia", "Mockups" para organizar a identidade visual.</p>
+                  </div>
+                  {isOwner && (
+                    <Button variant="outline" size="sm" onClick={() => setShowAddVisualCard(true)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" />Criar primeira categoria
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {visualCards.map(card => (
+                  <Card
+                    key={card.id}
+                    className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden group relative"
+                    onClick={() => { setSelectedVisual(card); setVisualDesc(card.description || ''); setEditingVisualDesc(false); }}
+                  >
+                    <div className="aspect-[4/3] bg-muted/40 flex items-center justify-center overflow-hidden">
+                      {card.cover_url ? (
+                        <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <CardContent className="p-3">
+                      <p className="text-sm font-medium text-foreground text-center">{card.title}</p>
+                    </CardContent>
+                    {isOwner && (
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); deleteVisualCard(card.id); }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
           </section>
 
         </div>
