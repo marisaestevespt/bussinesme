@@ -31,6 +31,33 @@ const DIST_COLUMNS = [
   { key: 'mensal', label: 'Mensal', headerBg: 'bg-[hsl(270,25%,93%)] dark:bg-[hsl(270,20%,15%)]', headerText: 'text-[hsl(270,30%,48%)] dark:text-[hsl(270,30%,65%)]', addColor: 'text-[hsl(270,25%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(270,30%,70%)]' },
 ];
 
+import channelInstagram from '@/assets/channels/instagram.jpg';
+import channelYoutube from '@/assets/channels/youtube.jpg';
+import channelFacebook from '@/assets/channels/facebook.jpg';
+import channelTiktok from '@/assets/channels/tiktok.jpg';
+import channelLinkedin from '@/assets/channels/linkedin.jpg';
+import channelPinterest from '@/assets/channels/pinterest.jpg';
+import channelWebsite from '@/assets/channels/website.jpg';
+import channelEmailMarketing from '@/assets/channels/email-marketing.jpg';
+import channelTwitter from '@/assets/channels/twitter.jpg';
+import channelThreads from '@/assets/channels/threads.jpg';
+import channelSpotify from '@/assets/channels/spotify.jpg';
+import channelBlog from '@/assets/channels/blog.jpg';
+import channelPodcast from '@/assets/channels/podcast.jpg';
+import channelNewsletter from '@/assets/channels/newsletter.jpg';
+import channelWhatsapp from '@/assets/channels/whatsapp.jpg';
+import channelTelegram from '@/assets/channels/telegram.jpg';
+import channelDefault from '@/assets/channels/default.jpg';
+
+const CHANNEL_IMAGE: Record<string, string> = {
+  'Instagram': channelInstagram, 'Youtube': channelYoutube, 'Facebook': channelFacebook,
+  'TikTok': channelTiktok, 'LinkedIn': channelLinkedin, 'Pinterest': channelPinterest,
+  'Website': channelWebsite, 'Email Marketing': channelEmailMarketing, 'Twitter': channelTwitter,
+  'Threads': channelThreads, 'Spotify': channelSpotify, 'Blog': channelBlog,
+  'Podcast': channelPodcast, 'Newsletter': channelNewsletter, 'WhatsApp': channelWhatsapp,
+  'Telegram': channelTelegram,
+};
+
 const CHANNEL_EMOJI: Record<string, string> = {
   'Instagram': '📸', 'Youtube': '🎬', 'Facebook': '👥', 'TikTok': '🎵',
   'LinkedIn': '💼', 'Pinterest': '📌', 'Website': '🌐', 'Email Marketing': '📧',
@@ -262,13 +289,17 @@ export default function MarketingEstrategia() {
               <p className="text-sm text-muted-foreground italic">Nenhum canal ativo. Ativa canais nas Definições.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {activeChannels.map(ch => (
-                  <Link key={ch.id} to={`/hub/marketing/estrategia/canal/${ch.id}`}
-                    className="flex flex-col items-center gap-2 p-5 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm transition-all text-center">
-                    <span className="text-2xl">{CHANNEL_EMOJI[ch.name] || '📢'}</span>
-                    <span className="text-sm font-medium text-foreground">{ch.name}</span>
-                  </Link>
-                ))}
+                {activeChannels.map(ch => {
+                  const bgImg = CHANNEL_IMAGE[ch.name] || channelDefault;
+                  return (
+                    <Link key={ch.id} to={`/hub/marketing/estrategia/canal/${ch.id}`}
+                      className="relative flex items-end rounded-xl border overflow-hidden hover:border-primary/30 hover:shadow-md transition-all group h-28">
+                      <img src={bgImg} alt={ch.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <span className="relative z-10 text-sm font-semibold text-white px-4 pb-3 drop-shadow-md">{ch.name}</span>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </section>
