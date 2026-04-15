@@ -203,7 +203,17 @@ export default function MarketingAutomacaoDetail() {
 
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <BackNavigation parentRoute="/hub/marketing/automacoes" parentLabel="Automações" />
+            <div className="flex items-center gap-3">
+              <BackNavigation parentRoute="/hub/marketing/automacoes" parentLabel="Automações" />
+              {editing ? (
+                <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                  <SelectTrigger className="h-8 w-auto gap-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              ) : (
+                <Badge className={cn('text-xs', st.color)}>{st.label}</Badge>
+              )}
+            </div>
             {isOwner && !editing && (
               <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
                 <Pencil className="h-3.5 w-3.5 mr-1" />Editar
