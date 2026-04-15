@@ -26,6 +26,50 @@ import { ChannelMonthGallery } from '@/components/marketing/ChannelMonthGallery'
 import { ChannelMonthlyAnalysis } from '@/components/marketing/ChannelMonthlyAnalysis';
 import { BackNavigation } from '@/components/BackNavigation';
 
+const DIST_DAY_LABELS: Record<string, string> = {
+  segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta',
+  sexta: 'Sexta', sabado: 'Sábado', domingo: 'Domingo', mensal: 'Mensal',
+};
+
+function ChannelDistributionCards({ channelName }: { channelName: string }) {
+  const { data: distCards = [] } = useQuery({
+    queryKey: ['strategy-distribution-cards'],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_distribution_cards').select('*').order('sort_order') as any;
+      return (data || []) as { id: string; column_key: string; title: string; channel: string | null; description: string | null; sort_order: number }[];
+    },
+  });
+
+  const filtered = distCards.filter(c => c.channel === channelName);
+  if (filtered.length === 0) return null;
+
+  const grouped = filtered.reduce<Record<string, typeof filtered>>((acc, card) => {
+    (acc[card.column_key] = acc[card.column_key] || []).push(card);
+    return acc;
+  }, {});
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-lg font-semibold text-foreground">Distribuição de Conteúdo</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {Object.entries(grouped).map(([key, cards]) => (
+          <div key={key} className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{DIST_DAY_LABELS[key] || key}</p>
+            {cards.map(card => (
+              <Card key={card.id} className="border-l-[3px] border-primary/40">
+                <CardContent className="p-2.5 space-y-1">
+                  <p className="text-xs font-medium text-foreground">{card.title}</p>
+                  {card.description && <p className="text-[10px] text-muted-foreground">{card.description}</p>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function ChannelPage() {
   const { channelId } = useParams<{ channelId: string }>();
   const navigate = useNavigate();
@@ -310,7 +354,10 @@ export default function ChannelPage() {
 
               <Separator />
 
+              {/* Distribution cards for this channel */}
+              <ChannelDistributionCards channelName={channel.name} />
 
+              <Separator />
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-foreground">Páginas</h2>
