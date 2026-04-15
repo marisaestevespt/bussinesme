@@ -68,6 +68,10 @@ export default function MarketingFunilDetail() {
   const { products: productsQuery } = useProducts();
   const productsList = productsQuery.data || [];
   const [saving, setSaving] = useState(false);
+  const [newEntry, setNewEntry] = useState('');
+  const [addingEntry, setAddingEntry] = useState(false);
+  const [newPlat, setNewPlat] = useState('');
+  const [addingPlat, setAddingPlat] = useState(false);
 
   const syncForm = (data: FunnelFull) => {
     setForm({
@@ -106,6 +110,10 @@ export default function MarketingFunilDetail() {
 
   const st = STATUSES.find(s => s.value === form.status) || STATUSES[0];
   const tf = TIPOS_FUNIL.find(t => t.value === form.tipo_funil);
+
+  // Dynamic lists: defaults + any custom values already in form
+  const allEntryPoints = Array.from(new Set([...ENTRY_POINTS, ...form.entry_points]));
+  const allPlataformas = Array.from(new Set([...PLATAFORMAS, ...form.plataformas]));
 
   const toggleMulti = (key: 'entry_points' | 'plataformas', val: string) => {
     setForm(f => ({
@@ -253,13 +261,28 @@ export default function MarketingFunilDetail() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-3">Plataforma(s)</h2>
             {editing ? (
-              <div className="flex flex-wrap gap-3">
-                {PLATAFORMAS.map(p => (
-                  <label key={p} className="flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={form.plataformas.includes(p)} onCheckedChange={() => toggleMulti('plataformas', p)} />
-                    <span className="text-sm">{p}</span>
-                  </label>
-                ))}
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-3">
+                  {allPlataformas.map(p => (
+                    <label key={p} className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox checked={form.plataformas.includes(p)} onCheckedChange={() => toggleMulti('plataformas', p)} />
+                      <span className="text-sm">{p}</span>
+                    </label>
+                  ))}
+                </div>
+                {addingPlat ? (
+                  <div className="flex gap-2 items-center">
+                    <Input value={newPlat} onChange={e => setNewPlat(e.target.value)} placeholder="Nova plataforma" className="h-8 w-48" autoFocus />
+                    <Button size="sm" variant="outline" className="h-8" disabled={!newPlat.trim()} onClick={() => {
+                      const val = newPlat.trim();
+                      setForm(f => ({ ...f, plataformas: [...f.plataformas, val] }));
+                      setNewPlat(''); setAddingPlat(false);
+                    }}>OK</Button>
+                    <Button size="sm" variant="ghost" className="h-8" onClick={() => { setAddingPlat(false); setNewPlat(''); }}>Cancelar</Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => setAddingPlat(true)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar nova</Button>
+                )}
               </div>
             ) : (
               <div className="flex flex-wrap gap-1.5">
