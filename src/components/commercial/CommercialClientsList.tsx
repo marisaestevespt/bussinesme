@@ -115,17 +115,6 @@ export function CommercialClientsList() {
           </SelectContent>
         </Select>
 
-        <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="F. Pagamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as Formas</SelectItem>
-            {paymentMethods.map(p => (
-              <SelectItem key={p!} value={p!}>{p}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         {hasFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
