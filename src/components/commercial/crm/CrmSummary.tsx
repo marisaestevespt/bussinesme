@@ -119,7 +119,7 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
       <Card className="border-warning/30 bg-warning/5 shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertTriangle className="h-4 w-4 text-warning" />
             <h3 className="font-semibold text-sm">A Contactar Hoje</h3>
           </div>
           {toContactToday.length === 0 ? (
