@@ -74,11 +74,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-orange-100 dark:bg-orange-950', headerText: 'text-orange-600 dark:text-orange-300', dotBg: 'bg-orange-400', addColor: 'text-orange-500' },
-  { key: 'mercado', label: 'Mercado', headerBg: 'bg-yellow-100 dark:bg-yellow-950', headerText: 'text-yellow-700 dark:text-yellow-300', dotBg: 'bg-yellow-500', addColor: 'text-yellow-600' },
-  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-blue-100 dark:bg-blue-950', headerText: 'text-blue-600 dark:text-blue-300', dotBg: 'bg-blue-400', addColor: 'text-blue-500' },
-  { key: 'identidade', label: 'Identidade', headerBg: 'bg-red-100 dark:bg-red-950', headerText: 'text-red-600 dark:text-red-300', dotBg: 'bg-red-400', addColor: 'text-red-500' },
-  { key: 'impacto', label: 'Impacto', headerBg: 'bg-teal-100 dark:bg-teal-950', headerText: 'text-teal-600 dark:text-teal-300', dotBg: 'bg-teal-400', addColor: 'text-teal-500' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal', headerBg: 'bg-orange-50 dark:bg-orange-950/40', headerText: 'text-orange-400 dark:text-orange-400', dotBg: 'bg-orange-300', addColor: 'text-orange-300 dark:text-orange-500' },
+  { key: 'mercado', label: 'Mercado', headerBg: 'bg-yellow-50 dark:bg-yellow-950/40', headerText: 'text-yellow-500 dark:text-yellow-400', dotBg: 'bg-yellow-400', addColor: 'text-yellow-400 dark:text-yellow-500' },
+  { key: 'posicionamento', label: 'Posicionamento', headerBg: 'bg-blue-50 dark:bg-blue-950/40', headerText: 'text-blue-400 dark:text-blue-400', dotBg: 'bg-blue-300', addColor: 'text-blue-300 dark:text-blue-500' },
+  { key: 'identidade', label: 'Identidade', headerBg: 'bg-red-50 dark:bg-red-950/40', headerText: 'text-red-400 dark:text-red-400', dotBg: 'bg-red-300', addColor: 'text-red-300 dark:text-red-500' },
+  { key: 'impacto', label: 'Impacto', headerBg: 'bg-teal-50 dark:bg-teal-950/40', headerText: 'text-teal-400 dark:text-teal-400', dotBg: 'bg-teal-300', addColor: 'text-teal-300 dark:text-teal-500' },
 ];
 
 // ── Page ──
