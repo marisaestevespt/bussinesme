@@ -73,19 +73,20 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
           {columns.map(col => {
             const isWon = col.value === 'ganho';
             const isLost = col.value === 'perdido';
+            const isWait = col.value === 'outra_altura';
             return (
               <div
                 key={col.value}
-                className={`flex flex-col w-[310px] shrink-0 rounded-xl border transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40 border-primary/30' : ''} ${isWon ? 'bg-success/5 border-success/20' : isLost ? 'bg-destructive/5 border-destructive/20' : 'bg-card/60'}`}
+                className={`flex flex-col w-[310px] shrink-0 rounded-xl border transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40 border-primary/30' : ''} ${isWon ? 'bg-success/5 border-success/20' : isLost ? 'bg-destructive/5 border-destructive/20' : isWait ? 'bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/30' : 'bg-card/60'}`}
                 onDragOver={e => { e.preventDefault(); setDragOver(col.value); }}
                 onDragLeave={() => setDragOver(null)}
                 onDrop={e => handleDrop(e, col.value)}
               >
                 {/* Column header */}
-                <div className={`px-4 py-3.5 border-b rounded-t-xl ${isWon ? 'bg-success/15 border-success/30' : isLost ? 'bg-destructive/15 border-destructive/30' : 'bg-primary/10 border-primary/20'}`}>
+                <div className={`px-4 py-3.5 border-b rounded-t-xl ${isWon ? 'bg-success/15 border-success/30' : isLost ? 'bg-destructive/15 border-destructive/30' : isWait ? 'bg-amber-100 border-amber-300 dark:bg-amber-900/30 dark:border-amber-700/40' : 'bg-primary/10 border-primary/20'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold uppercase tracking-wide truncate ${isWon ? 'text-success' : isLost ? 'text-destructive' : 'text-primary'}`}>{col.label}</span>
+                      <span className={`text-sm font-bold uppercase tracking-wide truncate ${isWon ? 'text-success' : isLost ? 'text-destructive' : isWait ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`}>{col.label}</span>
                       <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-bold bg-foreground/10">{col.leads.length}</Badge>
                     </div>
                     <span className="text-xs font-bold text-foreground">{col.total.toLocaleString('pt-PT')}€</span>
