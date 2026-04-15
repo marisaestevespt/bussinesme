@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
@@ -12,7 +13,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { BackNavigation } from '@/components/BackNavigation';
-import { ChevronLeft, ChevronRight, Trophy, ThumbsDown, TrendingUp, TrendingDown, Target, BarChart3, Filter, Zap, ArrowLeft, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trophy, ThumbsDown, TrendingUp, TrendingDown, Target, BarChart3, Filter, Zap, ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { cn } from '@/lib/utils';
 import { FORMAT_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
@@ -99,6 +105,7 @@ function getPlatformMetrics(platform: string, metrics: any): { label: string; va
 function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { isOwner } = useAuth();
   const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -189,6 +196,65 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
     },
   });
 
+  // ── Marketing Goals ──
+  const METRIC_SUGGESTIONS = [
+    { key: 'followers', label: 'Seguidores' },
+    { key: 'followers_growth', label: 'Crescimento de Seguidores' },
+    { key: 'engagement_rate', label: 'Taxa de Engagement (%)' },
+    { key: 'reach', label: 'Alcance' },
+    { key: 'impressions', label: 'Impressões' },
+    { key: 'clicks', label: 'Cliques' },
+    { key: 'leads', label: 'Leads Gerados' },
+    { key: 'subscribers', label: 'Subscritores' },
+    { key: 'views', label: 'Visualizações' },
+    { key: 'conversions', label: 'Conversões' },
+    { key: 'traffic', label: 'Tráfego do Site' },
+    { key: 'custom', label: 'Personalizado' },
+  ];
+  const CHANNEL_EMOJI: Record<string, string> = {
+    'Instagram': '📸', 'Youtube': '🎬', 'Facebook': '👥', 'TikTok': '🎵',
+    'LinkedIn': '💼', 'Pinterest': '📌', 'Website': '🌐', 'Email Marketing': '📧',
+  };
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<any>(null);
+  const [goalForm, setGoalForm] = useState({ channel_id: '', metric_key: 'followers', metric_label: 'Seguidores', target_value: '', current_value: '', notes: '' });
+
+  const { data: marketingGoals = [] } = useQuery({
+    queryKey: ['marketing-goals', year, month],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_goals').select('*').eq('year', year).eq('month', month).order('sort_order') as any;
+      return (data || []) as any[];
+    },
+  });
+
+  const openNewGoal = () => {
+    setEditingGoal(null);
+    setGoalForm({ channel_id: '', metric_key: 'followers', metric_label: 'Seguidores', target_value: '', current_value: '', notes: '' });
+    setGoalDialogOpen(true);
+  };
+  const openEditGoal = (g: any) => {
+    setEditingGoal(g);
+    setGoalForm({ channel_id: g.channel_id || '', metric_key: g.metric_key, metric_label: g.metric_label, target_value: String(g.target_value || ''), current_value: String(g.current_value || ''), notes: g.notes || '' });
+    setGoalDialogOpen(true);
+  };
+  const saveGoal = async () => {
+    const payload = { year, month, channel_id: goalForm.channel_id || null, metric_key: goalForm.metric_key, metric_label: goalForm.metric_label, target_value: Number(goalForm.target_value) || 0, current_value: Number(goalForm.current_value) || 0, notes: goalForm.notes || null, sort_order: editingGoal ? editingGoal.sort_order : marketingGoals.length };
+    if (editingGoal) await supabase.from('marketing_goals').update(payload as any).eq('id', editingGoal.id);
+    else await supabase.from('marketing_goals').insert(payload as any);
+    queryClient.invalidateQueries({ queryKey: ['marketing-goals', year, month] });
+    setGoalDialogOpen(false);
+    toast.success('Meta guardada');
+  };
+  const deleteGoal = async (id: string) => {
+    await supabase.from('marketing_goals').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['marketing-goals', year, month] });
+  };
+  const updateGoalCurrentValue = async (id: string, value: string) => {
+    await supabase.from('marketing_goals').update({ current_value: Number(value) || 0 } as any).eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['marketing-goals', year, month] });
+  };
+  const getChannelName = (id: string | null) => id ? channels.find(c => c.id === id)?.name || null : null;
+
   const saveAnalysis = useCallback(async (field: string, value: string) => {
     if (analysis?.id) {
       await supabase.from('marketing_monthly_analysis').update({ [field]: value || null } as any).eq('id', analysis.id);
@@ -260,6 +326,111 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       </section>
 
       )}
+
+      {/* Marketing Goals */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">Metas de Marketing</h2>
+          </div>
+          {isOwner && (
+            <Button variant="outline" size="sm" onClick={openNewGoal}>
+              <Plus className="h-3.5 w-3.5 mr-1" />Nova Meta
+            </Button>
+          )}
+        </div>
+        {marketingGoals.length === 0 ? (
+          <Card><CardContent className="p-6 text-center text-sm text-muted-foreground italic">Nenhuma meta definida para este mês.</CardContent></Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {marketingGoals.map((g: any) => {
+              const channelName = getChannelName(g.channel_id);
+              const pct = g.target_value > 0 ? Math.round((g.current_value / g.target_value) * 100) : 0;
+              const achieved = pct >= 100;
+              return (
+                <Card key={g.id} className="group relative">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{g.metric_label}</p>
+                        {channelName ? (
+                          <Badge variant="secondary" className="text-[10px] mt-1">{CHANNEL_EMOJI[channelName] || '📢'} {channelName}</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] mt-1">Geral</Badge>
+                        )}
+                      </div>
+                      {isOwner && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-2xl font-bold text-foreground">{g.current_value}</span>
+                        <span className="text-sm text-muted-foreground">/ {g.target_value}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-muted overflow-hidden">
+                        <div className={cn('h-full rounded-full transition-all', achieved ? 'bg-emerald-500' : 'bg-primary')} style={{ width: `${Math.min(pct, 100)}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={cn('text-xs font-medium', achieved ? 'text-emerald-600' : pct >= 75 ? 'text-primary' : 'text-muted-foreground')}>{pct}%</span>
+                        {achieved && <Badge className="text-[10px] bg-emerald-500 hover:bg-emerald-600">Atingida ✓</Badge>}
+                      </div>
+                    </div>
+                    {isOwner && (
+                      <div className="pt-1 border-t">
+                        <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Valor atual</label>
+                        <Input type="number" className="h-7 text-sm mt-1" defaultValue={g.current_value} onBlur={e => updateGoalCurrentValue(g.id, e.target.value)} />
+                      </div>
+                    )}
+                    {g.notes && <p className="text-xs text-muted-foreground">{g.notes}</p>}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <Separator />
+
+      {/* Goal Dialog */}
+      <Dialog open={goalDialogOpen} onOpenChange={setGoalDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>{editingGoal ? 'Editar Meta' : 'Nova Meta de Marketing'}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs">Canal (opcional)</Label>
+              <Select value={goalForm.channel_id} onValueChange={v => setGoalForm(f => ({ ...f, channel_id: v === '__none__' ? '' : v }))}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Geral (sem canal)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Geral (sem canal)</SelectItem>
+                  {activeChannels.map(ch => (<SelectItem key={ch.id} value={ch.id}>{CHANNEL_EMOJI[ch.name] || '📢'} {ch.name}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Métrica</Label>
+              <Select value={goalForm.metric_key} onValueChange={v => { const s = METRIC_SUGGESTIONS.find(x => x.key === v); setGoalForm(f => ({ ...f, metric_key: v, metric_label: s?.label || f.metric_label })); }}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>{METRIC_SUGGESTIONS.map(m => (<SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>))}</SelectContent>
+              </Select>
+            </div>
+            {goalForm.metric_key === 'custom' && (
+              <div><Label className="text-xs">Nome da métrica</Label><Input className="mt-1" value={goalForm.metric_label} onChange={e => setGoalForm(f => ({ ...f, metric_label: e.target.value }))} /></div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label className="text-xs">Valor alvo</Label><Input type="number" className="mt-1" value={goalForm.target_value} onChange={e => setGoalForm(f => ({ ...f, target_value: e.target.value }))} /></div>
+              <div><Label className="text-xs">Valor atual</Label><Input type="number" className="mt-1" value={goalForm.current_value} onChange={e => setGoalForm(f => ({ ...f, current_value: e.target.value }))} /></div>
+            </div>
+            <div><Label className="text-xs">Notas (opcional)</Label><Textarea className="mt-1" rows={2} value={goalForm.notes} onChange={e => setGoalForm(f => ({ ...f, notes: e.target.value }))} /></div>
+            <Button className="w-full" onClick={saveGoal}>{editingGoal ? 'Guardar alterações' : 'Criar Meta'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Separator />
 
