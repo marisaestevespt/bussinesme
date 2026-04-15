@@ -35,7 +35,7 @@ export default function PortalAuthPage() {
             const email = parsed.email || '';
             if (email) {
               sb('portal_visits').insert({ portal_id: portal.id, email }).then(() => {});
-              sb('client_portals').update({ last_visit_at: new Date().toISOString() }).eq('id', portal.id).then(() => {});
+              (supabase as any).rpc('portal_record_visit', { _token: portal.token }).then(() => {});
             }
             navigate(`/portal/${token}/view`, { replace: true });
             return;
@@ -53,17 +53,17 @@ export default function PortalAuthPage() {
 
   const loadPortal = async () => {
     if (!token) return;
-    // Try as UUID token first, then as slug
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
     let portalData: any = null;
     if (isUUID) {
-      const { data } = await sb('client_portals').select('*').eq('token', token).maybeSingle();
-      portalData = data;
+      const { data } = await (supabase as any).rpc('get_portal_by_token', { _token: token });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) portalData = { ...row, token };
     }
     if (!portalData) {
-      // Try slug
-      const { data } = await sb('client_portals').select('*').eq('slug', token).eq('is_active', true).maybeSingle();
-      portalData = data;
+      const { data } = await (supabase as any).rpc('get_portal_by_slug', { _slug: token });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) portalData = { ...row, slug: token };
     }
     if (!portalData) {
       setLoading(false);
@@ -94,7 +94,7 @@ export default function PortalAuthPage() {
 
     setSubmitting(true);
     const now = new Date().toISOString();
-    await sb('client_portals').update({ last_visit_at: now }).eq('id', portal.id);
+    await (supabase as any).rpc('portal_record_visit', { _token: portal.token });
     await sb('portal_visits').insert({ portal_id: portal.id, email: inputEmail, visited_at: now });
     localStorage.setItem(
       `portal_session_${portal.id}`,
