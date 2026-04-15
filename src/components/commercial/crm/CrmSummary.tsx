@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock, GitBranchPlus } from 'lucide-react';
 import { format } from 'date-fns';
-import { getFollowUpState, statusLabel, CRM_STATUSES } from '@/hooks/useCrmData';
+import { getFollowUpState, statusLabel } from '@/hooks/useCrmData';
+import { useCrmStages } from '@/hooks/useCrmStages';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const STATUS_COLORS: Record<string, string> = {
