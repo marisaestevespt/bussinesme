@@ -31,6 +31,33 @@ const DIST_COLUMNS = [
   { key: 'mensal', label: 'Mensal', headerBg: 'bg-[hsl(270,25%,93%)] dark:bg-[hsl(270,20%,15%)]', headerText: 'text-[hsl(270,30%,48%)] dark:text-[hsl(270,30%,65%)]', addColor: 'text-[hsl(270,25%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(270,30%,70%)]' },
 ];
 
+import channelInstagram from '@/assets/channels/instagram.jpg';
+import channelYoutube from '@/assets/channels/youtube.jpg';
+import channelFacebook from '@/assets/channels/facebook.jpg';
+import channelTiktok from '@/assets/channels/tiktok.jpg';
+import channelLinkedin from '@/assets/channels/linkedin.jpg';
+import channelPinterest from '@/assets/channels/pinterest.jpg';
+import channelWebsite from '@/assets/channels/website.jpg';
+import channelEmailMarketing from '@/assets/channels/email-marketing.jpg';
+import channelTwitter from '@/assets/channels/twitter.jpg';
+import channelThreads from '@/assets/channels/threads.jpg';
+import channelSpotify from '@/assets/channels/spotify.jpg';
+import channelBlog from '@/assets/channels/blog.jpg';
+import channelPodcast from '@/assets/channels/podcast.jpg';
+import channelNewsletter from '@/assets/channels/newsletter.jpg';
+import channelWhatsapp from '@/assets/channels/whatsapp.jpg';
+import channelTelegram from '@/assets/channels/telegram.jpg';
+import channelDefault from '@/assets/channels/default.jpg';
+
+const CHANNEL_IMAGE: Record<string, string> = {
+  'Instagram': channelInstagram, 'Youtube': channelYoutube, 'Facebook': channelFacebook,
+  'TikTok': channelTiktok, 'LinkedIn': channelLinkedin, 'Pinterest': channelPinterest,
+  'Website': channelWebsite, 'Email Marketing': channelEmailMarketing, 'Twitter': channelTwitter,
+  'Threads': channelThreads, 'Spotify': channelSpotify, 'Blog': channelBlog,
+  'Podcast': channelPodcast, 'Newsletter': channelNewsletter, 'WhatsApp': channelWhatsapp,
+  'Telegram': channelTelegram,
+};
+
 const CHANNEL_EMOJI: Record<string, string> = {
   'Instagram': '📸', 'Youtube': '🎬', 'Facebook': '👥', 'TikTok': '🎵',
   'LinkedIn': '💼', 'Pinterest': '📌', 'Website': '🌐', 'Email Marketing': '📧',
