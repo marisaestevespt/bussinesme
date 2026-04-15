@@ -36,11 +36,11 @@ export function CommercialClientsList() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [productFilter, setProductFilter] = useState<string>('all');
-  const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  
 
   // Unique values for filter dropdowns
   const products = useMemo(() => [...new Set(items.map(c => c.current_product).filter(Boolean))].sort(), [items]);
-  const paymentMethods = useMemo(() => [...new Set(items.map(c => c.payment_method).filter(Boolean))].sort(), [items]);
+  
 
   const filtered = useMemo(() => {
     let result = items;
@@ -54,7 +54,6 @@ export function CommercialClientsList() {
         c.client_id?.toLowerCase().includes(q) ||
         c.current_product?.toLowerCase().includes(q) ||
         c.nif?.toLowerCase().includes(q) ||
-        c.payment_method?.toLowerCase().includes(q) ||
         c.observations?.toLowerCase().includes(q)
       );
     }
@@ -65,14 +64,11 @@ export function CommercialClientsList() {
     if (productFilter !== 'all') {
       result = result.filter(c => c.current_product === productFilter);
     }
-    if (paymentFilter !== 'all') {
-      result = result.filter(c => c.payment_method === paymentFilter);
-    }
 
     return result;
-  }, [items, search, statusFilter, productFilter, paymentFilter]);
+  }, [items, search, statusFilter, productFilter]);
 
-  const hasFilters = search || statusFilter !== 'all' || productFilter !== 'all' || paymentFilter !== 'all';
+  const hasFilters = search || statusFilter !== 'all' || productFilter !== 'all';
 
   const clearFilters = () => {
     setSearch('');
