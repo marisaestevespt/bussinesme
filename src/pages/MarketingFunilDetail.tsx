@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,9 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Plus, Trash2, Check, Pencil, X } from 'lucide-react';
+import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, Eye } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 
 const STATUSES = [
@@ -36,7 +37,8 @@ const TIPOS_FUNIL = [
   { value: 'outro', label: 'Outro' },
 ];
 
-type Etapa = { nome: string; descricao: string; condicao: string };
+type EtapaDoc = { name: string; url: string; type: 'file' | 'text'; content?: string };
+type Etapa = { nome: string; descricao: string; condicao: string; documentos?: EtapaDoc[] };
 
 type FunnelFull = {
   id: string; name: string; status: string; entry_points: string[];
@@ -104,6 +106,13 @@ export default function MarketingFunilDetail() {
 
   const cancelEdit = () => { if (item) syncForm(item); setEditing(false); };
 
+  // Stage detail dialog (hooks must be before early return)
+  const [stageDialogIdx, setStageDialogIdx] = useState<number | null>(null);
+  const [uploadingStageDoc, setUploadingStageDoc] = useState(false);
+  const stageFileRef = useRef<HTMLInputElement>(null);
+  const [stageTextDoc, setStageTextDoc] = useState('');
+  const [addingTextDoc, setAddingTextDoc] = useState(false);
+
   if (isLoading || !item) return (
     <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
   );
@@ -125,8 +134,40 @@ export default function MarketingFunilDetail() {
   const updateEtapa = (idx: number, field: keyof Etapa, val: string) => {
     setForm(f => ({ ...f, etapas: f.etapas.map((e, i) => i === idx ? { ...e, [field]: val } : e) }));
   };
-  const addEtapa = () => setForm(f => ({ ...f, etapas: [...f.etapas, { nome: '', descricao: '', condicao: '' }] }));
+  const addEtapa = () => setForm(f => ({ ...f, etapas: [...f.etapas, { nome: '', descricao: '', condicao: '', documentos: [] }] }));
   const removeEtapa = (idx: number) => setForm(f => ({ ...f, etapas: f.etapas.filter((_, i) => i !== idx) }));
+
+  const stageDialogEtapa = stageDialogIdx !== null ? form.etapas[stageDialogIdx] : null;
+  const stageDocumentos = stageDialogEtapa?.documentos || [];
+
+  const updateStageDoc = (docs: EtapaDoc[]) => {
+    if (stageDialogIdx === null) return;
+    setForm(f => ({ ...f, etapas: f.etapas.map((e, i) => i === stageDialogIdx ? { ...e, documentos: docs } : e) }));
+  };
+
+  const handleStageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || stageDialogIdx === null) return;
+    setUploadingStageDoc(true);
+    const ext = file.name.split('.').pop();
+    const path = `funnels/${id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('commercial-files').upload(path, file);
+    if (error) { toast.error('Erro ao carregar ficheiro'); setUploadingStageDoc(false); return; }
+    const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
+    const newDoc: EtapaDoc = { name: file.name, url: urlData.publicUrl, type: 'file' };
+    updateStageDoc([...stageDocumentos, newDoc]);
+    setUploadingStageDoc(false);
+    if (stageFileRef.current) stageFileRef.current.value = '';
+  };
+
+  const addTextDocument = () => {
+    if (!stageTextDoc.trim()) return;
+    const newDoc: EtapaDoc = { name: `Nota ${stageDocumentos.length + 1}`, url: '', type: 'text', content: stageTextDoc.trim() };
+    updateStageDoc([...stageDocumentos, newDoc]);
+    setStageTextDoc(''); setAddingTextDoc(false);
+  };
+
+  const removeStageDoc = (docIdx: number) => updateStageDoc(stageDocumentos.filter((_, i) => i !== docIdx));
 
   const staticText = (val: string, placeholder: string) =>
     val ? <p className="text-sm text-foreground whitespace-pre-wrap">{val}</p>
@@ -314,7 +355,9 @@ export default function MarketingFunilDetail() {
               {editing && <Button variant="outline" size="sm" onClick={addEtapa}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar Etapa</Button>}
             </div>
             <div className="space-y-4">
-              {form.etapas.map((etapa, idx) => (
+              {form.etapas.map((etapa, idx) => {
+                const docCount = etapa.documentos?.length || 0;
+                return (
                 <Card key={idx}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center gap-2">
@@ -325,12 +368,23 @@ export default function MarketingFunilDetail() {
                             onChange={e => updateEtapa(idx, 'nome', e.target.value)}
                             placeholder="Nome da etapa"
                             className="h-8 text-sm font-semibold flex-1" />
+                          <Button variant="outline" size="sm" className="h-7 shrink-0 gap-1" onClick={() => setStageDialogIdx(idx)}>
+                            <Paperclip className="h-3 w-3" />
+                            {docCount > 0 && <span className="text-xs">{docCount}</span>}
+                          </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeEtapa(idx)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </>
                       ) : (
-                        <p className="text-sm font-semibold">{etapa.nome || '—'}</p>
+                        <>
+                          <p className="text-sm font-semibold flex-1">{etapa.nome || '—'}</p>
+                          {docCount > 0 && (
+                            <Button variant="ghost" size="sm" className="h-7 gap-1 text-muted-foreground" onClick={() => setStageDialogIdx(idx)}>
+                              <Paperclip className="h-3 w-3" /><span className="text-xs">{docCount} doc{docCount > 1 ? 's' : ''}</span>
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                     {editing ? (
@@ -354,7 +408,8 @@ export default function MarketingFunilDetail() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
               {form.etapas.length === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">Nenhuma etapa adicionada.</p>}
             </div>
           </section>
@@ -384,6 +439,89 @@ export default function MarketingFunilDetail() {
           </section>
         </div>
       </div>
+      {/* Stage Documents Dialog */}
+      <Dialog open={stageDialogIdx !== null} onOpenChange={open => { if (!open) { setStageDialogIdx(null); setAddingTextDoc(false); setStageTextDoc(''); } }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Paperclip className="h-4 w-4" />
+              Documentos — {stageDialogEtapa?.nome || `Etapa ${(stageDialogIdx ?? 0) + 1}`}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            {/* Existing documents */}
+            {stageDocumentos.length > 0 ? (
+              <div className="space-y-3">
+                {stageDocumentos.map((doc, dIdx) => (
+                  <Card key={dIdx}>
+                    <CardContent className="p-3">
+                      <div className="flex items-start gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{doc.name}</p>
+                          {doc.type === 'text' && doc.content && (
+                            <p className="text-sm text-foreground whitespace-pre-wrap mt-1 bg-muted/50 rounded p-2">{doc.content}</p>
+                          )}
+                          {doc.type === 'file' && doc.url && (
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                              <ExternalLink className="h-3 w-3" />Abrir ficheiro
+                            </a>
+                          )}
+                        </div>
+                        {editing && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeStageDoc(dIdx)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum documento associado a esta etapa.</p>
+            )}
+
+            {/* Add documents (only in editing mode) */}
+            {editing && (
+              <div className="space-y-3 border-t pt-3">
+                <div className="flex gap-2">
+                  <input ref={stageFileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" className="hidden" onChange={handleStageFileUpload} />
+                  <Button variant="outline" size="sm" disabled={uploadingStageDoc} onClick={() => stageFileRef.current?.click()}>
+                    <Upload className="h-3.5 w-3.5 mr-1" />
+                    {uploadingStageDoc ? 'A carregar...' : 'Carregar ficheiro'}
+                  </Button>
+                  {!addingTextDoc && (
+                    <Button variant="outline" size="sm" onClick={() => setAddingTextDoc(true)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" />Adicionar nota de texto
+                    </Button>
+                  )}
+                </div>
+                {addingTextDoc && (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={stageTextDoc}
+                      onChange={e => setStageTextDoc(e.target.value)}
+                      placeholder="Escreve aqui a nota ou texto que queres associar a esta etapa..."
+                      className="min-h-[120px] resize-none"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" disabled={!stageTextDoc.trim()} onClick={addTextDocument}>
+                        <Check className="h-3.5 w-3.5 mr-1" />Adicionar
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => { setAddingTextDoc(false); setStageTextDoc(''); }}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
