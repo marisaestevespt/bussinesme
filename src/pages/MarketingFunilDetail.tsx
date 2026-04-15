@@ -37,7 +37,8 @@ const TIPOS_FUNIL = [
   { value: 'outro', label: 'Outro' },
 ];
 
-type Etapa = { nome: string; descricao: string; condicao: string };
+type EtapaDoc = { name: string; url: string; type: 'file' | 'text'; content?: string };
+type Etapa = { nome: string; descricao: string; condicao: string; documentos?: EtapaDoc[] };
 
 type FunnelFull = {
   id: string; name: string; status: string; entry_points: string[];
