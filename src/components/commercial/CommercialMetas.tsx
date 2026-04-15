@@ -225,7 +225,7 @@ export function CommercialMetas() {
                 <TableHead className="text-right">Meta Anual (€)</TableHead>
                 <TableHead className="text-right">Total Faturado</TableHead>
                 <TableHead className="text-right">% Progresso</TableHead>
-                <TableHead>Intenção</TableHead>
+                
                 <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
@@ -241,13 +241,6 @@ export function CommercialMetas() {
                   </TableCell>
                   <TableCell className="text-right">€{fmt(p.totalInvoiced)}</TableCell>
                   <TableCell className="text-right">{pct(p.totalInvoiced, Number(p.goal_amount))}</TableCell>
-                  <TableCell>
-                    <EditableText
-                      value={p.intention || ''}
-                      placeholder="Intenção"
-                      onSave={v => data.upsertProductGoal.mutate({ id: p.id, product_name: p.product_name, goal_amount: Number(p.goal_amount), intention: v })}
-                    />
-                  </TableCell>
                   <TableCell><Button variant="ghost" size="sm" onClick={() => data.deleteProductGoal.mutate(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></TableCell>
                 </TableRow>
               ))}
@@ -255,7 +248,6 @@ export function CommercialMetas() {
                 <TableCell><Input placeholder="Nome do produto" value={newProduct.product_name} onChange={e => setNewProduct(p => ({ ...p, product_name: e.target.value }))} /></TableCell>
                 <TableCell className="text-right"><Input type="number" step="0.01" placeholder="0.00" className="w-28 ml-auto text-right" value={newProduct.goal_amount} onChange={e => setNewProduct(p => ({ ...p, goal_amount: e.target.value }))} /></TableCell>
                 <TableCell></TableCell><TableCell></TableCell>
-                <TableCell><Input placeholder="Intenção" value={newProduct.intention} onChange={e => setNewProduct(p => ({ ...p, intention: e.target.value }))} /></TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" disabled={!newProduct.product_name.trim()} onClick={() => {
                     data.upsertProductGoal.mutate({ product_name: newProduct.product_name, goal_amount: parseFloat(newProduct.goal_amount) || 0, intention: newProduct.intention || undefined, sort_order: (data.productGoals.data || []).length });
