@@ -65,13 +65,6 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
 
   return (
     <>
-      <div className="flex justify-end mb-2">
-        {isOwner && (
-          <Button variant="outline" size="sm" onClick={() => setManageOpen(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Gerir Etapas
-          </Button>
-        )}
-      </div>
       <ScrollArea className="w-full">
         <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 290}px` }}>
           {columns.map(col => (
@@ -139,7 +132,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
       </ScrollArea>
 
       {/* Manage stages dialog */}
-      <Dialog open={manageOpen} onOpenChange={setManageOpen}>
+      <Dialog open={manageStagesOpen} onOpenChange={onManageStagesChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Gerir Etapas do CRM</DialogTitle>
