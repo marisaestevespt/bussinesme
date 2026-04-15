@@ -341,6 +341,71 @@ export default function MarketingChannelStrategy() {
 
           <Separator />
 
+          {/* Distribuição de Conteúdo deste canal */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Distribuição de Conteúdo</h2>
+            <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
+              {DIST_COLUMNS.map(col => {
+                const colCards = channelDistCards.filter(c => c.column_key === col.key);
+                return (
+                  <div key={col.key} className="flex flex-col">
+                    <div className={cn('rounded-lg px-1.5 py-1.5 mb-2 text-center', col.headerBg)}>
+                      <span className={cn('text-[10px] font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
+                      {colCards.length > 0 && <span className={cn('ml-1 text-[9px] font-medium opacity-60', col.headerText)}>({colCards.length})</span>}
+                    </div>
+                    <div className="space-y-1.5 flex-1 min-h-[80px]">
+                      {colCards.map(card => (
+                        <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDist(card)}>
+                          <CardContent className="p-2 space-y-0.5">
+                            <p className="text-[11px] font-medium text-foreground truncate">{card.title}</p>
+                            {card.description && <p className="text-[9px] text-muted-foreground truncate">{card.description}</p>}
+                            {isOwner && <Button variant="ghost" size="icon" className="absolute top-0.5 right-0.5 h-4 w-4 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDist(card.id); }}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    {isOwner && <Button variant="ghost" size="sm" className="w-full mt-1 text-[10px] text-muted-foreground h-6" onClick={() => openAddDist(col.key)}><Plus className="h-2.5 w-2.5 mr-0.5" />Adicionar</Button>}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Distribution dialog */}
+          <Dialog open={distDialog.open} onOpenChange={open => !open && setDistDialog({ open: false, columnKey: '' })}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{distDialog.editId ? 'Editar Conteúdo' : 'Novo Conteúdo'} — {channel.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs">Nome</Label>
+                  <Input value={distForm.title} onChange={e => setDistForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Post educativo" />
+                </div>
+                <div>
+                  <Label className="text-xs">Dia</Label>
+                  <Select value={distDialog.columnKey} onValueChange={v => setDistDialog(d => ({ ...d, columnKey: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {DIST_COLUMNS.map(col => (
+                        <SelectItem key={col.key} value={col.key}>{col.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Descrição</Label>
+                  <Textarea value={distForm.description} onChange={e => setDistForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes" className="resize-none min-h-[60px]" />
+                </div>
+                <Button className="w-full" onClick={saveDist} disabled={!distForm.title.trim()}>
+                  {distDialog.editId ? 'Guardar' : 'Adicionar'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Separator />
+
           {/* Notas livres */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-3">Notas</h2>
