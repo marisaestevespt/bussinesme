@@ -298,6 +298,39 @@ export default function GestaoMarcaPage() {
     e.target.value = '';
   };
 
+  // ── Logo upload ──
+  const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0] || !settings) return;
+    setUploadingLogo(true);
+    const file = e.target.files[0];
+    const path = `logos/${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage.from('logos').upload(path, file);
+    if (uploadError) { toast.error('Erro ao carregar logo'); setUploadingLogo(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
+    await supabase.from('business_settings').update({ logo_url: publicUrl } as any).eq('id', settings.id);
+    refetchSettings();
+    setUploadingLogo(false);
+    toast.success('Logo atualizado');
+    e.target.value = '';
+  };
+
+  // ── Add visual card ──
+  const addVisualCard = async () => {
+    if (!newVisualTitle.trim()) return;
+    await supabase.from('brand_visual_cards').insert({ title: newVisualTitle, sort_order: visualCards.length } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
+    setNewVisualTitle('');
+    setShowAddVisualCard(false);
+    toast.success('Categoria adicionada');
+  };
+
+  const deleteVisualCard = async (id: string) => {
+    await supabase.from('brand_visual_files').delete().eq('card_id', id);
+    await supabase.from('brand_visual_cards').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
+    toast.success('Categoria removida');
+  };
+
   const deleteVisualFile = async (fileId: string) => {
     await supabase.from('brand_visual_files').delete().eq('id', fileId);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual?.id] });
