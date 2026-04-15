@@ -375,17 +375,24 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 </div>
                 <div>
                   <Label>Próximo Follow-up</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.next_followup && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {form.next_followup ? format(form.next_followup, 'dd/MM/yyyy') : 'Selecionar'}
+                  <div className="flex gap-1">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !form.next_followup && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {form.next_followup ? format(form.next_followup, 'dd/MM/yyyy') : 'Selecionar'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={form.next_followup} onSelect={d => set({ next_followup: d })} className="p-3 pointer-events-auto" />
+                      </PopoverContent>
+                    </Popover>
+                    {form.next_followup && (
+                      <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => set({ next_followup: undefined })}>
+                        <X className="h-4 w-4" />
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={form.next_followup} onSelect={d => set({ next_followup: d })} className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <Label>Valor Estimado (€)</Label>
