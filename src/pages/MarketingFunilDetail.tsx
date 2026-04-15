@@ -113,6 +113,7 @@ export default function MarketingFunilDetail() {
   const [editingDocName, setEditingDocName] = useState<{ idx: number; value: string } | null>(null);
   const stageFileRef = useRef<HTMLInputElement>(null);
   const [stageTextDoc, setStageTextDoc] = useState('');
+  const [stageTextDocName, setStageTextDocName] = useState('');
   const [addingTextDoc, setAddingTextDoc] = useState(false);
 
   if (isLoading || !item) return (
