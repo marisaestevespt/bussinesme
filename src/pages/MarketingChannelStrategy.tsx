@@ -376,6 +376,10 @@ export default function MarketingChannelStrategy() {
                           <CardContent className="p-2 space-y-0.5">
                             <p className="text-[11px] font-medium text-foreground truncate">{card.title}</p>
                             {card.description && <p className="text-[9px] text-muted-foreground truncate">{card.description}</p>}
+                            <div className="flex items-center gap-1">
+                              {card.link_url && <ExternalLink className="h-2 w-2 text-info" />}
+                              {(card.files as any[])?.length > 0 && <Paperclip className="h-2 w-2 text-muted-foreground" />}
+                            </div>
                             {isOwner && <Button variant="ghost" size="icon" className="absolute top-0.5 right-0.5 h-4 w-4 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDist(card.id); }}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>}
                           </CardContent>
                         </Card>
@@ -414,7 +418,30 @@ export default function MarketingChannelStrategy() {
                   <Label className="text-xs">Descrição</Label>
                   <Textarea value={distForm.description} onChange={e => setDistForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes" className="resize-none min-h-[60px]" />
                 </div>
-                <Button className="w-full" onClick={saveDist} disabled={!distForm.title.trim()}>
+                <div>
+                  <Label className="text-xs">Link</Label>
+                  <Input value={distForm.link_url} onChange={e => setDistForm(f => ({ ...f, link_url: e.target.value }))} placeholder="https://..." />
+                </div>
+                <div>
+                  <Label className="text-xs">Ficheiros</Label>
+                  <div className="space-y-1.5 mt-1">
+                    {distForm.files.map((file, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1">
+                        <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" />
+                        <a href={file.url} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate flex-1">{file.name}</a>
+                        {isOwner && <Button variant="ghost" size="icon" className="h-4 w-4 shrink-0" onClick={() => removeDistFile(idx)}><X className="h-2.5 w-2.5" /></Button>}
+                      </div>
+                    ))}
+                    {isOwner && (
+                      <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                        <Upload className="h-3 w-3" />
+                        {uploading ? 'A enviar...' : 'Adicionar ficheiro'}
+                        <input type="file" className="hidden" onChange={handleDistFileUpload} disabled={uploading} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+                <Button className="w-full" onClick={saveDist} disabled={!distForm.title.trim() || uploading}>
                   {distDialog.editId ? 'Guardar' : 'Adicionar'}
                 </Button>
               </div>
