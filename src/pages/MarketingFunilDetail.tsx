@@ -109,6 +109,8 @@ export default function MarketingFunilDetail() {
   // Stage detail dialog (hooks must be before early return)
   const [stageDialogIdx, setStageDialogIdx] = useState<number | null>(null);
   const [uploadingStageDoc, setUploadingStageDoc] = useState(false);
+  const [expandedDocIdx, setExpandedDocIdx] = useState<number | null>(null);
+  const [editingDocName, setEditingDocName] = useState<{ idx: number; value: string } | null>(null);
   const stageFileRef = useRef<HTMLInputElement>(null);
   const [stageTextDoc, setStageTextDoc] = useState('');
   const [addingTextDoc, setAddingTextDoc] = useState(false);
@@ -162,9 +164,13 @@ export default function MarketingFunilDetail() {
 
   const addTextDocument = () => {
     if (!stageTextDoc.trim()) return;
-    const newDoc: EtapaDoc = { name: `Nota ${stageDocumentos.length + 1}`, url: '', type: 'text', content: stageTextDoc.trim() };
+    const newDoc: EtapaDoc = { name: stageTextDocName.trim() || `Nota ${stageDocumentos.length + 1}`, url: '', type: 'text', content: stageTextDoc.trim() };
     updateStageDoc([...stageDocumentos, newDoc]);
-    setStageTextDoc(''); setAddingTextDoc(false);
+    setStageTextDoc(''); setStageTextDocName(''); setAddingTextDoc(false);
+  };
+
+  const renameStageDoc = (dIdx: number, newName: string) => {
+    updateStageDoc(stageDocumentos.map((d, i) => i === dIdx ? { ...d, name: newName } : d));
   };
 
   const removeStageDoc = (docIdx: number) => updateStageDoc(stageDocumentos.filter((_, i) => i !== docIdx));
