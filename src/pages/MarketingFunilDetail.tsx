@@ -27,8 +27,8 @@ const STATUSES = [
   { value: 'arquivo', label: 'Arquivo', color: 'bg-muted text-muted-foreground' },
 ];
 
-const ENTRY_POINTS = ['Landing Page', 'Redes Sociais', 'Email', 'Anúncio', 'Orgânico', 'Outro'];
-const PLATAFORMAS = ['Systeme.io', 'Mailerlite', 'ActiveCampaign', 'Stripe', 'Hotmart', 'Outro'];
+const ENTRY_POINTS = ['Landing Page', 'Redes Sociais', 'Email', 'Anúncio', 'Orgânico'];
+const PLATAFORMAS = ['Systeme.io', 'Mailerlite', 'ActiveCampaign', 'Stripe', 'Hotmart'];
 const TIPOS_FUNIL = [
   { value: 'venda', label: 'Venda' },
   { value: 'nutricao', label: 'Nutrição' },
@@ -281,13 +281,28 @@ export default function MarketingFunilDetail() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-3">Ponto(s) de Entrada</h2>
             {editing ? (
-              <div className="flex flex-wrap gap-3">
-                {ENTRY_POINTS.map(ep => (
-                  <label key={ep} className="flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={form.entry_points.includes(ep)} onCheckedChange={() => toggleMulti('entry_points', ep)} />
-                    <span className="text-sm">{ep}</span>
-                  </label>
-                ))}
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-3">
+                  {allEntryPoints.map(ep => (
+                    <label key={ep} className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox checked={form.entry_points.includes(ep)} onCheckedChange={() => toggleMulti('entry_points', ep)} />
+                      <span className="text-sm">{ep}</span>
+                    </label>
+                  ))}
+                </div>
+                {addingEntry ? (
+                  <div className="flex gap-2 items-center">
+                    <Input value={newEntry} onChange={e => setNewEntry(e.target.value)} placeholder="Novo ponto de entrada" className="h-8 w-48" autoFocus />
+                    <Button size="sm" variant="outline" className="h-8" disabled={!newEntry.trim()} onClick={() => {
+                      const val = newEntry.trim();
+                      setForm(f => ({ ...f, entry_points: [...f.entry_points, val] }));
+                      setNewEntry(''); setAddingEntry(false);
+                    }}>OK</Button>
+                    <Button size="sm" variant="ghost" className="h-8" onClick={() => { setAddingEntry(false); setNewEntry(''); }}>Cancelar</Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => setAddingEntry(true)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar novo</Button>
+                )}
               </div>
             ) : (
               <div className="flex flex-wrap gap-1.5">
