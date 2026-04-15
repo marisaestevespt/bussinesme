@@ -32,6 +32,7 @@ function EndOfCycleBadge({ date }: { date: string | null }) {
 export function CommercialClientsList() {
   const navigate = useNavigate();
   const { clients } = useClients();
+  const { getHealth } = useClientFinancialHealth();
   const items = clients.data || [];
 
   const [search, setSearch] = useState('');
