@@ -233,7 +233,7 @@ export default function MarketingAutomacaoDetail() {
 
           {/* Meta fields in highlighted cards */}
           {editing ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="border-primary/15 bg-primary/[0.04]">
                 <CardContent className="p-4">
                   <label className="text-xs font-medium text-muted-foreground">Plataforma</label>
@@ -263,6 +263,18 @@ export default function MarketingAutomacaoDetail() {
               </Card>
               <Card className="border-primary/15 bg-primary/[0.04]">
                 <CardContent className="p-4">
+                  <label className="text-xs font-medium text-muted-foreground">Produto</label>
+                  <Select value={form.product_name || '___none___'} onValueChange={v => setForm(f => ({ ...f, product_name: v === '___none___' ? '' : v }))}>
+                    <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="___none___">Nenhum</SelectItem>
+                      {productsList.map((p: any) => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
                   <label className="text-xs font-medium text-muted-foreground">Oferta Final</label>
                   <Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))}
                     className="h-9 mt-1" placeholder="Produto/Plataforma/Outro Final" />
@@ -270,11 +282,17 @@ export default function MarketingAutomacaoDetail() {
               </Card>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="border-primary/15 bg-primary/[0.04]">
                 <CardContent className="p-4">
                   <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Plataforma</label>
                   <p className="text-sm font-medium mt-2">{form.plataforma || '—'}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/15 bg-primary/[0.04]">
+                <CardContent className="p-4">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Produto</label>
+                  <p className="text-sm font-medium mt-2">{form.product_name || '—'}</p>
                 </CardContent>
               </Card>
               <Card className="border-primary/15 bg-primary/[0.04]">
