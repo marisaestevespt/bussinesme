@@ -137,13 +137,14 @@ export default function MarketingAutomacaoDetail() {
     val ? <p className="text-sm text-foreground whitespace-pre-wrap">{val}</p>
         : <p className="text-sm text-muted-foreground italic">{placeholder}</p>;
 
-  const staticList = (items: string[], placeholder: string, numbered = false) => (
+  const staticList = (items: string[], placeholder: string, numbered = false, bulleted = false) => (
     <Card>
       <CardContent className="p-4 space-y-1">
         {items.length === 0 && <p className="text-sm text-muted-foreground italic">{placeholder}</p>}
         {items.map((val, idx) => (
           <div key={idx} className="flex items-start gap-2">
             {numbered && <span className="text-xs font-mono text-muted-foreground w-5 shrink-0 pt-0.5">{idx + 1}.</span>}
+            {bulleted && <span className="text-muted-foreground shrink-0 pt-0.5">•</span>}
             <p className="text-sm text-foreground">{val || '—'}</p>
           </div>
         ))}
@@ -153,20 +154,21 @@ export default function MarketingAutomacaoDetail() {
 
   const renderEditableList = (
     label: string, key: 'plataformas_envolvidas' | 'fluxo' | 'condicoes',
-    placeholder: string, numbered = false
+    placeholder: string, numbered = false, bulleted = false
   ) => (
     <section>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-foreground">{label}</h2>
         {editing && <Button variant="outline" size="sm" onClick={() => addToList(key)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar</Button>}
       </div>
-      {!editing ? staticList(form[key], 'Nenhum item adicionado.', numbered) : (
+      {!editing ? staticList(form[key], 'Nenhum item adicionado.', numbered, bulleted) : (
         <Card>
           <CardContent className="p-4 space-y-2">
             {form[key].length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum item adicionado.</p>}
             {form[key].map((val, idx) => (
               <div key={idx} className="flex items-center gap-2 group">
                 {numbered && <span className="text-xs font-mono text-muted-foreground w-5 shrink-0">{idx + 1}.</span>}
+                {bulleted && <span className="text-muted-foreground shrink-0">•</span>}
                 <Input value={val}
                   onChange={e => updateListItem(key, idx, e.target.value)}
                   className="h-8 text-sm flex-1" placeholder={placeholder} />
@@ -334,7 +336,7 @@ export default function MarketingAutomacaoDetail() {
           <Separator />
           {renderEditableList('Fluxo da Automação', 'fluxo', 'Ex: Email de boas-vindas enviado', true)}
           <Separator />
-          {renderEditableList('Condições e Excepções', 'condicoes', 'Se acontecer X, fazer Y.')}
+          {renderEditableList('Condições e Excepções', 'condicoes', 'Se acontecer X, fazer Y.', false, true)}
           <Separator />
 
           {/* Links */}
