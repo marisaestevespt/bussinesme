@@ -116,7 +116,7 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
       )}
 
       {/* Alert: To Contact Today */}
-      <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+      <Card className="border-warning/30 bg-warning/5 shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
