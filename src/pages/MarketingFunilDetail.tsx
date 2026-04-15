@@ -111,6 +111,10 @@ export default function MarketingFunilDetail() {
   const st = STATUSES.find(s => s.value === form.status) || STATUSES[0];
   const tf = TIPOS_FUNIL.find(t => t.value === form.tipo_funil);
 
+  // Dynamic lists: defaults + any custom values already in form
+  const allEntryPoints = Array.from(new Set([...ENTRY_POINTS, ...form.entry_points]));
+  const allPlataformas = Array.from(new Set([...PLATAFORMAS, ...form.plataformas]));
+
   const toggleMulti = (key: 'entry_points' | 'plataformas', val: string) => {
     setForm(f => ({
       ...f,
