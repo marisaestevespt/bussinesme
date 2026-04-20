@@ -134,10 +134,8 @@ export default function GestaoMarcaPage() {
   // Diferenciais
   const [newDifferential, setNewDifferential] = useState('');
 
-  // Strategy dialogs (SWOT / Concorrência / Diferenciais opened from Posicionamento)
-  const [swotDialogOpen, setSwotDialogOpen] = useState(false);
-  const [competitorsDialogOpen, setCompetitorsDialogOpen] = useState(false);
-  const [differentialsDialogOpen, setDifferentialsDialogOpen] = useState(false);
+  // Reserved kanban titles (auto-created strategy pages — cannot be deleted)
+  const RESERVED_KANBAN_TITLES = ['Análise SWOT', 'Análise Competitiva', 'Diferenciais'];
 
   // ── Queries ──
 
