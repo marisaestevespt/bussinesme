@@ -643,7 +643,7 @@ export default function GestaoMarcaPage() {
                         >
                           <span className="text-base leading-none">📄</span>
                           <span className="text-sm text-foreground flex-1 truncate">{item.title}</span>
-                          {isOwner && (
+                          {isOwner && !RESERVED_KANBAN_TITLES.includes(item.title) && (
                             <Button
                               variant="ghost"
                               size="icon"
