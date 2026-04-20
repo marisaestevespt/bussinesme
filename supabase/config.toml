@@ -3,3 +3,6 @@ project_id = "rfzzrhldukoeuutxsixw"
 [auth]
 # OTP / magic-link expiry: 24 hours (in seconds)
 otp_expiry = 86400
+
+[functions.manage-access-password]
+verify_jwt = true
