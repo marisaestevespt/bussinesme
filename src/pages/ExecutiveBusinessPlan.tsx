@@ -93,7 +93,7 @@ export default function ExecutiveBusinessPlan() {
   const SEGMENTO = FIXED_COLUMNS.find(c => c.key === 'segmento_mercado')!;
   const CUSTOS = FIXED_COLUMNS.find(c => c.key === 'estrutura_custos')!;
   const RECEITA = FIXED_COLUMNS.find(c => c.key === 'fonte_receita')!;
-  const CONCORRENCIA = FIXED_COLUMNS.find(c => c.key === 'concorrencia')!;
+  
 
   const renderBlock = (col: { key: string; label: string; custom?: boolean; id?: string }, className = '') => {
     const colCards = cardsByCol(col.key);
