@@ -21,6 +21,7 @@ import ExecutivePlaneamento from "./pages/ExecutivePlaneamento";
 import ExecutiveWeeklyAlign from "./pages/ExecutiveWeeklyAlign";
 import ExecutiveGestaoEquipa from "./pages/ExecutiveGestaoEquipa";
 import ExecutiveBusinessPlan from "./pages/ExecutiveBusinessPlan";
+import ExecutiveBusinessPlanBlock from "./pages/ExecutiveBusinessPlanBlock";
 import ExecutiveInnovation from "./pages/ExecutiveInnovation";
 import ExecutiveProductivity from "./pages/ExecutiveProductivity";
 import ExecutiveCapacidade from "./pages/ExecutiveCapacidade";
@@ -196,6 +197,7 @@ function AppRoutes() {
       <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
       <Route path="/executive/weekly-align" element={<ExecutiveWeeklyAlign />} />
       <Route path="/executive/business-plan" element={<ExecutiveBusinessPlan />} />
+      <Route path="/executive/business-plan/:columnKey" element={<ExecutiveBusinessPlanBlock />} />
       <Route path="/executive/innovation" element={<ExecutiveInnovation />} />
        <Route path="/executive/productivity" element={<ExecutiveProductivity />} />
        <Route path="/executive/capacidade" element={<ExecutiveCapacidade />} />

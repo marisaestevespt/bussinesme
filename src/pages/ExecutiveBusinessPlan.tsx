@@ -1,34 +1,26 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, X, GripVertical, Pencil, Check, Trash2 } from 'lucide-react';
+import { Plus, X, Pencil, Check, Trash2, ArrowRight } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-const FIXED_COLUMNS = [
-  { key: 'proposta_valor', label: 'Proposta de Valor' },
-  { key: 'segmento_mercado', label: 'Segmento de Mercado' },
-  { key: 'recursos_chave', label: 'Recursos Chave' },
-  { key: 'fonte_receita', label: 'Fonte de Receita' },
-  { key: 'canais_divulgacao', label: 'Canais & Divulgação' },
-  { key: 'estrutura_custos', label: 'Estrutura de Custos' },
-  { key: 'concorrencia', label: 'Concorrência' },
-];
+import { FIXED_COLUMNS, getColumnIcon } from './business-plan/columns';
 
 export default function ExecutiveBusinessPlan() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [editingVP, setEditingVP] = useState(false);
   const [vpDraft, setVpDraft] = useState('');
   const [newColLabel, setNewColLabel] = useState('');
   const [addingCol, setAddingCol] = useState(false);
 
-  // Queries
   const settings = useQuery({
     queryKey: ['bp', 'settings'],
     queryFn: async () => {
@@ -53,12 +45,6 @@ export default function ExecutiveBusinessPlan() {
     },
   });
 
-  const allColumns = [
-    ...FIXED_COLUMNS,
-    ...(customCols.data || []).map((c: any) => ({ key: c.column_key, label: c.label, custom: true, id: c.id })),
-  ];
-
-  // Mutations
   const saveVP = useMutation({
     mutationFn: async (text: string) => {
       if (settings.data?.id) {
@@ -70,31 +56,8 @@ export default function ExecutiveBusinessPlan() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bp', 'settings'] }); setEditingVP(false); toast.success('Guardado'); },
   });
 
-  const addCard = useMutation({
-    mutationFn: async (column_key: string) => {
-      const colCards = (cards.data || []).filter((c: any) => c.column_key === column_key);
-      await supabase.from('business_plan_cards').insert({ column_key, content: '', sort_order: colCards.length });
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['bp', 'cards'] }),
-  });
-
-  const updateCard = useMutation({
-    mutationFn: async ({ id, content }: { id: string; content: string }) => {
-      await supabase.from('business_plan_cards').update({ content, updated_at: new Date().toISOString() }).eq('id', id);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['bp', 'cards'] }),
-  });
-
-  const deleteCard = useMutation({
-    mutationFn: async (id: string) => {
-      await supabase.from('business_plan_cards').delete().eq('id', id);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['bp', 'cards'] }),
-  });
-
   const addColumn = useMutation({
     mutationFn: async (label: string) => {
-      const key = label.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_');
       await supabase.from('business_plan_custom_columns').insert({ column_key: `custom_${Date.now()}`, label, sort_order: 100 + (customCols.data?.length || 0) });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bp', 'custom_columns'] }); setNewColLabel(''); setAddingCol(false); toast.success('Coluna adicionada'); },
@@ -109,12 +72,76 @@ export default function ExecutiveBusinessPlan() {
   });
 
   const vp = settings.data?.value_proposition || '';
+  const customColumns = (customCols.data || []).map((c: any) => ({ key: c.column_key, label: c.label, custom: true, id: c.id }));
+
+  const cardsByCol = (key: string) => (cards.data || []).filter((c: any) => c.column_key === key);
+
+  // Canvas grid layout (Osterwalder-inspired but with your column keys)
+  // Row 1: Parcerias | Atividades + Recursos | Proposta | Relacionamento + Canais | Segmento (Concorrência)
+  // We'll use the 7 fixed columns mapped into a 5-col grid with stacked cells
+  // Layout map (using your fixed keys):
+  //  col1: recursos_chave (top) + estrutura_custos partial — Actually let's do classic 9-grid feel:
+  //  Using: top-left=recursos_chave, mid-left=fonte_receita... but we need to keep YOUR 7 cols.
+  //  Better: use a flexible 4x2 + bottom row layout.
+
+  const PROPOSTA = FIXED_COLUMNS.find(c => c.key === 'proposta_valor')!;
+  const SEGMENTO = FIXED_COLUMNS.find(c => c.key === 'segmento_mercado')!;
+  const RECURSOS = FIXED_COLUMNS.find(c => c.key === 'recursos_chave')!;
+  const RECEITA = FIXED_COLUMNS.find(c => c.key === 'fonte_receita')!;
+  const CANAIS = FIXED_COLUMNS.find(c => c.key === 'canais_divulgacao')!;
+  const CUSTOS = FIXED_COLUMNS.find(c => c.key === 'estrutura_custos')!;
+  const CONCORRENCIA = FIXED_COLUMNS.find(c => c.key === 'concorrencia')!;
+
+  const renderBlock = (col: { key: string; label: string; custom?: boolean; id?: string }, className = '') => {
+    const colCards = cardsByCol(col.key);
+    const Icon = getColumnIcon(col.key);
+    return (
+      <div
+        key={col.key}
+        onClick={() => navigate(`/executive/business-plan/${col.key}`)}
+        className={`group relative flex flex-col rounded-xl border bg-card hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer overflow-hidden ${className}`}
+      >
+        <div className="flex items-center justify-between gap-2 px-3 py-2 border-b bg-muted/30">
+          <div className="flex items-center gap-2 min-w-0">
+            <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
+            <h3 className="text-xs font-semibold uppercase tracking-wide truncate">{col.label}</h3>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[10px] text-muted-foreground bg-background rounded px-1.5 py-0.5">{colCards.length}</span>
+            {col.custom && (
+              <button
+                onClick={e => { e.stopPropagation(); deleteColumn.mutate({ id: col.id!, key: col.key }); }}
+                className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+            <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+        <div className="flex-1 p-2 space-y-1 overflow-hidden min-h-[100px]">
+          {colCards.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground italic px-1 py-2">+ Adicionar</p>
+          ) : (
+            colCards.slice(0, 4).map((c: any) => (
+              <div key={c.id} className="text-[11px] bg-muted/40 rounded px-1.5 py-1 line-clamp-2 leading-snug">
+                {c.content || <span className="italic text-muted-foreground">vazio</span>}
+              </div>
+            ))
+          )}
+          {colCards.length > 4 && (
+            <p className="text-[10px] text-muted-foreground px-1">+{colCards.length - 4} mais…</p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <BackNavigation />
-        <PageHeader title="Plano & Modelo de Negócio" subtitle="Visão estratégica do modelo de negócio" />
+        <PageHeader title="Plano & Modelo de Negócio" subtitle="Business Model Canvas" />
 
         {/* Value Proposition Callout */}
         <Card className="border-primary/30 bg-primary/5">
@@ -140,85 +167,70 @@ export default function ExecutiveBusinessPlan() {
           </CardContent>
         </Card>
 
-        {/* Kanban Board */}
+        {/* Header bar with Add column */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Board | Business Plan</h2>
+          <h2 className="text-base font-semibold">Canvas</h2>
           {addingCol ? (
             <div className="flex gap-2 items-center">
-              <Input value={newColLabel} onChange={e => setNewColLabel(e.target.value)} placeholder="Nome da coluna" className="h-8 w-48 text-sm" onKeyDown={e => e.key === 'Enter' && newColLabel.trim() && addColumn.mutate(newColLabel.trim())} />
+              <Input value={newColLabel} onChange={e => setNewColLabel(e.target.value)} placeholder="Nome do bloco" className="h-8 w-48 text-sm" autoFocus onKeyDown={e => e.key === 'Enter' && newColLabel.trim() && addColumn.mutate(newColLabel.trim())} />
               <Button size="sm" onClick={() => newColLabel.trim() && addColumn.mutate(newColLabel.trim())}><Check className="h-3 w-3" /></Button>
               <Button size="sm" variant="ghost" onClick={() => setAddingCol(false)}><X className="h-3 w-3" /></Button>
             </div>
           ) : (
-            <Button size="sm" variant="outline" onClick={() => setAddingCol(true)}><Plus className="h-3 w-3 mr-1" /> Nova Coluna</Button>
+            <Button size="sm" variant="outline" onClick={() => setAddingCol(true)}><Plus className="h-3 w-3 mr-1" /> Novo Bloco</Button>
           )}
         </div>
 
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {allColumns.map(col => {
-            const colCards = (cards.data || []).filter((c: any) => c.column_key === col.key);
-            return (
-              <div key={col.key} className="min-w-[260px] w-[260px] shrink-0">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold">{col.label}</h3>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-muted-foreground">{colCards.length}</span>
-                    {'custom' in col && (
-                      <button onClick={() => deleteColumn.mutate({ id: (col as any).id, key: col.key })} className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {colCards.map((card: any) => (
-                    <KanbanCard key={card.id} card={card} onUpdate={(content) => updateCard.mutate({ id: card.id, content })} onDelete={() => deleteCard.mutate(card.id)} />
-                  ))}
-                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground text-xs" onClick={() => addCard.mutate(col.key)}>
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar card
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+        {/* CANVAS GRID — top section: 4 columns + Proposta center + 4 columns mirrored */}
+        {/* Layout: 5 main blocks across the top row, 2 wide blocks on the bottom row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {/* Recursos Chave — left tall */}
+          {renderBlock(RECURSOS, 'md:row-span-2 md:col-span-1')}
+
+          {/* Concorrência (substitui Atividades-Chave clássica) */}
+          {renderBlock(CONCORRENCIA, 'md:col-span-1')}
+
+          {/* Proposta de Valor — centro tall */}
+          {renderBlock(PROPOSTA, 'md:row-span-2 md:col-span-1 border-primary/40 bg-primary/5')}
+
+          {/* Canais */}
+          {renderBlock(CANAIS, 'md:col-span-1')}
+
+          {/* (segunda linha do meio) — Relacionamento (usamos Segmento separado abaixo se quiseres) */}
+          {/* Aqui colocamos os custom no meio-direita superior se houver, ou Segmento */}
+          {renderBlock(SEGMENTO, 'md:col-span-1')}
+
+          {/* Receita (canto direito) */}
+          {renderBlock(RECEITA, 'md:col-span-1')}
         </div>
+
+        {/* Bottom row: Estrutura de Custos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {renderBlock(CUSTOS)}
+          {/* Espaço para a 2ª receita visual ou primeira coluna custom */}
+          {customColumns.length > 0
+            ? renderBlock(customColumns[0])
+            : (
+              <div className="rounded-xl border-2 border-dashed border-muted-foreground/20 flex items-center justify-center min-h-[140px] text-xs text-muted-foreground">
+                Adiciona um bloco personalizado para preencher esta zona
+              </div>
+            )
+          }
+        </div>
+
+        {/* Custom blocks extra (a partir do 2º) em grelha normal */}
+        {customColumns.length > 1 && (
+          <>
+            <div className="flex items-center gap-2 pt-2">
+              <h3 className="text-sm font-semibold text-muted-foreground">Blocos personalizados</h3>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {customColumns.slice(1).map(col => renderBlock(col))}
+            </div>
+          </>
+        )}
       </div>
     </AppLayout>
-  );
-}
-
-function KanbanCard({ card, onUpdate, onDelete }: { card: any; onUpdate: (c: string) => void; onDelete: () => void }) {
-  const [editing, setEditing] = useState(!card.content);
-  const [draft, setDraft] = useState(card.content || '');
-
-  const save = () => {
-    if (!draft.trim()) { onDelete(); return; }
-    onUpdate(draft.trim());
-    setEditing(false);
-  };
-
-  if (editing) {
-    return (
-      <Card className="shadow-sm">
-        <CardContent className="p-2">
-          <Textarea value={draft} onChange={e => setDraft(e.target.value)} className="min-h-[60px] text-xs border-none shadow-none p-0 focus-visible:ring-0" autoFocus onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); save(); } }} />
-          <div className="flex gap-1 mt-1">
-            <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={save}><Check className="h-3 w-3" /></Button>
-            <Button size="sm" variant="ghost" className="h-6 text-xs px-2 text-destructive" onClick={onDelete}><Trash2 className="h-3 w-3" /></Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow cursor-pointer group" onClick={() => { setDraft(card.content || ''); setEditing(true); }}>
-      <CardContent className="p-3">
-        <p className="text-xs whitespace-pre-wrap">{card.content}</p>
-        <button onClick={e => { e.stopPropagation(); onDelete(); }} className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-        </button>
-      </CardContent>
-    </Card>
   );
 }
