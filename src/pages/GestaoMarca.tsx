@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
   Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
+  Target, Sparkles, BarChart3,
 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 
