@@ -134,6 +134,11 @@ export default function GestaoMarcaPage() {
   // Diferenciais
   const [newDifferential, setNewDifferential] = useState('');
 
+  // Strategy dialogs (SWOT / Concorrência / Diferenciais opened from Posicionamento)
+  const [swotDialogOpen, setSwotDialogOpen] = useState(false);
+  const [competitorsDialogOpen, setCompetitorsDialogOpen] = useState(false);
+  const [differentialsDialogOpen, setDifferentialsDialogOpen] = useState(false);
+
   // ── Queries ──
 
   const { data: brandLinks = [] } = useQuery({
@@ -630,6 +635,20 @@ export default function GestaoMarcaPage() {
                       </div>
                       <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
                     </div>
+                    {/* Strategy quick-access buttons inside Posicionamento column */}
+                    {group.key === 'posicionamento' && (
+                      <div className="flex flex-wrap gap-1 px-2 py-2 bg-muted/10 border-x">
+                        <Button variant="ghost" size="sm" className="h-6 text-[11px] px-2" onClick={() => setSwotDialogOpen(true)}>
+                          <BarChart3 className="h-3 w-3 mr-1" />SWOT
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-[11px] px-2" onClick={() => setCompetitorsDialogOpen(true)}>
+                          <Target className="h-3 w-3 mr-1" />Concorrência
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-[11px] px-2" onClick={() => setDifferentialsDialogOpen(true)}>
+                          <Sparkles className="h-3 w-3 mr-1" />Diferenciais
+                        </Button>
+                      </div>
+                    )}
                     {/* Items list */}
                     <div className="space-y-0 bg-muted/5 border-x border-b rounded-b-lg">
                       {items.map(item => (
@@ -689,173 +708,7 @@ export default function GestaoMarcaPage() {
           </section>
 
 
-          <Separator />
 
-          {/* ── Análise SWOT ── */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold text-foreground">Análise SWOT</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { key: 'forcas', label: 'Forças', emoji: '💪', colorClass: 'border-l-4 border-l-green-500' },
-                { key: 'fraquezas', label: 'Fraquezas', emoji: '⚠️', colorClass: 'border-l-4 border-l-red-500' },
-                { key: 'oportunidades', label: 'Oportunidades', emoji: '🚀', colorClass: 'border-l-4 border-l-blue-500' },
-                { key: 'ameacas', label: 'Ameaças', emoji: '🔥', colorClass: 'border-l-4 border-l-amber-500' },
-              ].map(q => {
-                const items = swotItems.filter(i => i.quadrant === q.key);
-                return (
-                  <Card key={q.key} className={cn('overflow-hidden', q.colorClass)}>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-foreground">{q.emoji} {q.label}</h3>
-                        {isOwner && (
-                          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setNewSwot({ quadrant: q.key, text: '' })}>
-                            <Plus className="h-3 w-3 mr-1" />Adicionar
-                          </Button>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        {items.map(item => (
-                          <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
-                            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
-                            <span className="flex-1">{item.content}</span>
-                            {isOwner && (
-                              <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                        {items.length === 0 && newSwot?.quadrant !== q.key && <p className="text-xs text-muted-foreground/50 italic">Nenhum item.</p>}
-                      </div>
-                      {newSwot?.quadrant === q.key && (
-                        <div className="flex gap-2">
-                          <Input value={newSwot.text} onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
-                            placeholder={`Adicionar ${q.label.toLowerCase()}...`} className="h-8 text-xs" autoFocus
-                            onKeyDown={e => e.key === 'Enter' && addSwotItem(q.key, newSwot.text)} />
-                          <Button size="sm" className="h-8" onClick={() => addSwotItem(q.key, newSwot.text)}><Check className="h-3 w-3" /></Button>
-                          <Button size="sm" variant="ghost" className="h-8" onClick={() => setNewSwot(null)}><X className="h-3 w-3" /></Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-
-          <Separator />
-
-          {/* ── Análise Competitiva ── */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-semibold text-foreground">Análise Competitiva</h2>
-              </div>
-              {isOwner && (
-                <Button variant="outline" size="sm" onClick={() => { resetCompForm(); setEditingCompetitor(null); setShowAddCompetitor(true); }}>
-                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar concorrente
-                </Button>
-              )}
-            </div>
-            {competitors.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-10 text-center space-y-2">
-                  <Target className="h-8 w-8 mx-auto text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground italic">Nenhum concorrente adicionado.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/50 border-b">
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Nome</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Tipo</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Instagram</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Website</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Produtos</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Preços</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Plataformas</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Posicionamento</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Comunicação</th>
-                      {isOwner && <th className="w-16" />}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {competitors.map(c => (
-                      <tr key={c.id} className="border-b last:border-b-0 hover:bg-muted/30 hq-transition cursor-pointer" onClick={() => isOwner && openEditCompetitor(c)}>
-                        <td className="p-3 font-medium text-foreground">{c.name}</td>
-                        <td className="p-3">
-                          <span className={cn(
-                            'text-xs px-2 py-0.5 rounded-full font-medium',
-                            c.type === 'direta' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                          )}>
-                            {c.type === 'direta' ? 'Direta' : 'Indireta'}
-                          </span>
-                        </td>
-                        <td className="p-3 text-muted-foreground">{c.instagram || '—'}</td>
-                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.website || '—'}</td>
-                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.produtos || '—'}</td>
-                        <td className="p-3 text-muted-foreground">{c.precos || '—'}</td>
-                        <td className="p-3 text-muted-foreground max-w-[120px] truncate">{c.plataformas || '—'}</td>
-                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.posicionamento || '—'}</td>
-                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.comunicacao || '—'}</td>
-                        {isOwner && (
-                          <td className="p-3">
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); deleteCompetitor(c.id); }}>
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-
-          <Separator />
-
-          {/* ── Diferenciais ── */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold text-foreground">Diferenciais</h2>
-            </div>
-            <div className="space-y-2">
-              {differentials.map(d => (
-                <div key={d.id} className="flex items-center gap-3 group p-3 rounded-lg border bg-card hq-transition hover:shadow-sm">
-                  <span className="text-primary">✦</span>
-                  <span className="flex-1 text-sm text-foreground">{d.content}</span>
-                  {isOwner && (
-                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              {differentials.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum diferencial adicionado.</p>}
-              {isOwner && (
-                <div className="flex gap-2 mt-2">
-                  <Input value={newDifferential} onChange={e => setNewDifferential(e.target.value)}
-                    placeholder="Adicionar diferencial..." className="h-9"
-                    onKeyDown={e => e.key === 'Enter' && addDifferential()} />
-                  <Button size="sm" className="h-9" disabled={!newDifferential.trim()} onClick={addDifferential}>
-                    <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
-                  </Button>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <Separator />
-
-          {/* ── Identidade Visual ── */}
           <section className="space-y-6 pb-10">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Identidade Visual</h2>
@@ -1388,6 +1241,176 @@ export default function GestaoMarcaPage() {
             <Button className="w-full" disabled={!newVisualTitle.trim()} onClick={addVisualCard}>
               <Plus className="h-3.5 w-3.5 mr-1" />Criar Categoria
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── SWOT Dialog ── */}
+      <Dialog open={swotDialogOpen} onOpenChange={setSwotDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Análise SWOT
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {[
+              { key: 'forcas', label: 'Forças', emoji: '💪', colorClass: 'border-l-4 border-l-green-500' },
+              { key: 'fraquezas', label: 'Fraquezas', emoji: '⚠️', colorClass: 'border-l-4 border-l-red-500' },
+              { key: 'oportunidades', label: 'Oportunidades', emoji: '🚀', colorClass: 'border-l-4 border-l-blue-500' },
+              { key: 'ameacas', label: 'Ameaças', emoji: '🔥', colorClass: 'border-l-4 border-l-amber-500' },
+            ].map(q => {
+              const items = swotItems.filter(i => i.quadrant === q.key);
+              return (
+                <Card key={q.key} className={cn('overflow-hidden', q.colorClass)}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-foreground">{q.emoji} {q.label}</h3>
+                      {isOwner && (
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setNewSwot({ quadrant: q.key, text: '' })}>
+                          <Plus className="h-3 w-3 mr-1" />Adicionar
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-1.5">
+                      {items.map(item => (
+                        <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
+                          <span className="flex-1">{item.content}</span>
+                          {isOwner && (
+                            <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      {items.length === 0 && newSwot?.quadrant !== q.key && <p className="text-xs text-muted-foreground/50 italic">Nenhum item.</p>}
+                    </div>
+                    {newSwot?.quadrant === q.key && (
+                      <div className="flex gap-2">
+                        <Input value={newSwot.text} onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
+                          placeholder={`Adicionar ${q.label.toLowerCase()}...`} className="h-8 text-xs" autoFocus
+                          onKeyDown={e => e.key === 'Enter' && addSwotItem(q.key, newSwot.text)} />
+                        <Button size="sm" className="h-8" onClick={() => addSwotItem(q.key, newSwot.text)}><Check className="h-3 w-3" /></Button>
+                        <Button size="sm" variant="ghost" className="h-8" onClick={() => setNewSwot(null)}><X className="h-3 w-3" /></Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Concorrência Dialog ── */}
+      <Dialog open={competitorsDialogOpen} onOpenChange={setCompetitorsDialogOpen}>
+        <DialogContent className="max-w-6xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between gap-2 pr-8">
+              <span className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Análise Competitiva
+              </span>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={() => { resetCompForm(); setEditingCompetitor(null); setShowAddCompetitor(true); }}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar concorrente
+                </Button>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {competitors.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-10 text-center space-y-2">
+                <Target className="h-8 w-8 mx-auto text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground italic">Nenhum concorrente adicionado.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b">
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Nome</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Tipo</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Instagram</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Website</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Produtos</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Preços</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Plataformas</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Posicionamento</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Comunicação</th>
+                    {isOwner && <th className="w-16" />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {competitors.map(c => (
+                    <tr key={c.id} className="border-b last:border-b-0 hover:bg-muted/30 hq-transition cursor-pointer" onClick={() => isOwner && openEditCompetitor(c)}>
+                      <td className="p-3 font-medium text-foreground">{c.name}</td>
+                      <td className="p-3">
+                        <span className={cn(
+                          'text-xs px-2 py-0.5 rounded-full font-medium',
+                          c.type === 'direta' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                        )}>
+                          {c.type === 'direta' ? 'Direta' : 'Indireta'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-muted-foreground">{c.instagram || '—'}</td>
+                      <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.website || '—'}</td>
+                      <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.produtos || '—'}</td>
+                      <td className="p-3 text-muted-foreground">{c.precos || '—'}</td>
+                      <td className="p-3 text-muted-foreground max-w-[120px] truncate">{c.plataformas || '—'}</td>
+                      <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.posicionamento || '—'}</td>
+                      <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.comunicacao || '—'}</td>
+                      {isOwner && (
+                        <td className="p-3">
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); deleteCompetitor(c.id); }}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Diferenciais Dialog ── */}
+      <Dialog open={differentialsDialogOpen} onOpenChange={setDifferentialsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Diferenciais
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 pt-2">
+            {differentials.map(d => (
+              <div key={d.id} className="flex items-center gap-3 group p-3 rounded-lg border bg-card hq-transition hover:shadow-sm">
+                <span className="text-primary">✦</span>
+                <span className="flex-1 text-sm text-foreground">{d.content}</span>
+                {isOwner && (
+                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            {differentials.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum diferencial adicionado.</p>}
+            {isOwner && (
+              <div className="flex gap-2 mt-2">
+                <Input value={newDifferential} onChange={e => setNewDifferential(e.target.value)}
+                  placeholder="Adicionar diferencial..." className="h-9"
+                  onKeyDown={e => e.key === 'Enter' && addDifferential()} />
+                <Button size="sm" className="h-9" disabled={!newDifferential.trim()} onClick={addDifferential}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
