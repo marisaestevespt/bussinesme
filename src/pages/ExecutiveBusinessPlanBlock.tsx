@@ -83,11 +83,14 @@ export default function ExecutiveBusinessPlanBlock() {
           <ArrowLeft className="h-4 w-4" /> Voltar ao Canvas
         </Button>
 
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-primary/10 p-3 text-primary">
-            <Icon className="h-6 w-6" />
+        <div className="flex items-center gap-4">
+          <div className="rounded-2xl bg-primary/10 p-4 text-primary shrink-0">
+            <Icon className="h-7 w-7" />
           </div>
-          <PageHeader title={col.label} subtitle="Edita os pontos deste bloco do Business Model Canvas" />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight">{col.label}</h1>
+            <p className="text-sm text-muted-foreground mt-1">Edita os pontos deste bloco do Business Model Canvas</p>
+          </div>
         </div>
 
         <div className="space-y-3">
