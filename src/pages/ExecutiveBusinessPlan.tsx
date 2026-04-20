@@ -191,7 +191,7 @@ export default function ExecutiveBusinessPlan() {
           {renderBlock(CONCORRENCIA, 'md:col-span-1')}
 
           {/* Proposta de Valor — centro tall */}
-          {renderBlock(PROPOSTA, 'md:row-span-2 md:col-span-1 border-primary/40 bg-primary/5')}
+          {renderBlock(PROPOSTA, 'md:row-span-2 md:col-span-1')}
 
           {/* Canais */}
           {renderBlock(CANAIS, 'md:col-span-1')}
