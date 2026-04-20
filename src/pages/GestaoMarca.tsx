@@ -910,7 +910,7 @@ export default function GestaoMarcaPage() {
                 </div>
               )}
             </div>
-          ) : selectedKanban && selectedKanban.title?.includes('Concorrência') ? (
+          ) : selectedKanban && (selectedKanban.title?.includes('Competitiva') || selectedKanban.title?.includes('Concorrência')) ? (
             /* ── Concorrência content ── */
             <div className="space-y-4">
               {isOwner && (
