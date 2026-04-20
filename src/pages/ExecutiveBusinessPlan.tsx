@@ -190,26 +190,17 @@ export default function ExecutiveBusinessPlan() {
           {renderBlock(RECEITA)}
         </div>
 
-        {/* Bloco auxiliar fora do canvas: Concorrência */}
-        <div className="flex items-center gap-2 pt-2">
-          <h3 className="text-sm font-semibold text-muted-foreground">Análise complementar</h3>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {renderBlock(CONCORRENCIA)}
-          {customColumns.length === 0 && (
-            <div className="rounded-xl border-2 border-dashed border-muted-foreground/20 flex items-center justify-center min-h-[140px] text-xs text-muted-foreground p-4 text-center">
-              Adiciona blocos personalizados (ex: SWOT, riscos…)
+        {/* Custom blocks */}
+        {customColumns.length > 0 && (
+          <>
+            <div className="flex items-center gap-2 pt-2">
+              <h3 className="text-sm font-semibold text-muted-foreground">Blocos personalizados</h3>
+              <div className="flex-1 h-px bg-border" />
             </div>
-          )}
-          {customColumns.slice(0, 1).map(col => renderBlock(col))}
-        </div>
-
-        {/* Custom blocks extra */}
-        {customColumns.length > 1 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {customColumns.slice(1).map(col => renderBlock(col))}
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {customColumns.map(col => renderBlock(col))}
+            </div>
+          </>
         )}
       </div>
     </AppLayout>
