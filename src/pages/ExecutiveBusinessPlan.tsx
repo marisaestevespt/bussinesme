@@ -84,13 +84,15 @@ export default function ExecutiveBusinessPlan() {
   //  Using: top-left=recursos_chave, mid-left=fonte_receita... but we need to keep YOUR 7 cols.
   //  Better: use a flexible 4x2 + bottom row layout.
 
-  const PROPOSTA = FIXED_COLUMNS.find(c => c.key === 'proposta_valor')!;
-  const SEGMENTO = FIXED_COLUMNS.find(c => c.key === 'segmento_mercado')!;
-  const RECURSOS = FIXED_COLUMNS.find(c => c.key === 'recursos_chave')!;
+  const PARCERIAS = FIXED_COLUMNS.find(c => c.key === 'parcerias_chave')!;
   const ATIVIDADES = FIXED_COLUMNS.find(c => c.key === 'atividades_chave')!;
-  const RECEITA = FIXED_COLUMNS.find(c => c.key === 'fonte_receita')!;
+  const RECURSOS = FIXED_COLUMNS.find(c => c.key === 'recursos_chave')!;
+  const PROPOSTA = FIXED_COLUMNS.find(c => c.key === 'proposta_valor')!;
+  const RELACOES = FIXED_COLUMNS.find(c => c.key === 'relacoes_clientes')!;
   const CANAIS = FIXED_COLUMNS.find(c => c.key === 'canais_divulgacao')!;
+  const SEGMENTO = FIXED_COLUMNS.find(c => c.key === 'segmento_mercado')!;
   const CUSTOS = FIXED_COLUMNS.find(c => c.key === 'estrutura_custos')!;
+  const RECEITA = FIXED_COLUMNS.find(c => c.key === 'fonte_receita')!;
   const CONCORRENCIA = FIXED_COLUMNS.find(c => c.key === 'concorrencia')!;
 
   const renderBlock = (col: { key: string; label: string; custom?: boolean; id?: string }, className = '') => {
@@ -158,45 +160,56 @@ export default function ExecutiveBusinessPlan() {
           )}
         </div>
 
-        {/* CANVAS GRID — top section: 4 columns + Proposta center + 4 columns mirrored */}
-        {/* Layout: 5 main blocks across the top row, 2 wide blocks on the bottom row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          {/* Recursos Chave — left tall */}
-          {renderBlock(RECURSOS, 'md:row-span-2 md:col-span-1')}
+        {/* CANVAS — Osterwalder original (5 colunas em cima, 2 em baixo) */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          {/* Coluna 1: Parcerias-Chave (tall) */}
+          {renderBlock(PARCERIAS, 'md:row-span-2')}
 
-          {/* Atividades-Chave (topo) */}
-          {renderBlock(ATIVIDADES, 'md:col-span-1')}
+          {/* Coluna 2: Atividades-Chave (top) + Recursos-Chave (bottom) */}
+          {renderBlock(ATIVIDADES)}
 
-          {/* Proposta de Valor — centro tall */}
-          {renderBlock(PROPOSTA, 'md:row-span-2 md:col-span-1')}
+          {/* Coluna 3: Proposta de Valor (tall, centro) */}
+          {renderBlock(PROPOSTA, 'md:row-span-2')}
 
-          {/* Canais */}
-          {renderBlock(CANAIS, 'md:col-span-1')}
+          {/* Coluna 4: Relações com Clientes (top) + Canais (bottom) */}
+          {renderBlock(RELACOES)}
 
-          {/* Linha 2 do meio */}
-          {renderBlock(SEGMENTO, 'md:col-span-1')}
+          {/* Coluna 5: Segmentos de Clientes (tall) */}
+          {renderBlock(SEGMENTO, 'md:row-span-2')}
 
-          {/* Receita (canto direito) */}
-          {renderBlock(RECEITA, 'md:col-span-1')}
+          {/* Linha 2 — col 2: Recursos */}
+          {renderBlock(RECURSOS)}
+
+          {/* Linha 2 — col 4: Canais */}
+          {renderBlock(CANAIS)}
         </div>
 
-        {/* Bottom row: Estrutura de Custos + Concorrência */}
+        {/* Linha de baixo: Estrutura de Custos + Fluxos de Receita */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {renderBlock(CUSTOS)}
-          {renderBlock(CONCORRENCIA)}
+          {renderBlock(RECEITA)}
         </div>
 
-        {/* Custom blocks */}
-        {customColumns.length > 0 && (
-          <>
-            <div className="flex items-center gap-2 pt-2">
-              <h3 className="text-sm font-semibold text-muted-foreground">Blocos personalizados</h3>
-              <div className="flex-1 h-px bg-border" />
+        {/* Bloco auxiliar fora do canvas: Concorrência */}
+        <div className="flex items-center gap-2 pt-2">
+          <h3 className="text-sm font-semibold text-muted-foreground">Análise complementar</h3>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {renderBlock(CONCORRENCIA)}
+          {customColumns.length === 0 && (
+            <div className="rounded-xl border-2 border-dashed border-muted-foreground/20 flex items-center justify-center min-h-[140px] text-xs text-muted-foreground p-4 text-center">
+              Adiciona blocos personalizados (ex: SWOT, riscos…)
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {customColumns.map(col => renderBlock(col))}
-            </div>
-          </>
+          )}
+          {customColumns.slice(0, 1).map(col => renderBlock(col))}
+        </div>
+
+        {/* Custom blocks extra */}
+        {customColumns.length > 1 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {customColumns.slice(1).map(col => renderBlock(col))}
+          </div>
         )}
       </div>
     </AppLayout>
