@@ -143,30 +143,6 @@ export default function ExecutiveBusinessPlan() {
         <BackNavigation />
         <PageHeader title="Plano & Modelo de Negócio" subtitle="Business Model Canvas" />
 
-        {/* Value Proposition Callout */}
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="p-4">
-            {editingVP ? (
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proposta de Valor</label>
-                <Textarea value={vpDraft} onChange={e => setVpDraft(e.target.value)} placeholder="Descreve a proposta de valor do teu negócio..." className="min-h-[80px]" />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => saveVP.mutate(vpDraft)}><Check className="h-3 w-3 mr-1" /> Guardar</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditingVP(false)}>Cancelar</Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start justify-between gap-4 cursor-pointer" onClick={() => { setVpDraft(vp); setEditingVP(true); }}>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Proposta de Valor</p>
-                  {vp ? <p className="text-sm">{vp}</p> : <p className="text-sm text-muted-foreground italic">Clica para definir a proposta de valor...</p>}
-                </div>
-                <Pencil className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Header bar with Add column */}
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Canvas</h2>
