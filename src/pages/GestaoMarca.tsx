@@ -635,6 +635,20 @@ export default function GestaoMarcaPage() {
                       </div>
                       <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
                     </div>
+                    {/* Strategy quick-access buttons inside Posicionamento column */}
+                    {group.key === 'posicionamento' && (
+                      <div className="flex flex-wrap gap-1 px-2 py-2 bg-muted/10 border-x">
+                        <Button variant="ghost" size="sm" className="h-6 text-[11px] px-2" onClick={() => setSwotDialogOpen(true)}>
+                          <BarChart3 className="h-3 w-3 mr-1" />SWOT
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-[11px] px-2" onClick={() => setCompetitorsDialogOpen(true)}>
+                          <Target className="h-3 w-3 mr-1" />Concorrência
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-[11px] px-2" onClick={() => setDifferentialsDialogOpen(true)}>
+                          <Sparkles className="h-3 w-3 mr-1" />Diferenciais
+                        </Button>
+                      </div>
+                    )}
                     {/* Items list */}
                     <div className="space-y-0 bg-muted/5 border-x border-b rounded-b-lg">
                       {items.map(item => (
