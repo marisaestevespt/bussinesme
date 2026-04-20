@@ -68,6 +68,39 @@ export type Database = {
           },
         ]
       }
+      access_password_audit: {
+        Row: {
+          access_id: string | null
+          action: string
+          created_at: string
+          id: string
+          ip: string | null
+          reason: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          access_id?: string | null
+          action: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          reason?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          access_id?: string | null
+          action?: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          reason?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
