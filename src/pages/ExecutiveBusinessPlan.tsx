@@ -87,6 +87,7 @@ export default function ExecutiveBusinessPlan() {
   const PROPOSTA = FIXED_COLUMNS.find(c => c.key === 'proposta_valor')!;
   const SEGMENTO = FIXED_COLUMNS.find(c => c.key === 'segmento_mercado')!;
   const RECURSOS = FIXED_COLUMNS.find(c => c.key === 'recursos_chave')!;
+  const ATIVIDADES = FIXED_COLUMNS.find(c => c.key === 'atividades_chave')!;
   const RECEITA = FIXED_COLUMNS.find(c => c.key === 'fonte_receita')!;
   const CANAIS = FIXED_COLUMNS.find(c => c.key === 'canais_divulgacao')!;
   const CUSTOS = FIXED_COLUMNS.find(c => c.key === 'estrutura_custos')!;
@@ -163,8 +164,8 @@ export default function ExecutiveBusinessPlan() {
           {/* Recursos Chave — left tall */}
           {renderBlock(RECURSOS, 'md:row-span-2 md:col-span-1')}
 
-          {/* Concorrência (substitui Atividades-Chave clássica) */}
-          {renderBlock(CONCORRENCIA, 'md:col-span-1')}
+          {/* Atividades-Chave (topo) */}
+          {renderBlock(ATIVIDADES, 'md:col-span-1')}
 
           {/* Proposta de Valor — centro tall */}
           {renderBlock(PROPOSTA, 'md:row-span-2 md:col-span-1')}
@@ -172,37 +173,28 @@ export default function ExecutiveBusinessPlan() {
           {/* Canais */}
           {renderBlock(CANAIS, 'md:col-span-1')}
 
-          {/* (segunda linha do meio) — Relacionamento (usamos Segmento separado abaixo se quiseres) */}
-          {/* Aqui colocamos os custom no meio-direita superior se houver, ou Segmento */}
+          {/* Linha 2 do meio */}
           {renderBlock(SEGMENTO, 'md:col-span-1')}
 
           {/* Receita (canto direito) */}
           {renderBlock(RECEITA, 'md:col-span-1')}
         </div>
 
-        {/* Bottom row: Estrutura de Custos */}
+        {/* Bottom row: Estrutura de Custos + Concorrência */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {renderBlock(CUSTOS)}
-          {/* Espaço para a 2ª receita visual ou primeira coluna custom */}
-          {customColumns.length > 0
-            ? renderBlock(customColumns[0])
-            : (
-              <div className="rounded-xl border-2 border-dashed border-muted-foreground/20 flex items-center justify-center min-h-[140px] text-xs text-muted-foreground">
-                Adiciona um bloco personalizado para preencher esta zona
-              </div>
-            )
-          }
+          {renderBlock(CONCORRENCIA)}
         </div>
 
-        {/* Custom blocks extra (a partir do 2º) em grelha normal */}
-        {customColumns.length > 1 && (
+        {/* Custom blocks */}
+        {customColumns.length > 0 && (
           <>
             <div className="flex items-center gap-2 pt-2">
               <h3 className="text-sm font-semibold text-muted-foreground">Blocos personalizados</h3>
               <div className="flex-1 h-px bg-border" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {customColumns.slice(1).map(col => renderBlock(col))}
+              {customColumns.map(col => renderBlock(col))}
             </div>
           </>
         )}
