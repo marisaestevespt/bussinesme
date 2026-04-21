@@ -540,21 +540,51 @@ export default function GestaoMarcaPage() {
               <div className="flex flex-col md:flex-row items-start gap-6">
                 {/* Logo - bigger */}
                 {isOwner ? (
-                  <label className="cursor-pointer group relative shrink-0">
-                    {settings?.logo_url ? (
-                      <img src={settings.logo_url} alt={settings.business_name} className="h-40 w-40 rounded-xl object-cover border bg-muted/30 group-hover:opacity-70 transition-opacity" />
-                    ) : (
-                      <div className="h-40 w-40 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
-                        <Upload className="h-6 w-6 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
+                  <div className="shrink-0 space-y-2 group">
+                    <label className="cursor-pointer relative block">
+                      {settings?.logo_url ? (
+                        <img
+                          src={settings.logo_url}
+                          alt={settings.business_name}
+                          className="h-40 w-40 rounded-xl object-cover border bg-muted/30 group-hover:opacity-80 transition-opacity"
+                          style={{ objectPosition: `center ${(settings as any)?.logo_position_y ?? 50}%` }}
+                        />
+                      ) : (
+                        <div className="h-40 w-40 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
+                          <Upload className="h-6 w-6 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-background/60 pointer-events-none">
+                        <Upload className="h-5 w-5 text-foreground" />
+                      </div>
+                      <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
+                    </label>
+                    {settings?.logo_url && (
+                      <div className="flex items-center gap-2 px-1">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">Enquadrar</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={(settings as any)?.logo_position_y ?? 50}
+                          onChange={async (e) => {
+                            const v = parseInt(e.target.value, 10);
+                            await supabase.from('business_settings').update({ logo_position_y: v } as any).eq('id', settings.id);
+                            refetchSettings();
+                          }}
+                          className="flex-1 h-1 accent-primary cursor-pointer"
+                          title="Ajusta o enquadramento vertical do logo"
+                        />
                       </div>
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-background/60">
-                      <Upload className="h-5 w-5 text-foreground" />
-                    </div>
-                    <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
-                  </label>
+                  </div>
                 ) : settings?.logo_url ? (
-                  <img src={settings.logo_url} alt={settings.business_name} className="h-40 w-40 rounded-xl object-cover border bg-muted/30 shrink-0" />
+                  <img
+                    src={settings.logo_url}
+                    alt={settings.business_name}
+                    className="h-40 w-40 rounded-xl object-cover border bg-muted/30 shrink-0"
+                    style={{ objectPosition: `center ${(settings as any)?.logo_position_y ?? 50}%` }}
+                  />
                 ) : null}
 
                 <div className="flex-1 space-y-4 min-w-0">
