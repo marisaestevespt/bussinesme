@@ -1,14 +1,42 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, ExternalLink, X } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, FileText, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface MarketingPage {
+  id: string;
+  name?: string;
+  type?: string;
+  status?: string;
+  url?: string;
+  headline?: string;
+  subheadline?: string;
+  cta?: string;
+  copy?: string;
+  sections?: { title: string; notes: string; done: boolean }[];
+  inspirations?: { label: string; url: string }[];
+  notes?: string;
+}
+
+const PAGE_TYPES = ['Vendas', 'Obrigado', 'Upsell', 'Checkout', 'Captura (Opt-in)', 'Webinar', 'Aplicação', 'Outra'];
+const PAGE_STATUSES = [
+  { value: 'ideia', label: 'Ideia' },
+  { value: 'a_escrever', label: 'A escrever' },
+  { value: 'em_design', label: 'Em design' },
+  { value: 'em_revisao', label: 'Em revisão' },
+  { value: 'pronto', label: 'Pronto' },
+  { value: 'publicado', label: 'Publicado' },
+];
 
 interface Props {
   productContents: Array<Record<string, unknown>>;
@@ -34,210 +62,341 @@ export function ProductMarketingSection({
 }: Props) {
   const navigate = useNavigate();
   const sp = salesPage || {};
-  const setSp = (patch: Record<string, unknown>) => onUpdateSalesPage({ ...sp, ...patch });
-  const sections = (Array.isArray(sp.sections) ? sp.sections : []) as Array<{ title: string; notes: string; done: boolean }>;
-  const inspirations = (Array.isArray(sp.inspirations) ? sp.inspirations : []) as Array<{ label: string; url: string }>;
+
+  // Migration: legacy single-page → array
+  let pages: MarketingPage[] = Array.isArray((sp as any).pages) ? ((sp as any).pages as MarketingPage[]) : [];
+  if (pages.length === 0 && ((sp as any).copy || (sp as any).headline || (sp as any).cta)) {
+    pages = [{
+      id: 'legacy',
+      name: 'Página de Vendas',
+      type: 'Vendas',
+      status: 'a_escrever',
+      url: salesPageUrl || '',
+      headline: (sp as any).headline,
+      subheadline: (sp as any).subheadline,
+      cta: (sp as any).cta,
+      copy: (sp as any).copy,
+      sections: Array.isArray((sp as any).sections) ? (sp as any).sections : [],
+      inspirations: Array.isArray((sp as any).inspirations) ? (sp as any).inspirations : [],
+      notes: (sp as any).notes,
+    }];
+  }
+
+  const setPages = (next: MarketingPage[]) => onUpdateSalesPage({ ...sp, pages: next });
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = pages.find(p => p.id === editingId) || null;
+
+  const updateEditing = (patch: Partial<MarketingPage>) => {
+    if (!editing) return;
+    setPages(pages.map(p => p.id === editing.id ? { ...p, ...patch } : p));
+  };
+
+  const addPage = () => {
+    const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : String(Date.now());
+    const newPage: MarketingPage = { id, name: 'Nova página', type: 'Vendas', status: 'ideia', sections: [], inspirations: [] };
+    setPages([...pages, newPage]);
+    setEditingId(id);
+  };
+
+  const removePage = (id: string) => setPages(pages.filter(p => p.id !== id));
+
+  const statusBadge = (s?: string) => {
+    const lbl = PAGE_STATUSES.find(x => x.value === s)?.label || s || '—';
+    return <Badge variant="outline" className="text-xs">{lbl}</Badge>;
+  };
+
+  const editingSections = editing?.sections || [];
+  const editingInspirations = editing?.inspirations || [];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-      {/* Página de Vendas */}
+      {/* Páginas */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Página de Vendas</CardTitle></CardHeader>
-        <CardContent className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">URL da página</Label>
-              <div className="flex items-center gap-1">
-                <Input
-                  value={salesPageUrl || ''}
-                  onChange={(e) => onUpdateSalesPageUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="h-9"
-                  readOnly={!isOwner}
-                />
-                {salesPageUrl && (
-                  <a href={salesPageUrl} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                    <ExternalLink className="h-4 w-4 text-primary" />
-                  </a>
-                )}
-              </div>
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="text-base">Páginas</CardTitle>
+          {isOwner && (
+            <Button size="sm" variant="outline" onClick={addPage}>
+              <Plus className="h-3 w-3 mr-1" /> Nova página
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {pages.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">Sem páginas. Cria a primeira (vendas, obrigado, upsell, checkout...).</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {pages.map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setEditingId(p.id)}
+                  className="group text-left border rounded-lg p-3 hover:border-primary hover:shadow-sm transition-all bg-card"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-medium text-sm truncate">{p.name || 'Sem nome'}</span>
+                    </div>
+                    {isOwner && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); removePage(p.id); }}
+                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {p.type && <Badge variant="secondary" className="text-xs">{p.type}</Badge>}
+                    {statusBadge(p.status)}
+                  </div>
+                  {p.url && (
+                    <div className="mt-2 text-xs text-muted-foreground truncate">{p.url}</div>
+                  )}
+                </button>
+              ))}
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">CTA Principal</Label>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Big editor dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditingId(null); }}>
+        <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[90vw] h-[92vh] p-0 flex flex-col">
+          <DialogHeader className="px-6 pt-5 pb-3 border-b shrink-0">
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4" />
               <Input
-                value={(sp.cta as string) || ''}
-                onChange={(e) => setSp({ cta: e.target.value })}
-                placeholder="Ex: Quero candidatar-me"
-                className="h-9"
+                value={editing?.name || ''}
+                onChange={(e) => updateEditing({ name: e.target.value })}
+                placeholder="Nome da página"
+                className="h-9 text-base font-semibold border-0 shadow-none focus-visible:ring-1 px-2"
                 readOnly={!isOwner}
               />
-            </div>
-          </div>
+            </DialogTitle>
+          </DialogHeader>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Headline</Label>
-            <Input
-              value={(sp.headline as string) || ''}
-              onChange={(e) => setSp({ headline: e.target.value })}
-              placeholder="Título principal da página"
-              className="h-9"
-              readOnly={!isOwner}
-            />
-          </div>
+          {editing && (
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Tipo</Label>
+                  <Select value={editing.type || ''} onValueChange={(v) => updateEditing({ type: v })} disabled={!isOwner}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                    <SelectContent>
+                      {PAGE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Status</Label>
+                  <Select value={editing.status || ''} onValueChange={(v) => updateEditing({ status: v })} disabled={!isOwner}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+                    <SelectContent>
+                      {PAGE_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">URL</Label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      value={editing.url || ''}
+                      onChange={(e) => updateEditing({ url: e.target.value })}
+                      placeholder="https://..."
+                      className="h-9"
+                      readOnly={!isOwner}
+                    />
+                    {editing.url && (
+                      <a href={editing.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                        <ExternalLink className="h-4 w-4 text-primary" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Sub-headline</Label>
-            <Textarea
-              value={(sp.subheadline as string) || ''}
-              onChange={(e) => setSp({ subheadline: e.target.value })}
-              placeholder="Frase de apoio ao headline"
-              className="min-h-[60px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Copy completo da página</Label>
-            <RichTextEditor
-              content={(sp.copy as string) || ''}
-              onChange={(v) => setSp({ copy: v })}
-              editable={isOwner}
-            />
-          </div>
-
-          {/* Secções / checklist */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold">Secções da página</Label>
-            {sections.length === 0 && (
-              <p className="text-xs text-muted-foreground italic">Sem secções definidas.</p>
-            )}
-            {sections.map((s, i) => (
-              <div key={i} className="flex gap-2 items-start border rounded-md p-2">
-                <input
-                  type="checkbox"
-                  checked={!!s.done}
-                  onChange={(e) => {
-                    const next = [...sections];
-                    next[i] = { ...next[i], done: e.target.checked };
-                    setSp({ sections: next });
-                  }}
-                  disabled={!isOwner}
-                  className="mt-2 shrink-0"
-                />
-                <div className="flex-1 space-y-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Headline</Label>
                   <Input
-                    value={s.title}
-                    onChange={(e) => {
-                      const next = [...sections];
-                      next[i] = { ...next[i], title: e.target.value };
-                      setSp({ sections: next });
-                    }}
-                    placeholder="Nome da secção (ex: Hero, Benefícios, FAQ)"
-                    className="h-8 text-sm"
-                    readOnly={!isOwner}
-                  />
-                  <Textarea
-                    value={s.notes}
-                    onChange={(e) => {
-                      const next = [...sections];
-                      next[i] = { ...next[i], notes: e.target.value };
-                      setSp({ sections: next });
-                    }}
-                    placeholder="Notas / copy desta secção"
-                    className="min-h-[50px] text-xs"
+                    value={editing.headline || ''}
+                    onChange={(e) => updateEditing({ headline: e.target.value })}
+                    placeholder="Título principal"
+                    className="h-9"
                     readOnly={!isOwner}
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">CTA Principal</Label>
+                  <Input
+                    value={editing.cta || ''}
+                    onChange={(e) => updateEditing({ cta: e.target.value })}
+                    placeholder="Ex: Quero candidatar-me"
+                    className="h-9"
+                    readOnly={!isOwner}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Sub-headline</Label>
+                <Textarea
+                  value={editing.subheadline || ''}
+                  onChange={(e) => updateEditing({ subheadline: e.target.value })}
+                  placeholder="Frase de apoio"
+                  className="min-h-[60px] text-sm"
+                  readOnly={!isOwner}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Copy completo</Label>
+                <RichTextEditor
+                  content={editing.copy || ''}
+                  onChange={(v) => updateEditing({ copy: v })}
+                  editable={isOwner}
+                />
+              </div>
+
+              {/* Sections */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Secções da página</Label>
+                {editingSections.length === 0 && (
+                  <p className="text-xs text-muted-foreground italic">Sem secções definidas.</p>
+                )}
+                {editingSections.map((s, i) => (
+                  <div key={i} className="flex gap-2 items-start border rounded-md p-2">
+                    <input
+                      type="checkbox"
+                      checked={!!s.done}
+                      onChange={(e) => {
+                        const next = [...editingSections];
+                        next[i] = { ...next[i], done: e.target.checked };
+                        updateEditing({ sections: next });
+                      }}
+                      disabled={!isOwner}
+                      className="mt-2 shrink-0"
+                    />
+                    <div className="flex-1 space-y-1">
+                      <Input
+                        value={s.title}
+                        onChange={(e) => {
+                          const next = [...editingSections];
+                          next[i] = { ...next[i], title: e.target.value };
+                          updateEditing({ sections: next });
+                        }}
+                        placeholder="Nome da secção (Hero, Benefícios, FAQ...)"
+                        className="h-8 text-sm"
+                        readOnly={!isOwner}
+                      />
+                      <Textarea
+                        value={s.notes}
+                        onChange={(e) => {
+                          const next = [...editingSections];
+                          next[i] = { ...next[i], notes: e.target.value };
+                          updateEditing({ sections: next });
+                        }}
+                        placeholder="Notas / copy desta secção"
+                        className="min-h-[50px] text-xs"
+                        readOnly={!isOwner}
+                      />
+                    </div>
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => updateEditing({ sections: editingSections.filter((_, j) => j !== i) })}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
                 {isOwner && (
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 shrink-0"
-                    onClick={() => setSp({ sections: sections.filter((_, j) => j !== i) })}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateEditing({ sections: [...editingSections, { title: '', notes: '', done: false }] })}
                   >
-                    <X className="h-3 w-3" />
+                    <Plus className="h-3 w-3 mr-1" /> Adicionar secção
                   </Button>
                 )}
               </div>
-            ))}
-            {isOwner && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSp({ sections: [...sections, { title: '', notes: '', done: false }] })}
-              >
-                <Plus className="h-3 w-3 mr-1" /> Adicionar secção
-              </Button>
-            )}
-          </div>
 
-          {/* Inspirações */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold">Inspirações / Referências</Label>
-            {inspirations.map((item, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <Input
-                  value={item.label}
-                  onChange={(e) => {
-                    const next = [...inspirations];
-                    next[i] = { ...next[i], label: e.target.value };
-                    setSp({ inspirations: next });
-                  }}
-                  placeholder="Nome"
-                  className="h-8 text-sm w-1/3"
-                  readOnly={!isOwner}
-                />
-                <Input
-                  value={item.url}
-                  onChange={(e) => {
-                    const next = [...inspirations];
-                    next[i] = { ...next[i], url: e.target.value };
-                    setSp({ inspirations: next });
-                  }}
-                  placeholder="https://..."
-                  className="h-8 text-sm flex-1"
-                  readOnly={!isOwner}
-                />
-                {item.url && (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                    <ExternalLink className="h-4 w-4 text-primary" />
-                  </a>
-                )}
+              {/* Inspirations */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Inspirações / Referências</Label>
+                {editingInspirations.map((item, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <Input
+                      value={item.label}
+                      onChange={(e) => {
+                        const next = [...editingInspirations];
+                        next[i] = { ...next[i], label: e.target.value };
+                        updateEditing({ inspirations: next });
+                      }}
+                      placeholder="Nome"
+                      className="h-8 text-sm w-1/3"
+                      readOnly={!isOwner}
+                    />
+                    <Input
+                      value={item.url}
+                      onChange={(e) => {
+                        const next = [...editingInspirations];
+                        next[i] = { ...next[i], url: e.target.value };
+                        updateEditing({ inspirations: next });
+                      }}
+                      placeholder="https://..."
+                      className="h-8 text-sm flex-1"
+                      readOnly={!isOwner}
+                    />
+                    {item.url && (
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                        <ExternalLink className="h-4 w-4 text-primary" />
+                      </a>
+                    )}
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => updateEditing({ inspirations: editingInspirations.filter((_, j) => j !== i) })}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
                 {isOwner && (
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={() => setSp({ inspirations: inspirations.filter((_, j) => j !== i) })}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateEditing({ inspirations: [...editingInspirations, { label: '', url: '' }] })}
                   >
-                    <X className="h-3 w-3" />
+                    <Plus className="h-3 w-3 mr-1" /> Adicionar inspiração
                   </Button>
                 )}
               </div>
-            ))}
-            {isOwner && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSp({ inspirations: [...inspirations, { label: '', url: '' }] })}
-              >
-                <Plus className="h-3 w-3 mr-1" /> Adicionar inspiração
-              </Button>
-            )}
-          </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Notas internas</Label>
-            <Textarea
-              value={(sp.notes as string) || ''}
-              onChange={(e) => setSp({ notes: e.target.value })}
-              placeholder="Pendências, ideias, testes A/B..."
-              className="min-h-[80px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-        </CardContent>
-      </Card>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Notas internas</Label>
+                <Textarea
+                  value={editing.notes || ''}
+                  onChange={(e) => updateEditing({ notes: e.target.value })}
+                  placeholder="Pendências, ideias, testes A/B..."
+                  className="min-h-[80px] text-sm"
+                  readOnly={!isOwner}
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Conteúdos */}
       <Card>
