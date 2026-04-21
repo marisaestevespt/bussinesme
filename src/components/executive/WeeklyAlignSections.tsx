@@ -22,10 +22,10 @@ const MILESTONE_TYPE_LABELS: Record<string, string> = {
 
 // ─── helpers ───
 function getNpsRowColor(expectedDate: string, status: string) {
-  if (status === 'feito') return 'bg-emerald-50 border-l-4 border-l-emerald-500';
+  if (status === 'feito') return 'bg-success/15 border-l-4 border-l-emerald-500';
   const diff = differenceInDays(parseISO(expectedDate), new Date());
-  if (diff < 0) return 'bg-red-50 border-l-4 border-l-red-500';
-  return 'bg-amber-50 border-l-4 border-l-amber-500';
+  if (diff < 0) return 'bg-destructive/15 border-l-4 border-l-red-500';
+  return 'bg-warning/15 border-l-4 border-l-amber-500';
 }
 
 function autoNpsStatus(expectedDate: string, currentStatus: string) {
@@ -105,7 +105,7 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
                     const obj = planning.allObjectives.find((o: any) => o.id === m.objective_id);
                     const daysOverdue = m.last_updated_at ? Math.floor((new Date().getTime() - new Date(m.last_updated_at).getTime()) / (1000 * 60 * 60 * 24)) : '—';
                     return (
-                      <TableRow key={m.id} className="bg-red-50">
+                      <TableRow key={m.id} className="bg-destructive/15">
                         <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
                         <TableCell className="text-sm font-medium">{m.name}</TableCell>
                         <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : 'Nunca'}</TableCell>
@@ -212,7 +212,7 @@ export function VendasSection({ salesWeek, salesActions, salesWeekTotal, prevSal
         )}
         {billingGoal > 0 && totalBilled >= billingGoal && (
           <div className="flex items-center gap-2 p-2 rounded-md bg-emerald-500/10 border border-emerald-500/30">
-            <span className="text-sm font-medium text-emerald-700">Meta atingida! 🎉 Faturaste +€{(totalBilled - billingGoal).toLocaleString()} acima da meta</span>
+            <span className="text-sm font-medium text-success">Meta atingida! 🎉 Faturaste +€{(totalBilled - billingGoal).toLocaleString()} acima da meta</span>
           </div>
         )}
       </CardContent></Card>
@@ -423,7 +423,7 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
               <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Dias em atraso</TableHead>
             </TableRow></TableHeader>
             <TableBody>{npsOverdue.map((r: any) => (
-              <TableRow key={r.id} className={cn("bg-red-50 border-l-4 border-l-red-500", clickableRow)} onClick={() => openNpsDetail(r)}>
+              <TableRow key={r.id} className={cn("bg-destructive/15 border-l-4 border-l-red-500", clickableRow)} onClick={() => openNpsDetail(r)}>
                 <TableCell className="text-sm font-medium">{r.clients?.full_name || '—'}</TableCell>
                 <TableCell className="text-xs">{r.clients?.current_product || '—'}</TableCell>
                 <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
@@ -483,8 +483,8 @@ export function ExpiringContractsSection({ expiringContractsList }: ContractsSec
         </TableRow></TableHeader>
         <TableBody>{expiringContractsList.map((c: any) => (
           <TableRow key={c.id} className={cn(
-            c.daysLeft <= 0 ? 'bg-red-50 border-l-4 border-l-red-500' :
-            c.daysLeft <= 14 ? 'bg-amber-50 border-l-4 border-l-amber-500' : ''
+            c.daysLeft <= 0 ? 'bg-destructive/15 border-l-4 border-l-red-500' :
+            c.daysLeft <= 14 ? 'bg-warning/15 border-l-4 border-l-amber-500' : ''
           )}>
             <TableCell className="text-sm font-medium">{c.team_members?.full_name || '—'}</TableCell>
             <TableCell className="text-xs">{c.team_members?.role_title || '—'}</TableCell>

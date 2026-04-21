@@ -55,7 +55,7 @@ function CostRow({ cost, isOwner, onUpdate, onDelete }: {
         <TableCell>
           <div className="flex gap-1">
             {dirty && (
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600 hover:text-green-700" onClick={handleSave}>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success" onClick={handleSave}>
                 <Check className="h-3.5 w-3.5" />
               </Button>
             )}
@@ -104,12 +104,12 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
       return { icon: TrendingDown, color: 'text-destructive', bg: 'bg-destructive/5 border-destructive/20', label: 'Atenção', desc: 'Este preço não cobre todos os custos e impostos.' };
     }
     if (testVal > recBase) {
-      return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+      return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Bom preço!', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
     }
     if (Math.abs(testVal - recBase) < 0.01) {
-      return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Preço no limite', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+      return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Preço no limite', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
     }
-    return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Abaixo do recomendado', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+    return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
   };
   const verdict = getVerdict();
 
@@ -176,7 +176,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
               <Card className="border-dashed">
                 <CardContent className="pt-4 pb-3 space-y-1">
                   <p className="text-xs text-muted-foreground">Preço recomendado</p>
-                  <p className="text-lg font-bold text-green-600">
+                  <p className="text-lg font-bold text-success">
                     {fmt(recBase)} <span className="text-sm font-medium text-muted-foreground">({fmt(recWithVat)} c/ IVA)</span>
                   </p>
                   <p className="text-[10px] text-muted-foreground">Margem bruta de {recMargin.toFixed(1)}%</p>
@@ -248,7 +248,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Lucro real</p>
-                <p className={`text-sm font-semibold ${testRealProfit >= 0 ? 'text-green-600' : 'text-destructive'}`}>{fmt(testRealProfit)} — {(testRealProfit / testVal * 100).toFixed(1)}% do preço</p>
+                <p className={`text-sm font-semibold ${testRealProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(testRealProfit)} — {(testRealProfit / testVal * 100).toFixed(1)}% do preço</p>
               </div>
             </div>
           )}

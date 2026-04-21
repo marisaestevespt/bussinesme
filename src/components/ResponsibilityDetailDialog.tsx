@@ -18,15 +18,15 @@ import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
 
 const TASK_STATUSES = [
   { value: 'por_comecar', label: 'Por Começar', color: 'bg-gray-100 text-gray-800' },
-  { value: 'pendente', label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'em_progresso', label: 'Em Progresso', color: 'bg-blue-100 text-blue-800' },
-  { value: 'done', label: 'Concluída', color: 'bg-emerald-100 text-emerald-800' },
+  { value: 'pendente', label: 'Pendente', color: 'bg-warning/15 text-warning' },
+  { value: 'em_progresso', label: 'Em Progresso', color: 'bg-info/15 text-info' },
+  { value: 'done', label: 'Concluída', color: 'bg-success/15 text-success' },
 ];
 
 const MILESTONE_STATUSES = [
   { value: 'por_fazer', label: 'Por Fazer', color: 'bg-gray-100 text-gray-800' },
-  { value: 'em_atraso', label: 'Em Atraso', color: 'bg-red-100 text-red-800' },
-  { value: 'concluido', label: 'Concluído', color: 'bg-emerald-100 text-emerald-800' },
+  { value: 'em_atraso', label: 'Em Atraso', color: 'bg-destructive/15 text-destructive' },
+  { value: 'concluido', label: 'Concluído', color: 'bg-success/15 text-success' },
 ];
 
 interface Props {

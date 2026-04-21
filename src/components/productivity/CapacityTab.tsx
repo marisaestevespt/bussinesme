@@ -131,8 +131,8 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                   <TableCell className="text-sm text-right tabular-nums">{m.internalH}h</TableCell>
                   <TableCell className={`text-sm text-right tabular-nums ${m.remainingH < 0 ? 'text-destructive' : ''}`}>{m.remainingH}h</TableCell>
                   <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-amber-500' : ''}`}>{m.usagePct}%</TableCell>
-                  <TableCell className="text-center text-xs">{m.weekendDays > 0 ? <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">{m.weekendDays}d · {m.weekendH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
-                  <TableCell className="text-center text-xs">{m.holidayDays > 0 ? <Badge variant="outline" className="text-[10px] border-blue-300 text-blue-700">{m.holidayDays}d · {m.holidayH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell className="text-center text-xs">{m.weekendDays > 0 ? <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">{m.weekendDays}d · {m.weekendH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell className="text-center text-xs">{m.holidayDays > 0 ? <Badge variant="outline" className="text-[10px] border-info/30 text-info">{m.holidayDays}d · {m.holidayH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell>
                     <div className="flex h-2.5 w-24 rounded-full overflow-hidden bg-muted">
                       <div className={`h-full rounded-full ${m.usagePct > 100 ? 'bg-destructive' : m.usagePct > 85 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${Math.min(m.usagePct, 100)}%` }} />
@@ -581,7 +581,7 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
               </CardContent></Card>
               <Card><CardContent className="p-4 text-center">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ocupação</p>
-                <p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : capacityPercent > 70 ? 'text-amber-600' : 'text-foreground'}`}>{capacityPercent}%</p>
+                <p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : capacityPercent > 70 ? 'text-warning' : 'text-foreground'}`}>{capacityPercent}%</p>
                 <Progress value={Math.min(capacityPercent, 100)} className="h-2 mt-1" />
               </CardContent></Card>
               <Card><CardContent className="p-4 text-center">
@@ -592,7 +592,7 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
             </div>
 
             {/* Conclusion */}
-            <Card className={hoursRemaining < 0 ? 'border-destructive/50 bg-destructive/5' : hoursRemaining < 20 ? 'border-amber-400/50 bg-amber-50/30' : 'border-primary/30 bg-primary/5'}>
+            <Card className={hoursRemaining < 0 ? 'border-destructive/50 bg-destructive/5' : hoursRemaining < 20 ? 'border-warning/30/50 bg-warning/15/30' : 'border-primary/30 bg-primary/5'}>
               <CardContent className="p-4 flex items-start gap-3">
                 {hoursRemaining < 0 ? (
                   <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
@@ -631,7 +631,7 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
                           return (
                             <li key={p.id}>
                               <strong>+{extra}</strong> clientes de <em>{p.product_name}</em>
-                              {limited && <span className="text-amber-600"> (limitado pelo máximo de {maxC})</span>}
+                              {limited && <span className="text-warning"> (limitado pelo máximo de {maxC})</span>}
                             </li>
                           );
                         })}

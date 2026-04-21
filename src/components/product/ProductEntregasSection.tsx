@@ -116,7 +116,7 @@ function DeliverableRow({
             <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"
               onClick={() => onUpdate(template.id, { responsible_type: (template.responsible_type || 'equipa') === 'equipa' ? 'cliente' : 'equipa' })}>
               {(template.responsible_type || 'equipa') === 'cliente'
-                ? <User className="h-3.5 w-3.5 text-amber-600" />
+                ? <User className="h-3.5 w-3.5 text-warning" />
                 : <Users className="h-3.5 w-3.5 text-muted-foreground" />}
             </Button>
           </TooltipTrigger>
@@ -233,7 +233,7 @@ function PhaseCard({
             {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </Button>
           <Badge variant="outline" className="text-[10px] shrink-0">Fase {phase.sort_order + 1}</Badge>
-          {phase.is_onboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-amber-100 text-amber-700 border-amber-200">Onboarding</Badge>}
+          {phase.is_onboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-warning/15 text-warning border-warning/30">Onboarding</Badge>}
           <Input value={name} onChange={e => setName(e.target.value)}
             onBlur={() => { const t = name.trim(); if (t !== phase.name) onUpdatePhase(phase.id, { name: t }); }}
             className="h-7 text-sm font-medium border-none shadow-none p-0 focus-visible:ring-0"
@@ -244,7 +244,7 @@ function PhaseCard({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant={phase.is_onboarding ? "secondary" : "ghost"} size="sm"
-                  className={`h-7 text-xs ${phase.is_onboarding ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : ''}`}
+                  className={`h-7 text-xs ${phase.is_onboarding ? 'bg-warning/15 text-warning hover:bg-amber-200' : ''}`}
                   onClick={() => onUpdatePhase(phase.id, { is_onboarding: !phase.is_onboarding })}>
                   <CheckSquare className="h-3 w-3 mr-1" /> Onboarding
                 </Button>

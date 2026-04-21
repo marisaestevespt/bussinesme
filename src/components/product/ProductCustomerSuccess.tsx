@@ -18,10 +18,10 @@ const NPS_STATUS_OPTIONS = [
 ];
 
 const CLIENT_STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  ativo: { label: 'Ativo', className: 'bg-emerald-100 text-emerald-700' },
-  em_onboarding: { label: 'Em Onboarding', className: 'bg-blue-100 text-blue-700' },
-  em_pausa: { label: 'Em Pausa', className: 'bg-amber-100 text-amber-700' },
-  churned: { label: 'Churned', className: 'bg-red-100 text-red-700' },
+  ativo: { label: 'Ativo', className: 'bg-success/15 text-success' },
+  em_onboarding: { label: 'Em Onboarding', className: 'bg-info/15 text-info' },
+  em_pausa: { label: 'Em Pausa', className: 'bg-warning/15 text-warning' },
+  churned: { label: 'Churned', className: 'bg-destructive/15 text-destructive' },
   concluido: { label: 'Concluído', className: 'bg-muted text-muted-foreground' },
 };
 
@@ -123,10 +123,10 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
     const opt = NPS_STATUS_OPTIONS.find(o => o.value === status);
     const label = opt?.label || status;
     const cls = status === 'feito'
-      ? 'bg-emerald-100 text-emerald-700'
+      ? 'bg-success/15 text-success'
       : status === 'em_atraso'
-        ? 'bg-red-100 text-red-700'
-        : 'bg-amber-100 text-amber-700';
+        ? 'bg-destructive/15 text-destructive'
+        : 'bg-warning/15 text-warning';
     return <Badge variant="outline" className={cls}>{label}</Badge>;
   };
 
@@ -138,9 +138,9 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
       return { label: `Expirou há ${Math.abs(days)} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-destructive" />, className: 'text-destructive font-medium' };
     }
     if (days <= 30) {
-      return { label: `Faltam ${days} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />, className: 'text-amber-600 font-medium' };
+      return { label: `Faltam ${days} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-warning" />, className: 'text-warning font-medium' };
     }
-    return { label: `Faltam ${days} dias`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />, className: 'text-emerald-600' };
+    return { label: `Faltam ${days} dias`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-success" />, className: 'text-success' };
   };
 
   const activeClients = productClients.filter((c: any) => c.status === 'ativo' || c.status === 'em_onboarding');
@@ -179,7 +179,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
                     <TableCell className="font-medium">{r.client_name}</TableCell>
                     <TableCell>{r.collection_date ? format(new Date(r.collection_date), 'dd/MM/yyyy') : '—'}</TableCell>
                     <TableCell>
-                      <span className={`font-bold ${Number(r.nps_score) >= 9 ? 'text-emerald-600' : Number(r.nps_score) >= 7 ? 'text-amber-600' : 'text-red-600'}`}>
+                      <span className={`font-bold ${Number(r.nps_score) >= 9 ? 'text-success' : Number(r.nps_score) >= 7 ? 'text-warning' : 'text-destructive'}`}>
                         {r.nps_score}
                       </span>
                     </TableCell>

@@ -12,15 +12,15 @@ import { pt } from 'date-fns/locale';
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pendente: { label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
-  em_curso: { label: 'Em curso', color: 'bg-blue-100 text-blue-800' },
-  entregue: { label: 'Entregue', color: 'bg-green-100 text-green-800' },
-  atrasado: { label: 'Atrasado', color: 'bg-red-100 text-red-800' },
+  em_curso: { label: 'Em curso', color: 'bg-info/15 text-info' },
+  entregue: { label: 'Entregue', color: 'bg-success/15 text-success' },
+  atrasado: { label: 'Atrasado', color: 'bg-destructive/15 text-destructive' },
 };
 
 const TASK_STATUS_MAP: Record<string, { label: string; color: string }> = {
   pendente: { label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
-  em_curso: { label: 'Em curso', color: 'bg-blue-100 text-blue-800' },
-  concluida: { label: 'Concluída', color: 'bg-green-100 text-green-800' },
+  em_curso: { label: 'Em curso', color: 'bg-info/15 text-info' },
+  concluida: { label: 'Concluída', color: 'bg-success/15 text-success' },
 };
 
 function calcNextOccurrence(week: number, weekday: number): Date {
@@ -163,8 +163,8 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-              <CheckCircle2 className="h-5 w-5 text-amber-700" />
+            <div className="h-10 w-10 rounded-lg bg-warning/15 flex items-center justify-center">
+              <CheckCircle2 className="h-5 w-5 text-warning" />
             </div>
             <div>
               <p className="text-2xl font-bold">{pendingTasks}</p>
@@ -174,8 +174,8 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${overdue > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
-              <AlertTriangle className={`h-5 w-5 ${overdue > 0 ? 'text-red-700' : 'text-green-700'}`} />
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${overdue > 0 ? 'bg-destructive/15' : 'bg-success/15'}`}>
+              <AlertTriangle className={`h-5 w-5 ${overdue > 0 ? 'text-destructive' : 'text-success'}`} />
             </div>
             <div>
               <p className="text-2xl font-bold">{overdue}</p>
@@ -208,8 +208,8 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
                 )}
                 {nextDeliverable.computed_deadline && (() => {
                   const days = Math.ceil((new Date(nextDeliverable.computed_deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-                  if (days < 0) return <Badge className="bg-red-100 text-red-800 border-0 text-xs">Atrasado {Math.abs(days)}d</Badge>;
-                  if (days === 0) return <Badge className="bg-amber-100 text-amber-800 border-0 text-xs">Hoje</Badge>;
+                  if (days < 0) return <Badge className="bg-destructive/15 text-destructive border-0 text-xs">Atrasado {Math.abs(days)}d</Badge>;
+                  if (days === 0) return <Badge className="bg-warning/15 text-warning border-0 text-xs">Hoje</Badge>;
                   return <Badge variant="outline" className="text-xs">em {days} dias</Badge>;
                 })()}
               </div>

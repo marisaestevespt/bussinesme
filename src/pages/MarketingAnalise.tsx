@@ -307,8 +307,8 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
               const target = obj.target_value || 0;
               const current = obj.current_value || 0;
               const pct = target > 0 ? (current / target) * 100 : 0;
-              const color = pct >= 100 ? 'text-emerald-600' : pct >= 70 ? 'text-amber-600' : 'text-red-500';
-              const bgColor = pct >= 100 ? 'bg-emerald-50 dark:bg-emerald-950' : pct >= 70 ? 'bg-amber-50 dark:bg-amber-950' : 'bg-red-50 dark:bg-red-950';
+              const color = pct >= 100 ? 'text-success' : pct >= 70 ? 'text-warning' : 'text-red-500';
+              const bgColor = pct >= 100 ? 'bg-success/15 dark:bg-emerald-950' : pct >= 70 ? 'bg-warning/15 dark:bg-amber-950' : 'bg-destructive/15 dark:bg-red-950';
               return (
                 <Card key={obj.id} className={bgColor}>
                   <CardContent className="p-4 space-y-1">
@@ -376,7 +376,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                         <div className={cn('h-full rounded-full transition-all', achieved ? 'bg-emerald-500' : 'bg-primary')} style={{ width: `${Math.min(pct, 100)}%` }} />
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className={cn('text-xs font-medium', achieved ? 'text-emerald-600' : pct >= 75 ? 'text-primary' : 'text-muted-foreground')}>{pct}%</span>
+                        <span className={cn('text-xs font-medium', achieved ? 'text-success' : pct >= 75 ? 'text-primary' : 'text-muted-foreground')}>{pct}%</span>
                         {achieved && <Badge className="text-[10px] bg-emerald-500 hover:bg-emerald-600">Atingida ✓</Badge>}
                       </div>
                     </div>
@@ -450,7 +450,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
             <p className="text-xs text-muted-foreground">Planeados</p>
           </CardContent></Card>
           <Card><CardContent className="p-5 text-center">
-            <p className={cn("text-2xl font-bold", executionRate >= 80 ? 'text-emerald-600' : executionRate >= 50 ? 'text-amber-600' : 'text-red-500')}>{executionRate}%</p>
+            <p className={cn("text-2xl font-bold", executionRate >= 80 ? 'text-success' : executionRate >= 50 ? 'text-warning' : 'text-red-500')}>{executionRate}%</p>
             <p className="text-xs text-muted-foreground">Taxa de execução</p>
           </CardContent></Card>
         </div>
@@ -520,7 +520,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                         <p className={cn(
                           "text-sm font-bold",
                           pm.label === 'Crescimento' && pm.value
-                            ? (pm.value.startsWith('+') ? 'text-emerald-600' : pm.value.startsWith('-') ? 'text-destructive' : 'text-foreground')
+                            ? (pm.value.startsWith('+') ? 'text-success' : pm.value.startsWith('-') ? 'text-destructive' : 'text-foreground')
                             : 'text-foreground'
                         )}>
                           {pm.value ?? '—'}
@@ -846,7 +846,7 @@ export default function MarketingAnalisePage() {
               </Card>
               <Card className="border-secondary bg-background">
                 <CardContent className="p-4 text-center">
-                  <p className={cn("text-2xl font-bold", annualSummary.executionRate >= 80 ? 'text-emerald-600' : annualSummary.executionRate >= 50 ? 'text-amber-600' : 'text-destructive')}>{annualSummary.executionRate}%</p>
+                  <p className={cn("text-2xl font-bold", annualSummary.executionRate >= 80 ? 'text-success' : annualSummary.executionRate >= 50 ? 'text-warning' : 'text-destructive')}>{annualSummary.executionRate}%</p>
                   <p className="text-xs text-muted-foreground">Taxa de execução anual</p>
                 </CardContent>
               </Card>
@@ -882,10 +882,10 @@ export default function MarketingAnalisePage() {
                       <span className="font-medium">{ch.name}</span>
                       <span className="text-right text-muted-foreground">{ch.startFollowers?.toLocaleString() ?? '—'}</span>
                       <span className="text-right text-muted-foreground">{ch.currentFollowers?.toLocaleString() ?? '—'}</span>
-                      <span className={cn("text-right font-medium", ch.growth != null && ch.growth >= 0 ? 'text-emerald-600' : 'text-destructive')}>
+                      <span className={cn("text-right font-medium", ch.growth != null && ch.growth >= 0 ? 'text-success' : 'text-destructive')}>
                         {ch.growth != null ? `${ch.growth >= 0 ? '+' : ''}${ch.growth.toLocaleString()}` : '—'}
                       </span>
-                      <span className={cn("text-right font-medium", ch.growthPct != null && ch.growthPct >= 0 ? 'text-emerald-600' : 'text-destructive')}>
+                      <span className={cn("text-right font-medium", ch.growthPct != null && ch.growthPct >= 0 ? 'text-success' : 'text-destructive')}>
                         {ch.growthPct != null ? `${ch.growthPct >= 0 ? '+' : ''}${ch.growthPct}%` : '—'}
                       </span>
                     </div>
@@ -925,7 +925,7 @@ export default function MarketingAnalisePage() {
                   {annualSummary.bestGrowth ? (
                     <>
                       <p className="text-lg font-bold text-foreground">{annualSummary.bestGrowth.name}</p>
-                      <p className="text-emerald-600 font-semibold">+{annualSummary.bestGrowth.growthPct}%</p>
+                      <p className="text-success font-semibold">+{annualSummary.bestGrowth.growthPct}%</p>
                     </>
                   ) : (
                     <p className="text-muted-foreground">—</p>
@@ -1036,7 +1036,7 @@ export default function MarketingAnalisePage() {
                       {m.published} publicados / {m.planned} planeados
                     </div>
                     {m.planned > 0 && (
-                      <p className={cn("text-sm font-bold", m.rate >= 80 ? 'text-emerald-600' : m.rate >= 50 ? 'text-amber-600' : 'text-destructive')}>
+                      <p className={cn("text-sm font-bold", m.rate >= 80 ? 'text-success' : m.rate >= 50 ? 'text-warning' : 'text-destructive')}>
                         {m.rate}% execução
                       </p>
                     )}

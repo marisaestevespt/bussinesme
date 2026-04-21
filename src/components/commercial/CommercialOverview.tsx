@@ -99,9 +99,9 @@ export function CommercialOverview() {
 
       {/* Mismatch alert */}
       {data.monthlyMismatch && !dismissed && (
-        <Alert className="border-amber-300 bg-amber-50">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="flex items-center justify-between text-amber-800">
+        <Alert className="border-warning/30 bg-warning/15">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="flex items-center justify-between text-warning">
             <span>As metas mensais não correspondem à meta anual. Verifica os valores antes de continuar.</span>
             <Button variant="ghost" size="sm" onClick={() => setDismissed(true)}><X className="h-4 w-4" /></Button>
           </AlertDescription>

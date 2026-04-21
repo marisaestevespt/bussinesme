@@ -7,11 +7,11 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 
 export const STATUS_COLORS: Record<string, string> = {
   por_comecar: 'bg-muted text-muted-foreground',
-  a_fazer: 'bg-blue-100 text-blue-800',
-  aguarda_feedback: 'bg-amber-100 text-amber-800',
+  a_fazer: 'bg-info/15 text-info',
+  aguarda_feedback: 'bg-warning/15 text-warning',
   para_aprovacao: 'bg-purple-100 text-purple-800',
-  precisa_alteracoes: 'bg-orange-100 text-orange-800',
-  done: 'bg-emerald-100 text-emerald-800',
+  precisa_alteracoes: 'bg-warning/15 text-warning',
+  done: 'bg-success/15 text-success',
 };
 
 export const STATUS_LABELS: Record<string, string> = {
@@ -38,11 +38,11 @@ export const TIME_CATEGORIES = [
 
 export const PROJ_STATUS_MAP: Record<string, { label: string; color: string }> = {
   em_ideia: { label: 'Em ideia', color: 'bg-gray-100 text-gray-700' },
-  em_curso: { label: 'Em curso', color: 'bg-blue-100 text-blue-800' },
-  em_pausa: { label: 'Em pausa', color: 'bg-yellow-100 text-yellow-800' },
+  em_curso: { label: 'Em curso', color: 'bg-info/15 text-info' },
+  em_pausa: { label: 'Em pausa', color: 'bg-warning/15 text-warning' },
   em_revisao: { label: 'Em revisão', color: 'bg-purple-100 text-purple-800' },
-  concluido: { label: 'Concluído', color: 'bg-green-100 text-green-800' },
-  cancelado: { label: 'Cancelado', color: 'bg-red-100 text-red-800' },
+  concluido: { label: 'Concluído', color: 'bg-success/15 text-success' },
+  cancelado: { label: 'Cancelado', color: 'bg-destructive/15 text-destructive' },
   arquivo: { label: 'Arquivo', color: 'bg-slate-100 text-slate-600' },
 };
 

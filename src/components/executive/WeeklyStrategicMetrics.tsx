@@ -19,8 +19,8 @@ export function WeeklyStrategicMetrics() {
   const ltvCacColor = m.ltvCacRatio < 1
     ? 'text-destructive'
     : m.ltvCacRatio < 3
-    ? 'text-amber-600'
-    : 'text-emerald-600';
+    ? 'text-warning'
+    : 'text-success';
 
   const mrrDiff = m.mrrPrev !== null ? m.mrr - m.mrrPrev : null;
 
@@ -36,7 +36,7 @@ export function WeeklyStrategicMetrics() {
                   <div className="flex items-baseline gap-2">
                     <p className="text-lg font-bold">{m.mrr > 0 ? `€${fmt(m.mrr)}` : '—'}</p>
                     {mrrDiff !== null && mrrDiff !== 0 && (
-                      <span className={cn("text-xs flex items-center gap-0.5", mrrDiff > 0 ? "text-emerald-600" : "text-destructive")}>
+                      <span className={cn("text-xs flex items-center gap-0.5", mrrDiff > 0 ? "text-success" : "text-destructive")}>
                         {mrrDiff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                         €{Math.abs(mrrDiff)}
                       </span>
@@ -71,7 +71,7 @@ export function WeeklyStrategicMetrics() {
               <CardContent className="p-3">
                 <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Novos (semana)</span>
                 {m.isLoading ? <Skeleton className="h-6 w-10 mt-1" /> : (
-                  <p className={cn("text-lg font-bold", m.newClientsWeek > 0 && "text-emerald-600")}>
+                  <p className={cn("text-lg font-bold", m.newClientsWeek > 0 && "text-success")}>
                     {m.newClientsWeek}
                   </p>
                 )}

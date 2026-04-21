@@ -124,7 +124,7 @@ export default function PortalClientesPage() {
                       {vm?.clientVisitAt ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="flex items-center gap-1 text-green-600">
+                            <span className="flex items-center gap-1 text-success">
                               <Eye className="h-3 w-3" />
                               {format(parseISO(vm.clientVisitAt), 'dd/MM/yyyy HH:mm')}
                             </span>

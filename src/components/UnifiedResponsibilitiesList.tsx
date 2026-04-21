@@ -34,14 +34,14 @@ const SOURCE_ICON: Record<ResponsibilitySource, typeof CheckSquare> = {
 };
 
 const SOURCE_COLOR: Record<ResponsibilitySource, string> = {
-  tarefa: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  crm: 'bg-blue-100 text-blue-800 border-blue-200',
+  tarefa: 'bg-success/15 text-success border-success/30',
+  crm: 'bg-info/15 text-info border-info/30',
   conteudo: 'bg-violet-100 text-violet-800 border-violet-200',
-  reuniao: 'bg-rose-100 text-rose-800 border-rose-200',
-  projeto: 'bg-amber-100 text-amber-800 border-amber-200',
-  nps: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  reuniao: 'bg-destructive/15 text-destructive border-destructive/30',
+  projeto: 'bg-warning/15 text-warning border-warning/30',
+  nps: 'bg-warning/15 text-warning border-warning/30',
   marco: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-  acao_venda: 'bg-orange-100 text-orange-800 border-orange-200',
+  acao_venda: 'bg-warning/15 text-warning border-warning/30',
   rotina: 'bg-purple-100 text-purple-800 border-purple-200',
 };
 

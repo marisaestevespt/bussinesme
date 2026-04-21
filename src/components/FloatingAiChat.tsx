@@ -39,11 +39,11 @@ type Msg = {
 };
 
 const ACTION_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  create: { label: "Criar", icon: "➕", color: "text-green-600" },
-  update: { label: "Editar", icon: "✏️", color: "text-blue-600" },
-  delete: { label: "Eliminar", icon: "🗑️", color: "text-red-600" },
+  create: { label: "Criar", icon: "➕", color: "text-success" },
+  update: { label: "Editar", icon: "✏️", color: "text-info" },
+  delete: { label: "Eliminar", icon: "🗑️", color: "text-destructive" },
   send_email: { label: "Enviar email", icon: "📧", color: "text-purple-600" },
-  workflow: { label: "Workflow", icon: "⚡", color: "text-amber-600" },
+  workflow: { label: "Workflow", icon: "⚡", color: "text-warning" },
 };
 
 const STORAGE_KEY_MESSAGES = "lyrata-ai-messages";
@@ -384,7 +384,7 @@ export function FloatingAiChat() {
           </div>
         )}
         {confirmed === true && (
-          <p className="text-[11px] text-green-600 font-medium flex items-center gap-1"><Check className="h-3 w-3" /> Confirmado</p>
+          <p className="text-[11px] text-success font-medium flex items-center gap-1"><Check className="h-3 w-3" /> Confirmado</p>
         )}
         {confirmed === false && (
           <p className="text-[11px] text-muted-foreground flex items-center gap-1"><XCircle className="h-3 w-3" /> Cancelado</p>

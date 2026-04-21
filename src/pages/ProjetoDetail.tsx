@@ -74,15 +74,15 @@ type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'dependencias' 
 
 const TASK_STATUSES = [
   { value: 'pendente', label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-blue-100 text-blue-800' },
-  { value: 'concluida', label: 'Concluída', color: 'bg-green-100 text-green-800' },
+  { value: 'em_curso', label: 'Em curso', color: 'bg-info/15 text-info' },
+  { value: 'concluida', label: 'Concluída', color: 'bg-success/15 text-success' },
 ];
 
 const TASK_PRIORITIES = [
   { value: 'baixa', label: 'Baixa', color: 'bg-gray-100 text-gray-600' },
-  { value: 'media', label: 'Média', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'alta', label: 'Alta', color: 'bg-orange-100 text-orange-800' },
-  { value: 'urgente', label: 'Urgente', color: 'bg-red-100 text-red-800' },
+  { value: 'media', label: 'Média', color: 'bg-warning/15 text-warning' },
+  { value: 'alta', label: 'Alta', color: 'bg-warning/15 text-warning' },
+  { value: 'urgente', label: 'Urgente', color: 'bg-destructive/15 text-destructive' },
 ];
 
 function getPriorityInfo(v: string) { return TASK_PRIORITIES.find(p => p.value === v) || TASK_PRIORITIES[1]; }

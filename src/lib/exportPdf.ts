@@ -42,9 +42,9 @@ export function exportPdf(title: string, elementId: string) {
   .grid > * { flex: 1; min-width: 120px; }
   
   /* Colors */
-  .text-emerald-600, .text-green-600 { color: #059669; }
-  .text-red-600 { color: #dc2626; }
-  .text-amber-600 { color: #d97706; }
+  .text-success, .text-success { color: #059669; }
+  .text-destructive { color: #dc2626; }
+  .text-warning { color: #d97706; }
   .text-muted-foreground { color: #6b7280; }
   
   /* Charts — hide in print, they don't render in a new window */

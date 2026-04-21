@@ -378,7 +378,7 @@ export function TabEscala() {
                       className={cn(
                         'text-center text-[10px] px-1 min-w-[32px]',
                         isWeekend && 'bg-muted/50',
-                        isHoliday && 'bg-amber-50 dark:bg-amber-950/20'
+                        isHoliday && 'bg-warning/15 dark:bg-amber-950/20'
                       )}
                     >
                       <div>{DAY_LABELS[d.getDay()]}</div>

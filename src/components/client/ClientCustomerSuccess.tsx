@@ -237,11 +237,11 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
   const today = new Date();
 
   const getRowColor = (expectedDate: string, status: string) => {
-    if (status === 'feito') return 'bg-emerald-50 border-l-4 border-l-emerald-500';
+    if (status === 'feito') return 'bg-success/15 border-l-4 border-l-emerald-500';
     const d = parseISO(expectedDate);
     const diff = differenceInDays(d, today);
-    if (diff < 0) return 'bg-red-50 border-l-4 border-l-red-500';
-    if (diff <= 7) return 'bg-amber-50 border-l-4 border-l-amber-500';
+    if (diff < 0) return 'bg-destructive/15 border-l-4 border-l-red-500';
+    if (diff <= 7) return 'bg-warning/15 border-l-4 border-l-amber-500';
     return '';
   };
 

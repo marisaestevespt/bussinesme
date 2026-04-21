@@ -262,7 +262,7 @@ export function FinSetupNegocio() {
 
           {/* Legacy bank fields — show if they have data */}
           {(current.iban || current.banco) && (
-            <div className="rounded-md border border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 p-3 text-xs text-muted-foreground space-y-1">
+            <div className="rounded-md border border-warning/30 bg-warning/15/50 dark:bg-amber-950/20 dark:border-amber-800 p-3 text-xs text-muted-foreground space-y-1">
               <p className="font-medium">Dados bancários antigos (migrar para métodos acima)</p>
               {current.banco && <p>Banco: {current.banco}</p>}
               {current.iban && <p>IBAN: {current.iban}</p>}

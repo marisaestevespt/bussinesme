@@ -481,9 +481,9 @@ export default function ReuniaoDetailPage() {
   const typeColors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b', inicial: '#ec4899' };
 
   const statusBadgeColors: Record<string, string> = {
-    por_organizar: 'bg-blue-100 text-blue-700 border-blue-300',
-    por_confirmar: 'bg-amber-100 text-amber-700 border-amber-300',
-    confirmada: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    por_organizar: 'bg-info/15 text-info border-info/30',
+    por_confirmar: 'bg-warning/15 text-warning border-warning/30',
+    confirmada: 'bg-success/15 text-success border-success/30',
     terminada: 'bg-muted text-muted-foreground border-muted',
   };
 
@@ -898,12 +898,12 @@ export default function ReuniaoDetailPage() {
 
         {/* Portal notes from client */}
         {(m as any).portal_notes && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-4 space-y-1">
+          <div className="rounded-lg border border-warning/30 bg-warning/15 dark:bg-amber-950/20 dark:border-amber-800 p-4 space-y-1">
             <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-amber-600" />
-              <span className="text-sm font-semibold text-amber-800 dark:text-amber-400">Nota do cliente sobre horário</span>
+              <MessageSquare className="h-4 w-4 text-warning" />
+              <span className="text-sm font-semibold text-warning dark:text-amber-400">Nota do cliente sobre horário</span>
             </div>
-            <p className="text-sm text-amber-700 dark:text-amber-300">{(m as any).portal_notes}</p>
+            <p className="text-sm text-warning dark:text-amber-300">{(m as any).portal_notes}</p>
           </div>
         )}
 

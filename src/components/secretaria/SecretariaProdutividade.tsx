@@ -266,7 +266,7 @@ export default function SecretariaProdutividade() {
             <div className="space-y-3">
               {top3Tasks.map((t, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0', i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : 'bg-orange-100 text-orange-600')}>{i + 1}</div>
+                  <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0', i === 0 ? 'bg-warning/15 text-warning' : i === 1 ? 'bg-slate-100 text-slate-600' : 'bg-warning/15 text-warning')}>{i + 1}</div>
                   <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{t.name}</p></div>
                   <span className="text-sm font-bold tabular-nums">{Math.round(t.hours * 10) / 10}h</span>
                 </div>

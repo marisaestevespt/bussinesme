@@ -12,9 +12,9 @@ import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, Product } from '@/hooks/us
 
 const STATUS_BADGE: Record<string, { label: string; className: string; icon: any }> = {
   em_ideia: { label: 'Em Ideia', className: 'bg-muted text-muted-foreground', icon: Lightbulb },
-  a_criar: { label: 'A Criar', className: 'bg-amber-100 text-amber-800', icon: Package },
-  vendas_ativas: { label: 'Vendas Ativas', className: 'bg-green-100 text-green-800', icon: TrendingUp },
-  off: { label: 'Off', className: 'bg-red-100 text-red-800', icon: XCircle },
+  a_criar: { label: 'A Criar', className: 'bg-warning/15 text-warning', icon: Package },
+  vendas_ativas: { label: 'Vendas Ativas', className: 'bg-success/15 text-success', icon: TrendingUp },
+  off: { label: 'Off', className: 'bg-destructive/15 text-destructive', icon: XCircle },
 };
 
 function getEscadaLabel(value: string | null) {
@@ -61,8 +61,8 @@ export default function ProdutosPage() {
   }, [items]);
 
   const statusCards = [
-    { key: 'vendas_ativas', label: 'Vendas Ativas', icon: TrendingUp, color: 'text-green-600' },
-    { key: 'a_criar', label: 'A Criar', icon: Package, color: 'text-amber-600' },
+    { key: 'vendas_ativas', label: 'Vendas Ativas', icon: TrendingUp, color: 'text-success' },
+    { key: 'a_criar', label: 'A Criar', icon: Package, color: 'text-warning' },
     { key: 'em_ideia', label: 'Em Ideia', icon: Lightbulb, color: 'text-muted-foreground' },
     { key: 'off', label: 'Off', icon: XCircle, color: 'text-red-500' },
   ];

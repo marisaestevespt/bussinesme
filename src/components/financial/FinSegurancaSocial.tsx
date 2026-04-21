@@ -388,9 +388,9 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
 
   return (
     <div className="space-y-4">
-      <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
+      <Card className="border-info/30 bg-info/15/50 dark:bg-blue-950/20 dark:border-blue-800">
         <CardContent className="pt-4 flex gap-2">
-          <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+          <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
           <div className="text-sm text-muted-foreground space-y-1">
             <p><strong>Como funciona:</strong> Declaras a faturação do trimestre → essa declaração define a contribuição do mês da declaração + 2 meses seguintes.</p>
             <p>Faturação × 70% = Rendimento relevante → ÷ 3 = Base mensal → × 21,4% = Contribuição. Mínimo: contribuição mínima mensal.</p>
@@ -431,7 +431,7 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
                           <span className="text-muted-foreground">— Base: {groupData[0].srcLabel}</span>
                           <span className="text-muted-foreground">· Declaração: {groupData[0].declMonth} {groupData[0].declYear}</span>
                           {!groupData[0].hasData && (
-                            <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
+                            <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
                               Sem dados de faturação
                             </Badge>
                           )}
@@ -487,9 +487,9 @@ function PatronalSection({ data, contracts, currentYear, onSave, onToggle }: {
 
   return (
     <div className="space-y-4">
-      <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
+      <Card className="border-info/30 bg-info/15/50 dark:bg-blue-950/20 dark:border-blue-800">
         <CardContent className="pt-4 flex gap-2">
-          <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+          <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
           <p className="text-sm text-muted-foreground">
             <strong>Como funciona:</strong> A contribuição é calculada sobre o salário bruto dos membros com <strong>contrato de trabalho</strong>.
             Taxa patronal: 23,75%. Taxa do trabalhador: 11%. Prestadores de serviços não estão incluídos.
@@ -626,7 +626,7 @@ function PaymentRow({ month, predicted, paid, isPaid, onSave, onToggle, extraCel
           variant={isPaid ? 'outline' : 'default'}
           disabled={toggling}
           onClick={handleToggle}
-          className={isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 h-7 text-xs' : 'h-7 text-xs'}
+          className={isPaid ? 'bg-success/15 text-success border-success/30 hover:bg-destructive/15 hover:text-destructive hover:border-destructive/30 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 h-7 text-xs' : 'h-7 text-xs'}
         >
           {isPaid ? 'Pago ✓' : 'Confirmar'}
         </Button>

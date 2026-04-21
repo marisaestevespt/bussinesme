@@ -133,7 +133,7 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="font-medium text-sm truncate">{lead.name}</span>
                       <Badge variant="secondary" className="text-xs shrink-0">{statusLabel(lead.status)}</Badge>
-                      <span className={`text-xs shrink-0 ${fuState === 'overdue' ? 'text-destructive font-medium' : 'text-amber-600'}`}>
+                      <span className={`text-xs shrink-0 ${fuState === 'overdue' ? 'text-destructive font-medium' : 'text-warning'}`}>
                         <Clock className="h-3 w-3 inline mr-1" />
                         {lead.next_followup ? format(new Date(lead.next_followup), 'dd/MM') : '—'}
                       </span>

@@ -24,13 +24,13 @@ import { resolveProductId } from '@/lib/productResolver';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
-  { value: 'escrita_copy', label: 'Escrita de copy', color: 'bg-amber-100 text-amber-800' },
-  { value: 'gravacao', label: 'Gravação', color: 'bg-orange-100 text-orange-800' },
+  { value: 'escrita_copy', label: 'Escrita de copy', color: 'bg-warning/15 text-warning' },
+  { value: 'gravacao', label: 'Gravação', color: 'bg-warning/15 text-warning' },
   { value: 'edicao', label: 'Edição', color: 'bg-cyan-100 text-cyan-800' },
   { value: 'design', label: 'Design', color: 'bg-pink-100 text-pink-800' },
-  { value: 'para_aprovacao', label: 'Para aprovação final', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'em_campanha', label: 'Em campanha', color: 'bg-emerald-100 text-emerald-800' },
-  { value: 'ajustes', label: 'Ajustes a fazer', color: 'bg-red-100 text-red-800' },
+  { value: 'para_aprovacao', label: 'Para aprovação final', color: 'bg-warning/15 text-warning' },
+  { value: 'em_campanha', label: 'Em campanha', color: 'bg-success/15 text-success' },
+  { value: 'ajustes', label: 'Ajustes a fazer', color: 'bg-destructive/15 text-destructive' },
   { value: 'off', label: 'OFF', color: 'bg-muted text-muted-foreground' },
 ];
 

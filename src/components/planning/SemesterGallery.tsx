@@ -754,11 +754,11 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
               </div>
               <div className="bg-muted/50 rounded-lg p-3 text-center">
                 <p className="text-[10px] text-muted-foreground">Variação</p>
-                <p className={cn('text-lg font-bold', prevVariationEur > 0 ? 'text-emerald-600' : prevVariationEur < 0 ? 'text-destructive' : '')}>
+                <p className={cn('text-lg font-bold', prevVariationEur > 0 ? 'text-success' : prevVariationEur < 0 ? 'text-destructive' : '')}>
                   {prevVariationEur >= 0 ? '+' : ''}{prevVariationEur.toLocaleString('pt-PT')}€
                 </p>
                 {prevVariationPct !== null && (
-                  <p className={cn('text-xs', prevVariationPct > 0 ? 'text-emerald-600' : prevVariationPct < 0 ? 'text-destructive' : 'text-muted-foreground')}>
+                  <p className={cn('text-xs', prevVariationPct > 0 ? 'text-success' : prevVariationPct < 0 ? 'text-destructive' : 'text-muted-foreground')}>
                     {prevVariationPct >= 0 ? '+' : ''}{prevVariationPct}%
                   </p>
                 )}
@@ -823,7 +823,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
                     <TableCell className="text-sm text-right font-semibold">{p.avg}</TableCell>
                     <TableCell className="text-sm text-right">
                       {p.trend ? (
-                        <span className={cn(p.trend === '↑' ? 'text-emerald-600' : p.trend === '↓' ? 'text-destructive' : 'text-muted-foreground')}>
+                        <span className={cn(p.trend === '↑' ? 'text-success' : p.trend === '↓' ? 'text-destructive' : 'text-muted-foreground')}>
                           {p.trend} {p.prevAvg !== null && <span className="text-[10px] text-muted-foreground">(ant: {p.prevAvg})</span>}
                         </span>
                       ) : <span className="text-muted-foreground text-xs">—</span>}

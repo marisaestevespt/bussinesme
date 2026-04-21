@@ -38,7 +38,7 @@ export function RoutineMonthCard({ tasks: routineTasks }: { tasks: any[] }) {
             <p className="text-xs font-medium text-muted-foreground">Feitas</p>
             {done.map(t => (
               <div key={t.id} className="flex items-center gap-2 p-2 rounded-md bg-background/50 border border-border/50 cursor-pointer" onClick={() => navigate('/tarefas')}>
-                <CheckSquare className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                <CheckSquare className="h-3.5 w-3.5 text-success shrink-0" />
                 <span className="text-sm flex-1 truncate line-through text-muted-foreground">{t.name}</span>
               </div>
             ))}

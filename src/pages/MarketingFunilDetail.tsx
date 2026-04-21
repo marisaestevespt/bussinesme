@@ -22,9 +22,9 @@ import { resolveProductId } from '@/lib/productResolver';
 
 const STATUSES = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
-  { value: 'em_construcao', label: 'Em construção', color: 'bg-amber-100 text-amber-800' },
-  { value: 'ativo', label: 'Ativo', color: 'bg-emerald-100 text-emerald-800' },
-  { value: 'pausado', label: 'Pausado', color: 'bg-blue-100 text-blue-800' },
+  { value: 'em_construcao', label: 'Em construção', color: 'bg-warning/15 text-warning' },
+  { value: 'ativo', label: 'Ativo', color: 'bg-success/15 text-success' },
+  { value: 'pausado', label: 'Pausado', color: 'bg-info/15 text-info' },
   { value: 'arquivo', label: 'Arquivo', color: 'bg-muted text-muted-foreground' },
 ];
 

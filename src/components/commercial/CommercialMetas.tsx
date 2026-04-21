@@ -259,9 +259,9 @@ export function CommercialMetas() {
           </Table>
         </Card>
         {productMismatch && (
-          <Alert className="mt-2 border-amber-300 bg-amber-50">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">A soma das metas por produto (€{fmt(productGoalsSum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
+          <Alert className="mt-2 border-warning/30 bg-warning/15">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-warning">A soma das metas por produto (€{fmt(productGoalsSum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
           </Alert>
         )}
       </section>
@@ -303,9 +303,9 @@ export function CommercialMetas() {
           </Table>
         </Card>
         {quarterlyMismatch && (
-          <Alert className="mt-2 border-amber-300 bg-amber-50">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">A soma dos trimestres (€{fmt(quarterlySum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
+          <Alert className="mt-2 border-warning/30 bg-warning/15">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-warning">A soma dos trimestres (€{fmt(quarterlySum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
           </Alert>
         )}
       </section>
@@ -352,17 +352,17 @@ export function CommercialMetas() {
           </Table>
         </Card>
         {quarterMonthValidation.some(Boolean) && (
-          <Alert className="mt-2 border-amber-300 bg-amber-50">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">
+          <Alert className="mt-2 border-warning/30 bg-warning/15">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-warning">
               {quarterMonthValidation.map((mismatch, i) => mismatch ? `T${i + 1}: soma dos meses não corresponde à meta do trimestre. ` : '').join('')}
             </AlertDescription>
           </Alert>
         )}
         {data.monthlyMismatch && (
-          <Alert className="mt-2 border-amber-300 bg-amber-50">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">A soma dos meses (€{fmt(data.monthlyGoalsSum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
+          <Alert className="mt-2 border-warning/30 bg-warning/15">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-warning">A soma dos meses (€{fmt(data.monthlyGoalsSum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
           </Alert>
         )}
       </section>

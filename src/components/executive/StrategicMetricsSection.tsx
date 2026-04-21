@@ -30,7 +30,7 @@ function TrendIndicator({ current, previous, suffix = '', invert = false }: { cu
   const pctChange = previous !== 0 ? Math.round(Math.abs(diff / previous) * 100) : 0;
   const Icon = isPositive ? TrendingUp : TrendingDown;
   return (
-    <span className={cn("text-xs flex items-center gap-0.5", isPositive ? "text-emerald-600" : "text-destructive")}>
+    <span className={cn("text-xs flex items-center gap-0.5", isPositive ? "text-success" : "text-destructive")}>
       <Icon className="h-3 w-3" /> {pctChange > 0 ? `${pctChange}%` : ''}{suffix}
     </span>
   );
@@ -64,7 +64,7 @@ function MetricCard({ icon: Icon, label, value, tooltip, trend, statusColor, sta
                   <p className="text-xl font-bold tracking-tight">{value}</p>
                   <div className="flex items-center gap-2 mt-1 min-h-[20px]">
                     {trend}
-                    {estimated && <span className="text-[10px] text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">estimativa</span>}
+                    {estimated && <span className="text-[10px] text-warning bg-warning/15 px-1.5 py-0.5 rounded">estimativa</span>}
                     {statusColor && statusLabel && (
                       <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-medium", statusColor)}>{statusLabel}</span>
                     )}
@@ -89,8 +89,8 @@ export function StrategicMetricsSection() {
   const ltvCacStatus = m.ltvCacRatio < 1
     ? { color: 'bg-destructive/10 text-destructive', label: 'Insustentável' }
     : m.ltvCacRatio < 3
-    ? { color: 'bg-amber-100 text-amber-700', label: 'A melhorar' }
-    : { color: 'bg-emerald-100 text-emerald-700', label: 'Saudável' };
+    ? { color: 'bg-warning/15 text-warning', label: 'A melhorar' }
+    : { color: 'bg-success/15 text-success', label: 'Saudável' };
 
   return (
     <section className="space-y-4">

@@ -170,7 +170,7 @@ export function FinAllDocuments() {
                 filtered.map(d => (
                   <TableRow key={d.id}>
                     <TableCell>
-                      <Badge className={`text-[10px] border-0 ${d.type === 'entrada' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
+                      <Badge className={`text-[10px] border-0 ${d.type === 'entrada' ? 'bg-success/15 text-success dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-destructive/15 text-destructive dark:bg-red-900/40 dark:text-red-400'}`}>
                         {d.type === 'entrada' ? 'Entrada' : 'Saída'}
                       </Badge>
                     </TableCell>
@@ -178,18 +178,18 @@ export function FinAllDocuments() {
                     <TableCell className="text-sm">{d.client_or_supplier || '—'}</TableCell>
                     <TableCell className="text-xs max-w-[200px] truncate">{d.description || '—'}</TableCell>
                     <TableCell className="text-xs">{d.date || '—'}</TableCell>
-                    <TableCell className={`text-xs text-right font-medium ${d.type === 'entrada' ? 'text-emerald-600' : 'text-red-600'}`}>
+                    <TableCell className={`text-xs text-right font-medium ${d.type === 'entrada' ? 'text-success' : 'text-destructive'}`}>
                       {d.type === 'entrada' ? '+' : '-'}{fmt(d.value)}
                     </TableCell>
                     <TableCell>
                       {(() => {
                         const sc: Record<string, string> = {
-                          pago: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
-                          confirmada: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
-                          pendente: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-                          por_pagar: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-                          cancelada: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
-                          cancelado: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+                          pago: 'bg-success/15 text-success dark:bg-emerald-900/40 dark:text-emerald-400',
+                          confirmada: 'bg-success/15 text-success dark:bg-emerald-900/40 dark:text-emerald-400',
+                          pendente: 'bg-warning/15 text-warning dark:bg-amber-900/40 dark:text-amber-400',
+                          por_pagar: 'bg-warning/15 text-warning dark:bg-amber-900/40 dark:text-amber-400',
+                          cancelada: 'bg-destructive/15 text-destructive dark:bg-red-900/40 dark:text-red-400',
+                          cancelado: 'bg-destructive/15 text-destructive dark:bg-red-900/40 dark:text-red-400',
                         };
                         const cls = sc[d.status] || 'bg-muted text-muted-foreground';
                         return <Badge className={`text-[10px] border-0 ${cls}`}>{d.status}</Badge>;

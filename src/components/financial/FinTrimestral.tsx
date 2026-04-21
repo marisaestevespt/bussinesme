@@ -198,10 +198,10 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
       <div id="fin-trimestral-report" className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Entradas</p><p className="text-xl font-bold text-emerald-600">{fmt(dv.entradas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Saídas</p><p className="text-xl font-bold text-red-600">{fmt(dv.saidas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Resultado</p><p className={`text-xl font-bold ${dv.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(dv.resultado)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-xl font-bold ${dv.margem >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{dv.margem}%</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Entradas</p><p className="text-xl font-bold text-success">{fmt(dv.entradas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Saídas</p><p className="text-xl font-bold text-destructive">{fmt(dv.saidas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Resultado</p><p className={`text-xl font-bold ${dv.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(dv.resultado)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-xl font-bold ${dv.margem >= 0 ? 'text-success' : 'text-destructive'}`}>{dv.margem}%</p></CardContent></Card>
       </div>
 
       {/* === "Todos" view === */}
@@ -209,16 +209,16 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
         <>
           {/* Best & Worst quarter */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800">
+            <Card className="border-success/30 bg-success/15/50 dark:bg-emerald-950/20 dark:border-emerald-800">
               <CardContent className="pt-4 flex items-center gap-3">
-                <TrendingUp className="h-5 w-5 text-emerald-600 shrink-0" />
-                <div><p className="text-xs text-muted-foreground">Melhor trimestre</p><p className="font-semibold">{bestQuarter?.label} ({bestQuarter?.range})</p><p className="text-sm text-emerald-600">{fmt(bestQuarter?.resultado || 0)}</p></div>
+                <TrendingUp className="h-5 w-5 text-success shrink-0" />
+                <div><p className="text-xs text-muted-foreground">Melhor trimestre</p><p className="font-semibold">{bestQuarter?.label} ({bestQuarter?.range})</p><p className="text-sm text-success">{fmt(bestQuarter?.resultado || 0)}</p></div>
               </CardContent>
             </Card>
-            <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-800">
+            <Card className="border-destructive/30 bg-destructive/15/50 dark:bg-red-950/20 dark:border-red-800">
               <CardContent className="pt-4 flex items-center gap-3">
-                <TrendingDown className="h-5 w-5 text-red-600 shrink-0" />
-                <div><p className="text-xs text-muted-foreground">Pior trimestre</p><p className="font-semibold">{worstQuarter?.label} ({worstQuarter?.range})</p><p className="text-sm text-red-600">{fmt(worstQuarter?.resultado || 0)}</p></div>
+                <TrendingDown className="h-5 w-5 text-destructive shrink-0" />
+                <div><p className="text-xs text-muted-foreground">Pior trimestre</p><p className="font-semibold">{worstQuarter?.label} ({worstQuarter?.range})</p><p className="text-sm text-destructive">{fmt(worstQuarter?.resultado || 0)}</p></div>
               </CardContent>
             </Card>
           </div>
@@ -236,7 +236,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                       <TableCell className="text-muted-foreground">{d.range}</TableCell>
                       <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
                       <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
-                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(d.resultado)}</TableCell>
+                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</TableCell>
                       <TableCell className="text-right">{d.margem}%</TableCell>
                       <TableCell className="text-right">{d.numSales}</TableCell>
                       <TableCell className="text-right">{d.clients}</TableCell>
@@ -246,7 +246,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                     <TableCell>TOTAL</TableCell><TableCell></TableCell>
                     <TableCell className="text-right">{fmt(totals.entradas)}</TableCell>
                     <TableCell className="text-right">{fmt(totals.saidas)}</TableCell>
-                    <TableCell className={`text-right ${totals.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(totals.resultado)}</TableCell>
+                    <TableCell className={`text-right ${totals.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(totals.resultado)}</TableCell>
                     <TableCell className="text-right">{totals.margem}%</TableCell><TableCell></TableCell><TableCell></TableCell>
                   </TableRow>
                 </TableBody>
@@ -282,7 +282,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                       <TableCell className="font-medium">{d.label}</TableCell>
                       <TableCell className="text-right">{fmt(d.ivaCobrado)}</TableCell>
                       <TableCell className="text-right">{fmt(d.ivaPago)}</TableCell>
-                      <TableCell className={`text-right font-medium ${d.ivaBalanco > 0 ? 'text-amber-600' : d.ivaBalanco < 0 ? 'text-emerald-600' : ''}`}>{fmt(d.ivaBalanco)}</TableCell>
+                      <TableCell className={`text-right font-medium ${d.ivaBalanco > 0 ? 'text-warning' : d.ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(d.ivaBalanco)}</TableCell>
                       <TableCell className="text-right">{fmt(d.ss)}</TableCell>
                     </TableRow>
                   ))}
@@ -290,7 +290,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                     <TableCell>TOTAL</TableCell>
                     <TableCell className="text-right">{fmt(totals.ivaCobrado)}</TableCell>
                     <TableCell className="text-right">{fmt(totals.ivaPago)}</TableCell>
-                    <TableCell className={`text-right ${totals.ivaBalanco > 0 ? 'text-amber-600' : totals.ivaBalanco < 0 ? 'text-emerald-600' : ''}`}>{fmt(totals.ivaBalanco)}</TableCell>
+                    <TableCell className={`text-right ${totals.ivaBalanco > 0 ? 'text-warning' : totals.ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(totals.ivaBalanco)}</TableCell>
                     <TableCell className="text-right">{fmt(totals.ss)}</TableCell>
                   </TableRow>
                 </TableBody>
@@ -330,9 +330,9 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
               <CardHeader className="pb-2"><CardTitle className="text-sm">{d.label} — {d.range} — Detalhe</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div><p className="text-[10px] text-muted-foreground">Entradas</p><p className="font-semibold text-emerald-600">{fmt(d.entradas)}</p></div>
-                  <div><p className="text-[10px] text-muted-foreground">Saídas</p><p className="font-semibold text-red-600">{fmt(d.saidas)}</p></div>
-                  <div><p className="text-[10px] text-muted-foreground">Resultado</p><p className={`font-semibold ${d.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(d.resultado)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Entradas</p><p className="font-semibold text-success">{fmt(d.entradas)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Saídas</p><p className="font-semibold text-destructive">{fmt(d.saidas)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Resultado</p><p className={`font-semibold ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</p></div>
                   <div><p className="text-[10px] text-muted-foreground">Margem</p><p className="font-semibold">{d.margem}%</p></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -376,7 +376,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                       <TableCell className="font-medium">{d.mes}</TableCell>
                       <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
                       <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
-                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(d.resultado)}</TableCell>
+                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</TableCell>
                       <TableCell className="text-right">{fmt(d.ivaCobrado)}</TableCell>
                       <TableCell className="text-right">{fmt(d.ivaPago)}</TableCell>
                     </TableRow>
@@ -385,7 +385,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                     <TableCell>TOTAL</TableCell>
                     <TableCell className="text-right">{fmt(dv.entradas)}</TableCell>
                     <TableCell className="text-right">{fmt(dv.saidas)}</TableCell>
-                    <TableCell className={`text-right ${dv.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(dv.resultado)}</TableCell>
+                    <TableCell className={`text-right ${dv.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(dv.resultado)}</TableCell>
                     <TableCell className="text-right">{fmt(dv.ivaCobrado)}</TableCell>
                     <TableCell className="text-right">{fmt(dv.ivaPago)}</TableCell>
                   </TableRow>
@@ -398,11 +398,11 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardContent className="pt-4 pb-3">
-                <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-amber-600" /><p className="text-xs text-muted-foreground">IVA — {selectedData.label}</p></div>
+                <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-warning" /><p className="text-xs text-muted-foreground">IVA — {selectedData.label}</p></div>
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div><p className="text-[10px] text-muted-foreground">Cobrado</p><p className="font-semibold">{fmt(dv.ivaCobrado)}</p></div>
                   <div><p className="text-[10px] text-muted-foreground">Pago</p><p className="font-semibold">{fmt(dv.ivaPago)}</p></div>
-                  <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${dv.ivaBalanco > 0 ? 'text-amber-600' : dv.ivaBalanco < 0 ? 'text-emerald-600' : ''}`}>{fmt(dv.ivaBalanco)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${dv.ivaBalanco > 0 ? 'text-warning' : dv.ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(dv.ivaBalanco)}</p></div>
                 </div>
               </CardContent>
             </Card>

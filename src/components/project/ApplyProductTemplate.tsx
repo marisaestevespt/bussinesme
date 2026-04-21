@@ -442,7 +442,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             Isto vai criar tarefas neste projeto com base no template definido no produto. 
             Os responsáveis serão atribuídos automaticamente com base na função dos participantes do projeto.
             {!projectStartDate && (
-              <span className="block mt-2 text-amber-600 font-medium">
+              <span className="block mt-2 text-warning font-medium">
                 ⚠ O projeto não tem data de início — os deadlines das regras usarão a data de hoje como referência.
               </span>
             )}

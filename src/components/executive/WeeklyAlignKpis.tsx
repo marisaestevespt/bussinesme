@@ -13,7 +13,7 @@ export function DeltaBadge({ current, previous, suffix = '', isCurrency = false 
   if (diff === 0) return <span className="text-xs text-muted-foreground flex items-center gap-0.5"><Minus className="h-3 w-3" /> =</span>;
   const formatted = isCurrency ? `€${Math.abs(diff).toLocaleString()}` : `${Math.abs(diff)}${suffix}`;
   return diff > 0
-    ? <span className="text-xs text-emerald-600 flex items-center gap-0.5"><TrendingUp className="h-3 w-3" /> +{formatted}</span>
+    ? <span className="text-xs text-success flex items-center gap-0.5"><TrendingUp className="h-3 w-3" /> +{formatted}</span>
     : <span className="text-xs text-destructive flex items-center gap-0.5"><TrendingDown className="h-3 w-3" /> -{formatted}</span>;
 }
 
@@ -89,16 +89,16 @@ export function CapacityFinancialCards({ capacityAlert, totalBilled, financialSu
         <Card className={cn(
           "border-l-4",
           capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" :
-          capacityAlert.pct >= 75 ? "border-l-amber-500 bg-amber-50/50" :
-          "border-l-emerald-500 bg-emerald-50/50"
+          capacityAlert.pct >= 75 ? "border-l-amber-500 bg-warning/15/50" :
+          "border-l-emerald-500 bg-success/15/50"
         )}>
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <div className={cn(
                 "rounded-lg p-2 mt-0.5",
                 capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" :
-                capacityAlert.pct >= 75 ? "bg-amber-100 text-amber-600" :
-                "bg-emerald-100 text-emerald-600"
+                capacityAlert.pct >= 75 ? "bg-warning/15 text-warning" :
+                "bg-success/15 text-success"
               )}>
                 <Users className="h-5 w-5" />
               </div>
@@ -135,7 +135,7 @@ export function CapacityFinancialCards({ capacityAlert, totalBilled, financialSu
               <div className="grid grid-cols-3 gap-3 text-xs">
                 <div>
                   <p className="text-muted-foreground">Faturação</p>
-                  <p className="font-semibold text-emerald-600">€{totalBilled.toLocaleString()}</p>
+                  <p className="font-semibold text-success">€{totalBilled.toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Custos</p>
@@ -143,13 +143,13 @@ export function CapacityFinancialCards({ capacityAlert, totalBilled, financialSu
                 </div>
                 <div>
                   <p className="text-muted-foreground">Saldo</p>
-                  <p className={cn("font-semibold", financialSummary.balance >= 0 ? "text-emerald-600" : "text-destructive")}>
+                  <p className={cn("font-semibold", financialSummary.balance >= 0 ? "text-success" : "text-destructive")}>
                     €{financialSummary.balance.toLocaleString()}
                   </p>
                 </div>
               </div>
               {financialSummary.totalPending > 0 && (
-                <p className="text-xs text-amber-600">⚠ €{financialSummary.totalPending.toLocaleString()} por pagar</p>
+                <p className="text-xs text-warning">⚠ €{financialSummary.totalPending.toLocaleString()} por pagar</p>
               )}
               <div className="flex gap-3 mt-1">
                 <Link to="/hub/financeiro/entradas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
