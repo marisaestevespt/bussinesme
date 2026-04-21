@@ -50,12 +50,14 @@ export function CommercialOverview() {
   ];
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
 
-  const products = (data.productGoals.data || []).map(p => p.product_name);
+  const productGoalsList = data.productGoals.data || [];
 
-  // Top selling product
-  const productSales = products.map(p => ({
-    name: p,
-    total: (data.sales.data || []).filter(s => s.product === p).reduce((s, v) => s + Number(v.invoice_total || 0), 0),
+  // Top selling product — aggregate by product_id (relational source of truth)
+  const productSales = productGoalsList.map(p => ({
+    name: p.product_name,
+    total: (data.sales.data || [])
+      .filter(s => p.product_id && (s as any).product_id === p.product_id)
+      .reduce((s, v) => s + Number(v.invoice_total || 0), 0),
   }));
   const topProduct = productSales.length > 0 ? productSales.sort((a, b) => b.total - a.total)[0] : null;
 

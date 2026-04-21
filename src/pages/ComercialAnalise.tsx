@@ -195,7 +195,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     if (activeProducts.length === 0) return [];
 
     return activeProducts.map(p => {
-      const pSales = monthSales.filter(s => s.product === p.name);
+      const pSales = monthSales.filter(s => (s as any).product_id === p.id);
       const pRevenue = pSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
       const pCount = pSales.length;
       const pTicket = pCount > 0 ? Math.round(pRevenue / pCount) : 0;
@@ -236,8 +236,8 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const pNps = scores.length > 0 ? parseFloat((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : null;
 
       // Trend vs same month last year
-      const prevRevenue = prevYearSalesData.filter(s => s.product === p.name && s.sale_month === month).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
-      const hasPrev = prevYearSalesData.some(s => s.product === p.name && s.sale_month === month);
+      const prevRevenue = prevYearSalesData.filter(s => (s as any).product_id === p.id && s.sale_month === month).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const hasPrev = prevYearSalesData.some(s => (s as any).product_id === p.id && s.sale_month === month);
       const trend: 'up' | 'down' | 'none' = !hasPrev ? 'none' : pRevenue > prevRevenue ? 'up' : pRevenue < prevRevenue ? 'down' : 'none';
 
       return { id: p.id, product: p.name, revenue: pRevenue, sales: pCount, ticket: pTicket, active: pActive, new: pNew, churn: pChurn, renewal: pRenRate, nps: pNps, trend };
