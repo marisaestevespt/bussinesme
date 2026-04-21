@@ -418,7 +418,7 @@ export function SettingsIdentity() {
                   {customFonts.map((f: any) => (
                     <div key={f.id} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors">
                       <span className="text-sm" style={{ fontFamily: `'${f.font_name}', sans-serif` }}>{f.font_name}</span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteFont(f.id)}>
+                      <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteFont(f.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>

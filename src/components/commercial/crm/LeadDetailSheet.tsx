@@ -448,7 +448,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                     {docLinks.map((url: string, i: number) => (
                       <div key={i} className="flex items-center justify-between gap-2">
                         <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">{decodeURIComponent(url.split('/').pop() || url)}</a>
-                        <Button variant="ghost" size="icon" className="h-5 w-5 flex-shrink-0" onClick={() => {
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5 flex-shrink-0" onClick={() => {
                           const updated = docLinks.filter((_, j) => j !== i).join('\n');
                           set({ documents: updated });
                         }}>
@@ -508,14 +508,14 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                           <Collapsible key={i.id}>
                             <div className="flex items-center gap-2 rounded-md border px-3 py-2">
                               <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 p-0">
+                                <Button variant="ghost" aria-label="Mostrar mais" size="icon" className="h-6 w-6 flex-shrink-0 p-0">
                                   <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
                                 </Button>
                               </CollapsibleTrigger>
                               <span className="text-xs text-muted-foreground w-[70px] flex-shrink-0">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</span>
                               <Badge variant="secondary" className="text-xs flex-shrink-0">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge>
                               <span className="text-xs truncate flex-1 text-muted-foreground">{i.notes || ''}</span>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => deleteInteraction.mutate(i.id)}>
+                              <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => deleteInteraction.mutate(i.id)}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
                               </Button>
                             </div>
@@ -544,7 +544,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                           />
                           <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
                           {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </div>
@@ -726,7 +726,7 @@ function InteractionDialog({ open, onOpenChange, leadId, onSave }: { open: boole
             <Label>Ficheiros</Label>
             <div className="flex gap-2">
               <Input value={form.files} onChange={e => setForm(f => ({ ...f, files: e.target.value }))} placeholder="Cole um link ou faça upload" className="flex-1" />
-              <Button variant="outline" size="icon" className="shrink-0" disabled={uploading} onClick={() => document.getElementById('interaction-file-input')?.click()}>
+              <Button variant="outline" aria-label="Carregar" size="icon" className="shrink-0" disabled={uploading} onClick={() => document.getElementById('interaction-file-input')?.click()}>
                 <Upload className="h-4 w-4" />
               </Button>
               <input id="interaction-file-input" type="file" multiple className="hidden" onChange={handleFileUpload} />

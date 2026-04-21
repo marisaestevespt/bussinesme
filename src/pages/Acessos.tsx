@@ -14,6 +14,7 @@ import { Plus, Eye, EyeOff, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 const PLATFORM_TYPES = [
   { value: 'gestao', label: 'Gestão', color: 'bg-info/15 text-info' },
@@ -67,6 +68,7 @@ async function invokeAccessFn(action: string, body: Record<string, unknown>) {
 
 export default function AcessosPage() {
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [revealedPasswords, setRevealedPasswords] = useState<Record<string, string>>({});
@@ -259,7 +261,7 @@ export default function AcessosPage() {
                           </span>
                           <Button
                             variant="ghost"
-                            size="icon"
+                            aria-label="Esconder" size="icon"
                             className="h-7 w-7"
                             disabled={revealingId === a.id}
                             onClick={() => toggleReveal(a.id)}
@@ -283,15 +285,22 @@ export default function AcessosPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(a)}>
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEdit(a)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-destructive"
-                            onClick={() => {
-                              if (confirm('Eliminar este acesso?')) deleteMutation.mutate(a.id);
+                            aria-label="Eliminar acesso"
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: 'Eliminar acesso?',
+                                description: 'Esta ação é permanente e não pode ser revertida.',
+                                confirmText: 'Eliminar',
+                                variant: 'destructive',
+                              });
+                              if (ok) deleteMutation.mutate(a.id);
                             }}
                           >
                             <Trash2 className="h-3.5 w-3.5" />

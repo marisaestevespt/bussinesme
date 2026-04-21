@@ -672,9 +672,9 @@ function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Pr
   return (
     <div className="rounded-lg border bg-card">
       <div className="flex items-center justify-between p-4 border-b">
-        <Button variant="ghost" size="icon" onClick={() => onMonthChange(subMonths(month, 1))}><ChevronLeft className="h-4 w-4" /></Button>
+        <Button variant="ghost" aria-label="Anterior" size="icon" onClick={() => onMonthChange(subMonths(month, 1))}><ChevronLeft className="h-4 w-4" /></Button>
         <h2 className="font-semibold capitalize text-lg">{format(month, 'MMMM yyyy', { locale: pt })}</h2>
-        <Button variant="ghost" size="icon" onClick={() => onMonthChange(addMonths(month, 1))}><ChevronRight className="h-4 w-4" /></Button>
+        <Button variant="ghost" aria-label="Seguinte" size="icon" onClick={() => onMonthChange(addMonths(month, 1))}><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <div className="grid grid-cols-7">
         {weekDays.map(d => (

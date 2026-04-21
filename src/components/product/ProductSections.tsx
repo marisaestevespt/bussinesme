@@ -148,7 +148,7 @@ export function ProductProcessosSection({ productSops, projectTemplate, isOwner,
                       <Input defaultValue={(t.notes as string) || ''} placeholder="Notas..." onBlur={e => onUpdateRow('product_project_templates', t.id as string, { notes: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
                     </TableCell>
                     {isOwner && (
-                      <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDeleteRow('product_project_templates', t.id as string)}><Trash2 className="h-3 w-3" /></Button></TableCell>
+                      <TableCell><Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => onDeleteRow('product_project_templates', t.id as string)}><Trash2 className="h-3 w-3" /></Button></TableCell>
                     )}
                   </TableRow>
                 ))}
@@ -215,7 +215,7 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
                   </TableCell>
                   {isOwner && (
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDeleteRow('product_useful_links', l.id as string)}><Trash2 className="h-3 w-3" /></Button>
+                      <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => onDeleteRow('product_useful_links', l.id as string)}><Trash2 className="h-3 w-3" /></Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -368,12 +368,12 @@ export function ProductArquivoSection({ productDocuments, archiveNotes, brainsto
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <a href={doc.file_url as string} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="icon" className="h-7 w-7"><Download className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" aria-label="Transferir" size="icon" className="h-7 w-7"><Download className="h-3.5 w-3.5" /></Button>
                     </a>
                     {isOwner && (
                       <Button
                         variant="ghost"
-                        size="icon"
+                        aria-label="Eliminar" size="icon"
                         className="h-7 w-7 text-destructive"
                         onClick={async () => {
                           await supabase.from('product_documents' as 'clients').delete().eq('id', doc.id as string);

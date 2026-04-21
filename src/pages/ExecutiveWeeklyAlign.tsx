@@ -80,13 +80,13 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* Week navigation */}
         <div className="flex items-center justify-center gap-4 -mt-4">
-          <Button variant="outline" size="icon" onClick={() => setWeekOffset(w => w - 1)}>
+          <Button variant="outline" aria-label="Anterior" size="icon" onClick={() => setWeekOffset(w => w - 1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm font-medium">
             {format(wa.weekStart, 'dd/MM')} — {format(wa.weekEnd, 'dd/MM/yyyy')}
           </span>
-          <Button variant="outline" size="icon" onClick={() => setWeekOffset(w => w + 1)} disabled={weekOffset >= 0}>
+          <Button variant="outline" aria-label="Seguinte" size="icon" onClick={() => setWeekOffset(w => w + 1)} disabled={weekOffset >= 0}>
             <ChevronRight className="h-4 w-4" />
           </Button>
           {!wa.isCurrentWeek && (

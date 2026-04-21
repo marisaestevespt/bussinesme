@@ -142,11 +142,11 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
   const calendarGrid = (
     <>
       <div className="flex items-center justify-between mb-4">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+        <Button variant="ghost" aria-label="Anterior" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h3 className="text-sm font-semibold capitalize">{monthLabel}</h3>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+        <Button variant="ghost" aria-label="Seguinte" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

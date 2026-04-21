@@ -390,7 +390,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                       <span className="text-sm">{format(parseISO(v.start_date), 'dd/MM/yyyy')} → {format(parseISO(v.end_date), 'dd/MM/yyyy')}</span>
                       {v.notes && <p className="text-xs text-muted-foreground">{v.notes}</p>}
                     </div>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteVacation(v.id)}>
+                    <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => handleDeleteVacation(v.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
                   </div>

@@ -230,7 +230,7 @@ export default function MarketingEstrategia() {
                           <td className="p-2"><Input value={line.pilar} className="h-8 text-sm border-transparent hover:border-input focus:border-input" onChange={e => updateEditorialLine(line.id, 'pilar', e.target.value)} placeholder="Ex: Educação" readOnly={!isOwner} /></td>
                           <td className="p-2"><Input value={line.descricao} className="h-8 text-sm border-transparent hover:border-input focus:border-input" onChange={e => updateEditorialLine(line.id, 'descricao', e.target.value)} placeholder="Descrição do pilar" readOnly={!isOwner} /></td>
                           <td className="p-2"><Input value={line.tipos_conteudo} className="h-8 text-sm border-transparent hover:border-input focus:border-input" onChange={e => updateEditorialLine(line.id, 'tipos_conteudo', e.target.value)} placeholder="Tipos de conteúdo" readOnly={!isOwner} /></td>
-                          {isOwner && <td className="p-2"><Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteEditorialLine(line.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></td>}
+                          {isOwner && <td className="p-2"><Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteEditorialLine(line.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></td>}
                         </tr>
                       ))}
                     </tbody>
@@ -329,7 +329,7 @@ export default function MarketingEstrategia() {
                               {card.link_url && <ExternalLink className="h-2.5 w-2.5 text-info" />}
                               {(card.files as any[])?.length > 0 && <Paperclip className="h-2.5 w-2.5 text-muted-foreground" />}
                             </div>
-                            {isOwner && <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDistCard(card.id); }}><Trash2 className="h-3 w-3 text-destructive" /></Button>}
+                            {isOwner && <Button variant="ghost" aria-label="Eliminar" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDistCard(card.id); }}><Trash2 className="h-3 w-3 text-destructive" /></Button>}
                           </CardContent>
                         </Card>
                       ))}

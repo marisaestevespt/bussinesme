@@ -565,7 +565,7 @@ export default function GestaoMarcaPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Proposta Única de Valor</p>
                       {isOwner && !editingPuv && (
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setTempPuv(puv); setEditingPuv(true); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6" onClick={() => { setTempPuv(puv); setEditingPuv(true); }}>
                           <Pencil className="h-3 w-3" />
                         </Button>
                       )}
@@ -590,7 +590,7 @@ export default function GestaoMarcaPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Texto de Apresentação</p>
                       {isOwner && !editingAbout && (
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setTempAbout(aboutText); setEditingAbout(true); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6" onClick={() => { setTempAbout(aboutText); setEditingAbout(true); }}>
                           <Pencil className="h-3 w-3" />
                         </Button>
                       )}
@@ -641,7 +641,7 @@ export default function GestaoMarcaPage() {
                           {link.label}
                         </a>
                         {isOwner && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteLink(link.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteLink(link.id)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}
@@ -677,7 +677,7 @@ export default function GestaoMarcaPage() {
                           {link.label}
                         </a>
                         {isOwner && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteLink(link.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteLink(link.id)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}
@@ -816,7 +816,7 @@ export default function GestaoMarcaPage() {
                     {isOwner && (
                       <Button
                         variant="destructive"
-                        size="icon"
+                        aria-label="Eliminar" size="icon"
                         className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => { e.stopPropagation(); deleteVisualCard(card.id); }}
                       >
@@ -886,7 +886,7 @@ export default function GestaoMarcaPage() {
                             <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
                             <span className="flex-1">{item.content}</span>
                             {isOwner && (
-                              <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
+                              <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
                               </Button>
                             )}
@@ -936,7 +936,7 @@ export default function GestaoMarcaPage() {
                               <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
                               <span className="flex-1">{item.content}</span>
                               {isOwner && (
-                                <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
+                                <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
                                   <Trash2 className="h-3 w-3 text-destructive" />
                                 </Button>
                               )}
@@ -967,7 +967,7 @@ export default function GestaoMarcaPage() {
                   <span className="text-primary">✦</span>
                   <span className="flex-1 text-sm text-foreground">{d.content}</span>
                   {isOwner && (
-                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
+                    <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
                       <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>
                   )}
@@ -1035,7 +1035,7 @@ export default function GestaoMarcaPage() {
                           <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.comunicacao || '—'}</td>
                           {isOwner && (
                             <td className="p-3">
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); deleteCompetitor(c.id); }}>
+                              <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); deleteCompetitor(c.id); }}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
                               </Button>
                             </td>
@@ -1114,7 +1114,7 @@ export default function GestaoMarcaPage() {
                 <div className="flex items-center gap-2">
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Descrição</p>
                   {isOwner && !editingVisualDesc && (
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditingVisualDesc(true)}>
+                    <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6" onClick={() => setEditingVisualDesc(true)}>
                       <Pencil className="h-3 w-3" />
                     </Button>
                   )}
@@ -1172,7 +1172,7 @@ export default function GestaoMarcaPage() {
                         {isOwner && (
                           <Button
                             variant="destructive"
-                            size="icon"
+                            aria-label="Eliminar" size="icon"
                             className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
                             onClick={() => deleteVisualFile(file.id)}
                           >
@@ -1198,7 +1198,7 @@ export default function GestaoMarcaPage() {
                           {file.file_name}
                         </a>
                         {isOwner && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}
@@ -1236,7 +1236,7 @@ export default function GestaoMarcaPage() {
                           {file.file_name}
                         </a>
                         {isOwner && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}
@@ -1403,7 +1403,7 @@ function SortableKanbanItem({
       {isOwner && !reservedTitles.includes(item.title) && (
         <Button
           variant="ghost"
-          size="icon"
+          aria-label="Eliminar" size="icon"
           className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0"
           onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
         >

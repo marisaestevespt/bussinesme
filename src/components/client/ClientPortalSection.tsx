@@ -197,10 +197,10 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">URL do Portal</Label>
             <div className="flex gap-2 items-center">
               <Input value={portalUrl} readOnly className="text-xs font-mono bg-muted/30 flex-1" />
-              <Button variant="outline" size="icon" className="shrink-0" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
+              <Button variant="outline" aria-label="Copiar" size="icon" className="shrink-0" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
                 <Copy className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="shrink-0" asChild>
+              <Button variant="outline" aria-label="Abrir link externo" size="icon" className="shrink-0" asChild>
                 <a href={portalUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
               </Button>
               <Button size="sm" className="shrink-0" onClick={() => {

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Plus, Pencil, Trash2, Search, X, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { PipelineBoard } from '@/components/commercial/crm/PipelineBoard';
 import { PipelineFormDialog } from '@/components/commercial/crm/PipelineFormDialog';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
@@ -21,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export default function CrmPipelines() {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [openPipelineId, setOpenPipelineId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingPipeline, setEditingPipeline] = useState<any>(null);
@@ -308,14 +310,23 @@ export default function CrmPipelines() {
               <Button variant="outline" size="sm" onClick={() => setStagesDialogOpen(true)}>
                 <Settings2 className="h-3.5 w-3.5 mr-1" /> Editar Etapas
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingPipeline(activePipeline); setFormOpen(true); }}>
+              <Button variant="ghost" aria-label="Editar" size="icon" className="h-8 w-8" onClick={() => { setEditingPipeline(activePipeline); setFormOpen(true); }}>
                 <Pencil className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-destructive hover:text-destructive"
-                onClick={() => { if (confirm(`Eliminar pipeline "${activePipeline.name}"?`)) deletePipeline.mutate(activePipeline.id); }}
+                aria-label="Eliminar pipeline"
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: 'Eliminar pipeline?',
+                    description: `"${activePipeline.name}" e a sua estrutura de etapas serão removidos. Os leads não são eliminados.`,
+                    confirmText: 'Eliminar',
+                    variant: 'destructive',
+                  });
+                  if (ok) deletePipeline.mutate(activePipeline.id);
+                }}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -467,14 +478,23 @@ export default function CrmPipelines() {
                     </Badge>
                     <Badge variant="outline" className="text-xs">{leadsCount} leads</Badge>
                     <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
+                      <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => { if (confirm(`Eliminar pipeline "${p.name}"?`)) deletePipeline.mutate(p.id); }}
+                        aria-label="Eliminar pipeline"
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: 'Eliminar pipeline?',
+                            description: `"${p.name}" e a sua estrutura de etapas serão removidos.`,
+                            confirmText: 'Eliminar',
+                            variant: 'destructive',
+                          });
+                          if (ok) deletePipeline.mutate(p.id);
+                        }}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

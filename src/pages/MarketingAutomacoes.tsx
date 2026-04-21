@@ -135,7 +135,7 @@ export default function MarketingAutomacoes() {
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{format(new Date(a.updated_at), 'dd MMM yyyy', { locale: pt })}</TableCell>
                         {isOwner && (
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteAuto(a.id); }}>
+                            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteAuto(a.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
                           </TableCell>

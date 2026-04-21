@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getAutoExpenseStatus, isPaidExpenseStatus, normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
 
@@ -146,6 +147,7 @@ async function generateExpensesForPeriod(
 
 export default function FornecedoresPage() {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<any>({});
@@ -971,7 +973,7 @@ export default function FornecedoresPage() {
                     {form.documents.map((doc: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
                         <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{doc.name}</a>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={() => {
                           setForm((f: any) => ({ ...f, documents: (f.documents || []).filter((_: any, idx: number) => idx !== i) }));
                         }}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                       </div>
@@ -1096,8 +1098,14 @@ export default function FornecedoresPage() {
                               <Button size="sm" variant="outline" className="h-7 px-3 text-xs" onClick={() => setEditingExpenseId(null)}>
                                 <X className="h-3 w-3 mr-1" /> Cancelar
                               </Button>
-                              <Button size="sm" variant="destructive" className="h-7 px-3 text-xs" onClick={() => {
-                                if (window.confirm('Eliminar esta despesa?')) { deleteExpense.mutate(exp.id); setEditingExpenseId(null); }
+                              <Button size="sm" variant="destructive" className="h-7 px-3 text-xs" onClick={async () => {
+                                const ok = await confirm({
+                                  title: 'Eliminar despesa?',
+                                  description: `Despesa de ${exp.expense_date}: ${exp.description || 'sem descrição'}.`,
+                                  confirmText: 'Eliminar',
+                                  variant: 'destructive',
+                                });
+                                if (ok) { deleteExpense.mutate(exp.id); setEditingExpenseId(null); }
                               }}>
                                 <Trash2 className="h-3 w-3 mr-1" /> Eliminar
                               </Button>
@@ -1144,10 +1152,14 @@ export default function FornecedoresPage() {
               <div className="flex gap-2">
                 <Button className="flex-1" onClick={() => upsert.mutate()} disabled={!form.name?.trim()}>Guardar</Button>
                 {form.id && (
-                  <Button variant="destructive" size="icon" onClick={() => {
-                    if (window.confirm(`Eliminar fornecedor "${form.name}" e todas as despesas associadas?`)) {
-                      remove.mutate(form.id);
-                    }
+                  <Button variant="destructive" size="icon" aria-label="Eliminar fornecedor" onClick={async () => {
+                    const ok = await confirm({
+                      title: 'Eliminar fornecedor?',
+                      description: `"${form.name}" e todas as despesas associadas serão removidos permanentemente.`,
+                      confirmText: 'Eliminar',
+                      variant: 'destructive',
+                    });
+                    if (ok) remove.mutate(form.id);
                   }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>

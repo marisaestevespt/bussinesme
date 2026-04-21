@@ -349,7 +349,7 @@ export default function PortalViewPage() {
               <span className="text-sm font-medium text-foreground hidden sm:inline">{firstName}</span>
               <Button
                 variant="ghost"
-                size="icon"
+                aria-label="Terminar sessão" size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                 title="Terminar sessão"
                 onClick={() => {

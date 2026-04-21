@@ -138,7 +138,7 @@ export function FinEntradas({ sales, currentYear }: Props) {
                     <TableCell onClick={e => e.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => duplicateSale(s)}>
+                          <Button variant="ghost" aria-label="Copiar" size="icon" className="h-7 w-7" onClick={() => duplicateSale(s)}>
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
                         </TooltipTrigger>

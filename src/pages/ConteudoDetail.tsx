@@ -26,12 +26,14 @@ import { cn } from '@/lib/utils';
 import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
@@ -283,7 +285,13 @@ export default function ConteudoDetailPage() {
               size="sm"
               className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
               onClick={async () => {
-                if (!confirm('Eliminar este conteúdo permanentemente?')) return;
+                const ok = await confirm({
+                  title: 'Eliminar conteúdo?',
+                  description: 'Métricas, anexos e canais associados serão eliminados permanentemente.',
+                  confirmText: 'Eliminar',
+                  variant: 'destructive',
+                });
+                if (!ok) return;
                 const { error: errChannels } = await supabase.from('content_channels').delete().eq('content_id', id!);
                 const { error: errMetrics } = await supabase.from('content_metrics').delete().eq('content_id', id!);
                 const { error: errAttach } = await supabase.from('content_attachments').delete().eq('content_id', id!);
@@ -321,7 +329,7 @@ export default function ConteudoDetailPage() {
                           <Badge className="absolute top-2 left-2 z-10 text-[9px] bg-primary text-primary-foreground">Capa</Badge>
                         )}
                         <img src={img.file_url} alt={img.file_name} className="w-full aspect-square object-cover" />
-                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
+                        <Button variant="destructive" aria-label="Eliminar" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
                           onClick={() => deleteAttachment(img.id)}><Trash2 className="h-3 w-3" /></Button>
                         <p className="text-[10px] text-muted-foreground p-1 truncate">{img.file_name}</p>
                       </div>
@@ -370,7 +378,7 @@ export default function ConteudoDetailPage() {
                         <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
                           <FileText className="h-3.5 w-3.5 shrink-0" />{f.file_name}
                         </a>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteAttachment(f.id)}>
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteAttachment(f.id)}>
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       </div>

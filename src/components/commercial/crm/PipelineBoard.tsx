@@ -7,6 +7,7 @@ import { Plus, Trash2, UserPlus, X, ChevronUp, ChevronDown, Settings2 } from 'lu
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { statusLabel } from '@/hooks/useCrmData';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface PipelineBoardProps {
   pipeline: any;
@@ -215,6 +216,7 @@ function StagesDialog({
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const confirm = useConfirm();
 
   const handleAdd = () => {
     if (!newName.trim()) return;
@@ -285,7 +287,7 @@ function StagesDialog({
                     <div className="flex flex-col flex-shrink-0">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        aria-label="Mostrar menos" size="icon"
                         className="h-5 w-5"
                         disabled={isFirst}
                         onClick={() => onReorder(stage.id, 'left')}
@@ -294,7 +296,7 @@ function StagesDialog({
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        aria-label="Mostrar mais" size="icon"
                         className="h-5 w-5"
                         disabled={isLast}
                         onClick={() => onReorder(stage.id, 'right')}
@@ -306,12 +308,19 @@ function StagesDialog({
 
                   <Button
                     variant="ghost"
-                    size="icon"
+                    aria-label="Eliminar" size="icon"
                     className="h-7 w-7 text-destructive hover:text-destructive flex-shrink-0"
                     disabled={count > 0}
-                    onClick={() => {
+                    aria-label="Eliminar etapa"
+                    onClick={async () => {
                       if (count > 0) return;
-                      if (confirm(`Eliminar etapa "${stage.name}"?`)) onDelete(stage.id);
+                      const ok = await confirm({
+                        title: 'Eliminar etapa?',
+                        description: `A etapa "${stage.name}" será removida do pipeline.`,
+                        confirmText: 'Eliminar',
+                        variant: 'destructive',
+                      });
+                      if (ok) onDelete(stage.id);
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />

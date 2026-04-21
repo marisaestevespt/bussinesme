@@ -772,9 +772,9 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(m => subMonths(m, 1))}><ChevronLeft className="h-4 w-4" /></Button>
+        <Button variant="ghost" aria-label="Anterior" size="icon" onClick={() => setCurrentMonth(m => subMonths(m, 1))}><ChevronLeft className="h-4 w-4" /></Button>
         <h3 className="text-lg font-semibold capitalize text-foreground">{format(currentMonth, 'MMMM yyyy', { locale: pt })}</h3>
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
+        <Button variant="ghost" aria-label="Seguinte" size="icon" onClick={() => setCurrentMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <div className="border rounded-lg overflow-hidden">
         {/* Header */}
@@ -981,7 +981,7 @@ function EventDetailDialog({
           {isOwner && (
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" onClick={onEdit}>Editar</Button>
-              <Button variant="destructive" size="icon" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+              <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -1038,7 +1038,7 @@ export default function AgendaPage() {
           <div />
           <div className="flex items-center gap-3">
             {isOwner && (
-              <Button variant="ghost" size="icon" onClick={() => setTypesManagerOpen(true)} title="Gerir tipos de evento">
+              <Button variant="ghost" aria-label="Definições" size="icon" onClick={() => setTypesManagerOpen(true)} title="Gerir tipos de evento">
                 <Settings2 className="h-4 w-4" />
               </Button>
             )}

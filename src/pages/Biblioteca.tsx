@@ -305,10 +305,10 @@ export default function BibliotecaPage() {
                     {isOwner && (
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(doc); }}>
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(doc); }}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={e => { e.stopPropagation(); deleteDoc.mutate(doc.id); }}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 text-destructive" onClick={e => { e.stopPropagation(); deleteDoc.mutate(doc.id); }}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>

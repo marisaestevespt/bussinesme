@@ -34,13 +34,13 @@ export function MonthNavHeader({ monthIdx, year, onBack, onChangeMonth }: Props)
         <ArrowLeft className="h-4 w-4" /> Voltar à galeria
       </Button>
       <div className="flex items-center justify-center gap-4">
-        <Button variant="outline" size="icon" onClick={goPrev}>
+        <Button variant="outline" aria-label="Anterior" size="icon" onClick={goPrev}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-xl font-bold min-w-[200px] text-center">
           {MONTH_NAMES[monthIdx]} {year}
         </h2>
-        <Button variant="outline" size="icon" onClick={goNext}>
+        <Button variant="outline" aria-label="Seguinte" size="icon" onClick={goNext}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

@@ -92,7 +92,7 @@ export default function SecretariaTarefas() {
                 <div className="flex items-center gap-1.5">
                   {t.name}
                   {t.content_id && (
-                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={(e) => { e.stopPropagation(); navigate(`/hub/marketing/conteudos/${t.content_id}`); }}>
+                    <Button variant="ghost" aria-label="Documento" size="icon" className="h-6 w-6 shrink-0" onClick={(e) => { e.stopPropagation(); navigate(`/hub/marketing/conteudos/${t.content_id}`); }}>
                       <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                   )}

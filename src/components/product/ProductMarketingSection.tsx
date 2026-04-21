@@ -464,7 +464,7 @@ export function ProductMarketingSection({
                   <TableCell className="text-xs text-muted-foreground">{format(new Date(f.updated_at as string), 'dd/MM/yyyy')}</TableCell>
                   {isOwner && (
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('marketing_funnels', f.id as string); }}><Trash2 className="h-3 w-3" /></Button>
+                      <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('marketing_funnels', f.id as string); }}><Trash2 className="h-3 w-3" /></Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -509,7 +509,7 @@ export function ProductMarketingSection({
                   <TableCell className="text-xs text-muted-foreground">{format(new Date(a.updated_at as string), 'dd/MM/yyyy')}</TableCell>
                   {isOwner && (
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('marketing_automations', a.id as string); }}><Trash2 className="h-3 w-3" /></Button>
+                      <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('marketing_automations', a.id as string); }}><Trash2 className="h-3 w-3" /></Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -556,7 +556,7 @@ export function ProductMarketingSection({
                   <TableCell>{ad.link ? <a href={ad.link as string} target="_blank" rel="noopener noreferrer" className="text-primary text-xs" onClick={e => e.stopPropagation()}><ExternalLink className="h-3 w-3" /></a> : '—'}</TableCell>
                   {isOwner && (
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('traffic_creatives', ad.id as string); }}><Trash2 className="h-3 w-3" /></Button>
+                      <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('traffic_creatives', ad.id as string); }}><Trash2 className="h-3 w-3" /></Button>
                     </TableCell>
                   )}
                 </TableRow>

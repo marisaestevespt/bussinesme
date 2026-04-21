@@ -130,7 +130,7 @@ export function ClientFeedbackSection({ clientId, clientName }: Props) {
                   </div>
                 </div>
                 {f.source !== 'portal' && (
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive shrink-0" onClick={() => deleteFeedback.mutate(f.id)}>
+                  <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 text-destructive shrink-0" onClick={() => deleteFeedback.mutate(f.id)}>
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 )}

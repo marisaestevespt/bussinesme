@@ -391,7 +391,7 @@ export function MonthlyReportSection() {
                       </Button>
                     )}
                     {r.status === 'completed' && r.report_data && (
-                      <Button variant="ghost" size="icon" onClick={() => handleDownload(r.report_data, r.year, r.month)}>
+                      <Button variant="ghost" aria-label="Transferir" size="icon" onClick={() => handleDownload(r.report_data, r.year, r.month)}>
                         <Download className="h-4 w-4" />
                       </Button>
                     )}

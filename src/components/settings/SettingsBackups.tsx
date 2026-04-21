@@ -148,7 +148,7 @@ export function SettingsBackups() {
                 </div>
               </div>
               {b.status === 'completed' && (
-                <Button variant="ghost" size="icon" onClick={() => handleDownload(b.file_path)}>
+                <Button variant="ghost" aria-label="Transferir" size="icon" onClick={() => handleDownload(b.file_path)}>
                   <Download className="h-4 w-4" />
                 </Button>
               )}

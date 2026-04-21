@@ -120,14 +120,14 @@ export function QuestionsCollapsible({
                                         onKeyDown={e => { if (e.key === 'Enter') saveEdit(q.id, q.question); if (e.key === 'Escape') setEditingId(null); }}
                                         autoFocus
                                       />
-                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-primary shrink-0" onClick={() => saveEdit(q.id, q.question)}>
+                                      <Button variant="ghost" aria-label="Confirmar" size="icon" className="h-7 w-7 text-primary shrink-0" onClick={() => saveEdit(q.id, q.question)}>
                                         <Check className="h-3.5 w-3.5" />
                                       </Button>
                                     </div>
                                   ) : (
                                     <div className="flex items-center gap-1.5 group/q">
                                       <span className="text-sm">{q.question || <span className="text-muted-foreground italic">Sem pergunta</span>}</span>
-                                      <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/q:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'question')}>
+                                      <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/q:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'question')}>
                                         <Pencil className="h-3 w-3 text-muted-foreground" />
                                       </Button>
                                     </div>
@@ -175,14 +175,14 @@ export function QuestionsCollapsible({
                                           <SelectItem value="image">Imagem</SelectItem>
                                         </SelectContent>
                                       </Select>
-                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-primary shrink-0" onClick={() => saveEdit(q.id, answerType)}>
+                                      <Button variant="ghost" aria-label="Confirmar" size="icon" className="h-7 w-7 text-primary shrink-0" onClick={() => saveEdit(q.id, answerType)}>
                                         <Check className="h-3.5 w-3.5" />
                                       </Button>
                                     </div>
                                   ) : (
                                     <div className="flex items-center gap-1.5 group/t">
                                       <span className="text-sm">{answerType === 'text' ? 'Texto' : answerType === 'file' ? 'Ficheiro' : 'Imagem'}</span>
-                                      <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover/t:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'type')}>
+                                      <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/t:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'type')}>
                                         <Pencil className="h-3 w-3 text-muted-foreground" />
                                       </Button>
                                     </div>
@@ -191,7 +191,7 @@ export function QuestionsCollapsible({
                                 <TableCell className="align-top py-2.5">
                                   <Button
                                     variant="ghost"
-                                    size="icon"
+                                    aria-label="Eliminar" size="icon"
                                     className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover/row:opacity-100 transition-all"
                                     onClick={() => deleteQuestion.mutate(q.id)}
                                   >

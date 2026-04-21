@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { DialogsProvider } from "@/components/ui/confirm-dialog";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { BusinessSettingsProvider, useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { ActiveTimerProvider } from "@/hooks/useActiveTimer";
@@ -227,8 +228,10 @@ const App = () => (
             <ActiveTimerProvider>
               <KpiSettingsProvider>
                 <AppTabsProvider>
-                  <FloatingTimer />
-                  <AppRoutes />
+                  <DialogsProvider>
+                    <FloatingTimer />
+                    <AppRoutes />
+                  </DialogsProvider>
                 </AppTabsProvider>
               </KpiSettingsProvider>
             </ActiveTimerProvider>

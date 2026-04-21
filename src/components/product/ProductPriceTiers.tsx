@@ -119,7 +119,7 @@ export function ProductPriceTiers({ productId, readOnly }: Props) {
             />
           </div>
           {!readOnly && (
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-destructive" onClick={() => deleteMut.mutate(tier.id)}>
+            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 shrink-0 text-destructive" onClick={() => deleteMut.mutate(tier.id)}>
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           )}

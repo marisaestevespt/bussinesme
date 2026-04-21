@@ -180,7 +180,7 @@ export function CustomFieldsSection({ entityType, entityId, showConfig = false }
                   <p className="text-sm font-medium">{f.field_name}</p>
                   <p className="text-xs text-muted-foreground">{FIELD_TYPES.find(t => t.value === f.field_type)?.label || f.field_type}</p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => deleteField.mutate(f.id)}>
+                <Button variant="ghost" aria-label="Eliminar" size="icon" onClick={() => deleteField.mutate(f.id)}>
                   <Trash2 className="h-3.5 w-3.5 text-destructive" />
                 </Button>
               </div>

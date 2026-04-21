@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useConfirm, usePrompt } from '@/components/ui/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -179,10 +180,10 @@ export function CommercialAcoes() {
                     <TableCell className="text-sm">{a.product || '—'}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </div>
@@ -226,10 +227,10 @@ export function CommercialAcoes() {
                     <TableCell className="text-sm text-muted-foreground truncate max-w-[200px]">{a.result || '—'}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </div>
@@ -424,6 +425,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
 }) {
   const [form, setForm] = useState(empty());
   const [showProject, setShowProject] = useState(false);
+  const askText = usePrompt();
 
   const { data: existingTypes = [] } = useQuery({
     queryKey: ['commercial', 'sales-action-types'],
@@ -518,8 +520,14 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
               <Label>Tipo</Label>
               <Select value={form.action_type} onValueChange={v => {
                 if (v === '__custom_type__') {
-                  const custom = window.prompt('Introduz o novo tipo:');
-                  if (custom?.trim()) set({ action_type: custom.trim() });
+                  askText({
+                    title: 'Novo tipo de ação',
+                    label: 'Nome do tipo',
+                    placeholder: 'Ex: Webinar, Sessão estratégica...',
+                    confirmText: 'Adicionar',
+                  }).then((custom) => {
+                    if (custom) set({ action_type: custom });
+                  });
                   return;
                 }
                 set({ action_type: v });

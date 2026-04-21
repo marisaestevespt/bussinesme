@@ -370,7 +370,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             <Button className="flex-1" onClick={handleSave} disabled={saving}>
               {saving ? 'A guardar...' : 'Guardar alterações'}
             </Button>
-            <Button variant="destructive" size="icon" onClick={handleDelete}>
+            <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={handleDelete}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

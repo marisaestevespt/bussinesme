@@ -155,7 +155,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
               <div key={s.id} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded border">
                 <span className="text-sm">{s.label}</span>
                 {!s.is_default && (
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeStage.mutate(s.id)}>
+                  <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeStage.mutate(s.id)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 )}

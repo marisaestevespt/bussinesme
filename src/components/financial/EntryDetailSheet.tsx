@@ -192,7 +192,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
                       <p className="text-muted-foreground text-xs">Nome completo</p>
                       <p className="font-medium">{clientData.full_name || sale.client}</p>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.full_name || sale.client || ''); toast.success('Copiado'); }}>
+                    <Button variant="ghost" aria-label="Copiar" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.full_name || sale.client || ''); toast.success('Copiado'); }}>
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -202,7 +202,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
                         <p className="text-muted-foreground text-xs">NIF</p>
                         <p className="font-medium font-mono">{clientData.nif}</p>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.nif); toast.success('NIF copiado'); }}>
+                      <Button variant="ghost" aria-label="Copiar" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.nif); toast.success('NIF copiado'); }}>
                         <Copy className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -213,7 +213,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
                         <p className="text-muted-foreground text-xs">Morada fiscal</p>
                         <p className="font-medium">{clientData.fiscal_address}</p>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.fiscal_address); toast.success('Morada copiada'); }}>
+                      <Button variant="ghost" aria-label="Copiar" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.fiscal_address); toast.success('Morada copiada'); }}>
                         <Copy className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -264,7 +264,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             <Button className="flex-1" onClick={handleSave} disabled={saving}>
               {saving ? 'A guardar...' : 'Guardar alterações'}
             </Button>
-            <Button variant="destructive" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
+            <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

@@ -273,7 +273,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell onClick={ev => ev.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                          <Button variant="ghost" aria-label="Copiar" size="icon" className="h-7 w-7" onClick={() => {
                             const { id, expense_id, created_at, updated_at, ...rest } = e as any;
                             setExpForm({ ...rest, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, status: 'pendente', periodicity: (e as any).periodicity || 'mensal' });
                             setExpOpen(true);
@@ -409,7 +409,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
             />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveExpense}>Guardar</Button>
-              {expForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteExpense.mutateAsync(expForm.id); setExpOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
+              {expForm.id && <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={async () => { await fin.deleteExpense.mutateAsync(expForm.id); setExpOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
             </div>
           </div>
         </DialogContent>

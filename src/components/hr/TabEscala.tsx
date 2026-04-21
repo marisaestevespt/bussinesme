@@ -245,7 +245,7 @@ function VacationDialog({ member, vacations, onClose }: { member: TeamMember; va
               {memberVacations.map(v => (
                 <div key={v.id} className="flex items-center justify-between text-sm bg-muted/50 rounded-md px-3 py-2">
                   <span>{format(parseISO(v.start_date), 'dd/MM/yyyy')} → {format(parseISO(v.end_date), 'dd/MM/yyyy')}</span>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(v.id)}>
+                  <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => handleDelete(v.id)}>
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
                   </Button>
                 </div>

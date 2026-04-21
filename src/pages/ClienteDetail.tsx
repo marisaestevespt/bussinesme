@@ -28,6 +28,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
 import { supabase } from '@/integrations/supabase/client';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DEPARTMENTS } from '@/lib/departments';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
@@ -147,6 +148,7 @@ export default function ClienteDetailPage() {
   const [leadPreviewId, setLeadPreviewId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'em_onboarding' }); setInitialized(true); }
@@ -318,7 +320,16 @@ export default function ClienteDetailPage() {
     if (client) { await duplicateClient.mutateAsync(client); navigate('/hub/clientes'); }
   };
   const handleDelete = async () => {
-    if (client && confirm('Eliminar este cliente?')) { await deleteClient.mutateAsync(client.id); navigate('/hub/clientes'); }
+    if (!client) return;
+    const ok = await confirm({
+      title: 'Eliminar cliente?',
+      description: `O cliente "${client.full_name}" será removido. Vendas e tarefas associadas mantêm-se mas perdem a ligação.`,
+      confirmText: 'Eliminar',
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    await deleteClient.mutateAsync(client.id);
+    navigate('/hub/clientes');
   };
 
   // Filtered payments
@@ -915,7 +926,7 @@ export default function ClienteDetailPage() {
                   <div className="flex gap-2">
                     <Input value={form.drive_folder_url || ''} onChange={e => update('drive_folder_url', e.target.value)} placeholder="https://drive.google.com/..." />
                     {form.drive_folder_url && (
-                      <Button variant="outline" size="icon" asChild>
+                      <Button variant="outline" aria-label="Abrir link externo" size="icon" asChild>
                         <a href={form.drive_folder_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
                       </Button>
                     )}
@@ -926,7 +937,7 @@ export default function ClienteDetailPage() {
                   <div className="flex gap-2">
                     <Input value={(form as any).whatsapp_group_url || ''} onChange={e => update('whatsapp_group_url' as any, e.target.value)} placeholder="https://chat.whatsapp.com/..." />
                     {(form as any).whatsapp_group_url && (
-                      <Button variant="outline" size="icon" asChild>
+                      <Button variant="outline" aria-label="Abrir link externo" size="icon" asChild>
                         <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
                       </Button>
                     )}

@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { addBusinessDays } from '@/lib/holidays';
@@ -70,6 +71,7 @@ interface Props {
 
 export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const phaseKey = ['project-phases', projectId];
   const delKey = ['project-deliverables', projectId];
 
@@ -623,8 +625,14 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               <ChevronDown className="h-3 w-3" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive" onClick={() => {
-                            if (confirm('Remover esta fase e todas as suas entregas?')) deletePhase.mutate(phase.id);
+                          <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive" aria-label="Remover fase" onClick={async () => {
+                            const ok = await confirm({
+                              title: 'Remover fase?',
+                              description: `A fase "${phase.name}" e todas as entregas associadas serão eliminadas.`,
+                              confirmText: 'Remover',
+                              variant: 'destructive',
+                            });
+                            if (ok) deletePhase.mutate(phase.id);
                           }}>
                             <Trash2 className="h-3 w-3" />
                           </Button>

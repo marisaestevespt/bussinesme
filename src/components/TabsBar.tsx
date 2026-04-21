@@ -66,7 +66,7 @@ export function TabsBar() {
       {tabs.length < 10 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+            <Button variant="ghost" aria-label="Adicionar" size="icon" className="h-6 w-6 shrink-0">
               <Plus className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
@@ -96,7 +96,7 @@ export function NewTabButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" aria-label="Adicionar" size="icon" className="h-8 w-8">
           <Plus className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>

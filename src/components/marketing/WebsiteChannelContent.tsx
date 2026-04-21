@@ -179,7 +179,7 @@ export function WebsiteChannelContent({ channelId, channelName }: WebsiteChannel
                         </td>
                         {isOwner && (
                           <td className="p-3 text-right" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deletePage(page.id)}>
+                            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deletePage(page.id)}>
                               <Trash2 className="h-3 w-3 text-destructive" />
                             </Button>
                           </td>
