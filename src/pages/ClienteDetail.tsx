@@ -104,8 +104,14 @@ function DateField({ value, onChange, label }: { value: string | null; onChange:
       <Label className="text-xs text-muted-foreground">{label}</Label>
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
-            <CalendarIcon className="mr-2 h-4 w-4" />
+          <Button
+            variant="outline"
+            className={cn(
+              'w-full justify-start text-left font-normal h-10 px-3 rounded-lg border-input bg-background hover:bg-background hover:text-foreground',
+              !date && 'text-muted-foreground/60'
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
             {date ? format(date, 'dd/MM/yyyy') : 'Selecionar'}
           </Button>
         </PopoverTrigger>
