@@ -19,6 +19,7 @@ interface CrmLabelPickerProps {
 
 export function CrmLabelPicker({ leadId, selectedLabelIds }: CrmLabelPickerProps) {
   const { labels, createLabel, deleteLabel, toggleLeadLabel } = useCrmLabels();
+  const confirm = useConfirm();
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState(LABEL_COLORS[0]);
   const [creating, setCreating] = useState(false);
@@ -55,7 +56,16 @@ export function CrmLabelPicker({ leadId, selectedLabelIds }: CrmLabelPickerProps
               <Button
                 variant="ghost" size="icon"
                 className="h-5 w-5 opacity-0 group-hover:opacity-100 text-destructive"
-                onClick={() => { if (confirm(`Eliminar etiqueta "${label.name}"?`)) deleteLabel.mutate(label.id); }}
+                aria-label="Eliminar etiqueta"
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: 'Eliminar etiqueta?',
+                    description: `A etiqueta "${label.name}" será removida de todas as leads.`,
+                    confirmText: 'Eliminar',
+                    variant: 'destructive',
+                  });
+                  if (ok) deleteLabel.mutate(label.id);
+                }}
               >
                 <Trash2 className="h-3 w-3" />
               </Button>

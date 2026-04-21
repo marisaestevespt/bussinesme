@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export default function CrmPipelines() {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [openPipelineId, setOpenPipelineId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingPipeline, setEditingPipeline] = useState<any>(null);
@@ -316,7 +317,16 @@ export default function CrmPipelines() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-destructive hover:text-destructive"
-                onClick={() => { if (confirm(`Eliminar pipeline "${activePipeline.name}"?`)) deletePipeline.mutate(activePipeline.id); }}
+                aria-label="Eliminar pipeline"
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: 'Eliminar pipeline?',
+                    description: `"${activePipeline.name}" e a sua estrutura de etapas serão removidos. Os leads não são eliminados.`,
+                    confirmText: 'Eliminar',
+                    variant: 'destructive',
+                  });
+                  if (ok) deletePipeline.mutate(activePipeline.id);
+                }}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -475,7 +485,16 @@ export default function CrmPipelines() {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => { if (confirm(`Eliminar pipeline "${p.name}"?`)) deletePipeline.mutate(p.id); }}
+                        aria-label="Eliminar pipeline"
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: 'Eliminar pipeline?',
+                            description: `"${p.name}" e a sua estrutura de etapas serão removidos.`,
+                            confirmText: 'Eliminar',
+                            variant: 'destructive',
+                          });
+                          if (ok) deletePipeline.mutate(p.id);
+                        }}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

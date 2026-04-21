@@ -71,6 +71,7 @@ interface Props {
 
 export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const phaseKey = ['project-phases', projectId];
   const delKey = ['project-deliverables', projectId];
 
@@ -624,8 +625,14 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               <ChevronDown className="h-3 w-3" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive" onClick={() => {
-                            if (confirm('Remover esta fase e todas as suas entregas?')) deletePhase.mutate(phase.id);
+                          <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-destructive" aria-label="Remover fase" onClick={async () => {
+                            const ok = await confirm({
+                              title: 'Remover fase?',
+                              description: `A fase "${phase.name}" e todas as entregas associadas serão eliminadas.`,
+                              confirmText: 'Remover',
+                              variant: 'destructive',
+                            });
+                            if (ok) deletePhase.mutate(phase.id);
                           }}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
