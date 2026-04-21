@@ -1018,11 +1018,33 @@ export default function GestaoMarcaPage() {
           ) : selectedKanban ? (
             /* ── Default rich text content ── */
             <div className="space-y-4">
-              <RichTextEditor content={kanbanContent} onChange={setKanbanContent} editable={isOwner} />
-              {isOwner && (
-                <div className="flex justify-end">
-                  <Button onClick={saveKanbanContent}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
-                </div>
+              {editingKanban && isOwner ? (
+                <>
+                  <RichTextEditor content={kanbanContent} onChange={setKanbanContent} editable={true} />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => { setKanbanContent(selectedKanban.content || ''); setEditingKanban(false); }}>
+                      <X className="h-3.5 w-3.5 mr-1" />Cancelar
+                    </Button>
+                    <Button onClick={saveKanbanContent}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="prose prose-sm max-w-none p-3 min-h-[200px] border rounded-md bg-muted/10">
+                    {selectedKanban.content ? (
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedKanban.content) }} />
+                    ) : (
+                      <p className="text-muted-foreground italic">Sem conteúdo. {isOwner ? 'Clica em "Editar" para começar.' : ''}</p>
+                    )}
+                  </div>
+                  {isOwner && (
+                    <div className="flex justify-end">
+                      <Button variant="outline" onClick={() => setEditingKanban(true)}>
+                        <Pencil className="h-3.5 w-3.5 mr-1" />Editar
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : null}
