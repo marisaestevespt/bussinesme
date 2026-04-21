@@ -44,6 +44,7 @@ interface Props {
   deliverableTemplates: Template[];
   isOwner: boolean;
   productId: string;
+  isRecurring?: boolean;
   onAdd: () => void;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
@@ -51,10 +52,11 @@ interface Props {
 
 // ─── Deliverable Row ─────────────────────────────────────────
 function DeliverableRow({
-  template, index, total, isOwner, sops, onUpdate, onDelete, onMoveUp, onMoveDown,
+  template, index, total, isOwner, sops, isRecurring, onUpdate, onDelete, onMoveUp, onMoveDown,
 }: {
   template: Template; index: number; total: number; isOwner: boolean;
   sops: Array<{ id: string; name: string }>;
+  isRecurring: boolean;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
   onMoveUp: () => void;
@@ -122,10 +124,12 @@ function DeliverableRow({
             {(template.responsible_type || 'equipa') === 'cliente' ? 'Responsável: Cliente' : 'Responsável: Equipa'}
           </TooltipContent>
         </Tooltip>
-        <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
-          <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
-          Recorrente
-        </label>
+        {isRecurring && (
+          <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
+            <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
+            Recorrente
+          </label>
+        )}
         {isOwner && (
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={index === 0}>
