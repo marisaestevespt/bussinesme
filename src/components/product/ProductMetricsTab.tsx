@@ -75,21 +75,21 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
 
   // ─── Data queries ───
   const { data: salesData = [] } = useQuery({
-    queryKey: ['product-metrics-sales', productName, year],
+    queryKey: ['product-metrics-sales', productId, year],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('*').eq('product', productName).eq('sale_year', year);
+      const { data } = await supabase.from('commercial_sales').select('*').eq('product_id', productId).eq('sale_year', year);
       return data || [];
     },
-    enabled: !!productName,
+    enabled: !!productId,
   });
 
   const { data: prevYearSales = [] } = useQuery({
-    queryKey: ['product-metrics-sales-prev', productName, year - 1],
+    queryKey: ['product-metrics-sales-prev', productId, year - 1],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('*').eq('product', productName).eq('sale_year', year - 1);
+      const { data } = await supabase.from('commercial_sales').select('*').eq('product_id', productId).eq('sale_year', year - 1);
       return data || [];
     },
-    enabled: !!productName,
+    enabled: !!productId,
   });
 
   const { data: clientsData = [] } = useQuery({
@@ -456,12 +456,12 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
 
   // Sales for gallery summary + annual
   const { data: salesData = [] } = useQuery({
-    queryKey: ['product-metrics-sales', productName, year],
+    queryKey: ['product-metrics-sales', productId, year],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('*').eq('product', productName).eq('sale_year', year);
+      const { data } = await supabase.from('commercial_sales').select('*').eq('product_id', productId).eq('sale_year', year);
       return data || [];
     },
-    enabled: !!productName,
+    enabled: !!productId,
   });
 
   const { data: clientsData = [] } = useQuery({

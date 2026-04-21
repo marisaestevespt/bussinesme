@@ -357,7 +357,7 @@ export function usePlanningData(year = currentYear) {
   const autoSalesRaw = useQuery({
     queryKey: ['auto-sales-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('invoice_total,product,sale_month').eq('sale_year', year);
+      const { data } = await supabase.from('commercial_sales').select('invoice_total,product,product_id,sale_month').eq('sale_year', year);
       return data || [];
     },
     enabled: needsAutoCalc,
@@ -505,7 +505,13 @@ export function usePlanningData(year = currentYear) {
     }
     if (source === 'bd_vendas' || source === 'commercial') {
       const rows = autoSalesRaw.data || [];
-      const filtered = productName ? rows.filter((r: any) => r.product === productName) : rows;
+      // Prefer relational match by product_id; fall back to name only if id can't be resolved.
+      const productId = productName ? (productsQuery.data || []).find((p: any) => p.name === productName)?.id : null;
+      const filtered = productName
+        ? (productId
+            ? rows.filter((r: any) => r.product_id === productId)
+            : rows.filter((r: any) => r.product === productName))
+        : rows;
       return filtered.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
     }
     if (source === 'bd_crm') {
@@ -604,8 +610,12 @@ export function usePlanningData(year = currentYear) {
 
     if (source === 'bd_vendas' || source === 'commercial') {
       let rows = autoSalesRaw.data || [];
-      const pName = obj.product_name || resolveProductName(obj.product_id);
-      if (pName) rows = rows.filter((r: any) => r.product === pName);
+      // Prefer product_id if available, else fall back to name match.
+      if (obj.product_id) {
+        rows = rows.filter((r: any) => r.product_id === obj.product_id);
+      } else if (obj.product_name) {
+        rows = rows.filter((r: any) => r.product === obj.product_name);
+      }
       return filterByMonth(rows, month, 'sale_month').reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
     }
     if (source === 'bd_crm') {

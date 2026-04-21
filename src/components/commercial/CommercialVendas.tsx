@@ -45,7 +45,8 @@ export function CommercialVendas() {
 
   const { allViews, addView, renameView, deleteView } = useUserViews('comercial-vendas', DEFAULT_VIEWS);
 
-  const products = (data.productGoals.data || []).map(p => p.product_name);
+  const productGoalsList = data.productGoals.data || [];
+  const products = productGoalsList.map(p => p.product_name);
   const allSalesData = data.allSales.data || [];
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');

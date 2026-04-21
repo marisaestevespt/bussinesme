@@ -87,12 +87,15 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
     queryKey: ['past-launches', product],
     enabled: !!product && (entryType === 'Lançamento' || entryType === 'Relançamento'),
     queryFn: async () => {
-      const { data } = await supabase
+      const productId = await resolveProductId(product);
+      let query = supabase
         .from('commercial_library_entries')
-        .select('id, title, entry_type, product, start_date, end_date, result, summary, what_worked, what_didnt_work, results_numbers, learnings')
-        .eq('product', product)
+        .select('id, title, entry_type, product, product_id, start_date, end_date, result, summary, what_worked, what_didnt_work, results_numbers, learnings')
         .in('entry_type', ['Lançamento', 'Relançamento'])
         .order('created_at', { ascending: false });
+      // Prefer relational filter; fall back to name only if product is unknown.
+      query = productId ? query.eq('product_id', productId) : query.eq('product', product);
+      const { data } = await query;
       // Exclude current entry if editing
       return (data || []).filter((l: any) => !entry || l.id !== entry.id);
     },
