@@ -92,6 +92,16 @@ Apenas `pg_net` está em `public`. Mantida intencionalmente: é gerida pelo Supa
 funcionalidades internas (cron HTTP, webhooks). Mover para schema `extensions` pode partir essas
 integrações. Decisão: aceitar o warning do linter para esta extensão específica.
 
+## Auditoria 6 — Limpeza final (2026-04-21)
+
+Os 59 warnings restantes (`SUPA_rls_policy_always_true` + `SUPA_extension_in_public`) já estavam
+ignorados formalmente no scanner desde 2026-04-14 com justificações registadas:
+- RLS true: arquitectura single-tenant, escritas operacionais para toda a equipa autenticada são intencionais
+- Extension in public: `pg_net` gerido pela plataforma Supabase
+
+Não foi adicionada lógica `has_role` redundante porque introduziria overhead sem ganho real
+(qualquer utilizador autenticado já tem role `member`/`owner`).
+
 ## Fixes Applied (2026-04-21) — Auditoria 2 (Security & RLS)
 
 Resolved all 12 actionable findings from the Lovable security scan:
