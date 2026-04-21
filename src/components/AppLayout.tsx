@@ -17,12 +17,13 @@ import { TabsBar } from '@/components/TabsBar';
 import { NewTabButton } from '@/components/TabsBar';
 
 function MobileAutoCloseSidebar() {
-  const { setOpenMobile } = useSidebar();
+  const sidebar = useSidebar();
   const isMobile = useIsMobile();
   const location = useLocation();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (isMobile) setOpenMobile(false);
-  }, [location.pathname, isMobile, setOpenMobile]);
+    if (isMobile) sidebar.setOpenMobile(false);
+  }, [location.pathname]);
   return null;
 }
 
