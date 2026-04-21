@@ -270,7 +270,7 @@ export default function SopDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['product-renewal', linkedProductId] });
       toast.success('Antecedência de renovação guardada');
     },
-    onError: () => toast.error('Erro ao guardar'),
+    onError: () => toast.error('Não consegui guardar a SOP. Tenta novamente.'),
   });
 
   const QUICK_RENEWAL_DAYS = [15, 30, 45, 60];
@@ -355,7 +355,7 @@ export default function SopDetailPage() {
 
   const createKpi = useMutation({
     mutationFn: async () => {
-      if (!kpiForm.name.trim()) throw new Error('Nome é obrigatório');
+      if (!kpiForm.name.trim()) throw new Error('Nome obrigatório');
       const { error } = await supabase.from('product_kpis' as any).insert({
         product_id: linkedProductId,
         name: kpiForm.name.trim(),
@@ -484,7 +484,7 @@ export default function SopDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['sops'] });
       toast.success('Processo guardado');
     },
-    onError: () => toast.error('Erro ao guardar'),
+    onError: () => toast.error('Não consegui guardar a SOP. Tenta novamente.'),
   });
 
   const bumpVersion = useMutation({

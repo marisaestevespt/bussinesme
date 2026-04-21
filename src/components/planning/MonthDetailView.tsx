@@ -1186,7 +1186,7 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
             <Button
               className="w-full"
               onClick={() => {
-                if (!convertForm.full_name?.trim()) { toast.error('Nome é obrigatório'); return; }
+                if (!convertForm.full_name?.trim()) { toast.error('Nome obrigatório'); return; }
                 createClientFromLead.mutate(convertForm);
               }}
               disabled={createClientFromLead.isPending}

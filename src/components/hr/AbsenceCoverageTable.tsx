@@ -247,7 +247,7 @@ export function AbsenceCoverageTable() {
         checkConflictingTasks(editingAbsence.member_id, editingAbsence.start_date, editingAbsence.end_date);
         setEditingAbsence(null);
       },
-      onError: () => toast.error('Erro ao guardar'),
+      onError: () => toast.error('Não consegui guardar a cobertura. Tenta novamente.'),
     });
   }
 

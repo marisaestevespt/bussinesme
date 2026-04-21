@@ -139,7 +139,7 @@ export function FinSetupNegocio() {
       qc.invalidateQueries({ queryKey: ['business-setup'] });
       toast.success('Setup guardado');
     },
-    onError: () => toast.error('Erro ao guardar'),
+    onError: () => toast.error('Não consegui guardar a configuração. Tenta novamente.'),
   });
 
   if (isLoading) return <p className="text-sm text-muted-foreground">A carregar...</p>;

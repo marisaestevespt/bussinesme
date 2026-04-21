@@ -57,7 +57,7 @@ export function MemberDigestSettings() {
       await update({ enabled: val, frequency, sections });
       toast.success(val ? 'Resumo pessoal activado' : 'Resumo pessoal desactivado');
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a preferências de digest. Tenta novamente.');
       setEnabled(!val);
     }
   };
@@ -71,7 +71,7 @@ export function MemberDigestSettings() {
         send_day_of_month: val === 'mensal' ? (dayOfMonth ?? 1) : null,
       });
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a preferências de digest. Tenta novamente.');
     }
   };
 
@@ -90,7 +90,7 @@ export function MemberDigestSettings() {
     try {
       await update({ send_day_of_week: num });
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a preferências de digest. Tenta novamente.');
     }
   };
 
@@ -100,7 +100,7 @@ export function MemberDigestSettings() {
     try {
       await update({ send_day_of_month: num });
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a preferências de digest. Tenta novamente.');
     }
   };
 
@@ -110,7 +110,7 @@ export function MemberDigestSettings() {
     try {
       await update({ sections: next });
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a preferências de digest. Tenta novamente.');
     }
   };
 

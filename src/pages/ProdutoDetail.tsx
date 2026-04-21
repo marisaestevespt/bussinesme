@@ -64,7 +64,7 @@ export default function ProdutoDetailPage() {
 
   const save = async () => {
     if (!form.name?.trim()) {
-      toast.error('Nome é obrigatório');
+      toast.error('Nome obrigatório');
       return;
     }
     try {

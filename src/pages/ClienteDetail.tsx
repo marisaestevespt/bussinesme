@@ -156,7 +156,7 @@ export default function ClienteDetailPage() {
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
   const save = async (skipOffboardingCheck = false): Promise<string | null> => {
-    if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return null; }
+    if (!form.full_name?.trim()) { toast.error('Nome obrigatório'); return null; }
     try {
       const prevStatus = client?.status;
       const newStatus = form.status;
@@ -987,7 +987,7 @@ export default function ClienteDetailPage() {
             </div>
             <p className="text-xs text-muted-foreground">Cliente: <span className="font-medium text-foreground">{form.full_name || '—'}</span> (pré-associado)</p>
             <Button className="w-full" onClick={() => {
-              if (!newProjectName.trim()) { toast.error('Nome é obrigatório'); return; }
+              if (!newProjectName.trim()) { toast.error('Nome obrigatório'); return; }
               createProject.mutate(newProjectName.trim());
             }}>Criar Projeto</Button>
           </div>

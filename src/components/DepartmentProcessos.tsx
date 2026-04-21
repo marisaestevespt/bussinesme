@@ -439,7 +439,7 @@ function DeptWhatsAppCard({ department }: { department: string }) {
       }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['dept-whatsapp', department] }); toast.success('Link guardado'); setEditing(false); },
-    onError: () => toast.error('Erro ao guardar'),
+    onError: () => toast.error('Não consegui guardar a processo. Tenta novamente.'),
   });
 
   if (!url && !isAdmin) return null;

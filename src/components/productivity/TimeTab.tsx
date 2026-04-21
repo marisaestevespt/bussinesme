@@ -286,7 +286,7 @@ function TimeLogView({ entries, members, clients, projects, tasks }: { entries: 
       setDialogOpen(false);
       setNewDuration(''); setNewDesc(''); setNewTask(''); setNewProject(''); setNewClient('');
     },
-    onError: () => toast.error('Erro ao guardar'),
+    onError: () => toast.error('Não consegui guardar a registo de tempo. Tenta novamente.'),
   });
 
   const deleteEntry = useMutation({

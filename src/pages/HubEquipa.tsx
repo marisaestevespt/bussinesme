@@ -125,7 +125,7 @@ function TeamWhatsAppLink() {
       }
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['business-settings-whatsapp'] }); toast.success('Link guardado'); setEditing(false); },
-    onError: () => toast.error('Erro ao guardar'),
+    onError: () => toast.error('Não consegui guardar a membro. Tenta novamente.'),
   });
 
   if (editing) {

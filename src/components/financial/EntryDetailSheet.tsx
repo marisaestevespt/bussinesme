@@ -111,7 +111,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
       documents: docs as any,
     }).eq('id', sale.id);
     if (error) {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a entrada. Tenta novamente.');
     } else {
       toast.success('Entrada atualizada');
       qc.invalidateQueries({ queryKey: ['commercial'] });
@@ -122,7 +122,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const handleDelete = async () => {
     const { error } = await supabase.from('commercial_sales').delete().eq('id', sale.id);
     if (error) {
-      toast.error('Erro ao eliminar');
+      toast.error('Não consegui eliminar a entrada. Tenta novamente.');
     } else {
       toast.success('Entrada eliminada');
       qc.invalidateQueries({ queryKey: ['commercial'] });

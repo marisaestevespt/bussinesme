@@ -116,7 +116,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
     const { error } = await supabase.from('team_member_vacations').insert({
       member_id: member.id, start_date: vacStart, end_date: vacEnd, notes: vacNotes || null,
     });
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a membro. Tenta novamente.');
     else { toast.success('Férias adicionadas'); setVacStart(''); setVacEnd(''); setVacNotes(''); qc.invalidateQueries({ queryKey: ['member-vacations', member.id] }); qc.invalidateQueries({ queryKey: ['escala-vacations'] }); }
   };
 
