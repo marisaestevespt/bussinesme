@@ -169,7 +169,7 @@ export const template = {
     productName: 'Consultoria Digital',
     amount: '350',
     portalUrl: 'https://exemplo.com/portal/abc',
-    businessName: 'Lyrata®',
+    businessName: 'O Teu Negócio',
     primaryColor: '12 76% 52%',
     primaryForeground: '0 0% 100%',
     textColor: '20 25% 10%',

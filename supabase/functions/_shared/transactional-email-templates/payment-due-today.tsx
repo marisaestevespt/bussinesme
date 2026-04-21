@@ -193,7 +193,7 @@ export const template = {
     dueDate: '15/04/2026',
     paymentMethod: 'transferencia',
     iban: 'PT50 0000 0000 0000 0000 0001 2',
-    businessName: 'Lyrata®',
+    businessName: 'O Teu Negócio',
     primaryColor: '222 47% 11%',
     primaryForeground: '210 40% 98%',
     textColor: '222 84% 5%',
