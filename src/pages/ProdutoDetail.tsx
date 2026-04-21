@@ -668,6 +668,10 @@ export default function ProdutoDetailPage() {
               trafficAds={trafficAds}
               isOwner={isOwner}
               productName={form.name || ''}
+              salesPage={((form as any).sales_page || {}) as Record<string, unknown>}
+              salesPageUrl={form.sales_page_url || ''}
+              onUpdateSalesPage={(next) => update('sales_page', next)}
+              onUpdateSalesPageUrl={(url) => update('sales_page_url', url)}
               onAddFunnel={() => addRow.mutate({ table: 'marketing_funnels', data: { name: `Funil — ${form.name}`, product_name: form.name, product_id: id } })}
               onAddAutomation={() => addRow.mutate({ table: 'marketing_automations', data: { name: `Automação — ${form.name}`, product_name: form.name, product_id: id } })}
               onAddTrafficAd={() => addRow.mutate({ table: 'traffic_creatives', data: { name: `Criativo — ${form.name}`, product_name: form.name, product_id: id } })}
