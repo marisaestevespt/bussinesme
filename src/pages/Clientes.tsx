@@ -205,13 +205,8 @@ export default function ClientesPage() {
               isFetchingNextPage={clients.isFetchingNextPage}
               fetchNextPage={clients.fetchNextPage}
             >
-              <div className="hidden md:grid bg-primary text-primary-foreground px-6 py-2.5 font-medium text-xs grid-cols-6 gap-2">
-                <span>ID</span>
-                <span>Status</span>
-                <span>Nome</span>
-                <span>E-mail</span>
-                <span>Whatsapp</span>
-                <span>Produto Atual</span>
+              <div className="hidden md:block bg-primary text-primary-foreground px-6 py-2 font-medium text-[11px] uppercase tracking-wide">
+                Nome · ID · Status · Datas · Produto · Contactos
               </div>
               {displayItems.length === 0 ? (
                 <p className="text-center text-muted-foreground py-12 text-sm">
