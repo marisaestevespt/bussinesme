@@ -34,6 +34,7 @@ export default function VendaDetailPage() {
   const qc = useQueryClient();
   const { isOwner } = useAuth();
   const commercialData = useCommercialData();
+  const confirm = useConfirm();
 
   const { data: sale, isLoading } = useQuery({
     queryKey: ['sale-detail', id],
@@ -194,7 +195,13 @@ export default function VendaDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Tens a certeza que queres eliminar esta venda?')) return;
+    const ok = await confirm({
+      title: 'Eliminar venda?',
+      description: 'Esta venda e os documentos anexados serão removidos permanentemente.',
+      confirmText: 'Eliminar',
+      variant: 'destructive',
+    });
+    if (!ok) return;
     await commercialData.deleteSale.mutateAsync(id!);
     navigate('/hub/comercial/vendas');
   };

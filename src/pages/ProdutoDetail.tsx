@@ -38,6 +38,7 @@ export default function ProdutoDetailPage() {
   const qc = useQueryClient();
   const { isOwner, user } = useAuth();
   const isNew = id === 'novo';
+  const confirm = useConfirm();
 
   const { data: product, isLoading } = useProduct(isNew ? undefined : id);
   const { upsertProduct, duplicateProduct, deleteProduct } = useProducts();
@@ -84,10 +85,16 @@ export default function ProdutoDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (product && confirm('Tens a certeza que queres eliminar este produto?')) {
-      await deleteProduct.mutateAsync(product.id);
-      navigate('/hub/produtos');
-    }
+    if (!product) return;
+    const ok = await confirm({
+      title: 'Eliminar produto?',
+      description: `O produto "${product.name}" e os dados associados serão removidos permanentemente.`,
+      confirmText: 'Eliminar',
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    await deleteProduct.mutateAsync(product.id);
+    navigate('/hub/produtos');
   };
 
   // ─── Sub-table queries ───────────────────────────────────────

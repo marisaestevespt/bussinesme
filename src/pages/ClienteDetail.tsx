@@ -148,6 +148,7 @@ export default function ClienteDetailPage() {
   const [leadPreviewId, setLeadPreviewId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'em_onboarding' }); setInitialized(true); }
@@ -319,7 +320,16 @@ export default function ClienteDetailPage() {
     if (client) { await duplicateClient.mutateAsync(client); navigate('/hub/clientes'); }
   };
   const handleDelete = async () => {
-    if (client && confirm('Eliminar este cliente?')) { await deleteClient.mutateAsync(client.id); navigate('/hub/clientes'); }
+    if (!client) return;
+    const ok = await confirm({
+      title: 'Eliminar cliente?',
+      description: `O cliente "${client.full_name}" será removido. Vendas e tarefas associadas mantêm-se mas perdem a ligação.`,
+      confirmText: 'Eliminar',
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    await deleteClient.mutateAsync(client.id);
+    navigate('/hub/clientes');
   };
 
   // Filtered payments
