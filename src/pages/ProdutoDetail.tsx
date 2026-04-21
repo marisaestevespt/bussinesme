@@ -245,7 +245,7 @@ export default function ProdutoDetailPage() {
 
   const SectionButton = ({ sectionKey, label }: { sectionKey: string; label: string }) => (
     <Button
-      variant={openSection === sectionKey ? 'default' : 'secondary'}
+      variant={openSection === sectionKey ? 'default' : 'outline'}
       onClick={() => toggleSection(sectionKey)}
       className="h-11 px-5 text-sm font-medium rounded-xl"
     >
