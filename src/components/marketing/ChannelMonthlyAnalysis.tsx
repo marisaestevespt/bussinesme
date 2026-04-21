@@ -130,33 +130,6 @@ interface Props {
 
 export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, onBack }: Props) {
   const queryClient = useQueryClient();
-  const [syncing, setSyncing] = useState(false);
-
-  const syncMetrics = async () => {
-    setSyncing(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/fetch-social-metrics`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({ channel_id: channelId }),
-        }
-      );
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
-      const r = result.results?.[0];
-      if (r?.status === 'error') throw new Error(r.error);
-      queryClient.invalidateQueries({ queryKey: ['channel-monthly-metrics', channelId, month, year] });
-    } catch {
-      // silent - button shows state
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   const { data: channelMetrics } = useQuery({
     queryKey: ['channel-monthly-metrics', channelId, month, year],
