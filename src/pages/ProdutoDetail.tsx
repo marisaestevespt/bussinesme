@@ -330,7 +330,34 @@ export default function ProdutoDetailPage() {
           </div>
           <div className="flex-1 space-y-2">
             <Input value={form.name || ''} onChange={e => update('name', e.target.value)} placeholder="Nome do produto" className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto" readOnly={!isOwner} />
-            <Textarea value={form.description || ''} onChange={e => update('description', e.target.value)} placeholder="Descrição curta do produto..." className="border-none shadow-none px-0 focus-visible:ring-0 resize-none min-h-[60px]" readOnly={!isOwner} />
+            <div className="space-y-2">
+              <Textarea
+                value={form.description || ''}
+                onChange={e => update('description', e.target.value)}
+                placeholder="Descrição do produto..."
+                className="min-h-[160px] resize-y text-sm leading-relaxed"
+                readOnly={!isOwner}
+              />
+              {isOwner && (form.description || '') !== (product?.description || '') && (
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-xs text-muted-foreground italic">Alterações por guardar</span>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await upsertProduct.mutateAsync({ id: product!.id, name: form.name!, description: form.description ?? null } as Product);
+                        toast.success('Descrição guardada');
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Erro ao guardar descrição');
+                      }
+                    }}
+                    disabled={upsertProduct.isPending}
+                  >
+                    Guardar descrição
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
