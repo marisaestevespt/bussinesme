@@ -15,6 +15,7 @@ import { PipelineFormDialog } from '@/components/commercial/crm/PipelineFormDial
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData } from '@/hooks/useCrmData';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { resolveProductId } from '@/lib/productResolver';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -104,11 +105,14 @@ export default function CrmPipelines() {
   // Create / Update pipeline
   const savePipeline = useMutation({
     mutationFn: async (payload: any) => {
+      const resolvedProduct = payload.product === '__none' ? null : payload.product;
+      const productId = await resolveProductId(resolvedProduct);
       const cleaned = {
         name: payload.name,
         start_date: payload.start_date,
         end_date: payload.end_date,
-        product: payload.product === '__none' ? null : payload.product,
+        product: resolvedProduct,
+        product_id: productId,
         project_id: payload.project_id === '__none' ? null : payload.project_id,
       };
       if (payload.id) {

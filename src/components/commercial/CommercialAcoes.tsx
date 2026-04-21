@@ -18,6 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Plus, Pencil, Trash2, Clock, PlayCircle, CalendarDays, BookOpen, Check, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { resolveProductId } from '@/lib/productResolver';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
