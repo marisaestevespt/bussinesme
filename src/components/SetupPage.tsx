@@ -200,7 +200,7 @@ export function SetupPage() {
         headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
       });
 
-      toast.success('HQ configurado com sucesso!');
+      toast.success('Sistema Lyrata® configurado com sucesso!');
       await refetch();
       window.location.reload();
     } catch (err: any) {
@@ -216,7 +216,7 @@ export function SetupPage() {
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            Configura a tua Lyrata
+            Configura o teu sistema Lyrata®
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto">
             Define a identidade visual do teu negócio. Podes alterar tudo mais tarde nas Definições.
@@ -332,7 +332,7 @@ export function SetupPage() {
           </div>
 
           <Button type="submit" className="w-full h-12 text-base" disabled={loading || !businessName.trim()}>
-            {loading ? 'A configurar...' : 'Criar o meu HQ'}
+            {loading ? 'A configurar...' : 'Criar o meu sistema Lyrata®'}
           </Button>
         </form>
       </div>
