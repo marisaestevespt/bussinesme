@@ -331,3 +331,13 @@
 .recharts-area .recharts-area-area {
   opacity: 0.15;
 }
+
+/* Thin scrollbar utility for compact horizontal scroll areas */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}

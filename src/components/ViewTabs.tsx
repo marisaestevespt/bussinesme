@@ -38,14 +38,14 @@ export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pb-1 scrollbar-thin sm:flex-wrap sm:overflow-visible">
         {views.map(v => (
           <div key={v.key} className="flex items-center group">
             <Button
               variant={activeKey === v.key ? 'default' : 'outline'}
               size="sm"
               onClick={() => onSelect(v.key)}
-              className="gap-1.5"
+              className="gap-1.5 shrink-0"
             >
               {v.isDefault && (v as any).icon}
               {v.label}
@@ -56,7 +56,7 @@ export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-6 px-0 opacity-0 group-hover:opacity-100 transition-opacity -ml-1"
+                    className="h-8 w-6 px-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity -ml-1 shrink-0"
                   >
                     <MoreHorizontal className="h-3.5 w-3.5" />
                   </Button>
@@ -73,7 +73,7 @@ export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete
             )}
           </div>
         ))}
-        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => setAddOpen(true)}>
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground shrink-0" onClick={() => setAddOpen(true)}>
           <Plus className="h-3.5 w-3.5" /> Nova vista
         </Button>
       </div>
