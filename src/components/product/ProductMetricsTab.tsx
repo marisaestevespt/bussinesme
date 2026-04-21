@@ -93,34 +93,41 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
   });
 
   const { data: clientsData = [] } = useQuery({
-    queryKey: ['product-metrics-clients', productName],
+    queryKey: ['product-metrics-clients', productId, productName],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('*').eq('current_product', productName);
+      const query = supabase.from('clients').select('*');
+      const { data } = productId
+        ? await query.eq('current_product_id', productId)
+        : await query.eq('current_product', productName);
       return data || [];
     },
-    enabled: !!productName,
+    enabled: !!(productId || productName),
   });
 
   const { data: npsRecords = [] } = useQuery({
-    queryKey: ['product-metrics-nps', productName],
+    queryKey: ['product-metrics-nps', productId, productName],
     queryFn: async () => {
       const { data } = await supabase.from('client_nps_records')
-        .select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, id)')
+        .select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, current_product_id, id)')
         .order('actual_date', { ascending: false });
-      return (data || []).filter((n: any) => n.clients?.current_product === productName) as any[];
+      return (data || []).filter((n: any) =>
+        productId ? n.clients?.current_product_id === productId : n.clients?.current_product === productName
+      ) as any[];
     },
-    enabled: !!productName,
+    enabled: !!(productId || productName),
   });
 
   const { data: milestones = [] } = useQuery({
-    queryKey: ['product-metrics-milestones', productName],
+    queryKey: ['product-metrics-milestones', productId, productName],
     queryFn: async () => {
       const { data } = await supabase.from('client_milestones')
-        .select('*, clients!client_milestones_client_id_fkey(full_name, current_product, id)')
+        .select('*, clients!client_milestones_client_id_fkey(full_name, current_product, current_product_id, id)')
         .order('expected_date');
-      return (data || []).filter((m: any) => m.clients?.current_product === productName) as any[];
+      return (data || []).filter((m: any) =>
+        productId ? m.clients?.current_product_id === productId : m.clients?.current_product === productName
+      ) as any[];
     },
-    enabled: !!productName,
+    enabled: !!(productId || productName),
   });
 
   const { data: kpis = [] } = useQuery({
@@ -465,23 +472,28 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
   });
 
   const { data: clientsData = [] } = useQuery({
-    queryKey: ['product-metrics-clients', productName],
+    queryKey: ['product-metrics-clients-annual', productId, productName],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('*').eq('current_product', productName);
+      const query = supabase.from('clients').select('*');
+      const { data } = productId
+        ? await query.eq('current_product_id', productId)
+        : await query.eq('current_product', productName);
       return data || [];
     },
-    enabled: !!productName,
+    enabled: !!(productId || productName),
   });
 
   const { data: npsRecords = [] } = useQuery({
-    queryKey: ['product-metrics-nps', productName],
+    queryKey: ['product-metrics-nps-annual', productId, productName],
     queryFn: async () => {
       const { data } = await supabase.from('client_nps_records')
-        .select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, id)')
+        .select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, current_product_id, id)')
         .order('actual_date', { ascending: false });
-      return (data || []).filter((n: any) => n.clients?.current_product === productName) as any[];
+      return (data || []).filter((n: any) =>
+        productId ? n.clients?.current_product_id === productId : n.clients?.current_product === productName
+      ) as any[];
     },
-    enabled: !!productName,
+    enabled: !!(productId || productName),
   });
 
   // KPIs + values for annual

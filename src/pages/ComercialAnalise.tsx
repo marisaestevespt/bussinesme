@@ -180,7 +180,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const npsQ = useQuery({
     queryKey: ['all-nps-records'],
     queryFn: async () => {
-      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, id)').order('actual_date', { ascending: false });
+      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, current_product_id, id)').order('actual_date', { ascending: false });
       return data || [];
     },
   });
@@ -200,7 +200,9 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const pCount = pSales.length;
       const pTicket = pCount > 0 ? Math.round(pRevenue / pCount) : 0;
 
-      const pClients = clientsData.filter(c => c.current_product === p.name);
+      const pClients = clientsData.filter(c =>
+        (c as any).current_product_id ? (c as any).current_product_id === p.id : c.current_product === p.name
+      );
       const pActive = pClients.filter(c => c.status === 'ativo' || c.status === 'em_onboarding').length;
       const pNew = pClients.filter(c => {
         if (!c.start_date) return false;
@@ -228,7 +230,10 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const seen = new Set<string>();
       const scores: number[] = [];
       for (const n of allNps) {
-        if (n.nps_score != null && n.clients?.current_product === p.name && n.clients?.id && !seen.has(n.clients.id)) {
+        const matchesProduct = n.clients?.current_product_id
+          ? n.clients.current_product_id === p.id
+          : n.clients?.current_product === p.name;
+        if (n.nps_score != null && matchesProduct && n.clients?.id && !seen.has(n.clients.id)) {
           seen.add(n.clients.id);
           scores.push(n.nps_score);
         }
