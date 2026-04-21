@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const PLATFORM_TYPES = [
   { value: 'gestao', label: 'Gestão', color: 'bg-info/15 text-info' },
@@ -222,7 +223,7 @@ export default function AcessosPage() {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <InlineLoader />
           </div>
         ) : accesses.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">

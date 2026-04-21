@@ -34,6 +34,7 @@ import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -465,7 +466,7 @@ export default function ReuniaoDetailPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <InlineLoader />
         </div>
       </AppLayout>
     );

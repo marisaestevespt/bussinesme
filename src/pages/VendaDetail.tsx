@@ -22,6 +22,7 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
@@ -210,7 +211,7 @@ export default function VendaDetailPage() {
     return (
       <AppLayout>
         <div className="flex min-h-[50vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <InlineLoader />
         </div>
       </AppLayout>
     );

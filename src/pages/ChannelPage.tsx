@@ -25,6 +25,7 @@ import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelCont
 import { ChannelMonthGallery } from '@/components/marketing/ChannelMonthGallery';
 import { ChannelMonthlyAnalysis } from '@/components/marketing/ChannelMonthlyAnalysis';
 import { BackNavigation } from '@/components/BackNavigation';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const DIST_DAY_LABELS: Record<string, string> = {
   segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta',
@@ -202,7 +203,7 @@ export default function ChannelPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <InlineLoader />
         </div>
       </AppLayout>
     );

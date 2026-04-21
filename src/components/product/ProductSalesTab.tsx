@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Gift, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -141,7 +142,7 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
         <CardHeader><CardTitle className="text-base">Histórico de Vendas</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-8"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+            <div className="flex justify-center py-8"><InlineLoader /></div>
           ) : sales.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">Sem vendas registadas para este produto.</p>
           ) : (

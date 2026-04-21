@@ -27,7 +27,7 @@ import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, Aler
 import { BackNavigation } from '@/components/BackNavigation';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
 import { useConfirm } from '@/components/ui/confirm-dialog';
-import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -246,7 +246,7 @@ export default function ConteudoDetailPage() {
   const statusOpt = STATUS_OPTIONS.find(s => s.value === form.status);
 
   if (isLoading) return (
-    <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
+    <AppLayout><div className="flex items-center justify-center min-h-screen"><InlineLoader /></div></AppLayout>
   );
   if (!item) return (
     <AppLayout><div className="p-10 text-center text-muted-foreground">Conteúdo não encontrado.</div></AppLayout>
