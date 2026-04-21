@@ -4,6 +4,7 @@ import { PAGE_SIZE, flattenInfiniteData, type InfinitePageResult } from '@/hooks
 import { supabase } from '@/integrations/supabase/client';
 import { excludeCancelled, cleanPayload } from '@/lib/utils';
 import { toast } from 'sonner';
+import { resolveProductId } from '@/lib/productResolver';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type CommercialSale = Tables<'commercial_sales'>;
