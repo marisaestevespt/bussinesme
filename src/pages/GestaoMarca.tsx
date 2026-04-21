@@ -84,6 +84,8 @@ const KANBAN_GROUPS = [
   { key: 'impacto', label: 'Impacto', headerBg: 'bg-[hsl(18,30%,92%)] dark:bg-[hsl(18,25%,15%)]', headerText: 'text-[hsl(18,40%,44%)] dark:text-[hsl(18,40%,64%)]', dotBg: '', addColor: 'text-[hsl(18,35%,54%)]' },
 ];
 
+const KANBAN_EMOJIS = ['📄', '📝', '💡', '🎯', '✨', '🧭', '🚀', '🎨', '🌱', '🔥', '⭐', '💎', '🧠', '📌', '📚', '🗺️', '🏆', '❤️', '🌍', '🎤'];
+
 // ── Page ──
 
 export default function GestaoMarcaPage() {
