@@ -166,7 +166,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 <TableCell>Total</TableCell>
                 <TableCell className="text-right">{fmt(totalCobrado)}</TableCell>
                 <TableCell className="text-right">{fmt(totalPago)}</TableCell>
-                <TableCell className={`text-right ${totalBalanco > 0 ? 'text-amber-600' : totalBalanco < 0 ? 'text-green-600' : ''}`}>{fmt(totalBalanco)}</TableCell>
+                <TableCell className={`text-right ${totalBalanco > 0 ? 'text-warning' : totalBalanco < 0 ? 'text-success' : ''}`}>{fmt(totalBalanco)}</TableCell>
                 <TableCell />
               </TableRow>
             </TableBody>

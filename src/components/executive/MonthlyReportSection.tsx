@@ -286,7 +286,7 @@ export function MonthlyReportSection() {
               <CardContent className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Leads convertidas</span>
-                  <span className="font-medium text-green-600">{reportData.crm?.leadsConverted || 0}</span>
+                  <span className="font-medium text-success">{reportData.crm?.leadsConverted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Leads perdidas</span>

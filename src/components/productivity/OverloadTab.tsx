@@ -39,7 +39,7 @@ export function OverloadTab({ entries, members, tasks }: { entries: any[]; membe
     return { ...m, weeklyPcts, trendLabel };
   });
 
-  const pctColor = (pct: number) => pct >= 120 ? 'text-destructive font-semibold' : pct >= 110 ? 'text-amber-500 font-medium' : 'text-green-600';
+  const pctColor = (pct: number) => pct >= 120 ? 'text-destructive font-semibold' : pct >= 110 ? 'text-amber-500 font-medium' : 'text-success';
 
   return (
     <div className="space-y-6">

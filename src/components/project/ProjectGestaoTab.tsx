@@ -56,10 +56,10 @@ const SUBSCRIPTION_PERIODICITIES = [
 ];
 
 const SALE_STATUSES: Record<string, { label: string; color: string }> = {
-  aguarda_pagamento: { label: 'Aguarda Pagamento', color: 'bg-amber-100 text-amber-700 border-amber-300' },
-  pago: { label: 'Pago', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
-  tudo_ok: { label: 'Tudo OK', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
-  em_atraso: { label: 'Em Atraso', color: 'bg-red-100 text-red-700 border-red-300' },
+  aguarda_pagamento: { label: 'Aguarda Pagamento', color: 'bg-warning/15 text-warning border-warning/30' },
+  pago: { label: 'Pago', color: 'bg-success/15 text-success border-success/30' },
+  tudo_ok: { label: 'Tudo OK', color: 'bg-success/15 text-success border-success/30' },
+  em_atraso: { label: 'Em Atraso', color: 'bg-destructive/15 text-destructive border-destructive/30' },
   cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground border-muted' },
 };
 
@@ -245,11 +245,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   );
 
   const MEETING_STATUSES: Record<string, { label: string; badgeColor: string; color: string }> = {
-    por_organizar: { label: 'Por organizar', badgeColor: 'bg-blue-100 text-blue-700 border-blue-300', color: 'hsl(var(--primary))' },
-    por_confirmar: { label: 'Por confirmar', badgeColor: 'bg-amber-100 text-amber-700 border-amber-300', color: 'hsl(var(--warning))' },
-    confirmada: { label: 'Confirmada', badgeColor: 'bg-emerald-100 text-emerald-700 border-emerald-300', color: 'hsl(var(--success))' },
+    por_organizar: { label: 'Por organizar', badgeColor: 'bg-info/15 text-info border-info/30', color: 'hsl(var(--primary))' },
+    por_confirmar: { label: 'Por confirmar', badgeColor: 'bg-warning/15 text-warning border-warning/30', color: 'hsl(var(--warning))' },
+    confirmada: { label: 'Confirmada', badgeColor: 'bg-success/15 text-success border-success/30', color: 'hsl(var(--success))' },
     terminada: { label: 'Terminada', badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' },
-    cancelada: { label: 'Cancelada', badgeColor: 'bg-red-100 text-red-700 border-red-300', color: 'hsl(var(--destructive))' },
+    cancelada: { label: 'Cancelada', badgeColor: 'bg-destructive/15 text-destructive border-destructive/30', color: 'hsl(var(--destructive))' },
   };
 
   // ─── Helper: resolve payment method for a generated entry ─────

@@ -30,10 +30,10 @@ const DEPARTMENTS = SHARED_DEPARTMENTS.map(d => ({ value: d.value, label: d.labe
 
 const SOP_STATUSES = [
   { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
-  { value: 'em_criacao', label: 'Em criação', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-  { value: 'ativo', label: 'Ativo', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  { value: 'em_revisao', label: 'Em revisão', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'off', label: 'Off', color: 'bg-red-100 text-red-800 border-red-200' },
+  { value: 'em_criacao', label: 'Em criação', color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'ativo', label: 'Ativo', color: 'bg-success/15 text-success border-success/30' },
+  { value: 'em_revisao', label: 'Em revisão', color: 'bg-info/15 text-info border-info/30' },
+  { value: 'off', label: 'Off', color: 'bg-destructive/15 text-destructive border-destructive/30' },
 ];
 
 type ListItem = { text: string; checked?: boolean };
@@ -897,7 +897,7 @@ export default function SopDetailPage() {
           <CardContent>
             {editingSections.has('inputs') ? (
               <>
-                <p className="text-sm text-amber-600 mb-3">⚠️ Se algum item estiver em falta, não iniciar.</p>
+                <p className="text-sm text-warning mb-3">⚠️ Se algum item estiver em falta, não iniciar.</p>
                 <EditableCheckList items={inputs} onChange={setInputs} />
               </>
             ) : (
@@ -1524,7 +1524,7 @@ export default function SopDetailPage() {
           <CardContent>
             {editingSections.has('outputs') ? (
               <>
-                <p className="text-sm text-emerald-600 mb-3">✅ O processo considera-se concluído quando:</p>
+                <p className="text-sm text-success mb-3">✅ O processo considera-se concluído quando:</p>
                 <EditableCheckList items={outputs} onChange={setOutputs} />
               </>
             ) : (

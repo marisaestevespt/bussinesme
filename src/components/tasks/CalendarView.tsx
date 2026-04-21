@@ -57,7 +57,7 @@ export function CalendarView({
                       isOverdue(t)
                         ? 'bg-destructive/10 text-destructive'
                         : t.status === 'done'
-                          ? 'bg-emerald-100 text-emerald-700'
+                          ? 'bg-success/15 text-success'
                           : 'bg-primary/10 text-primary'
                     )}
                   >

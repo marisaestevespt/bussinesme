@@ -319,9 +319,9 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
               {/* Revenue badge */}
               {projectId && launchRevenue !== undefined && launchRevenue > 0 && (
                 <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-green-600" />
+                  <DollarSign className="h-4 w-4 text-success" />
                   <span className="text-sm font-medium">Receita total do lançamento:</span>
-                  <Badge variant="outline" className="text-green-700 dark:text-green-400 border-green-300">
+                  <Badge variant="outline" className="text-success dark:text-green-400 border-success/30">
                     {launchRevenue.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
                   </Badge>
                 </div>

@@ -324,7 +324,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
                             />
                             {isGrowthField && numVal != null && (
                               <span className={cn("text-xs font-medium flex items-center gap-0.5",
-                                numVal >= 0 ? 'text-emerald-600' : 'text-red-500')}>
+                                numVal >= 0 ? 'text-success' : 'text-red-500')}>
                                 {numVal >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                                 {numVal >= 0 ? '+' : ''}{numVal}
                               </span>

@@ -11,11 +11,11 @@ import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } fr
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   por_criar: { label: 'Por criar', className: 'bg-muted text-muted-foreground' },
-  em_criacao: { label: 'Em criação', className: 'bg-blue-100 text-blue-800' },
+  em_criacao: { label: 'Em criação', className: 'bg-info/15 text-info' },
   para_aprovacao: { label: 'Para aprovação', className: 'bg-purple-100 text-purple-800' },
-  aprovado: { label: 'Aprovado', className: 'bg-green-100 text-green-800' },
-  agendado: { label: 'Agendado', className: 'bg-amber-100 text-amber-800' },
-  publicado: { label: 'Publicado', className: 'bg-emerald-100 text-emerald-800' },
+  aprovado: { label: 'Aprovado', className: 'bg-success/15 text-success' },
+  agendado: { label: 'Agendado', className: 'bg-warning/15 text-warning' },
+  publicado: { label: 'Publicado', className: 'bg-success/15 text-success' },
 };
 
 export default function SecretariaConteudos() {

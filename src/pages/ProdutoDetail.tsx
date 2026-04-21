@@ -220,7 +220,7 @@ export default function ProdutoDetailPage() {
   const getEventStatus = (ev: Record<string, unknown>) => {
     const start = parseISO(ev.start_date as string);
     if (isToday(start)) return { label: 'Hoje', color: 'bg-primary text-primary-foreground' };
-    if (isFuture(start)) return { label: 'Futuro', color: 'bg-blue-100 text-blue-800 border-blue-200' };
+    if (isFuture(start)) return { label: 'Futuro', color: 'bg-info/15 text-info border-info/30' };
     return { label: 'Passado', color: 'bg-muted text-muted-foreground' };
   };
 

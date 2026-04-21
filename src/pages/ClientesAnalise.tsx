@@ -251,9 +251,9 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
             <span className="text-sm text-muted-foreground">{activeNps.length} / {activeClients.length} clientes com NPS</span>
           </div>
           <div className="flex gap-4 text-sm">
-            <span className="text-emerald-600 font-medium">Promotores (9-10): {promoters}</span>
-            <span className="text-amber-600 font-medium">Neutros (7-8): {passives}</span>
-            <span className="text-red-600 font-medium">Detratores (0-6): {detractors}</span>
+            <span className="text-success font-medium">Promotores (9-10): {promoters}</span>
+            <span className="text-warning font-medium">Neutros (7-8): {passives}</span>
+            <span className="text-destructive font-medium">Detratores (0-6): {detractors}</span>
           </div>
         </CardContent>
       </Card>
@@ -475,7 +475,7 @@ export default function ClientesAnalisePage() {
                     <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="flex gap-3 text-xs text-muted-foreground">
-                    <span className="text-emerald-600 font-medium">+{m.newClients} novos</span>
+                    <span className="text-success font-medium">+{m.newClients} novos</span>
                     {m.churn > 0 && <span className="text-destructive font-medium">-{m.churn} churn</span>}
                   </div>
                 </CardContent>

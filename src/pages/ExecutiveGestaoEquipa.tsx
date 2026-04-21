@@ -176,11 +176,11 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   };
 
   const availColors: Record<string, string> = {
-    available: 'bg-emerald-100 dark:bg-emerald-900/30',
+    available: 'bg-success/15 dark:bg-emerald-900/30',
     off: 'bg-muted',
-    vacation: 'bg-amber-100 dark:bg-amber-900/30',
-    absence: 'bg-orange-100 dark:bg-orange-900/30',
-    holiday: 'bg-blue-100 dark:bg-blue-900/30',
+    vacation: 'bg-warning/15 dark:bg-amber-900/30',
+    absence: 'bg-warning/15 dark:bg-orange-900/30',
+    holiday: 'bg-info/15 dark:bg-blue-900/30',
   };
   const availDots: Record<string, string> = {
     available: 'bg-emerald-500',
@@ -201,16 +201,16 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         </Card>
         <Card className={cn("border-l-4", expiringContracts.length > 0 ? "border-l-amber-500" : "border-l-emerald-500")}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
-              <FileText className={`h-5 w-5 ${expiringContracts.length > 0 ? 'text-amber-600' : 'text-emerald-600'}`} />
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-warning/15 dark:bg-amber-900/30' : 'bg-success/15 dark:bg-emerald-900/30'}`}>
+              <FileText className={`h-5 w-5 ${expiringContracts.length > 0 ? 'text-warning' : 'text-success'}`} />
             </div>
             <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Contratos (30d)</p><p className="text-xl font-bold">{expiringContracts.length > 0 ? expiringContracts.length : '✓'}</p></div>
           </CardContent>
         </Card>
         <Card className={cn("border-l-4", overduePayments.length > 0 ? "border-l-destructive" : "border-l-emerald-500")}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${overduePayments.length > 0 ? 'bg-destructive/10' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
-              <AlertTriangle className={`h-5 w-5 ${overduePayments.length > 0 ? 'text-destructive' : 'text-emerald-600'}`} />
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${overduePayments.length > 0 ? 'bg-destructive/10' : 'bg-success/15 dark:bg-emerald-900/30'}`}>
+              <AlertTriangle className={`h-5 w-5 ${overduePayments.length > 0 ? 'text-destructive' : 'text-success'}`} />
             </div>
             <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Pagamentos</p><p className="text-xl font-bold">{overduePayments.length > 0 ? `${overduePayments.length} atraso` : '✓'}</p></div>
           </CardContent>
@@ -256,7 +256,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                           "text-center font-medium py-1 px-1 min-w-[32px]",
                           isSameDay(d, new Date()) && "text-primary",
                           isWeekend && "bg-muted/50 text-muted-foreground/60",
-                          isHoliday && "bg-amber-50 dark:bg-amber-950/20",
+                          isHoliday && "bg-warning/15 dark:bg-amber-950/20",
                         )}>
                           <div className="text-[9px]">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]}</div>
                           <div className="text-[10px]">{format(d, 'd')}</div>
@@ -480,7 +480,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                 <div className="flex gap-1 pt-1">
                   <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={e => { e.stopPropagation(); setDialog(m); }}>Editar</Button>
                   {m.status === 'ativo' && (
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-amber-600" onClick={e => { e.stopPropagation(); handleStartOffboarding(m); }}>Offboarding</Button>
+                    <Button variant="ghost" size="sm" className="h-7 text-xs text-warning" onClick={e => { e.stopPropagation(); handleStartOffboarding(m); }}>Offboarding</Button>
                   )}
                   {m.status === 'inativo' && (
                     <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={e => {
@@ -852,10 +852,10 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
 
 // ─── Navigation Sections ──────
 const HR_SECTIONS = [
-  { path: '/hub/recursos-humanos/equipa', label: 'Equipa', icon: Users, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
-  { path: '/hub/recursos-humanos/escala', label: 'Escala', icon: CalendarIcon, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
-  { path: '/hub/recursos-humanos/feedback', label: 'Feedback', icon: MessageSquare, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-  { path: '/hub/recursos-humanos/contratos-pagamentos', label: 'Contratos & Pagamentos', icon: FileText, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+  { path: '/hub/recursos-humanos/equipa', label: 'Equipa', icon: Users, iconColor: 'text-info', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+  { path: '/hub/recursos-humanos/escala', label: 'Escala', icon: CalendarIcon, iconColor: 'text-warning', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
+  { path: '/hub/recursos-humanos/feedback', label: 'Feedback', icon: MessageSquare, iconColor: 'text-warning', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
+  { path: '/hub/recursos-humanos/contratos-pagamentos', label: 'Contratos & Pagamentos', icon: FileText, iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
 ];
 
 // ─── Main Page ──────

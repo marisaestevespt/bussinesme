@@ -169,7 +169,7 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
                       <TableCell>{s.client || '—'}</TableCell>
                       <TableCell>
                         {isSpecial ? (
-                          <Badge variant="outline" className="gap-1 text-xs border-amber-300 bg-amber-50 text-amber-700">
+                          <Badge variant="outline" className="gap-1 text-xs border-warning/30 bg-warning/15 text-warning">
                             <Gift className="h-3 w-3" /> Oferta Especial
                           </Badge>
                         ) : (

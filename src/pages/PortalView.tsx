@@ -298,25 +298,25 @@ export default function PortalViewPage() {
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
-      pago: { text: 'Pago', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-      tudo_ok: { text: 'Pago', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-      em_falta: { text: 'Em falta', cls: 'bg-red-50 text-red-600 border-red-200' },
-      pendente: { text: 'Pendente', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-      aguarda_pagamento: { text: 'Aguarda pagamento', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-      em_atraso: { text: 'Em atraso', cls: 'bg-red-50 text-red-600 border-red-200' },
+      pago: { text: 'Pago', cls: 'bg-success/15 text-success border-success/30' },
+      tudo_ok: { text: 'Pago', cls: 'bg-success/15 text-success border-success/30' },
+      em_falta: { text: 'Em falta', cls: 'bg-destructive/15 text-destructive border-destructive/30' },
+      pendente: { text: 'Pendente', cls: 'bg-warning/15 text-warning border-warning/30' },
+      aguarda_pagamento: { text: 'Aguarda pagamento', cls: 'bg-warning/15 text-warning border-warning/30' },
+      em_atraso: { text: 'Em atraso', cls: 'bg-destructive/15 text-destructive border-destructive/30' },
     };
     return map[s] || { text: s, cls: '' };
   };
 
   const meetingStatus = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
-      por_confirmar: { text: 'Por confirmar', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-      por_organizar: { text: 'Por organizar', cls: 'bg-sky-50 text-sky-700 border-sky-200' },
-      confirmada: { text: 'Confirmada', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-      marcada: { text: 'Confirmada', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      por_confirmar: { text: 'Por confirmar', cls: 'bg-warning/15 text-warning border-warning/30' },
+      por_organizar: { text: 'Por organizar', cls: 'bg-info/15 text-info border-info/30' },
+      confirmada: { text: 'Confirmada', cls: 'bg-success/15 text-success border-success/30' },
+      marcada: { text: 'Confirmada', cls: 'bg-success/15 text-success border-success/30' },
       terminada: { text: 'Terminada', cls: 'bg-slate-100 text-slate-700 border-slate-200' },
-      realizada: { text: 'Realizada', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
-      cancelada: { text: 'Cancelada', cls: 'bg-red-50 text-red-600 border-red-200' },
+      realizada: { text: 'Realizada', cls: 'bg-info/15 text-info border-info/30' },
+      cancelada: { text: 'Cancelada', cls: 'bg-destructive/15 text-destructive border-destructive/30' },
     };
     return map[s] || { text: s, cls: '' };
   };
@@ -632,7 +632,7 @@ export default function PortalViewPage() {
                                                 {format(parseISO(d.planned_end), "d 'de' MMMM", { locale: pt })}
                                               </span>
                                             )}
-                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isClient ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'}`}>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isClient ? 'bg-warning/15 text-warning' : 'bg-muted text-muted-foreground'}`}>
                                               {isClient ? '👤 Tu' : '👥 Equipa'}
                                             </span>
                                           </div>
@@ -712,7 +712,7 @@ export default function PortalViewPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-muted-foreground">{answeredCount}/{questions.length} respondidas</span>
                   {allSubmitted ? (
-                    <Badge variant="outline" className="text-[10px] font-medium text-emerald-600 border-emerald-200 bg-emerald-50">
+                    <Badge variant="outline" className="text-[10px] font-medium text-success border-success/30 bg-success/15">
                       ✓ Submetido
                     </Badge>
                   ) : (
@@ -758,7 +758,7 @@ export default function PortalViewPage() {
                         </div>
                         <Badge
                           variant="outline"
-                          className={`text-[10px] ${sectionComplete ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : ''}`}
+                          className={`text-[10px] ${sectionComplete ? 'text-success border-success/30 bg-success/15' : ''}`}
                         >
                           {sectionAnswered}/{section.items.length}
                         </Badge>
@@ -790,7 +790,7 @@ export default function PortalViewPage() {
                                 {isOpen && (
                                   <div className="px-5 pb-4 pl-[4.5rem]">
                                     {Array.isArray(q.file_urls) && q.file_urls.length > 0 && (
-                                      <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3 mb-2">
+                                      <div className="rounded-xl bg-success/15/50 border border-emerald-100 p-3 mb-2">
                                         <div className="flex flex-wrap gap-2">
                                           {(q.file_urls as string[]).map((url: string, fi: number) => {
                                             const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
@@ -823,7 +823,7 @@ export default function PortalViewPage() {
                                     {/* Text answer — always available */}
                                     {q.answer?.trim() && editingQuestionId !== q.id ? (
                                       <div className="space-y-2">
-                                        <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
+                                        <div className="rounded-xl bg-success/15/50 border border-emerald-100 p-3">
                                           <p className="text-sm">{q.answer}</p>
                                           {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
                                         </div>
@@ -946,7 +946,7 @@ export default function PortalViewPage() {
                           const deliverables = Array.isArray(p.deliverables) ? p.deliverables : [];
                           return (
                             <div key={p.id} className={`rounded-xl border p-4 transition-all ${
-                              isDone ? 'border-emerald-200 bg-emerald-50/50' :
+                              isDone ? 'border-success/30 bg-success/15/50' :
                               isActive ? 'border-2 shadow-sm' : 'border-border/30 bg-muted/10'
                             }`} style={isActive ? { borderColor: pc, backgroundColor: pcAlpha(0.04) } : undefined}>
                               <div className="flex items-center gap-3">
@@ -973,7 +973,7 @@ export default function PortalViewPage() {
                                   {p.description && <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>}
                                 </div>
                                 <span className={`text-[10px] font-medium shrink-0 ${
-                                  isDone ? 'text-emerald-600' : isActive ? '' : 'text-muted-foreground'
+                                  isDone ? 'text-success' : isActive ? '' : 'text-muted-foreground'
                                 }`} style={isActive ? { color: pc } : undefined}>
                                   {isDone ? 'Concluído' : isActive ? 'Em curso' : 'Por começar'}
                                 </span>
@@ -1065,7 +1065,7 @@ export default function PortalViewPage() {
                       <span className="truncate">{t.name}</span>
                       <div className="flex justify-center">
                         <Badge variant="outline" className={`text-[10px] ${
-                          t.status === 'concluida' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          t.status === 'concluida' ? 'bg-success/15 text-success border-success/30' :
                           t.status === 'em_progresso' ? 'border-0 text-white' : ''
                         }`} style={t.status === 'em_progresso' ? { backgroundColor: pc } : undefined}>
                           {t.status === 'concluida' ? 'Concluída' : t.status === 'em_progresso' ? 'Em progresso' : t.status === 'pendente' ? 'Pendente' : t.status}
@@ -1462,7 +1462,7 @@ export default function PortalViewPage() {
               <SectionCard key={h.id} className="p-5">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-semibold text-sm">{h.project_name}</p>
-                  <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Concluído</Badge>
+                  <Badge variant="outline" className="text-[10px] bg-success/15 text-success border-success/30">Concluído</Badge>
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
                   {h.product_name && <span>🏷️ {h.product_name}</span>}

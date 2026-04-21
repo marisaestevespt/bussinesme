@@ -328,7 +328,7 @@ export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props)
                     <TableCell className="text-right text-sm">{realMin > 0 ? formatMinutes(realMin) : '—'}</TableCell>
                     <TableCell className="text-right text-sm">
                       {diff !== null ? (
-                        <span className={cn(diff <= 0 ? 'text-emerald-600' : 'text-destructive', 'font-medium')}>
+                        <span className={cn(diff <= 0 ? 'text-success' : 'text-destructive', 'font-medium')}>
                           {diff <= 0 ? '' : '+'}{formatMinutes(Math.abs(diff))}
                         </span>
                       ) : '—'}
@@ -404,7 +404,7 @@ export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props)
                     const est = selectedTask.estimated_time ? Math.round(selectedTask.estimated_time * 60) : 0;
                     if (!real || !est) return <p>—</p>;
                     const d = real - est;
-                    return <p className={cn(d <= 0 ? 'text-emerald-600' : 'text-destructive', 'font-medium')}>
+                    return <p className={cn(d <= 0 ? 'text-success' : 'text-destructive', 'font-medium')}>
                       {d <= 0 ? '' : '+'}{formatMinutes(Math.abs(d))}
                     </p>;
                   })()}

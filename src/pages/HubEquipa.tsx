@@ -24,12 +24,12 @@ import { pt } from 'date-fns/locale';
 // ─── Constants ──────────────────────────────────────────────────
 
 const TRANSVERSAIS_CARDS = [
-  { label: 'Agenda de Negócio', icon: Calendar, path: '/hub/agenda', iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+  { label: 'Agenda de Negócio', icon: Calendar, path: '/hub/agenda', iconColor: 'text-info', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
   { label: 'Reuniões', icon: Video, path: '/hub/reunioes', iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
-  { label: 'Acessos', icon: Key, path: '/hub/acessos', iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-  { label: 'Projetos', icon: FolderKanban, path: '/hub/projetos', iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+  { label: 'Acessos', icon: Key, path: '/hub/acessos', iconColor: 'text-warning', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
+  { label: 'Projetos', icon: FolderKanban, path: '/hub/projetos', iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
   { label: 'Processos', icon: GitBranch, path: '/hub/processos', iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10' },
-  { label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas', iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
+  { label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas', iconColor: 'text-destructive', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
 ];
 
 const DEPARTMENT_CARDS = [

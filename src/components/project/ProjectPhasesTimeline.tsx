@@ -642,9 +642,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                       {phaseDeliverables.map((d, di) => {
                         const isEditingThis = editingDel === d.id;
                         const delStatusConfig = d.status === 'concluido'
-                          ? { bg: 'bg-emerald-100 text-emerald-700 border-emerald-300', label: 'Concluído' }
+                          ? { bg: 'bg-success/15 text-success border-success/30', label: 'Concluído' }
                           : d.status === 'em_progresso'
-                          ? { bg: 'bg-blue-100 text-blue-700 border-blue-300', label: 'Em progresso' }
+                          ? { bg: 'bg-info/15 text-info border-info/30', label: 'Em progresso' }
                           : { bg: 'bg-muted text-muted-foreground border-muted', label: 'Pendente' };
                         return (
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
@@ -659,9 +659,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               ) : (
                                 <>
                                   {d.status === 'concluido' ? (
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                                   ) : d.status === 'em_progresso' ? (
-                                    <Clock className="h-4 w-4 text-blue-600 shrink-0" />
+                                    <Clock className="h-4 w-4 text-info shrink-0" />
                                   ) : (
                                     <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                                   )}

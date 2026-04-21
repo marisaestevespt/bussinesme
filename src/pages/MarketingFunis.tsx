@@ -22,20 +22,20 @@ import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 
 const STATUSES = [
-  { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
-  { value: 'em_construcao', label: 'Em construção', color: 'bg-amber-100 text-amber-800' },
-  { value: 'ativo', label: 'Ativo', color: 'bg-emerald-100 text-emerald-800' },
-  { value: 'pausado', label: 'Pausado', color: 'bg-blue-100 text-blue-800' },
+  { value: 'em_ideia', label: 'Em ideia', color: 'bg-primary/15 text-primary' },
+  { value: 'em_construcao', label: 'Em construção', color: 'bg-warning/15 text-warning' },
+  { value: 'ativo', label: 'Ativo', color: 'bg-success/15 text-success' },
+  { value: 'pausado', label: 'Pausado', color: 'bg-info/15 text-info' },
   { value: 'arquivo', label: 'Arquivo', color: 'bg-muted text-muted-foreground' },
 ];
 
 const ENTRY_POINTS = ['Landing Page', 'Redes Sociais', 'Email', 'Anúncio', 'Orgânico', 'Outro'];
 const PLATAFORMAS = ['Systeme.io', 'Mailerlite', 'ActiveCampaign', 'Stripe', 'Hotmart', 'Outro'];
 const TIPOS_FUNIL = [
-  { value: 'venda', label: 'Venda', color: 'bg-emerald-100 text-emerald-800' },
-  { value: 'nutricao', label: 'Nutrição', color: 'bg-blue-100 text-blue-800' },
-  { value: 'captacao', label: 'Captação', color: 'bg-amber-100 text-amber-800' },
-  { value: 'reactivacao', label: 'Reactivação', color: 'bg-violet-100 text-violet-800' },
+  { value: 'venda', label: 'Venda', color: 'bg-success/15 text-success' },
+  { value: 'nutricao', label: 'Nutrição', color: 'bg-info/15 text-info' },
+  { value: 'captacao', label: 'Captação', color: 'bg-warning/15 text-warning' },
+  { value: 'reactivacao', label: 'Reactivação', color: 'bg-primary/15 text-primary' },
   { value: 'outro', label: 'Outro', color: 'bg-muted text-muted-foreground' },
 ];
 

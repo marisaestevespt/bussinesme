@@ -37,30 +37,30 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const PROJECT_TYPES = [
   { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { value: 'lancamento', label: 'Interno - Lançamento', color: 'bg-rose-100 text-rose-800 border-rose-200' },
-  { value: 'cliente_projeto_unico', label: 'Cliente - Projeto Único', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { value: 'lancamento', label: 'Interno - Lançamento', color: 'bg-destructive/15 text-destructive border-destructive/30' },
+  { value: 'cliente_projeto_unico', label: 'Cliente - Projeto Único', color: 'bg-success/15 text-success border-success/30' },
   { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
 ];
 
 const PROJECT_STATUSES = [
-  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-amber-100 text-amber-800 border-amber-300', dot: 'bg-amber-500' },
+  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-amber-500' },
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-gray-100 text-gray-700 border-gray-300', dot: 'bg-gray-400' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-blue-100 text-blue-800 border-blue-300', dot: 'bg-blue-500' },
-  { value: 'em_pausa', label: 'Em pausa', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', dot: 'bg-yellow-500' },
+  { value: 'em_curso', label: 'Em curso', color: 'bg-info/15 text-info border-info/30', dot: 'bg-blue-500' },
+  { value: 'em_pausa', label: 'Em pausa', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-yellow-500' },
   { value: 'em_revisao', label: 'Em revisão', color: 'bg-purple-100 text-purple-800 border-purple-300', dot: 'bg-purple-500' },
-  { value: 'concluido', label: 'Concluído', color: 'bg-green-100 text-green-800 border-green-300', dot: 'bg-green-500' },
-  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-100 text-red-800 border-red-300', dot: 'bg-red-500' },
+  { value: 'concluido', label: 'Concluído', color: 'bg-success/15 text-success border-success/30', dot: 'bg-green-500' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-destructive/15 text-destructive border-destructive/30', dot: 'bg-red-500' },
   { value: 'arquivo', label: 'Arquivo', color: 'bg-slate-100 text-slate-600 border-slate-300', dot: 'bg-slate-400' },
 ];
 
 const DEPARTMENTS = [
   { value: 'administrativo', label: 'Administrativo', color: 'bg-stone-100 text-stone-700 border-stone-300' },
   { value: 'marketing', label: 'Marketing e Branding', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-  { value: 'financeiro', label: 'Financeiro', color: 'bg-amber-100 text-amber-700 border-amber-300' },
+  { value: 'financeiro', label: 'Financeiro', color: 'bg-warning/15 text-warning border-warning/30' },
   { value: 'comercial', label: 'Comercial e Vendas', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
   { value: 'clientes', label: 'Clientes', color: 'bg-violet-100 text-violet-700 border-violet-300' },
   { value: 'equipa', label: 'Equipa', color: 'bg-teal-100 text-teal-700 border-teal-300' },
-  { value: 'operacao', label: 'Operação', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { value: 'operacao', label: 'Operação', color: 'bg-warning/15 text-warning border-warning/30' },
 ];
 
 function getTypeInfo(v: string) { return PROJECT_TYPES.find(t => t.value === v) || PROJECT_TYPES[0]; }

@@ -221,8 +221,8 @@ export function SettingsFiscal() {
           </div>
 
           {exemptionGuide && (
-            <div className="rounded-md border border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800 p-4 text-sm text-muted-foreground flex gap-2">
-              <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+            <div className="rounded-md border border-info/30 bg-info/15/50 dark:bg-blue-950/20 dark:border-blue-800 p-4 text-sm text-muted-foreground flex gap-2">
+              <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
               <span>{exemptionGuide}</span>
             </div>
           )}
@@ -428,16 +428,16 @@ export function SettingsFiscal() {
           )}
 
           {businessType === 'empresa' && (
-            <div className="rounded-md border border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 p-4 text-sm text-muted-foreground flex gap-2">
-              <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="rounded-md border border-warning/30 bg-warning/15/50 dark:bg-amber-950/20 dark:border-amber-800 p-4 text-sm text-muted-foreground flex gap-2">
+              <Info className="h-4 w-4 text-warning shrink-0 mt-0.5" />
               <span>Empresa com contabilidade organizada obrigatória. O contabilista trata de todas as declarações fiscais.</span>
             </div>
           )}
 
           {/* Contabilidade organizada info for ENI */}
           {businessType === 'eni' && isContabOrganizada && (
-            <div className="rounded-md border border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 p-4 text-sm text-muted-foreground flex gap-2">
-              <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="rounded-md border border-warning/30 bg-warning/15/50 dark:bg-amber-950/20 dark:border-amber-800 p-4 text-sm text-muted-foreground flex gap-2">
+              <Info className="h-4 w-4 text-warning shrink-0 mt-0.5" />
               <span>Em contabilidade organizada, o IVA e a Segurança Social são geridos pelo contabilista. Essas páginas ficam em modo de guia informativo.</span>
             </div>
           )}

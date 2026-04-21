@@ -90,16 +90,16 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Em Atraso</p>
-                <p className={cn("text-2xl font-bold mt-0.5", overdueTasks.length > 0 ? 'text-destructive' : 'text-emerald-600')}>
+                <p className={cn("text-2xl font-bold mt-0.5", overdueTasks.length > 0 ? 'text-destructive' : 'text-success')}>
                   {overdueTasks.length}
                 </p>
                 {overdueTasks.length > 0
                   ? <p className="text-[11px] text-destructive mt-0.5">tarefas/conteúdos atrasados</p>
-                  : <p className="text-[11px] text-emerald-600 mt-0.5">Tudo em dia 🎉</p>
+                  : <p className="text-[11px] text-success mt-0.5">Tudo em dia 🎉</p>
                 }
               </div>
               <div className={cn("p-2 rounded-lg", overdueTasks.length > 0 ? 'bg-destructive/10' : 'bg-emerald-500/10')}>
-                <AlertTriangle className={cn("h-4 w-4", overdueTasks.length > 0 ? 'text-destructive' : 'text-emerald-600')} />
+                <AlertTriangle className={cn("h-4 w-4", overdueTasks.length > 0 ? 'text-destructive' : 'text-success')} />
               </div>
             </div>
           </CardContent>
@@ -115,7 +115,7 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
                   <span className="text-sm text-muted-foreground">/ {weeklyTasksPlanned}</span>
                 </div>
               </div>
-              <div className="p-2 rounded-lg bg-blue-500/10"><CheckSquare className="h-4 w-4 text-blue-600" /></div>
+              <div className="p-2 rounded-lg bg-blue-500/10"><CheckSquare className="h-4 w-4 text-info" /></div>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
               <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${Math.min(taskRatio, 100)}%` }} />
@@ -128,16 +128,16 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Sobrecarga</p>
-                <p className={cn("text-2xl font-bold mt-0.5", overloadedCount > 0 ? 'text-amber-600' : 'text-emerald-600')}>
+                <p className={cn("text-2xl font-bold mt-0.5", overloadedCount > 0 ? 'text-warning' : 'text-success')}>
                   {overloadedCount > 0 ? `${overloadedCount} alerta${overloadedCount > 1 ? 's' : ''}` : 'OK'}
                 </p>
                 {overloadedCount > 0
-                  ? <p className="text-[11px] text-amber-600 mt-0.5">membros acima de 110%</p>
-                  : <p className="text-[11px] text-emerald-600 mt-0.5">Equipa equilibrada ✓</p>
+                  ? <p className="text-[11px] text-warning mt-0.5">membros acima de 110%</p>
+                  : <p className="text-[11px] text-success mt-0.5">Equipa equilibrada ✓</p>
                 }
               </div>
               <div className={cn("p-2 rounded-lg", overloadedCount > 0 ? 'bg-amber-500/10' : 'bg-emerald-500/10')}>
-                <Flame className={cn("h-4 w-4", overloadedCount > 0 ? 'text-amber-600' : 'text-emerald-600')} />
+                <Flame className={cn("h-4 w-4", overloadedCount > 0 ? 'text-warning' : 'text-success')} />
               </div>
             </div>
           </CardContent>

@@ -23,10 +23,10 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 const CATEGORIES = [
-  { value: 'anuncio', label: 'Anúncio', color: 'bg-red-100 text-red-800' },
-  { value: 'novidade', label: 'Novidade', color: 'bg-green-100 text-green-800' },
-  { value: 'atualizacao', label: 'Atualização', color: 'bg-blue-100 text-blue-800' },
-  { value: 'lembrete', label: 'Lembrete', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'anuncio', label: 'Anúncio', color: 'bg-destructive/15 text-destructive' },
+  { value: 'novidade', label: 'Novidade', color: 'bg-success/15 text-success' },
+  { value: 'atualizacao', label: 'Atualização', color: 'bg-info/15 text-info' },
+  { value: 'lembrete', label: 'Lembrete', color: 'bg-warning/15 text-warning' },
   { value: 'outro', label: 'Outro', color: 'bg-gray-100 text-gray-800' },
 ] as const;
 

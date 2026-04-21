@@ -171,7 +171,7 @@ function TaskBadge({ deadline, status }: { deadline: string | null; status: stri
   const d = new Date(deadline);
   const today = startOfToday();
   if (isBefore(d, today)) return <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Atrasada</Badge>;
-  if (isToday(d)) return <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-[10px] px-1.5 py-0">Hoje</Badge>;
+  if (isToday(d)) return <Badge className="bg-warning/15 text-warning border-warning/30 text-[10px] px-1.5 py-0">Hoje</Badge>;
   return null;
 }
 
@@ -542,19 +542,19 @@ export default function OperacaoPage() {
 
         {/* Clients near end of cycle — kept as small alert */}
         {clientsNearEndOfCycle.length > 0 && (
-          <Card className="border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
+          <Card className="border border-warning/30 dark:border-amber-700 bg-warning/15/50 dark:bg-amber-950/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <CalendarClock className="h-4 w-4 text-amber-600" />
-                <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400">Clientes perto do fim de ciclo</h3>
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">{clientsNearEndOfCycle.length}</Badge>
+                <CalendarClock className="h-4 w-4 text-warning" />
+                <h3 className="text-sm font-semibold text-warning dark:text-amber-400">Clientes perto do fim de ciclo</h3>
+                <Badge variant="outline" className="bg-warning/15 text-warning border-warning/30 text-[10px]">{clientsNearEndOfCycle.length}</Badge>
               </div>
               <div className="flex flex-wrap gap-3">
                 {clientsNearEndOfCycle.map(c => {
                   const daysLeft = differenceInDays(new Date(c.end_of_cycle!), today);
                   return (
                     <Link key={c.id} to={`/clientes/${c.id}`} className="flex items-center gap-2 text-sm hover:underline">
-                      <span className="font-medium text-amber-800 dark:text-amber-300">{c.full_name}</span>
+                      <span className="font-medium text-warning dark:text-amber-300">{c.full_name}</span>
                       <Badge variant={daysLeft <= 7 ? 'destructive' : 'outline'} className="text-[10px]">{daysLeft}d</Badge>
                     </Link>
                   );
@@ -576,7 +576,7 @@ export default function OperacaoPage() {
               const pUnassigned = pTasks.filter(t => !t.assigned_to);
               const hp = projectHealth.find(h => h.id === p.id);
               const healthLabel = hp?.health === 'red' ? 'Em risco' : hp?.health === 'yellow' ? 'Atenção' : 'Em dia';
-              const healthColor = hp?.health === 'red' ? 'text-red-600' : hp?.health === 'yellow' ? 'text-amber-600' : 'text-emerald-600';
+              const healthColor = hp?.health === 'red' ? 'text-destructive' : hp?.health === 'yellow' ? 'text-warning' : 'text-success';
               const hasIssues = pOverdueTasks.length > 0 || pOverdueDeliverables.length > 0 || pUnassigned.length > 0;
 
               return (
@@ -591,7 +591,7 @@ export default function OperacaoPage() {
                   {!hasIssues && (
                     <div className="py-6 text-center">
                       <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-emerald-700">Tudo em dia!</p>
+                      <p className="text-sm font-medium text-success">Tudo em dia!</p>
                       <p className="text-xs text-muted-foreground mt-1">Este projeto não tem alertas pendentes.</p>
                     </div>
                   )}
@@ -635,7 +635,7 @@ export default function OperacaoPage() {
                   {pUnassigned.length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
-                        <UserX className="h-4 w-4 text-amber-600" /> Tarefas sem responsável
+                        <UserX className="h-4 w-4 text-warning" /> Tarefas sem responsável
                         <Badge variant="outline" className="text-[10px]">{pUnassigned.length}</Badge>
                       </h4>
                       <div className="space-y-1 max-h-[200px] overflow-y-auto">
@@ -672,7 +672,7 @@ export default function OperacaoPage() {
                   <p className="text-xs font-semibold text-primary uppercase tracking-wider">Próxima Entrega</p>
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-amber-600' : 'text-foreground'}`}>
+                  <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
                     {nextDelivery.daysLeft}
                   </span>
                   <span className="text-sm text-muted-foreground font-medium">dias</span>
@@ -754,9 +754,9 @@ export default function OperacaoPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {projectHealth.map(p => {
                 const healthColor = {
-                  green: { bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/30', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
-                  yellow: { bg: 'bg-amber-500/10', ring: 'ring-amber-500/30', text: 'text-amber-700 dark:text-amber-400', dot: 'bg-amber-500' },
-                  red: { bg: 'bg-red-500/10', ring: 'ring-red-500/30', text: 'text-red-700 dark:text-red-400', dot: 'bg-red-500 animate-pulse' },
+                  green: { bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/30', text: 'text-success dark:text-emerald-400', dot: 'bg-emerald-500' },
+                  yellow: { bg: 'bg-amber-500/10', ring: 'ring-amber-500/30', text: 'text-warning dark:text-amber-400', dot: 'bg-amber-500' },
+                  red: { bg: 'bg-red-500/10', ring: 'ring-red-500/30', text: 'text-destructive dark:text-red-400', dot: 'bg-red-500 animate-pulse' },
                 }[p.health];
                 return (
                   <div
@@ -811,11 +811,11 @@ export default function OperacaoPage() {
                 </CardHeader>
                 <CardContent className="pt-0 space-y-1.5">
                   {[
-                    { value: 'em_onboarding', label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
-                    { value: 'ativo', label: 'Ativos', className: 'bg-green-100 text-green-800' },
-                    { value: 'pausado', label: 'Pausados', className: 'bg-amber-100 text-amber-800' },
+                    { value: 'em_onboarding', label: 'Em onboarding', className: 'bg-info/15 text-info' },
+                    { value: 'ativo', label: 'Ativos', className: 'bg-success/15 text-success' },
+                    { value: 'pausado', label: 'Pausados', className: 'bg-warning/15 text-warning' },
                     { value: 'altura_renovacao', label: 'Renovação', className: 'bg-purple-100 text-purple-800' },
-                    { value: 'em_offboarding', label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
+                    { value: 'em_offboarding', label: 'Em offboarding', className: 'bg-warning/15 text-warning' },
                   ].map(s => {
                     const count = clients.filter(c => c.status === s.value).length;
                     return (
@@ -1082,7 +1082,7 @@ export default function OperacaoPage() {
                           {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && (
                             <TableCell>
                               {allDone ? (
-                                <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Concluído</span>
+                                <span className="text-xs text-success flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Concluído</span>
                               ) : pendingItems.length === 0 ? (
                                 <span className="text-xs text-muted-foreground">Sem checklist</span>
                               ) : (

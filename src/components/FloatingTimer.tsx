@@ -94,7 +94,7 @@ export function FloatingTimer() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 hover:bg-emerald-500/10 hover:text-emerald-600"
+                className="h-7 w-7 p-0 hover:bg-emerald-500/10 hover:text-success"
                 onClick={resumeTimer}
                 title="Retomar"
               >
@@ -104,7 +104,7 @@ export function FloatingTimer() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 hover:bg-amber-500/10 hover:text-amber-600"
+                className="h-7 w-7 p-0 hover:bg-amber-500/10 hover:text-warning"
                 onClick={pauseTimer}
                 title="Pausar"
               >

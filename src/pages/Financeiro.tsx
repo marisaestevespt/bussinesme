@@ -24,18 +24,18 @@ const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out'
 const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 
 const ALL_SECTIONS_ROW1 = [
-  { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-blue-600', color: 'from-blue-500/20 to-blue-600/10 border-blue-200/60 hover:from-blue-500/30 hover:to-blue-600/15 hover:border-blue-300/80', key: 'mensal' },
+  { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-info', color: 'from-blue-500/20 to-blue-600/10 border-info/30/60 hover:from-blue-500/30 hover:to-blue-600/15 hover:border-info/30/80', key: 'mensal' },
   { path: '/hub/financeiro/trimestral', label: 'Trimestral', icon: CalendarRange, iconColor: 'text-violet-600', color: 'from-violet-500/20 to-violet-600/10 border-violet-200/60 hover:from-violet-500/30 hover:to-violet-600/15 hover:border-violet-300/80', key: 'trimestral' },
-  { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-orange-600', color: 'from-orange-500/20 to-orange-600/10 border-orange-200/60 hover:from-orange-500/30 hover:to-orange-600/15 hover:border-orange-300/80', key: 'documentos' },
-  { path: '/hub/financeiro/iva', label: 'IVA', icon: Receipt, iconColor: 'text-amber-600', color: 'from-amber-500/20 to-amber-600/10 border-amber-200/60 hover:from-amber-500/30 hover:to-amber-600/15 hover:border-amber-300/80', key: 'iva' },
+  { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-warning', color: 'from-orange-500/20 to-orange-600/10 border-warning/30/60 hover:from-orange-500/30 hover:to-orange-600/15 hover:border-warning/30/80', key: 'documentos' },
+  { path: '/hub/financeiro/iva', label: 'IVA', icon: Receipt, iconColor: 'text-warning', color: 'from-amber-500/20 to-amber-600/10 border-warning/30/60 hover:from-amber-500/30 hover:to-amber-600/15 hover:border-warning/30/80', key: 'iva' },
   { path: '/hub/financeiro/seguranca-social', label: 'Segurança Social', icon: Shield, iconColor: 'text-cyan-600', color: 'from-cyan-500/20 to-cyan-600/10 border-cyan-200/60 hover:from-cyan-500/30 hover:to-cyan-600/15 hover:border-cyan-300/80', key: 'ss' },
 ];
 
 const ALL_SECTIONS_ROW2 = [
-  { path: '/hub/financeiro/contabilidade', label: 'Contabilidade', icon: BookOpen, iconColor: 'text-emerald-600', color: 'from-emerald-500/20 to-emerald-600/10 border-emerald-200/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-emerald-300/80', key: 'contabilidade' },
+  { path: '/hub/financeiro/contabilidade', label: 'Contabilidade', icon: BookOpen, iconColor: 'text-success', color: 'from-emerald-500/20 to-emerald-600/10 border-success/30/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-success/30/80', key: 'contabilidade' },
   { path: '/hub/financeiro/previsibilidade', label: 'Previsibilidade', icon: TrendingUp, iconColor: 'text-indigo-600', color: 'from-indigo-500/20 to-indigo-600/10 border-indigo-200/60 hover:from-indigo-500/30 hover:to-indigo-600/15 hover:border-indigo-300/80', key: 'previsibilidade' },
-  { path: '/hub/financeiro/entradas', label: 'Entradas', icon: ArrowDownLeft, iconColor: 'text-emerald-600', color: 'from-emerald-500/20 to-emerald-600/10 border-emerald-200/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-emerald-300/80', key: 'entradas' },
-  { path: '/hub/financeiro/saidas', label: 'Saídas', icon: ArrowUpRight, iconColor: 'text-red-600', color: 'from-red-500/20 to-red-600/10 border-red-200/60 hover:from-red-500/30 hover:to-red-600/15 hover:border-red-300/80', key: 'saidas' },
+  { path: '/hub/financeiro/entradas', label: 'Entradas', icon: ArrowDownLeft, iconColor: 'text-success', color: 'from-emerald-500/20 to-emerald-600/10 border-success/30/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-success/30/80', key: 'entradas' },
+  { path: '/hub/financeiro/saidas', label: 'Saídas', icon: ArrowUpRight, iconColor: 'text-destructive', color: 'from-red-500/20 to-red-600/10 border-destructive/30/60 hover:from-red-500/30 hover:to-red-600/15 hover:border-destructive/30/80', key: 'saidas' },
   { path: '/hub/financeiro/setup-financeiro', label: 'Setup Financeiro', icon: Settings, iconColor: 'text-slate-600', color: 'from-slate-500/20 to-slate-600/10 border-slate-200/60 hover:from-slate-500/30 hover:to-slate-600/15 hover:border-slate-300/80', key: 'setup' },
 ];
 
@@ -266,26 +266,26 @@ export default function FinanceiroPage() {
         {/* Summary Cards */}
         <div id="fin-annual-report" className="space-y-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas</p><p className="text-lg sm:text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas</p><p className="text-lg sm:text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Margem</p><p className={`text-lg sm:text-xl font-bold ${margem >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{margem}%</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas</p><p className="text-lg sm:text-xl font-bold text-success">{fmt(totalEntradas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas</p><p className="text-lg sm:text-xl font-bold text-destructive">{fmt(totalSaidas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(resultado)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Margem</p><p className={`text-lg sm:text-xl font-bold ${margem >= 0 ? 'text-success' : 'text-destructive'}`}>{margem}%</p></CardContent></Card>
           <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-lg sm:text-xl font-bold">{fmt(avgEntradas)}</p></CardContent></Card>
           <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-lg sm:text-xl font-bold">{fmt(avgSaidas)}</p></CardContent></Card>
         </div>
 
         {/* Best/Worst month */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800">
+          <Card className="border-success/30 bg-success/15/50 dark:bg-emerald-950/20 dark:border-emerald-800">
             <CardContent className="pt-4 flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-emerald-600 shrink-0" />
-              <div><p className="text-xs text-muted-foreground">Melhor mês</p><p className="font-semibold">{bestMonth.mes}</p><p className="text-sm text-emerald-600">{fmt(bestMonth.resultado)}</p></div>
+              <TrendingUp className="h-5 w-5 text-success shrink-0" />
+              <div><p className="text-xs text-muted-foreground">Melhor mês</p><p className="font-semibold">{bestMonth.mes}</p><p className="text-sm text-success">{fmt(bestMonth.resultado)}</p></div>
             </CardContent>
           </Card>
-          <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-800">
+          <Card className="border-destructive/30 bg-destructive/15/50 dark:bg-red-950/20 dark:border-red-800">
             <CardContent className="pt-4 flex items-center gap-3">
-              <TrendingDown className="h-5 w-5 text-red-600 shrink-0" />
-              <div><p className="text-xs text-muted-foreground">Pior mês</p><p className="font-semibold">{worstMonth.mes}</p><p className="text-sm text-red-600">{fmt(worstMonth.resultado)}</p></div>
+              <TrendingDown className="h-5 w-5 text-destructive shrink-0" />
+              <div><p className="text-xs text-muted-foreground">Pior mês</p><p className="font-semibold">{worstMonth.mes}</p><p className="text-sm text-destructive">{fmt(worstMonth.resultado)}</p></div>
             </CardContent>
           </Card>
         </div>
@@ -345,7 +345,7 @@ export default function FinanceiroPage() {
                     <TableCell className="font-medium">{d.mes}</TableCell>
                     <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
                     <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
-                    <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(d.resultado)}</TableCell>
+                    <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</TableCell>
                     <TableCell className="text-right">{fmt(d.ivaCobrado)}</TableCell>
                     <TableCell className="text-right">{fmt(d.ivaPago)}</TableCell>
                   </TableRow>
@@ -354,7 +354,7 @@ export default function FinanceiroPage() {
                   <TableCell>TOTAL</TableCell>
                   <TableCell className="text-right">{fmt(totalEntradas)}</TableCell>
                   <TableCell className="text-right">{fmt(totalSaidas)}</TableCell>
-                  <TableCell className={`text-right ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</TableCell>
+                  <TableCell className={`text-right ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(resultado)}</TableCell>
                   <TableCell className="text-right">{fmt(ivaCobrado)}</TableCell>
                   <TableCell className="text-right">{fmt(ivaPago)}</TableCell>
                 </TableRow>
@@ -383,7 +383,7 @@ export default function FinanceiroPage() {
                     <TableCell className="font-medium">{d.label}</TableCell>
                     <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
                     <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
-                    <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(d.resultado)}</TableCell>
+                    <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</TableCell>
                     <TableCell className="text-right">{d.margem}%</TableCell>
                   </TableRow>
                 ))}
@@ -481,11 +481,11 @@ export default function FinanceiroPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-amber-600" /><p className="text-xs text-muted-foreground">Balanço IVA — {year}</p></div>
+              <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-warning" /><p className="text-xs text-muted-foreground">Balanço IVA — {year}</p></div>
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div><p className="text-[10px] text-muted-foreground">Cobrado</p><p className="font-semibold">{fmt(ivaCobrado)}</p></div>
                 <div><p className="text-[10px] text-muted-foreground">Pago</p><p className="font-semibold">{fmt(ivaPago)}</p></div>
-                <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${ivaBalanco > 0 ? 'text-amber-600' : ivaBalanco < 0 ? 'text-emerald-600' : ''}`}>{fmt(ivaBalanco)}</p></div>
+                <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${ivaBalanco > 0 ? 'text-warning' : ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(ivaBalanco)}</p></div>
               </div>
             </CardContent>
           </Card>

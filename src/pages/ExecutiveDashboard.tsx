@@ -142,7 +142,7 @@ export default function ExecutiveDashboard() {
                     <div className="flex gap-3 text-muted-foreground">
                       <span>Alvo: {g.target_value || '—'}</span>
                       <span>Real: {g.actual_value || '—'}</span>
-                      {dev != null && <span className={dev < 0 ? 'text-destructive' : 'text-emerald-600'}>{dev >= 0 ? `+${dev}` : dev}</span>}
+                      {dev != null && <span className={dev < 0 ? 'text-destructive' : 'text-success'}>{dev >= 0 ? `+${dev}` : dev}</span>}
                     </div>
                   </div>
                 );

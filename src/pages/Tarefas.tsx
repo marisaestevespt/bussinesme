@@ -962,8 +962,8 @@ export default function TarefasPage() {
                 .filter(t => t && t.status !== 'done');
               if (blockers.length === 0) return null;
               return (
-                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 space-y-1.5">
-                  <p className="text-sm font-medium text-amber-800 flex items-center gap-1.5">
+                <div className="rounded-md border border-warning/30 bg-warning/15 p-3 space-y-1.5">
+                  <p className="text-sm font-medium text-warning flex items-center gap-1.5">
                     <Link2 className="h-4 w-4" /> Esta tarefa tem dependências pendentes
                   </p>
                   {blockers.map(dep => {
@@ -971,7 +971,7 @@ export default function TarefasPage() {
                     const depStatus = getStatusInfo(dep.status);
                     const depAssignee = getProfileName(dep.assigned_to);
                     return (
-                      <p key={dep.id} className="text-xs text-amber-700">
+                      <p key={dep.id} className="text-xs text-warning">
                         Pendente da tarefa <strong>"{dep.name}"</strong> de <strong>{depAssignee}</strong>, que está neste momento <Badge variant="outline" className={cn('text-[9px] px-1 py-0 ml-1', depStatus.color)}>{depStatus.label}</Badge>
                       </p>
                     );
@@ -1050,11 +1050,11 @@ export default function TarefasPage() {
                 "rounded-md border p-3",
                 capacityWarning.occupancy > 100
                   ? "border-destructive/50 bg-destructive/5"
-                  : "border-amber-300 bg-amber-50"
+                  : "border-warning/30 bg-warning/15"
               )}>
                 <p className={cn(
                   "text-sm flex items-center gap-1.5",
-                  capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-amber-800"
+                  capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-warning"
                 )}>
                   <AlertTriangle className="h-4 w-4" />
                   Ao atribuir esta tarefa, <strong>{capacityWarning.memberName}</strong> ficará com {capacityWarning.occupancy}% de ocupação esta semana.

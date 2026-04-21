@@ -106,7 +106,7 @@ function TimeSplitView({ entries, members, scenario }: { entries: any[]; members
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tempo em cliente</p><p className="text-2xl font-bold">{clientHours.toFixed(1)}h</p><p className="text-xs text-muted-foreground">{clientPct}% do total</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tempo interno</p><p className="text-2xl font-bold">{internalHours.toFixed(1)}h</p><p className="text-xs text-muted-foreground">{internalPct}% do total</p></CardContent></Card>
         {planned && (
-          <Card className={deviation && Math.abs(deviation.clientDiff) > 10 ? 'border-amber-400/50' : ''}>
+          <Card className={deviation && Math.abs(deviation.clientDiff) > 10 ? 'border-warning/30/50' : ''}>
             <CardContent className="p-4"><p className="text-xs text-muted-foreground">Desvio do planeado</p><p className="text-2xl font-bold">{deviation ? `${deviation.clientDiff > 0 ? '+' : ''}${deviation.clientDiff}%` : '—'}</p><p className="text-xs text-muted-foreground">Cliente: planeado {planned.clientPct}%</p></CardContent>
           </Card>
         )}

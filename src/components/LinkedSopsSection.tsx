@@ -15,10 +15,10 @@ import { addBusinessDays } from '@/lib/holidays';
 
 const SOP_STATUSES: Record<string, { label: string; color: string }> = {
   para_criar: { label: 'Para criar', color: 'bg-muted text-muted-foreground' },
-  em_criacao: { label: 'Em criação', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-  ativo: { label: 'Ativo', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  em_revisao: { label: 'Em revisão', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  off: { label: 'Off', color: 'bg-red-100 text-red-800 border-red-200' },
+  em_criacao: { label: 'Em criação', color: 'bg-warning/15 text-warning border-warning/30' },
+  ativo: { label: 'Ativo', color: 'bg-success/15 text-success border-success/30' },
+  em_revisao: { label: 'Em revisão', color: 'bg-info/15 text-info border-info/30' },
+  off: { label: 'Off', color: 'bg-destructive/15 text-destructive border-destructive/30' },
 };
 
 interface LinkedSopsSectionProps {

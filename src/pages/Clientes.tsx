@@ -23,11 +23,11 @@ const fmtBirthday = (d: string | null | undefined) => {
 };
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  em_onboarding: { label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
-  ativo: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
-  pausado: { label: 'Pausado', className: 'bg-amber-100 text-amber-800' },
+  em_onboarding: { label: 'Em onboarding', className: 'bg-info/15 text-info' },
+  ativo: { label: 'Ativo', className: 'bg-success/15 text-success' },
+  pausado: { label: 'Pausado', className: 'bg-warning/15 text-warning' },
   altura_renovacao: { label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
-  em_offboarding: { label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
+  em_offboarding: { label: 'Em offboarding', className: 'bg-warning/15 text-warning' },
   terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
 };
 
@@ -117,9 +117,9 @@ export default function ClientesPage() {
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
             {[
-              { path: '/hub/clientes/analise', label: 'Análise de Clientes', icon: BarChart3, iconColor: 'text-blue-600', color: 'from-blue-500/20 to-blue-600/10 border-blue-200/60 hover:from-blue-500/30 hover:to-blue-600/15 hover:border-blue-300/80' },
+              { path: '/hub/clientes/analise', label: 'Análise de Clientes', icon: BarChart3, iconColor: 'text-info', color: 'from-blue-500/20 to-blue-600/10 border-info/30/60 hover:from-blue-500/30 hover:to-blue-600/15 hover:border-info/30/80' },
               { path: '/hub/clientes/portais', label: 'Portal de Clientes', icon: Globe, iconColor: 'text-violet-600', color: 'from-violet-500/20 to-violet-600/10 border-violet-200/60 hover:from-violet-500/30 hover:to-violet-600/15 hover:border-violet-300/80' },
-              { path: '/hub/clientes/feedback', label: 'Feedbacks', icon: MessageSquare, iconColor: 'text-amber-600', color: 'from-amber-500/20 to-amber-600/10 border-amber-200/60 hover:from-amber-500/30 hover:to-amber-600/15 hover:border-amber-300/80' },
+              { path: '/hub/clientes/feedback', label: 'Feedbacks', icon: MessageSquare, iconColor: 'text-warning', color: 'from-amber-500/20 to-amber-600/10 border-warning/30/60 hover:from-amber-500/30 hover:to-amber-600/15 hover:border-warning/30/80' },
             ].map(s => (
               <Card
                 key={s.path}

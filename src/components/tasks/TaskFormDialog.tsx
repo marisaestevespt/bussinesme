@@ -605,10 +605,10 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               const blockers = dependsOnIds.map(depId => allTasks.find(t => t.id === depId)).filter(t => t && t.status !== 'done');
               if (blockers.length === 0) return null;
               return (
-                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 space-y-1.5">
-                  <p className="text-sm font-medium text-amber-800 flex items-center gap-1.5"><Link2 className="h-4 w-4" /> Dependências pendentes</p>
+                <div className="rounded-md border border-warning/30 bg-warning/15 p-3 space-y-1.5">
+                  <p className="text-sm font-medium text-warning flex items-center gap-1.5"><Link2 className="h-4 w-4" /> Dependências pendentes</p>
                   {blockers.map(dep => dep && (
-                    <p key={dep.id} className="text-xs text-amber-700">
+                    <p key={dep.id} className="text-xs text-warning">
                       Pendente: <strong>"{dep.name}"</strong> — <Badge variant="outline" className={cn('text-[9px] px-1 py-0 ml-1', getStatusInfo(dep.status).color)}>{getStatusInfo(dep.status).label}</Badge>
                     </p>
                   ))}
@@ -656,8 +656,8 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </div>
 
             {capacityWarning && (
-              <div className={cn("rounded-md border p-3", capacityWarning.occupancy > 100 ? "border-destructive/50 bg-destructive/5" : "border-amber-300 bg-amber-50")}>
-                <p className={cn("text-sm flex items-center gap-1.5", capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-amber-800")}>
+              <div className={cn("rounded-md border p-3", capacityWarning.occupancy > 100 ? "border-destructive/50 bg-destructive/5" : "border-warning/30 bg-warning/15")}>
+                <p className={cn("text-sm flex items-center gap-1.5", capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-warning")}>
                   <AlertTriangle className="h-4 w-4" />
                   <strong>{capacityWarning.memberName}</strong> ficará com {capacityWarning.occupancy}% de ocupação esta semana.
                 </p>

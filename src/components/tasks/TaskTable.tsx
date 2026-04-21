@@ -8,17 +8,17 @@ import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 
 const TASK_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
-  { value: 'a_fazer', label: 'A fazer', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'aguarda_feedback', label: 'Aguarda Feedback', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-  { value: 'para_aprovacao', label: 'Para Aprovação', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-  { value: 'precisa_alteracoes', label: 'Precisa de Alterações', color: 'bg-orange-100 text-orange-800 border-orange-200' },
-  { value: 'done', label: 'Done', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { value: 'a_fazer', label: 'A fazer', color: 'bg-info/15 text-info border-info/30' },
+  { value: 'aguarda_feedback', label: 'Aguarda Feedback', color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'para_aprovacao', label: 'Para Aprovação', color: 'bg-primary/15 text-primary border-primary/30' },
+  { value: 'precisa_alteracoes', label: 'Precisa de Alterações', color: 'bg-warning/20 text-warning border-warning/40' },
+  { value: 'done', label: 'Done', color: 'bg-success/15 text-success border-success/30' },
 ];
 
 const PRIORITIES = [
-  { value: 'alta', label: 'Prioridade 1', color: 'bg-red-100 text-red-700 border-red-300' },
-  { value: 'media', label: 'Prioridade 2', color: 'bg-amber-100 text-amber-700 border-amber-300' },
-  { value: 'baixa', label: 'Prioridade 3', color: 'bg-slate-100 text-slate-500 border-slate-300' },
+  { value: 'alta', label: 'Prioridade 1', color: 'bg-destructive/15 text-destructive border-destructive/30' },
+  { value: 'media', label: 'Prioridade 2', color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'baixa', label: 'Prioridade 3', color: 'bg-muted text-muted-foreground border-border' },
 ];
 
 export function getStatusInfo(val: string) {
@@ -92,7 +92,7 @@ export function TaskTable({
                       </Badge>
                     )}
                     {task.recurrence_type && <Repeat className="h-3 w-3 text-muted-foreground" />}
-                    {hasBlockingDeps && <Link2 className="h-3.5 w-3.5 text-amber-500" />}
+            {hasBlockingDeps && <Link2 className="h-3.5 w-3.5 text-warning" />}
                     {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                     {lateComplete && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                   </div>

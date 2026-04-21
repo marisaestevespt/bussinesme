@@ -23,10 +23,10 @@ import { Plus, Trash2, FileText, RotateCw, MessageSquare, ExternalLink, Pencil, 
 
 const SOP_STATUSES = [
   { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
-  { value: 'em_criacao', label: 'Em criação', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-  { value: 'ativo', label: 'Ativo', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  { value: 'em_revisao', label: 'Em revisão', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'off', label: 'Off', color: 'bg-red-100 text-red-800 border-red-200' },
+  { value: 'em_criacao', label: 'Em criação', color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'ativo', label: 'Ativo', color: 'bg-success/15 text-success border-success/30' },
+  { value: 'em_revisao', label: 'Em revisão', color: 'bg-info/15 text-info border-info/30' },
+  { value: 'off', label: 'Off', color: 'bg-destructive/15 text-destructive border-destructive/30' },
 ];
 
 function getStatusInfo(status: string) {
@@ -448,9 +448,9 @@ function DeptWhatsAppCard({ department }: { department: string }) {
     return (
       <Card>
         <CardContent className="p-4 flex items-center gap-3">
-          <MessageSquare className="h-4 w-4 text-emerald-600 shrink-0" />
+          <MessageSquare className="h-4 w-4 text-success shrink-0" />
           <Input value={draft} onChange={e => setDraft(e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-8 text-sm flex-1" autoFocus />
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-4 w-4 text-emerald-600" /></Button>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-4 w-4 text-success" /></Button>
           <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditing(false)}><X className="h-4 w-4 text-muted-foreground" /></Button>
         </CardContent>
       </Card>
@@ -460,9 +460,9 @@ function DeptWhatsAppCard({ department }: { department: string }) {
   return (
     <Card>
       <CardContent className="p-4 flex items-center gap-3">
-        <MessageSquare className="h-4 w-4 text-emerald-600 shrink-0" />
+        <MessageSquare className="h-4 w-4 text-success shrink-0" />
         {url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1.5">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-success hover:text-success hover:underline flex items-center gap-1.5">
             Grupo de WhatsApp do Departamento <ExternalLink className="h-3 w-3" />
           </a>
         ) : (

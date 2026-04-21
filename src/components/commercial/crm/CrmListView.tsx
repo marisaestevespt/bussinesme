@@ -25,8 +25,8 @@ const FILTERS: { value: QuickFilter; label: string }[] = [
 function fuClass(state: FollowUpState) {
   switch (state) {
     case 'overdue': return 'text-destructive font-medium';
-    case 'today': return 'text-amber-600 font-medium';
-    case 'soon': return 'text-yellow-600';
+    case 'today': return 'text-warning font-medium';
+    case 'soon': return 'text-warning';
     default: return '';
   }
 }

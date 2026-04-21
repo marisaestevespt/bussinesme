@@ -409,13 +409,13 @@ export default function ConteudoDetailPage() {
                       </SelectContent>
                     </Select>
                     {showResponsibleReminder && (
-                      <div className="flex items-start gap-2 mt-2 p-2.5 rounded-md bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
-                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-2 mt-2 p-2.5 rounded-md bg-warning/15 border border-warning/30 dark:bg-amber-950/30 dark:border-amber-800">
+                        <AlertTriangle className="h-4 w-4 text-warning dark:text-amber-400 shrink-0 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-amber-800 dark:text-amber-300">O responsável de fase continua o mesmo?</p>
-                          <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">Confirma que o responsável de fase está correto para este novo status.</p>
+                          <p className="text-xs font-medium text-warning dark:text-amber-300">O responsável de fase continua o mesmo?</p>
+                          <p className="text-[10px] text-warning dark:text-amber-400 mt-0.5">Confirma que o responsável de fase está correto para este novo status.</p>
                         </div>
-                        <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+                        <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-warning dark:text-amber-300 hover:bg-warning/15 dark:hover:bg-amber-900"
                           onClick={() => setShowResponsibleReminder(false)}>OK</Button>
                       </div>
                     )}

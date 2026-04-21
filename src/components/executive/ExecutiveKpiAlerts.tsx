@@ -74,8 +74,8 @@ export function ExecutiveKpiAlerts() {
 
   const kpis = [
     { label: 'Clientes ativos', value: activeClients, icon: Users, color: 'text-primary' },
-    { label: 'Faturação mês', value: `${monthRevenue.toLocaleString('pt-PT')}€`, icon: CreditCard, color: 'text-emerald-600' },
-    { label: 'Faturação anual', value: `${yearRevenue.toLocaleString('pt-PT')}€`, sub: annualGoal > 0 ? `${goalProgress}% da meta` : undefined, icon: TrendingUp, color: 'text-blue-600' },
+    { label: 'Faturação mês', value: `${monthRevenue.toLocaleString('pt-PT')}€`, icon: CreditCard, color: 'text-success' },
+    { label: 'Faturação anual', value: `${yearRevenue.toLocaleString('pt-PT')}€`, sub: annualGoal > 0 ? `${goalProgress}% da meta` : undefined, icon: TrendingUp, color: 'text-info' },
     { label: 'Vendas mês', value: monthSales.length, icon: TrendingUp, color: 'text-violet-600' },
   ];
 
@@ -109,14 +109,14 @@ export function ExecutiveKpiAlerts() {
       {capacityAlert && capacityAlert.pct >= 75 && (
         <Card className={cn(
           "border-l-4",
-          capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" : "border-l-amber-500 bg-amber-50/50"
+          capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" : "border-l-amber-500 bg-warning/15/50"
         )}>
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className={cn(
                   "rounded-lg p-2 mt-0.5",
-                  capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-600"
+                  capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" : "bg-warning/15 text-warning"
                 )}>
                   <UserPlus className="h-5 w-5" />
                 </div>

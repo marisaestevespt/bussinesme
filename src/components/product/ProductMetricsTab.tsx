@@ -41,7 +41,7 @@ function AutoKpiCard({ label, value, prevValue, icon: Icon, suffix, color }: {
           <p className="text-xs text-muted-foreground truncate">{label}</p>
         </div>
         {diff != null && diff !== 0 && (
-          <div className={cn('flex items-center gap-0.5 text-xs font-medium', diff > 0 ? 'text-emerald-600' : 'text-destructive')}>
+          <div className={cn('flex items-center gap-0.5 text-xs font-medium', diff > 0 ? 'text-success' : 'text-destructive')}>
             {diff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
             {diff > 0 ? '+' : ''}{diff.toLocaleString('pt-PT')}
           </div>
@@ -56,9 +56,9 @@ function goalColor(value: number | null, goal: number | null): string {
   if (goal == null || goal <= 0) return 'bg-muted text-muted-foreground';
   if (value == null) return 'bg-muted text-muted-foreground';
   const pct = (value / goal) * 100;
-  if (pct >= 100) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400';
-  if (pct >= 70) return 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400';
-  return 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400';
+  if (pct >= 100) return 'bg-success/15 text-success dark:bg-emerald-950 dark:text-emerald-400';
+  if (pct >= 70) return 'bg-warning/15 text-warning dark:bg-amber-950 dark:text-amber-400';
+  return 'bg-destructive/15 text-destructive dark:bg-red-950 dark:text-red-400';
 }
 
 type HealthColor = 'green' | 'yellow' | 'red';

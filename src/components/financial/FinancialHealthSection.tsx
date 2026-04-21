@@ -187,10 +187,10 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                 <p className="text-xs text-muted-foreground">Churn de Receita</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-green-600">+{fmt(churn.gainedRevenue)}</span>
-                <span className="text-xs text-red-600">-{fmt(churn.lostRevenue)}</span>
+                <span className="text-xs text-success">+{fmt(churn.gainedRevenue)}</span>
+                <span className="text-xs text-destructive">-{fmt(churn.lostRevenue)}</span>
               </div>
-              <p className={`text-lg font-bold ${churn.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>{churn.net >= 0 ? '+' : ''}{fmt(churn.net)}</p>
+              <p className={`text-lg font-bold ${churn.net >= 0 ? 'text-success' : 'text-destructive'}`}>{churn.net >= 0 ? '+' : ''}{fmt(churn.net)}</p>
               <p className="text-[10px] text-muted-foreground">{churn.gainedCount} novo{churn.gainedCount !== 1 ? 's' : ''} · {churn.lostCount} saíd{churn.lostCount !== 1 ? 'as' : 'a'}</p>
             </CardContent>
           </Card>
@@ -209,7 +209,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                   {concentration.topClients.map((c, i) => (
                     <div key={i} className="flex justify-between items-center text-xs">
                       <span className="truncate max-w-[120px]">{c.name}</span>
-                      <Badge variant="outline" className={`text-[10px] ${c.pct > 30 ? 'bg-amber-50 text-amber-800 border-amber-200' : ''}`}>
+                      <Badge variant="outline" className={`text-[10px] ${c.pct > 30 ? 'bg-warning/15 text-warning border-warning/30' : ''}`}>
                         {c.pct.toFixed(1)}%
                       </Badge>
                     </div>
@@ -224,9 +224,9 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
         {concentration.alerts.length > 0 && (
           <div className="space-y-1.5">
             {concentration.alerts.map((c, i) => (
-              <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-200">
-                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-800">
+              <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-warning/15 border border-warning/30">
+                <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                <p className="text-xs text-warning">
                   <span className="font-semibold">Atenção</span> — {c.name} representa {c.pct.toFixed(1)}% da receita este mês.
                 </p>
               </div>

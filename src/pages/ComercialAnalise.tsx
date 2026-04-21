@@ -370,7 +370,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <KpiCard label="Novos clientes" value={newClientsMonth} icon={UserPlus} />
           <KpiCard label="Em renovação" value={clientsRenewal} icon={RefreshCw} />
-          <KpiCard label="Renovações confirmadas" value={renewedCount} icon={RefreshCw} color="text-emerald-600" />
+          <KpiCard label="Renovações confirmadas" value={renewedCount} icon={RefreshCw} color="text-success" />
           <KpiCard label="Renovações perdidas" value={churnMonth} icon={UserMinus} color={churnMonth > 0 ? 'text-destructive' : undefined} />
           <KpiCard label="Churn do mês" value={churnMonth} icon={AlertTriangle} color={churnMonth > 0 ? 'text-destructive' : undefined} />
         </div>
@@ -430,7 +430,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
                       <td className="p-3 text-right">{r.renewal != null ? `${r.renewal}%` : '—'}</td>
                       <td className="p-3 text-right">{r.nps != null ? r.nps : '—'}</td>
                       <td className="p-3 text-center">
-                        {r.trend === 'up' && <ArrowUp className="h-4 w-4 text-emerald-600 inline" />}
+                        {r.trend === 'up' && <ArrowUp className="h-4 w-4 text-success inline" />}
                         {r.trend === 'down' && <ArrowDown className="h-4 w-4 text-destructive inline" />}
                         {r.trend === 'none' && <Minus className="h-4 w-4 text-muted-foreground inline" />}
                       </td>

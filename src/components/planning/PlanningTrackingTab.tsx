@@ -78,7 +78,7 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
 
   const TrendIcon = ({ metricId }: { metricId: string }) => {
     const trend = planning.getMetricTrend(metricId);
-    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-success" />;
     if (trend === 'down') return <TrendingDown className="h-4 w-4 text-destructive" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
@@ -104,7 +104,7 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
             ))}
             {dueTodayMetrics.map((m: any) => (
               <div key={m.id} className="flex items-center gap-3 py-1 text-sm">
-                <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-700">Vence hoje</Badge>
+                <Badge variant="outline" className="text-[10px] border-amber-500 text-warning">Vence hoje</Badge>
                 <span className="font-medium">{m.name}</span>
                 <span className="text-xs text-muted-foreground">({getObjectiveName(m.objective_id)})</span>
               </div>
@@ -131,7 +131,7 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
                 const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
                 const displayVal = m.source === 'manual' ? m.current_value : autoVal;
                 return (
-                  <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-red-50' : ''}`} onClick={() => setEditMetric(m)}>
+                  <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-destructive/15' : ''}`} onClick={() => setEditMetric(m)}>
                     <TableCell className="text-xs">{getObjectiveName(m.objective_id)}</TableCell>
                     <TableCell className="text-sm font-medium">{m.name}</TableCell>
                     <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>

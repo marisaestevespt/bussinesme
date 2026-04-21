@@ -505,7 +505,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
             const displayVal = m.source === 'manual' ? m.current_value : autoVal;
             const status = getMetricStatus(m);
             return (
-              <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}`} onClick={() => setEditMetric(m)}>
+              <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-destructive/15' : dueToday ? 'bg-warning/15' : ''}`} onClick={() => setEditMetric(m)}>
                 <TableCell className="text-sm font-medium">{m.name}</TableCell>
                 <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
                 <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>

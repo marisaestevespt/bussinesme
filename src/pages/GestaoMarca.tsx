@@ -1021,7 +1021,7 @@ export default function GestaoMarcaPage() {
                           <td className="p-3">
                             <span className={cn(
                               'text-xs px-2 py-0.5 rounded-full font-medium',
-                              c.type === 'direta' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                              c.type === 'direta' ? 'bg-destructive/15 text-destructive dark:bg-red-950 dark:text-red-300' : 'bg-warning/15 text-warning dark:bg-amber-950 dark:text-amber-300'
                             )}>
                               {c.type === 'direta' ? 'Direta' : 'Indireta'}
                             </span>
