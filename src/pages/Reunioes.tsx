@@ -29,6 +29,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { DEPARTMENTS } from '@/lib/departments';
 import { logAudit } from '@/lib/auditLog';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -749,7 +750,7 @@ export default function ReunioesPage() {
         {/* List */}
         {isLoading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <InlineLoader />
           </div>
         ) : filteredMeetings.length === 0 ? (
           <p className="text-center text-muted-foreground py-12">

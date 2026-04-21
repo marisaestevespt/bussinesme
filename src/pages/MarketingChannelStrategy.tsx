@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, Plus, Trash2, ExternalLink, Paperclip, X, Upload } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import type { MarketingChannel } from '@/lib/marketing-constants';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const DIST_COLUMNS = [
   { key: 'segunda', label: 'Seg', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
@@ -190,7 +191,7 @@ export default function MarketingChannelStrategy() {
   if (!channel) return (
     <AppLayout>
       <div className="flex items-center justify-center min-h-screen">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <InlineLoader />
       </div>
     </AppLayout>
   );

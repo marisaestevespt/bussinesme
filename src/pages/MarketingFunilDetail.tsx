@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, Eye, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { resolveProductId } from '@/lib/productResolver';
-import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
@@ -121,7 +121,7 @@ export default function MarketingFunilDetail() {
   const [addingTextDoc, setAddingTextDoc] = useState(false);
 
   if (isLoading || !item) return (
-    <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
+    <AppLayout><div className="flex items-center justify-center min-h-screen"><InlineLoader /></div></AppLayout>
   );
 
   const st = STATUSES.find(s => s.value === form.status) || STATUSES[0];

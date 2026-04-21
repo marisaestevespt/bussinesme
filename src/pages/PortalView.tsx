@@ -17,6 +17,7 @@ import {
   FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Circle, Image as ImageIcon, Pencil, LogOut
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
@@ -240,7 +241,7 @@ export default function PortalViewPage() {
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-[#fefcfa]">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <InlineLoader />
     </div>
   );
 
@@ -882,7 +883,7 @@ export default function PortalViewPage() {
                                           disabled={uploadingQuestionFiles[q.id]}
                                         />
                                         {uploadingQuestionFiles[q.id] ? (
-                                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                          <InlineLoader />
                                         ) : (
                                           <>
                                             <Upload className="h-4 w-4 text-muted-foreground" />

@@ -11,7 +11,7 @@ import { ChevronLeft, Upload, FileText, Trash2, ExternalLink, Check } from 'luci
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
-import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
 type ReportFile = {
   id: string;
@@ -108,7 +108,7 @@ export default function TrafegoReportDetail() {
   };
 
   if (isLoading || !card) return (
-    <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
+    <AppLayout><div className="flex items-center justify-center min-h-screen"><InlineLoader /></div></AppLayout>
   );
 
   return (

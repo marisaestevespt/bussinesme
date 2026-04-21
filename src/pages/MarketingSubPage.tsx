@@ -10,6 +10,7 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { toast } from 'sonner';
 import { ChevronLeft, Check } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 export default function MarketingSubPage() {
   const { pageKey } = useParams<{ pageKey: string }>();
@@ -43,7 +44,7 @@ export default function MarketingSubPage() {
   if (isLoading) return (
     <AppLayout>
       <div className="flex items-center justify-center min-h-screen">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <InlineLoader />
       </div>
     </AppLayout>
   );

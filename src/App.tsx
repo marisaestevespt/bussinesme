@@ -18,6 +18,7 @@ import { lazy, Suspense, useEffect, useRef } from 'react';
 import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
 import { useSuspensionCheck } from '@/hooks/useSuspensionCheck';
 import { SuspensionScreen } from '@/components/SuspensionScreen';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 // Lazy-loaded pages (code-splitting per route)
 const SecretariaPage = lazy(() => import("./pages/Secretaria"));
@@ -90,7 +91,7 @@ const queryClient = new QueryClient();
 
 const PageLoader = () => (
   <div className="flex min-h-screen items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    <InlineLoader />
   </div>
 );
 

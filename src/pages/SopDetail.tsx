@@ -24,7 +24,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { useConfirm } from '@/components/ui/confirm-dialog';
-import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
 import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
 
@@ -635,7 +635,7 @@ export default function SopDetailPage() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <InlineLoader />
         </div>
       </AppLayout>
     );

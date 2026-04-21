@@ -21,6 +21,7 @@ import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
 import { resolveProductId } from '@/lib/productResolver';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
@@ -95,7 +96,7 @@ export default function TrafegoCriativoDetail() {
   };
 
   if (isLoading || !item) return (
-    <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
+    <AppLayout><div className="flex items-center justify-center min-h-screen"><InlineLoader /></div></AppLayout>
   );
 
   const st = STATUSES.find(s => s.value === form.status) || STATUSES[0];

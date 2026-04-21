@@ -31,6 +31,7 @@ import { toast } from 'sonner';
 import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import { resolveProductId } from '@/lib/productResolver';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1056,7 +1057,7 @@ export default function AgendaPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <InlineLoader />
           </div>
         ) : view === 'calendar' ? (
           <CalendarView events={allEvents} types={types} onEventClick={handleEventClick} />

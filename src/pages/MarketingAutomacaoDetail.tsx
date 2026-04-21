@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
-import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-warning/15 text-warning' },
@@ -133,7 +133,7 @@ export default function MarketingAutomacaoDetail() {
   };
 
   if (isLoading || !item) return (
-    <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
+    <AppLayout><div className="flex items-center justify-center min-h-screen"><InlineLoader /></div></AppLayout>
   );
 
   const st = STATUSES.find(s => s.value === form.status) || STATUSES[0];
