@@ -18,12 +18,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
-import { EmptyHint } from '@/components/ui/loading-skeletons';
   ChevronLeft, Plus, Trash2, Pencil, Check, X, ExternalLink,
   Image as ImageIcon, Palette, Link2, Lightbulb,
 } from 'lucide-react';
 import { CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, type MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const IDEA_CATEGORIES = [
   { value: 'todas', label: 'Todas' },

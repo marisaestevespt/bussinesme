@@ -15,7 +15,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import {
-import { EmptyHint } from '@/components/ui/loading-skeletons';
   STATUS_OPTIONS, FUNNEL_OPTIONS, CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, OBJECTIVE_OPTIONS,
   getFormatsForChannels,
   type ContentItem, type MarketingChannel, type ContentChannelLink, type ContentAttachment,
@@ -28,6 +27,7 @@ import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, Aler
 import { BackNavigation } from '@/components/BackNavigation';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();

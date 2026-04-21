@@ -14,9 +14,9 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
-import { EmptyHint } from '@/components/ui/loading-skeletons';
   ChevronLeft, Plus, Trash2, Upload, Check, Image as ImageIcon, Globe, X,
 } from 'lucide-react';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const PAGE_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },

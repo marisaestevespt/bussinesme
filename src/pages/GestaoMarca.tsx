@@ -20,10 +20,10 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
-import { EmptyHint } from '@/components/ui/loading-skeletons';
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
   closestCorners, useDroppable, useSensor, useSensors,
 } from '@dnd-kit/core';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 import {
   SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
 } from '@dnd-kit/sortable';
