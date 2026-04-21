@@ -11,7 +11,6 @@ interface BrandingData {
   secondary_color?: string;
   accent_color?: string;
   fonts?: { display?: string; body?: string };
-  logo_variants?: Array<{ label: string; url: string }>;
   visual_assets?: Array<{ label: string; url: string }>;
   // Posicionamento
   positioning?: string;
@@ -21,7 +20,12 @@ interface BrandingData {
   tone_of_voice?: string;
   // Símbolos
   emojis?: string;
-  hashtags?: string;
+  words_to_use?: string;
+  words_to_avoid?: string;
+  pains?: string;
+  desires?: string;
+  difficulties?: string;
+  dreams?: string;
   // Pastas / links externos
   folders?: Array<{ label: string; url: string }>;
   // Notas
@@ -38,22 +42,22 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
   const b = branding || {};
   const set = (patch: Partial<BrandingData>) => onUpdate({ ...b, ...patch });
 
-  const updateList = <K extends 'logo_variants' | 'visual_assets' | 'folders'>(
+  const updateList = <K extends 'visual_assets' | 'folders'>(
     key: K,
     next: Array<{ label: string; url: string }>
   ) => set({ [key]: next } as Partial<BrandingData>);
 
   const renderLinkList = (
-    key: 'logo_variants' | 'visual_assets' | 'folders',
+    key: 'visual_assets' | 'folders',
     title: string,
     placeholder: string,
   ) => {
     const items = (b[key] || []) as Array<{ label: string; url: string }>;
     return (
-      <div className="space-y-2">
-        <Label className="text-sm font-semibold">{title}</Label>
+      <div className="space-y-3 pt-2">
+        <Label className="text-sm font-semibold block">{title}</Label>
         {items.map((item, i) => (
-          <div key={i} className="flex gap-2 items-center">
+          <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center p-3 rounded-lg border border-border bg-muted/30">
             <Input
               value={item.label}
               onChange={(e) => {
@@ -62,7 +66,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
                 updateList(key, next);
               }}
               placeholder="Nome"
-              className="h-8 text-sm w-1/3"
+              className="h-9 text-sm sm:w-1/3"
               readOnly={!isOwner}
             />
             <Input
@@ -73,24 +77,26 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
                 updateList(key, next);
               }}
               placeholder={placeholder}
-              className="h-8 text-sm flex-1"
+              className="h-9 text-sm flex-1"
               readOnly={!isOwner}
             />
-            {item.url && (
-              <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                <ExternalLink className="h-4 w-4 text-primary" />
-              </a>
-            )}
-            {isOwner && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={() => updateList(key, items.filter((_, j) => j !== i))}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
+            <div className="flex gap-1 items-center self-end sm:self-auto">
+              {item.url && (
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-2 hover:bg-primary/10 rounded-md">
+                  <ExternalLink className="h-4 w-4 text-primary" />
+                </a>
+              )}
+              {isOwner && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => updateList(key, items.filter((_, j) => j !== i))}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         ))}
         {isOwner && (
@@ -195,8 +201,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
             </div>
           </div>
 
-          {renderLinkList('logo_variants', 'Variações do Logo', 'https://...')}
-          {renderLinkList('visual_assets', 'Assets Visuais (mood board, ícones, etc.)', 'https://...')}
+          {renderLinkList('visual_assets', 'Assets Visuais (logos, mood board, ícones, etc.)', 'https://...')}
         </CardContent>
       </Card>
 
@@ -272,14 +277,66 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Hashtags</Label>
-            <Input
-              value={b.hashtags || ''}
-              onChange={(e) => set({ hashtags: e.target.value })}
-              placeholder="#marca #produto"
-              className="h-9 text-sm"
+            <Label className="text-xs text-muted-foreground">Palavras a Utilizar</Label>
+            <Textarea
+              value={b.words_to_use || ''}
+              onChange={(e) => set({ words_to_use: e.target.value })}
+              placeholder="Vocabulário, expressões e termos que representam a marca"
+              className="min-h-[80px] text-sm"
               readOnly={!isOwner}
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Palavras a NÃO Dizer</Label>
+            <Textarea
+              value={b.words_to_avoid || ''}
+              onChange={(e) => set({ words_to_avoid: e.target.value })}
+              placeholder="Termos, jargão ou expressões a evitar"
+              className="min-h-[80px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Dores</Label>
+              <Textarea
+                value={b.pains || ''}
+                onChange={(e) => set({ pains: e.target.value })}
+                placeholder="Principais dores do público"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Dificuldades</Label>
+              <Textarea
+                value={b.difficulties || ''}
+                onChange={(e) => set({ difficulties: e.target.value })}
+                placeholder="Obstáculos que enfrentam"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Desejos</Label>
+              <Textarea
+                value={b.desires || ''}
+                onChange={(e) => set({ desires: e.target.value })}
+                placeholder="O que querem alcançar"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Sonhos</Label>
+              <Textarea
+                value={b.dreams || ''}
+                onChange={(e) => set({ dreams: e.target.value })}
+                placeholder="Aspirações maiores e visão de futuro"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
