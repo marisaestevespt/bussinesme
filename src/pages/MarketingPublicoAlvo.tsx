@@ -21,12 +21,21 @@ export default function MarketingPublicoAlvo() {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  // Group sections by nav_group preserving order
+  // The "definicao" section is always pinned at the top, outside the tab system.
+  const overviewSection = useMemo(
+    () => sections?.find(s => s.section_key === 'definicao'),
+    [sections]
+  );
+  const tabSections = useMemo(
+    () => sections?.filter(s => s.section_key !== 'definicao') ?? [],
+    [sections]
+  );
+
+  // Group remaining sections by nav_group preserving order
   const navGroups = useMemo(() => {
-    if (!sections) return [];
     const groups: { label: string; items: PASection[] }[] = [];
     const seen = new Set<string>();
-    for (const s of sections) {
+    for (const s of tabSections) {
       if (!seen.has(s.nav_group)) {
         seen.add(s.nav_group);
         groups.push({ label: s.nav_group, items: [] });
@@ -34,12 +43,12 @@ export default function MarketingPublicoAlvo() {
       groups.find(g => g.label === s.nav_group)!.items.push(s);
     }
     return groups;
-  }, [sections]);
+  }, [tabSections]);
 
   const allItems = useMemo(() => navGroups.flatMap(g => g.items), [navGroups]);
-  const currentKey = activeKey || sections?.[0]?.section_key;
+  const currentKey = activeKey || tabSections[0]?.section_key;
   const currentIndex = allItems.findIndex(i => i.section_key === currentKey);
-  const activeSection = sections?.find(s => s.section_key === currentKey);
+  const activeSection = tabSections.find(s => s.section_key === currentKey);
 
   const goToPrev = useCallback(() => {
     if (currentIndex > 0) setActiveKey(allItems[currentIndex - 1].section_key);
@@ -67,7 +76,7 @@ export default function MarketingPublicoAlvo() {
   };
 
   const handleAddSection = () => {
-    const lastGroup = navGroups[navGroups.length - 1]?.label || 'Novo Grupo';
+    const lastGroup = navGroups[navGroups.length - 1]?.label || 'Decisão e Comunicação';
     const maxOrder = sections?.reduce((max, s) => Math.max(max, s.sort_order), 0) || 0;
     const key = `section-${Date.now()}`;
     addSection.mutate({
@@ -101,6 +110,42 @@ export default function MarketingPublicoAlvo() {
 
         <div className="space-y-6">
           <BackNavigation parentRoute="/hub/marketing/estrategia" parentLabel="Estratégia" />
+
+          {/* ═══ OVERVIEW (always visible at top) ═══ */}
+          {overviewSection && (
+            <section className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-[10px] uppercase tracking-[2px] text-primary/60 mb-1.5">Visão geral</p>
+                  <EditableText
+                    value={overviewSection.title}
+                    onSave={t => updateSection.mutate({ id: overviewSection.id, title: t })}
+                    as="h2"
+                    className="text-2xl sm:text-3xl font-semibold text-foreground leading-tight"
+                  />
+                  <div className="w-10 h-0.5 bg-primary mt-2 mb-2" />
+                  {overviewSection.subtitle && (
+                    <EditableText
+                      value={overviewSection.subtitle}
+                      onSave={t => updateSection.mutate({ id: overviewSection.id, subtitle: t })}
+                      className="text-sm text-muted-foreground leading-relaxed max-w-[680px]"
+                      multiline
+                    />
+                  )}
+                </div>
+              </div>
+              <SectionRenderer
+                content={overviewSection.content}
+                onContentChange={c => handleContentChange(overviewSection.id, c)}
+              />
+            </section>
+          )}
+
+          {overviewSection && tabSections.length > 0 && (
+            <div className="pt-2">
+              <p className="text-[10px] uppercase tracking-[2px] text-muted-foreground/70 mb-2">Aprofundar</p>
+            </div>
+          )}
 
           {/* ═══ TAB NAV ═══ */}
           <div className="sticky top-14 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
