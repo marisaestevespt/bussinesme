@@ -277,14 +277,66 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Hashtags</Label>
-            <Input
-              value={b.hashtags || ''}
-              onChange={(e) => set({ hashtags: e.target.value })}
-              placeholder="#marca #produto"
-              className="h-9 text-sm"
+            <Label className="text-xs text-muted-foreground">Palavras a Utilizar</Label>
+            <Textarea
+              value={b.words_to_use || ''}
+              onChange={(e) => set({ words_to_use: e.target.value })}
+              placeholder="Vocabulário, expressões e termos que representam a marca"
+              className="min-h-[80px] text-sm"
               readOnly={!isOwner}
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Palavras a NÃO Dizer</Label>
+            <Textarea
+              value={b.words_to_avoid || ''}
+              onChange={(e) => set({ words_to_avoid: e.target.value })}
+              placeholder="Termos, jargão ou expressões a evitar"
+              className="min-h-[80px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Dores</Label>
+              <Textarea
+                value={b.pains || ''}
+                onChange={(e) => set({ pains: e.target.value })}
+                placeholder="Principais dores do público"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Dificuldades</Label>
+              <Textarea
+                value={b.difficulties || ''}
+                onChange={(e) => set({ difficulties: e.target.value })}
+                placeholder="Obstáculos que enfrentam"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Desejos</Label>
+              <Textarea
+                value={b.desires || ''}
+                onChange={(e) => set({ desires: e.target.value })}
+                placeholder="O que querem alcançar"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Sonhos</Label>
+              <Textarea
+                value={b.dreams || ''}
+                onChange={(e) => set({ dreams: e.target.value })}
+                placeholder="Aspirações maiores e visão de futuro"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
