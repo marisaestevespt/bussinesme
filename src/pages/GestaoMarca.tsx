@@ -19,6 +19,14 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
+  DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
+  closestCorners, useDroppable, useSensor, useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
   Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
   Target, Sparkles, BarChart3,
@@ -111,6 +119,7 @@ export default function GestaoMarcaPage() {
   const [selectedKanban, setSelectedKanban] = useState<KanbanItem | null>(null);
   const [kanbanContent, setKanbanContent] = useState('');
   const [editingKanban, setEditingKanban] = useState(false);
+  const [activeDragItem, setActiveDragItem] = useState<KanbanItem | null>(null);
 
   // Add kanban item
   const [addingToGroup, setAddingToGroup] = useState<string | null>(null);
@@ -279,6 +288,54 @@ export default function GestaoMarcaPage() {
     await supabase.from('brand_kanban_items').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
     toast.success('Item removido');
+  };
+
+  const handleKanbanDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragItem(null);
+    if (!over) return;
+
+    const activeItem = kanbanItems.find(i => i.id === active.id);
+    if (!activeItem) return;
+
+    // Determine target group: dropped on item or on empty column droppable
+    const overId = String(over.id);
+    const overItem = kanbanItems.find(i => i.id === overId);
+    const targetGroup = overItem ? overItem.group_key : (overId.startsWith('col:') ? overId.slice(4) : null);
+    if (!targetGroup) return;
+    if (!KANBAN_GROUPS.find(g => g.key === targetGroup)) return;
+
+    // Build new ordered list within target group
+    const sameGroup = activeItem.group_key === targetGroup;
+    const targetItems = kanbanItems.filter(i => i.group_key === targetGroup && i.id !== active.id);
+    let newIndex = targetItems.length;
+    if (overItem) {
+      const idxInTarget = targetItems.findIndex(i => i.id === overItem.id);
+      newIndex = idxInTarget === -1 ? targetItems.length : idxInTarget;
+    }
+    const reordered = [...targetItems];
+    reordered.splice(newIndex, 0, { ...activeItem, group_key: targetGroup });
+
+    // Optimistic update
+    queryClient.setQueryData<KanbanItem[]>(['brand-kanban-items'], (prev) => {
+      const others = (prev || []).filter(i => i.group_key !== targetGroup && (sameGroup ? true : i.id !== active.id));
+      const updated = reordered.map((it, idx) => ({ ...it, sort_order: idx }));
+      return [...others, ...updated];
+    });
+
+    // Persist: update target group order + (if moved) original group reindex
+    const updates = reordered.map((it, idx) =>
+      supabase.from('brand_kanban_items').update({ group_key: targetGroup, sort_order: idx } as any).eq('id', it.id)
+    );
+    if (!sameGroup) {
+      const sourceItems = kanbanItems.filter(i => i.group_key === activeItem.group_key && i.id !== active.id);
+      sourceItems.forEach((it, idx) => {
+        updates.push(supabase.from('brand_kanban_items').update({ sort_order: idx } as any).eq('id', it.id));
+      });
+    }
+    const results = await Promise.all(updates);
+    if (results.some(r => r.error)) toast.error('Erro ao mover');
+    queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
   };
 
   // ── Visual card mutations ──
@@ -637,103 +694,46 @@ export default function GestaoMarcaPage() {
           {/* ── Branding e Primal Branding ── */}
           <section className="space-y-5">
             <h2 className="text-xl font-semibold text-foreground">Branding & Primal Branding</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-              {KANBAN_GROUPS.map(group => {
-                const items = kanbanItems.filter(i => i.group_key === group.key);
-                return (
-                  <div key={group.key} className="space-y-0 shadow-md rounded-lg overflow-hidden">
-                    {/* Notion-style colored header */}
-                    <div className={cn('flex items-center justify-between px-3 py-3', group.headerBg)}>
-                      <div className="flex items-center gap-1.5">
-                        <span className={cn('text-xs font-semibold', group.headerText)}>// {group.label}</span>
-                      </div>
-                      <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
-                    </div>
-                    {/* Items list */}
-                    <div className="space-y-0 bg-muted/5 border-x border-b rounded-b-lg">
-                      {items.map(item => (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors group"
-                          onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); setEditingKanban(false); }}
-                        >
-                          {isOwner ? (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button
-                                  type="button"
-                                  onClick={e => e.stopPropagation()}
-                                  className="text-base leading-none hover:scale-110 transition-transform"
-                                  title="Mudar emoji"
-                                >
-                                  {item.emoji || '📄'}
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-2" align="start" onClick={e => e.stopPropagation()}>
-                                <div className="grid grid-cols-5 gap-1 max-w-[200px]">
-                                  {KANBAN_EMOJIS.map(em => (
-                                    <button
-                                      key={em}
-                                      type="button"
-                                      className="h-8 w-8 rounded hover:bg-muted text-lg"
-                                      onClick={e => { e.stopPropagation(); updateKanbanEmoji(item.id, em); }}
-                                    >
-                                      {em}
-                                    </button>
-                                  ))}
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          ) : (
-                            <span className="text-base leading-none">{item.emoji || '📄'}</span>
-                          )}
-                          <span className="text-sm text-foreground flex-1 truncate">{item.title}</span>
-                          {isOwner && !RESERVED_KANBAN_TITLES.includes(item.title) && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0"
-                              onClick={(e) => { e.stopPropagation(); deleteKanbanItem(item.id); }}
-                            >
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                      {isOwner && (
-                        addingToGroup === group.key ? (
-                          <div className="p-2 space-y-1.5">
-                            <Input
-                              value={newItemTitle}
-                              onChange={e => setNewItemTitle(e.target.value)}
-                              placeholder="Nome do item..."
-                              className="h-8 text-xs"
-                              autoFocus
-                              onKeyDown={e => e.key === 'Enter' && addKanbanItem()}
-                            />
-                            <div className="flex gap-1">
-                              <Button size="sm" className="h-7 text-xs" onClick={addKanbanItem}>
-                                <Check className="h-3 w-3 mr-1" />Adicionar
-                              </Button>
-                              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setAddingToGroup(null); setNewItemTitle(''); }}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button
-                            className={cn('w-full text-left px-3 py-4 text-sm hover:bg-muted/30 transition-colors', group.addColor)}
-                            onClick={() => setAddingToGroup(group.key)}
-                          >
-                            + New page
-                          </button>
-                        )
-                      )}
-                    </div>
+            <DndContext
+              collisionDetection={closestCorners}
+              onDragStart={(e: DragStartEvent) => {
+                const it = kanbanItems.find(i => i.id === e.active.id);
+                setActiveDragItem(it || null);
+              }}
+              onDragEnd={handleKanbanDragEnd}
+              onDragCancel={() => setActiveDragItem(null)}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                {KANBAN_GROUPS.map(group => {
+                  const items = [...kanbanItems.filter(i => i.group_key === group.key)].sort((a, b) => a.sort_order - b.sort_order);
+                  return (
+                    <KanbanColumn
+                      key={group.key}
+                      group={group}
+                      items={items}
+                      isOwner={isOwner}
+                      reservedTitles={RESERVED_KANBAN_TITLES}
+                      addingToGroup={addingToGroup}
+                      newItemTitle={newItemTitle}
+                      setNewItemTitle={setNewItemTitle}
+                      setAddingToGroup={setAddingToGroup}
+                      onAddItem={addKanbanItem}
+                      onOpenItem={(item) => { setSelectedKanban(item); setKanbanContent(item.content || ''); setEditingKanban(false); }}
+                      onDeleteItem={deleteKanbanItem}
+                      onChangeEmoji={updateKanbanEmoji}
+                    />
+                  );
+                })}
+              </div>
+              <DragOverlay>
+                {activeDragItem ? (
+                  <div className="flex items-center gap-2.5 px-3 py-2.5 bg-card border rounded-md shadow-lg">
+                    <span className="text-base leading-none">{activeDragItem.emoji || '📄'}</span>
+                    <span className="text-sm text-foreground">{activeDragItem.title}</span>
                   </div>
-                );
-              })}
-            </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           </section>
 
 
@@ -1296,5 +1296,174 @@ export default function GestaoMarcaPage() {
         </DialogContent>
       </Dialog>
     </AppLayout>
+  );
+}
+
+/* ─── Sortable kanban item ─── */
+function SortableKanbanItem({
+  item, isOwner, reservedTitles, onOpen, onDelete, onChangeEmoji,
+}: {
+  item: KanbanItem;
+  isOwner: boolean;
+  reservedTitles: string[];
+  onOpen: (item: KanbanItem) => void;
+  onDelete: (id: string) => void;
+  onChangeEmoji: (id: string, emoji: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-b-0 hover:bg-muted/40 transition-colors group bg-background/0"
+    >
+      {isOwner ? (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              onClick={e => e.stopPropagation()}
+              className="text-base leading-none hover:scale-110 transition-transform"
+              title="Mudar emoji"
+            >
+              {item.emoji || '📄'}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" align="start" onClick={e => e.stopPropagation()}>
+            <div className="grid grid-cols-5 gap-1 max-w-[200px]">
+              {KANBAN_EMOJIS.map(em => (
+                <button
+                  key={em}
+                  type="button"
+                  className="h-8 w-8 rounded hover:bg-muted text-lg"
+                  onClick={e => { e.stopPropagation(); onChangeEmoji(item.id, em); }}
+                >
+                  {em}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      ) : (
+        <span className="text-base leading-none">{item.emoji || '📄'}</span>
+      )}
+      <button
+        type="button"
+        className="text-sm text-foreground flex-1 truncate text-left cursor-pointer"
+        onClick={() => onOpen(item)}
+      >
+        {item.title}
+      </button>
+      {isOwner && (
+        <button
+          type="button"
+          className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing px-1 opacity-0 group-hover:opacity-100"
+          title="Arrastar"
+          {...attributes}
+          {...listeners}
+        >
+          ⋮⋮
+        </button>
+      )}
+      {isOwner && !reservedTitles.includes(item.title) && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0"
+          onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+        >
+          <Trash2 className="h-3 w-3 text-destructive" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/* ─── Droppable kanban column ─── */
+function KanbanColumn({
+  group, items, isOwner, reservedTitles,
+  addingToGroup, newItemTitle, setNewItemTitle, setAddingToGroup,
+  onAddItem, onOpenItem, onDeleteItem, onChangeEmoji,
+}: {
+  group: typeof KANBAN_GROUPS[number];
+  items: KanbanItem[];
+  isOwner: boolean;
+  reservedTitles: string[];
+  addingToGroup: string | null;
+  newItemTitle: string;
+  setNewItemTitle: (v: string) => void;
+  setAddingToGroup: (v: string | null) => void;
+  onAddItem: () => void;
+  onOpenItem: (item: KanbanItem) => void;
+  onDeleteItem: (id: string) => void;
+  onChangeEmoji: (id: string, emoji: string) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `col:${group.key}` });
+
+  return (
+    <div className="space-y-0 shadow-md rounded-lg overflow-hidden">
+      <div className={cn('flex items-center justify-between px-3 py-3', group.headerBg)}>
+        <div className="flex items-center gap-1.5">
+          <span className={cn('text-xs font-semibold', group.headerText)}>// {group.label}</span>
+        </div>
+        <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
+      </div>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          'space-y-0 bg-muted/5 border-x border-b rounded-b-lg min-h-[60px] transition-colors',
+          isOver && 'bg-primary/5 ring-1 ring-primary/30'
+        )}
+      >
+        <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+          {items.map(item => (
+            <SortableKanbanItem
+              key={item.id}
+              item={item}
+              isOwner={isOwner}
+              reservedTitles={reservedTitles}
+              onOpen={onOpenItem}
+              onDelete={onDeleteItem}
+              onChangeEmoji={onChangeEmoji}
+            />
+          ))}
+        </SortableContext>
+        {isOwner && (
+          addingToGroup === group.key ? (
+            <div className="p-2 space-y-1.5">
+              <Input
+                value={newItemTitle}
+                onChange={e => setNewItemTitle(e.target.value)}
+                placeholder="Nome do item..."
+                className="h-8 text-xs"
+                autoFocus
+                onKeyDown={e => e.key === 'Enter' && onAddItem()}
+              />
+              <div className="flex gap-1">
+                <Button size="sm" className="h-7 text-xs" onClick={onAddItem}>
+                  <Check className="h-3 w-3 mr-1" />Adicionar
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setAddingToGroup(null); setNewItemTitle(''); }}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button
+              className={cn('w-full text-left px-3 py-4 text-sm hover:bg-muted/30 transition-colors', group.addColor)}
+              onClick={() => setAddingToGroup(group.key)}
+            >
+              + New page
+            </button>
+          )
+        )}
+      </div>
+    </div>
   );
 }
