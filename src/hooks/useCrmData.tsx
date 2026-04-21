@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { cleanPayload } from '@/lib/utils';
 import { useMemo } from 'react';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { resolveProductId } from '@/lib/productResolver';
 
 type CrmLead = Tables<'crm_leads'>;
 type CrmInteraction = Tables<'crm_interactions'>;
@@ -85,6 +86,10 @@ export function useCrmData() {
   const upsertLead = useMutation({
     mutationFn: async (raw: Partial<CrmLead> & { name?: string }) => {
       const lead = cleanPayload(raw as Record<string, unknown>);
+      // Auto-resolve potential_product_id from potential_product name when not explicitly set.
+      if ('potential_product' in lead && lead.potential_product_id === undefined) {
+        lead.potential_product_id = await resolveProductId(lead.potential_product as string | null);
+      }
       if (lead.id) {
         const { error } = await supabase.from('crm_leads').update(lead as TablesUpdate<'crm_leads'>).eq('id', lead.id as string);
         if (error) throw error;
