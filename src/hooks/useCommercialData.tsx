@@ -226,11 +226,16 @@ export function useCommercialData(year = currentYear) {
       const saleQuarter = saleMonth ? Math.ceil(saleMonth / 3) : null;
       const saleYear = payDate ? payDate.getFullYear() : null;
 
+      // Always resolve product_id from the current product name so the
+      // relational link is preserved even if the product is renamed later.
+      const productId = await resolveProductId((sale as any).product as string | null);
+
       const record = {
         ...sale,
         sale_month: saleMonth,
         sale_quarter: saleQuarter,
         sale_year: saleYear,
+        product_id: productId,
       };
 
       if (sale.id) {
