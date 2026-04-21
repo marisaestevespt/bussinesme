@@ -106,22 +106,23 @@ export default function PortalViewPage() {
     const pid = portalData.id;
     const cid = portalData.client_id;
     const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
-      sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
-      sb('portal_initial_questions').select('*').eq('portal_id', pid).order('group_sort_order').order('sort_order'),
-      sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
-      sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
+      (supabase as any).rpc('get_portal_faqs', { _token: realToken }),
+      (supabase as any).rpc('get_portal_initial_questions', { _token: realToken }),
+      (supabase as any).rpc('get_portal_comments', { _token: realToken }),
+      (supabase as any).rpc('get_portal_feedback', { _token: realToken }),
       (supabase as any).rpc('get_portal_meetings', { _token: realToken }),
       (supabase as any).rpc('get_portal_payments', { _token: realToken }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       (supabase as any).rpc('get_portal_phases', { _token: realToken }),
       (supabase as any).rpc('get_portal_project_history', { _token: realToken }),
-      sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
+      (supabase as any).rpc('get_portal_materials', { _token: realToken }),
       (supabase as any).rpc('get_portal_contract_documents', { _token: realToken }),
     ]);
-    setFaqs(faqsR.data || []);
-    setQuestions(questionsR.data || []);
-    setComments(commentsR.data || []);
-    setFeedback(feedbackR.data || []);
+    setFaqs(((faqsR as any).data || []).slice().sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+    setQuestions(((questionsR as any).data || []).slice().sort((a: any, b: any) =>
+      (a.group_sort_order ?? 0) - (b.group_sort_order ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+    setComments(((commentsR as any).data || []).slice().sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+    setFeedback(((feedbackR as any).data || []).slice().sort((a: any, b: any) => new Date(b.submitted_at || b.created_at).getTime() - new Date(a.submitted_at || a.created_at).getTime()));
     setMeetings((meetingsR as any).data || []);
     setPayments((paymentsR as any).data || []);
     setTasks((tasksR as any).data || []);
@@ -133,21 +134,28 @@ export default function PortalViewPage() {
     // Show all phases in the onboarding/timeline section
     setOnboarding(allPhases);
     setProjectHistory((historyR as any).data || []);
-    setPortalMaterials(materialsR.data || []);
+    setPortalMaterials(((materialsR as any).data || []).slice().sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     setContractDocs((contractR as any).data || []);
     setLoading(false);
   };
 
   const sendComment = async () => {
     if (!commentText.trim() || !portal) return;
-    await sb('portal_comments').insert({ portal_id: portal.id, content: commentText.trim(), author: 'client', author_name: client?.full_name || 'Cliente' });
+    await (supabase as any).rpc('portal_add_comment', {
+      _token: portal.token,
+      _author: client?.full_name || 'Cliente',
+      _content: commentText.trim(),
+    });
     setComments(prev => [...prev, { id: crypto.randomUUID(), portal_id: portal.id, content: commentText.trim(), author: 'client', author_name: client?.full_name || 'Cliente', created_at: new Date().toISOString() }]);
     setCommentText('');
   };
 
   const sendFeedback = async () => {
     if (!feedbackText.trim() || !portal) return;
-    await sb('portal_feedback').insert({ portal_id: portal.id, content: feedbackText.trim() });
+    await (supabase as any).rpc('portal_submit_feedback', {
+      _token: portal.token,
+      _payload: { content: feedbackText.trim() },
+    });
     toast.success('Feedback enviado! Obrigado. 💛');
     setFeedbackText('');
   };
@@ -163,7 +171,12 @@ export default function PortalViewPage() {
 
   const answerQuestion = async (qId: string, answer: string) => {
     const answeredAt = new Date().toISOString();
-    await sb('portal_initial_questions').update({ answer, answered_at: answeredAt }).eq('id', qId);
+    await (supabase as any).rpc('portal_answer_initial_question', {
+      _token: portal!.token,
+      _question_id: qId,
+      _answer: answer,
+      _file_urls: null,
+    });
     setQuestions(prev => prev.map(q => q.id === qId ? { ...q, answer, answered_at: answeredAt } : q));
     await maybeNotifyQuestionsSubmitted();
     toast.success('Resposta guardada ✨');
@@ -189,7 +202,12 @@ export default function PortalViewPage() {
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
       const allUrls = [...existing, ...urls];
       const answeredAt = new Date().toISOString();
-      await sb('portal_initial_questions').update({ file_urls: allUrls, answered_at: answeredAt }).eq('id', qId);
+      await (supabase as any).rpc('portal_answer_initial_question', {
+        _token: portal!.token,
+        _question_id: qId,
+        _answer: question?.answer || '',
+        _file_urls: allUrls,
+      });
       setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: allUrls, answered_at: answeredAt } : q));
       await maybeNotifyQuestionsSubmitted();
       toast.success(`${urls.length} ficheiro(s) enviado(s) ✨`);
@@ -206,7 +224,12 @@ export default function PortalViewPage() {
       const question = questions.find(q => q.id === qId);
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
       const updated = existing.filter((_, i) => i !== fileIndex);
-      await sb('portal_initial_questions').update({ file_urls: updated.length ? updated : null }).eq('id', qId);
+      await (supabase as any).rpc('portal_answer_initial_question', {
+        _token: portal!.token,
+        _question_id: qId,
+        _answer: question?.answer || '',
+        _file_urls: updated.length ? updated : null,
+      });
       setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: updated } : q));
       toast.success('Ficheiro removido');
     } catch (err) {

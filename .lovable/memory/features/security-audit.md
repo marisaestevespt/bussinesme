@@ -38,5 +38,24 @@ Edge function `supabase/functions/manage-access-password/index.ts` reinforced. A
 
 Secrets used: `ACCESS_ENCRYPTION_KEY`, `ALLOWED_ORIGIN`.
 
+## Fixes Applied (2026-04-21) — Critical RLS hardening
+
+1. **Portal anon access locked behind token RPCs.** Dropped anon `SELECT/INSERT/UPDATE` policies on
+   `portal_initial_questions`, `portal_monthly_summaries`, `portal_timeline_phases`,
+   `portal_project_history`, `portal_materials`, `portal_faqs`, `portal_comments`, `portal_feedback`.
+   Created SECURITY DEFINER token-gated RPCs:
+   - Reads: `get_portal_initial_questions`, `get_portal_monthly_summaries`, `get_portal_timeline_phases`,
+     `get_portal_materials`, `get_portal_faqs`, `get_portal_comments`, `get_portal_feedback`
+   - Writes: `portal_answer_initial_question`, `portal_add_comment`, `portal_submit_feedback`
+   `PortalView.tsx` updated to use the RPCs only. Authenticated team-side queries continue via direct table access.
+
+2. **client_portals anon UPDATE removed.** `last_visit_at` updates only via `portal_record_visit` RPC.
+
+3. **member_sensitive_access locked.** Dropped permissive USING(true) INSERT/UPDATE/DELETE policies; only
+   owner-role policies remain (privilege escalation closed).
+
+4. **Storage buckets `financial-files` and `library-files` set to private.** Public SELECT removed; only
+   authenticated users can read/write.
+
 ## Remaining USING(true) tables (by design)
 Operational tables intentionally allow all authenticated members full CRUD — correct for single-tenant team app.
