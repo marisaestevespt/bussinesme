@@ -1,32 +1,35 @@
 ---
-name: UI Identity - Amber Gold
-description: Lyrata identity uses warm amber/gold primary, dark charcoal accent, cream backgrounds, gradient headers, Plus Jakarta Sans display font. Inspired by Crextio/Skillex dashboards.
+name: UI Identity - Marsala / Bordô
+description: Lyrata identity uses warm marsala/bordô primary (hsl 351 56% 28%), salmon accents, cream backgrounds (hsl 33 43% 96%), warm-tinted shadows, Sora display + Inter body. Sidebar is deep bordô. Status badges use unified StatusBadge component with semantic tones (success/warning/destructive/info/primary/muted) — never hardcoded Tailwind colors.
 type: design
 ---
 
 ## Palette (Light)
-- Background: warm cream `hsl(40 30% 96%)`
-- Card: off-white `hsl(42 25% 99%)`
-- Primary: amber/gold `hsl(40 90% 50%)` — THE signature color
-- Accent: dark charcoal `hsl(30 10% 15%)` — for contrast (active sidebar items)
-- Secondary: warm sand `hsl(38 22% 92%)`
-- Foreground: warm dark `hsl(30 15% 12%)`
+- Background: warm cream `hsl(33 43% 96%)`
+- Card: pure white `hsl(0 0% 100%)`
+- Primary: marsala/bordô `hsl(351 56% 28%)` — THE signature color
+- Accent: soft salmon `hsl(3 42% 94%)` with marsala foreground
+- Secondary: warm sand `hsl(33 30% 93%)`
+- Foreground: dark `hsl(0 0% 16%)`
+
+## Semantic tones (always use these — never hardcoded colors)
+- success / warning / destructive / info — defined in index.css, exposed via Tailwind
+- chart-1 → chart-5: brand-derived palette for Recharts
 
 ## Identity Principles
-- Amber/gold is the signature — used for primary actions, glows, highlights
-- Dark charcoal accent for high-contrast elements (active nav, key buttons)
-- Gradient headers: subtle warm gold wash (gradient-start → gradient-end)
-- Cream backgrounds, never pure white
-- Rounded-2xl cards, rounded-xl buttons/nav items
-- Warm-tinted shadows (rgba with brown/amber tones)
-- Generous whitespace
-- Inspired by Crextio, Skillex, Be.run dashboards
-
-## Typography
-- Display: Plus Jakarta Sans
-- Body: Inter
+- Marsala/bordô is the signature — primary actions, focus rings, sidebar accents
+- Salmon as soft accent for highlights and hover states
+- Cream backgrounds, never pure off-grey
+- Rounded-xl cards, warm-tinted shadows (rgba marsala)
+- Generous whitespace, subtle elevation
+- Sora display headings, Inter body
 
 ## Sidebar
-- Active items: bg-accent (dark charcoal) with accent-foreground (light)
-- Hover: bg-primary/10 (soft gold highlight)
-- Icon backgrounds: bg-primary/10
+- Background: deep bordô `hsl(350 30% 11%)`
+- Active items: bg-sidebar-accent with sidebar-primary-foreground
+- Hover: bg-sidebar-accent/60
+
+## Component conventions
+- Status badges: use `<StatusBadge tone="success|warning|...">` from `@/components/ui/status-badge`
+- Cards: `.hq-card` utility for consistent elevation + hover
+- Never use raw Tailwind palette colors (bg-amber-100, text-emerald-600, etc.) — always semantic tokens
