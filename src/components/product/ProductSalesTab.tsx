@@ -42,8 +42,23 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
   const normalRevenue = normalSales.reduce((acc, s) => acc + Number(s.invoice_total || 0), 0);
   const specialRevenue = specialSales.reduce((acc, s) => acc + Number(s.invoice_total || 0), 0);
 
-  // Unique clients
-  const uniqueClients = [...new Set(sales.map(s => s.client).filter(Boolean))];
+  // Aggregate clients
+  const clientStats = Object.values(
+    sales.reduce((acc: Record<string, any>, s: any) => {
+      const name = s.client;
+      if (!name) return acc;
+      if (!acc[name]) {
+        acc[name] = { name, count: 0, total: 0, lastDate: null as string | null };
+      }
+      acc[name].count += 1;
+      acc[name].total += Number(s.invoice_total || 0);
+      const d = s.payment_date || s.created_at;
+      if (d && (!acc[name].lastDate || new Date(d) > new Date(acc[name].lastDate))) {
+        acc[name].lastDate = d;
+      }
+      return acc;
+    }, {})
+  ).sort((a: any, b: any) => b.total - a.total);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -78,15 +93,30 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
       </div>
 
       {/* Clients list */}
-      {uniqueClients.length > 0 && (
+      {clientStats.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="text-base">Clientes deste Produto</CardTitle></CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {uniqueClients.map(c => (
-                <Badge key={c} variant="secondary" className="text-sm">{c}</Badge>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead className="text-right">Nº de Vendas</TableHead>
+                  <TableHead className="text-right">Faturação Total</TableHead>
+                  <TableHead>Última Compra</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {clientStats.map((c: any) => (
+                  <TableRow key={c.name}>
+                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell className="text-right">{c.count}</TableCell>
+                    <TableCell className="text-right">€{fmt(c.total)}</TableCell>
+                    <TableCell>{c.lastDate ? format(new Date(c.lastDate), 'dd/MM/yyyy') : '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
