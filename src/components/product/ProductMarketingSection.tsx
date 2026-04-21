@@ -9,6 +9,45 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+
+const PAGE_TYPES = [
+  { value: 'vendas', label: 'Vendas' },
+  { value: 'candidatura', label: 'Candidatura' },
+  { value: 'obrigado', label: 'Obrigado' },
+  { value: 'upsell', label: 'Upsell' },
+  { value: 'downsell', label: 'Downsell' },
+  { value: 'checkout', label: 'Checkout' },
+  { value: 'optin', label: 'Opt-in / Captura' },
+  { value: 'webinar', label: 'Webinar' },
+  { value: 'outro', label: 'Outro' },
+];
+
+const PAGE_STATUSES = [
+  { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
+  { value: 'a_escrever', label: 'A escrever', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
+  { value: 'em_design', label: 'Em design', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
+  { value: 'pronto', label: 'Pronto', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' },
+];
+
+interface PageSection { title: string; notes: string; done: boolean }
+interface PageInspiration { label: string; url: string }
+interface MarketingPage {
+  id?: string;
+  name?: string;
+  type?: string;
+  status?: string;
+  url?: string;
+  headline?: string;
+  subheadline?: string;
+  cta?: string;
+  copy?: string;
+  sections?: PageSection[];
+  inspirations?: PageInspiration[];
+  notes?: string;
+}
 
 interface Props {
   productContents: Array<Record<string, unknown>>;
@@ -35,8 +74,25 @@ export function ProductMarketingSection({
   const navigate = useNavigate();
   const sp = salesPage || {};
   const setSp = (patch: Record<string, unknown>) => onUpdateSalesPage({ ...sp, ...patch });
-  const sections = (Array.isArray(sp.sections) ? sp.sections : []) as Array<{ title: string; notes: string; done: boolean }>;
-  const inspirations = (Array.isArray(sp.inspirations) ? sp.inspirations : []) as Array<{ label: string; url: string }>;
+
+  // Migração suave: se ainda só existir o objeto antigo (sem `pages`), criamos uma página inicial a partir dele.
+  let pages: MarketingPage[] = Array.isArray(sp.pages) ? (sp.pages as MarketingPage[]) : [];
+  if (pages.length === 0 && (sp.copy || sp.headline || sp.cta || sp.subheadline || (Array.isArray(sp.sections) && (sp.sections as unknown[]).length))) {
+    pages = [{
+      id: 'legacy',
+      name: 'Página de Vendas',
+      type: 'vendas',
+      status: 'por_comecar',
+      url: salesPageUrl || '',
+      headline: (sp.headline as string) || '',
+      subheadline: (sp.subheadline as string) || '',
+      cta: (sp.cta as string) || '',
+      copy: (sp.copy as string) || '',
+      sections: (Array.isArray(sp.sections) ? sp.sections : []) as PageSection[],
+      inspirations: (Array.isArray(sp.inspirations) ? sp.inspirations : []) as PageInspiration[],
+      notes: (sp.notes as string) || '',
+    }];
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
