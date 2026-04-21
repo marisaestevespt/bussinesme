@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.test_product_rename_cascade() TO service_role;
