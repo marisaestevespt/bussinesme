@@ -357,7 +357,7 @@ export function usePlanningData(year = currentYear) {
   const autoSalesRaw = useQuery({
     queryKey: ['auto-sales-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('invoice_total,product,sale_month').eq('sale_year', year);
+      const { data } = await supabase.from('commercial_sales').select('invoice_total,product,product_id,sale_month').eq('sale_year', year);
       return data || [];
     },
     enabled: needsAutoCalc,
@@ -367,7 +367,7 @@ export function usePlanningData(year = currentYear) {
   const autoCrmRaw = useQuery({
     queryKey: ['auto-crm-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('crm_leads').select('id,potential_product,created_at').eq('status', 'ganho');
+      const { data } = await supabase.from('crm_leads').select('id,potential_product,potential_product_id,created_at').eq('status', 'ganho');
       return data || [];
     },
     enabled: needsAutoCalc,
