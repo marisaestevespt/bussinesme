@@ -150,7 +150,7 @@ function DeliverableRow({
           <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">Timeline:</span>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-muted-foreground">Começa</span>
-            <Input type="number" min={0} className="h-5 w-12 text-[10px] text-center"
+            <Input type="number" min={0} className="h-6 w-16 text-xs text-center px-1"
               value={template.offset_days ?? 0}
               onChange={e => onUpdate(template.id, { offset_days: parseInt(e.target.value) || 0 })} />
             <Select value={unit}
@@ -177,7 +177,7 @@ function DeliverableRow({
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-muted-foreground">Duração:</span>
-            <Input type="number" min={0} className="h-5 w-12 text-[10px] text-center"
+            <Input type="number" min={0} className="h-6 w-16 text-xs text-center px-1"
               value={template.duration_days ?? ''}
               placeholder="—"
               onChange={e => {
@@ -279,7 +279,7 @@ function PhaseCard({
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Timeline:</span>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-muted-foreground">Começa</span>
-                <Input type="number" min={0} className="h-6 w-14 text-xs text-center"
+                <Input type="number" min={0} className="h-7 w-20 text-sm text-center px-1"
                   value={phase.offset_days ?? 0}
                   onChange={e => onUpdatePhase(phase.id, { offset_days: parseInt(e.target.value) || 0 })} />
                 <Select value={phase.duration_unit || 'dias_uteis'}
@@ -307,7 +307,7 @@ function PhaseCard({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-muted-foreground">Duração:</span>
-                <Input type="number" min={0} className="h-6 w-14 text-xs text-center"
+                <Input type="number" min={0} className="h-7 w-20 text-sm text-center px-1"
                   value={phase.duration_days ?? ''}
                   placeholder="—"
                   onChange={e => {
