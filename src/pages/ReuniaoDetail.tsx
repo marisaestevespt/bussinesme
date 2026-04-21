@@ -500,7 +500,7 @@ export default function ReuniaoDetailPage() {
               </Button>
             )}
             {isOwner && (
-              <Button variant="destructive" size="icon" onClick={() => {
+              <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => {
                 if (isSeriesParent && seriesCount > 0) {
                   setDeleteDialogOpen(true);
                 } else {

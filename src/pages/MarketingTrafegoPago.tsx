@@ -146,7 +146,7 @@ export default function MarketingTrafegoPago() {
                     <p className="text-xs text-muted-foreground">Clica para editar</p>
                   </CardContent>
                   {isOwner && (
-                    <Button variant="ghost" size="icon"
+                    <Button variant="ghost" aria-label="Eliminar" size="icon"
                       className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100"
                       onClick={e => { e.stopPropagation(); deleteCard(card.id); }}>
                       <Trash2 className="h-3 w-3 text-destructive" />
@@ -207,7 +207,7 @@ export default function MarketingTrafegoPago() {
                           <TableCell className="text-sm text-muted-foreground">{format(new Date(c.updated_at), 'dd MMM yyyy', { locale: pt })}</TableCell>
                           {isOwner && (
                             <TableCell>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteCreative(c.id); }}>
+                              <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteCreative(c.id); }}>
                                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
                               </Button>
                             </TableCell>

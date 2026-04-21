@@ -287,7 +287,7 @@ function StagesDialog({
                     <div className="flex flex-col flex-shrink-0">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        aria-label="Mostrar menos" size="icon"
                         className="h-5 w-5"
                         disabled={isFirst}
                         onClick={() => onReorder(stage.id, 'left')}
@@ -296,7 +296,7 @@ function StagesDialog({
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        aria-label="Mostrar mais" size="icon"
                         className="h-5 w-5"
                         disabled={isLast}
                         onClick={() => onReorder(stage.id, 'right')}
@@ -308,7 +308,7 @@ function StagesDialog({
 
                   <Button
                     variant="ghost"
-                    size="icon"
+                    aria-label="Eliminar" size="icon"
                     className="h-7 w-7 text-destructive hover:text-destructive flex-shrink-0"
                     disabled={count > 0}
                     aria-label="Eliminar etapa"

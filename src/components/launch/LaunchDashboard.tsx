@@ -575,13 +575,13 @@ function PlannerSemanalView({ tasks, weekOffset, setWeekOffset }: any) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-center gap-4">
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w: number) => w - 1)}>
+        <Button variant="outline" aria-label="Anterior" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w: number) => w - 1)}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <p className="text-sm font-semibold min-w-[220px] text-center">
           {format(weekStart, 'd MMM', { locale: pt })} — {format(weekEnd, 'd MMM yyyy', { locale: pt })}
         </p>
-        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w: number) => w + 1)}>
+        <Button variant="outline" aria-label="Seguinte" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w: number) => w + 1)}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

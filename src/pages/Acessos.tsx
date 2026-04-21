@@ -261,7 +261,7 @@ export default function AcessosPage() {
                           </span>
                           <Button
                             variant="ghost"
-                            size="icon"
+                            aria-label="Esconder" size="icon"
                             className="h-7 w-7"
                             disabled={revealingId === a.id}
                             onClick={() => toggleReveal(a.id)}
@@ -285,7 +285,7 @@ export default function AcessosPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(a)}>
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEdit(a)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button

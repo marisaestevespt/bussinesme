@@ -973,7 +973,7 @@ export default function FornecedoresPage() {
                     {form.documents.map((doc: any, i: number) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
                         <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{doc.name}</a>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={() => {
                           setForm((f: any) => ({ ...f, documents: (f.documents || []).filter((_: any, idx: number) => idx !== i) }));
                         }}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                       </div>

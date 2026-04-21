@@ -926,7 +926,7 @@ export default function ClienteDetailPage() {
                   <div className="flex gap-2">
                     <Input value={form.drive_folder_url || ''} onChange={e => update('drive_folder_url', e.target.value)} placeholder="https://drive.google.com/..." />
                     {form.drive_folder_url && (
-                      <Button variant="outline" size="icon" asChild>
+                      <Button variant="outline" aria-label="Abrir link externo" size="icon" asChild>
                         <a href={form.drive_folder_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
                       </Button>
                     )}
@@ -937,7 +937,7 @@ export default function ClienteDetailPage() {
                   <div className="flex gap-2">
                     <Input value={(form as any).whatsapp_group_url || ''} onChange={e => update('whatsapp_group_url' as any, e.target.value)} placeholder="https://chat.whatsapp.com/..." />
                     {(form as any).whatsapp_group_url && (
-                      <Button variant="outline" size="icon" asChild>
+                      <Button variant="outline" aria-label="Abrir link externo" size="icon" asChild>
                         <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
                       </Button>
                     )}

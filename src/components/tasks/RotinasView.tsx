@@ -272,7 +272,7 @@ export function RotinasView() {
                   />
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openEdit(r); }}>
+                  <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openEdit(r); }}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
                 </TableCell>

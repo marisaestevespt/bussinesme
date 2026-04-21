@@ -211,7 +211,7 @@ export function FinSetupNegocio() {
               <div key={i} className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-muted-foreground">Método {i + 1}</span>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removePaymentMethod(i)}>
+                  <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removePaymentMethod(i)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>

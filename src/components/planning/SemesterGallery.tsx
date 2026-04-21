@@ -597,11 +597,11 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Agenda ME & Calendários</CardTitle>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={calendarMonthOffset === 0} onClick={() => setCalendarMonthOffset(v => v - 1)}>
+              <Button variant="ghost" aria-label="Anterior" size="icon" className="h-7 w-7" disabled={calendarMonthOffset === 0} onClick={() => setCalendarMonthOffset(v => v - 1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm font-medium min-w-[90px] text-center">{MONTHS[calendarMonthIdx]}</span>
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={calendarMonthOffset === 5} onClick={() => setCalendarMonthOffset(v => v + 1)}>
+              <Button variant="ghost" aria-label="Seguinte" size="icon" className="h-7 w-7" disabled={calendarMonthOffset === 5} onClick={() => setCalendarMonthOffset(v => v + 1)}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

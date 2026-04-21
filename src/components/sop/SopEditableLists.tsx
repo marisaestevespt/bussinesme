@@ -32,7 +32,7 @@ export function EditableTextList({ items, onChange, placeholder }: { items: stri
         <div key={i} className="flex items-center gap-2">
           <span className="text-muted-foreground text-sm w-6 shrink-0">{i + 1}.</span>
           <Input value={item} onChange={e => update(i, e.target.value)} placeholder={placeholder} className="flex-1" />
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => remove(i)}>
+          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-8 w-8 shrink-0" onClick={() => remove(i)}>
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>
@@ -55,7 +55,7 @@ export function EditableBulletList({ items, onChange, placeholder }: { items: st
         <div key={i} className="flex items-center gap-2">
           <span className="text-muted-foreground">•</span>
           <Input value={item} onChange={e => update(i, e.target.value)} placeholder={placeholder} className="flex-1" />
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => remove(i)}>
+          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-8 w-8 shrink-0" onClick={() => remove(i)}>
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>
@@ -79,7 +79,7 @@ export function EditableCheckList({ items, onChange }: { items: ListItem[]; onCh
         <div key={i} className="flex items-center gap-2">
           <Checkbox checked={item.checked} onCheckedChange={() => toggleCheck(i)} />
           <Input value={item.text} onChange={e => updateText(i, e.target.value)} className="flex-1" />
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => remove(i)}>
+          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-8 w-8 shrink-0" onClick={() => remove(i)}>
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>

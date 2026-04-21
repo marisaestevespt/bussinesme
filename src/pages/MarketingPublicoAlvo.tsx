@@ -199,7 +199,7 @@ export default function MarketingPublicoAlvo() {
                 </div>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  aria-label="Eliminar" size="icon"
                   className="text-destructive/40 hover:text-destructive hover:bg-destructive/10 shrink-0"
                   onClick={() => handleDeleteSection(activeSection.id)}
                 >

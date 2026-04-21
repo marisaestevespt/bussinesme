@@ -153,7 +153,7 @@ export default function MarketingFunis() {
                         <TableCell className="text-sm text-muted-foreground">{format(new Date(f.updated_at), 'dd MMM yyyy', { locale: pt })}</TableCell>
                         {isOwner && (
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteFunnel(f.id); }}>
+                            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteFunnel(f.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
                           </TableCell>

@@ -381,7 +381,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
           {isOwner && (
             <div className="flex gap-2">
               <Button className="flex-1" onClick={save}>Guardar</Button>
-              <Button variant="destructive" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
+              <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>

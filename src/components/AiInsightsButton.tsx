@@ -117,7 +117,7 @@ export function AiInsightsButton() {
     <>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleOpen}>
+          <Button variant="ghost" aria-label="Insights" size="icon" className="h-8 w-8" onClick={handleOpen}>
             <Sparkles className="h-4 w-4" />
           </Button>
         </TooltipTrigger>

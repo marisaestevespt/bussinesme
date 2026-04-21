@@ -153,7 +153,7 @@ export function StrategyGallery() {
                       <AlertDialogTrigger asChild>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          aria-label="Eliminar" size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-destructive"
                           onClick={(e) => e.stopPropagation()}
                         >

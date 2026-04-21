@@ -393,7 +393,7 @@ export default function MarketingFunilDetail() {
                             <Paperclip className="h-3 w-3" />
                             {docCount > 0 && <span className="text-xs">{docCount}</span>}
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeEtapa(idx)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 shrink-0" onClick={() => removeEtapa(idx)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </>
@@ -502,12 +502,12 @@ export default function MarketingFunilDetail() {
                         )}
                         <Badge variant="outline" className="text-[10px] shrink-0">{doc.type === 'file' ? 'Ficheiro' : 'Nota'}</Badge>
                         {editing && !isEditingName && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); setEditingDocName({ idx: dIdx, value: doc.name }); }}>
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); setEditingDocName({ idx: dIdx, value: doc.name }); }}>
                             <Pencil className="h-3 w-3" />
                           </Button>
                         )}
                         {editing && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); removeStageDoc(dIdx); }}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); removeStageDoc(dIdx); }}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}

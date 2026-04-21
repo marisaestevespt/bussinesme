@@ -240,7 +240,7 @@ export default function MarketingAutomacaoDetail() {
                 <Input value={val}
                   onChange={e => updateListItem(key, idx, e.target.value)}
                   className="h-8 text-sm flex-1" placeholder={placeholder} />
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
+                <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
                   onClick={() => removeListItem(key, idx)}>
                   <Trash2 className="h-3 w-3 text-destructive" />
                 </Button>
@@ -420,7 +420,7 @@ export default function MarketingAutomacaoDetail() {
                         <Input value={step.nome}
                           onChange={e => updateFluxoStep(idx, e.target.value)}
                           className="h-8 text-sm flex-1" placeholder="Ex: Email de boas-vindas enviado" />
-                        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                        <Button variant="ghost" aria-label="Anexar" size="icon" className="h-7 w-7 shrink-0"
                           title="Documentos"
                           onClick={() => setFluxoDocDialogIdx(idx)}>
                           <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
@@ -430,7 +430,7 @@ export default function MarketingAutomacaoDetail() {
                             </span>
                           )}
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
                           onClick={() => removeFluxoStep(idx)}>
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
@@ -485,7 +485,7 @@ export default function MarketingAutomacaoDetail() {
                         className="h-8 text-sm w-1/3" placeholder="Nome" />
                       <Input value={link.url} onChange={e => updateLink(idx, 'url', e.target.value)}
                         className="h-8 text-sm flex-1" placeholder="https://..." />
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
+                      <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
                         onClick={() => removeLink(idx)}>
                         <Trash2 className="h-3 w-3 text-destructive" />
                       </Button>
@@ -554,12 +554,12 @@ export default function MarketingAutomacaoDetail() {
                         )}
                         <Badge variant="outline" className="text-[10px] shrink-0">{doc.type === 'file' ? 'Ficheiro' : 'Nota'}</Badge>
                         {editing && !isEditingName && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); setEditingDocName({ idx: dIdx, value: doc.name }); }}>
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); setEditingDocName({ idx: dIdx, value: doc.name }); }}>
                             <Pencil className="h-3 w-3" />
                           </Button>
                         )}
                         {editing && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); removeFluxoDoc(dIdx); }}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 shrink-0" onClick={e => { e.stopPropagation(); removeFluxoDoc(dIdx); }}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}

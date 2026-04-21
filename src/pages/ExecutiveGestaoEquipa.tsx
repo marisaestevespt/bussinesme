@@ -231,9 +231,9 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => subMonths(m, 1))}><ChevronLeft className="h-4 w-4" /></Button>
+                <Button variant="ghost" aria-label="Anterior" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => subMonths(m, 1))}><ChevronLeft className="h-4 w-4" /></Button>
                 <h3 className="text-sm font-semibold">Escala — {format(escalaMonth, 'MMMM yyyy', { locale: ptLocale })}</h3>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
+                <Button variant="ghost" aria-label="Seguinte" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
               </div>
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" /> Disponível</span>

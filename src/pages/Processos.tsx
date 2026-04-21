@@ -213,7 +213,7 @@ export default function ProcessosPage() {
             <div className="flex items-center justify-between mb-6">
               {selectedDept ? (
                 <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon" onClick={() => setSelectedDept(null)}>
+                  <Button variant="ghost" aria-label="Voltar" size="icon" onClick={() => setSelectedDept(null)}>
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
                   <h1 className="text-2xl font-bold tracking-tight">{getDeptLabel(selectedDept)}</h1>
@@ -288,7 +288,7 @@ export default function ProcessosPage() {
                               onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
                               className="scale-75"
                             />
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
+                            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>

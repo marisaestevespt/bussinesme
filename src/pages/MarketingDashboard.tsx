@@ -218,7 +218,7 @@ export default function MarketingDashboard() {
                                 <span className="text-[11px] text-muted-foreground italic">Sem link</span>
                               )}
                               {isOwner && (
-                                <Button variant="ghost" size="icon"
+                                <Button variant="ghost" aria-label="Editar" size="icon"
                                   className="h-5 w-5 opacity-0 group-hover:opacity-100 hq-transition shrink-0"
                                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingChannelId(ch.id); setEditChannelLink(ch.link || ''); }}>
                                   <Pencil className="h-2.5 w-2.5" />
@@ -234,7 +234,7 @@ export default function MarketingDashboard() {
                         <Input value={editChannelLink} onChange={e => setEditChannelLink(e.target.value)}
                           className="h-7 text-xs flex-1" placeholder="https://..."
                           onKeyDown={e => e.key === 'Enter' && saveChannelLink()} autoFocus />
-                        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={saveChannelLink}><Check className="h-3 w-3" /></Button>
+                        <Button variant="ghost" aria-label="Confirmar" size="icon" className="h-6 w-6 shrink-0" onClick={saveChannelLink}><Check className="h-3 w-3" /></Button>
                         <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setEditingChannelId(null)}><X className="h-3 w-3" /></Button>
                       </div>
                     )}

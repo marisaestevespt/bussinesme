@@ -263,7 +263,7 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
                             onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
                             className="scale-75"
                           />
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>

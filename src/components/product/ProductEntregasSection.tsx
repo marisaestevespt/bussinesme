@@ -102,7 +102,7 @@ function DeliverableRow({
         )}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+            <Button aria-label="Mostrar" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
               onClick={() => onUpdate(template.id, { portal_visible: !(template.portal_visible ?? true) })}>
               {(template.portal_visible ?? true) ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
             </Button>
@@ -113,7 +113,7 @@ function DeliverableRow({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+            <Button aria-label="Utilizador" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
               onClick={() => onUpdate(template.id, { responsible_type: (template.responsible_type || 'equipa') === 'equipa' ? 'cliente' : 'equipa' })}>
               {(template.responsible_type || 'equipa') === 'cliente'
                 ? <User className="h-3.5 w-3.5 text-warning" />
@@ -132,10 +132,10 @@ function DeliverableRow({
         )}
         {isOwner && (
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={index === 0}>
+            <Button aria-label="Mover para cima" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={index === 0}>
               <ArrowUp className="h-3 w-3" />
             </Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveDown} disabled={index === total - 1}>
+            <Button aria-label="Mover para baixo" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveDown} disabled={index === total - 1}>
               <ArrowDown className="h-3 w-3" />
             </Button>
             <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(template.id)}>
@@ -229,7 +229,7 @@ function PhaseCard({
     <Card className="border-l-4 border-l-primary/30">
       <CardHeader className="pb-2 pt-3 px-4 flex flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setExpanded(!expanded)}>
+          <Button variant="ghost" aria-label="Mostrar mais" size="icon" className="h-6 w-6 shrink-0" onClick={() => setExpanded(!expanded)}>
             {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </Button>
           <Badge variant="outline" className="text-[10px] shrink-0">Fase {phase.sort_order + 1}</Badge>

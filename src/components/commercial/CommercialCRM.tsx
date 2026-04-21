@@ -188,7 +188,7 @@ export function CommercialCRM() {
               </Button>
               {view === sv.id && (
                 <div className="flex items-center ml-0.5 gap-0.5">
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRenameView(sv.id, sv.name)}>
+                  <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6" onClick={() => handleRenameView(sv.id, sv.name)}>
                     <Pencil className="h-3 w-3" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" aria-label="Eliminar vista" onClick={async () => {

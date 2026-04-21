@@ -163,7 +163,7 @@ export default function ComecaAquiPage() {
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-semibold text-foreground">Bem-vindo(a)</h2>
               {isOwner && !editingWelcome && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setTempWelcome(displayWelcome); setEditingWelcome(true); }}>
+                <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => { setTempWelcome(displayWelcome); setEditingWelcome(true); }}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               )}
@@ -186,7 +186,7 @@ export default function ComecaAquiPage() {
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-semibold text-foreground">O que fazemos e como trabalhamos</h2>
               {isOwner && !editingAbout && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setTempAbout(displayAbout); setEditingAbout(true); }}>
+                <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => { setTempAbout(displayAbout); setEditingAbout(true); }}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               )}

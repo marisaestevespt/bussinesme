@@ -362,8 +362,8 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                       </div>
                       {isOwner && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                         </div>
                       )}
                     </div>

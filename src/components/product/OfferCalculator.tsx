@@ -55,11 +55,11 @@ function CostRow({ cost, isOwner, onUpdate, onDelete }: {
         <TableCell>
           <div className="flex gap-1">
             {dirty && (
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success" onClick={handleSave}>
+              <Button variant="ghost" aria-label="Confirmar" size="icon" className="h-7 w-7 text-success hover:text-success" onClick={handleSave}>
                 <Check className="h-3.5 w-3.5" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(cost.id)}>
+            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => onDelete(cost.id)}>
               <Trash2 className="h-3 w-3" />
             </Button>
           </div>

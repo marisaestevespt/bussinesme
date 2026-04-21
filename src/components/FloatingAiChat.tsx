@@ -511,7 +511,7 @@ export function FloatingAiChat() {
             <div className="flex gap-2 items-end">
               <Button
                 variant="ghost"
-                size="icon"
+                aria-label="Anexar" size="icon"
                 className="h-[38px] w-[38px] rounded-xl shrink-0"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
@@ -535,7 +535,7 @@ export function FloatingAiChat() {
                 className="min-h-[38px] max-h-[100px] resize-none text-sm rounded-xl border-muted-foreground/20"
                 rows={1}
               />
-              <Button size="icon" onClick={send} disabled={(!input.trim() && !pendingFile) || loading} className="h-[38px] w-[38px] rounded-xl shrink-0">
+              <Button aria-label="Enviar" size="icon" onClick={send} disabled={(!input.trim() && !pendingFile) || loading} className="h-[38px] w-[38px] rounded-xl shrink-0">
                 <Send className="h-4 w-4" />
               </Button>
             </div>

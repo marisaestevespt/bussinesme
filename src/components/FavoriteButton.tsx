@@ -52,7 +52,7 @@ export function FavoriteButton() {
       <TooltipTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
+          aria-label="Favorito" size="icon"
           className="h-8 w-8"
           onClick={() => toggleFavorite.mutate({ path, title: meta.title, icon: meta.icon })}
         >

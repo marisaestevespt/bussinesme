@@ -529,7 +529,7 @@ function PostCard({
             {(isOwner || post.author_id === userId) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Button variant="ghost" aria-label="Mais opções" size="icon" className="h-7 w-7">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>

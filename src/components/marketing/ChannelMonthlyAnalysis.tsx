@@ -249,7 +249,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
+          <Button variant="ghost" aria-label="Anterior" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <h2 className="text-lg font-semibold text-foreground">{MONTHS[month - 1]} {year} — {channelName}</h2>

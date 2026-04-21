@@ -38,7 +38,7 @@ function EditableAmount({
     return (
       <div className="flex items-center justify-end gap-1">
         <span className="font-medium">€{fmt(value)}</span>
-        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setInput(value ? String(value) : ''); setEditing(true); }}>
+        <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setInput(value ? String(value) : ''); setEditing(true); }}>
           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
         </Button>
       </div>
@@ -62,7 +62,7 @@ function EditableAmount({
         onKeyDown={e => e.key === 'Enter' && save()}
         autoFocus
       />
-      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={save}>
+      <Button variant="ghost" aria-label="Guardar" size="icon" className="h-7 w-7 shrink-0" onClick={save}>
         <Save className="h-3.5 w-3.5" />
       </Button>
     </div>
@@ -86,7 +86,7 @@ function EditableText({
     return (
       <div className="flex items-center gap-1">
         <span className="text-sm">{value || <span className="text-muted-foreground">{placeholder || '—'}</span>}</span>
-        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setInput(value || ''); setEditing(true); }}>
+        <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setInput(value || ''); setEditing(true); }}>
           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
         </Button>
       </div>
@@ -105,7 +105,7 @@ function EditableText({
         onKeyDown={e => e.key === 'Enter' && save()}
         autoFocus
       />
-      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={save}>
+      <Button variant="ghost" aria-label="Guardar" size="icon" className="h-7 w-7 shrink-0" onClick={save}>
         <Save className="h-3.5 w-3.5" />
       </Button>
     </div>
@@ -193,7 +193,7 @@ export function CommercialMetas() {
                 {data.annualGoalAmount > 0 && !editingAnnual ? (
                   <div className="flex items-center gap-2">
                     <p className="text-lg font-medium">€{fmt(data.annualGoalAmount)}</p>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setAnnualInput(String(data.annualGoalAmount)); setEditingAnnual(true); }}>
+                    <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => { setAnnualInput(String(data.annualGoalAmount)); setEditingAnnual(true); }}>
                       <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                   </div>

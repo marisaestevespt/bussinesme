@@ -488,7 +488,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   value={ssValue}
                   onChange={e => setSsValue(e.target.value)}
                 />
-                <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={async () => {
+                <Button aria-label="Confirmar" size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={async () => {
                   const val = parseFloat(ssValue) || 0;
                   if (val <= 0 && !ssExpense) return;
                   const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;

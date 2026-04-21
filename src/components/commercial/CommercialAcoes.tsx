@@ -180,10 +180,10 @@ export function CommercialAcoes() {
                     <TableCell className="text-sm">{a.product || '—'}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </div>
@@ -227,10 +227,10 @@ export function CommercialAcoes() {
                     <TableCell className="text-sm text-muted-foreground truncate max-w-[200px]">{a.result || '—'}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </div>

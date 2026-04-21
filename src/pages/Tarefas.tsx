@@ -1094,7 +1094,7 @@ export default function TarefasPage() {
                 {editingTask ? 'Guardar' : 'Criar Tarefa'}
               </Button>
               {editingTask && isOwner && (
-                <Button variant="destructive" size="icon" onClick={() => deleteTask.mutate(editingTask.id)}>
+                <Button variant="destructive" aria-label="Alerta" size="icon" onClick={() => deleteTask.mutate(editingTask.id)}>
                   <AlertTriangle className="h-4 w-4" />
                 </Button>
               )}

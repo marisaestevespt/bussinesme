@@ -329,7 +329,7 @@ export default function ConteudoDetailPage() {
                           <Badge className="absolute top-2 left-2 z-10 text-[9px] bg-primary text-primary-foreground">Capa</Badge>
                         )}
                         <img src={img.file_url} alt={img.file_name} className="w-full aspect-square object-cover" />
-                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
+                        <Button variant="destructive" aria-label="Eliminar" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
                           onClick={() => deleteAttachment(img.id)}><Trash2 className="h-3 w-3" /></Button>
                         <p className="text-[10px] text-muted-foreground p-1 truncate">{img.file_name}</p>
                       </div>
@@ -378,7 +378,7 @@ export default function ConteudoDetailPage() {
                         <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
                           <FileText className="h-3.5 w-3.5 shrink-0" />{f.file_name}
                         </a>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteAttachment(f.id)}>
+                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteAttachment(f.id)}>
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       </div>

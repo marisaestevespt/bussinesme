@@ -310,7 +310,7 @@ export default function CrmPipelines() {
               <Button variant="outline" size="sm" onClick={() => setStagesDialogOpen(true)}>
                 <Settings2 className="h-3.5 w-3.5 mr-1" /> Editar Etapas
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingPipeline(activePipeline); setFormOpen(true); }}>
+              <Button variant="ghost" aria-label="Editar" size="icon" className="h-8 w-8" onClick={() => { setEditingPipeline(activePipeline); setFormOpen(true); }}>
                 <Pencil className="h-4 w-4" />
               </Button>
               <Button
@@ -478,7 +478,7 @@ export default function CrmPipelines() {
                     </Badge>
                     <Badge variant="outline" className="text-xs">{leadsCount} leads</Badge>
                     <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
+                      <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <Button

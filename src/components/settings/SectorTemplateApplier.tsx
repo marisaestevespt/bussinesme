@@ -171,7 +171,7 @@ export function SectorTemplateApplier({ sector }: Props) {
                 </div>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  aria-label="Mostrar menos" size="icon"
                   className="h-7 w-7 shrink-0"
                   onClick={() => setExpanded(isExpanded ? null : cat)}
                 >

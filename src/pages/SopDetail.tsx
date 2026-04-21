@@ -841,7 +841,7 @@ export default function SopDetailPage() {
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
               Objetivo
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('objetivo')}>
+            <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('objetivo')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
@@ -860,7 +860,7 @@ export default function SopDetailPage() {
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
               Utilização
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('utilizacao')}>
+            <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('utilizacao')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
@@ -892,7 +892,7 @@ export default function SopDetailPage() {
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
               Inputs Necessários
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('inputs')}>
+            <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('inputs')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
@@ -944,10 +944,10 @@ export default function SopDetailPage() {
                   {/* Main row */}
                   <div className="flex items-center gap-2 px-3 py-2">
                     <div className="flex flex-col shrink-0">
-                      <Button variant="ghost" size="icon" className="h-5 w-5" disabled={idx === 0} onClick={() => moveStep(idx, 'up')}>
+                      <Button variant="ghost" aria-label="Mostrar menos" size="icon" className="h-5 w-5" disabled={idx === 0} onClick={() => moveStep(idx, 'up')}>
                         <ChevronUp className="h-3 w-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-5 w-5" disabled={idx === sopSteps.length - 1} onClick={() => moveStep(idx, 'down')}>
+                      <Button variant="ghost" aria-label="Mostrar mais" size="icon" className="h-5 w-5" disabled={idx === sopSteps.length - 1} onClick={() => moveStep(idx, 'down')}>
                         <ChevronDown className="h-3 w-3" />
                       </Button>
                     </div>
@@ -961,7 +961,7 @@ export default function SopDetailPage() {
                     {/* Doc toggle */}
                     <Button
                       variant="ghost"
-                      size="icon"
+                      aria-label="Anexar" size="icon"
                       className={cn("h-7 w-7 shrink-0", docs.length > 0 ? "text-primary" : "text-muted-foreground/30")}
                       onClick={() => setDocExpandedSteps(prev => {
                         const next = new Set(prev);
@@ -976,7 +976,7 @@ export default function SopDetailPage() {
                     {/* Expand details */}
                     <Button
                       variant="ghost"
-                      size="icon"
+                      aria-label="Mostrar menos" size="icon"
                       className="h-7 w-7 shrink-0 text-muted-foreground"
                       onClick={() => setExpandedSteps(prev => {
                         const next = new Set(prev);
@@ -986,7 +986,7 @@ export default function SopDetailPage() {
                     >
                       {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => deleteSopStep.mutate(step.id)}>
+                    <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 shrink-0" onClick={() => deleteSopStep.mutate(step.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
@@ -1095,7 +1095,7 @@ export default function SopDetailPage() {
                               </div>
                             )}
                           </div>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => deleteStepDoc.mutate(doc.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 shrink-0" onClick={() => deleteStepDoc.mutate(doc.id)}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
@@ -1377,7 +1377,7 @@ export default function SopDetailPage() {
                             </Select>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteMilestone.mutate(m.id)}>
+                            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteMilestone.mutate(m.id)}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
                           </TableCell>
@@ -1506,7 +1506,7 @@ export default function SopDetailPage() {
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">5</span>
               Decisões / Exceções
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('decisoes')}>
+            <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('decisoes')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
@@ -1527,7 +1527,7 @@ export default function SopDetailPage() {
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">6</span>
               Outputs Finais
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('outputs')}>
+            <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('outputs')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
@@ -1556,7 +1556,7 @@ export default function SopDetailPage() {
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">7</span>
               Notas
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('notas')}>
+            <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('notas')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>

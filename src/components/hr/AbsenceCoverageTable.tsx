@@ -317,7 +317,7 @@ export function AbsenceCoverageTable() {
                       <Badge variant={st.variant}>{st.label}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(c)}>
+                      <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEdit(c)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                     </TableCell>

@@ -126,7 +126,7 @@ function GroupCard({ group, questions, isCollapsed, isOwner, onToggle, onAdd, on
                 </div>
               </div>
               {isOwner && (
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" onClick={() => onDelete(q.id)}>
+                <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" onClick={() => onDelete(q.id)}>
                   <Trash2 className="h-3 w-3 text-destructive" />
                 </Button>
               )}

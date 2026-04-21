@@ -159,7 +159,7 @@ export default function MarketingRecursos() {
             <Input value={editLinkUrl} onChange={e => setEditLinkUrl(e.target.value)}
               className="h-8 text-xs flex-1" placeholder={placeholder}
               onKeyDown={e => e.key === 'Enter' && upsertLink(category, editLinkUrl)} autoFocus />
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => upsertLink(category, editLinkUrl)}><Check className="h-3 w-3" /></Button>
+            <Button variant="ghost" aria-label="Confirmar" size="icon" className="h-7 w-7" onClick={() => upsertLink(category, editLinkUrl)}><Check className="h-3 w-3" /></Button>
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingLink(null)}><X className="h-3 w-3" /></Button>
           </div>
         ) : (
@@ -174,7 +174,7 @@ export default function MarketingRecursos() {
               <span className="text-xs text-muted-foreground italic flex-1">{placeholder}</span>
             )}
             {isOwner && (
-              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0"
+              <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0"
                 onClick={() => { setEditingLink(category); setEditLinkUrl(link?.url || ''); }}>
                 <Pencil className="h-3 w-3" />
               </Button>
@@ -207,7 +207,7 @@ export default function MarketingRecursos() {
                     <h3 className="text-sm font-semibold text-foreground">Úteis</h3>
                   </div>
                   {isOwner && (
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowAddUtil(true)}>
+                    <Button variant="ghost" aria-label="Adicionar" size="icon" className="h-6 w-6" onClick={() => setShowAddUtil(true)}>
                       <Plus className="h-3 w-3" />
                     </Button>
                   )}
@@ -223,7 +223,7 @@ export default function MarketingRecursos() {
                           <Input value={editLinkUrl} onChange={e => setEditLinkUrl(e.target.value)}
                             className="h-7 text-xs flex-1" placeholder="https://..."
                             onKeyDown={e => e.key === 'Enter' && updateUtilUrl(u.id, editLinkUrl)} autoFocus />
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateUtilUrl(u.id, editLinkUrl)}><Check className="h-3 w-3" /></Button>
+                          <Button variant="ghost" aria-label="Confirmar" size="icon" className="h-6 w-6" onClick={() => updateUtilUrl(u.id, editLinkUrl)}><Check className="h-3 w-3" /></Button>
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditingLink(null)}><X className="h-3 w-3" /></Button>
                         </div>
                       ) : (
@@ -235,11 +235,11 @@ export default function MarketingRecursos() {
                           )}
                           {isOwner && (
                             <div className="flex gap-0.5 opacity-0 group-hover:opacity-100">
-                              <Button variant="ghost" size="icon" className="h-5 w-5"
+                              <Button variant="ghost" aria-label="Editar" size="icon" className="h-5 w-5"
                                 onClick={() => { setEditingLink(u.id); setEditLinkUrl(u.url || ''); }}>
                                 <Pencil className="h-2.5 w-2.5" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => deleteUtil(u.id)}>
+                              <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5" onClick={() => deleteUtil(u.id)}>
                                 <Trash2 className="h-2.5 w-2.5 text-destructive" />
                               </Button>
                             </div>
@@ -315,7 +315,7 @@ export default function MarketingRecursos() {
                               </TableCell>
                               {isOwner && (
                                 <TableCell>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteIdea(idea.id)}>
+                                  <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteIdea(idea.id)}>
                                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
                                   </Button>
                                 </TableCell>

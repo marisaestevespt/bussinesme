@@ -150,9 +150,9 @@ export default function SecretariaAgenda() {
           <Button variant={calView === 'semana' ? 'default' : 'outline'} size="sm" onClick={() => setCalView('semana')}>Semana</Button>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={goPrev}><ChevronLeft className="h-4 w-4" /></Button>
+          <Button variant="outline" aria-label="Anterior" size="icon" className="h-8 w-8" onClick={goPrev}><ChevronLeft className="h-4 w-4" /></Button>
           <h2 className="text-lg font-bold min-w-[220px] text-center capitalize">{headerLabel}</h2>
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={goNext}><ChevronRight className="h-4 w-4" /></Button>
+          <Button variant="outline" aria-label="Seguinte" size="icon" className="h-8 w-8" onClick={goNext}><ChevronRight className="h-4 w-4" /></Button>
         </div>
         <div className="w-[100px]" />
       </div>

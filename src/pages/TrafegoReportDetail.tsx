@@ -168,7 +168,7 @@ export default function TrafegoReportDetail() {
                     <ExternalLink className="h-4 w-4 text-primary" />
                   </a>
                   {isOwner && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                    <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100"
                       onClick={() => deleteFile(file)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
