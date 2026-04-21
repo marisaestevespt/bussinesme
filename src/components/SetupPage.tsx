@@ -311,7 +311,7 @@ export function SetupPage() {
                   style={{ color: colors.text, fontFamily: `'${fontDisplay}', serif` }}
                   className="text-lg font-semibold"
                 >
-                  HQ | {businessName || 'O Teu Negócio'}
+                  Lyrata® · {businessName || 'O Teu Negócio'}
                 </span>
               </div>
               <p

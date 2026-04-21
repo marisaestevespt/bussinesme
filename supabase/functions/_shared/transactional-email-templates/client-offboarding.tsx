@@ -155,7 +155,7 @@ export const template = {
     clientName: 'Ana Silva',
     portalUrl: 'https://app.exemplo.com/portal/abc123/view',
     portalDays: 30,
-    businessName: 'HQ Studio',
+    businessName: 'Lyrata®',
     ownerName: 'Mariana',
     supportEmail: 'suporte@exemplo.com',
     primaryColor: '222 47% 11%',

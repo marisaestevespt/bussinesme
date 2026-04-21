@@ -144,7 +144,7 @@ export default function ComecaAquiPage() {
   const handleSaveAbout = () => { saveText('about_text', tempAbout); setAboutText(tempAbout); setEditingAbout(false); };
 
   const businessName = settings?.business_name || 'Negócio';
-  const defaultWelcome = `Olá! Bem-vindo(a) ao HQ | ${businessName}. Este é o espaço onde organizamos, colaboramos e crescemos.`;
+  const defaultWelcome = `Olá! Bem-vindo(a) a ${businessName}. Este é o espaço onde organizamos, colaboramos e crescemos.`;
   const defaultAbout = 'Somos uma equipa dedicada a criar valor e impacto. Aqui encontras tudo o que precisas para colaborar, comunicar e acompanhar o nosso trabalho.';
   const displayWelcome = welcomeText || defaultWelcome;
   const displayAbout = aboutText || defaultAbout;
