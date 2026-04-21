@@ -704,10 +704,27 @@ export default function GestaoMarcaPage() {
               onDragCancel={() => setActiveDragItem(null)}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-                {KANBAN_GROUPS.map(group => {
-                  const items = [...kanbanItems.filter(i => i.group_key === group.key)].sort((a, b) => a.sort_order - b.sort_order);
-                  const customLabel = ((settings as any)?.kanban_group_labels || {})[group.key] as string | undefined;
-                  return (
+                {(() => {
+                  const savedOrder: string[] = Array.isArray((settings as any)?.kanban_group_order) ? (settings as any).kanban_group_order : [];
+                  const ordered = [
+                    ...savedOrder.map(k => KANBAN_GROUPS.find(g => g.key === k)).filter(Boolean) as typeof KANBAN_GROUPS,
+                    ...KANBAN_GROUPS.filter(g => !savedOrder.includes(g.key)),
+                  ];
+                  const moveColumn = async (key: string, dir: -1 | 1) => {
+                    if (!settings) return;
+                    const cur = ordered.map(g => g.key);
+                    const idx = cur.indexOf(key);
+                    const target = idx + dir;
+                    if (idx < 0 || target < 0 || target >= cur.length) return;
+                    [cur[idx], cur[target]] = [cur[target], cur[idx]];
+                    const { error } = await supabase.from('business_settings').update({ kanban_group_order: cur } as any).eq('id', settings.id);
+                    if (error) { toast.error('Erro ao reordenar'); return; }
+                    refetchSettings();
+                  };
+                  return ordered.map((group, colIdx) => {
+                    const items = [...kanbanItems.filter(i => i.group_key === group.key)].sort((a, b) => a.sort_order - b.sort_order);
+                    const customLabel = ((settings as any)?.kanban_group_labels || {})[group.key] as string | undefined;
+                    return (
                     <KanbanColumn
                       key={group.key}
                       group={{ ...group, label: customLabel?.trim() || group.label }}
@@ -731,9 +748,14 @@ export default function GestaoMarcaPage() {
                         toast.success('Coluna renomeada');
                         refetchSettings();
                       }}
+                      canMoveLeft={colIdx > 0}
+                      canMoveRight={colIdx < ordered.length - 1}
+                      onMoveLeft={() => moveColumn(group.key, -1)}
+                      onMoveRight={() => moveColumn(group.key, 1)}
                     />
-                  );
-                })}
+                    );
+                  });
+                })()}
               </div>
               <DragOverlay>
                 {activeDragItem ? (
