@@ -76,3 +76,16 @@ Resolved all 12 actionable findings from the Lovable security scan:
 10. **storage.objects (portal-uploads)**: Dropped anonymous upload policy. Authenticated upload + public SELECT remain.
 
 Note: app_role enum has only `owner`, `admin`, `member` — no `manager` role.
+
+### Refinement after impact analysis
+
+Initial Owner-only locks broke widgets (WeeklyAlign, Secretaria → Contrato, payment methods).
+Final policies:
+- `business_setup` SELECT: any authenticated user (needed for `payment_methods` everywhere). Sensitive fields gated client-side via `useSensitiveAccess`.
+- `financial_payroll` SELECT: Owner OR `current_user_has_sensitive_access('payroll'|'financial_values')`. Writes Owner-only.
+- `member_contracts` SELECT: Owner OR sensitive `contracts`/`payroll` OR `is_self_team_member(member_id)`.
+- `member_payments` SELECT: Owner OR sensitive `payroll` OR `is_self_team_member(member_id)`.
+
+New SECURITY DEFINER helpers:
+- `current_user_has_sensitive_access(_category text)` — checks `member_sensitive_access`.
+- `is_self_team_member(_member_id uuid)` — checks if calling user owns that team_members row.
