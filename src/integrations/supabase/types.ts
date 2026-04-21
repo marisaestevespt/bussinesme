@@ -9619,6 +9619,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_has_sensitive_access: {
+        Args: { _category: string }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -9856,6 +9860,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_self_team_member: { Args: { _member_id: string }; Returns: boolean }
       log_audit_entry: {
         Args: {
           _action: string
