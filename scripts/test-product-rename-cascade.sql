@@ -1,10 +1,18 @@
 -- ============================================================
 -- TESTE AUTOMÁTICO: Cascade de rename de produto
 -- Valida que mudar o nome de um produto propaga para todas as
--- 15 tabelas dependentes via trigger sync_product_name_cascade.
+-- 17 tabelas dependentes via trigger sync_product_name_cascade.
 -- ============================================================
 \set ON_ERROR_STOP on
 \timing off
+
+-- Tabela temporária para coletar resultados
+CREATE TEMP TABLE _test_results (
+  table_name text,
+  expected text,
+  actual text,
+  passed boolean
+) ON COMMIT DROP;
 
 DO $$
 DECLARE
@@ -27,146 +35,69 @@ DECLARE
   _portal_hist_id uuid;
   _capacity_id uuid;
   _scenario_id uuid;
+  _portal_id uuid;
 
-  _original_name text := '__TEST_PRODUCT_' || extract(epoch from now())::bigint;
-  _new_name text := '__RENAMED_PRODUCT_' || extract(epoch from now())::bigint;
-
-  _checks int := 0;
-  _failures int := 0;
-  _val text;
-
-  PROCEDURE _assert(_label text, _expected text, _actual text)
-  LANGUAGE plpgsql AS $body$
-  BEGIN
-    IF _actual IS DISTINCT FROM _expected THEN
-      RAISE NOTICE '  ❌ FAIL: % — expected "%", got "%"', _label, _expected, _actual;
-    ELSE
-      RAISE NOTICE '  ✅ PASS: %', _label;
-    END IF;
-  END;
-  $body$;
+  _ts text := extract(epoch from now())::bigint::text;
+  _original_name text;
+  _new_name text;
 BEGIN
+  _original_name := '__TEST_PROD_' || _ts;
+  _new_name := '__RENAMED_PROD_' || _ts;
+
   RAISE NOTICE '════════════════════════════════════════';
-  RAISE NOTICE '  TEST: Product rename cascade';
+  RAISE NOTICE '  TEST: Product rename cascade (%)', _ts;
   RAISE NOTICE '════════════════════════════════════════';
 
-  -- 1. Criar produto base
-  INSERT INTO products (name, status) VALUES (_original_name, 'vendas_ativas')
-  RETURNING id INTO _product_id;
-  RAISE NOTICE 'Created product: % (id=%)', _original_name, _product_id;
+  INSERT INTO products (name, status) VALUES (_original_name, 'vendas_ativas') RETURNING id INTO _product_id;
 
-  -- 2. Criar registos em todas as tabelas dependentes
-  INSERT INTO clients (full_name, current_product_id, status)
-    VALUES ('__test_client', _product_id, 'ativo') RETURNING id INTO _client_id;
-  INSERT INTO crm_leads (name, potential_product_id, status)
-    VALUES ('__test_lead', _product_id, 'novo') RETURNING id INTO _lead_id;
-  INSERT INTO commercial_sales (client, product_id, invoice_total, base_value, sale_year, sale_month, status)
-    VALUES ('__test_client', _product_id, 100, 100, 2026, 1, 'pago') RETURNING id INTO _sale_id;
-  INSERT INTO commercial_sales_actions (product_id, action_name, action_date)
-    VALUES (_product_id, '__test_action', CURRENT_DATE) RETURNING id INTO _action_id;
-  INSERT INTO commercial_library_entries (product_id, title, entry_type)
-    VALUES (_product_id, '__test_lib', 'documento') RETURNING id INTO _library_id;
-  INSERT INTO commercial_product_goals (product_id, year)
-    VALUES (_product_id, 2026) RETURNING id INTO _goal_id;
-  INSERT INTO crm_pipelines (product_id, name)
-    VALUES (_product_id, '__test_pipeline') RETURNING id INTO _pipeline_id;
-  INSERT INTO events (product_id, title, event_date)
-    VALUES (_product_id, '__test_event', CURRENT_DATE) RETURNING id INTO _event_id;
-  INSERT INTO marketing_automations (product_id, name)
-    VALUES (_product_id, '__test_auto') RETURNING id INTO _automation_id;
-  INSERT INTO marketing_funnels (product_id, name)
-    VALUES (_product_id, '__test_funnel') RETURNING id INTO _funnel_id;
-  INSERT INTO traffic_creatives (product_id, name)
-    VALUES (_product_id, '__test_creative') RETURNING id INTO _creative_id;
-  INSERT INTO content_items (product_id, title, content_type)
-    VALUES (_product_id, '__test_content', 'post') RETURNING id INTO _content_id;
-  INSERT INTO meetings (product_id, title, date_time, status)
-    VALUES (_product_id, '__test_meeting', now(), 'por_organizar') RETURNING id INTO _meeting_id;
-  INSERT INTO projects (name, product_id, status)
-    VALUES ('__test_project', _product_id, 'em_curso') RETURNING id INTO _project_id;
-  INSERT INTO sops (name, product_id, department, status)
-    VALUES ('__test_sop', _product_id, 'produtos', 'ativo') RETURNING id INTO _sop_id;
+  INSERT INTO clients (full_name, current_product_id, status) VALUES ('__test_client_'||_ts, _product_id, 'ativo') RETURNING id INTO _client_id;
+  INSERT INTO crm_leads (name, potential_product_id, status) VALUES ('__test_lead', _product_id, 'novo') RETURNING id INTO _lead_id;
+  INSERT INTO commercial_sales (client, product_id, invoice_total, base_value, sale_year, sale_month, status) VALUES ('__test', _product_id, 100, 100, 2026, 1, 'pago') RETURNING id INTO _sale_id;
+  INSERT INTO commercial_sales_actions (product_id, action_name, action_date) VALUES (_product_id, '__test_action', CURRENT_DATE) RETURNING id INTO _action_id;
+  INSERT INTO commercial_library_entries (product_id, title, entry_type) VALUES (_product_id, '__test_lib', 'documento') RETURNING id INTO _library_id;
+  INSERT INTO commercial_product_goals (product_id, year) VALUES (_product_id, 2026) RETURNING id INTO _goal_id;
+  INSERT INTO crm_pipelines (product_id, name) VALUES (_product_id, '__test_pipeline') RETURNING id INTO _pipeline_id;
+  INSERT INTO events (product_id, title, event_date) VALUES (_product_id, '__test_event', CURRENT_DATE) RETURNING id INTO _event_id;
+  INSERT INTO marketing_automations (product_id, name) VALUES (_product_id, '__test_auto') RETURNING id INTO _automation_id;
+  INSERT INTO marketing_funnels (product_id, name) VALUES (_product_id, '__test_funnel') RETURNING id INTO _funnel_id;
+  INSERT INTO traffic_creatives (product_id, name) VALUES (_product_id, '__test_creative') RETURNING id INTO _creative_id;
+  INSERT INTO content_items (product_id, title, content_type) VALUES (_product_id, '__test_content', 'post') RETURNING id INTO _content_id;
+  INSERT INTO meetings (product_id, title, date_time, status) VALUES (_product_id, '__test_meeting', now(), 'por_organizar') RETURNING id INTO _meeting_id;
+  INSERT INTO projects (name, product_id, status) VALUES ('__test_project', _product_id, 'em_curso') RETURNING id INTO _project_id;
+  INSERT INTO sops (name, product_id, department, status) VALUES ('__test_sop', _product_id, 'produtos', 'ativo') RETURNING id INTO _sop_id;
+  INSERT INTO capacity_scenarios (name) VALUES ('__test_scenario_'||_ts) RETURNING id INTO _scenario_id;
+  INSERT INTO capacity_scenario_products (scenario_id, product_id) VALUES (_scenario_id, _product_id) RETURNING id INTO _capacity_id;
+  INSERT INTO client_portals (client_id, slug) VALUES (_client_id, '__test_portal_'||_ts) RETURNING id INTO _portal_id;
+  INSERT INTO portal_project_history (portal_id, product_id, project_name) VALUES (_portal_id, _product_id, '__test_hist') RETURNING id INTO _portal_hist_id;
 
-  -- capacity_scenario_products requires scenario
-  INSERT INTO capacity_scenarios (name) VALUES ('__test_scenario') RETURNING id INTO _scenario_id;
-  INSERT INTO capacity_scenario_products (scenario_id, product_id)
-    VALUES (_scenario_id, _product_id) RETURNING id INTO _capacity_id;
+  RAISE NOTICE 'Inserted 17 dependent rows. Renaming product...';
 
-  -- portal_project_history requires portal
-  DECLARE _portal_id uuid;
-  BEGIN
-    INSERT INTO client_portals (client_id, slug) VALUES (_client_id, '__test_portal_' || extract(epoch from now())::bigint)
-      RETURNING id INTO _portal_id;
-    INSERT INTO portal_project_history (portal_id, product_id, project_name)
-      VALUES (_portal_id, _product_id, '__test_hist') RETURNING id INTO _portal_hist_id;
-  END;
-
-  RAISE NOTICE 'All dependent rows inserted. Now renaming...';
-
-  -- 3. Rename do produto → dispara cascade
+  -- Trigger cascade
   UPDATE products SET name = _new_name WHERE id = _product_id;
 
-  RAISE NOTICE '────────────────────────────────────────';
-  RAISE NOTICE 'Verifying cascade propagation:';
-  RAISE NOTICE '────────────────────────────────────────';
+  -- Coletar resultados
+  INSERT INTO _test_results
+  SELECT 'clients.current_product', _new_name, current_product, current_product = _new_name FROM clients WHERE id = _client_id UNION ALL
+  SELECT 'crm_leads.potential_product', _new_name, potential_product, potential_product = _new_name FROM crm_leads WHERE id = _lead_id UNION ALL
+  SELECT 'commercial_sales.product', _new_name, product, product = _new_name FROM commercial_sales WHERE id = _sale_id UNION ALL
+  SELECT 'commercial_sales_actions.product', _new_name, product, product = _new_name FROM commercial_sales_actions WHERE id = _action_id UNION ALL
+  SELECT 'commercial_library_entries.product', _new_name, product, product = _new_name FROM commercial_library_entries WHERE id = _library_id UNION ALL
+  SELECT 'commercial_product_goals.product_name', _new_name, product_name, product_name = _new_name FROM commercial_product_goals WHERE id = _goal_id UNION ALL
+  SELECT 'crm_pipelines.product', _new_name, product, product = _new_name FROM crm_pipelines WHERE id = _pipeline_id UNION ALL
+  SELECT 'events.product_name', _new_name, product_name, product_name = _new_name FROM events WHERE id = _event_id UNION ALL
+  SELECT 'marketing_automations.product_name', _new_name, product_name, product_name = _new_name FROM marketing_automations WHERE id = _automation_id UNION ALL
+  SELECT 'marketing_funnels.product_name', _new_name, product_name, product_name = _new_name FROM marketing_funnels WHERE id = _funnel_id UNION ALL
+  SELECT 'traffic_creatives.product_name', _new_name, product_name, product_name = _new_name FROM traffic_creatives WHERE id = _creative_id UNION ALL
+  SELECT 'content_items.product_name', _new_name, product_name, product_name = _new_name FROM content_items WHERE id = _content_id UNION ALL
+  SELECT 'meetings.product_name', _new_name, product_name, product_name = _new_name FROM meetings WHERE id = _meeting_id UNION ALL
+  SELECT 'projects.product_name', _new_name, product_name, product_name = _new_name FROM projects WHERE id = _project_id UNION ALL
+  SELECT 'sops.product_name', _new_name, product_name, product_name = _new_name FROM sops WHERE id = _sop_id UNION ALL
+  SELECT 'capacity_scenario_products.product_name', _new_name, product_name, product_name = _new_name FROM capacity_scenario_products WHERE id = _capacity_id UNION ALL
+  SELECT 'portal_project_history.product_name', _new_name, product_name, product_name = _new_name FROM portal_project_history WHERE id = _portal_hist_id;
 
-  -- 4. Verificar que TODAS as tabelas receberam o novo nome
-  SELECT current_product INTO _val FROM clients WHERE id = _client_id;
-  CALL _assert('clients.current_product', _new_name, _val);
-
-  SELECT potential_product INTO _val FROM crm_leads WHERE id = _lead_id;
-  CALL _assert('crm_leads.potential_product', _new_name, _val);
-
-  SELECT product INTO _val FROM commercial_sales WHERE id = _sale_id;
-  CALL _assert('commercial_sales.product', _new_name, _val);
-
-  SELECT product INTO _val FROM commercial_sales_actions WHERE id = _action_id;
-  CALL _assert('commercial_sales_actions.product', _new_name, _val);
-
-  SELECT product INTO _val FROM commercial_library_entries WHERE id = _library_id;
-  CALL _assert('commercial_library_entries.product', _new_name, _val);
-
-  SELECT product_name INTO _val FROM commercial_product_goals WHERE id = _goal_id;
-  CALL _assert('commercial_product_goals.product_name', _new_name, _val);
-
-  SELECT product INTO _val FROM crm_pipelines WHERE id = _pipeline_id;
-  CALL _assert('crm_pipelines.product', _new_name, _val);
-
-  SELECT product_name INTO _val FROM events WHERE id = _event_id;
-  CALL _assert('events.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM marketing_automations WHERE id = _automation_id;
-  CALL _assert('marketing_automations.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM marketing_funnels WHERE id = _funnel_id;
-  CALL _assert('marketing_funnels.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM traffic_creatives WHERE id = _creative_id;
-  CALL _assert('traffic_creatives.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM content_items WHERE id = _content_id;
-  CALL _assert('content_items.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM meetings WHERE id = _meeting_id;
-  CALL _assert('meetings.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM projects WHERE id = _project_id;
-  CALL _assert('projects.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM sops WHERE id = _sop_id;
-  CALL _assert('sops.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM capacity_scenario_products WHERE id = _capacity_id;
-  CALL _assert('capacity_scenario_products.product_name', _new_name, _val);
-
-  SELECT product_name INTO _val FROM portal_project_history WHERE id = _portal_hist_id;
-  CALL _assert('portal_project_history.product_name', _new_name, _val);
-
-  -- 5. Cleanup
-  RAISE NOTICE '────────────────────────────────────────';
-  RAISE NOTICE 'Cleaning up test data...';
+  -- Cleanup
   DELETE FROM portal_project_history WHERE id = _portal_hist_id;
-  DELETE FROM client_portals WHERE client_id = _client_id;
+  DELETE FROM client_portals WHERE id = _portal_id;
   DELETE FROM capacity_scenario_products WHERE id = _capacity_id;
   DELETE FROM capacity_scenarios WHERE id = _scenario_id;
   DELETE FROM sops WHERE id = _sop_id;
@@ -186,7 +117,34 @@ BEGIN
   DELETE FROM clients WHERE id = _client_id;
   DELETE FROM products WHERE id = _product_id;
 
-  RAISE NOTICE '════════════════════════════════════════';
-  RAISE NOTICE '  TEST COMPLETE';
-  RAISE NOTICE '════════════════════════════════════════';
+  RAISE NOTICE 'Cleanup done.';
+END $$;
+
+-- Resultado individual
+SELECT
+  CASE WHEN passed THEN '✅ PASS' ELSE '❌ FAIL' END AS result,
+  table_name,
+  CASE WHEN passed THEN '' ELSE ('expected="'||expected||'" got="'||COALESCE(actual,'NULL')||'"') END AS detail
+FROM _test_results
+ORDER BY passed, table_name;
+
+-- Sumário
+SELECT
+  COUNT(*) AS total,
+  COUNT(*) FILTER (WHERE passed) AS passed,
+  COUNT(*) FILTER (WHERE NOT passed) AS failed,
+  CASE WHEN COUNT(*) FILTER (WHERE NOT passed) = 0
+       THEN '✅ ALL TESTS PASSED'
+       ELSE '❌ '||COUNT(*) FILTER (WHERE NOT passed)||' FAILURE(S)'
+  END AS verdict
+FROM _test_results;
+
+-- Sair com erro se algum falhou
+DO $$
+DECLARE _failed int;
+BEGIN
+  SELECT COUNT(*) INTO _failed FROM _test_results WHERE NOT passed;
+  IF _failed > 0 THEN
+    RAISE EXCEPTION 'Test failed: % cascade(s) did not propagate', _failed;
+  END IF;
 END $$;
