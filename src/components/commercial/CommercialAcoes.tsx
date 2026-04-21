@@ -57,7 +57,6 @@ export function CommercialAcoes() {
   const qc = useQueryClient();
   const { productGoals } = useCommercialData();
   const products = (productGoals.data || []).map(p => p.product_name);
-  const askText = usePrompt();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
