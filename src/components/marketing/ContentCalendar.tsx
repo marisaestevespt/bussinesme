@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
-import { EmptyHint } from '@/components/ui/loading-skeletons';
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths,
 } from 'date-fns';
@@ -18,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export interface ProfileInfo { id: string; full_name: string | null; avatar_url: string | null; }
 export interface AttachmentInfo { id: string; content_id: string; file_url: string; file_name: string; file_type: string; }
