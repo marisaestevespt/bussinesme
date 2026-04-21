@@ -17,6 +17,7 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
   Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
@@ -54,6 +55,7 @@ interface KanbanItem {
   title: string;
   content: string | null;
   sort_order: number;
+  emoji?: string | null;
 }
 
 interface VisualCard {
@@ -82,6 +84,8 @@ const KANBAN_GROUPS = [
   { key: 'impacto', label: 'Impacto', headerBg: 'bg-[hsl(18,30%,92%)] dark:bg-[hsl(18,25%,15%)]', headerText: 'text-[hsl(18,40%,44%)] dark:text-[hsl(18,40%,64%)]', dotBg: '', addColor: 'text-[hsl(18,35%,54%)]' },
 ];
 
+const KANBAN_EMOJIS = ['📄', '📝', '💡', '🎯', '✨', '🧭', '🚀', '🎨', '🌱', '🔥', '⭐', '💎', '🧠', '📌', '📚', '🗺️', '🏆', '❤️', '🌍', '🎤'];
+
 // ── Page ──
 
 export default function GestaoMarcaPage() {
@@ -106,6 +110,7 @@ export default function GestaoMarcaPage() {
   // Kanban detail
   const [selectedKanban, setSelectedKanban] = useState<KanbanItem | null>(null);
   const [kanbanContent, setKanbanContent] = useState('');
+  const [editingKanban, setEditingKanban] = useState(false);
 
   // Add kanban item
   const [addingToGroup, setAddingToGroup] = useState<string | null>(null);
@@ -242,7 +247,18 @@ export default function GestaoMarcaPage() {
     if (!selectedKanban) return;
     const { error } = await supabase.from('brand_kanban_items').update({ content: kanbanContent } as any).eq('id', selectedKanban.id);
     if (error) toast.error('Erro ao guardar');
-    else { toast.success('Guardado'); queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] }); }
+    else {
+      toast.success('Guardado');
+      queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
+      setSelectedKanban(prev => prev ? { ...prev, content: kanbanContent } : null);
+      setEditingKanban(false);
+    }
+  };
+
+  const updateKanbanEmoji = async (id: string, emoji: string) => {
+    const { error } = await supabase.from('brand_kanban_items').update({ emoji } as any).eq('id', id);
+    if (error) { toast.error('Erro ao alterar emoji'); return; }
+    queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
   };
 
   const addKanbanItem = async () => {
@@ -639,9 +655,38 @@ export default function GestaoMarcaPage() {
                         <div
                           key={item.id}
                           className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors group"
-                          onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); }}
+                          onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); setEditingKanban(false); }}
                         >
-                          <span className="text-base leading-none">📄</span>
+                          {isOwner ? (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  type="button"
+                                  onClick={e => e.stopPropagation()}
+                                  className="text-base leading-none hover:scale-110 transition-transform"
+                                  title="Mudar emoji"
+                                >
+                                  {item.emoji || '📄'}
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2" align="start" onClick={e => e.stopPropagation()}>
+                                <div className="grid grid-cols-5 gap-1 max-w-[200px]">
+                                  {KANBAN_EMOJIS.map(em => (
+                                    <button
+                                      key={em}
+                                      type="button"
+                                      className="h-8 w-8 rounded hover:bg-muted text-lg"
+                                      onClick={e => { e.stopPropagation(); updateKanbanEmoji(item.id, em); }}
+                                    >
+                                      {em}
+                                    </button>
+                                  ))}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          ) : (
+                            <span className="text-base leading-none">{item.emoji || '📄'}</span>
+                          )}
                           <span className="text-sm text-foreground flex-1 truncate">{item.title}</span>
                           {isOwner && !RESERVED_KANBAN_TITLES.includes(item.title) && (
                             <Button
@@ -973,11 +1018,33 @@ export default function GestaoMarcaPage() {
           ) : selectedKanban ? (
             /* ── Default rich text content ── */
             <div className="space-y-4">
-              <RichTextEditor content={kanbanContent} onChange={setKanbanContent} editable={isOwner} />
-              {isOwner && (
-                <div className="flex justify-end">
-                  <Button onClick={saveKanbanContent}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
-                </div>
+              {editingKanban && isOwner ? (
+                <>
+                  <RichTextEditor content={kanbanContent} onChange={setKanbanContent} editable={true} />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => { setKanbanContent(selectedKanban.content || ''); setEditingKanban(false); }}>
+                      <X className="h-3.5 w-3.5 mr-1" />Cancelar
+                    </Button>
+                    <Button onClick={saveKanbanContent}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="prose prose-sm max-w-none p-3 min-h-[200px] border rounded-md bg-muted/10">
+                    {selectedKanban.content ? (
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedKanban.content) }} />
+                    ) : (
+                      <p className="text-muted-foreground italic">Sem conteúdo. {isOwner ? 'Clica em "Editar" para começar.' : ''}</p>
+                    )}
+                  </div>
+                  {isOwner && (
+                    <div className="flex justify-end">
+                      <Button variant="outline" onClick={() => setEditingKanban(true)}>
+                        <Pencil className="h-3.5 w-3.5 mr-1" />Editar
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : null}

@@ -1,0 +1,1 @@
+ALTER TABLE public.brand_kanban_items ADD COLUMN IF NOT EXISTS emoji TEXT NOT NULL DEFAULT '📄';
