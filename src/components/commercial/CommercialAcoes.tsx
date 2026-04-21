@@ -425,6 +425,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
 }) {
   const [form, setForm] = useState(empty());
   const [showProject, setShowProject] = useState(false);
+  const askText = usePrompt();
 
   const { data: existingTypes = [] } = useQuery({
     queryKey: ['commercial', 'sales-action-types'],
