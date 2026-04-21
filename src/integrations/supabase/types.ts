@@ -951,47 +951,6 @@ export type Database = {
           },
         ]
       }
-      channel_social_tokens: {
-        Row: {
-          access_token: string
-          channel_id: string
-          created_at: string
-          id: string
-          last_synced_at: string | null
-          platform: string
-          token_metadata: Json | null
-          updated_at: string
-        }
-        Insert: {
-          access_token?: string
-          channel_id: string
-          created_at?: string
-          id?: string
-          last_synced_at?: string | null
-          platform?: string
-          token_metadata?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          access_token?: string
-          channel_id?: string
-          created_at?: string
-          id?: string
-          last_synced_at?: string | null
-          platform?: string
-          token_metadata?: Json | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "channel_social_tokens_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: true
-            referencedRelation: "marketing_channels"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       client_activities: {
         Row: {
           activity: string
