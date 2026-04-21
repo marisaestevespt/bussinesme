@@ -176,7 +176,7 @@ export function CommercialOverview() {
         </Card>
       </div>
 
-      <SaleFormDialog open={saleOpen} onOpenChange={setSaleOpen} products={products} onSave={(sale) => { data.upsertSale.mutate(sale); setSaleOpen(false); }} />
+      <SaleFormDialog open={saleOpen} onOpenChange={setSaleOpen} products={productGoalsList.map(p => p.product_name)} onSave={(sale) => { data.upsertSale.mutate(sale); setSaleOpen(false); }} />
     </div>
   );
 }
