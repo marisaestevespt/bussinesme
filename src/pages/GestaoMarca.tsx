@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as React from 'react';
 import DOMPurify from 'dompurify';
 import { useNavigate } from 'react-router-dom';
@@ -541,44 +541,12 @@ export default function GestaoMarcaPage() {
               <div className="flex flex-col md:flex-row items-start gap-6">
                 {/* Logo - bigger */}
                 {isOwner ? (
-                  <div className="shrink-0 space-y-2 group">
-                    <label className="cursor-pointer relative block">
-                      {settings?.logo_url ? (
-                        <img
-                          src={settings.logo_url}
-                          alt={settings.business_name}
-                          className="h-40 w-40 rounded-xl object-cover border bg-muted/30 group-hover:opacity-80 transition-opacity"
-                          style={{ objectPosition: `center ${(settings as any)?.logo_position_y ?? 50}%` }}
-                        />
-                      ) : (
-                        <div className="h-40 w-40 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
-                          <Upload className="h-6 w-6 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-opacity bg-background/60 pointer-events-none">
-                        <Upload className="h-5 w-5 text-foreground" />
-                      </div>
-                      <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
-                    </label>
-                    {settings?.logo_url && (
-                      <div className="flex items-center gap-2 px-1">
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider shrink-0">Enquadrar</span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={(settings as any)?.logo_position_y ?? 50}
-                          onChange={async (e) => {
-                            const v = parseInt(e.target.value, 10);
-                            await supabase.from('business_settings').update({ logo_position_y: v } as any).eq('id', settings.id);
-                            refetchSettings();
-                          }}
-                          className="flex-1 h-1 accent-primary cursor-pointer"
-                          title="Ajusta o enquadramento vertical do logo"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <LogoFramer
+                    settings={settings}
+                    uploadLogo={uploadLogo}
+                    uploadingLogo={uploadingLogo}
+                    refetchSettings={refetchSettings}
+                  />
                 ) : settings?.logo_url ? (
                   <img
                     src={settings.logo_url}
@@ -1539,6 +1507,98 @@ function KanbanColumn({
           )
         )}
       </div>
+    </div>
+  );
+}
+
+/* ─── Logo with drag-to-frame ─── */
+function LogoFramer({
+  settings,
+  uploadLogo,
+  uploadingLogo,
+  refetchSettings,
+}: {
+  settings: any;
+  uploadLogo: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  uploadingLogo: boolean;
+  refetchSettings: () => void;
+}) {
+  const initialY = (settings as any)?.logo_position_y ?? 50;
+  const [posY, setPosY] = useState<number>(initialY);
+  const draggingRef = useRef<{ startY: number; startPos: number; moved: boolean } | null>(null);
+
+  useEffect(() => {
+    setPosY((settings as any)?.logo_position_y ?? 50);
+  }, [settings?.id, (settings as any)?.logo_position_y]);
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!settings?.logo_url) return;
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+    draggingRef.current = { startY: e.clientY, startPos: posY, moved: false };
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = draggingRef.current;
+    if (!d) return;
+    const dy = e.clientY - d.startY;
+    if (Math.abs(dy) > 2) d.moved = true;
+    // Drag down = ver mais do topo da imagem (posição diminui)
+    const next = Math.max(0, Math.min(100, d.startPos - (dy / 160) * 100));
+    setPosY(next);
+  };
+
+  const onPointerUp = async (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = draggingRef.current;
+    draggingRef.current = null;
+    try { (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId); } catch {}
+    if (!d || !d.moved) return;
+    const v = Math.round(posY);
+    if (v !== ((settings as any)?.logo_position_y ?? 50) && settings?.id) {
+      await supabase.from('business_settings').update({ logo_position_y: v } as any).eq('id', settings.id);
+      refetchSettings();
+    }
+  };
+
+  return (
+    <div className="shrink-0 space-y-2 group">
+      <div className="relative">
+        {settings?.logo_url ? (
+          <div
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            className="h-40 w-40 rounded-xl border bg-muted/30 overflow-hidden cursor-ns-resize select-none touch-none relative"
+            title="Arrasta para cima/baixo para enquadrar"
+          >
+            <img
+              src={settings.logo_url}
+              alt={settings.business_name}
+              draggable={false}
+              className="h-full w-full object-cover pointer-events-none"
+              style={{ objectPosition: `center ${posY}%` }}
+            />
+            <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-background/80 backdrop-blur text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              ↕ arrasta
+            </div>
+          </div>
+        ) : (
+          <label className="cursor-pointer block">
+            <div className="h-40 w-40 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center hover:border-primary/50 hover:bg-muted/40 transition-colors">
+              <Upload className="h-6 w-6 text-muted-foreground/50" />
+            </div>
+            <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
+          </label>
+        )}
+      </div>
+      {settings?.logo_url && (
+        <label className="cursor-pointer block">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors flex items-center gap-1">
+            <Upload className="h-3 w-3" /> Trocar logo
+          </span>
+          <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
+        </label>
+      )}
     </div>
   );
 }
