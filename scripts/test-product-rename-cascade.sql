@@ -52,7 +52,7 @@ BEGIN
 
   INSERT INTO clients (full_name, current_product_id, status) VALUES ('__test_client_'||_ts, _product_id, 'ativo') RETURNING id INTO _client_id;
   INSERT INTO crm_leads (name, potential_product_id, status) VALUES ('__test_lead', _product_id, 'novo') RETURNING id INTO _lead_id;
-  INSERT INTO commercial_sales (client, product_id, invoice_total, base_value, sale_year, sale_month, status) VALUES ('__test', _product_id, 100, 100, 2026, 1, 'pago') RETURNING id INTO _sale_id;
+  INSERT INTO commercial_sales (sale_id, client, product_id, invoice_total, base_value, sale_year, sale_month, status) VALUES ('__TEST_'||_ts, '__test', _product_id, 100, 100, 2026, 1, 'pago') RETURNING id INTO _sale_id;
   INSERT INTO commercial_sales_actions (product_id, action_name, action_date) VALUES (_product_id, '__test_action', CURRENT_DATE) RETURNING id INTO _action_id;
   INSERT INTO commercial_library_entries (product_id, title, entry_type) VALUES (_product_id, '__test_lib', 'documento') RETURNING id INTO _library_id;
   INSERT INTO commercial_product_goals (product_id, year) VALUES (_product_id, 2026) RETURNING id INTO _goal_id;
