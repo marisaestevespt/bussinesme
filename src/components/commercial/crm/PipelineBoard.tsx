@@ -216,6 +216,7 @@ function StagesDialog({
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const confirm = useConfirm();
 
   const handleAdd = () => {
     if (!newName.trim()) return;
@@ -310,9 +311,16 @@ function StagesDialog({
                     size="icon"
                     className="h-7 w-7 text-destructive hover:text-destructive flex-shrink-0"
                     disabled={count > 0}
-                    onClick={() => {
+                    aria-label="Eliminar etapa"
+                    onClick={async () => {
                       if (count > 0) return;
-                      if (confirm(`Eliminar etapa "${stage.name}"?`)) onDelete(stage.id);
+                      const ok = await confirm({
+                        title: 'Eliminar etapa?',
+                        description: `A etapa "${stage.name}" será removida do pipeline.`,
+                        confirmText: 'Eliminar',
+                        variant: 'destructive',
+                      });
+                      if (ok) onDelete(stage.id);
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
