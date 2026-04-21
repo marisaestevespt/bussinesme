@@ -54,6 +54,7 @@ interface KanbanItem {
   title: string;
   content: string | null;
   sort_order: number;
+  emoji?: string | null;
 }
 
 interface VisualCard {
