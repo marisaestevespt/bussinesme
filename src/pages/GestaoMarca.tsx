@@ -19,6 +19,14 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
+  DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
+  closestCorners, useDroppable, useSensor, useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
   Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
   Target, Sparkles, BarChart3,
