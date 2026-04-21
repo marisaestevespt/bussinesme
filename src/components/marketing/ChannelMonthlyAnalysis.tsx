@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, TrendingUp, TrendingDown, Trophy, ThumbsDown, RefreshCw, Loader2 } from 'lucide-react';
+import { ChevronLeft, TrendingUp, TrendingDown, Trophy, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { STATUS_OPTIONS, FORMAT_OPTIONS, type ContentItem, type ContentChannelLink } from '@/lib/marketing-constants';
 import { Link } from 'react-router-dom';
@@ -130,33 +130,6 @@ interface Props {
 
 export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, onBack }: Props) {
   const queryClient = useQueryClient();
-  const [syncing, setSyncing] = useState(false);
-
-  const syncMetrics = async () => {
-    setSyncing(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/fetch-social-metrics`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({ channel_id: channelId }),
-        }
-      );
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
-      const r = result.results?.[0];
-      if (r?.status === 'error') throw new Error(r.error);
-      queryClient.invalidateQueries({ queryKey: ['channel-monthly-metrics', channelId, month, year] });
-    } catch {
-      // silent - button shows state
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   const { data: channelMetrics } = useQuery({
     queryKey: ['channel-monthly-metrics', channelId, month, year],
@@ -281,10 +254,6 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
           </Button>
           <h2 className="text-lg font-semibold text-foreground">{MONTHS[month - 1]} {year} — {channelName}</h2>
         </div>
-        <Button variant="outline" size="sm" onClick={syncMetrics} disabled={syncing} className="gap-1.5">
-          {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          Importar métricas
-        </Button>
       </div>
 
       {/* Platform-specific Channel Metrics Table */}
