@@ -7431,6 +7431,7 @@ export type Database = {
           name: string
           product_type: string | null
           renewal_advance_days: number | null
+          sales_page: Json
           sales_page_url: string | null
           sales_type: string | null
           status: string
@@ -7468,6 +7469,7 @@ export type Database = {
           name: string
           product_type?: string | null
           renewal_advance_days?: number | null
+          sales_page?: Json
           sales_page_url?: string | null
           sales_type?: string | null
           status?: string
@@ -7505,6 +7507,7 @@ export type Database = {
           name?: string
           product_type?: string | null
           renewal_advance_days?: number | null
+          sales_page?: Json
           sales_page_url?: string | null
           sales_type?: string | null
           status?: string
