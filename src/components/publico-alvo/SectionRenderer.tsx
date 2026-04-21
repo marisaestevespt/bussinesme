@@ -288,6 +288,11 @@ function AccentGridBlock({ block, onUpdate }: BlockProps) {
 function BarChartBlock({ block, onUpdate }: BlockProps) {
   const items = block.items || [];
   const BAR_COLORS: Record<string, string> = { primary: 'bg-primary', warning: 'bg-warning', muted: 'bg-muted-foreground' };
+  const tempLabel = (pct: number) => {
+    if (pct >= 70) return { label: 'Alta', cls: 'bg-primary/10 text-primary' };
+    if (pct >= 40) return { label: 'Média', cls: 'bg-warning/15 text-warning' };
+    return { label: 'Baixa', cls: 'bg-muted text-muted-foreground' };
+  };
 
   const updateItem = (idx: number, patch: any) => {
     const newItems = [...items];
@@ -307,13 +312,14 @@ function BarChartBlock({ block, onUpdate }: BlockProps) {
     <div className="space-y-0 mb-6">
       {items.map((b: any, i: number) => {
         const pct = b.total > 0 ? Math.round((b.count / b.total) * 100) : 0;
+        const t = tempLabel(pct);
         return (
           <div key={i} className="flex items-center gap-4 py-2.5 border-b group">
             <EditableText value={b.label} onSave={l => updateItem(i, { label: l })} className="text-xs font-medium w-[200px] truncate text-foreground" />
             <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-muted">
               <div className={`h-full rounded-full ${BAR_COLORS[b.color] || 'bg-primary'}`} style={{ width: `${pct}%` }} />
             </div>
-            <span className="text-[10px] font-medium text-muted-foreground w-8 text-right">{b.count}/{b.total}</span>
+            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded w-14 text-center ${t.cls}`}>{t.label}</span>
             <button onClick={() => deleteItem(i)} className="opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive shrink-0">
               <Trash2 className="h-3 w-3" />
             </button>
