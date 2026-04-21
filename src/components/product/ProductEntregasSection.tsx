@@ -44,6 +44,7 @@ interface Props {
   deliverableTemplates: Template[];
   isOwner: boolean;
   productId: string;
+  isRecurring?: boolean;
   onAdd: () => void;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
@@ -51,10 +52,11 @@ interface Props {
 
 // ─── Deliverable Row ─────────────────────────────────────────
 function DeliverableRow({
-  template, index, total, isOwner, sops, onUpdate, onDelete, onMoveUp, onMoveDown,
+  template, index, total, isOwner, sops, isRecurring, onUpdate, onDelete, onMoveUp, onMoveDown,
 }: {
   template: Template; index: number; total: number; isOwner: boolean;
   sops: Array<{ id: string; name: string }>;
+  isRecurring: boolean;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
   onMoveUp: () => void;
@@ -122,10 +124,12 @@ function DeliverableRow({
             {(template.responsible_type || 'equipa') === 'cliente' ? 'Responsável: Cliente' : 'Responsável: Equipa'}
           </TooltipContent>
         </Tooltip>
-        <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
-          <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
-          Recorrente
-        </label>
+        {isRecurring && (
+          <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
+            <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
+            Recorrente
+          </label>
+        )}
         {isOwner && (
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={index === 0}>
@@ -190,11 +194,11 @@ function DeliverableRow({
 
 // ─── Phase Card ──────────────────────────────────────────────
 function PhaseCard({
-  phase, deliverables, sops, isOwner, productId,
+  phase, deliverables, sops, isOwner, productId, isRecurring,
   onUpdatePhase, onDeletePhase, onAddDeliverable, onUpdateDeliverable, onDeleteDeliverable, onSwapDeliverables,
 }: {
   phase: Phase; deliverables: Template[]; sops: Array<{ id: string; name: string }>;
-  isOwner: boolean; productId: string;
+  isOwner: boolean; productId: string; isRecurring: boolean;
   onUpdatePhase: (id: string, data: Record<string, unknown>) => void;
   onDeletePhase: (id: string) => void;
   onAddDeliverable: (phaseId: string) => void;
@@ -346,7 +350,7 @@ function PhaseCard({
             <p className="text-xs text-muted-foreground italic pl-6 py-2">Sem entregas nesta fase.</p>
           )}
           {deliverables.map((d, i) => (
-            <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops}
+            <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops} isRecurring={isRecurring}
               onUpdate={onUpdateDeliverable} onDelete={onDeleteDeliverable}
               onMoveUp={() => { if (i > 0) onSwapDeliverables(d.id, i, deliverables[i - 1].id, i - 1); }}
               onMoveDown={() => { if (i < deliverables.length - 1) onSwapDeliverables(d.id, i, deliverables[i + 1].id, i + 1); }}
@@ -364,7 +368,7 @@ function PhaseCard({
 }
 
 // ─── Main Section ────────────────────────────────────────────
-export function ProductEntregasSection({ deliverableTemplates, isOwner, productId, onAdd, onUpdate, onDelete }: Props) {
+export function ProductEntregasSection({ deliverableTemplates, isOwner, productId, isRecurring = false, onAdd, onUpdate, onDelete }: Props) {
   const qc = useQueryClient();
   const phaseKey = ['product-phases', productId];
 
@@ -465,7 +469,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
           .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
         return (
           <PhaseCard key={phase.id} phase={phase} deliverables={phaseDeliverables} sops={sops}
-            isOwner={isOwner} productId={productId}
+            isOwner={isOwner} productId={productId} isRecurring={isRecurring}
             onUpdatePhase={(id, data) => updatePhase.mutate({ id, ...data })}
             onDeletePhase={(id) => deletePhase.mutate(id)}
             onAddDeliverable={addDeliverableToPhase}
