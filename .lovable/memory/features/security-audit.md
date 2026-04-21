@@ -76,6 +76,16 @@ Restringido a Owner OU próprio membro (`is_self_team_member`):
 
 Tabelas já protegidas anteriormente (sem alteração): payroll, business_setup (sensitive fields), member_contracts, member_payments, suppliers, platform_accesses, team_members.
 
+## Fixes Applied (2026-04-21) — Auditoria 6 Fase B (USING true cleanup)
+
+Loop dinâmico: todas as policies INSERT/UPDATE/DELETE com `USING (true)` ou `WITH CHECK (true)` em ~95 tabelas operacionais foram substituídas por:
+- INSERT: `TO authenticated WITH CHECK (auth.uid() IS NOT NULL)`
+- UPDATE: `TO authenticated USING (auth.uid() IS NOT NULL) WITH CHECK (auth.uid() IS NOT NULL)`
+- DELETE: `TO authenticated USING (auth.uid() IS NOT NULL)`
+
+Comportamento para a equipa autenticada inalterado. Bloqueia escritas anónimas mesmo se a chave pública for exposta.
+Linter: 195 → 59 warnings.
+
 ## Fixes Applied (2026-04-21) — Auditoria 2 (Security & RLS)
 
 Resolved all 12 actionable findings from the Lovable security scan:
