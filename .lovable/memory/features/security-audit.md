@@ -59,3 +59,20 @@ Secrets used: `ACCESS_ENCRYPTION_KEY`, `ALLOWED_ORIGIN`.
 
 ## Remaining USING(true) tables (by design)
 Operational tables intentionally allow all authenticated members full CRUD — correct for single-tenant team app.
+
+## Fixes Applied (2026-04-21) — Auditoria 2 (Security & RLS)
+
+Resolved all 12 actionable findings from the Lovable security scan:
+
+1. **client_portals**: Removed anon SELECT policies (`Portal publicly readable by token`, `Anon can view portal by token or slug`). Anon access now exclusively via SECURITY DEFINER RPCs.
+2. **platform_accesses**: SELECT restricted to `owner` OR `admin`. Other team members must use `manage-access-password` edge function.
+3. **financial_payroll**: SELECT/INSERT/UPDATE restricted to `owner` only.
+4. **team_members**: UPDATE restricted to `owner` OR own profile_id (each member edits only themselves; owner edits all). SELECT remains team-wide for directory.
+5. **business_setup**: SELECT restricted to `owner`.
+6. **member_contracts** + **member_payments**: SELECT restricted to `owner`.
+7. **portal_visits**: anon INSERT now requires `portal_id` to belong to an active portal (WITH CHECK against client_portals.is_active).
+8. **product_onboarding_templates**: SELECT moved from `public` to `authenticated`.
+9. **suppliers**: SELECT for all authenticated; INSERT/UPDATE/DELETE restricted to `owner` OR `admin`.
+10. **storage.objects (portal-uploads)**: Dropped anonymous upload policy. Authenticated upload + public SELECT remain.
+
+Note: app_role enum has only `owner`, `admin`, `member` — no `manager` role.
