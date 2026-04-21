@@ -655,9 +655,38 @@ export default function GestaoMarcaPage() {
                         <div
                           key={item.id}
                           className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors group"
-                          onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); }}
+                          onClick={() => { setSelectedKanban(item); setKanbanContent(item.content || ''); setEditingKanban(false); }}
                         >
-                          <span className="text-base leading-none">📄</span>
+                          {isOwner ? (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  type="button"
+                                  onClick={e => e.stopPropagation()}
+                                  className="text-base leading-none hover:scale-110 transition-transform"
+                                  title="Mudar emoji"
+                                >
+                                  {item.emoji || '📄'}
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2" align="start" onClick={e => e.stopPropagation()}>
+                                <div className="grid grid-cols-5 gap-1 max-w-[200px]">
+                                  {KANBAN_EMOJIS.map(em => (
+                                    <button
+                                      key={em}
+                                      type="button"
+                                      className="h-8 w-8 rounded hover:bg-muted text-lg"
+                                      onClick={e => { e.stopPropagation(); updateKanbanEmoji(item.id, em); }}
+                                    >
+                                      {em}
+                                    </button>
+                                  ))}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          ) : (
+                            <span className="text-base leading-none">{item.emoji || '📄'}</span>
+                          )}
                           <span className="text-sm text-foreground flex-1 truncate">{item.title}</span>
                           {isOwner && !RESERVED_KANBAN_TITLES.includes(item.title) && (
                             <Button
