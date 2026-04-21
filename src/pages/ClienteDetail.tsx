@@ -652,7 +652,9 @@ export default function ClienteDetailPage() {
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Produto Atual</Label>
                 <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectTrigger className="[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0">
+                    <SelectValue placeholder="Selecionar" />
+                  </SelectTrigger>
                   <SelectContent>
                     {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
                   </SelectContent>
