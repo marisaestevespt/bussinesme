@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
+import { resolveProductId } from '@/lib/productResolver';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },

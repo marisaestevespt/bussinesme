@@ -74,6 +74,8 @@ export function CommercialAcoes() {
 
   const upsert = useMutation({
     mutationFn: async (record: any) => {
+      // Resolve product_id from current product name to keep relational link.
+      record.product_id = await resolveProductId(record.product);
       if (record.id) {
         const { error } = await supabase.from('commercial_sales_actions').update(record).eq('id', record.id);
         if (error) throw error;
