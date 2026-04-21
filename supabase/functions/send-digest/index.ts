@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,10 +12,7 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const authHeader = req.headers.get("Authorization") || "";
-  const svcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-  if (token !== svcKey && !authHeader.includes("supabase")) {
+  if (!isAuthorizedCronCall(req)) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
