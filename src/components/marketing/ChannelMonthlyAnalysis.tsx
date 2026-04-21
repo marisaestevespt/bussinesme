@@ -254,10 +254,6 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
           </Button>
           <h2 className="text-lg font-semibold text-foreground">{MONTHS[month - 1]} {year} — {channelName}</h2>
         </div>
-        <Button variant="outline" size="sm" onClick={syncMetrics} disabled={syncing} className="gap-1.5">
-          {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          Importar métricas
-        </Button>
       </div>
 
       {/* Platform-specific Channel Metrics Table */}
