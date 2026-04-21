@@ -102,30 +102,6 @@ export default function MarketingPublicoAlvo() {
         <div className="space-y-6">
           <BackNavigation parentRoute="/hub/marketing/estrategia" parentLabel="Estratégia" />
 
-          {/* ═══ HERO CARD ═══ */}
-          <Card className="overflow-hidden border-none shadow-md">
-            <CardContent className="p-8 sm:p-10 bg-primary/5">
-              <p className="text-[10px] uppercase tracking-[3px] text-primary/60 mb-3">MAPA ESTRATÉGICO</p>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-3">
-                Quem é a pessoa que precisamos de servir
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-[600px]">
-                Um documento vivo que concentra tudo o que sabemos sobre o nosso público — psicografia, jornada, linguagem, objeções e triggers.
-              </p>
-              <div className="border-t border-border pt-5 grid grid-cols-2 sm:grid-cols-4 gap-6">
-                {[
-                  { value: String(sections?.length || 0), label: 'Secções de análise' },
-                  { value: String(navGroups.length), label: 'Grupos temáticos' },
-                ].map(stat => (
-                  <div key={stat.label}>
-                    <p className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</p>
-                    <p className="text-[11px] text-muted-foreground mt-1">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* ═══ TAB NAV ═══ */}
           <div className="sticky top-14 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
             <div className="flex items-center gap-2">
