@@ -26,7 +26,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <header className="h-14 flex items-center border-b bg-background/80 backdrop-blur-sm px-5 shrink-0 sticky top-0 z-30">
               <SidebarTrigger className="mr-3" />
               <span className="text-sm font-medium text-muted-foreground truncate flex-1">
-                {settings?.business_name || 'Business ME'}
+                {settings?.business_name || 'Lyrata'}
               </span>
               <div className="flex items-center gap-1">
                 <AiInsightsButton />
