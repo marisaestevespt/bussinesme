@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
 
@@ -49,6 +50,7 @@ export default function SopDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   // ─── Fetch SOP ──────────────────────────────────────────────
   const { data: sop, isLoading } = useQuery({
@@ -1476,7 +1478,15 @@ export default function SopDetailPage() {
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <Switch checked={kpi.active} onCheckedChange={v => toggleKpiActive.mutate({ id: kpi.id, active: v })} />
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { if (confirm('Eliminar este KPI?')) deleteKpi.mutate(kpi.id); }}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" aria-label="Eliminar KPI" onClick={async () => {
+                              const ok = await confirm({
+                                title: 'Eliminar KPI?',
+                                description: 'O KPI e o seu histórico serão removidos.',
+                                confirmText: 'Eliminar',
+                                variant: 'destructive',
+                              });
+                              if (ok) deleteKpi.mutate(kpi.id);
+                            }}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
