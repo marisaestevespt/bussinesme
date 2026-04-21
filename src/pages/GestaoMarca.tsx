@@ -541,9 +541,9 @@ export default function GestaoMarcaPage() {
                 {isOwner ? (
                   <label className="cursor-pointer group relative shrink-0">
                     {settings?.logo_url ? (
-                      <img src={settings.logo_url} alt={settings.business_name} className="h-32 w-32 rounded-xl object-contain border bg-muted/30 p-3 group-hover:opacity-70 transition-opacity" />
+                      <img src={settings.logo_url} alt={settings.business_name} className="h-40 w-40 rounded-xl object-cover border bg-muted/30 group-hover:opacity-70 transition-opacity" />
                     ) : (
-                      <div className="h-32 w-32 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
+                      <div className="h-40 w-40 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
                         <Upload className="h-6 w-6 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
                       </div>
                     )}
@@ -553,7 +553,7 @@ export default function GestaoMarcaPage() {
                     <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
                   </label>
                 ) : settings?.logo_url ? (
-                  <img src={settings.logo_url} alt={settings.business_name} className="h-32 w-32 rounded-xl object-contain border bg-muted/30 p-3 shrink-0" />
+                  <img src={settings.logo_url} alt={settings.business_name} className="h-40 w-40 rounded-xl object-cover border bg-muted/30 shrink-0" />
                 ) : null}
 
                 <div className="flex-1 space-y-4 min-w-0">
