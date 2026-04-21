@@ -706,10 +706,11 @@ export default function GestaoMarcaPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {KANBAN_GROUPS.map(group => {
                   const items = [...kanbanItems.filter(i => i.group_key === group.key)].sort((a, b) => a.sort_order - b.sort_order);
+                  const customLabel = ((settings as any)?.kanban_group_labels || {})[group.key] as string | undefined;
                   return (
                     <KanbanColumn
                       key={group.key}
-                      group={group}
+                      group={{ ...group, label: customLabel?.trim() || group.label }}
                       items={items}
                       isOwner={isOwner}
                       reservedTitles={RESERVED_KANBAN_TITLES}
@@ -721,6 +722,15 @@ export default function GestaoMarcaPage() {
                       onOpenItem={(item) => { setSelectedKanban(item); setKanbanContent(item.content || ''); setEditingKanban(false); }}
                       onDeleteItem={deleteKanbanItem}
                       onChangeEmoji={updateKanbanEmoji}
+                      onRenameGroup={async (newLabel) => {
+                        if (!settings) return;
+                        const current = ((settings as any)?.kanban_group_labels || {}) as Record<string, string>;
+                        const next = { ...current, [group.key]: newLabel };
+                        const { error } = await supabase.from('business_settings').update({ kanban_group_labels: next } as any).eq('id', settings.id);
+                        if (error) { toast.error('Erro ao renomear coluna'); return; }
+                        toast.success('Coluna renomeada');
+                        refetchSettings();
+                      }}
                     />
                   );
                 })}
