@@ -9931,6 +9931,15 @@ export type Database = {
           read_ct: number
         }[]
       }
+      test_product_rename_cascade: {
+        Args: never
+        Returns: {
+          actual: string
+          expected: string
+          passed: boolean
+          table_name: string
+        }[]
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
