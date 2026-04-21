@@ -1581,6 +1581,14 @@ function LogoFramer({
             <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-background/80 backdrop-blur text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               ↕ arrasta
             </div>
+            <label
+              className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-background/80 backdrop-blur text-[10px] text-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center gap-1 hover:bg-background"
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Trocar logo"
+            >
+              <Upload className="h-3 w-3" /> Trocar
+              <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
+            </label>
           </div>
         ) : (
           <label className="cursor-pointer block">
@@ -1591,14 +1599,6 @@ function LogoFramer({
           </label>
         )}
       </div>
-      {settings?.logo_url && (
-        <label className="cursor-pointer block">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors flex items-center gap-1">
-            <Upload className="h-3 w-3" /> Trocar logo
-          </span>
-          <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
-        </label>
-      )}
     </div>
   );
 }
