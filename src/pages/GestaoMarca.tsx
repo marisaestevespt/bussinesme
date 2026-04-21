@@ -1419,6 +1419,7 @@ function KanbanColumn({
   group, items, isOwner, reservedTitles,
   addingToGroup, newItemTitle, setNewItemTitle, setAddingToGroup,
   onAddItem, onOpenItem, onDeleteItem, onChangeEmoji, onRenameGroup,
+  canMoveLeft, canMoveRight, onMoveLeft, onMoveRight,
 }: {
   group: typeof KANBAN_GROUPS[number];
   items: KanbanItem[];
@@ -1433,6 +1434,10 @@ function KanbanColumn({
   onDeleteItem: (id: string) => void;
   onChangeEmoji: (id: string, emoji: string) => void;
   onRenameGroup?: (newLabel: string) => void | Promise<void>;
+  canMoveLeft?: boolean;
+  canMoveRight?: boolean;
+  onMoveLeft?: () => void | Promise<void>;
+  onMoveRight?: () => void | Promise<void>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `col:${group.key}` });
   const [editingLabel, setEditingLabel] = React.useState(false);
@@ -1477,7 +1482,39 @@ function KanbanColumn({
             </button>
           )}
         </div>
-        <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
+        <div className="flex items-center gap-1">
+          {isOwner && onMoveLeft && (
+            <button
+              type="button"
+              onClick={() => canMoveLeft && onMoveLeft()}
+              disabled={!canMoveLeft}
+              className={cn(
+                'h-5 w-5 rounded flex items-center justify-center transition-opacity',
+                group.headerText,
+                canMoveLeft ? 'opacity-60 hover:opacity-100 hover:bg-background/40' : 'opacity-20 cursor-not-allowed'
+              )}
+              title="Mover coluna para a esquerda"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {isOwner && onMoveRight && (
+            <button
+              type="button"
+              onClick={() => canMoveRight && onMoveRight()}
+              disabled={!canMoveRight}
+              className={cn(
+                'h-5 w-5 rounded flex items-center justify-center transition-opacity',
+                group.headerText,
+                canMoveRight ? 'opacity-60 hover:opacity-100 hover:bg-background/40' : 'opacity-20 cursor-not-allowed'
+              )}
+              title="Mover coluna para a direita"
+            >
+              <ChevronRightIcon className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <span className={cn('text-xs font-semibold ml-1', group.headerText)}>{items.length}</span>
+        </div>
       </div>
       <div
         ref={setNodeRef}
