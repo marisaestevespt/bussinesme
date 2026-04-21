@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
 
@@ -910,7 +911,7 @@ export default function SopDetailPage() {
                     <span className={i.checked ? 'line-through text-muted-foreground' : ''}>{i.text}</span>
                   </li>
                 ))}</ul>
-              ) : <p className="text-sm text-muted-foreground italic">Sem inputs definidos</p>
+              ) : <EmptyHint>Sem inputs definidos</EmptyHint>
             )}
           </CardContent>
         </Card>
@@ -1516,7 +1517,7 @@ export default function SopDetailPage() {
             ) : (
               decisoes.filter(d => d.trim()).length > 0 ? (
                 <ul className="text-sm space-y-0.5">{decisoes.filter(d => d.trim()).map((d, i) => <li key={i}>• {d}</li>)}</ul>
-              ) : <p className="text-sm text-muted-foreground italic">Sem decisões definidas</p>
+              ) : <EmptyHint>Sem decisões definidas</EmptyHint>
             )}
           </CardContent>
         </Card>
@@ -1545,7 +1546,7 @@ export default function SopDetailPage() {
                     <span className={o.checked ? 'line-through text-muted-foreground' : ''}>{o.text}</span>
                   </li>
                 ))}</ul>
-              ) : <p className="text-sm text-muted-foreground italic">Sem outputs definidos</p>
+              ) : <EmptyHint>Sem outputs definidos</EmptyHint>
             )}
           </CardContent>
         </Card>
@@ -1566,7 +1567,7 @@ export default function SopDetailPage() {
             ) : (
               notas.filter(n => n.trim()).length > 0 ? (
                 <ul className="text-sm space-y-0.5">{notas.filter(n => n.trim()).map((n, i) => <li key={i}>• {n}</li>)}</ul>
-              ) : <p className="text-sm text-muted-foreground italic">Sem notas</p>
+              ) : <EmptyHint>Sem notas</EmptyHint>
             )}
           </CardContent>
         </Card>

@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { cn } from '@/lib/utils';
 import { FORMAT_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -464,7 +465,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
           <CardContent className="p-5 space-y-3">
             <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" /><h3 className="text-sm font-semibold">Top 3 Publicações</h3></div>
             {top3.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Sem dados suficientes.</p>
+              <EmptyHint>Sem dados suficientes.</EmptyHint>
             ) : top3.map((item, i) => (
               <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors">
                 <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
@@ -481,7 +482,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
           <CardContent className="p-5 space-y-3">
             <div className="flex items-center gap-2"><ThumbsDown className="h-4 w-4 text-muted-foreground" /><h3 className="text-sm font-semibold">3 Piores Publicações</h3></div>
             {worst3.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Sem dados suficientes.</p>
+              <EmptyHint>Sem dados suficientes.</EmptyHint>
             ) : worst3.map((item, i) => (
               <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors">
                 <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
@@ -899,7 +900,7 @@ export default function MarketingAnalisePage() {
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" /><h3 className="text-sm font-semibold">Top 3 Publicações do Ano</h3></div>
                 {annualSummary.top3Year.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">Sem dados de performance suficientes para este ano.</p>
+                  <EmptyHint>Sem dados de performance suficientes para este ano.</EmptyHint>
                 ) : annualSummary.top3Year.map((item: any, i: number) => (
                   <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors">
                     <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>

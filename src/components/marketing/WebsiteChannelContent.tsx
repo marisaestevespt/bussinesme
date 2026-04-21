@@ -14,6 +14,7 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
+import { EmptyHint } from '@/components/ui/loading-skeletons';
   ChevronLeft, Plus, Trash2, Upload, Check, Image as ImageIcon, Globe, X,
 } from 'lucide-react';
 
@@ -249,7 +250,7 @@ export function WebsiteChannelContent({ channelId, channelName }: WebsiteChannel
               </div>
 
               {pageFiles.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic text-center py-4">Sem inspirações de design.</p>
+                <EmptyHint>Sem inspirações de design.</EmptyHint>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {pageFiles.map((f: any) => (

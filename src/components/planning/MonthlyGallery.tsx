@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, endOfMonth } from 'date-fns';
 import { MonthDetailView } from './MonthDetailView';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -75,7 +76,7 @@ export function MonthlyGallery({ planning, year }: Props) {
                   <p className="text-[10px] text-muted-foreground">{progress}% das metas atingidas</p>
                 </div>
               ) : (
-                <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
+                <EmptyHint>Sem metas definidas</EmptyHint>
               )}
             </CardContent>
           </Card>

@@ -19,6 +19,7 @@ import { pt } from 'date-fns/locale';
 import { MonthDetailView } from './MonthDetailView';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -90,7 +91,7 @@ export function QuarterlyGallery({ planning, year }: Props) {
                   <p className="text-[10px] text-muted-foreground">{progress}% das metas atingidas</p>
                 </div>
               ) : (
-                <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
+                <EmptyHint>Sem metas definidas</EmptyHint>
               )}
             </CardContent>
           </Card>
@@ -428,7 +429,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
                         <p className="text-[10px] text-muted-foreground">{prog}% das metas atingidas</p>
                       </div>
                     ) : (
-                      <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
+                      <EmptyHint>Sem metas definidas</EmptyHint>
                     )}
                   </CardContent>
                 </Card>

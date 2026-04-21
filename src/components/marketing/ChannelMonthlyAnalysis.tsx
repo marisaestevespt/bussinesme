@@ -12,6 +12,7 @@ import { STATUS_OPTIONS, FORMAT_OPTIONS, type ContentItem, type ContentChannelLi
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const FORMAT_FIELDS: Record<string, string[]> = {
   reels: ['views', 'reach', 'likes', 'comments', 'shares', 'saves', 'avg_watch_time'],
@@ -387,7 +388,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
               <h3 className="text-sm font-semibold text-foreground">Top 3 Publicações</h3>
             </div>
             {top3.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Sem métricas registadas este mês.</p>
+              <EmptyHint>Sem métricas registadas este mês.</EmptyHint>
             ) : top3.map((item, i) => (
               <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors">
                 <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
@@ -407,7 +408,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
               <h3 className="text-sm font-semibold text-foreground">3 Piores Publicações</h3>
             </div>
             {worst3.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Sem métricas registadas este mês.</p>
+              <EmptyHint>Sem métricas registadas este mês.</EmptyHint>
             ) : worst3.map((item, i) => (
               <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors">
                 <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
@@ -427,7 +428,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
         <CardContent className="p-5 space-y-3">
           <h3 className="text-sm font-semibold text-foreground">Métricas por Publicação</h3>
           {publishedContent.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic text-center py-4">Nenhum conteúdo publicado neste mês neste canal.</p>
+            <EmptyHint>Nenhum conteúdo publicado neste mês neste canal.</EmptyHint>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">

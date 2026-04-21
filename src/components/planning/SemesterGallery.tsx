@@ -16,6 +16,7 @@ import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth } fr
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -99,7 +100,7 @@ export function SemesterGallery({ planning, year }: Props) {
                   <p className="text-[10px] text-muted-foreground">{progress}% das metas atingidas</p>
                 </div>
               ) : (
-                <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
+                <EmptyHint>Sem metas definidas</EmptyHint>
               )}
             </CardContent>
           </Card>
@@ -481,7 +482,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
                   if (qGoals.length === 0) return (
                     <div key={qi}>
                       <p className="text-xs font-medium text-muted-foreground mb-2">{qMeta.label}</p>
-                      <p className="text-xs text-muted-foreground italic py-2">Sem metas neste trimestre.</p>
+                      <EmptyHint>Sem metas neste trimestre.</EmptyHint>
                     </div>
                   );
                   return (
@@ -672,7 +673,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
                         <p className="text-[10px] text-muted-foreground">{prog}% das metas atingidas</p>
                       </div>
                     ) : (
-                      <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
+                      <EmptyHint>Sem metas definidas</EmptyHint>
                     )}
                   </CardContent>
                 </Card>
@@ -798,7 +799,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
               </TableBody>
             </Table>
           ) : (
-            <p className="text-xs text-muted-foreground italic text-center py-2">Sem vendas registadas no semestre.</p>
+            <EmptyHint>Sem vendas registadas no semestre.</EmptyHint>
           )}
 
           <Separator />
@@ -833,7 +834,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
               </TableBody>
             </Table>
           ) : (
-            <p className="text-xs text-muted-foreground italic text-center py-2">Sem recolhas de NPS no semestre.</p>
+            <EmptyHint>Sem recolhas de NPS no semestre.</EmptyHint>
           )}
 
           <Separator />

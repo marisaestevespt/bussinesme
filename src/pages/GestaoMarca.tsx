@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
+import { EmptyHint } from '@/components/ui/loading-skeletons';
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
   closestCorners, useDroppable, useSensor, useSensors,
 } from '@dnd-kit/core';
@@ -631,7 +632,7 @@ export default function GestaoMarcaPage() {
                   )}
                 </div>
                 {folders.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">Nenhuma pasta adicionada.</p>
+                  <EmptyHint>Nenhuma pasta adicionada.</EmptyHint>
                 ) : (
                   <div className="space-y-1.5">
                     {folders.map(link => (
@@ -667,7 +668,7 @@ export default function GestaoMarcaPage() {
                   )}
                 </div>
                 {shortcuts.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">Nenhum atalho adicionado.</p>
+                  <EmptyHint>Nenhum atalho adicionado.</EmptyHint>
                 ) : (
                   <div className="space-y-1.5">
                     {shortcuts.map(link => (
@@ -892,7 +893,7 @@ export default function GestaoMarcaPage() {
                             )}
                           </div>
                         ))}
-                        {items.length === 0 && <p className="text-xs text-muted-foreground/50 italic">Nenhum item.</p>}
+                        {items.length === 0 && <EmptyHint>Nenhum item.</EmptyHint>}
                       </div>
                       {newSwot?.quadrant === q.key && (
                         <div className="flex gap-2">
@@ -942,7 +943,7 @@ export default function GestaoMarcaPage() {
                               )}
                             </div>
                           ))}
-                          {items.length === 0 && <p className="text-xs text-muted-foreground/50 italic">Nenhum item.</p>}
+                          {items.length === 0 && <EmptyHint>Nenhum item.</EmptyHint>}
                         </div>
                         {newSwot?.quadrant === q.key && (
                           <div className="flex gap-2">
@@ -973,7 +974,7 @@ export default function GestaoMarcaPage() {
                   )}
                 </div>
               ))}
-              {differentials.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum diferencial adicionado.</p>}
+              {differentials.length === 0 && <EmptyHint>Nenhum diferencial adicionado.</EmptyHint>}
               {isOwner && (
                 <div className="flex gap-2 mt-2">
                   <Input value={newDifferential} onChange={e => setNewDifferential(e.target.value)}
@@ -996,7 +997,7 @@ export default function GestaoMarcaPage() {
                 </div>
               )}
               {competitors.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">Nenhum concorrente adicionado.</p>
+                <EmptyHint>Nenhum concorrente adicionado.</EmptyHint>
               ) : (
                 <div className="overflow-x-auto rounded-lg border">
                   <table className="w-full text-sm">
@@ -1132,7 +1133,7 @@ export default function GestaoMarcaPage() {
                     {selectedVisual.description ? (
                       <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedVisual.description) }} />
                     ) : (
-                      <p className="italic">Sem descrição.</p>
+                      <EmptyHint>Sem descrição.</EmptyHint>
                     )}
                   </div>
                 )}
@@ -1247,7 +1248,7 @@ export default function GestaoMarcaPage() {
               )}
 
               {visualFiles.length === 0 && (
-                <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum ficheiro carregado.</p>
+                <EmptyHint>Nenhum ficheiro carregado.</EmptyHint>
               )}
             </div>
           )}

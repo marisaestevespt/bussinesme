@@ -20,6 +20,7 @@ import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-primary/15 text-primary' },
@@ -114,7 +115,7 @@ export default function MarketingFunis() {
           </div>
 
           {funnels.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic text-center py-12">Nenhum funil criado.</p>
+            <EmptyHint>Nenhum funil criado.</EmptyHint>
           ) : (
             <div className="border rounded-lg overflow-hidden">
               <Table>
