@@ -11,7 +11,7 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
   const location = useLocation();
 
   return (
-    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-8 overflow-hidden border-b border-border/60">
+    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-5 sm:py-8 overflow-hidden border-b border-border/60">
       {/* Warm tinted background */}
       <div
         className="absolute inset-0"
@@ -20,9 +20,9 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
         }}
       />
 
-      {/* Decorative accent orb — more visible */}
+      {/* Decorative accent orb — hidden on mobile to avoid visual noise */}
       <div
-        className="absolute -top-8 -right-8 w-56 h-56 rounded-full opacity-[0.10] blur-3xl"
+        className="hidden sm:block absolute -top-8 -right-8 w-56 h-56 rounded-full opacity-[0.10] blur-3xl"
         style={{ background: `hsl(var(--gradient-accent))` }}
       />
 
@@ -32,11 +32,11 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
         style={{ background: `hsl(var(--primary) / 0.35)` }}
       />
 
-      <div className="relative flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">{title}</h1>
           {subtitle && (
-            <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
+            <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-muted-foreground hidden sm:block">{subtitle}</p>
           )}
         </div>
         {showAccessButton && (
