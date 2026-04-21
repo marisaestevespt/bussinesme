@@ -9402,12 +9402,102 @@ export type Database = {
           id: string
         }[]
       }
+      get_portal_comments: {
+        Args: { _token: string }
+        Returns: {
+          author: Database["public"]["Enums"]["portal_comment_author"]
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          portal_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "portal_comments"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_portal_contract_documents: {
         Args: { _token: string }
         Returns: {
           contract_documents: Json
           project_name: string
         }[]
+      }
+      get_portal_faqs: {
+        Args: { _token: string }
+        Returns: {
+          answer: string | null
+          created_at: string
+          id: string
+          portal_id: string
+          question: string
+          sort_order: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "portal_faqs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_portal_feedback: {
+        Args: { _token: string }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          portal_id: string
+          submitted_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "portal_feedback"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_portal_initial_questions: {
+        Args: { _token: string }
+        Returns: {
+          answer: string | null
+          answer_type: string
+          answered_at: string | null
+          created_at: string
+          file_urls: Json | null
+          group_sort_order: number
+          id: string
+          portal_id: string
+          question: string
+          question_group: string | null
+          sort_order: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "portal_initial_questions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_portal_materials: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          portal_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "portal_materials"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_portal_meetings: {
         Args: { _token: string }
@@ -9424,6 +9514,23 @@ export type Database = {
           status: string
           title: string
         }[]
+      }
+      get_portal_monthly_summaries: {
+        Args: { _token: string }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          month: number
+          portal_id: string
+          year: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "portal_monthly_summaries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_portal_onboarding: {
         Args: { _token: string }
@@ -9465,6 +9572,23 @@ export type Database = {
           timeline_phases: Json
         }[]
       }
+      get_portal_timeline_phases: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          id: string
+          portal_id: string
+          sort_order: number
+          status: string
+          title: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "portal_timeline_phases"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_system_config_value: { Args: { _key: string }; Returns: string }
       has_role: {
         Args: {
@@ -9494,8 +9618,21 @@ export type Database = {
         Args: { _client_id: string; _client_name: string }
         Returns: undefined
       }
+      portal_add_comment: {
+        Args: { _author: string; _content: string; _token: string }
+        Returns: string
+      }
       portal_add_meeting_notes: {
         Args: { _meeting_id: string; _notes: string; _token: string }
+        Returns: boolean
+      }
+      portal_answer_initial_question: {
+        Args: {
+          _answer: string
+          _file_urls?: Json
+          _question_id: string
+          _token: string
+        }
         Returns: boolean
       }
       portal_confirm_meeting: {
@@ -9507,6 +9644,10 @@ export type Database = {
         Returns: boolean
       }
       portal_record_visit: { Args: { _token: string }; Returns: undefined }
+      portal_submit_feedback: {
+        Args: { _payload: Json; _token: string }
+        Returns: string
+      }
       portal_submit_initial_questions: {
         Args: { _token: string }
         Returns: boolean
@@ -9519,6 +9660,7 @@ export type Database = {
         Args: { _completed: boolean; _step_id: string; _token: string }
         Returns: boolean
       }
+      portal_token_active: { Args: { _token: string }; Returns: boolean }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
