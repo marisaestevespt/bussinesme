@@ -147,6 +147,7 @@ async function generateExpensesForPeriod(
 
 export default function FornecedoresPage() {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<any>({});
@@ -1097,8 +1098,14 @@ export default function FornecedoresPage() {
                               <Button size="sm" variant="outline" className="h-7 px-3 text-xs" onClick={() => setEditingExpenseId(null)}>
                                 <X className="h-3 w-3 mr-1" /> Cancelar
                               </Button>
-                              <Button size="sm" variant="destructive" className="h-7 px-3 text-xs" onClick={() => {
-                                if (window.confirm('Eliminar esta despesa?')) { deleteExpense.mutate(exp.id); setEditingExpenseId(null); }
+                              <Button size="sm" variant="destructive" className="h-7 px-3 text-xs" onClick={async () => {
+                                const ok = await confirm({
+                                  title: 'Eliminar despesa?',
+                                  description: `Despesa de ${exp.expense_date}: ${exp.description || 'sem descrição'}.`,
+                                  confirmText: 'Eliminar',
+                                  variant: 'destructive',
+                                });
+                                if (ok) { deleteExpense.mutate(exp.id); setEditingExpenseId(null); }
                               }}>
                                 <Trash2 className="h-3 w-3 mr-1" /> Eliminar
                               </Button>
@@ -1145,10 +1152,14 @@ export default function FornecedoresPage() {
               <div className="flex gap-2">
                 <Button className="flex-1" onClick={() => upsert.mutate()} disabled={!form.name?.trim()}>Guardar</Button>
                 {form.id && (
-                  <Button variant="destructive" size="icon" onClick={() => {
-                    if (window.confirm(`Eliminar fornecedor "${form.name}" e todas as despesas associadas?`)) {
-                      remove.mutate(form.id);
-                    }
+                  <Button variant="destructive" size="icon" aria-label="Eliminar fornecedor" onClick={async () => {
+                    const ok = await confirm({
+                      title: 'Eliminar fornecedor?',
+                      description: `"${form.name}" e todas as despesas associadas serão removidos permanentemente.`,
+                      confirmText: 'Eliminar',
+                      variant: 'destructive',
+                    });
+                    if (ok) remove.mutate(form.id);
                   }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
