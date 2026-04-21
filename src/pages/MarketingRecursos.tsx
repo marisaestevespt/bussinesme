@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
+import { EmptyHint } from '@/components/ui/loading-skeletons';
   ChevronLeft, Plus, Trash2, Pencil, Check, X, ExternalLink,
   Image as ImageIcon, Palette, Link2, Lightbulb,
 } from 'lucide-react';
@@ -214,7 +215,7 @@ export default function MarketingRecursos() {
                 </div>
                 <div className="space-y-1.5">
                   {uteis.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic">Nenhum link adicionado.</p>
+                    <EmptyHint>Nenhum link adicionado.</EmptyHint>
                   )}
                   {uteis.map(u => (
                     <div key={u.id} className="flex items-center gap-2 group">
@@ -287,7 +288,7 @@ export default function MarketingRecursos() {
               {IDEA_CATEGORIES.map(cat => (
                 <TabsContent key={cat.value} value={cat.value}>
                   {filteredIdeas.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic text-center py-8">Nenhuma ideia nesta vista.</p>
+                    <EmptyHint>Nenhuma ideia nesta vista.</EmptyHint>
                   ) : (
                     <div className="border rounded-lg overflow-hidden">
                       <Table>

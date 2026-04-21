@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Template {
   id: string;
@@ -347,7 +348,7 @@ function PhaseCard({
 
           {/* Deliverables */}
           {deliverables.length === 0 && sopSteps.length === 0 && (
-            <p className="text-xs text-muted-foreground italic pl-6 py-2">Sem entregas nesta fase.</p>
+            <EmptyHint>Sem entregas nesta fase.</EmptyHint>
           )}
           {deliverables.map((d, i) => (
             <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops} isRecurring={isRecurring}
@@ -458,7 +459,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
       {sortedPhases.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-sm text-muted-foreground italic">Nenhuma fase definida. Cria fases para organizar as entregas deste produto.</p>
+            <EmptyHint>Nenhuma fase definida. Cria fases para organizar as entregas deste produto.</EmptyHint>
           </CardContent>
         </Card>
       )}

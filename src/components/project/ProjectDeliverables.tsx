@@ -19,6 +19,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const DELIVERABLE_STATUSES = [
   { value: 'pendente', label: 'Pendente', color: 'bg-muted text-muted-foreground' },
@@ -504,7 +505,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
             <div className="space-y-2">
               <Label className="text-sm">Selecionar Produto</Label>
               {productsWithTemplates.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic py-2">Nenhum produto com entregas definidas.</p>
+                <EmptyHint>Nenhum produto com entregas definidas.</EmptyHint>
               ) : (
                 <Select value={selectedProductId} onValueChange={setSelectedProductId}>
                   <SelectTrigger><SelectValue placeholder="Escolher produto..." /></SelectTrigger>

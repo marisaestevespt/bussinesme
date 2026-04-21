@@ -11,6 +11,7 @@ import { ChevronLeft, Upload, FileText, Trash2, ExternalLink, Check } from 'luci
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 type ReportFile = {
   id: string;
@@ -151,7 +152,7 @@ export default function TrafegoReportDetail() {
 
           {/* File list */}
           {files.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic text-center py-8">Nenhum ficheiro carregado.</p>
+            <EmptyHint>Nenhum ficheiro carregado.</EmptyHint>
           ) : (
             <div className="space-y-2">
               {files.map(file => (

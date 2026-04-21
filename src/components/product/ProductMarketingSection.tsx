@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface MarketingPage {
   id: string;
@@ -123,7 +124,7 @@ export function ProductMarketingSection({
         </CardHeader>
         <CardContent>
           {pages.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic">Sem páginas. Cria a primeira (vendas, obrigado, upsell, checkout...).</p>
+            <EmptyHint>Sem páginas. Cria a primeira (vendas, obrigado, upsell, checkout...).</EmptyHint>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {pages.map(p => (
@@ -266,7 +267,7 @@ export function ProductMarketingSection({
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Secções da página</Label>
                 {editingSections.length === 0 && (
-                  <p className="text-xs text-muted-foreground italic">Sem secções definidas.</p>
+                  <EmptyHint>Sem secções definidas.</EmptyHint>
                 )}
                 {editingSections.map((s, i) => (
                   <div key={i} className="flex gap-2 items-start border rounded-md p-2">

@@ -20,6 +20,7 @@ import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-warning/15 text-warning' },
@@ -107,7 +108,7 @@ export default function MarketingAutomacoes() {
           </div>
 
           {automations.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic text-center py-12">Nenhuma automação criada.</p>
+            <EmptyHint>Nenhuma automação criada.</EmptyHint>
           ) : (
             <div className="border rounded-lg overflow-hidden">
               <Table>

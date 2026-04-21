@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, Eye, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { resolveProductId } from '@/lib/productResolver';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
@@ -316,7 +317,7 @@ export default function MarketingFunilDetail() {
               <div className="flex flex-wrap gap-1.5">
                 {form.entry_points.length > 0
                   ? form.entry_points.map(ep => <Badge key={ep} variant="outline" className="text-xs">{ep}</Badge>)
-                  : <p className="text-sm text-muted-foreground italic">Nenhum ponto de entrada definido.</p>}
+                  : <EmptyHint>Nenhum ponto de entrada definido.</EmptyHint>}
               </div>
             )}
           </section>
@@ -350,7 +351,7 @@ export default function MarketingFunilDetail() {
               <div className="flex flex-wrap gap-1.5">
                 {form.plataformas.length > 0
                   ? form.plataformas.map(p => <Badge key={p} variant="outline" className="text-xs">{p}</Badge>)
-                  : <p className="text-sm text-muted-foreground italic">Nenhuma plataforma definida.</p>}
+                  : <EmptyHint>Nenhuma plataforma definida.</EmptyHint>}
               </div>
             )}
           </section>
@@ -431,7 +432,7 @@ export default function MarketingFunilDetail() {
                 </Card>
                 );
               })}
-              {form.etapas.length === 0 && <p className="text-sm text-muted-foreground italic text-center py-4">Nenhuma etapa adicionada.</p>}
+              {form.etapas.length === 0 && <EmptyHint>Nenhuma etapa adicionada.</EmptyHint>}
             </div>
           </section>
 
@@ -529,7 +530,7 @@ export default function MarketingFunilDetail() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum documento associado a esta etapa.</p>
+              <EmptyHint>Nenhum documento associado a esta etapa.</EmptyHint>
             )}
 
             {editing && (

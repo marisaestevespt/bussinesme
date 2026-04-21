@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, displayObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
@@ -167,7 +168,7 @@ export default function MarketingTrafegoPago() {
             </div>
 
             {creatives.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic text-center py-12">Nenhum criativo criado.</p>
+              <EmptyHint>Nenhum criativo criado.</EmptyHint>
             ) : (
               <div className="border rounded-lg overflow-hidden">
                 <Table>

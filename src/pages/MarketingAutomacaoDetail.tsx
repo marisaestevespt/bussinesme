@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-warning/15 text-warning' },
@@ -232,7 +233,7 @@ export default function MarketingAutomacaoDetail() {
       {!editing ? staticList(form[key], 'Nenhum item adicionado.', numbered, bulleted) : (
         <Card>
           <CardContent className="p-4 space-y-2">
-            {form[key].length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum item adicionado.</p>}
+            {form[key].length === 0 && <EmptyHint>Nenhum item adicionado.</EmptyHint>}
             {form[key].map((val, idx) => (
               <div key={idx} className="flex items-center gap-2 group">
                 {numbered && <span className="text-xs font-mono text-muted-foreground w-5 shrink-0">{idx + 1}.</span>}
@@ -411,7 +412,7 @@ export default function MarketingAutomacaoDetail() {
             </div>
             <Card>
               <CardContent className="p-4 space-y-2">
-                {form.fluxo.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum passo adicionado.</p>}
+                {form.fluxo.length === 0 && <EmptyHint>Nenhum passo adicionado.</EmptyHint>}
                 {form.fluxo.map((step, idx) => (
                   <div key={idx} className="flex items-center gap-2 group">
                     <span className="text-xs font-mono text-muted-foreground w-5 shrink-0">{idx + 1}.</span>
@@ -466,7 +467,7 @@ export default function MarketingAutomacaoDetail() {
             {!editing ? (
               <Card>
                 <CardContent className="p-4 space-y-1">
-                  {form.links.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum link adicionado.</p>}
+                  {form.links.length === 0 && <EmptyHint>Nenhum link adicionado.</EmptyHint>}
                   {form.links.map((link, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <span className="text-sm font-medium">{link.label || '—'}</span>
@@ -478,7 +479,7 @@ export default function MarketingAutomacaoDetail() {
             ) : (
               <Card>
                 <CardContent className="p-4 space-y-2">
-                  {form.links.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum link adicionado.</p>}
+                  {form.links.length === 0 && <EmptyHint>Nenhum link adicionado.</EmptyHint>}
                   {form.links.map((link, idx) => (
                     <div key={idx} className="flex items-center gap-2 group">
                       <Input value={link.label} onChange={e => updateLink(idx, 'label', e.target.value)}
@@ -581,7 +582,7 @@ export default function MarketingAutomacaoDetail() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum documento associado a este passo.</p>
+              <EmptyHint>Nenhum documento associado a este passo.</EmptyHint>
             )}
 
             {editing && (

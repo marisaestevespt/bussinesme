@@ -19,6 +19,7 @@ import { Plus, Trash2, Pencil, ExternalLink, Paperclip, X, Upload } from 'lucide
 import { toast } from 'sonner';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const DIST_COLUMNS = [
   { key: 'segunda', label: 'Segunda', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', addColor: 'text-[hsl(351,35%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
@@ -286,7 +287,7 @@ export default function MarketingEstrategia() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4">Estratégia por Canal</h2>
             {activeChannels.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">Nenhum canal ativo. Ativa canais nas Definições.</p>
+              <EmptyHint>Nenhum canal ativo. Ativa canais nas Definições.</EmptyHint>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {activeChannels.map(ch => {

@@ -15,6 +15,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import {
+import { EmptyHint } from '@/components/ui/loading-skeletons';
   STATUS_OPTIONS, FUNNEL_OPTIONS, CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, OBJECTIVE_OPTIONS,
   getFormatsForChannels,
   type ContentItem, type MarketingChannel, type ContentChannelLink, type ContentAttachment,
@@ -385,7 +386,7 @@ export default function ConteudoDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground italic">Nenhum ficheiro.</p>
+                  <EmptyHint>Nenhum ficheiro.</EmptyHint>
                 )}
               </div>
 

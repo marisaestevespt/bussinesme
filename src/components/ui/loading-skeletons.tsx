@@ -163,3 +163,17 @@ export function InlineLoader({ text = 'A carregar...' }: { text?: string }) {
     </div>
   );
 }
+
+/* ─── Empty Hint (lightweight inline empty state) ────────── */
+interface EmptyHintProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function EmptyHint({ children, className }: EmptyHintProps) {
+  return (
+    <p className={cn("text-sm text-muted-foreground italic text-center py-6", className)}>
+      {children}
+    </p>
+  );
+}

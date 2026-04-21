@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
+import { EmptyHint } from '@/components/ui/loading-skeletons';
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths,
 } from 'date-fns';
@@ -267,7 +268,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   {channelItems.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic pl-8 pb-2">Nenhum conteúdo</p>
+                    <EmptyHint>Nenhum conteúdo</EmptyHint>
                   ) : (
                     <div className="space-y-0.5 pl-6">
                       {channelItems.map(item => (
