@@ -40,7 +40,7 @@ type CreativeFull = {
   id: string; name: string; status: string; start_date: string | null;
   formato: string | null; objetivo: string | null; oferta_goal: string | null;
   link: string | null; titulo_principal: string | null; headline: string | null;
-  legenda: string | null;
+  legenda: string | null; product_name?: string | null;
 };
 
 export default function TrafegoCriativoDetail() {
