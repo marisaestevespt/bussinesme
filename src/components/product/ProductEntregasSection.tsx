@@ -194,11 +194,11 @@ function DeliverableRow({
 
 // ─── Phase Card ──────────────────────────────────────────────
 function PhaseCard({
-  phase, deliverables, sops, isOwner, productId,
+  phase, deliverables, sops, isOwner, productId, isRecurring,
   onUpdatePhase, onDeletePhase, onAddDeliverable, onUpdateDeliverable, onDeleteDeliverable, onSwapDeliverables,
 }: {
   phase: Phase; deliverables: Template[]; sops: Array<{ id: string; name: string }>;
-  isOwner: boolean; productId: string;
+  isOwner: boolean; productId: string; isRecurring: boolean;
   onUpdatePhase: (id: string, data: Record<string, unknown>) => void;
   onDeletePhase: (id: string) => void;
   onAddDeliverable: (phaseId: string) => void;
@@ -350,7 +350,7 @@ function PhaseCard({
             <p className="text-xs text-muted-foreground italic pl-6 py-2">Sem entregas nesta fase.</p>
           )}
           {deliverables.map((d, i) => (
-            <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops}
+            <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops} isRecurring={isRecurring}
               onUpdate={onUpdateDeliverable} onDelete={onDeleteDeliverable}
               onMoveUp={() => { if (i > 0) onSwapDeliverables(d.id, i, deliverables[i - 1].id, i - 1); }}
               onMoveDown={() => { if (i < deliverables.length - 1) onSwapDeliverables(d.id, i, deliverables[i + 1].id, i + 1); }}
@@ -368,7 +368,7 @@ function PhaseCard({
 }
 
 // ─── Main Section ────────────────────────────────────────────
-export function ProductEntregasSection({ deliverableTemplates, isOwner, productId, onAdd, onUpdate, onDelete }: Props) {
+export function ProductEntregasSection({ deliverableTemplates, isOwner, productId, isRecurring = false, onAdd, onUpdate, onDelete }: Props) {
   const qc = useQueryClient();
   const phaseKey = ['product-phases', productId];
 
@@ -469,7 +469,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
           .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
         return (
           <PhaseCard key={phase.id} phase={phase} deliverables={phaseDeliverables} sops={sops}
-            isOwner={isOwner} productId={productId}
+            isOwner={isOwner} productId={productId} isRecurring={isRecurring}
             onUpdatePhase={(id, data) => updatePhase.mutate({ id, ...data })}
             onDeletePhase={(id) => deletePhase.mutate(id)}
             onAddDeliverable={addDeliverableToPhase}
