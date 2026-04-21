@@ -12,8 +12,9 @@ Deno.serve(async (req) => {
   }
 
   const authHeader = req.headers.get("Authorization") || "";
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  if (!authHeader.includes(serviceKey) && !authHeader.includes("supabase")) {
+  const svcKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (token !== svcKey && !authHeader.includes("supabase")) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -22,8 +23,7 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+    const supabase = createClient(supabaseUrl, svcKey);
 
     // Get current hour (UTC) - adjust for Portugal timezone (UTC+0/+1)
     const now = new Date();
