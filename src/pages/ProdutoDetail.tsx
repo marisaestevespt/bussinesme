@@ -135,13 +135,13 @@ export default function ProdutoDetailPage() {
     staleTime: 2 * 60 * 1000,
   });
   const { data: productEvents = [] } = useQuery({
-    queryKey: ['product-events', form.name],
+    queryKey: ['product-events', id],
     queryFn: async () => {
-      if (!form.name) return [];
-      const { data } = await supabase.from('events').select('id, title, start_date, end_date').eq('product_name', form.name).order('start_date', { ascending: true });
+      if (!id) return [];
+      const { data } = await supabase.from('events').select('id, title, start_date, end_date').eq('product_id', id).order('start_date', { ascending: true });
       return (data || []) as Record<string, unknown>[];
     },
-    enabled: !!form.name,
+    enabled: !!id,
     staleTime: 2 * 60 * 1000,
   });
   const { data: productMeetings = [] } = useQuery({
