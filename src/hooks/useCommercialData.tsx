@@ -287,23 +287,14 @@ export function useCommercialData(year = currentYear) {
     yearSales.filter(v => v.sale_quarter === q).reduce((s, v) => s + Number(v.invoice_total || 0), 0)
   );
 
-  const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
-  const productTotals = (productGoals.data || []).map(pg => {
-    const goalName = normalize(pg.product_name);
-    return {
-      ...pg,
-      totalInvoiced: yearSales
-        .filter(v => {
-          const saleName = normalize(v.product || '');
-          if (!saleName) return false;
-          return saleName === goalName
-            || saleName.includes(goalName)
-            || goalName.includes(saleName)
-            || saleName.replace(/s\b/g, '') === goalName.replace(/s\b/g, '');
-        })
-        .reduce((s, v) => s + Number(v.invoice_total || 0), 0),
-    };
-  });
+  // Aggregate sales by product_id (relational source of truth).
+  // Backfill is 100% so no name-based fallback is needed.
+  const productTotals = (productGoals.data || []).map(pg => ({
+    ...pg,
+    totalInvoiced: yearSales
+      .filter(v => pg.product_id && (v as any).product_id === pg.product_id)
+      .reduce((s, v) => s + Number(v.invoice_total || 0), 0),
+  }));
 
   return {
     annualGoal, productGoals, quarterlyGoals, monthlyGoals, sales, allSales,
