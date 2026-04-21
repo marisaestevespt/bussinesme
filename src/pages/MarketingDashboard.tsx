@@ -155,6 +155,7 @@ export default function MarketingDashboard() {
         status: 'por_comecar',
         priority: 'media',
         created_by: user?.id,
+        assigned_to: user?.id,
       } as any).then(() => queryClient.invalidateQueries({ queryKey: ['content-items'] }));
       navigate(`/hub/marketing/conteudos/${data.id}`);
     } finally {
