@@ -172,7 +172,7 @@ export function AppSidebar() {
               <span className="text-sm font-semibold tracking-tight truncate text-sidebar-foreground/90">
                 {settings?.business_name || 'Lyrata'}
               </span>
-              <span className="text-[10px] text-sidebar-foreground/35 font-medium">by Lyrata</span>
+              <span className="text-[10px] text-sidebar-foreground/35 font-medium">by Lyrata®</span>
             </div>
           )}
         </div>
