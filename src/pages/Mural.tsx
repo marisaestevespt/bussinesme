@@ -81,6 +81,7 @@ const MURAL_DEFAULT_VIEWS: DefaultView[] = [
 
 export default function MuralPage() {
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const { getPhotoUrl } = useTeamPhotos();
   const { user, isOwner } = useAuth();
   const { allViews, addView, renameView, deleteView } = useUserViews('mural', MURAL_DEFAULT_VIEWS);
@@ -356,7 +357,15 @@ export default function MuralPage() {
                 onReact={(emoji) => reactionMutation.mutate({ postId: post.id, emoji })}
                 onComment={(body) => commentMutation.mutate({ postId: post.id, body })}
                 onEdit={() => openEdit(post)}
-                onDelete={() => { if (confirm('Eliminar esta publicação?')) deleteMutation.mutate(post.id); }}
+                onDelete={async () => {
+                  const ok = await confirm({
+                    title: 'Eliminar publicação?',
+                    description: 'A publicação e os comentários associados serão removidos.',
+                    confirmText: 'Eliminar',
+                    variant: 'destructive',
+                  });
+                  if (ok) deleteMutation.mutate(post.id);
+                }}
               />
             ))}
           </div>
