@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as React from 'react';
 import DOMPurify from 'dompurify';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -541,9 +542,9 @@ export default function GestaoMarcaPage() {
                 {isOwner ? (
                   <label className="cursor-pointer group relative shrink-0">
                     {settings?.logo_url ? (
-                      <img src={settings.logo_url} alt={settings.business_name} className="h-32 w-32 rounded-xl object-contain border bg-muted/30 p-3 group-hover:opacity-70 transition-opacity" />
+                      <img src={settings.logo_url} alt={settings.business_name} className="h-40 w-40 rounded-xl object-cover border bg-muted/30 group-hover:opacity-70 transition-opacity" />
                     ) : (
-                      <div className="h-32 w-32 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
+                      <div className="h-40 w-40 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center group-hover:border-primary/50 group-hover:bg-muted/40 transition-colors">
                         <Upload className="h-6 w-6 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
                       </div>
                     )}
@@ -553,7 +554,7 @@ export default function GestaoMarcaPage() {
                     <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
                   </label>
                 ) : settings?.logo_url ? (
-                  <img src={settings.logo_url} alt={settings.business_name} className="h-32 w-32 rounded-xl object-contain border bg-muted/30 p-3 shrink-0" />
+                  <img src={settings.logo_url} alt={settings.business_name} className="h-40 w-40 rounded-xl object-cover border bg-muted/30 shrink-0" />
                 ) : null}
 
                 <div className="flex-1 space-y-4 min-w-0">
@@ -706,10 +707,11 @@ export default function GestaoMarcaPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {KANBAN_GROUPS.map(group => {
                   const items = [...kanbanItems.filter(i => i.group_key === group.key)].sort((a, b) => a.sort_order - b.sort_order);
+                  const customLabel = ((settings as any)?.kanban_group_labels || {})[group.key] as string | undefined;
                   return (
                     <KanbanColumn
                       key={group.key}
-                      group={group}
+                      group={{ ...group, label: customLabel?.trim() || group.label }}
                       items={items}
                       isOwner={isOwner}
                       reservedTitles={RESERVED_KANBAN_TITLES}
@@ -721,6 +723,15 @@ export default function GestaoMarcaPage() {
                       onOpenItem={(item) => { setSelectedKanban(item); setKanbanContent(item.content || ''); setEditingKanban(false); }}
                       onDeleteItem={deleteKanbanItem}
                       onChangeEmoji={updateKanbanEmoji}
+                      onRenameGroup={async (newLabel) => {
+                        if (!settings) return;
+                        const current = ((settings as any)?.kanban_group_labels || {}) as Record<string, string>;
+                        const next = { ...current, [group.key]: newLabel };
+                        const { error } = await supabase.from('business_settings').update({ kanban_group_labels: next } as any).eq('id', settings.id);
+                        if (error) { toast.error('Erro ao renomear coluna'); return; }
+                        toast.success('Coluna renomeada');
+                        refetchSettings();
+                      }}
                     />
                   );
                 })}
@@ -1389,7 +1400,7 @@ function SortableKanbanItem({
 function KanbanColumn({
   group, items, isOwner, reservedTitles,
   addingToGroup, newItemTitle, setNewItemTitle, setAddingToGroup,
-  onAddItem, onOpenItem, onDeleteItem, onChangeEmoji,
+  onAddItem, onOpenItem, onDeleteItem, onChangeEmoji, onRenameGroup,
 }: {
   group: typeof KANBAN_GROUPS[number];
   items: KanbanItem[];
@@ -1403,14 +1414,50 @@ function KanbanColumn({
   onOpenItem: (item: KanbanItem) => void;
   onDeleteItem: (id: string) => void;
   onChangeEmoji: (id: string, emoji: string) => void;
+  onRenameGroup?: (newLabel: string) => void | Promise<void>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `col:${group.key}` });
+  const [editingLabel, setEditingLabel] = React.useState(false);
+  const [labelDraft, setLabelDraft] = React.useState(group.label);
+  React.useEffect(() => { setLabelDraft(group.label); }, [group.label]);
 
   return (
     <div className="space-y-0 shadow-md rounded-lg overflow-hidden">
       <div className={cn('flex items-center justify-between px-3 py-3', group.headerBg)}>
-        <div className="flex items-center gap-1.5">
-          <span className={cn('text-xs font-semibold', group.headerText)}>// {group.label}</span>
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          {editingLabel && isOwner && onRenameGroup ? (
+            <input
+              autoFocus
+              value={labelDraft}
+              onChange={e => setLabelDraft(e.target.value)}
+              onBlur={async () => {
+                const v = labelDraft.trim();
+                if (v && v !== group.label) await onRenameGroup(v);
+                setEditingLabel(false);
+              }}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter') {
+                  const v = labelDraft.trim();
+                  if (v && v !== group.label) await onRenameGroup(v);
+                  setEditingLabel(false);
+                } else if (e.key === 'Escape') {
+                  setLabelDraft(group.label);
+                  setEditingLabel(false);
+                }
+              }}
+              className={cn('text-xs font-semibold bg-transparent outline-none border-b border-current/40 w-full min-w-0', group.headerText)}
+            />
+          ) : (
+            <button
+              type="button"
+              disabled={!isOwner || !onRenameGroup}
+              onClick={() => isOwner && onRenameGroup && setEditingLabel(true)}
+              className={cn('text-xs font-semibold truncate text-left', group.headerText, isOwner && onRenameGroup && 'hover:underline cursor-pointer')}
+              title={isOwner && onRenameGroup ? 'Clica para renomear' : undefined}
+            >
+              // {group.label}
+            </button>
+          )}
         </div>
         <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
       </div>
