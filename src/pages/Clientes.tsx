@@ -13,6 +13,15 @@ import { useProducts } from '@/hooks/useProducts';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { format, parseISO } from 'date-fns';
 
+const fmtDate = (d: string | null | undefined) => {
+  if (!d) return '—';
+  try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return '—'; }
+};
+const fmtBirthday = (d: string | null | undefined) => {
+  if (!d) return '—';
+  try { return format(parseISO(d), 'dd/MM'); } catch { return '—'; }
+};
+
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   em_onboarding: { label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
   ativo: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
@@ -61,18 +70,29 @@ export default function ClientesPage() {
       className="px-6 py-2.5 text-sm border-b hover:bg-muted/50 cursor-pointer"
       onClick={() => navigate(`/hub/clientes/${c.id}`)}
     >
-      {/* Desktop: grid row */}
-      <div className="hidden md:grid grid-cols-6 gap-2 items-center">
-        <span className="font-mono text-xs">{c.client_id}</span>
-        <span>
-          <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
-            {STATUS_BADGE[c.status]?.label || c.status}
-          </Badge>
-        </span>
-        <span className="truncate">{c.full_name}</span>
-        <span className="truncate text-muted-foreground">{c.email || '—'}</span>
-        <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
-        <span className="truncate">{c.current_product || '—'}</span>
+      {/* Desktop: 2 rows per client */}
+      <div className="hidden md:block space-y-1">
+        {/* Nome em destaque */}
+        <div className="font-medium truncate">{c.full_name}</div>
+        {/* Linha 1: ID | Status | Data Início | Fim de Ciclo */}
+        <div className="grid grid-cols-[90px_140px_1fr_1fr] gap-2 items-center text-xs">
+          <span className="font-mono text-muted-foreground">{c.client_id}</span>
+          <span>
+            <Badge variant="outline" className={`text-[10px] ${STATUS_BADGE[c.status]?.className || ''}`}>
+              {STATUS_BADGE[c.status]?.label || c.status}
+            </Badge>
+          </span>
+          <span className="text-muted-foreground"><span className="text-foreground/60">Início:</span> {fmtDate(c.start_date)}</span>
+          <span className="text-muted-foreground"><span className="text-foreground/60">Fim ciclo:</span> {fmtDate(c.end_of_cycle)}</span>
+        </div>
+        {/* Linha 2: Conversão | Produto | Email | Whatsapp | Aniversário */}
+        <div className="grid grid-cols-[1fr_1.2fr_1.5fr_1fr_80px] gap-2 items-center text-xs text-muted-foreground">
+          <span className="truncate"><span className="text-foreground/60">Conversão:</span> {fmtDate((c as any).conversion_date)}</span>
+          <span className="truncate text-foreground">{c.current_product || '—'}</span>
+          <span className="truncate">{c.email || '—'}</span>
+          <span className="truncate">{c.whatsapp || '—'}</span>
+          <span className="truncate">🎂 {fmtBirthday(c.birthday)}</span>
+        </div>
       </div>
       {/* Mobile: stacked */}
       <div className="md:hidden space-y-1">
