@@ -3,6 +3,7 @@ import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResu
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { resolveProductId } from '@/lib/productResolver';
 
 export type Client = Tables<'clients'>;
 export type ClientHistory = Tables<'client_history'>;
@@ -28,7 +29,7 @@ export function useClients() {
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('clients').select('id,client_id,full_name,email,status,current_product,start_date,end_of_cycle,dp,whatsapp,birthday,nif,fiscal_address,payment_method,observations,drive_folder_url,documents,whatsapp_group_url,created_at,updated_at,created_by,client_files,portal_deactivation_date,final_settlement_amount,final_settlement_notes,final_settlement_status', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+      const { data, error, count } = await supabase.from('clients').select('id,client_id,full_name,email,status,current_product,current_product_id,start_date,end_of_cycle,dp,whatsapp,birthday,nif,fiscal_address,payment_method,observations,drive_folder_url,documents,whatsapp_group_url,created_at,updated_at,created_by,client_files,portal_deactivation_date,final_settlement_amount,final_settlement_notes,final_settlement_status', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
       if (error) throw error;
       return { data: (data || []) as Client[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
@@ -43,6 +44,11 @@ export function useClients() {
 
   const upsertClient = useMutation({
     mutationFn: async (client: Partial<Client> & { full_name: string }) => {
+      // Auto-resolve current_product_id from current_product name when not explicitly provided.
+      // The DB trigger keeps current_product (text) in sync from the FK, so the FK is the source of truth.
+      if (client.current_product !== undefined && client.current_product_id === undefined) {
+        client.current_product_id = await resolveProductId(client.current_product);
+      }
       if (client.id) {
         const { error } = await supabase.from('clients').update(client as TablesUpdate<'clients'>).eq('id', client.id);
         if (error) throw error;

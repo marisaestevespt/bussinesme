@@ -1438,6 +1438,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           current_product: string | null
+          current_product_id: string | null
           documents: string | null
           dp: string | null
           drive_folder_url: string | null
@@ -1467,6 +1468,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_product?: string | null
+          current_product_id?: string | null
           documents?: string | null
           dp?: string | null
           drive_folder_url?: string | null
@@ -1496,6 +1498,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           current_product?: string | null
+          current_product_id?: string | null
           documents?: string | null
           dp?: string | null
           drive_folder_url?: string | null
@@ -1517,7 +1520,15 @@ export type Database = {
           whatsapp?: string | null
           whatsapp_group_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_current_product_id_fkey"
+            columns: ["current_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients_monthly_analysis: {
         Row: {
@@ -2466,6 +2477,7 @@ export type Database = {
           next_followup: string | null
           phone: string | null
           potential_product: string | null
+          potential_product_id: string | null
           responsible_id: string | null
           source: string | null
           status: string
@@ -2487,6 +2499,7 @@ export type Database = {
           next_followup?: string | null
           phone?: string | null
           potential_product?: string | null
+          potential_product_id?: string | null
           responsible_id?: string | null
           source?: string | null
           status?: string
@@ -2508,12 +2521,20 @@ export type Database = {
           next_followup?: string | null
           phone?: string | null
           potential_product?: string | null
+          potential_product_id?: string | null
           responsible_id?: string | null
           source?: string | null
           status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_leads_potential_product_id_fkey"
+            columns: ["potential_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_leads_responsible_id_fkey"
             columns: ["responsible_id"]

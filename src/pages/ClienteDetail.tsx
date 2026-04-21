@@ -154,7 +154,15 @@ export default function ClienteDetailPage() {
       const newStatus = form.status;
 
       if (isNew) {
-        const { data, error } = await supabase.from('clients').insert({ full_name: form.full_name, ...form } as any).select('id').single();
+        const { resolveProductId } = await import('@/lib/productResolver');
+        const currentProductId = form.current_product
+          ? await resolveProductId(form.current_product)
+          : null;
+        const { data, error } = await supabase.from('clients').insert({
+          full_name: form.full_name,
+          ...form,
+          current_product_id: currentProductId,
+        } as any).select('id').single();
         if (error) throw error;
         toast.success('Cliente guardado');
         if (form.current_product && form.start_date) {
@@ -501,6 +509,7 @@ export default function ClienteDetailPage() {
       // 4. Update client current_product, start_date and end_of_cycle
       await supabase.from('clients').update({
         current_product: renewProduct,
+        current_product_id: matchedProduct?.id || null,
         start_date: renewStartDate,
         end_of_cycle: deadline,
         status: 'ativo',

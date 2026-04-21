@@ -367,7 +367,7 @@ export function usePlanningData(year = currentYear) {
   const autoCrmRaw = useQuery({
     queryKey: ['auto-crm-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('crm_leads').select('id,potential_product,created_at').eq('status', 'ganho');
+      const { data } = await supabase.from('crm_leads').select('id,potential_product,potential_product_id,created_at').eq('status', 'ganho');
       return data || [];
     },
     enabled: needsAutoCalc,
@@ -516,7 +516,12 @@ export function usePlanningData(year = currentYear) {
     }
     if (source === 'bd_crm') {
       const rows = autoCrmRaw.data || [];
-      const filtered = productName ? rows.filter((r: any) => r.potential_product === productName) : rows;
+      const productId = productName ? (productsQuery.data || []).find((p: any) => p.name === productName)?.id : null;
+      const filtered = productName
+        ? (productId
+            ? rows.filter((r: any) => r.potential_product_id === productId)
+            : rows.filter((r: any) => r.potential_product === productName))
+        : rows;
       return filtered.length;
     }
     if (source === 'bd_clientes') return autoActiveClients.data ?? null;
@@ -620,8 +625,11 @@ export function usePlanningData(year = currentYear) {
     }
     if (source === 'bd_crm') {
       let rows = autoCrmRaw.data || [];
-      const pName = obj.product_name || resolveProductName(obj.product_id);
-      if (pName) rows = rows.filter((r: any) => r.potential_product === pName);
+      if (obj.product_id) {
+        rows = rows.filter((r: any) => r.potential_product_id === obj.product_id);
+      } else if (obj.product_name) {
+        rows = rows.filter((r: any) => r.potential_product === obj.product_name);
+      }
       return filterByMonth(rows, month, 'created_at').length;
     }
     // Snapshot metrics — return current count for current/past months, null for future
