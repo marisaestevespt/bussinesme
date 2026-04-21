@@ -35,6 +35,14 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
     enabled: !!(productId || productName),
   });
 
+  const { data: clientsLookup = [] } = useQuery({
+    queryKey: ['clients-lookup-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, full_name');
+      return data || [];
+    },
+  });
+
   const totalSales = sales.length;
   const normalSales = sales.filter(s => !(s as any).is_special_offer);
   const specialSales = sales.filter(s => (s as any).is_special_offer);
@@ -108,8 +116,15 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
               </TableHeader>
               <TableBody>
                 {clientStats.map((c: any) => (
-                  <TableRow key={c.name}>
-                    <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableRow
+                    key={c.name}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      const match = clientsLookup.find((cl: any) => cl.full_name === c.name);
+                      if (match) navigate(`/hub/clientes/${match.id}`);
+                    }}
+                  >
+                    <TableCell className="font-medium text-primary hover:underline">{c.name}</TableCell>
                     <TableCell className="text-right">{c.count}</TableCell>
                     <TableCell className="text-right">€{fmt(c.total)}</TableCell>
                     <TableCell>{c.lastDate ? format(new Date(c.lastDate), 'dd/MM/yyyy') : '—'}</TableCell>
