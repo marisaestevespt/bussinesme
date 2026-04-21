@@ -245,7 +245,18 @@ export default function GestaoMarcaPage() {
     if (!selectedKanban) return;
     const { error } = await supabase.from('brand_kanban_items').update({ content: kanbanContent } as any).eq('id', selectedKanban.id);
     if (error) toast.error('Erro ao guardar');
-    else { toast.success('Guardado'); queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] }); }
+    else {
+      toast.success('Guardado');
+      queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
+      setSelectedKanban(prev => prev ? { ...prev, content: kanbanContent } : null);
+      setEditingKanban(false);
+    }
+  };
+
+  const updateKanbanEmoji = async (id: string, emoji: string) => {
+    const { error } = await supabase.from('brand_kanban_items').update({ emoji } as any).eq('id', id);
+    if (error) { toast.error('Erro ao alterar emoji'); return; }
+    queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
   };
 
   const addKanbanItem = async () => {
