@@ -42,9 +42,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <span className="text-sm font-medium text-muted-foreground truncate flex-1 min-w-0">
                 {settings?.business_name || 'Lyrata'}
               </span>
-              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+              {/* Desktop: all buttons inline */}
+              <div className="hidden sm:flex items-center gap-1 shrink-0">
                 <AiInsightsButton />
                 <NewTabButton />
+                <FavoriteButton />
+                <NotificationBell />
+              </div>
+              {/* Mobile: only NotificationBell visible, rest in overflow */}
+              <div className="flex sm:hidden items-center gap-0.5 shrink-0">
+                <AiInsightsButton />
                 <FavoriteButton />
                 <NotificationBell />
               </div>
