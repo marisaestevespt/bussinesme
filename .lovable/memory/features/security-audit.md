@@ -86,6 +86,12 @@ Loop dinâmico: todas as policies INSERT/UPDATE/DELETE com `USING (true)` ou `WI
 Comportamento para a equipa autenticada inalterado. Bloqueia escritas anónimas mesmo se a chave pública for exposta.
 Linter: 195 → 59 warnings.
 
+## Auditoria 6 Fase C — Extensões em public (2026-04-21)
+
+Apenas `pg_net` está em `public`. Mantida intencionalmente: é gerida pelo Supabase e usada por
+funcionalidades internas (cron HTTP, webhooks). Mover para schema `extensions` pode partir essas
+integrações. Decisão: aceitar o warning do linter para esta extensão específica.
+
 ## Fixes Applied (2026-04-21) — Auditoria 2 (Security & RLS)
 
 Resolved all 12 actionable findings from the Lovable security scan:
