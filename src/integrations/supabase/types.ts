@@ -1584,6 +1584,7 @@ export type Database = {
           materials: Json | null
           notes: string | null
           product: string | null
+          product_id: string | null
           project_id: string | null
           result: string
           results_numbers: string | null
@@ -1604,6 +1605,7 @@ export type Database = {
           materials?: Json | null
           notes?: string | null
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           result?: string
           results_numbers?: string | null
@@ -1624,6 +1626,7 @@ export type Database = {
           materials?: Json | null
           notes?: string | null
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           result?: string
           results_numbers?: string | null
@@ -1635,6 +1638,13 @@ export type Database = {
           what_worked?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "commercial_library_entries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "commercial_library_entries_project_id_fkey"
             columns: ["project_id"]
@@ -1710,6 +1720,7 @@ export type Database = {
           goal_amount: number
           id: string
           intention: string | null
+          product_id: string | null
           product_name: string
           sort_order: number
           updated_at: string
@@ -1720,6 +1731,7 @@ export type Database = {
           goal_amount?: number
           id?: string
           intention?: string | null
+          product_id?: string | null
           product_name: string
           sort_order?: number
           updated_at?: string
@@ -1730,12 +1742,21 @@ export type Database = {
           goal_amount?: number
           id?: string
           intention?: string | null
+          product_id?: string | null
           product_name?: string
           sort_order?: number
           updated_at?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "commercial_product_goals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commercial_quarterly_goals: {
         Row: {
@@ -1778,6 +1799,7 @@ export type Database = {
           payment_date: string | null
           payment_method: string | null
           product: string | null
+          product_id: string | null
           project_id: string | null
           sale_id: string
           sale_month: number | null
@@ -1801,6 +1823,7 @@ export type Database = {
           payment_date?: string | null
           payment_method?: string | null
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           sale_id: string
           sale_month?: number | null
@@ -1824,6 +1847,7 @@ export type Database = {
           payment_date?: string | null
           payment_method?: string | null
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           sale_id?: string
           sale_month?: number | null
@@ -1835,6 +1859,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "commercial_sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "commercial_sales_project_id_fkey"
             columns: ["project_id"]
@@ -1855,6 +1886,7 @@ export type Database = {
           notes: string | null
           objective: string | null
           product: string | null
+          product_id: string | null
           project_id: string | null
           result: string | null
           start_date: string | null
@@ -1871,6 +1903,7 @@ export type Database = {
           notes?: string | null
           objective?: string | null
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           result?: string | null
           start_date?: string | null
@@ -1887,6 +1920,7 @@ export type Database = {
           notes?: string | null
           objective?: string | null
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           result?: string | null
           start_date?: string | null
@@ -1894,6 +1928,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "commercial_sales_actions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "commercial_sales_actions_project_id_fkey"
             columns: ["project_id"]
@@ -2613,6 +2654,7 @@ export type Database = {
           id: string
           name: string
           product: string | null
+          product_id: string | null
           project_id: string | null
           sort_order: number
           start_date: string | null
@@ -2626,6 +2668,7 @@ export type Database = {
           id?: string
           name: string
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           sort_order?: number
           start_date?: string | null
@@ -2639,6 +2682,7 @@ export type Database = {
           id?: string
           name?: string
           product?: string | null
+          product_id?: string | null
           project_id?: string | null
           sort_order?: number
           start_date?: string | null
@@ -2646,6 +2690,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_pipelines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_pipelines_project_id_fkey"
             columns: ["project_id"]
@@ -3197,6 +3248,7 @@ export type Database = {
           id: string
           meeting_url: string | null
           notes: string | null
+          product_id: string | null
           product_name: string | null
           recurrence_end: string | null
           recurrence_type: string | null
@@ -3214,6 +3266,7 @@ export type Database = {
           id?: string
           meeting_url?: string | null
           notes?: string | null
+          product_id?: string | null
           product_name?: string | null
           recurrence_end?: string | null
           recurrence_type?: string | null
@@ -3231,6 +3284,7 @@ export type Database = {
           id?: string
           meeting_url?: string | null
           notes?: string | null
+          product_id?: string | null
           product_name?: string | null
           recurrence_end?: string | null
           recurrence_type?: string | null
@@ -3244,6 +3298,13 @@ export type Database = {
             columns: ["event_type_id"]
             isOneToOne: false
             referencedRelation: "event_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -4378,6 +4439,7 @@ export type Database = {
           oferta_final: string | null
           plataforma: string | null
           plataformas_envolvidas: Json | null
+          product_id: string | null
           product_name: string | null
           status: string
           updated_at: string
@@ -4396,6 +4458,7 @@ export type Database = {
           oferta_final?: string | null
           plataforma?: string | null
           plataformas_envolvidas?: Json | null
+          product_id?: string | null
           product_name?: string | null
           status?: string
           updated_at?: string
@@ -4414,11 +4477,20 @@ export type Database = {
           oferta_final?: string | null
           plataforma?: string | null
           plataformas_envolvidas?: Json | null
+          product_id?: string | null
           product_name?: string | null
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "marketing_automations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketing_channels: {
         Row: {
@@ -4463,6 +4535,7 @@ export type Database = {
           objetivo: string | null
           oferta_final: string | null
           plataformas: Json | null
+          product_id: string | null
           product_name: string | null
           status: string
           tipo_funil: string | null
@@ -4480,6 +4553,7 @@ export type Database = {
           objetivo?: string | null
           oferta_final?: string | null
           plataformas?: Json | null
+          product_id?: string | null
           product_name?: string | null
           status?: string
           tipo_funil?: string | null
@@ -4497,12 +4571,21 @@ export type Database = {
           objetivo?: string | null
           oferta_final?: string | null
           plataformas?: Json | null
+          product_id?: string | null
           product_name?: string | null
           status?: string
           tipo_funil?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "marketing_funnels_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketing_goals: {
         Row: {
@@ -6075,6 +6158,7 @@ export type Database = {
           monthly_summaries: Json | null
           notes: string | null
           portal_id: string
+          product_id: string | null
           product_name: string | null
           project_id: string | null
           project_name: string
@@ -6089,6 +6173,7 @@ export type Database = {
           monthly_summaries?: Json | null
           notes?: string | null
           portal_id: string
+          product_id?: string | null
           product_name?: string | null
           project_id?: string | null
           project_name?: string
@@ -6103,6 +6188,7 @@ export type Database = {
           monthly_summaries?: Json | null
           notes?: string | null
           portal_id?: string
+          product_id?: string | null
           product_name?: string | null
           project_id?: string | null
           project_name?: string
@@ -6116,6 +6202,13 @@ export type Database = {
             columns: ["portal_id"]
             isOneToOne: false
             referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_project_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
@@ -9142,6 +9235,7 @@ export type Database = {
           name: string
           objetivo: string | null
           oferta_goal: string | null
+          product_id: string | null
           product_name: string | null
           start_date: string | null
           status: string
@@ -9159,6 +9253,7 @@ export type Database = {
           name: string
           objetivo?: string | null
           oferta_goal?: string | null
+          product_id?: string | null
           product_name?: string | null
           start_date?: string | null
           status?: string
@@ -9176,13 +9271,22 @@ export type Database = {
           name?: string
           objetivo?: string | null
           oferta_goal?: string | null
+          product_id?: string | null
           product_name?: string | null
           start_date?: string | null
           status?: string
           titulo_principal?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "traffic_creatives_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       traffic_report_cards: {
         Row: {
