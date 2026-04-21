@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabase = createClient(supabaseUrl, svcKey);
+    const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     // Get current hour (UTC) - adjust for Portugal timezone (UTC+0/+1)
     const now = new Date();
