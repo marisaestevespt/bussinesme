@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tag, Plus, Trash2 } from 'lucide-react';
 import { useCrmLabels, type CrmLabel } from '@/hooks/useCrmLabels';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 const LABEL_COLORS = [
   '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',

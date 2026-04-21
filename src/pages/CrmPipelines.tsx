@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Plus, Pencil, Trash2, Search, X, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { PipelineBoard } from '@/components/commercial/crm/PipelineBoard';
 import { PipelineFormDialog } from '@/components/commercial/crm/PipelineFormDialog';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
