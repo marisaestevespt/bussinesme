@@ -57,7 +57,7 @@ export function CommercialAcoes() {
   const qc = useQueryClient();
   const { productGoals } = useCommercialData();
   const products = (productGoals.data || []).map(p => p.product_name);
-  const prompt = usePrompt();
+  const askText = usePrompt();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -520,7 +520,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
               <Label>Tipo</Label>
               <Select value={form.action_type} onValueChange={v => {
                 if (v === '__custom_type__') {
-                  prompt({
+                  askText({
                     title: 'Novo tipo de ação',
                     label: 'Nome do tipo',
                     placeholder: 'Ex: Webinar, Sessão estratégica...',
