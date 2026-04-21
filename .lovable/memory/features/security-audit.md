@@ -60,6 +60,22 @@ Secrets used: `ACCESS_ENCRYPTION_KEY`, `ALLOWED_ORIGIN`.
 ## Remaining USING(true) tables (by design)
 Operational tables intentionally allow all authenticated members full CRUD — correct for single-tenant team app.
 
+## Fixes Applied (2026-04-21) — Auditoria 6 Fase A (Sensitive data lockdown)
+
+Restringido a Owner OU `current_user_has_sensitive_access('financial_values')`:
+- `financial_expenses` (SELECT/INSERT/UPDATE)
+- `financial_subscriptions` (SELECT/INSERT/UPDATE)
+- `financial_categories` (INSERT/DELETE; SELECT mantido para todos)
+- `financial_invoices` e `financial_revenues` (SELECT/INSERT/UPDATE/DELETE) — quando existirem
+
+Restringido a Owner OU próprio membro (`is_self_team_member`):
+- `feedback_sessions` (SELECT)
+- `performance_monthly` (SELECT)
+
+`client_contacts`: SELECT mantido para toda a equipa; INSERT/UPDATE/DELETE só Owner ou Admin.
+
+Tabelas já protegidas anteriormente (sem alteração): payroll, business_setup (sensitive fields), member_contracts, member_payments, suppliers, platform_accesses, team_members.
+
 ## Fixes Applied (2026-04-21) — Auditoria 2 (Security & RLS)
 
 Resolved all 12 actionable findings from the Lovable security scan:
