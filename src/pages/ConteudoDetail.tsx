@@ -33,6 +33,7 @@ export default function ConteudoDetailPage() {
   const navigate = useNavigate();
   const { isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
@@ -284,7 +285,13 @@ export default function ConteudoDetailPage() {
               size="sm"
               className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
               onClick={async () => {
-                if (!confirm('Eliminar este conteúdo permanentemente?')) return;
+                const ok = await confirm({
+                  title: 'Eliminar conteúdo?',
+                  description: 'Métricas, anexos e canais associados serão eliminados permanentemente.',
+                  confirmText: 'Eliminar',
+                  variant: 'destructive',
+                });
+                if (!ok) return;
                 const { error: errChannels } = await supabase.from('content_channels').delete().eq('content_id', id!);
                 const { error: errMetrics } = await supabase.from('content_metrics').delete().eq('content_id', id!);
                 const { error: errAttach } = await supabase.from('content_attachments').delete().eq('content_id', id!);
