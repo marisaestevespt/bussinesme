@@ -308,7 +308,7 @@ function StagesDialog({
 
                   <Button
                     variant="ghost"
-                    aria-label="Eliminar" size="icon"
+                    size="icon"
                     className="h-7 w-7 text-destructive hover:text-destructive flex-shrink-0"
                     disabled={count > 0}
                     aria-label="Eliminar etapa"
