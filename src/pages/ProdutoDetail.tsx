@@ -714,10 +714,12 @@ export default function ProdutoDetailPage() {
             />
           )}
 
-          {openSection === 'customer-success' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-              <ProductCustomerSuccess productId={id!} productName={form.name || ''} isOwner={isOwner} />
-            </div>
+          {openSection === 'branding' && (
+            <ProductBrandingSection
+              branding={((form as any).branding || {}) as Record<string, unknown>}
+              isOwner={isOwner}
+              onUpdate={(next) => update('branding', next)}
+            />
           )}
 
           {openSection === 'metricas' && (
