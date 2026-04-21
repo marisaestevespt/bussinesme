@@ -1,0 +1,1 @@
+ALTER TABLE public.business_settings ADD COLUMN IF NOT EXISTS logo_position_y integer NOT NULL DEFAULT 50;
