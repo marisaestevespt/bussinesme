@@ -443,7 +443,7 @@ export function SettingsIdentity() {
               <div className="h-8 w-8 rounded-md" style={{ backgroundColor: colors.primary }} />
             )}
             <span style={{ color: colors.text, fontFamily: `'${fontDisplay}', serif` }} className="text-lg font-semibold">
-              Lyrata® · {businessName || 'O Teu Negócio'}
+              sistema Lyrata® · {businessName || 'O Teu Negócio'}
             </span>
           </div>
           <p className="mt-3 text-sm" style={{ color: colors.text, fontFamily: `'${fontBody}', sans-serif`, opacity: 0.7 }}>

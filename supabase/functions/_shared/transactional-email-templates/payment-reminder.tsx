@@ -120,7 +120,7 @@ export const template = {
     amount: '350',
     dueDate: '15/04/2026',
     daysUntil: 3,
-    businessName: 'Lyrata®',
+    businessName: 'O Teu Negócio',
     primaryColor: '222 47% 11%',
     textColor: '222 84% 5%',
     accentColor: '215 16% 47%',

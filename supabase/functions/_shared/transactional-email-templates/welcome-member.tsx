@@ -203,7 +203,7 @@ export const template = {
     inviteUrl: 'https://app.exemplo.com/invite',
     ownerName: 'Mariana',
     supportEmail: 'suporte@exemplo.com',
-    businessName: 'Lyrata®',
+    businessName: 'O Teu Negócio',
     whatsappTeamUrl: 'https://chat.whatsapp.com/example-team',
     whatsappDeptUrl: 'https://chat.whatsapp.com/example-dept',
     departmentName: 'Marketing',

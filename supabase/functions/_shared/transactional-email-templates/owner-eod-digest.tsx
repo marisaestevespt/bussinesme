@@ -28,7 +28,7 @@ export const template = {
   subject: (data: Record<string, any>) => data.subject || 'Wrap-up do dia',
   displayName: 'Wrap-up do dia (Owner)',
   previewData: {
-    subject: 'Wrap-up do dia — Lyrata® — 03/04/2026',
+    subject: 'Wrap-up do dia — sistema Lyrata® — 03/04/2026',
     html: '<div style="padding:24px;font-family:DM Sans,Arial,sans-serif"><h1 style="font-size:22px;margin:0 0 12px">Wrap-up do dia</h1><p style="color:#555770;font-size:15px">Boa noite! Aqui está o resumo do que aconteceu hoje.</p></div>',
   },
 } satisfies TemplateEntry
