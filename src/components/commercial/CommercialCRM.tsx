@@ -24,6 +24,8 @@ export function CommercialCRM() {
   const [manageStagesOpen, setManageStagesOpen] = useState(false);
   const qc = useQueryClient();
   const { isOwner } = useAuth();
+  const confirm = useConfirm();
+  const askText = usePrompt();
 
   const { allLeads, activeLeads, leadsToContact, pipelineValue, winsThisMonth, upsertLead, deleteLead } = useCrmData();
   const { productGoals } = useCommercialData();
@@ -130,14 +132,24 @@ export function CommercialCRM() {
 
   const handleDelete = (id: string) => { deleteLead.mutate(id); };
 
-  const handleNewView = () => {
-    const name = window.prompt('Nome da nova vista:');
-    if (name?.trim()) createView.mutate(name.trim());
+  const handleNewView = async () => {
+    const name = await askText({
+      title: 'Nova vista',
+      label: 'Nome',
+      placeholder: 'Ex: Leads em proposta',
+      confirmText: 'Criar',
+    });
+    if (name) createView.mutate(name);
   };
 
-  const handleRenameView = (id: string, currentName: string) => {
-    const name = window.prompt('Novo nome:', currentName);
-    if (name?.trim() && name.trim() !== currentName) renameView.mutate({ id, name: name.trim() });
+  const handleRenameView = async (id: string, currentName: string) => {
+    const name = await askText({
+      title: 'Renomear vista',
+      label: 'Novo nome',
+      defaultValue: currentName,
+      confirmText: 'Guardar',
+    });
+    if (name && name !== currentName) renameView.mutate({ id, name });
   };
 
   const activeCustomView = savedViews.find(v => v.id === view);
@@ -179,8 +191,14 @@ export function CommercialCRM() {
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRenameView(sv.id, sv.name)}>
                     <Pencil className="h-3 w-3" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => {
-                    if (confirm(`Eliminar vista "${sv.name}"?`)) deleteView.mutate(sv.id);
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" aria-label="Eliminar vista" onClick={async () => {
+                    const ok = await confirm({
+                      title: 'Eliminar vista?',
+                      description: `A vista "${sv.name}" e os seus filtros serão removidos.`,
+                      confirmText: 'Eliminar',
+                      variant: 'destructive',
+                    });
+                    if (ok) deleteView.mutate(sv.id);
                   }}>
                     <X className="h-3 w-3" />
                   </Button>
