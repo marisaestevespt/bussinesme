@@ -67,3 +67,4 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Unified responsibilities](mem://features/unified-responsibilities.md) — Aggregates items from 8 DB sources
 - [Work areas](mem://features/work-areas.md) — Team member work areas system
 - [Member offboarding](mem://features/member-offboarding.md) — Team member offboarding: reassignment, settlement, auto-revoke, ex-members tab
+- [Microcopy](mem://design/microcopy.md) — Tom de voz PT-PT informal "tu". Toasts: particípio para sucesso, causa+ação para erro. Validações curtas. useConfirm para destrutivas.
