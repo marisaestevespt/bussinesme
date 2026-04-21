@@ -14,6 +14,7 @@ import { Plus, Eye, EyeOff, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 const PLATFORM_TYPES = [
   { value: 'gestao', label: 'Gestão', color: 'bg-info/15 text-info' },

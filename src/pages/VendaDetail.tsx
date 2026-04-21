@@ -21,6 +21,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];

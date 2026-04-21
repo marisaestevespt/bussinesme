@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 const CATEGORIES = [
   { value: 'anuncio', label: 'Anúncio', color: 'bg-destructive/15 text-destructive' },
