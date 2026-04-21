@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, Eye, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { resolveProductId } from '@/lib/productResolver';
 
 const STATUSES = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
@@ -92,12 +93,14 @@ export default function MarketingFunilDetail() {
 
   const save = async () => {
     setSaving(true);
+    const productId = await resolveProductId(form.product_name);
     const { error } = await supabase.from('marketing_funnels').update({
       name: form.name, status: form.status, entry_points: form.entry_points,
       oferta_final: form.oferta_final || null, objetivo: form.objetivo || null,
       plataformas: form.plataformas, tipo_funil: form.tipo_funil || null,
       notas: form.notas || null, etapas: form.etapas, fluxo_resumido: form.fluxo_resumido || null,
       product_name: form.product_name || null,
+      product_id: productId,
     } as any).eq('id', id!);
     setSaving(false);
     if (error) { toast.error('Erro ao guardar'); }

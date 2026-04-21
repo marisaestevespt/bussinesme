@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
+import { resolveProductId } from '@/lib/productResolver';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
@@ -39,7 +40,7 @@ type CreativeFull = {
   id: string; name: string; status: string; start_date: string | null;
   formato: string | null; objetivo: string | null; oferta_goal: string | null;
   link: string | null; titulo_principal: string | null; headline: string | null;
-  legenda: string | null;
+  legenda: string | null; product_name?: string | null;
 };
 
 export default function TrafegoCriativoDetail() {

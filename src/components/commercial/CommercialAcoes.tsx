@@ -18,6 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Plus, Pencil, Trash2, Clock, PlayCircle, CalendarDays, BookOpen, Check, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { resolveProductId } from '@/lib/productResolver';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
@@ -73,6 +74,8 @@ export function CommercialAcoes() {
 
   const upsert = useMutation({
     mutationFn: async (record: any) => {
+      // Resolve product_id from current product name to keep relational link.
+      record.product_id = await resolveProductId(record.product);
       if (record.id) {
         const { error } = await supabase.from('commercial_sales_actions').update(record).eq('id', record.id);
         if (error) throw error;

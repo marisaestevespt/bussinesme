@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveProductId } from '@/lib/productResolver';
 import { useProducts } from '@/hooks/useProducts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -72,12 +73,14 @@ export default function MarketingFunis() {
 
   const create = async () => {
     if (!form.name.trim()) return;
+    const productId = await resolveProductId(form.product_name);
     const { error } = await supabase.from('marketing_funnels').insert({
       name: form.name, status: form.status,
       oferta_final: form.oferta_final || null,
       objetivo: form.objetivo || null,
       tipo_funil: form.tipo_funil || null,
       product_name: form.product_name || null,
+      product_id: productId,
       created_by: user?.id,
     } as any);
     if (error) {

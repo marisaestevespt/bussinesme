@@ -166,14 +166,15 @@ export function useCommercialData(year = currentYear) {
 
   const upsertProductGoal = useMutation({
     mutationFn: async (pg: { id?: string; product_name: string; goal_amount: number; intention?: string; sort_order?: number }) => {
+      const productId = await resolveProductId(pg.product_name);
       if (pg.id) {
         const { error } = await supabase.from('commercial_product_goals').update({
-          product_name: pg.product_name, goal_amount: pg.goal_amount, intention: pg.intention,
+          product_name: pg.product_name, goal_amount: pg.goal_amount, intention: pg.intention, product_id: productId,
         }).eq('id', pg.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('commercial_product_goals').insert({
-          year, product_name: pg.product_name, goal_amount: pg.goal_amount, intention: pg.intention, sort_order: pg.sort_order || 0,
+          year, product_name: pg.product_name, goal_amount: pg.goal_amount, intention: pg.intention, sort_order: pg.sort_order || 0, product_id: productId,
         });
         if (error) throw error;
       }

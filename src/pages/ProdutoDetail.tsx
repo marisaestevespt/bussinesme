@@ -635,9 +635,9 @@ export default function ProdutoDetailPage() {
               trafficAds={trafficAds}
               isOwner={isOwner}
               productName={form.name || ''}
-              onAddFunnel={() => addRow.mutate({ table: 'marketing_funnels', data: { name: `Funil — ${form.name}`, product_name: form.name } })}
-              onAddAutomation={() => addRow.mutate({ table: 'marketing_automations', data: { name: `Automação — ${form.name}`, product_name: form.name } })}
-              onAddTrafficAd={() => addRow.mutate({ table: 'traffic_creatives', data: { name: `Criativo — ${form.name}`, product_name: form.name } })}
+              onAddFunnel={() => addRow.mutate({ table: 'marketing_funnels', data: { name: `Funil — ${form.name}`, product_name: form.name, product_id: id } })}
+              onAddAutomation={() => addRow.mutate({ table: 'marketing_automations', data: { name: `Automação — ${form.name}`, product_name: form.name, product_id: id } })}
+              onAddTrafficAd={() => addRow.mutate({ table: 'traffic_creatives', data: { name: `Criativo — ${form.name}`, product_name: form.name, product_id: id } })}
               onDeleteRow={(table, rowId) => deleteRow.mutate({ table, id: rowId })}
             />
           )}

@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveProductId } from '@/lib/productResolver';
 import { useProducts } from '@/hooks/useProducts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -73,12 +74,14 @@ export default function MarketingTrafegoPago() {
 
   const createCreative = async () => {
     if (!creativeForm.name.trim()) return;
+    const productId = await resolveProductId(creativeForm.product_name);
     await supabase.from('traffic_creatives').insert({
       name: creativeForm.name, status: creativeForm.status,
       formato: creativeForm.formato || null, objetivo: creativeForm.objetivo || null,
       oferta_goal: serializeObjetivoFinal(creativeForm.oferta_type, creativeForm.oferta_value),
       link: creativeForm.link || null,
       product_name: creativeForm.product_name || null,
+      product_id: productId,
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
