@@ -21,12 +21,21 @@ export default function MarketingPublicoAlvo() {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  // Group sections by nav_group preserving order
+  // The "definicao" section is always pinned at the top, outside the tab system.
+  const overviewSection = useMemo(
+    () => sections?.find(s => s.section_key === 'definicao'),
+    [sections]
+  );
+  const tabSections = useMemo(
+    () => sections?.filter(s => s.section_key !== 'definicao') ?? [],
+    [sections]
+  );
+
+  // Group remaining sections by nav_group preserving order
   const navGroups = useMemo(() => {
-    if (!sections) return [];
     const groups: { label: string; items: PASection[] }[] = [];
     const seen = new Set<string>();
-    for (const s of sections) {
+    for (const s of tabSections) {
       if (!seen.has(s.nav_group)) {
         seen.add(s.nav_group);
         groups.push({ label: s.nav_group, items: [] });
@@ -34,12 +43,12 @@ export default function MarketingPublicoAlvo() {
       groups.find(g => g.label === s.nav_group)!.items.push(s);
     }
     return groups;
-  }, [sections]);
+  }, [tabSections]);
 
   const allItems = useMemo(() => navGroups.flatMap(g => g.items), [navGroups]);
-  const currentKey = activeKey || sections?.[0]?.section_key;
+  const currentKey = activeKey || tabSections[0]?.section_key;
   const currentIndex = allItems.findIndex(i => i.section_key === currentKey);
-  const activeSection = sections?.find(s => s.section_key === currentKey);
+  const activeSection = tabSections.find(s => s.section_key === currentKey);
 
   const goToPrev = useCallback(() => {
     if (currentIndex > 0) setActiveKey(allItems[currentIndex - 1].section_key);
