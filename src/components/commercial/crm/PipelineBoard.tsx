@@ -7,6 +7,7 @@ import { Plus, Trash2, UserPlus, X, ChevronUp, ChevronDown, Settings2 } from 'lu
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { statusLabel } from '@/hooks/useCrmData';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface PipelineBoardProps {
   pipeline: any;

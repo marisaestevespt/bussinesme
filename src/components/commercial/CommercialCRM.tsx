@@ -13,6 +13,7 @@ import { CrmCustomView, EMPTY_FILTERS } from './crm/CrmCustomView';
 import type { Filters } from './crm/CrmCustomView';
 import { LeadDetailSheet } from './crm/LeadDetailSheet';
 import { toast } from 'sonner';
+import { useConfirm, usePrompt } from '@/components/ui/confirm-dialog';
 
 type ViewType = 'pipeline' | 'list' | string; // string = saved view id
 
