@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, TrendingUp, TrendingDown, Trophy, ThumbsDown, RefreshCw, Loader2 } from 'lucide-react';
+import { ChevronLeft, TrendingUp, TrendingDown, Trophy, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { STATUS_OPTIONS, FORMAT_OPTIONS, type ContentItem, type ContentChannelLink } from '@/lib/marketing-constants';
 import { Link } from 'react-router-dom';
