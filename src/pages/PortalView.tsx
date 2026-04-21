@@ -202,7 +202,12 @@ export default function PortalViewPage() {
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
       const allUrls = [...existing, ...urls];
       const answeredAt = new Date().toISOString();
-      await sb('portal_initial_questions').update({ file_urls: allUrls, answered_at: answeredAt }).eq('id', qId);
+      await (supabase as any).rpc('portal_answer_initial_question', {
+        _token: portal!.token,
+        _question_id: qId,
+        _answer: question?.answer || '',
+        _file_urls: allUrls,
+      });
       setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: allUrls, answered_at: answeredAt } : q));
       await maybeNotifyQuestionsSubmitted();
       toast.success(`${urls.length} ficheiro(s) enviado(s) ✨`);
@@ -219,7 +224,12 @@ export default function PortalViewPage() {
       const question = questions.find(q => q.id === qId);
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
       const updated = existing.filter((_, i) => i !== fileIndex);
-      await sb('portal_initial_questions').update({ file_urls: updated.length ? updated : null }).eq('id', qId);
+      await (supabase as any).rpc('portal_answer_initial_question', {
+        _token: portal!.token,
+        _question_id: qId,
+        _answer: question?.answer || '',
+        _file_urls: updated.length ? updated : null,
+      });
       setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: updated } : q));
       toast.success('Ficheiro removido');
     } catch (err) {
