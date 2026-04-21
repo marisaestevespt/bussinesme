@@ -1,5 +1,5 @@
 ---
-name: Lirah AI Assistant - Full CRUD + Email + Period Summary
+name: Lyrata AI Assistant - Full CRUD + Email + Period Summary
 description: AI assistant with full database read/write, confirmation flow for all write actions, email sending, period summary
 type: feature
 ---

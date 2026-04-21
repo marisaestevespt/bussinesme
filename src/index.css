@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 16%;
 
-    /* Bordô/marsala primary — the Lirah signature */
+    /* Bordô/marsala primary — the Lyrata signature */
     --primary: 351 56% 28%;
     --primary-foreground: 0 0% 100%;
 
@@ -79,7 +79,7 @@
     --shadow-glow: 0 0 0 1px rgba(140, 50, 60, 0.1), 0 4px 16px rgba(140, 50, 60, 0.06);
     --shadow-premium: 0 8px 32px rgba(100, 40, 50, 0.08), 0 2px 8px rgba(100, 40, 50, 0.04);
 
-    /* Chart palette — Lirah brand derived */
+    /* Chart palette — Lyrata brand derived */
     --chart-1: 351 56% 28%;
     --chart-2: 3 42% 64%;
     --chart-3: 26 40% 45%;
@@ -298,7 +298,7 @@
   background: hsl(var(--muted-foreground) / 0.3);
 }
 
-/* Recharts global styling — rounder, animated, Lirah palette */
+/* Recharts global styling — rounder, animated, Lyrata palette */
 .recharts-bar-rectangle,
 .recharts-bar-rectangle path {
   rx: 6;

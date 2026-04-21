@@ -46,8 +46,8 @@ const ACTION_LABELS: Record<string, { label: string; icon: string; color: string
   workflow: { label: "Workflow", icon: "⚡", color: "text-amber-600" },
 };
 
-const STORAGE_KEY_MESSAGES = "lirah-ai-messages";
-const STORAGE_KEY_OPEN = "lirah-ai-open";
+const STORAGE_KEY_MESSAGES = "lyrata-ai-messages";
+const STORAGE_KEY_OPEN = "lyrata-ai-open";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 function loadPersistedMessages(): Msg[] {
@@ -314,7 +314,7 @@ export function FloatingAiChat() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `lirah-resumo-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `lyrata-resumo-${new Date().toISOString().split('T')[0]}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -403,7 +403,7 @@ export function FloatingAiChat() {
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">Lirah AI</p>
+              <p className="text-sm font-semibold">Lyrata AI</p>
               <p className="text-[11px] text-muted-foreground">Assistente inteligente</p>
             </div>
             <div className="flex items-center gap-0.5">
@@ -425,7 +425,7 @@ export function FloatingAiChat() {
                   <Bot className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Olá! Sou a Lirah AI 👋</p>
+                  <p className="text-sm font-medium">Olá! Sou a Lyrata AI 👋</p>
                   <p className="text-xs text-muted-foreground mt-1 max-w-[260px]">
                     Posso consultar dados, criar registos, analisar ficheiros e muito mais.
                   </p>

@@ -339,7 +339,7 @@ export function SettingsIdentity() {
       <Section icon={Palette} title="Cores da Marca">
         <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border">
           <div className="space-y-0.5">
-            <Label className="text-sm font-medium">Usar tema do sistema (Lirah)</Label>
+            <Label className="text-sm font-medium">Usar tema do sistema (Lyrata)</Label>
             <p className="text-xs text-muted-foreground">Usa a paleta predefinida do sistema. Desativa para personalizar as cores.</p>
           </div>
           <Switch checked={useSystemTheme} onCheckedChange={setUseSystemTheme} />
