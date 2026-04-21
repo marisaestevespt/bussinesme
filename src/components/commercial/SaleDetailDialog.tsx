@@ -157,7 +157,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
       payment_method: form.payment_method || null,
     } as any).eq('id', saleId);
 
-    if (error) { toast.error('Erro ao guardar'); return; }
+    if (error) { toast.error('Não consegui guardar a venda. Tenta novamente.'); return; }
 
     // Send invoice-available email if new documents were added
     if (hasNewInvoice && form.client) {
@@ -215,7 +215,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
   const handleDelete = async () => {
     if (!saleId) return;
     const { error } = await supabase.from('commercial_sales').delete().eq('id', saleId);
-    if (error) { toast.error('Erro ao eliminar'); return; }
+    if (error) { toast.error('Não consegui eliminar a venda. Tenta novamente.'); return; }
     toast.success('Entrada eliminada');
     qc.invalidateQueries({ queryKey: ['commercial'] });
     qc.invalidateQueries({ queryKey: ['project-sales'] });

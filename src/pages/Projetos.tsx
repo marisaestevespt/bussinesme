@@ -533,7 +533,7 @@ export default function ProjetosPage() {
                 <Label>Notas</Label>
                 <MentionTextarea value={fNotes} onChange={setFNotes} rows={3} placeholder="Notas... usa @ para mencionar" />
               </div>
-              <Button onClick={() => { if (!fName.trim()) { toast.error('Nome é obrigatório'); return; } createMutation.mutate(); }} disabled={createMutation.isPending}>
+              <Button onClick={() => { if (!fName.trim()) { toast.error('Nome obrigatório'); return; } createMutation.mutate(); }} disabled={createMutation.isPending}>
                 {createMutation.isPending ? 'A criar...' : 'Criar Projeto'}
               </Button>
             </div>

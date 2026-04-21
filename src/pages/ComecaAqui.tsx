@@ -136,7 +136,7 @@ export default function ComecaAquiPage() {
       .from('business_settings')
       .update({ [field]: value } as any)
       .eq('id', settings.id);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a configuração. Tenta novamente.');
     else { toast.success('Guardado'); refetchSettings(); }
   };
 

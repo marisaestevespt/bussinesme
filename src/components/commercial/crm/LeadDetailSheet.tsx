@@ -107,7 +107,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   };
 
   const handleSave = async () => {
-    if (!form.name?.trim()) { toast.error('Nome é obrigatório'); return; }
+    if (!form.name?.trim()) { toast.error('Nome obrigatório'); return; }
     const potentialProductId = await resolveProductId(form.potential_product);
     onSave({
       ...(form.id ? { id: form.id } : {}),

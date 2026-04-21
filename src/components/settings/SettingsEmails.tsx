@@ -404,7 +404,7 @@ export function SettingsEmails() {
       qc.invalidateQueries({ queryKey: ['email-template-settings'] });
       toast.success('Template guardado');
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a configuração de email. Tenta novamente.');
     } finally {
       setSaving(false);
     }

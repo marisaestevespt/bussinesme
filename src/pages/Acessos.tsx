@@ -150,7 +150,7 @@ export default function AcessosPage() {
 
   function handleSubmit() {
     if (!formName.trim() || !formUsername.trim()) {
-      toast.error('Nome e username são obrigatórios');
+      toast.error('Nome e username obrigatórios');
       return;
     }
     if (!editingId && !formPassword.trim()) {

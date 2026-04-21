@@ -142,7 +142,7 @@ export function NewAbsenceDialog({ open, onClose, members }: { open: boolean; on
           qc.invalidateQueries({ queryKey: ['tasks_list'] });
           resetAndClose();
         },
-        onError: () => toast.error('Erro ao guardar'),
+        onError: () => toast.error('Não consegui guardar a ausência. Tenta novamente.'),
       });
     } finally {
       setSaving(false);

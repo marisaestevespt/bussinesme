@@ -384,7 +384,7 @@ export default function ReuniaoDetailPage() {
       logAudit('updated', 'meeting', id, { title: m?.title });
       toast.success('Reunião guardada');
     },
-    onError: () => toast.error('Erro ao guardar'),
+    onError: () => toast.error('Não consegui guardar a reunião. Tenta novamente.'),
   });
 
   // Delete — with series awareness

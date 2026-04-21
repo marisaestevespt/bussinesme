@@ -36,7 +36,7 @@ export default function MarketingSubPage() {
   const handleSave = async () => {
     if (!page) return;
     const { error } = await supabase.from('marketing_pages').update({ content } as any).eq('id', page.id);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a configuração. Tenta novamente.');
     else { toast.success('Guardado'); queryClient.invalidateQueries({ queryKey: ['marketing-page', pageKey] }); }
   };
 

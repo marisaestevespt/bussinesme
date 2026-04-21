@@ -118,7 +118,7 @@ export default function MarketingAutomacaoDetail() {
     } as any).eq('id', id!);
     setSaving(false);
     if (error) {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a automação. Tenta novamente.');
     } else {
       toast.success('Guardado');
       setEditing(false);

@@ -58,7 +58,7 @@ export default function TrafegoReportDetail() {
     setSaving(true);
     const { error } = await supabase.from('traffic_report_cards').update({ title } as any).eq('id', id!);
     setSaving(false);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a report. Tenta novamente.');
     else { toast.success('Título guardado'); qc.invalidateQueries({ queryKey: ['traffic-report-card', id] }); }
   };
 

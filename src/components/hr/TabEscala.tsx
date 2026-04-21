@@ -221,7 +221,7 @@ function VacationDialog({ member, vacations, onClose }: { member: TeamMember; va
       end_date: format(endDate, 'yyyy-MM-dd'),
       notes: notes || null,
     });
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a escala. Tenta novamente.');
     else { toast.success('Férias adicionadas'); setStartDate(undefined); setEndDate(undefined); setNotes(''); qc.invalidateQueries({ queryKey: ['escala-vacations'] }); }
   };
 

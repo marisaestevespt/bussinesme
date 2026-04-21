@@ -103,7 +103,7 @@ export default function MarketingFunilDetail() {
       product_id: productId,
     } as any).eq('id', id!);
     setSaving(false);
-    if (error) { toast.error('Erro ao guardar'); }
+    if (error) { toast.error('Não consegui guardar a funil. Tenta novamente.'); }
     else { toast.success('Guardado'); setEditing(false); qc.invalidateQueries({ queryKey: ['marketing-funnel', id] }); }
   };
 

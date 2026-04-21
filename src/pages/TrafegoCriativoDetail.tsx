@@ -90,7 +90,7 @@ export default function TrafegoCriativoDetail() {
       legenda: form.legenda || null,
     } as any).eq('id', id!);
     setSaving(false);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a criativo. Tenta novamente.');
     else { toast.success('Guardado'); qc.invalidateQueries({ queryKey: ['traffic-creative', id] }); }
   };
 

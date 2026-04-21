@@ -142,7 +142,7 @@ export default function VendaDetailPage() {
       special_offer_reason: form.is_special_offer ? (form.special_offer_reason || null) : null,
     } as any).eq('id', id!);
 
-    if (error) { toast.error('Erro ao guardar'); return; }
+    if (error) { toast.error('Não consegui guardar a venda. Tenta novamente.'); return; }
 
     // Send invoice-available email if new documents were added
     if (hasNewInvoice && form.client) {

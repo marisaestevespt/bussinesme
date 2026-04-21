@@ -94,7 +94,7 @@ function DigestSection({
       await update({ enabled: val, sections, send_time: sendTime + ':00' });
       toast.success(val ? `${title} activado` : `${title} desactivado`);
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a preferências de digest. Tenta novamente.');
       setEnabled(!val);
     }
   };
@@ -114,7 +114,7 @@ function DigestSection({
     try {
       await update({ sections: next });
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a preferências de digest. Tenta novamente.');
     }
   };
 

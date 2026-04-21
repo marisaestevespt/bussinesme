@@ -185,7 +185,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
       queryClient.invalidateQueries({ queryKey: ['commercial-library'] });
       onOpenChange(false);
     } catch {
-      toast.error('Erro ao guardar');
+      toast.error('Não consegui guardar a entrada da biblioteca. Tenta novamente.');
     } finally {
       setSaving(false);
     }
@@ -228,7 +228,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
   const handleDelete = async () => {
     if (!entry) return;
     const { error } = await supabase.from('commercial_library_entries').delete().eq('id', entry.id);
-    if (error) { toast.error('Erro ao eliminar'); return; }
+    if (error) { toast.error('Não consegui eliminar a entrada da biblioteca. Tenta novamente.'); return; }
     toast.success('Entrada eliminada');
     queryClient.invalidateQueries({ queryKey: ['commercial-library'] });
     onOpenChange(false);

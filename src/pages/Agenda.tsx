@@ -905,7 +905,7 @@ function EventDetailDialog({
       toast.success('Evento eliminado');
       onOpenChange(false);
     },
-    onError: () => toast.error('Erro ao eliminar'),
+    onError: () => toast.error('Não consegui eliminar a evento. Tenta novamente.'),
   });
 
   if (!event) return null;

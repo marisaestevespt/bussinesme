@@ -222,7 +222,7 @@ export default function GestaoMarcaPage() {
   const savePuv = async () => {
     if (!settings) return;
     const { error } = await supabase.from('business_settings').update({ proposta_unica_valor: tempPuv } as any).eq('id', settings.id);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a identidade de marca. Tenta novamente.');
     else { toast.success('Guardado'); refetchSettings(); setEditingPuv(false); }
   };
 
@@ -231,7 +231,7 @@ export default function GestaoMarcaPage() {
   const saveAbout = async () => {
     if (!settings) return;
     const { error } = await supabase.from('business_settings').update({ about_text: tempAbout } as any).eq('id', settings.id);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a identidade de marca. Tenta novamente.');
     else { toast.success('Guardado'); refetchSettings(); setEditingAbout(false); }
   };
 
@@ -257,7 +257,7 @@ export default function GestaoMarcaPage() {
   const saveKanbanContent = async () => {
     if (!selectedKanban) return;
     const { error } = await supabase.from('brand_kanban_items').update({ content: kanbanContent } as any).eq('id', selectedKanban.id);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a identidade de marca. Tenta novamente.');
     else {
       toast.success('Guardado');
       queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
@@ -345,7 +345,7 @@ export default function GestaoMarcaPage() {
   const saveVisualDesc = async () => {
     if (!selectedVisual) return;
     const { error } = await supabase.from('brand_visual_cards').update({ description: visualDesc } as any).eq('id', selectedVisual.id);
-    if (error) toast.error('Erro ao guardar');
+    if (error) toast.error('Não consegui guardar a identidade de marca. Tenta novamente.');
     else {
       toast.success('Guardado');
       queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
