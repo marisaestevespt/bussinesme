@@ -1,6 +1,6 @@
 ---
 name: UI Identity - Amber Gold
-description: Lirah identity uses warm amber/gold primary, dark charcoal accent, cream backgrounds, gradient headers, Plus Jakarta Sans display font. Inspired by Crextio/Skillex dashboards.
+description: Lyrata identity uses warm amber/gold primary, dark charcoal accent, cream backgrounds, gradient headers, Plus Jakarta Sans display font. Inspired by Crextio/Skillex dashboards.
 type: design
 ---
 
