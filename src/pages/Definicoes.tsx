@@ -6,7 +6,6 @@ import { SettingsIdentity } from '@/components/settings/SettingsIdentity';
 import { SettingsFiscal } from '@/components/settings/SettingsFiscal';
 import { FinSetupNegocio } from '@/components/financial/FinSetupNegocio';
 import { ChannelSettings } from '@/components/settings/ChannelSettings';
-import { SocialTokensSettings } from '@/components/settings/SocialTokensSettings';
 import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
@@ -69,7 +68,7 @@ export default function DefinicoesPage() {
           {tab === 'identidade' && <SettingsIdentity />}
           {tab === 'fiscal' && <SettingsFiscal />}
           {tab === 'setup-negocio' && <FinSetupNegocio />}
-          {tab === 'marketing' && <div className="space-y-8"><ChannelSettings /><SocialTokensSettings /></div>}
+          {tab === 'marketing' && <ChannelSettings />}
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
