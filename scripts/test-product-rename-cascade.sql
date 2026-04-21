@@ -53,11 +53,11 @@ BEGIN
   INSERT INTO clients (full_name, current_product_id, status) VALUES ('__test_client_'||_ts, _product_id, 'ativo') RETURNING id INTO _client_id;
   INSERT INTO crm_leads (name, potential_product_id, status) VALUES ('__test_lead', _product_id, 'novo') RETURNING id INTO _lead_id;
   INSERT INTO commercial_sales (sale_id, client, product_id, invoice_total, base_value, sale_year, sale_month, status) VALUES ('__TEST_'||_ts, '__test', _product_id, 100, 100, 2026, 1, 'pago') RETURNING id INTO _sale_id;
-  INSERT INTO commercial_sales_actions (product_id, action_name, action_date) VALUES (_product_id, '__test_action', CURRENT_DATE) RETURNING id INTO _action_id;
+  INSERT INTO commercial_sales_actions (product_id, action_name) VALUES (_product_id, '__test_action') RETURNING id INTO _action_id;
   INSERT INTO commercial_library_entries (product_id, title, entry_type) VALUES (_product_id, '__test_lib', 'documento') RETURNING id INTO _library_id;
-  INSERT INTO commercial_product_goals (product_id, year) VALUES (_product_id, 2026) RETURNING id INTO _goal_id;
+  INSERT INTO commercial_product_goals (product_id, year, product_name) VALUES (_product_id, 2026, _original_name) RETURNING id INTO _goal_id;
   INSERT INTO crm_pipelines (product_id, name) VALUES (_product_id, '__test_pipeline') RETURNING id INTO _pipeline_id;
-  INSERT INTO events (product_id, title, event_date) VALUES (_product_id, '__test_event', CURRENT_DATE) RETURNING id INTO _event_id;
+  INSERT INTO events (product_id, title, start_date) VALUES (_product_id, '__test_event', now()) RETURNING id INTO _event_id;
   INSERT INTO marketing_automations (product_id, name) VALUES (_product_id, '__test_auto') RETURNING id INTO _automation_id;
   INSERT INTO marketing_funnels (product_id, name) VALUES (_product_id, '__test_funnel') RETURNING id INTO _funnel_id;
   INSERT INTO traffic_creatives (product_id, name) VALUES (_product_id, '__test_creative') RETURNING id INTO _creative_id;
@@ -66,8 +66,8 @@ BEGIN
   INSERT INTO projects (name, product_id, status) VALUES ('__test_project', _product_id, 'em_curso') RETURNING id INTO _project_id;
   INSERT INTO sops (name, product_id, department, status) VALUES ('__test_sop', _product_id, 'produtos', 'ativo') RETURNING id INTO _sop_id;
   INSERT INTO capacity_scenarios (name) VALUES ('__test_scenario_'||_ts) RETURNING id INTO _scenario_id;
-  INSERT INTO capacity_scenario_products (scenario_id, product_id) VALUES (_scenario_id, _product_id) RETURNING id INTO _capacity_id;
-  INSERT INTO client_portals (client_id, slug) VALUES (_client_id, '__test_portal_'||_ts) RETURNING id INTO _portal_id;
+  INSERT INTO capacity_scenario_products (scenario_id, product_id, product_name) VALUES (_scenario_id, _product_id, _original_name) RETURNING id INTO _capacity_id;
+  INSERT INTO client_portals (client_id, slug, portal_type) VALUES (_client_id, '__test_portal_'||_ts, 'cliente') RETURNING id INTO _portal_id;
   INSERT INTO portal_project_history (portal_id, product_id, project_name) VALUES (_portal_id, _product_id, '__test_hist') RETURNING id INTO _portal_hist_id;
 
   RAISE NOTICE 'Inserted 17 dependent rows. Renaming product...';
