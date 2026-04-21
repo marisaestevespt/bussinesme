@@ -30,6 +30,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
+import { resolveProductId } from '@/lib/productResolver';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -570,10 +571,12 @@ function EventFormDialog({
       let eventId = editEvent?.id;
 
       if (editEvent) {
-        const { error } = await supabase.from('events').update(payload).eq('id', editEvent.id);
+        const productId = await resolveProductId(payload.product_name);
+        const { error } = await supabase.from('events').update({ ...payload, product_id: productId }).eq('id', editEvent.id);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from('events').insert(payload).select('id').single();
+        const productId = await resolveProductId(payload.product_name);
+        const { data, error } = await supabase.from('events').insert({ ...payload, product_id: productId }).select('id').single();
         if (error) throw error;
         eventId = data.id;
       }

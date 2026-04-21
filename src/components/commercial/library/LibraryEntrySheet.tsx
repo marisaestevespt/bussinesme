@@ -19,6 +19,7 @@ import { CalendarIcon, Check, Copy, Trash2, X, Plus, History, DollarSign, FileTe
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { resolveProductId } from '@/lib/productResolver';
 import { PastLaunchesDialog } from './PastLaunchesDialog';
 
 const ENTRY_TYPES = ['Lançamento', 'Relançamento', 'Campanha', 'Sequência de Email', 'Promoção', 'Outro'];
@@ -149,10 +150,12 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
     if (!title.trim()) { toast.error('O título é obrigatório'); return; }
     setSaving(true);
     try {
+      const productId = await resolveProductId(product);
       const payload = {
         title: title.trim(),
         entry_type: entryType,
         product: product || null,
+        product_id: productId,
         project_id: projectId || null,
         start_date: startDate ? format(startDate, 'yyyy-MM-dd') : null,
         end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
@@ -189,10 +192,12 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
     if (!entry) return;
     setSaving(true);
     try {
+      const productId = await resolveProductId(entry.product);
       const { error } = await supabase.from('commercial_library_entries').insert({
         title: `${entry.title} (cópia)`,
         entry_type: entry.entry_type,
         product: entry.product,
+        product_id: productId,
         project_id: entry.project_id,
         start_date: entry.start_date,
         end_date: entry.end_date,
@@ -229,10 +234,12 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
   const handleCreateContent = async () => {
     if (!entry?.id) { toast.error('Guarda a entrada primeiro'); return; }
     try {
+      const productId = await resolveProductId(product);
       const { error } = await supabase.from('content_items').insert({
         title: `[Lançamento] ${title}`,
         status: 'em_ideia',
         product_name: product || null,
+        product_id: productId,
         project_id: projectId || null,
         launch_id: entry.id,
         created_by: user?.id,

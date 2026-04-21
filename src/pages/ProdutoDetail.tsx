@@ -233,6 +233,7 @@ export default function ProdutoDetailPage() {
       start_date: newEvent.start_date,
       end_date: newEvent.end_date || null,
       product_name: form.name,
+      product_id: id,
       created_by: user?.id,
     } as never);
     if (error) { toast.error('Erro ao criar evento'); return; }
