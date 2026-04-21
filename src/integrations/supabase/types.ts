@@ -7408,6 +7408,7 @@ export type Database = {
           accounting_notes: string | null
           archive_notes: string | null
           brainstorming_content: string | null
+          branding: Json
           client_profile: Json | null
           competitors: Json | null
           cover_url: string | null
@@ -7444,6 +7445,7 @@ export type Database = {
           accounting_notes?: string | null
           archive_notes?: string | null
           brainstorming_content?: string | null
+          branding?: Json
           client_profile?: Json | null
           competitors?: Json | null
           cover_url?: string | null
@@ -7480,6 +7482,7 @@ export type Database = {
           accounting_notes?: string | null
           archive_notes?: string | null
           brainstorming_content?: string | null
+          branding?: Json
           client_profile?: Json | null
           competitors?: Json | null
           cover_url?: string | null
