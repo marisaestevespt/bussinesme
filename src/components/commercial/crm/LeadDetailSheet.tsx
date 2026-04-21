@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCommercialMembers } from '@/hooks/useTeamByWorkArea';
+import { resolveProductId } from '@/lib/productResolver';
 
 interface LeadDetailSheetProps {
   open: boolean;
@@ -105,8 +106,9 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     setPendingStatus(null);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name?.trim()) { toast.error('Nome é obrigatório'); return; }
+    const potentialProductId = await resolveProductId(form.potential_product);
     onSave({
       ...(form.id ? { id: form.id } : {}),
       name: form.name,
@@ -116,6 +118,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       email: form.email || null,
       phone: form.phone || null,
       potential_product: form.potential_product || null,
+      potential_product_id: potentialProductId,
       closed_product: form.closed_product || null,
       responsible_id: form.responsible_id || null,
       next_followup: form.next_followup ? format(form.next_followup, 'yyyy-MM-dd') : null,
@@ -149,12 +152,13 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     if (!lead?.id) return;
     try {
       const productName = form.closed_product || form.potential_product || null;
-
+      const productId = await resolveProductId(productName);
       const { data: newClient, error: clientError } = await supabase.from('clients').insert({
         full_name: form.name || '',
         email: form.email || null,
         whatsapp: form.phone || null,
         current_product: productName,
+        current_product_id: productId,
         documents: form.documents || null,
         status: 'em_onboarding',
         conversion_date: format(new Date(), 'yyyy-MM-dd'),

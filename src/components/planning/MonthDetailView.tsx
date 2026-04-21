@@ -122,11 +122,14 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
   const createClientFromLead = useMutation({
     mutationFn: async (form: Record<string, string>) => {
+      const { resolveProductId } = await import('@/lib/productResolver');
+      const currentProductId = await resolveProductId(form.current_product);
       const { data, error } = await (supabase.from('clients' as any) as any).insert({
         full_name: form.full_name,
         email: form.email || null,
         whatsapp: form.whatsapp || null,
         current_product: form.current_product || null,
+        current_product_id: currentProductId,
         status: 'em_onboarding',
         start_date: form.start_date || new Date().toISOString().slice(0, 10),
         nif: form.nif || null,
@@ -220,7 +223,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // Product review with per-client breakdown
   const productReview = useMemo(() => {
     return products.map((p: any) => {
-      const clientsWithProduct = activeClients.filter((c: any) => c.current_product === p.name);
+      const clientsWithProduct = activeClients.filter((c: any) =>
+        c.current_product_id ? c.current_product_id === p.id : c.current_product === p.name
+      );
       const hoursPerClient = p.monthly_hours_per_client || 0;
       const estimatedHours = hoursPerClient * clientsWithProduct.length;
 
