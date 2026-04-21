@@ -108,6 +108,7 @@ export default function GestaoMarcaPage() {
   // Kanban detail
   const [selectedKanban, setSelectedKanban] = useState<KanbanItem | null>(null);
   const [kanbanContent, setKanbanContent] = useState('');
+  const [editingKanban, setEditingKanban] = useState(false);
 
   // Add kanban item
   const [addingToGroup, setAddingToGroup] = useState<string | null>(null);
