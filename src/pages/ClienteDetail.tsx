@@ -635,10 +635,11 @@ export default function ClienteDetailPage() {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Propriedades</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Linha 1: ID | Status | Data de Início | Fim de Ciclo */}
+            <div className="grid grid-cols-1 md:grid-cols-[120px_1fr_1fr_1fr] gap-4">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">ID</Label>
-                <Input value={form.client_id || ''} onChange={e => update('client_id', e.target.value)} placeholder="Auto" />
+                <Input value={form.client_id || ''} onChange={e => update('client_id', e.target.value)} placeholder="Auto" className="font-mono text-xs" />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Status</Label>
@@ -649,7 +650,16 @@ export default function ClienteDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <DateField label="Data de Início" value={form.start_date || null} onChange={v => update('start_date', v)} />
               <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Fim de Ciclo</Label>
+                <Input value={form.end_of_cycle || ''} readOnly className="bg-muted/50 cursor-default text-muted-foreground" placeholder="Auto (do projeto)" />
+              </div>
+            </div>
+            {/* Linha 2: Conversão | Produto Atual | Email | Whatsapp | Aniversário */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <DateField label="Data de Conversão" value={form.conversion_date || null} onChange={v => update('conversion_date', v)} />
+              <div className="space-y-1 min-w-0">
                 <Label className="text-xs text-muted-foreground">Produto Atual</Label>
                 <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
                   <SelectTrigger className="[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0">
@@ -660,9 +670,6 @@ export default function ClienteDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <DateField label="Aniversário" value={form.birthday || null} onChange={v => update('birthday', v)} />
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">E-mail</Label>
                 <Input type="email" value={form.email || ''} onChange={e => update('email', e.target.value)} />
@@ -671,12 +678,7 @@ export default function ClienteDetailPage() {
                 <Label className="text-xs text-muted-foreground">Whatsapp</Label>
                 <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} />
               </div>
-              <DateField label="Data de Conversão" value={form.conversion_date || null} onChange={v => update('conversion_date', v)} />
-              <DateField label="Data de Início" value={form.start_date || null} onChange={v => update('start_date', v)} />
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Fim de Ciclo</Label>
-                <Input value={form.end_of_cycle || ''} readOnly className="bg-muted/50 cursor-default text-muted-foreground" placeholder="Auto (do projeto)" />
-              </div>
+              <DateField label="Aniversário" value={form.birthday || null} onChange={v => update('birthday', v)} />
             </div>
           </CardContent>
         </Card>
