@@ -1,0 +1,1 @@
+UPDATE publico_alvo_sections SET title = 'Onde ela está na escala de consciência' WHERE section_key = 'niveis-consciencia';
