@@ -290,6 +290,54 @@ export default function GestaoMarcaPage() {
     toast.success('Item removido');
   };
 
+  const handleKanbanDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragItem(null);
+    if (!over) return;
+
+    const activeItem = kanbanItems.find(i => i.id === active.id);
+    if (!activeItem) return;
+
+    // Determine target group: dropped on item or on empty column droppable
+    const overId = String(over.id);
+    const overItem = kanbanItems.find(i => i.id === overId);
+    const targetGroup = overItem ? overItem.group_key : (overId.startsWith('col:') ? overId.slice(4) : null);
+    if (!targetGroup) return;
+    if (!KANBAN_GROUPS.find(g => g.key === targetGroup)) return;
+
+    // Build new ordered list within target group
+    const sameGroup = activeItem.group_key === targetGroup;
+    const targetItems = kanbanItems.filter(i => i.group_key === targetGroup && i.id !== active.id);
+    let newIndex = targetItems.length;
+    if (overItem) {
+      const idxInTarget = targetItems.findIndex(i => i.id === overItem.id);
+      newIndex = idxInTarget === -1 ? targetItems.length : idxInTarget;
+    }
+    const reordered = [...targetItems];
+    reordered.splice(newIndex, 0, { ...activeItem, group_key: targetGroup });
+
+    // Optimistic update
+    queryClient.setQueryData<KanbanItem[]>(['brand-kanban-items'], (prev) => {
+      const others = (prev || []).filter(i => i.group_key !== targetGroup && (sameGroup ? true : i.id !== active.id));
+      const updated = reordered.map((it, idx) => ({ ...it, sort_order: idx }));
+      return [...others, ...updated];
+    });
+
+    // Persist: update target group order + (if moved) original group reindex
+    const updates = reordered.map((it, idx) =>
+      supabase.from('brand_kanban_items').update({ group_key: targetGroup, sort_order: idx } as any).eq('id', it.id)
+    );
+    if (!sameGroup) {
+      const sourceItems = kanbanItems.filter(i => i.group_key === activeItem.group_key && i.id !== active.id);
+      sourceItems.forEach((it, idx) => {
+        updates.push(supabase.from('brand_kanban_items').update({ sort_order: idx } as any).eq('id', it.id));
+      });
+    }
+    const results = await Promise.all(updates);
+    if (results.some(r => r.error)) toast.error('Erro ao mover');
+    queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
+  };
+
   // ── Visual card mutations ──
 
   const saveVisualDesc = async () => {
