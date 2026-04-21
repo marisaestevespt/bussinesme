@@ -409,7 +409,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
                     <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/produtos/${p.id}`)}>
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={p.status === 'vendas_ativas' ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}>
+                        <Badge variant="outline" className={p.status === 'vendas_ativas' ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground'}>
                           {p.status === 'vendas_ativas' ? 'Vendas Ativas' : p.status === 'a_criar' ? 'A Criar' : p.status === 'em_ideia' ? 'Em Ideia' : 'Off'}
                         </Badge>
                       </TableCell>

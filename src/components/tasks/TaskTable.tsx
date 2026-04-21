@@ -92,7 +92,7 @@ export function TaskTable({
                       </Badge>
                     )}
                     {task.recurrence_type && <Repeat className="h-3 w-3 text-muted-foreground" />}
-                    {hasBlockingDeps && <Link2 className="h-3.5 w-3.5 text-amber-500" />}
+            {hasBlockingDeps && <Link2 className="h-3.5 w-3.5 text-warning" />}
                     {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                     {lateComplete && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                   </div>
