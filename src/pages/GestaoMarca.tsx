@@ -1399,7 +1399,7 @@ function SortableKanbanItem({
 function KanbanColumn({
   group, items, isOwner, reservedTitles,
   addingToGroup, newItemTitle, setNewItemTitle, setAddingToGroup,
-  onAddItem, onOpenItem, onDeleteItem, onChangeEmoji,
+  onAddItem, onOpenItem, onDeleteItem, onChangeEmoji, onRenameGroup,
 }: {
   group: typeof KANBAN_GROUPS[number];
   items: KanbanItem[];
@@ -1413,14 +1413,50 @@ function KanbanColumn({
   onOpenItem: (item: KanbanItem) => void;
   onDeleteItem: (id: string) => void;
   onChangeEmoji: (id: string, emoji: string) => void;
+  onRenameGroup?: (newLabel: string) => void | Promise<void>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `col:${group.key}` });
+  const [editingLabel, setEditingLabel] = React.useState(false);
+  const [labelDraft, setLabelDraft] = React.useState(group.label);
+  React.useEffect(() => { setLabelDraft(group.label); }, [group.label]);
 
   return (
     <div className="space-y-0 shadow-md rounded-lg overflow-hidden">
       <div className={cn('flex items-center justify-between px-3 py-3', group.headerBg)}>
-        <div className="flex items-center gap-1.5">
-          <span className={cn('text-xs font-semibold', group.headerText)}>// {group.label}</span>
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          {editingLabel && isOwner && onRenameGroup ? (
+            <input
+              autoFocus
+              value={labelDraft}
+              onChange={e => setLabelDraft(e.target.value)}
+              onBlur={async () => {
+                const v = labelDraft.trim();
+                if (v && v !== group.label) await onRenameGroup(v);
+                setEditingLabel(false);
+              }}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter') {
+                  const v = labelDraft.trim();
+                  if (v && v !== group.label) await onRenameGroup(v);
+                  setEditingLabel(false);
+                } else if (e.key === 'Escape') {
+                  setLabelDraft(group.label);
+                  setEditingLabel(false);
+                }
+              }}
+              className={cn('text-xs font-semibold bg-transparent outline-none border-b border-current/40 w-full min-w-0', group.headerText)}
+            />
+          ) : (
+            <button
+              type="button"
+              disabled={!isOwner || !onRenameGroup}
+              onClick={() => isOwner && onRenameGroup && setEditingLabel(true)}
+              className={cn('text-xs font-semibold truncate text-left', group.headerText, isOwner && onRenameGroup && 'hover:underline cursor-pointer')}
+              title={isOwner && onRenameGroup ? 'Clica para renomear' : undefined}
+            >
+              // {group.label}
+            </button>
+          )}
         </div>
         <span className={cn('text-xs font-semibold', group.headerText)}>{items.length}</span>
       </div>
