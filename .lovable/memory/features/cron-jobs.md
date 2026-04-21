@@ -1,5 +1,30 @@
 Backend cron jobs for auto-status updates, notifications, and data sync.
 
+## Active cron jobs (PG cron + vault auth)
+All scheduled jobs use `email_queue_service_role_key` from `vault.decrypted_secrets`.
+
+| Job | Schedule (UTC) |
+|---|---|
+| `process-email-queue` | every 5s (only if queue non-empty) |
+| `weekly-backup` | `0 3 * * 0` (Sun 03:00) |
+| `generate-deliverable-tasks` | `0 5 1 * *` (1st of month) |
+| `generate-routine-tasks` | `0 6 * * *` |
+| `generate-monthly-report` | `0 6 2 * *` (2nd of month) |
+| `daily-birthday-check` | `30 7 * * *` |
+| `send-payment-reminders-daily` | `0 8 * * *` |
+| `daily-status-update` | `0 8 * * *` |
+| `check-nps-tasks` | `0 9 * * *` |
+| `check-renewal-status` | `15 9 * * *` |
+| `send-digest-daily` | `0 18 * * 1-5` |
+
+## Auth helper
+All cron-invokable edge functions share `supabase/functions/_shared/cron-auth.ts`
+(`isAuthorizedCronCall`) which validates the Bearer JWT issuer + role
+(service_role/anon/authenticated). Old `authHeader.includes(serviceKey)` checks
+were broken because Lovable Cloud rotates the service key independently of the
+vault-stored one used by cron, AND because the JWT base64 payload doesn't
+contain the literal "supabase" string.
+
 ## Edge Functions
 - `daily-status-update` — runs daily at 08:00 via pg_cron
   1. Marks overdue sales as `em_atraso`
