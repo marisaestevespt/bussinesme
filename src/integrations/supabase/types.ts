@@ -515,6 +515,7 @@ export type Database = {
           iva_exempt: boolean
           iva_exemption_end_date: string | null
           kanban_group_labels: Json
+          kanban_group_order: Json
           login_bg_url: string | null
           logo_position_y: number
           logo_url: string | null
@@ -552,6 +553,7 @@ export type Database = {
           iva_exempt?: boolean
           iva_exemption_end_date?: string | null
           kanban_group_labels?: Json
+          kanban_group_order?: Json
           login_bg_url?: string | null
           logo_position_y?: number
           logo_url?: string | null
@@ -589,6 +591,7 @@ export type Database = {
           iva_exempt?: boolean
           iva_exemption_end_date?: string | null
           kanban_group_labels?: Json
+          kanban_group_order?: Json
           login_bg_url?: string | null
           logo_position_y?: number
           logo_url?: string | null
