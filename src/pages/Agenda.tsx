@@ -30,6 +30,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
+import { resolveProductId } from '@/lib/productResolver';
 
 // ─── Types ──────────────────────────────────────────────────────
 
