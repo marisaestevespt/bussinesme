@@ -32,6 +32,7 @@ import {
   Target, Sparkles, BarChart3,
 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import EmojiPicker, { EmojiStyle, Theme } from 'emoji-picker-react';
 
 // ── Types ──
 
@@ -1335,19 +1336,16 @@ function SortableKanbanItem({
               {item.emoji || '📄'}
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-2" align="start" onClick={e => e.stopPropagation()}>
-            <div className="grid grid-cols-5 gap-1 max-w-[200px]">
-              {KANBAN_EMOJIS.map(em => (
-                <button
-                  key={em}
-                  type="button"
-                  className="h-8 w-8 rounded hover:bg-muted text-lg"
-                  onClick={e => { e.stopPropagation(); onChangeEmoji(item.id, em); }}
-                >
-                  {em}
-                </button>
-              ))}
-            </div>
+          <PopoverContent className="w-auto p-0 border-0" align="start" onClick={e => e.stopPropagation()}>
+            <EmojiPicker
+              onEmojiClick={(data) => onChangeEmoji(item.id, data.emoji)}
+              emojiStyle={EmojiStyle.NATIVE}
+              theme={Theme.AUTO}
+              height={400}
+              width={320}
+              searchPlaceholder="Procurar emoji..."
+              previewConfig={{ showPreview: false }}
+            />
           </PopoverContent>
         </Popover>
       ) : (
