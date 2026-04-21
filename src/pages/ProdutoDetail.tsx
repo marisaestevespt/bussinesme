@@ -26,6 +26,7 @@ import { ProductMarketingSection } from '@/components/product/ProductMarketingSe
 import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSection, ProductContabilidadeSection } from '@/components/product/ProductSections';
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
+import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { BackNavigation } from '@/components/BackNavigation';
 import { cn } from '@/lib/utils';
@@ -618,16 +619,21 @@ export default function ProdutoDetailPage() {
             <SectionButton sectionKey="entregas" label="Entregas" />
             <SectionButton sectionKey="comercial" label="Comercial" />
             <SectionButton sectionKey="marketing" label="Marketing" />
+            <SectionButton sectionKey="branding" label="Branding" />
             <SectionButton sectionKey="contabilidade" label="Contabilidade" />
             <SectionButton sectionKey="processos" label="Processos" />
             <SectionButton sectionKey="backoffice" label="Backoffice" />
-            <SectionButton sectionKey="customer-success" label="Customer Success" />
             <SectionButton sectionKey="metricas" label="Métricas" />
             <SectionButton sectionKey="arquivo" label="Arquivo" />
           </div>
 
           {openSection === 'clientes-vendas' && (
-            <ProductSalesTab productName={form.name || ''} />
+            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductSalesTab productName={form.name || ''} />
+              {!isNew && id && (
+                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
+              )}
+            </div>
           )}
 
           {openSection === 'entregas' && (
@@ -708,10 +714,12 @@ export default function ProdutoDetailPage() {
             />
           )}
 
-          {openSection === 'customer-success' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-              <ProductCustomerSuccess productId={id!} productName={form.name || ''} isOwner={isOwner} />
-            </div>
+          {openSection === 'branding' && (
+            <ProductBrandingSection
+              branding={((form as any).branding || {}) as Record<string, unknown>}
+              isOwner={isOwner}
+              onUpdate={(next) => update('branding', next)}
+            />
           )}
 
           {openSection === 'metricas' && (

@@ -14,12 +14,14 @@ Product detail page structure and section organization
 - Feedbacks card
 
 ## Section buttons (toggle open/close, not tabs)
+Total: 10 botões (Clientes e Vendas, Entregas, Comercial, Marketing, Branding, Contabilidade, Processos, Backoffice, Métricas, Arquivo).
+- Clientes e Vendas: ProductSalesTab + ProductCustomerSuccess (NPS + renovações fundidos aqui)
 - Comercial: Cliente do Produto, Ações de Venda, Produtos Concorrentes
 - Marketing: Conteúdos (via product_id FK on content_items), Funis, Automações, Tráfego Pago
+- Branding: ProductBrandingSection — identidade visual (cores, fontes, logos, assets), posicionamento, promessa, manifesto, tagline, tom de voz, emojis, hashtags, links de pastas, notas. Persistido em `products.branding` (jsonb).
 - Contabilidade: Dados de Faturação, Calculadora de Oferta (includes Custos do Produto)
 - Processos: SOPs table (from sops table, linked_entity_type=produto), Template de Projeto
 - Backoffice: Links Úteis, Drive, Melhorias
-- Customer Success: ProductCustomerSuccess component (NPS history only)
 - Métricas: ProductMetricsTab (gallery of months with year nav)
 - Arquivo: Brainstorming
 
