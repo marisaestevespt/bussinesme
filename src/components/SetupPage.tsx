@@ -216,7 +216,7 @@ export function SetupPage() {
         {/* Header */}
         <div className="text-center space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            Configura o teu HQ
+            Configura a tua Lyrata
           </h1>
           <p className="text-muted-foreground max-w-md mx-auto">
             Define a identidade visual do teu negócio. Podes alterar tudo mais tarde nas Definições.
