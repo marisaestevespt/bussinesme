@@ -1,9 +1,12 @@
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Plus, X, ExternalLink } from 'lucide-react';
+import { Plus, X, ExternalLink, Upload } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface BrandingData {
   // Identidade visual
@@ -41,11 +44,35 @@ interface Props {
 export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
   const b = branding || {};
   const set = (patch: Partial<BrandingData>) => onUpdate({ ...b, ...patch });
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
 
   const updateList = <K extends 'visual_assets' | 'folders'>(
     key: K,
     next: Array<{ label: string; url: string }>
   ) => set({ [key]: next } as Partial<BrandingData>);
+
+  const handleUpload = async (
+    key: 'visual_assets' | 'folders',
+    file: File,
+    items: Array<{ label: string; url: string }>,
+  ) => {
+    setUploadingKey(key);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `branding/${key}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('brand-files').upload(path, file);
+      if (error) {
+        toast.error('Erro ao carregar ficheiro');
+        return;
+      }
+      const { data: urlData } = supabase.storage.from('brand-files').getPublicUrl(path);
+      const baseName = file.name.replace(/\.[^.]+$/, '');
+      updateList(key, [...items, { label: baseName, url: urlData.publicUrl }]);
+      toast.success('Ficheiro carregado');
+    } finally {
+      setUploadingKey(null);
+    }
+  };
 
   const renderLinkList = (
     key: 'visual_assets' | 'folders',
@@ -100,13 +127,38 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
           </div>
         ))}
         {isOwner && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => updateList(key, [...items, { label: '', url: '' }])}
-          >
-            <Plus className="h-3 w-3 mr-1" /> Adicionar
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => updateList(key, [...items, { label: '', url: '' }])}
+            >
+              <Plus className="h-3 w-3 mr-1" /> Adicionar link
+            </Button>
+            <label>
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleUpload(key, f, items);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploadingKey === key}
+                asChild
+              >
+                <span className="cursor-pointer">
+                  <Upload className="h-3 w-3 mr-1" />
+                  {uploadingKey === key ? 'A carregar...' : 'Carregar ficheiro'}
+                </span>
+              </Button>
+            </label>
+          </div>
         )}
       </div>
     );
