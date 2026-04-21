@@ -42,7 +42,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
   const b = branding || {};
   const set = (patch: Partial<BrandingData>) => onUpdate({ ...b, ...patch });
 
-  const updateList = <K extends 'logo_variants' | 'visual_assets' | 'folders'>(
+  const updateList = <K extends 'visual_assets' | 'folders'>(
     key: K,
     next: Array<{ label: string; url: string }>
   ) => set({ [key]: next } as Partial<BrandingData>);
@@ -201,8 +201,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
             </div>
           </div>
 
-          {renderLinkList('logo_variants', 'Variações do Logo', 'https://...')}
-          {renderLinkList('visual_assets', 'Assets Visuais (mood board, ícones, etc.)', 'https://...')}
+          {renderLinkList('visual_assets', 'Assets Visuais (logos, mood board, ícones, etc.)', 'https://...')}
         </CardContent>
       </Card>
 
