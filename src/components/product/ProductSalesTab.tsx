@@ -12,24 +12,27 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 interface Props {
   productName: string;
   ticketValue?: number;
+  productId?: string;
 }
 
-export function ProductSalesTab({ productName, ticketValue }: Props) {
+export function ProductSalesTab({ productName, productId, ticketValue }: Props) {
   const navigate = useNavigate();
 
   const { data: sales = [], isLoading } = useQuery({
-    queryKey: ['product-sales-history', productName],
+    queryKey: ['product-sales-history', productId || productName],
     queryFn: async () => {
-      if (!productName) return [];
-      const { data, error } = await supabase
+      if (!productId && !productName) return [];
+      const query = supabase
         .from('commercial_sales')
         .select('*')
-        .eq('product', productName)
         .order('created_at', { ascending: false });
+      const { data, error } = productId
+        ? await query.eq('product_id', productId)
+        : await query.eq('product', productName);
       if (error) throw error;
       return data || [];
     },
-    enabled: !!productName,
+    enabled: !!(productId || productName),
   });
 
   const totalSales = sales.length;
