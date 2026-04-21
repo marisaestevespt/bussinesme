@@ -15,8 +15,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 
 const COLORS = [
-  '#000000', '#374151', '#6b7280', '#ef4444', '#f97316', '#eab308',
-  '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff',
+  // Tons pastel suaves para texto
+  '#4b5563', '#9ca3af', '#c8a2a2', '#e4b48c', '#e6cf8a',
+  '#a8c8a1', '#9bb8d9', '#b6a8d4', '#dba8c1', '#a89b8c',
+  '#ffffff',
 ];
 
 interface RichTextEditorProps {
@@ -147,7 +149,7 @@ export function RichTextEditor({ content, onChange, editable = true }: RichTextE
             </PopoverTrigger>
             <PopoverContent className="w-auto p-2" align="start">
               <div className="flex gap-1 flex-wrap max-w-[180px]">
-                {['#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', '#e9d5ff', '#fed7aa'].map(color => (
+                {['#fef9c3', '#dcfce7', '#dbeafe', '#fee2e2', '#f3e8ff', '#ffedd5', '#fce7f3', '#cffafe'].map(color => (
                   <button
                     key={color}
                     type="button"
