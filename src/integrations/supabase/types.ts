@@ -60,10 +60,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "absence_coverage_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "absence_coverage_substitute_id_fkey"
             columns: ["substitute_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absence_coverage_substitute_id_fkey"
+            columns: ["substitute_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
@@ -652,6 +666,13 @@ export type Database = {
             referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "business_settings_accountant_member_id_fkey"
+            columns: ["accountant_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       business_setup: {
@@ -1038,6 +1059,13 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_contacts: {
@@ -1076,6 +1104,13 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_feedback: {
@@ -1109,6 +1144,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_feedback_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1147,6 +1189,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
             referencedColumns: ["id"]
           },
           {
@@ -1207,6 +1256,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "client_milestones_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -1264,6 +1320,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_nps_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
             referencedColumns: ["id"]
           },
           {
@@ -1339,6 +1402,13 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_offboarding_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_onboarding: {
@@ -1396,6 +1466,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_onboarding_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1461,6 +1538,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: true
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients_public"
             referencedColumns: ["id"]
           },
         ]
@@ -3724,6 +3808,13 @@ export type Database = {
             referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "feedback_sessions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       financial_categories: {
@@ -3970,6 +4061,13 @@ export type Database = {
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "financial_expenses_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       financial_goals: {
@@ -4149,6 +4247,13 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_subscriptions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_public"
             referencedColumns: ["id"]
           },
         ]
@@ -5079,6 +5184,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "meetings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "meetings_parent_meeting_id_fkey"
             columns: ["parent_meeting_id"]
             isOneToOne: false
@@ -5164,6 +5276,13 @@ export type Database = {
             referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "member_contracts_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       member_onboarding: {
@@ -5203,6 +5322,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_onboarding_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
           {
@@ -5260,6 +5386,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_payments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
@@ -5361,6 +5494,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_sensitive_access_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
@@ -5817,6 +5957,13 @@ export type Database = {
             referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "performance_monthly_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       performance_weekly: {
@@ -5865,6 +6012,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_weekly_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
@@ -6994,6 +7148,13 @@ export type Database = {
             referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "product_milestones_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       product_nps_config: {
@@ -7040,6 +7201,13 @@ export type Database = {
             columns: ["responsible_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_nps_config_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
@@ -7409,6 +7577,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_team_members_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
           {
@@ -8032,6 +8207,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
             referencedColumns: ["id"]
           },
           {
@@ -8885,6 +9067,13 @@ export type Database = {
             referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "suppliers_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       suppressed_emails: {
@@ -9103,6 +9292,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_content_id_fkey"
             columns: ["content_id"]
             isOneToOne: false
@@ -9177,6 +9373,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_member_vacations_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
@@ -9368,6 +9571,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
@@ -9738,7 +9948,326 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      business_setup_public: {
+        Row: {
+          business_email: string | null
+          business_legal_name: string | null
+          business_website: string | null
+          cae_principal: string | null
+          cae_secundarios: string | null
+          created_at: string | null
+          id: string | null
+          notas: string | null
+          payment_methods: Json | null
+          regime_fiscal: string | null
+          regime_iva: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_email?: string | null
+          business_legal_name?: string | null
+          business_website?: string | null
+          cae_principal?: string | null
+          cae_secundarios?: string | null
+          created_at?: string | null
+          id?: string | null
+          notas?: string | null
+          payment_methods?: Json | null
+          regime_fiscal?: string | null
+          regime_iva?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_email?: string | null
+          business_legal_name?: string | null
+          business_website?: string | null
+          cae_principal?: string | null
+          cae_secundarios?: string | null
+          created_at?: string | null
+          id?: string | null
+          notas?: string | null
+          payment_methods?: Json | null
+          regime_fiscal?: string | null
+          regime_iva?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      client_contacts_public: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+          notes: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          notes?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients_public: {
+        Row: {
+          client_files: Json | null
+          client_id: string | null
+          conversion_date: string | null
+          created_at: string | null
+          created_by: string | null
+          current_product: string | null
+          current_product_id: string | null
+          documents: string | null
+          dp: string | null
+          drive_folder_url: string | null
+          email: string | null
+          end_of_cycle: string | null
+          full_name: string | null
+          id: string | null
+          observations: string | null
+          portal_deactivation_date: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+          whatsapp_group_url: string | null
+        }
+        Insert: {
+          client_files?: Json | null
+          client_id?: string | null
+          conversion_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_product?: string | null
+          current_product_id?: string | null
+          documents?: string | null
+          dp?: string | null
+          drive_folder_url?: string | null
+          email?: string | null
+          end_of_cycle?: string | null
+          full_name?: string | null
+          id?: string | null
+          observations?: string | null
+          portal_deactivation_date?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          whatsapp_group_url?: string | null
+        }
+        Update: {
+          client_files?: Json | null
+          client_id?: string | null
+          conversion_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_product?: string | null
+          current_product_id?: string | null
+          documents?: string | null
+          dp?: string | null
+          drive_folder_url?: string | null
+          email?: string | null
+          end_of_cycle?: string | null
+          full_name?: string | null
+          id?: string | null
+          observations?: string | null
+          portal_deactivation_date?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          whatsapp_group_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_current_product_id_fkey"
+            columns: ["current_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers_public: {
+        Row: {
+          category: string | null
+          contract_end_date: string | null
+          contract_start_date: string | null
+          created_at: string | null
+          default_vat_rate: number | null
+          expense_description_template: string | null
+          id: string | null
+          is_active: boolean | null
+          last_renewal_date: string | null
+          location: string | null
+          member_id: string | null
+          name: string | null
+          notes: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          category?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          created_at?: string | null
+          default_vat_rate?: number | null
+          expense_description_template?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_renewal_date?: string | null
+          location?: string | null
+          member_id?: string | null
+          name?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          category?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          created_at?: string | null
+          default_vat_rate?: number | null
+          expense_description_template?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_renewal_date?: string | null
+          location?: string | null
+          member_id?: string | null
+          name?: string | null
+          notes?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suppliers_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members_public: {
+        Row: {
+          created_at: string | null
+          custom_holidays: Json | null
+          custom_role_id: string | null
+          department: string | null
+          departments: Json | null
+          email: string | null
+          expected_weekly_hours: number | null
+          full_name: string | null
+          id: string | null
+          member_type: string | null
+          photo_url: string | null
+          presentation: string | null
+          profile_id: string | null
+          responsibilities: string | null
+          role_color: string | null
+          role_title: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+          work_areas: Json | null
+          work_schedule: string | null
+          works_holidays: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_holidays?: Json | null
+          custom_role_id?: string | null
+          department?: string | null
+          departments?: Json | null
+          email?: string | null
+          expected_weekly_hours?: number | null
+          full_name?: string | null
+          id?: string | null
+          member_type?: string | null
+          photo_url?: string | null
+          presentation?: string | null
+          profile_id?: string | null
+          responsibilities?: string | null
+          role_color?: string | null
+          role_title?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          work_areas?: Json | null
+          work_schedule?: string | null
+          works_holidays?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_holidays?: Json | null
+          custom_role_id?: string | null
+          department?: string | null
+          departments?: Json | null
+          email?: string | null
+          expected_weekly_hours?: number | null
+          full_name?: string | null
+          id?: string | null
+          member_type?: string | null
+          photo_url?: string | null
+          presentation?: string | null
+          profile_id?: string | null
+          responsibilities?: string | null
+          role_color?: string | null
+          role_title?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          work_areas?: Json | null
+          work_schedule?: string | null
+          works_holidays?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       current_user_has_sensitive_access: {

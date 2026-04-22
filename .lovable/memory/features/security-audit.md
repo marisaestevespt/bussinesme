@@ -1,133 +1,63 @@
-# Memory: features/security-audit.md
-Updated: 2026-04-20
-
-Security audit: RLS hardening, cron auth guards, query safety, DB indexes, password edge function hardening.
+---
+name: security-audit
+description: RLS hardening history + current state. Single-tenant arch (1 instance per business). Latest: PII protection via views + bucket lockdown 2026-04-22.
+type: feature
+---
+Security audit: RLS hardening, cron auth guards, query safety, DB indexes, password edge function hardening, PII protection.
 
 ## Architecture
 - Single-tenant: each business = separate Supabase project. No business_id needed.
-- Isolation is at infrastructure level, not database level.
+- Isolation is at infrastructure level. Authenticated team can SELECT operational tables.
+- Sensitive data on PII tables (clients, team_members, business_setup, suppliers, client_contacts) remains accessible to authenticated team — single-tenant trust model. For multi-role teams needing field-level redaction, app must consume `*_public` views (created 2026-04-22).
 
-## Fixes Applied (2026-03-25)
-23 tables changed from `ALL USING (true)` to owner-only mutations + authenticated read.
+## Latest hardening (2026-04-22) — Final pre-delivery audit
 
-## Fixes Applied (2026-03-29)
+### Storage buckets (private, role-gated)
+- `financial-files`: SELECT/INSERT/UPDATE/DELETE → Owner OR `current_user_has_sensitive_access('financial_values')`. Old permissive policies dropped (PERMISSIVE OR-bypass risk).
+- `library-files`: SELECT/INSERT/UPDATE/DELETE → Owner OR sensitive `financial_values`/`contracts`. Old permissive policies dropped.
+- `portal-uploads`: anon INSERT removed; authenticated INSERT/SELECT only.
 
-### Portal RLS Fix
-- `client_portals` anon UPDATE policy now restricted via WITH CHECK.
+### Tables locked down
+- `platform_accesses`: UPDATE Owner-only (aligned with INSERT/DELETE).
+- `portal_visits`: 
+  - INSERT: anon allowed only when portal_id matches an active portal (EXISTS check).
+  - SELECT: Owner/Admin only (visitor emails protected).
+- `member_sensitive_access`: SELECT Owner-only (don't expose who has elevated access).
+- `page_access_grants`: SELECT = own grants OR Owner.
 
-### Cron Edge Function Auth Guards
-Service-role auth check on 7 cron functions.
+### Views for future field-level restriction
+Created `clients_public`, `team_members_public`, `suppliers_public`, `business_setup_public`, `client_contacts_public` (security_invoker=on) excluding NIF/IBAN/morada fiscal/whatsapp/birthday/payment_method/settlement/etc. App can adopt these views progressively to restrict non-Owner members.
 
-### Query Safety
-~18 dangerous `.single()` → `.maybeSingle()` conversions.
+## Accepted findings (won't fix — by design)
+- PII readable by authenticated team on `clients`, `team_members`, `business_setup`, `suppliers`, `client_contacts`: single-tenant trust model. Mitigation = `*_public` views available.
+- `pg_net` in public schema: managed by Supabase platform, used by cron HTTP/webhooks.
+- 3 portal buckets public-readable: intentional (brand assets, public materials).
 
-### Database Indexes
-25 indexes on hot columns.
+## Earlier history (kept for reference)
 
-## Fixes Applied (2026-04-20) — manage-access-password hardening
+### 2026-04-21 — Auditoria 6 Fase A/B (sensitive lockdown + USING true cleanup)
+Restringido a Owner OU `current_user_has_sensitive_access`:
+- `financial_expenses`, `financial_subscriptions`, `financial_categories` (writes).
+- `feedback_sessions`, `performance_monthly`, `client_contacts` (writes Owner/Admin).
+Loop dinâmico substituiu USING(true) WITH CHECK(true) em ~95 tabelas operacionais por checks `auth.uid() IS NOT NULL`. Linter: 195→59 warnings.
 
-Edge function `supabase/functions/manage-access-password/index.ts` reinforced. AES-GCM kept (team needs to read passwords) but with hard guardrails:
+### 2026-04-21 — Auditoria 2 (Security & RLS)
+- Portal anon access removed; reads via SECURITY DEFINER RPCs (`get_portal_*`, `portal_*` writes).
+- `client_portals.last_visit_at` only via `portal_record_visit` RPC.
 
-1. **Role gate**: requires `has_role(uid, 'owner'|'admin'|'manager')`. Otherwise 403 + audit `denied`.
-2. **Audit table** `public.access_password_audit` (id, user_id, action[read|write|rotate|denied], access_id, ip, user_agent, reason, created_at). RLS: only owners SELECT. Inserts only via service role from edge function.
-3. **Rate limit**: 20 calls/h per user_id (counted via audit table). Excess → 429.
-4. **Failure block**: 5 `denied` entries in last 30 min → 403 for 30 min.
-5. **Encryption key**: only from `ACCESS_ENCRYPTION_KEY` secret. Removed legacy `system_config` fallback.
-6. **CORS**: `ALLOWED_ORIGIN` secret (production) + dynamic match for `*.lovable.app` (preview).
-7. **JWT verification**: `[functions.manage-access-password] verify_jwt = true` in `supabase/config.toml`.
+### 2026-04-20 — manage-access-password edge function
+AES-GCM with role gate (owner/admin/manager → 403), audit table, rate limit (20/h), failure block (5 denied/30min → block), `ACCESS_ENCRYPTION_KEY` only, CORS via `ALLOWED_ORIGIN`, JWT verify_jwt=true.
 
-Secrets used: `ACCESS_ENCRYPTION_KEY`, `ALLOWED_ORIGIN`.
+### 2026-03-29 — Cron auth guards + query safety
+- 7 cron edge functions: service-role auth check.
+- ~18 `.single()` → `.maybeSingle()` conversions.
+- 25 indexes on hot columns.
 
-## Fixes Applied (2026-04-21) — Critical RLS hardening
+### 2026-03-25 — Initial RLS hardening
+23 tables: `ALL USING (true)` → owner-only mutations + authenticated read.
 
-1. **Portal anon access locked behind token RPCs.** Dropped anon `SELECT/INSERT/UPDATE` policies on
-   `portal_initial_questions`, `portal_monthly_summaries`, `portal_timeline_phases`,
-   `portal_project_history`, `portal_materials`, `portal_faqs`, `portal_comments`, `portal_feedback`.
-   Created SECURITY DEFINER token-gated RPCs:
-   - Reads: `get_portal_initial_questions`, `get_portal_monthly_summaries`, `get_portal_timeline_phases`,
-     `get_portal_materials`, `get_portal_faqs`, `get_portal_comments`, `get_portal_feedback`
-   - Writes: `portal_answer_initial_question`, `portal_add_comment`, `portal_submit_feedback`
-   `PortalView.tsx` updated to use the RPCs only. Authenticated team-side queries continue via direct table access.
-
-2. **client_portals anon UPDATE removed.** `last_visit_at` updates only via `portal_record_visit` RPC.
-
-3. **member_sensitive_access locked.** Dropped permissive USING(true) INSERT/UPDATE/DELETE policies; only
-   owner-role policies remain (privilege escalation closed).
-
-4. **Storage buckets `financial-files` and `library-files` set to private.** Public SELECT removed; only
-   authenticated users can read/write.
-
-## Remaining USING(true) tables (by design)
-Operational tables intentionally allow all authenticated members full CRUD — correct for single-tenant team app.
-
-## Fixes Applied (2026-04-21) — Auditoria 6 Fase A (Sensitive data lockdown)
-
-Restringido a Owner OU `current_user_has_sensitive_access('financial_values')`:
-- `financial_expenses` (SELECT/INSERT/UPDATE)
-- `financial_subscriptions` (SELECT/INSERT/UPDATE)
-- `financial_categories` (INSERT/DELETE; SELECT mantido para todos)
-- `financial_invoices` e `financial_revenues` (SELECT/INSERT/UPDATE/DELETE) — quando existirem
-
-Restringido a Owner OU próprio membro (`is_self_team_member`):
-- `feedback_sessions` (SELECT)
-- `performance_monthly` (SELECT)
-
-`client_contacts`: SELECT mantido para toda a equipa; INSERT/UPDATE/DELETE só Owner ou Admin.
-
-Tabelas já protegidas anteriormente (sem alteração): payroll, business_setup (sensitive fields), member_contracts, member_payments, suppliers, platform_accesses, team_members.
-
-## Fixes Applied (2026-04-21) — Auditoria 6 Fase B (USING true cleanup)
-
-Loop dinâmico: todas as policies INSERT/UPDATE/DELETE com `USING (true)` ou `WITH CHECK (true)` em ~95 tabelas operacionais foram substituídas por:
-- INSERT: `TO authenticated WITH CHECK (auth.uid() IS NOT NULL)`
-- UPDATE: `TO authenticated USING (auth.uid() IS NOT NULL) WITH CHECK (auth.uid() IS NOT NULL)`
-- DELETE: `TO authenticated USING (auth.uid() IS NOT NULL)`
-
-Comportamento para a equipa autenticada inalterado. Bloqueia escritas anónimas mesmo se a chave pública for exposta.
-Linter: 195 → 59 warnings.
-
-## Auditoria 6 Fase C — Extensões em public (2026-04-21)
-
-Apenas `pg_net` está em `public`. Mantida intencionalmente: é gerida pelo Supabase e usada por
-funcionalidades internas (cron HTTP, webhooks). Mover para schema `extensions` pode partir essas
-integrações. Decisão: aceitar o warning do linter para esta extensão específica.
-
-## Auditoria 6 — Limpeza final (2026-04-21)
-
-Os 59 warnings restantes (`SUPA_rls_policy_always_true` + `SUPA_extension_in_public`) já estavam
-ignorados formalmente no scanner desde 2026-04-14 com justificações registadas:
-- RLS true: arquitectura single-tenant, escritas operacionais para toda a equipa autenticada são intencionais
-- Extension in public: `pg_net` gerido pela plataforma Supabase
-
-Não foi adicionada lógica `has_role` redundante porque introduziria overhead sem ganho real
-(qualquer utilizador autenticado já tem role `member`/`owner`).
-
-## Fixes Applied (2026-04-21) — Auditoria 2 (Security & RLS)
-
-Resolved all 12 actionable findings from the Lovable security scan:
-
-1. **client_portals**: Removed anon SELECT policies (`Portal publicly readable by token`, `Anon can view portal by token or slug`). Anon access now exclusively via SECURITY DEFINER RPCs.
-2. **platform_accesses**: SELECT restricted to `owner` OR `admin`. Other team members must use `manage-access-password` edge function.
-3. **financial_payroll**: SELECT/INSERT/UPDATE restricted to `owner` only.
-4. **team_members**: UPDATE restricted to `owner` OR own profile_id (each member edits only themselves; owner edits all). SELECT remains team-wide for directory.
-5. **business_setup**: SELECT restricted to `owner`.
-6. **member_contracts** + **member_payments**: SELECT restricted to `owner`.
-7. **portal_visits**: anon INSERT now requires `portal_id` to belong to an active portal (WITH CHECK against client_portals.is_active).
-8. **product_onboarding_templates**: SELECT moved from `public` to `authenticated`.
-9. **suppliers**: SELECT for all authenticated; INSERT/UPDATE/DELETE restricted to `owner` OR `admin`.
-10. **storage.objects (portal-uploads)**: Dropped anonymous upload policy. Authenticated upload + public SELECT remain.
-
-Note: app_role enum has only `owner`, `admin`, `member` — no `manager` role.
-
-### Refinement after impact analysis
-
-Initial Owner-only locks broke widgets (WeeklyAlign, Secretaria → Contrato, payment methods).
-Final policies:
-- `business_setup` SELECT: any authenticated user (needed for `payment_methods` everywhere). Sensitive fields gated client-side via `useSensitiveAccess`.
-- `financial_payroll` SELECT: Owner OR `current_user_has_sensitive_access('payroll'|'financial_values')`. Writes Owner-only.
-- `member_contracts` SELECT: Owner OR sensitive `contracts`/`payroll` OR `is_self_team_member(member_id)`.
-- `member_payments` SELECT: Owner OR sensitive `payroll` OR `is_self_team_member(member_id)`.
-
-New SECURITY DEFINER helpers:
-- `current_user_has_sensitive_access(_category text)` — checks `member_sensitive_access`.
-- `is_self_team_member(_member_id uuid)` — checks if calling user owns that team_members row.
+## Helper functions (SECURITY DEFINER, search_path=public)
+- `has_role(_user_id, _role)` — check role.
+- `current_user_has_sensitive_access(_category)` — check `member_sensitive_access`.
+- `is_self_team_member(_member_id)` — own team_members row.
+- `portal_token_active(_token)` — active portal token check.
