@@ -284,7 +284,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
           .from('tasks')
           .select('id, name')
           .in('name', taskNames)
-          .eq('status', 'concluida');
+          .eq('status', 'done');
 
         if (historicalTasks?.length) {
           const taskIds = historicalTasks.map(t => t.id);
