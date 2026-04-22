@@ -440,54 +440,76 @@ export default function OperacaoPage() {
   );
 
   // ── À espera do cliente ─────────────────────────────────────
-  // Agrega tarefas em "Aguarda Feedback"/"Para Aprovação" + entregas do cliente em atraso
-  const awaitingClient = useMemo(() => {
-    const AWAIT_TASK_STATUSES = ['aguarda_feedback', 'para_aprovacao', 'aguarda_cliente'];
-    type Item = {
-      id: string;
-      name: string;
-      kind: 'task' | 'deliverable';
-      since?: string | null; // updated_at ou planned_end
-      projectId: string | null;
-      projectName: string;
-      daysWaiting: number;
-    };
-    const items: Item[] = [];
+  // Entregas com responsável = cliente ainda em aberto + tarefas em "Aguarda feedback cliente"
+  type WaitItem = {
+    id: string;
+    name: string;
+    kind: 'task' | 'deliverable';
+    projectId: string | null;
+    projectName: string;
+    daysWaiting: number;
+    overdue: boolean;
+  };
+  const awaitingClient = useMemo<WaitItem[]>(() => {
+    const items: WaitItem[] = [];
 
     tasks.forEach(t => {
-      if (!AWAIT_TASK_STATUSES.includes(t.status)) return;
+      if (t.status !== 'aguarda_feedback') return;
       const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
       const ref = t.deadline ? new Date(t.deadline) : today;
+      const days = differenceInDays(today, ref);
       items.push({
         id: t.id,
         name: t.name,
         kind: 'task',
-        since: t.deadline,
         projectId: t.project_id,
         projectName: proj?.name || '',
-        daysWaiting: Math.max(0, differenceInDays(today, ref)),
+        daysWaiting: Math.max(0, days),
+        overdue: days > 0,
       });
     });
 
     deliverables.forEach(d => {
       if (d.responsible_type !== 'cliente') return;
-      if (!d.deadline) return;
-      if (!isBefore(new Date(d.deadline), today)) return;
       if (d.status === 'entregue' || d.status === 'concluido') return;
       const proj = allActiveProjects.find(p => p.id === d.project_id);
+      const ref = d.deadline ? new Date(d.deadline) : null;
+      const days = ref ? differenceInDays(today, ref) : 0;
       items.push({
         id: d.id,
         name: d.name,
         kind: 'deliverable',
-        since: d.deadline,
         projectId: d.project_id,
         projectName: proj?.name || '',
-        daysWaiting: differenceInDays(today, new Date(d.deadline)),
+        daysWaiting: Math.max(0, days),
+        overdue: ref ? isBefore(ref, today) : false,
       });
     });
 
-    return items.sort((a, b) => b.daysWaiting - a.daysWaiting);
+    return items.sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.daysWaiting - a.daysWaiting);
   }, [tasks, deliverables, allActiveProjects, today]);
+
+  // ── Em aprovação interna ────────────────────────────────────
+  // Tarefas em "Para aprovação" — aguardam validação do responsável interno
+  const pendingInternalApproval = useMemo<WaitItem[]>(() => {
+    return tasks
+      .filter(t => t.status === 'para_aprovacao')
+      .map(t => {
+        const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
+        const ref = t.deadline ? new Date(t.deadline) : today;
+        const days = differenceInDays(today, ref);
+        return {
+          id: t.id,
+          name: t.name,
+          kind: 'task' as const,
+          projectId: t.project_id,
+          projectName: proj?.name || '',
+          daysWaiting: Math.max(0, days),
+          overdue: days > 0,
+        };
+      })
+      .sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.daysWaiting - a.daysWaiting);
+  }, [tasks, allActiveProjects, today]);
 
   // ── Countdown — next delivery (tasks + meetings + project deadlines) ──
   const nextDelivery = useMemo(() => {
@@ -666,75 +688,109 @@ export default function OperacaoPage() {
           </Card>
         )}
 
-        {/* À espera do cliente */}
-        {awaitingClient.length > 0 && (
-          <Card className="border border-info/30 bg-info/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Hourglass className="h-4 w-4 text-info" />
-                <h3 className="text-sm font-semibold text-info">À espera do cliente</h3>
-                <Badge variant="outline" className="bg-info/15 text-info border-info/30 text-[10px]">
-                  {awaitingClient.length}
+        {/* Bloqueios — espera externa (cliente) e aprovação interna */}
+        {(awaitingClient.length > 0 || pendingInternalApproval.length > 0) && (() => {
+          const renderItem = (item: WaitItem) => {
+            const inner = (
+              <>
+                <span className="shrink-0">
+                  {item.kind === 'task' ? (
+                    <Clock className="h-3.5 w-3.5 text-info" />
+                  ) : (
+                    <AlertTriangle className="h-3.5 w-3.5 text-warning" />
+                  )}
+                </span>
+                <span className="flex-1 truncate">
+                  <span className="font-medium">{item.name}</span>
+                  {item.projectName && (
+                    <span className="text-muted-foreground"> · {item.projectName}</span>
+                  )}
+                </span>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-[10px] shrink-0',
+                    !item.overdue
+                      ? 'border-muted text-muted-foreground'
+                      : item.daysWaiting > 7
+                      ? 'border-destructive/40 text-destructive'
+                      : 'border-warning/40 text-warning'
+                  )}
+                >
+                  {item.overdue ? `${item.daysWaiting}d atraso` : 'no prazo'}
                 </Badge>
-              </div>
-              <div className="space-y-1">
-                {awaitingClient.slice(0, 8).map(item => {
-                  const inner = (
-                    <>
-                      <span className="shrink-0">
-                        {item.kind === 'task' ? (
-                          <Clock className="h-3.5 w-3.5 text-info" />
-                        ) : (
-                          <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-                        )}
-                      </span>
-                      <span className="flex-1 truncate">
-                        <span className="font-medium">{item.name}</span>
-                        {item.projectName && (
-                          <span className="text-muted-foreground"> · {item.projectName}</span>
-                        )}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          'text-[10px] shrink-0',
-                          item.daysWaiting > 7
-                            ? 'border-destructive/40 text-destructive'
-                            : 'border-warning/40 text-warning'
-                        )}
-                      >
-                        {item.daysWaiting === 0 ? 'hoje' : `${item.daysWaiting}d`}
+              </>
+            );
+            const cls =
+              'flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors text-sm w-full text-left';
+            if (item.kind === 'task') {
+              return (
+                <button key={item.id} type="button" onClick={() => setTaskDetailId(item.id)} className={cls}>
+                  {inner}
+                </button>
+              );
+            }
+            return (
+              <Link key={item.id} to={item.projectId ? `/hub/projetos/${item.projectId}` : '/hub/operacao'} className={cls}>
+                {inner}
+              </Link>
+            );
+          };
+
+          return (
+            <div className="grid gap-4 md:grid-cols-2">
+              {awaitingClient.length > 0 && (
+                <Card className="border border-info/30 bg-info/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Hourglass className="h-4 w-4 text-info" />
+                      <h3 className="text-sm font-semibold text-info">À espera do cliente</h3>
+                      <Badge variant="outline" className="bg-info/15 text-info border-info/30 text-[10px]">
+                        {awaitingClient.length}
                       </Badge>
-                    </>
-                  );
-                  const className =
-                    'flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors text-sm w-full text-left';
-                  if (item.kind === 'task') {
-                    return (
-                      <button key={item.id} type="button" onClick={() => setTaskDetailId(item.id)} className={className}>
-                        {inner}
-                      </button>
-                    );
-                  }
-                  return (
-                    <Link
-                      key={item.id}
-                      to={item.projectId ? `/hub/projetos/${item.projectId}` : '/hub/operacao'}
-                      className={className}
-                    >
-                      {inner}
-                    </Link>
-                  );
-                })}
-                {awaitingClient.length > 8 && (
-                  <p className="text-[11px] text-muted-foreground pt-1 px-2">
-                    + {awaitingClient.length - 8} a aguardar resposta do cliente
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mb-2">
+                      Entregas do cliente em aberto e tarefas a aguardar feedback.
+                    </p>
+                    <div className="space-y-1">
+                      {awaitingClient.slice(0, 8).map(renderItem)}
+                      {awaitingClient.length > 8 && (
+                        <p className="text-[11px] text-muted-foreground pt-1 px-2">
+                          + {awaitingClient.length - 8} a aguardar resposta do cliente
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {pendingInternalApproval.length > 0 && (
+                <Card className="border border-primary/30 bg-primary/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      <h3 className="text-sm font-semibold text-primary">Em aprovação interna</h3>
+                      <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30 text-[10px]">
+                        {pendingInternalApproval.length}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mb-2">
+                      Tarefas concluídas que aguardam validação do responsável.
+                    </p>
+                    <div className="space-y-1">
+                      {pendingInternalApproval.slice(0, 8).map(renderItem)}
+                      {pendingInternalApproval.length > 8 && (
+                        <p className="text-[11px] text-muted-foreground pt-1 px-2">
+                          + {pendingInternalApproval.length - 8} por aprovar
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Task detail dialog */}
         <Dialog open={!!taskDetailId} onOpenChange={open => !open && setTaskDetailId(null)}>
