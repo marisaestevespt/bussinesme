@@ -1184,36 +1184,16 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     [deadlineCompletions],
   );
 
-  // Annual checks (e.g. IRS): a single tick covers the whole year.
-  // We look across the entire year for the irs_start key.
-  const { data: annualChecks = [] } = useQuery({
-    queryKey: ['fiscal-checks-annual', year],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('fiscal_monthly_checks')
-        .select('*')
-        .eq('year', year)
-        .in('check_key', ['irs_start']);
-      return data || [];
-    },
-  });
-
-  const irsDoneAnnual = useMemo(
-    () => annualChecks.some((c: any) => c.check_key === 'irs_start' && c.checked),
-    [annualChecks],
-  );
-
   const checkedMap = useMemo(() => {
     const map: Record<string, boolean> = {};
     checks.forEach((c: any) => { map[c.check_key] = c.checked; });
-    if (irsDoneAnnual) map['irs_start'] = true;
     // Layer in SS/IVA from fiscal_deadline_completions
     checkItems.forEach(item => {
       const dk = toDeadlineKey(item.key);
       if (dk && completedDeadlineKeys.has(dk)) map[item.key] = true;
     });
     return map;
-  }, [checks, irsDoneAnnual, checkItems, completedDeadlineKeys, month, year]);
+  }, [checks, checkItems, completedDeadlineKeys, month, year]);
 
   const toggleCheck = useMutation({
     mutationFn: async ({ key, checked }: { key: string; checked: boolean }) => {
@@ -1230,45 +1210,21 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
         }
         return;
       }
-      // IRS is a single annual obligation — store both "start" and "deadline" under irs_start.
-      const storageKey = key === 'irs_deadline' ? 'irs_start' : key;
-      const existing = checks.find((c: any) => c.check_key === storageKey)
-        || (storageKey === 'irs_start' ? annualChecks.find((c: any) => c.check_key === 'irs_start') : undefined);
+      // Local-only checks (e.g. bank_statement)
+      const existing = checks.find((c: any) => c.check_key === key);
       if (existing) {
         await supabase.from('fiscal_monthly_checks').update({ checked, checked_at: checked ? new Date().toISOString() : null }).eq('id', (existing as any).id);
       } else {
-        await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: storageKey, checked, checked_at: checked ? new Date().toISOString() : null });
+        await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: key, checked, checked_at: checked ? new Date().toISOString() : null });
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['fiscal-checks', year, month] });
-      qc.invalidateQueries({ queryKey: ['fiscal-checks-annual', year] });
       qc.invalidateQueries({ queryKey: ['fiscal-deadline-completions', year] });
-      qc.invalidateQueries({ queryKey: ['fiscal-monthly-checks-irs', year] });
     },
   });
 
-  // IRS is a single annual obligation:
-  //   - Show only "Entrega" in April (when submission opens).
-  //   - In May/June, only show "Prazo final" if it wasn't marked done yet.
-  //   - Once marked (in any month of the year), the entry disappears for the whole year.
-  const visibleCheckItems = useMemo(() => {
-    return checkItems.filter(item => {
-      if (item.key === 'irs_start') {
-        // April: always show (checked or not) so user can see/toggle the tick.
-        // May/June: only show if not yet done (acts as pending reminder).
-        if (month === 4) return true;
-        if (month >= 5 && month <= 6) return !irsDoneAnnual;
-        return false;
-      }
-      if (item.key === 'irs_deadline') {
-        // Deadline item is redundant with irs_start — never show standalone
-        // (we keep it in checkItems only for legacy storage compatibility).
-        return false;
-      }
-      return true;
-    });
-  }, [checkItems, irsDoneAnnual, month]);
+  const visibleCheckItems = checkItems;
 
   if (visibleCheckItems.length === 0) return null;
 
