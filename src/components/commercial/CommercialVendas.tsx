@@ -15,6 +15,7 @@ import { SaleFormDialog } from './SaleFormDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { EntryStatusSelect } from '@/components/financial/InlineStatusSelect';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];

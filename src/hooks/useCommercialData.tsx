@@ -6,6 +6,7 @@ import { excludeCancelled, cleanPayload } from '@/lib/utils';
 import { toast } from 'sonner';
 import { resolveProductId } from '@/lib/productResolver';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { sumRevenue, saleRevenue } from '@/lib/salesCalculations';
 
 type CommercialSale = Tables<'commercial_sales'>;
 type AnnualGoal = Tables<'commercial_annual_goals'>;

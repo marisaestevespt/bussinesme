@@ -38,6 +38,7 @@ import { CustomFieldsSection } from '@/components/CustomFieldsSection';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog';
 import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 // ─── Client Financial Health Card ────────────────────────────────
 function ClientFinancialHealthCard({ clientName }: { clientName: string }) {

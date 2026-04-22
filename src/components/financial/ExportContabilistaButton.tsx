@@ -11,6 +11,7 @@ import { excludeCancelled } from '@/lib/utils';
 import { exportPdf } from '@/lib/exportPdf';
 import { exportContabilistaExcel, getMonthLabel } from '@/lib/exportContabilista';
 import { toast } from 'sonner';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };

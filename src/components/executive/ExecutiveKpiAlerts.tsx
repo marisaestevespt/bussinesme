@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const now = new Date();
 const currentMonth = now.getMonth() + 1;

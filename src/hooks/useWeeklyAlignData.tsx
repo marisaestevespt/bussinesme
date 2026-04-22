@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, addWeeks, addDays, subDays, startOfMonth, endOfMonth, differenceInDays, parseISO } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const STALE = 2 * 60 * 1000;
 

@@ -115,6 +115,7 @@ export function SemesterGallery({ planning, year }: Props) {
 // Import QuarterDetail indirectly: when user clicks a quarter card we render it inline
 // We import the full gallery and extract the detail via a wrapper
 import { QuarterlyGallery } from './QuarterlyGallery';
+import { sumRevenue, saleRevenue } from '@/lib/salesCalculations';
 
 function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: number; planning: any; onBack: () => void }) {
   const qcClient = useQueryClient();

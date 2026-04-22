@@ -27,6 +27,7 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData } from '@/hooks/useCrmData';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 

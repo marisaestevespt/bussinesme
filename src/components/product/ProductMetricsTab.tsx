@@ -12,6 +12,7 @@ import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus, ChevronRight } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 

@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { Gift, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { sumRevenue, saleRevenue } from '@/lib/salesCalculations';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

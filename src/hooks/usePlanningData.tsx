@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 // cleanPayload imported from utils — aliased as `clean` for minimal diff
 import { cleanPayload as clean } from '@/lib/utils';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const currentYear = new Date().getFullYear();
 

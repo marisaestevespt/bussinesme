@@ -16,6 +16,7 @@ import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 interface Props {
   projectId: string;
