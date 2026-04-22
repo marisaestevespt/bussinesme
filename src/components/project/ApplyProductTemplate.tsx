@@ -343,7 +343,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             estimated_time: estimatedTime,
             notes: t.notes || null,
             deadline,
-            status: 'pendente',
+            status: 'por_comecar',
           })
           .select('id')
           .single();
@@ -388,7 +388,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             estimated_time: estimatedTime,
             notes: t.notes || null,
             deadline,
-            status: 'pendente',
+            status: 'por_comecar',
           });
 
         if (error) throw error;

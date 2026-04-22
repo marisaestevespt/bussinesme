@@ -112,7 +112,7 @@ export function CreateTasksFromMeetingDialog({
         project_id: d.projectId || null,
         notes: `Criada a partir da reunião: ${meetingTitle}`,
         created_by: user?.id || null,
-        status: 'pendente',
+        status: 'por_comecar',
       }));
       const { error } = await supabase.from('tasks').insert(rows);
       if (error) throw error;

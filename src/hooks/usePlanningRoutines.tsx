@@ -99,7 +99,7 @@ export async function generateTasksForRoutine(
 
   const tasks: TablesInsert<'tasks'>[] = dates.map(d => ({
     name: routine.title,
-    status: 'pendente',
+    status: 'por_comecar',
     priority: 'media',
     deadline: d,
     assigned_to: routine.responsible,
