@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
 import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
 import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { renewalUrgency } from '@/lib/clientLifecycle';
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   em_onboarding: { label: 'Em onboarding', className: 'bg-info/10 text-info' },
@@ -22,10 +23,10 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
 function EndOfCycleBadge({ date }: { date: string | null }) {
   if (!date) return <span className="text-muted-foreground">—</span>;
   const d = parseISO(date);
-  const days = differenceInDays(d, new Date());
   const label = format(d, 'dd/MM/yyyy');
-  if (days < 0) return <Badge variant="outline" className="bg-destructive/10 text-destructive">{label}</Badge>;
-  if (days <= 30) return <Badge variant="outline" className="bg-warning/10 text-warning">{label}</Badge>;
+  const urgency = renewalUrgency({ end_of_cycle: date });
+  if (urgency === 'expired') return <Badge variant="outline" className="bg-destructive/10 text-destructive">{label}</Badge>;
+  if (urgency === 'urgent' || urgency === 'soon') return <Badge variant="outline" className="bg-warning/10 text-warning">{label}</Badge>;
   return <span>{label}</span>;
 }
 

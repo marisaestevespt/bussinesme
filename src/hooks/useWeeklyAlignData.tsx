@@ -5,6 +5,7 @@ import { startOfWeek, endOfWeek, format, addWeeks, addDays, subDays, startOfMont
 import { useTeamData } from '@/hooks/useTeamData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone } from '@/lib/taskStatus';
+import { isUpcomingRenewal } from '@/lib/clientLifecycle';
 
 const STALE = 2 * 60 * 1000;
 
@@ -157,7 +158,7 @@ export function useWeeklyAlignData(weekOffset: number) {
 
   const followUps = useMemo(() => (gl?.leads || []).filter((l: any) => l.next_followup && l.next_followup <= todayStr), [gl?.leads, todayStr]);
   const onboardingClients = useMemo(() => (gl?.clients || []).filter((c: any) => c.start_date && c.start_date >= thirtyDaysAgo), [gl?.clients, thirtyDaysAgo]);
-  const renewalClients = useMemo(() => (gl?.clients || []).filter((c: any) => c.end_of_cycle && c.end_of_cycle <= thirtyDaysAhead && c.end_of_cycle >= todayStr), [gl?.clients, thirtyDaysAhead, todayStr]);
+  const renewalClients = useMemo(() => (gl?.clients || []).filter((c: any) => isUpcomingRenewal(c, 30, now)), [gl?.clients, now]);
 
   const expiringContractsList = useMemo(() => {
     return (gl?.expiringContracts || []).map((c: any) => ({
