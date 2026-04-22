@@ -183,6 +183,15 @@ function PriorityDot({ priority }: { priority: string }) {
   return <span className={`inline-block h-2 w-2 rounded-full ${colors[priority] || 'bg-muted'}`} />;
 }
 
+const TASK_STATUS_META: Record<string, { label: string; color: string }> = {
+  por_comecar: { label: 'Por começar', color: 'bg-muted text-muted-foreground' },
+  a_fazer: { label: 'A fazer', color: 'bg-info/15 text-info border-info/30' },
+  aguarda_feedback: { label: 'Aguarda feedback cliente', color: 'bg-warning/15 text-warning border-warning/30' },
+  para_aprovacao: { label: 'Para aprovação', color: 'bg-primary/15 text-primary border-primary/30' },
+  precisa_alteracoes: { label: 'Precisa de alterações', color: 'bg-warning/20 text-warning border-warning/40' },
+  done: { label: 'Feito', color: 'bg-success/15 text-success border-success/30' },
+};
+
 function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
   let result = tasks;
   const today = startOfToday();
@@ -1100,10 +1109,67 @@ export default function OperacaoPage() {
                   <TaskDynamicFilters filters={clientFilters} onChange={setClientFilters} profiles={profiles} projects={clientProjectOptions} />
                 </div>
               </CardHeader>
-              <CardContent className="pt-0 space-y-0.5 max-h-[400px] overflow-y-auto">
+              <CardContent className="pt-0 max-h-[400px] overflow-y-auto">
                 {filteredClientTasks.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
-                ) : filteredClientTasks.map(t => renderTaskRow(t))}
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[180px]">Status</TableHead>
+                        <TableHead>Nome da tarefa</TableHead>
+                        <TableHead className="w-[160px]">Responsável</TableHead>
+                        <TableHead className="w-[160px]">Projeto</TableHead>
+                        <TableHead className="w-[90px]">Data</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredClientTasks.map(t => {
+                        const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
+                        const projName = t.project_id ? projectNameMap.get(t.project_id) : null;
+                        const statusMeta = TASK_STATUS_META[t.status as keyof typeof TASK_STATUS_META] ?? { label: t.status, color: 'bg-muted text-muted-foreground' };
+                        return (
+                          <TableRow
+                            key={t.id}
+                            onClick={() => setTaskDetailId(t.id)}
+                            className="cursor-pointer"
+                          >
+                            <TableCell>
+                              <Badge variant="outline" className={cn('text-[10px] font-normal', statusMeta.color)}>
+                                {statusMeta.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <PriorityDot priority={t.priority} />
+                                <span className="truncate">{t.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {assignee ? (
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Avatar className="h-5 w-5 shrink-0">
+                                    <AvatarImage src={getPhotoUrl(assignee)} />
+                                    <AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="truncate text-xs">{assignee.full_name}</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground truncate max-w-[160px]">
+                              {projName ?? '—'}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                              {t.deadline ? format(new Date(t.deadline), 'dd/MM') : '—'}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
 
