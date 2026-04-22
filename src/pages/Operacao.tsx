@@ -484,7 +484,7 @@ export default function OperacaoPage() {
 
     deliverables.forEach(d => {
       if (d.responsible_type !== 'cliente') return;
-      if (d.status === 'entregue' || d.status === 'concluido') return;
+      if (isDeliverableDone(d)) return;
       const proj = allActiveProjects.find(p => p.id === d.project_id);
       const ref = d.deadline ? new Date(d.deadline) : null;
       const days = ref ? differenceInDays(today, ref) : 0;
