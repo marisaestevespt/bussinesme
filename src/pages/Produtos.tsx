@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Plus, LayoutGrid, List, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, Product } from '@/hooks/useProducts';
+import { DepartmentLinks } from '@/components/shared/DepartmentLinks';
 
 const STATUS_BADGE: Record<string, { label: string; className: string; icon: any }> = {
   em_ideia: { label: 'Em Ideia', className: 'bg-muted text-muted-foreground', icon: Lightbulb },
@@ -71,6 +72,8 @@ export default function ProdutosPage() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Produtos" subtitle="Catálogo de produtos, escada de valor e entregas." />
+
+        <DepartmentLinks department="produtos" />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

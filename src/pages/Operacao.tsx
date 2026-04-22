@@ -21,6 +21,7 @@ import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWee
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
+import { DepartmentLinks } from '@/components/shared/DepartmentLinks';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -530,6 +531,8 @@ export default function OperacaoPage() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Operação" subtitle="Vista operacional de projetos de clientes e internos" />
+
+        <DepartmentLinks department="operacao" />
 
         <OperacaoKpis
           allActiveCount={allActiveProjects.length}

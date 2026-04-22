@@ -2948,6 +2948,42 @@ export type Database = {
         }
         Relationships: []
       }
+      department_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department: string
+          id: string
+          label: string | null
+          link_type: string
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department: string
+          id?: string
+          label?: string | null
+          link_type: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department?: string
+          id?: string
+          label?: string | null
+          link_type?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       department_whatsapp_links: {
         Row: {
           department: string

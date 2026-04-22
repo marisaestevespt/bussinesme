@@ -20,6 +20,7 @@ import {
   Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3, Users,
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon, Loader2,
 } from 'lucide-react';
+import { DepartmentLinks } from '@/components/shared/DepartmentLinks';
 
 const CHANNEL_IMAGES: Record<string, string> = {};
 const channelImageModules = import.meta.glob('/src/assets/channels/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
@@ -167,6 +168,8 @@ export default function MarketingDashboard() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Marketing e Branding" subtitle="Estratégia de marketing, conteúdo e canais de comunicação." />
+
+        <DepartmentLinks department="marketing" />
 
         <div className="space-y-6">
 
