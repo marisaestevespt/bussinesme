@@ -91,6 +91,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const [addingPhase, setAddingPhase] = useState(false);
   const [addingDelPhase, setAddingDelPhase] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
+  const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
   const [cascadePrompt, setCascadePrompt] = useState<{
     delayDays: number;
     phaseId: string;
