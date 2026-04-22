@@ -110,7 +110,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'pendente', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
+    setExpForm({ status: 'pendente', category: 'outro', vat_rate: ivaExempt ? 0 : 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
     setExpOpen(true);
   };
 
@@ -130,9 +130,14 @@ export function FinSaidas({ fin, currentYear }: Props) {
 
   const saveExpense = async () => {
     const inputValue = parseFloat(expForm.base_value) || 0;
-    const vat = parseFloat(expForm.vat_rate) || 0;
+    // When IVA-exempt, the user pays the gross amount and cannot deduct IVA → store base = total
+    const vat = ivaExempt ? 0 : (parseFloat(expForm.vat_rate) || 0);
     let base: number, total: number;
-    if (expForm.includes_vat) {
+    if (ivaExempt) {
+      // Treat the entered value as the real cost (with IVA included as cost)
+      base = inputValue;
+      total = inputValue;
+    } else if (expForm.includes_vat) {
       total = inputValue;
       base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
     } else {
