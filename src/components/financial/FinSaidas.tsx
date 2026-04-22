@@ -29,8 +29,7 @@ import { exportPdf } from '@/lib/exportPdf';
 import { TableSkeleton, EmptyState } from '@/components/ui/loading-skeletons';
 import { Receipt } from 'lucide-react';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
-import { useQueryClient } from '@tanstack/react-query';
-import { Pencil } from 'lucide-react';
+import { VatDeductibleCell } from './VatDeductibleCell';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
