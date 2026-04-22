@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck, Pencil } from 'lucide-react';
+import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -29,6 +29,8 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
 import { getAutoExpenseStatus } from '@/lib/expenseStatus';
 import { ExportContabilistaButton } from './ExportContabilistaButton';
+import { VatDeductibleCell } from './VatDeductibleCell';
+import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/lib/vatCalculations';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
