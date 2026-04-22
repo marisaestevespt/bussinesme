@@ -672,6 +672,7 @@ export type Database = {
           id: string
           morada_fiscal: string
           nif: string
+          niss: string | null
           notas: string
           payment_methods: Json | null
           regime_fiscal: string
@@ -695,6 +696,7 @@ export type Database = {
           id?: string
           morada_fiscal?: string
           nif?: string
+          niss?: string | null
           notas?: string
           payment_methods?: Json | null
           regime_fiscal?: string
@@ -718,6 +720,7 @@ export type Database = {
           id?: string
           morada_fiscal?: string
           nif?: string
+          niss?: string | null
           notas?: string
           payment_methods?: Json | null
           regime_fiscal?: string

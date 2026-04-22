@@ -1,0 +1,1 @@
+ALTER TABLE public.business_setup ADD COLUMN IF NOT EXISTS niss TEXT DEFAULT '';
