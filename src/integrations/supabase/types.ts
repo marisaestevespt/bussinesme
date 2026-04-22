@@ -2133,6 +2133,7 @@ export type Database = {
       }
       content_items: {
         Row: {
+          account_id: string | null
           assigned_to: string | null
           body_template: Json | null
           content_type: string | null
@@ -2154,6 +2155,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
           assigned_to?: string | null
           body_template?: Json | null
           content_type?: string | null
@@ -2175,6 +2177,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
           assigned_to?: string | null
           body_template?: Json | null
           content_type?: string | null
@@ -2196,6 +2199,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "content_items_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channel_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "content_items_assigned_to_fkey"
             columns: ["assigned_to"]
@@ -4584,6 +4594,47 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_channel_accounts: {
+        Row: {
+          channel_id: string
+          created_at: string
+          handle: string
+          id: string
+          label: string | null
+          sort_order: number
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          handle: string
+          id?: string
+          label?: string | null
+          sort_order?: number
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          handle?: string
+          id?: string
+          label?: string | null
+          sort_order?: number
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_channel_accounts_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
             referencedColumns: ["id"]
           },
         ]

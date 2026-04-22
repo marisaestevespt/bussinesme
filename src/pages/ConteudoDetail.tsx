@@ -41,6 +41,7 @@ export default function ConteudoDetailPage() {
     funnel_stage: '', content_type: '', format: '', objective: '',
     product_name: '', product_id: '', project_id: '', assigned_to: '', copy_content: '',
     body_template: null as Record<string, any> | null,
+    account_id: '' as string,
   });
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -61,6 +62,17 @@ export default function ConteudoDetailPage() {
     queryFn: async () => {
       const { data } = await supabase.from('marketing_channels').select('*').order('sort_order') as { data: MarketingChannel[] | null };
       return data || [];
+    },
+  });
+
+  const { data: channelAccounts = [] } = useQuery({
+    queryKey: ['marketing-channel-accounts-all'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('marketing_channel_accounts' as any)
+        .select('id, channel_id, handle, label')
+        .order('sort_order');
+      return (data || []) as unknown as Array<{ id: string; channel_id: string; handle: string; label: string | null }>;
     },
   });
 
@@ -116,6 +128,7 @@ export default function ConteudoDetailPage() {
         project_id: item.project_id || '',
         assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
         body_template: (item as any).body_template || null,
+        account_id: (item as any).account_id || '',
       });
     }
   }, [item]);
@@ -177,6 +190,7 @@ export default function ConteudoDetailPage() {
         assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
         cover_url: autoCover,
         body_template: form.body_template || null,
+        account_id: form.account_id || null,
       } as any).eq('id', id);
       if (updateErr) throw updateErr;
       await supabase.from('content_channels').delete().eq('content_id', id);
@@ -463,6 +477,26 @@ export default function ConteudoDetailPage() {
                       ))}
                     </div>
                   </Field>
+
+                  {(() => {
+                    const availableAccounts = channelAccounts.filter(a => selectedChannels.includes(a.channel_id));
+                    if (availableAccounts.length === 0) return null;
+                    return (
+                      <Field label="Conta">
+                        <Select value={form.account_id || 'none'} onValueChange={v => setForm(f => ({ ...f, account_id: v === 'none' ? '' : v }))}>
+                          <SelectTrigger className="h-9"><SelectValue placeholder="Sem conta específica" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Sem conta específica</SelectItem>
+                            {availableAccounts.map(acc => {
+                              const ch = channels.find(c => c.id === acc.channel_id);
+                              const label = `${ch?.name || ''} · ${acc.handle}${acc.label ? ` (${acc.label})` : ''}`;
+                              return <SelectItem key={acc.id} value={acc.id}>{label}</SelectItem>;
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                    );
+                  })()}
 
                   <Field label="Etapa de Funil">
                     <Select value={form.funnel_stage} onValueChange={v => setForm(f => ({ ...f, funnel_stage: v }))}>
