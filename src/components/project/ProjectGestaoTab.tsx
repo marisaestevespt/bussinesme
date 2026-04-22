@@ -724,7 +724,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <p className="text-center text-muted-foreground py-6 text-sm">Sem pagamentos associados</p>
           ) : (
             allSales.map((s: any) => {
-              const si = SALE_STATUSES[s.status] || { label: s.status, color: '' };
+              const si = getSaleStatusInfo(s.status);
               const methodLabel = PAYMENT_METHOD_OPTIONS.find(m => m.value === s.payment_method)?.label;
               return (
                 <div
