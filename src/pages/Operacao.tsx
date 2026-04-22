@@ -768,12 +768,12 @@ export default function OperacaoPage() {
                                   const assignee = item.assigneeId ? profileMap.get(item.assigneeId) : null;
                                   const href = item.type === 'meeting'
                                     ? `/hub/reunioes/${item.id}`
-                                    : item.projectId ? `/hub/projetos/${item.projectId}` : null;
+                                    : item.type === 'project' && item.projectId ? `/hub/projetos/${item.projectId}` : null;
                                   const className = `text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
                                     item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
                                     item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
                                     'bg-accent/20 text-accent-foreground'
-                                  } ${href ? 'hover:opacity-80 cursor-pointer transition-opacity' : ''}`;
+                                  } ${href || item.type === 'task' ? 'hover:opacity-80 cursor-pointer transition-opacity' : ''}`;
                                   const inner = (
                                     <>
                                       {item.type === 'meeting' && <span className="shrink-0 leading-none">📅</span>}
@@ -791,6 +791,19 @@ export default function OperacaoPage() {
                                       <Link key={i} to={href} className={className} title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}>
                                         {inner}
                                       </Link>
+                                    );
+                                  }
+                                  if (item.type === 'task') {
+                                    return (
+                                      <button
+                                        key={i}
+                                        type="button"
+                                        onClick={() => setTaskDetailId(item.id)}
+                                        className={className + ' w-full text-left'}
+                                        title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}
+                                      >
+                                        {inner}
+                                      </button>
                                     );
                                   }
                                   return (
