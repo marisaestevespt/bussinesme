@@ -466,6 +466,16 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                 );
               })}
             </TableBody>
+            {monthSales.length > 0 && (
+              <tfoot>
+                <TableRow className="border-t-2 bg-muted/40 font-semibold hover:bg-muted/40">
+                  <TableCell colSpan={5} className="text-right">Total</TableCell>
+                  <TableCell className="text-right">{fmt(totalBaseEntradas)}</TableCell>
+                  <TableCell className="text-right">{fmt(totalEntradas)}</TableCell>
+                  <TableCell />
+                </TableRow>
+              </tfoot>
+            )}
           </Table>
         </CardContent>
       </Card>
