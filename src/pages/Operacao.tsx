@@ -776,10 +776,9 @@ export default function OperacaoPage() {
                           <div
                             key={i}
                             className={`text-[11px] leading-snug px-2 py-1.5 rounded-md ${
-                              item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
                               item.type === 'meeting' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/20' :
                               item.type === 'project' ? 'bg-primary/10 text-primary font-medium' :
-                              'bg-muted text-muted-foreground'
+                              'bg-accent/15 text-accent-foreground'
                             }`}
                             title={item.name}
                           >
