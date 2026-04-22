@@ -22,6 +22,15 @@ export function ExportContabilistaButton({ year, month }: Props) {
   const fin = useFinancialData({ expenses: true, recurring: false, documents: true, payroll: true, contractors: true });
   const com = useCommercialData(year);
 
+  const { data: businessSetup } = useQuery({
+    queryKey: ['business-setup-export-contabilista'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup').select('*').limit(1).maybeSingle();
+      return data;
+    },
+  });
+  const business: any = { ...(businessSetup || {}), ...(settings || {}), ...(businessSetup || {}) };
+
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
   const documents = fin.documents.data || [];
@@ -78,7 +87,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
   }, [suppliersAll, monthExpenses]);
 
   const label = getMonthLabel(year, month);
-  const businessName = settings?.business_name || settings?.business_legal_name || 'Negócio';
+  const businessName = (settings as any)?.business_name || business?.business_legal_name || 'Negócio';
 
   const totalEnt = monthSales.reduce((s, v) => s + v.invoice_total, 0);
   const totalEntBase = monthSales.reduce((s, v) => s + (v.base_value || 0), 0);
@@ -90,7 +99,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
   const handleExcel = () => {
     exportContabilistaExcel({
       businessName, label, period: { year, month },
-      business: settings,
+      business,
       sales: monthSales, expenses: monthExpenses, documents: monthDocs,
       payroll: monthPayroll, contractors: monthContractors,
       clients: involvedClients, suppliers: involvedSuppliers,
@@ -127,7 +136,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
       <div id={exportId} className="hidden print:block text-xs">
         <h2 className="text-lg font-bold mb-1">{businessName}</h2>
         <p className="text-xs text-muted-foreground">
-          NIF: {settings?.nif || '—'} • Período: <strong>{label}</strong> • Exportado em {new Date().toLocaleDateString('pt-PT')}
+          NIF: {business?.nif || '—'} • Período: <strong>{label}</strong> • Exportado em {new Date().toLocaleDateString('pt-PT')}
         </p>
 
         {/* Resumo */}
@@ -143,11 +152,11 @@ export function ExportContabilistaButton({ year, month }: Props) {
         {/* Negócio */}
         <h3 className="font-semibold mt-3 mb-1">Dados do Negócio</h3>
         <table className="w-full mb-3"><tbody>
-          <tr><td><strong>NIF</strong></td><td>{settings?.nif || '—'}</td><td><strong>NISS</strong></td><td>{settings?.niss || '—'}</td></tr>
-          <tr><td><strong>CAE</strong></td><td>{settings?.cae_principal || '—'}</td><td><strong>Regime IVA</strong></td><td>{settings?.regime_iva || '—'}</td></tr>
-          <tr><td><strong>Regime Fiscal</strong></td><td>{settings?.regime_fiscal || '—'}</td><td><strong>CIRS</strong></td><td>{settings?.cirs_code || '—'}</td></tr>
-          <tr><td><strong>IBAN</strong></td><td colSpan={3}>{settings?.iban || '—'} ({settings?.banco || '—'})</td></tr>
-          <tr><td><strong>Morada</strong></td><td colSpan={3}>{settings?.morada_fiscal || '—'}</td></tr>
+          <tr><td><strong>NIF</strong></td><td>{business?.nif || '—'}</td><td><strong>NISS</strong></td><td>{business?.niss || '—'}</td></tr>
+          <tr><td><strong>CAE</strong></td><td>{business?.cae_principal || '—'}</td><td><strong>Regime IVA</strong></td><td>{business?.regime_iva || '—'}</td></tr>
+          <tr><td><strong>Regime Fiscal</strong></td><td>{business?.regime_fiscal || '—'}</td><td><strong>CIRS</strong></td><td>{business?.cirs_code || '—'}</td></tr>
+          <tr><td><strong>IBAN</strong></td><td colSpan={3}>{business?.iban || '—'} ({business?.banco || '—'})</td></tr>
+          <tr><td><strong>Morada</strong></td><td colSpan={3}>{business?.morada_fiscal || '—'}</td></tr>
         </tbody></table>
 
         {/* Vendas */}
