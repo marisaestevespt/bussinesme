@@ -512,7 +512,7 @@ export default function OperacaoPage() {
 
   // ── Delivery timeline (next 14 days) — includes deliverables ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'deliverable'; id: string }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] }[] = [];
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
