@@ -168,7 +168,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
             {TASK_STATUSES.map(s => (
               <SelectItem key={s.value} value={s.value}>
                 <div className="flex items-center gap-2">
-                  <div className={cn('h-2 w-2 rounded-full', s.value === 'done' ? 'bg-emerald-500' : s.value === 'em_progresso' ? 'bg-blue-500' : 'bg-gray-400')} />
+                  <div className={cn('h-2 w-2 rounded-full', s.value === 'done' ? 'bg-emerald-500' : s.value === 'a_fazer' ? 'bg-blue-500' : 'bg-gray-400')} />
                   {s.label}
                 </div>
               </SelectItem>
