@@ -179,11 +179,6 @@ export function ExportContabilistaButton({ year, month }: Props) {
             <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalSai + totalPay + totalCtr)}</div>
             <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>Despesas + Salários + Prestadores</div>
           </div>
-          <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #6366f1' }}>
-            <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>IVA a entregar</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt((totalEnt - totalEntBase) - (totalSai - totalSaiBase))}</div>
-            <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>Liquidado − dedutível</div>
-          </div>
           <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #0f172a' }}>
             <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>Resultado</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: totalEnt - totalSai - totalPay - totalCtr >= 0 ? '#10b981' : '#ef4444', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalEnt - totalSai - totalPay - totalCtr)}</div>
@@ -195,9 +190,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
         <h2>Resumo Financeiro</h2>
         <table className="pdf-summary-table">
           <tbody>
-            <tr><td>Total Entradas (c/IVA)</td><td className="text-right">{fmt(totalEnt)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalEntBase)}</td><td>IVA liquidado</td><td className="text-right">{fmt(totalEnt - totalEntBase)}</td></tr>
-            <tr><td>Total Saídas (c/IVA)</td><td className="text-right">{fmt(totalSai)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalSaiBase)}</td><td>IVA dedutível</td><td className="text-right">{fmt(totalSai - totalSaiBase)}</td></tr>
-            <tr><td>Salários (custo total)</td><td className="text-right">{fmt(totalPay)}</td><td>Prestadores</td><td className="text-right">{fmt(totalCtr)}</td><td>—</td><td></td></tr>
+            <tr><td>Total Entradas</td><td className="text-right">{fmt(totalEnt)}</td><td>Total Saídas</td><td className="text-right">{fmt(totalSai)}</td></tr>
+            <tr><td>Salários (custo total)</td><td className="text-right">{fmt(totalPay)}</td><td>Prestadores</td><td className="text-right">{fmt(totalCtr)}</td></tr>
           </tbody>
         </table>
 
