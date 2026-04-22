@@ -29,6 +29,7 @@ import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbse
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { weeklyHours as memberWeeklyHours } from '@/lib/memberCapacity';
 import { cn } from '@/lib/utils';
 import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';

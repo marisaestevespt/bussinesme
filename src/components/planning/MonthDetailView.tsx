@@ -29,6 +29,7 @@ import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData } from '@/hooks/useCrmData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
+import { monthlyCapacity } from '@/lib/memberCapacity';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
