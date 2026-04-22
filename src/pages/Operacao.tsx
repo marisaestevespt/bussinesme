@@ -756,35 +756,44 @@ export default function OperacaoPage() {
               {deliveryTimeline.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">Sem entregas nos próximos 14 dias 🎉</p>
               ) : (
-                <div className="flex gap-0 overflow-x-auto pb-2">
+                <div className="flex gap-3 overflow-x-auto pb-3 -mx-1 px-1">
                   {deliveryTimeline.map((day, idx) => (
-                    <div key={idx} className="flex flex-col items-center min-w-0 flex-1">
-                      {/* Connector line + dot */}
-                      <div className="flex items-center w-full">
-                        <div className={`h-0.5 flex-1 ${idx === 0 ? 'bg-transparent' : 'bg-border'}`} />
-                        <div className={`h-3 w-3 rounded-full shrink-0 border-2 ${
-                          isToday(day.date) ? 'bg-primary border-primary' : 
-                          day.items.some(i => i.type === 'project') ? 'bg-amber-500 border-amber-500' : 'bg-muted-foreground/40 border-muted-foreground/40'
-                        }`} />
-                        <div className={`h-0.5 flex-1 ${idx === deliveryTimeline.length - 1 ? 'bg-transparent' : 'bg-border'}`} />
+                    <div
+                      key={idx}
+                      className={`flex flex-col shrink-0 w-44 rounded-lg border ${
+                        isToday(day.date)
+                          ? 'border-primary/40 bg-primary/5'
+                          : 'border-border bg-card'
+                      }`}
+                    >
+                      <div className={`flex items-center justify-between px-2.5 py-1.5 border-b ${
+                        isToday(day.date) ? 'border-primary/30' : 'border-border'
+                      }`}>
+                        <span className={`text-xs font-semibold capitalize ${
+                          isToday(day.date) ? 'text-primary' : 'text-foreground'
+                        }`}>
+                          {day.label}
+                        </span>
+                        <Badge variant="outline" className="h-4 text-[9px] px-1.5">
+                          {day.items.length}
+                        </Badge>
                       </div>
-                      {/* Label */}
-                      <p className={`text-[10px] mt-1.5 font-medium capitalize ${isToday(day.date) ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {day.label}
-                      </p>
-                      {/* Items */}
-                      <div className="mt-1 space-y-0.5 w-full px-0.5">
-                        {day.items.slice(0, 3).map((item, i) => (
-                          <div key={i} className={`text-[9px] leading-tight px-1.5 py-1 rounded-md truncate text-center ${
-                            item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
-                            item.type === 'project' ? 'bg-primary/10 text-primary font-medium' : 'bg-muted text-muted-foreground'
-                          }`} title={item.name}>
-                            {item.name.length > 12 ? item.name.slice(0, 12) + '…' : item.name}
+                      <div className="p-1.5 space-y-1">
+                        {day.items.map((item, i) => (
+                          <div
+                            key={i}
+                            className={`text-[11px] leading-snug px-2 py-1.5 rounded-md ${
+                              item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
+                              item.type === 'meeting' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/20' :
+                              item.type === 'project' ? 'bg-primary/10 text-primary font-medium' :
+                              'bg-muted text-muted-foreground'
+                            }`}
+                            title={item.name}
+                          >
+                            {item.type === 'meeting' && '📅 '}
+                            {item.name}
                           </div>
                         ))}
-                        {day.items.length > 3 && (
-                          <p className="text-[9px] text-muted-foreground text-center">+{day.items.length - 3}</p>
-                        )}
                       </div>
                     </div>
                   ))}
