@@ -16,14 +16,8 @@ import { Switch } from '@/components/ui/switch';
 import { ENTRY_STATUSES } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { SPECIAL_OFFER_REASONS } from '@/lib/salesConstants';
 
-const SPECIAL_OFFER_REASONS = [
-  'Campanha especial',
-  'Cliente antigo',
-  'Parceria',
-  'Desconto de lançamento',
-  'Upgrade de produto',
-];
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 
