@@ -99,7 +99,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
       switch (item.source) {
         case 'tarefa': {
           const { error } = await supabase.from('tasks')
-            .update({ status: newCompleted ? 'done' : 'todo' })
+            .update({ status: newCompleted ? 'done' : 'por_comecar' })
             .eq('id', item.sourceId);
           if (error) throw error;
           break;

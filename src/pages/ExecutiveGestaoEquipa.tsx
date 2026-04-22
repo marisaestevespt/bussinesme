@@ -334,7 +334,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
     queryFn: async () => {
       const { data } = await supabase.from('tasks').select('id, name, status, deadline, project_id')
         .eq('assigned_to', offboardingMemberId)
-        .not('status', 'in', '("concluida","cancelada")');
+        .not('status', 'in', '("done","cancelada")');
       return data || [];
     },
   });

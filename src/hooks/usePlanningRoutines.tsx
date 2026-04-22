@@ -203,7 +203,6 @@ export function usePlanningRoutines() {
           .delete()
           .eq('routine_id', id)
           .neq('status', 'done')
-          .neq('status', 'concluida')
           .gte('deadline', todayStr);
       }
     },
@@ -222,7 +221,6 @@ export function usePlanningRoutines() {
         .delete()
         .eq('routine_id', id)
         .neq('status', 'done')
-        .neq('status', 'concluida')
         .gte('deadline', todayStr);
 
       await supabase.from('sops').delete().eq('routine_id', id);

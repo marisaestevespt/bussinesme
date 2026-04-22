@@ -19,7 +19,7 @@ export const PERIOD_FILTERS = [
 
 export const PIE_COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', '#f59e0b', '#8b5cf6', '#06b6d4', '#94a3b8'];
 
-export const DONE_STATUSES = ['concluida', 'done'];
+export const DONE_STATUSES = ['done'];
 
 export function getDateRange(period: string) {
   const now = new Date();

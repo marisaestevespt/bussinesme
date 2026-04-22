@@ -94,7 +94,6 @@ export default function SecretariaPage() {
           .select('id, name')
           .eq('assigned_to', member.profile_id)
           .neq('status', 'done')
-          .neq('status', 'concluida')
           .gte('deadline', absence.start_date)
           .lte('deadline', absence.end_date);
 

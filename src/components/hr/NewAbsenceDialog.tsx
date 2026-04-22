@@ -55,7 +55,6 @@ export function NewAbsenceDialog({ open, onClose, members }: { open: boolean; on
       .from('tasks')
       .select('id, name, deadline, priority, project_id')
       .eq('assigned_to', absentMember.profile_id)
-      .neq('status', 'concluida')
       .neq('status', 'done')
       .gte('deadline', sStr)
       .lte('deadline', eStr);
