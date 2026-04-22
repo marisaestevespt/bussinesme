@@ -23,6 +23,8 @@ import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { cn } from '@/lib/utils';
+import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 // ─── Types ──────────────────────────────────────────────────────
 
