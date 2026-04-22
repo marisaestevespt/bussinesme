@@ -4,8 +4,8 @@ Updated: now
 Design system: white-label Lyrata business management app. Matte ceramic surfaces, Geist/Inter defaults, HSL CSS variables injected from business_settings table.
 
 ## Brand
-- Name: **Lyrata** (L·I·R·A·H = Leveza, Independência, Rotinas, Automações, Human)
-- Inspired by the lyre — harmony, orchestration of business areas
+- Name: **Lyrata** — the only system name. Never use "Lirah".
+- Use "Lyrata" / "by Lyrata®" / "sistema Lyrata®" in UI fallbacks and copy.
 
 ## Schema
 - business_settings: stores theme (colors HSL, fonts, logo_url, business_name, business_sector)
@@ -39,7 +39,6 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 ## Memories
 - [AI assistant](mem://features/ai-assistant.md) — Lyrata AI floating chat with DB tools for queries and actions
 - [Backups](mem://features/backups.md) — Weekly automated backups + reset instance (moved to Backups tab)
-- [Brand name](mem://design/brand-name.md) — Lyrata: acronym meaning, lyre symbolism, usage locations
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
 - [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
 - [Client portal](mem://features/client-portal.md) — Client Portal system: public pages via /portal/[token] with OTP auth
