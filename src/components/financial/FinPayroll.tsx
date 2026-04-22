@@ -5,14 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatEuro } from '@/lib/formatting';
+import { CONTRACT_TYPES } from '@/hooks/useTeamData';
 
 const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const CONTRACT_LABELS: Record<string, string> = {
-  contrato_trabalho: 'Contrato de Trabalho',
-  contrato_prestacao: 'Prestação de Serviços',
-  acordo: 'Acordo',
-  outro: 'Outro',
-};
+const CONTRACT_LABELS: Record<string, string> = Object.fromEntries(
+  CONTRACT_TYPES.map(c => [c.value, c.label])
+);
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   ativo: { label: 'Ativo', className: 'bg-success/10 text-success' },
