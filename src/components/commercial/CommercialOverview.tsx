@@ -12,6 +12,7 @@ import { SaleFormDialog } from './SaleFormDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { saleRevenue } from '@/lib/salesCalculations';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -57,7 +58,7 @@ export function CommercialOverview() {
     name: p.product_name,
     total: (data.sales.data || [])
       .filter(s => p.product_id && (s as any).product_id === p.product_id)
-      .reduce((s, v) => s + Number(v.invoice_total || 0), 0),
+      .reduce((acc, v) => acc + saleRevenue(v), 0),
   }));
   const topProduct = productSales.length > 0 ? productSales.sort((a, b) => b.total - a.total)[0] : null;
 
