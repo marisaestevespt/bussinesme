@@ -6523,6 +6523,7 @@ export type Database = {
           duration_days: number | null
           duration_unit: string
           id: string
+          is_meeting: boolean
           is_recurring: boolean
           linked_sop_id: string | null
           name: string
@@ -6541,6 +6542,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_meeting?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
@@ -6559,6 +6561,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_meeting?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
@@ -7699,6 +7702,7 @@ export type Database = {
           duration_days: number | null
           duration_unit: string
           id: string
+          is_meeting: boolean
           is_recurring: boolean
           linked_sop_id: string | null
           name: string
@@ -7727,6 +7731,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_meeting?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
@@ -7755,6 +7760,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_meeting?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
