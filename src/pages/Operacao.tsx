@@ -440,54 +440,76 @@ export default function OperacaoPage() {
   );
 
   // ── À espera do cliente ─────────────────────────────────────
-  // Agrega tarefas em "Aguarda Feedback"/"Para Aprovação" + entregas do cliente em atraso
-  const awaitingClient = useMemo(() => {
-    const AWAIT_TASK_STATUSES = ['aguarda_feedback', 'para_aprovacao', 'aguarda_cliente'];
-    type Item = {
-      id: string;
-      name: string;
-      kind: 'task' | 'deliverable';
-      since?: string | null; // updated_at ou planned_end
-      projectId: string | null;
-      projectName: string;
-      daysWaiting: number;
-    };
-    const items: Item[] = [];
+  // Entregas com responsável = cliente ainda em aberto + tarefas em "Aguarda feedback cliente"
+  type WaitItem = {
+    id: string;
+    name: string;
+    kind: 'task' | 'deliverable';
+    projectId: string | null;
+    projectName: string;
+    daysWaiting: number;
+    overdue: boolean;
+  };
+  const awaitingClient = useMemo<WaitItem[]>(() => {
+    const items: WaitItem[] = [];
 
     tasks.forEach(t => {
-      if (!AWAIT_TASK_STATUSES.includes(t.status)) return;
+      if (t.status !== 'aguarda_feedback') return;
       const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
       const ref = t.deadline ? new Date(t.deadline) : today;
+      const days = differenceInDays(today, ref);
       items.push({
         id: t.id,
         name: t.name,
         kind: 'task',
-        since: t.deadline,
         projectId: t.project_id,
         projectName: proj?.name || '',
-        daysWaiting: Math.max(0, differenceInDays(today, ref)),
+        daysWaiting: Math.max(0, days),
+        overdue: days > 0,
       });
     });
 
     deliverables.forEach(d => {
       if (d.responsible_type !== 'cliente') return;
-      if (!d.deadline) return;
-      if (!isBefore(new Date(d.deadline), today)) return;
       if (d.status === 'entregue' || d.status === 'concluido') return;
       const proj = allActiveProjects.find(p => p.id === d.project_id);
+      const ref = d.deadline ? new Date(d.deadline) : null;
+      const days = ref ? differenceInDays(today, ref) : 0;
       items.push({
         id: d.id,
         name: d.name,
         kind: 'deliverable',
-        since: d.deadline,
         projectId: d.project_id,
         projectName: proj?.name || '',
-        daysWaiting: differenceInDays(today, new Date(d.deadline)),
+        daysWaiting: Math.max(0, days),
+        overdue: ref ? isBefore(ref, today) : false,
       });
     });
 
-    return items.sort((a, b) => b.daysWaiting - a.daysWaiting);
+    return items.sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.daysWaiting - a.daysWaiting);
   }, [tasks, deliverables, allActiveProjects, today]);
+
+  // ── Em aprovação interna ────────────────────────────────────
+  // Tarefas em "Para aprovação" — aguardam validação do responsável interno
+  const pendingInternalApproval = useMemo<WaitItem[]>(() => {
+    return tasks
+      .filter(t => t.status === 'para_aprovacao')
+      .map(t => {
+        const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
+        const ref = t.deadline ? new Date(t.deadline) : today;
+        const days = differenceInDays(today, ref);
+        return {
+          id: t.id,
+          name: t.name,
+          kind: 'task' as const,
+          projectId: t.project_id,
+          projectName: proj?.name || '',
+          daysWaiting: Math.max(0, days),
+          overdue: days > 0,
+        };
+      })
+      .sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.daysWaiting - a.daysWaiting);
+  }, [tasks, allActiveProjects, today]);
 
   // ── Countdown — next delivery (tasks + meetings + project deadlines) ──
   const nextDelivery = useMemo(() => {
