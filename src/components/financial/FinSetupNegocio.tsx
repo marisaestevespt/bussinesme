@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2, Pencil, Check, CreditCard, Building2, Smartphone, Wallet, Hash, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PaymentMethod {
@@ -73,6 +73,7 @@ const EMPTY: SetupData = {
 
 export function FinSetupNegocio() {
   const qc = useQueryClient();
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const { data: setup, isLoading } = useQuery({
     queryKey: ['business-setup'],
@@ -105,6 +106,7 @@ export function FinSetupNegocio() {
   const addPaymentMethod = () => {
     const methods = [...(current.payment_methods || []), { type: 'iban', label: '', value: '' }];
     update('payment_methods', methods);
+    setEditingIndex(methods.length - 1);
   };
 
   const updatePaymentMethod = (index: number, field: keyof PaymentMethod, val: string) => {
