@@ -12,31 +12,21 @@ import { toast } from 'sonner';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { FileText, Copy, Trash2 } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
+import {
+  SALE_STATUSES as CANONICAL_SALE_STATUSES,
+  getSaleStatusInfo,
+  getEffectiveSaleStatus,
+} from '@/lib/saleStatus';
 
-const ENTRY_STATUSES = [
-  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', cls: 'bg-muted text-muted-foreground' },
-  { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
-  { value: 'pendente', label: 'Pendente', cls: 'bg-warning/10 text-warning' },
-  { value: 'em_atraso', label: 'Em Atraso', cls: 'bg-destructive/10 text-destructive' },
-  { value: 'pago_falta_fatura', label: 'Pago, Falta Fatura', cls: 'bg-info/10 text-info' },
-  { value: 'tudo_ok', label: 'Tudo OK', cls: 'bg-success/10 text-success' },
-] as const;
+const ENTRY_STATUSES = CANONICAL_SALE_STATUSES;
 
 export function getEntryStatusBadge(status: string) {
-  const found = ENTRY_STATUSES.find(s => s.value === status);
-  return found || { value: status, label: status, cls: 'bg-muted text-muted-foreground' };
+  return getSaleStatusInfo(status);
 }
 
 /** Returns the effective status, auto-upgrading to 'em_atraso' when overdue */
 export function getEffectiveEntryStatus(status: string, paymentDate: string | null): string {
-  if ((status === 'por_pagar' || status === 'pendente') && paymentDate) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const due = new Date(paymentDate);
-    due.setHours(0, 0, 0, 0);
-    if (due < today) return 'em_atraso';
-  }
-  return status;
+  return getEffectiveSaleStatus(status, paymentDate);
 }
 
 export { ENTRY_STATUSES };
