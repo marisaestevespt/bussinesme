@@ -143,6 +143,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 <TableHead>Mês</TableHead>
                 <TableHead className="text-right">IVA Cobrado</TableHead>
                 <TableHead className="text-right">IVA Pago</TableHead>
+                <TableHead className="text-right">IVA a Deduzir</TableHead>
                 <TableHead className="text-right">Balanço</TableHead>
                 <TableHead />
               </TableRow>
@@ -163,6 +164,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   >
                     {fmt(d.pago)}
                   </TableCell>
+                  <TableCell className="text-right font-medium text-primary">{fmt(d.deduzir)}</TableCell>
                   <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-warning' : d.balanco < 0 ? 'text-success' : ''}`}>{fmt(d.balanco)}</TableCell>
                   <TableCell>
                     {d.balanco > 0 && <Badge variant="outline" className="bg-warning/10 text-warning text-xs">A entregar</Badge>}
@@ -174,6 +176,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 <TableCell>Total</TableCell>
                 <TableCell className="text-right">{fmt(totalCobrado)}</TableCell>
                 <TableCell className="text-right">{fmt(totalPago)}</TableCell>
+                <TableCell className="text-right text-primary">{fmt(totalDeduzir)}</TableCell>
                 <TableCell className={`text-right ${totalBalanco > 0 ? 'text-warning' : totalBalanco < 0 ? 'text-success' : ''}`}>{fmt(totalBalanco)}</TableCell>
                 <TableCell />
               </TableRow>
