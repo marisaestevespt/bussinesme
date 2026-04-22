@@ -27,11 +27,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <SidebarTrigger className="mr-2 sm:mr-3" />
               <div className="flex-1 min-w-0 flex flex-col">
                 <span className="text-sm font-medium text-foreground truncate">
-                  Sistema Lyrata
+                  {settings?.business_name || 'Sistema Lyrata®'}
                 </span>
                 {settings?.business_name && (
                   <span className="text-xs text-muted-foreground truncate">
-                    {settings.business_name}
+                    Sistema Lyrata®
                   </span>
                 )}
               </div>
