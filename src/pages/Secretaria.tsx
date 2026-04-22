@@ -178,10 +178,24 @@ export default function SecretariaPage() {
             className="group cursor-pointer border bg-gradient-to-br from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
             onClick={() => {
               const dept = teamMember.data!.department!;
-              const deptPath = dept === 'recursos-humanos' ? '/hub/recursos-humanos'
-                : dept === 'customer-success' ? '/hub/clientes'
-                : `/hub/${dept}`;
-              navigate(deptPath);
+              // Map every department to a route that actually exists.
+              // Departments without a dedicated hub page fall back to /hub-equipa.
+              const DEPT_ROUTE: Record<string, string> = {
+                marketing: '/hub/marketing',
+                comercial: '/hub/comercial',
+                clientes: '/hub/clientes',
+                'customer-success': '/hub/clientes',
+                financeiro: '/hub/financeiro',
+                operacao: '/hub/operacao',
+                produtos: '/hub/produtos',
+                'recursos-humanos': '/hub/recursos-humanos',
+                pessoas: '/hub/recursos-humanos',
+                equipa: '/hub/recursos-humanos',
+                administrativo: '/hub-equipa',
+                admin: '/hub-equipa',
+                gestao: '/hub-equipa',
+              };
+              navigate(DEPT_ROUTE[dept] || '/hub-equipa');
             }}
           >
             <CardContent className="p-4 flex items-center gap-3">
