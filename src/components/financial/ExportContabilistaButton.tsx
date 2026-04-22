@@ -9,28 +9,40 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { excludeCancelled } from '@/lib/utils';
 import { exportPdf } from '@/lib/exportPdf';
-import { exportContabilistaCsv, getMonthLabel } from '@/lib/exportContabilista';
+import { exportContabilistaExcel, getMonthLabel } from '@/lib/exportContabilista';
 import { toast } from 'sonner';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
 
-interface Props {
-  year: number;
-  month: number;
-}
+interface Props { year: number; month: number; }
 
-/**
- * Per-month "Exportar para Contabilista" button — generates PDF or Excel
- * with sales, expenses, and documents for the given month.
- */
 export function ExportContabilistaButton({ year, month }: Props) {
   const { settings } = useBusinessSettings();
-  const fin = useFinancialData({ expenses: true, recurring: false, documents: true, payroll: false, contractors: false });
+  const fin = useFinancialData({ expenses: true, recurring: false, documents: true, payroll: true, contractors: true });
   const com = useCommercialData(year);
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
   const documents = fin.documents.data || [];
+  const payrollAll = fin.payroll.data || [];
+  const contractorsAll = fin.contractors.data || [];
+
+  const { data: clientsAll = [] } = useQuery({
+    queryKey: ['clients-export-contabilista'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, client_id, full_name, nif, email, whatsapp, fiscal_address, status, current_product');
+      return data || [];
+    },
+  });
+
+  const { data: suppliersAll = [] } = useQuery({
+    queryKey: ['suppliers-export-contabilista'],
+    queryFn: async () => {
+      const { data } = await supabase.from('suppliers').select('*');
+      return data || [];
+    },
+  });
 
   const monthSales = useMemo(
     () => sales.filter((s: any) => s.sale_year === year && s.sale_month === month),
@@ -44,16 +56,46 @@ export function ExportContabilistaButton({ year, month }: Props) {
     () => documents.filter((d: any) => d.period_year === year && d.period_month === month),
     [documents, year, month],
   );
+  const monthPayroll = useMemo(
+    () => payrollAll.filter((p: any) => p.year === year && p.month === month),
+    [payrollAll, year, month],
+  );
+  const monthContractors = useMemo(
+    () => contractorsAll.filter((c: any) => c.year === year && c.month === month),
+    [contractorsAll, year, month],
+  );
+
+  // Apenas clientes/fornecedores envolvidos neste período
+  const involvedClients = useMemo(() => {
+    const names = new Set(monthSales.map((s: any) => s.client).filter(Boolean));
+    return (clientsAll as any[]).filter(c => names.has(c.full_name));
+  }, [clientsAll, monthSales]);
+
+  const involvedSuppliers = useMemo(() => {
+    const ids = new Set(monthExpenses.map((e: any) => e.supplier_id).filter(Boolean));
+    const names = new Set(monthExpenses.map((e: any) => e.supplier_name).filter(Boolean));
+    return (suppliersAll as any[]).filter(s => ids.has(s.id) || names.has(s.name));
+  }, [suppliersAll, monthExpenses]);
 
   const label = getMonthLabel(year, month);
-  const businessName = settings?.business_name || 'Negócio';
+  const businessName = settings?.business_name || settings?.business_legal_name || 'Negócio';
 
   const totalEnt = monthSales.reduce((s, v) => s + v.invoice_total, 0);
+  const totalEntBase = monthSales.reduce((s, v) => s + (v.base_value || 0), 0);
   const totalSai = monthExpenses.reduce((s, v) => s + v.total_with_vat, 0);
+  const totalSaiBase = monthExpenses.reduce((s, v) => s + (v.base_value || 0), 0);
+  const totalPay = monthPayroll.reduce((s, v) => s + (v.total_cost || 0), 0);
+  const totalCtr = monthContractors.reduce((s, v) => s + (v.value || 0), 0);
 
   const handleExcel = () => {
-    exportContabilistaCsv({ businessName, label, sales: monthSales, expenses: monthExpenses, documents: monthDocs });
-    toast.success('Excel exportado');
+    exportContabilistaExcel({
+      businessName, label, period: { year, month },
+      business: settings,
+      sales: monthSales, expenses: monthExpenses, documents: monthDocs,
+      payroll: monthPayroll, contractors: monthContractors,
+      clients: involvedClients, suppliers: involvedSuppliers,
+    });
+    toast.success('Excel exportado (.xlsx)');
   };
 
   const handlePdf = () => {
@@ -73,74 +115,160 @@ export function ExportContabilistaButton({ year, month }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handlePdf} className="gap-2">
-            <FileText className="h-4 w-4" /> PDF
+            <FileText className="h-4 w-4" /> PDF (completo)
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleExcel} className="gap-2">
-            <FileSpreadsheet className="h-4 w-4" /> Excel (CSV)
+            <FileSpreadsheet className="h-4 w-4" /> Excel (.xlsx, multi-folha)
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Hidden export area for PDF */}
-      <div id={exportId} className="hidden print:block">
-        <h2 className="text-lg font-bold mb-2">{businessName}</h2>
-        <p className="text-sm text-muted-foreground mb-4">Período: {label}</p>
+      {/* Hidden export area for PDF — completo */}
+      <div id={exportId} className="hidden print:block text-xs">
+        <h2 className="text-lg font-bold mb-1">{businessName}</h2>
+        <p className="text-xs text-muted-foreground">
+          NIF: {settings?.nif || '—'} • Período: <strong>{label}</strong> • Exportado em {new Date().toLocaleDateString('pt-PT')}
+        </p>
 
-        <h3 className="font-semibold mt-4 mb-2">Resumo</h3>
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div><p className="text-xs text-muted-foreground">Total Entradas</p><p className="font-bold">{fmt(totalEnt)}</p></div>
-          <div><p className="text-xs text-muted-foreground">Total Saídas</p><p className="font-bold">{fmt(totalSai)}</p></div>
-          <div><p className="text-xs text-muted-foreground">Resultado</p><p className="font-bold">{fmt(totalEnt - totalSai)}</p></div>
-        </div>
-
-        <h3 className="font-semibold mt-4 mb-2">Entradas</h3>
-        <table className="w-full text-xs">
-          <thead><tr><th>Data</th><th>Descrição</th><th>Valor s/IVA</th><th>IVA</th><th>Valor c/IVA</th><th>Nº Doc</th></tr></thead>
+        {/* Resumo */}
+        <h3 className="font-semibold mt-4 mb-1">Resumo Financeiro</h3>
+        <table className="w-full mb-3" style={{ borderCollapse: 'collapse' }}>
           <tbody>
-            {monthSales.map((s: any) => (
-              <tr key={s.id}>
-                <td>{s.payment_date}</td>
-                <td>{s.description || s.client}</td>
-                <td className="text-right">{fmt(s.base_value)}</td>
-                <td className="text-right">{fmt(s.invoice_total - s.base_value)}</td>
-                <td className="text-right">{fmt(s.invoice_total)}</td>
-                <td>{s.sale_id}</td>
-              </tr>
-            ))}
+            <tr><td>Total Entradas (c/IVA)</td><td className="text-right font-semibold">{fmt(totalEnt)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalEntBase)}</td><td>IVA liquidado</td><td className="text-right">{fmt(totalEnt - totalEntBase)}</td></tr>
+            <tr><td>Total Saídas (c/IVA)</td><td className="text-right font-semibold">{fmt(totalSai)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalSaiBase)}</td><td>IVA dedutível</td><td className="text-right">{fmt(totalSai - totalSaiBase)}</td></tr>
+            <tr><td>Salários (custo total)</td><td className="text-right font-semibold">{fmt(totalPay)}</td><td>Prestadores</td><td className="text-right font-semibold">{fmt(totalCtr)}</td><td>Resultado</td><td className="text-right font-semibold">{fmt(totalEnt - totalSai - totalPay - totalCtr)}</td></tr>
           </tbody>
         </table>
 
-        <h3 className="font-semibold mt-4 mb-2">Saídas</h3>
-        <table className="w-full text-xs">
-          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor s/IVA</th><th>IVA</th><th>Valor c/IVA</th><th>Nº Doc</th></tr></thead>
+        {/* Negócio */}
+        <h3 className="font-semibold mt-3 mb-1">Dados do Negócio</h3>
+        <table className="w-full mb-3"><tbody>
+          <tr><td><strong>NIF</strong></td><td>{settings?.nif || '—'}</td><td><strong>NISS</strong></td><td>{settings?.niss || '—'}</td></tr>
+          <tr><td><strong>CAE</strong></td><td>{settings?.cae_principal || '—'}</td><td><strong>Regime IVA</strong></td><td>{settings?.regime_iva || '—'}</td></tr>
+          <tr><td><strong>Regime Fiscal</strong></td><td>{settings?.regime_fiscal || '—'}</td><td><strong>CIRS</strong></td><td>{settings?.cirs_code || '—'}</td></tr>
+          <tr><td><strong>IBAN</strong></td><td colSpan={3}>{settings?.iban || '—'} ({settings?.banco || '—'})</td></tr>
+          <tr><td><strong>Morada</strong></td><td colSpan={3}>{settings?.morada_fiscal || '—'}</td></tr>
+        </tbody></table>
+
+        {/* Vendas */}
+        <h3 className="font-semibold mt-3 mb-1">Entradas / Vendas ({monthSales.length})</h3>
+        <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+          <thead><tr><th>Doc</th><th>Data</th><th>Cliente</th><th>NIF</th><th>Produto</th><th>Base</th><th>IVA</th><th>Total</th></tr></thead>
           <tbody>
-            {monthExpenses.map((e: any) => (
-              <tr key={e.id}>
-                <td>{e.expense_date}</td>
-                <td>{e.description}</td>
-                <td>{e.category}</td>
-                <td className="text-right">{fmt(e.base_value)}</td>
-                <td className="text-right">{fmt(e.total_with_vat - e.base_value)}</td>
-                <td className="text-right">{fmt(e.total_with_vat)}</td>
-                <td>{e.expense_id}</td>
-              </tr>
-            ))}
+            {monthSales.map((s: any) => {
+              const cli = involvedClients.find((c: any) => c.full_name === s.client) || {};
+              return (
+                <tr key={s.id}>
+                  <td>{s.sale_id}</td><td>{s.payment_date}</td>
+                  <td>{s.client}</td><td>{cli.nif || ''}</td>
+                  <td>{s.product || s.description}</td>
+                  <td className="text-right">{fmt(s.base_value || 0)}</td>
+                  <td className="text-right">{fmt((s.invoice_total || 0) - (s.base_value || 0))}</td>
+                  <td className="text-right">{fmt(s.invoice_total || 0)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
-        {monthDocs.length > 0 && (
-          <>
-            <h3 className="font-semibold mt-4 mb-2">Documentos</h3>
-            <table className="w-full text-xs">
-              <thead><tr><th>Nome</th><th>Data</th></tr></thead>
-              <tbody>
-                {monthDocs.map((d: any) => (
-                  <tr key={d.id}><td>{d.document_name || d.title}</td><td>{d.period_start}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
+        {/* Despesas */}
+        <h3 className="font-semibold mt-3 mb-1">Saídas / Despesas ({monthExpenses.length})</h3>
+        <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+          <thead><tr><th>Doc</th><th>Data</th><th>Descrição</th><th>Categoria</th><th>Fornecedor</th><th>NIF</th><th>Loc.</th><th>Base</th><th>IVA%</th><th>Total</th></tr></thead>
+          <tbody>
+            {monthExpenses.map((e: any) => {
+              const sup = involvedSuppliers.find((s: any) => s.id === e.supplier_id) || {};
+              return (
+                <tr key={e.id}>
+                  <td>{e.expense_id}</td><td>{e.expense_date}</td>
+                  <td>{e.description}</td><td>{e.category}</td>
+                  <td>{e.supplier_name || sup.name || ''}</td><td>{sup.nif || ''}</td>
+                  <td>{LOC[e.location] || e.location || ''}</td>
+                  <td className="text-right">{fmt(e.base_value || 0)}</td>
+                  <td className="text-right">{e.vat_rate ?? 0}%</td>
+                  <td className="text-right">{fmt(e.total_with_vat || 0)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* Salários */}
+        {monthPayroll.length > 0 && (<>
+          <h3 className="font-semibold mt-3 mb-1">Salários ({monthPayroll.length})</h3>
+          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+            <thead><tr><th>Colaborador</th><th>Bruto</th><th>Ret.</th><th>SS Trab.</th><th>SS Emp.</th><th>Líquido</th><th>Custo Total</th></tr></thead>
+            <tbody>
+              {monthPayroll.map((p: any) => (
+                <tr key={p.id}>
+                  <td>{p.collaborator_name}</td>
+                  <td className="text-right">{fmt(p.gross_salary || 0)}</td>
+                  <td className="text-right">{fmt(p.withholding_value || 0)}</td>
+                  <td className="text-right">{fmt(p.ss_employee || 0)}</td>
+                  <td className="text-right">{fmt(p.ss_employer || 0)}</td>
+                  <td className="text-right">{fmt(p.net_salary || 0)}</td>
+                  <td className="text-right">{fmt(p.total_cost || 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>)}
+
+        {/* Prestadores */}
+        {monthContractors.length > 0 && (<>
+          <h3 className="font-semibold mt-3 mb-1">Prestadores de Serviços ({monthContractors.length})</h3>
+          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+            <thead><tr><th>Prestador</th><th>Serviço</th><th>Localização</th><th>Valor</th></tr></thead>
+            <tbody>
+              {monthContractors.map((c: any) => (
+                <tr key={c.id}>
+                  <td>{c.contractor_name}</td><td>{c.service}</td>
+                  <td>{LOC[c.location] || c.location || ''}</td>
+                  <td className="text-right">{fmt(c.value || 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>)}
+
+        {/* Clientes envolvidos */}
+        {involvedClients.length > 0 && (<>
+          <h3 className="font-semibold mt-3 mb-1">Clientes do período ({involvedClients.length})</h3>
+          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+            <thead><tr><th>ID</th><th>Nome</th><th>NIF</th><th>Email</th><th>Morada Fiscal</th></tr></thead>
+            <tbody>
+              {involvedClients.map((c: any) => (
+                <tr key={c.id}><td>{c.client_id}</td><td>{c.full_name}</td><td>{c.nif || ''}</td><td>{c.email || ''}</td><td>{c.fiscal_address || ''}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </>)}
+
+        {/* Fornecedores envolvidos */}
+        {involvedSuppliers.length > 0 && (<>
+          <h3 className="font-semibold mt-3 mb-1">Fornecedores do período ({involvedSuppliers.length})</h3>
+          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+            <thead><tr><th>Nome</th><th>NIF</th><th>Email</th><th>IBAN</th><th>Categoria</th></tr></thead>
+            <tbody>
+              {involvedSuppliers.map((s: any) => (
+                <tr key={s.id}><td>{s.name}</td><td>{s.nif || ''}</td><td>{s.email || ''}</td><td>{s.iban || ''}</td><td>{s.category || ''}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </>)}
+
+        {/* Documentos */}
+        {monthDocs.length > 0 && (<>
+          <h3 className="font-semibold mt-3 mb-1">Documentos ({monthDocs.length})</h3>
+          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+            <thead><tr><th>Tipo</th><th>Nome</th><th>URL</th></tr></thead>
+            <tbody>
+              {monthDocs.map((d: any) => (
+                <tr key={d.id}><td>{d.doc_type}</td><td>{d.document_name || d.title}</td><td>{d.document_url || ''}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </>)}
       </div>
     </>
   );
