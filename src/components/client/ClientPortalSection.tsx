@@ -270,6 +270,8 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
         updateQuestion={updateQuestion}
         deleteQuestion={deleteQuestion}
         seedQuestionsFromProduct={seedQuestionsFromProduct}
+        clientId={clientId}
+        clientName={clientName}
       />
 
       {/* Feedback */}

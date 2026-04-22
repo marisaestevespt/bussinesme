@@ -39,7 +39,6 @@ import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimelin
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
-import { ExportInitialQuestionsButton } from '@/components/project/ExportInitialQuestionsButton';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
 
@@ -854,7 +853,6 @@ export default function ProjetoDetailPage() {
           <div className="flex items-center justify-between">
             <BackNavigation />
             <div className="flex items-center gap-2">
-              <ExportInitialQuestionsButton clientId={local.client_id} clientName={local.client_name} projectName={local.name} />
               {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
             </div>
           </div>
