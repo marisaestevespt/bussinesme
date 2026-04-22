@@ -12,6 +12,7 @@ import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus, ChevronRight } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -160,8 +161,8 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
     ? salesData.filter(s => s.sale_month === month - 1)
     : prevYearSales.filter(s => s.sale_month === 12);
 
-  const monthRevenue = monthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
-  const prevMonthRevenue = prevMonthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const monthRevenue = sumRevenue(monthSales);
+  const prevMonthRevenue = sumRevenue(prevMonthSales);
 
   const activeClients = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding');
   const newClients = clientsData.filter(c => {
@@ -194,7 +195,7 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
   const ticketMedio = monthSales.length > 0 ? Math.round(monthRevenue / monthSales.length) : 0;
   const prevTicketMedio = prevMonthSales.length > 0 ? Math.round(prevMonthRevenue / prevMonthSales.length) : null;
 
-  const yearRevenue = salesData.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const yearRevenue = sumRevenue(salesData);
 
   // NPS - latest per client (not filtered by month)
   const latestNpsByClient = useMemo(() => {
@@ -515,7 +516,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
 
   // ─── Annual summary ───
   const annualSummary = useMemo(() => {
-    const totalRevenue = salesData.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+    const totalRevenue = sumRevenue(salesData);
     const totalSales = salesData.length;
     const ticketMedio = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
 
@@ -571,7 +572,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
     return MONTH_NAMES.map((name, idx) => {
       const m = idx + 1;
       const mSales = salesData.filter(s => s.sale_month === m);
-      const revenue = mSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const revenue = sumRevenue(mSales);
       return { name, revenue, salesCount: mSales.length };
     });
   }, [salesData]);

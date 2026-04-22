@@ -7,6 +7,7 @@ import { Save } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -77,7 +78,7 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
   const actuals = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const revenue = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const revenue = sumRevenue(yearSales.filter(s => s.sale_month === m));
       const expense = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
       return { month: m, revenue, expense, profit: revenue - expense };
     });

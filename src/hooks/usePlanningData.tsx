@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 // cleanPayload imported from utils — aliased as `clean` for minimal diff
 import { cleanPayload as clean } from '@/lib/utils';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const currentYear = new Date().getFullYear();
 
@@ -512,7 +513,7 @@ export function usePlanningData(year = currentYear) {
             ? rows.filter((r: any) => r.product_id === productId)
             : rows.filter((r: any) => r.product === productName))
         : rows;
-      return filtered.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+      return sumRevenue(filtered);
     }
     if (source === 'bd_crm') {
       const rows = autoCrmRaw.data || [];
@@ -621,7 +622,7 @@ export function usePlanningData(year = currentYear) {
       } else if (obj.product_name) {
         rows = rows.filter((r: any) => r.product === obj.product_name);
       }
-      return filterByMonth(rows, month, 'sale_month').reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+      return sumRevenue(filterByMonth(rows, month, 'sale_month'));
     }
     if (source === 'bd_crm') {
       let rows = autoCrmRaw.data || [];

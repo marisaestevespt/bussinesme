@@ -16,6 +16,7 @@ import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 interface Props {
   projectId: string;
@@ -753,7 +754,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           {allSales.length > 0 && (
             <div className="px-4 py-3 text-xs font-medium border-t flex justify-between">
               <span>Total: {allSales.length} pagamento(s)</span>
-              <span>Valor total: {allSales.reduce((s: number, p: any) => s + Number(p.invoice_total || 0), 0).toFixed(2)}€</span>
+              <span>Valor total: {sumRevenue(allSales).toFixed(2)}€</span>
             </div>
           )}
         </CardContent>

@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { Gift, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { sumRevenue, saleRevenue } from '@/lib/salesCalculations';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -47,9 +48,9 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
   const totalSales = sales.length;
   const normalSales = sales.filter(s => !(s as any).is_special_offer);
   const specialSales = sales.filter(s => (s as any).is_special_offer);
-  const totalRevenue = sales.reduce((acc, s) => acc + Number(s.invoice_total || 0), 0);
-  const normalRevenue = normalSales.reduce((acc, s) => acc + Number(s.invoice_total || 0), 0);
-  const specialRevenue = specialSales.reduce((acc, s) => acc + Number(s.invoice_total || 0), 0);
+  const totalRevenue = sumRevenue(sales);
+  const normalRevenue = sumRevenue(normalSales);
+  const specialRevenue = sumRevenue(specialSales);
 
   // Aggregate clients
   const clientStats = Object.values(
@@ -60,7 +61,7 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
         acc[name] = { name, count: 0, total: 0, lastDate: null as string | null };
       }
       acc[name].count += 1;
-      acc[name].total += Number(s.invoice_total || 0);
+      acc[name].total += saleRevenue(s);
       const d = s.payment_date || s.created_at;
       if (d && (!acc[name].lastDate || new Date(d) > new Date(acc[name].lastDate))) {
         acc[name].lastDate = d;

@@ -20,6 +20,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -123,7 +124,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const onboardingClients = clientsData.filter(c => c.status === 'em_onboarding');
 
   const monthSales = salesData.filter(s => s.sale_month === month);
-  const monthRevenue = monthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const monthRevenue = sumRevenue(monthSales);
   const avgValuePerClient = activeClients.length > 0 ? Math.round(monthRevenue / activeClients.length) : 0;
 
   const renewalClients = clientsData.filter(c => {

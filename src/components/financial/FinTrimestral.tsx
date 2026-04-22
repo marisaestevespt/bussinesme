@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Download, TrendingUp, TrendingDown, Package, ArrowUpRight, Receipt, Shield } from 'lucide-react';
 import { exportPdf } from '@/lib/exportPdf';
 import type { Expense } from '@/hooks/useFinancialData';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const QUARTERS = [
   { label: 'T1', range: 'Jan — Mar', months: [1, 2, 3] },
@@ -46,7 +47,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
     return QUARTERS.map(q => {
       const qSales = yearSales.filter(s => q.months.includes(s.sale_month || 0));
       const qExpenses = yearExpenses.filter(e => q.months.includes(e.expense_month || 0));
-      const ent = qSales.reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(qSales);
       const entBase = qSales.reduce((s, v) => s + v.base_value, 0);
       const sai = qExpenses.reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = qExpenses.reduce((s, v) => s + v.base_value, 0);
@@ -98,7 +99,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
   const monthlyData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
       const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
       return { mes: ML[i], entradas: ent, saidas: sai, resultado: ent - sai };
     });
@@ -139,7 +140,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
   const selectedMonthlyData = useMemo(() => {
     if (!selectedQDef) return [];
     return selectedQDef.months.map(m => {
-      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
       const entBase = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.base_value, 0);
       const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.base_value, 0);

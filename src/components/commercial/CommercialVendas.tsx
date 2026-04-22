@@ -15,6 +15,7 @@ import { SaleFormDialog } from './SaleFormDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { EntryStatusSelect } from '@/components/financial/InlineStatusSelect';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
@@ -95,7 +96,7 @@ export function CommercialVendas() {
   }, [allSalesData, activeView, searchText, filterStatus, filterProduct, filterSource, filterYear, filterQuarter, todayStr]);
 
   const totalBase = filteredSales.reduce((s, v) => s + Number(v.base_value || 0), 0);
-  const totalInvoice = filteredSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const totalInvoice = sumRevenue(filteredSales);
 
   // Available years for filter
   const availableYears = [...new Set(allSalesData.map(s => s.sale_year).filter(Boolean))].sort((a, b) => (b || 0) - (a || 0));

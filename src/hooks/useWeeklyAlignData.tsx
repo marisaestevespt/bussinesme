@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, addWeeks, addDays, subDays, startOfMonth, endOfMonth, differenceInDays, parseISO } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const STALE = 2 * 60 * 1000;
 
@@ -142,11 +143,11 @@ export function useWeeklyAlignData(weekOffset: number) {
   const mo = monthData.data;
   const gl = globalData.data;
 
-  const totalBilled = useMemo(() => (mo?.monthSales || []).reduce((s, v: any) => s + Number(v.invoice_total || 0), 0), [mo?.monthSales]);
+  const totalBilled = useMemo(() => sumRevenue(mo?.monthSales || []), [mo?.monthSales]);
   const billingGoal = mo?.monthlyGoal?.goal_amount || 0;
 
-  const salesWeekTotal = useMemo(() => (wk?.salesWeek || []).reduce((s, v: any) => s + Number(v.invoice_total || 0), 0), [wk?.salesWeek]);
-  const prevSalesWeekTotal = useMemo(() => (prev?.prevSalesWeek || []).reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0), [prev?.prevSalesWeek]);
+  const salesWeekTotal = useMemo(() => sumRevenue(wk?.salesWeek || []), [wk?.salesWeek]);
+  const prevSalesWeekTotal = useMemo(() => sumRevenue(prev?.prevSalesWeek || []), [prev?.prevSalesWeek]);
 
   const tasksWeekCount = (wk?.tasks || []).length;
   const tasksWeekDone = (wk?.tasks || []).filter((t: any) => t.status === 'concluida').length;

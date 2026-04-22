@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 type Sale = {
   id: string; sale_id: string; status: string; payment_date: string | null;
@@ -59,7 +60,7 @@ export function FinEntradas({ sales, currentYear }: Props) {
   }, [sales, filter, currentYear, currentMonth, currentQuarter]);
 
   const totalBase = filtered.reduce((s, v) => s + v.base_value, 0);
-  const totalInvoice = filtered.reduce((s, v) => s + v.invoice_total, 0);
+  const totalInvoice = sumRevenue(filtered);
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
   const openDetail = (sale: Sale) => {

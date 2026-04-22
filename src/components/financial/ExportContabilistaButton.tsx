@@ -11,6 +11,7 @@ import { excludeCancelled } from '@/lib/utils';
 import { exportPdf } from '@/lib/exportPdf';
 import { exportContabilistaExcel, getMonthLabel } from '@/lib/exportContabilista';
 import { toast } from 'sonner';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
@@ -114,7 +115,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
   const label = getMonthLabel(year, month);
   const businessName = (settings as any)?.business_name || business?.business_legal_name || 'Negócio';
 
-  const totalEnt = monthSales.reduce((s, v) => s + v.invoice_total, 0);
+  const totalEnt = sumRevenue(monthSales);
   const totalEntBase = monthSales.reduce((s, v) => s + (v.base_value || 0), 0);
   const totalSai = monthExpenses.reduce((s, v) => s + v.total_with_vat, 0);
   const totalSaiBase = monthExpenses.reduce((s, v) => s + (v.base_value || 0), 0);

@@ -17,6 +17,7 @@ import { YearSelector } from '@/components/YearSelector';
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, TrendingUp, TrendingDown, Package, UserCheck, Download, BarChart3, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -79,7 +80,7 @@ export default function FinanceiroPage() {
   const yearExpenses = useMemo(() => expenses.filter(e => e.expense_year === year), [expenses, year]);
 
   // Summary
-  const totalEntradas = yearSales.reduce((s, v) => s + v.invoice_total, 0);
+  const totalEntradas = sumRevenue(yearSales);
   const totalBaseEntradas = yearSales.reduce((s, v) => s + v.base_value, 0);
   const totalSaidas = yearExpenses.reduce((s, v) => s + v.total_with_vat, 0);
   const totalBaseSaidas = yearExpenses.reduce((s, v) => s + v.base_value, 0);
@@ -151,7 +152,7 @@ export default function FinanceiroPage() {
   const monthlyData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
       const entBase = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.base_value, 0);
       const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.base_value, 0);
@@ -193,7 +194,7 @@ export default function FinanceiroPage() {
 
   const quarterlyData = useMemo(() => {
     return QUARTERS.map(q => {
-      const ent = yearSales.filter(s => q.months.includes(s.sale_month || 0)).reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(yearSales.filter(s => q.months.includes(s.sale_month || 0)));
       const sai = yearExpenses.filter(e => q.months.includes(e.expense_month || 0)).reduce((s, v) => s + v.total_with_vat, 0);
       const res = ent - sai;
       return { label: q.label, entradas: ent, saidas: sai, resultado: res, margem: ent > 0 ? Math.round(res / ent * 10000) / 100 : 0 };

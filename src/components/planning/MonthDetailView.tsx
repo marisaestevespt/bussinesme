@@ -27,6 +27,7 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData } from '@/hooks/useCrmData';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -168,7 +169,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
 
   const sales = salesQ.data || [];
-  const totalInvoiced = sales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+  const totalInvoiced = sumRevenue(sales);
   const salesActions = salesActionsQ.data || [];
   const commGoal = commMonthGoalQ.data;
   const commProdGoals = commProdGoalQ.data || [];
@@ -270,7 +271,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           || prodName.includes(saleName)
           || saleName.replace(/\s*\[.*?\]\s*/g, '') === prodName.replace(/\s*\[.*?\]\s*/g, '');
       });
-      const totalFat = prodSales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+      const totalFat = sumRevenue(prodSales);
       const pg = commProdGoals.find((g: any) => {
         const goalName = normalize(g.product_name);
         return goalName === prodName || goalName.includes(prodName) || prodName.includes(goalName);
