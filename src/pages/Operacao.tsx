@@ -730,13 +730,13 @@ export default function OperacaoPage() {
               {deliveryTimeline.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">Sem entregas nos próximos 14 dias 🎉</p>
               ) : (
-                <div className="overflow-x-auto pb-2">
-                  {/* Timeline horizontal: eixo de dias + items por dia */}
-                  <div className="relative" style={{ minWidth: `${14 * 140}px` }}>
+                <div className="pb-2">
+                  {/* Timeline horizontal: eixo de dias + items por dia (ocupa toda a largura do card) */}
+                  <div className="relative w-full">
                     {/* Linha do tempo */}
                     <div className="absolute left-0 right-0 top-8 h-px bg-border" />
                     {/* Marcadores de dia */}
-                    <div className="grid relative" style={{ gridTemplateColumns: 'repeat(14, minmax(140px, 1fr))' }}>
+                    <div className="grid relative w-full" style={{ gridTemplateColumns: 'repeat(14, minmax(0, 1fr))' }}>
                       {deliveryTimeline.map((day, idx) => {
                         const today = isToday(day.date);
                         return (
