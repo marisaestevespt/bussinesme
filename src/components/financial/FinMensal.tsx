@@ -36,7 +36,6 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 
 const VAT_RATES = [0, 6, 13, 23];
 const LOCATIONS = ['portugal', 'ue', 'fora_ue'];
-const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
 
 function parseDateString(value: string | null | undefined) {
   if (!value) return null;
