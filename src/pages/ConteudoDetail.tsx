@@ -65,6 +65,17 @@ export default function ConteudoDetailPage() {
     },
   });
 
+  const { data: channelAccounts = [] } = useQuery({
+    queryKey: ['marketing-channel-accounts-all'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('marketing_channel_accounts' as any)
+        .select('id, channel_id, handle, label')
+        .order('sort_order');
+      return (data || []) as unknown as Array<{ id: string; channel_id: string; handle: string; label: string | null }>;
+    },
+  });
+
   const { data: itemChannelLinks = [] } = useQuery({
     queryKey: ['content-item-channels', id],
     queryFn: async () => {
