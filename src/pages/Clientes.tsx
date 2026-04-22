@@ -21,18 +21,7 @@ const fmtBirthday = (d: string | null | undefined) => {
   if (!d) return '—';
   try { return format(parseISO(d), 'dd/MM'); } catch { return '—'; }
 };
-
-const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  em_onboarding: { label: 'Em onboarding', className: 'bg-info/15 text-info' },
-  ativo: { label: 'Ativo', className: 'bg-success/15 text-success' },
-  pausado: { label: 'Pausado', className: 'bg-warning/15 text-warning' },
-  altura_renovacao: { label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
-  em_offboarding: { label: 'Em offboarding', className: 'bg-warning/15 text-warning' },
-  terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
-};
-
-const ACTIVE_STATUSES = ['em_onboarding', 'ativo', 'pausado', 'altura_renovacao', 'em_offboarding'];
-const ARCHIVED_STATUSES = ['terminado'];
+import { getClientStatusInfo, ACTIVE_CLIENT_STATUSES as ACTIVE_STATUSES, ARCHIVED_CLIENT_STATUSES as ARCHIVED_STATUSES } from '@/lib/clientStatus';
 
 export default function ClientesPage() {
   const navigate = useNavigate();

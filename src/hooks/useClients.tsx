@@ -11,14 +11,8 @@ export type ClientActivity = Tables<'client_activities'>;
 export type ClientOnboarding = Tables<'client_onboarding'>;
 export type ClientOffboarding = Tables<'client_offboarding'>;
 
-export const CLIENT_STATUS_OPTIONS = [
-  { value: 'em_onboarding', label: 'Em onboarding' },
-  { value: 'ativo', label: 'Ativo' },
-  { value: 'pausado', label: 'Pausado' },
-  { value: 'altura_renovacao', label: 'Altura de renovação' },
-  { value: 'em_offboarding', label: 'Em offboarding' },
-  { value: 'terminado', label: 'Terminado' },
-] as const;
+// Re-export from canonical source. Existing imports keep working.
+export { CLIENT_STATUS_OPTIONS } from '@/lib/clientStatus';
 
 export function useClients() {
   const qc = useQueryClient();

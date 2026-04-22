@@ -9,15 +9,7 @@ import { Search, X } from 'lucide-react';
 import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
 import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
 import { format, parseISO, differenceInDays } from 'date-fns';
-
-const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  em_onboarding: { label: 'Em onboarding', className: 'bg-info/10 text-info' },
-  ativo: { label: 'Ativo', className: 'bg-success/10 text-success' },
-  pausado: { label: 'Pausado', className: 'bg-warning/10 text-warning' },
-  altura_renovacao: { label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
-  em_offboarding: { label: 'Em offboarding', className: 'bg-warning/10 text-warning' },
-  terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
-};
+import { getClientStatusInfo } from '@/lib/clientStatus';
 
 function EndOfCycleBadge({ date }: { date: string | null }) {
   if (!date) return <span className="text-muted-foreground">—</span>;
