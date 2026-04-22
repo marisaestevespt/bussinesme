@@ -1,0 +1,1 @@
+UPDATE public.publico_alvo_sections SET title = 'Frustrações com o que já experimentaram', subtitle = NULL WHERE id = '58e5fb58-ff49-4eab-bebe-f1ffda920376';
