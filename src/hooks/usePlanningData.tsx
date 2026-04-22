@@ -400,7 +400,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('tasks').select('id,updated_at,department').eq('status', 'concluida').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
+      const { data } = await supabase.from('tasks').select('id,updated_at,department').eq('status', 'done').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
       return data || [];
     },
     enabled: needsAutoCalc,
