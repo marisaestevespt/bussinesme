@@ -70,7 +70,9 @@ export function FinContabilidade({ currentYear }: Props) {
 
   const deadlines = useMemo(() => {
     // computeFiscalDeadlines now hides SS/IVA when hasAccountant=true; only IRS remains.
-    return computeFiscalDeadlines(currentYear, fiscalConfig);
+    return computeFiscalDeadlines(currentYear, fiscalConfig)
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [currentYear, fiscalConfig]);
 
   // Fiscal deadline completions
