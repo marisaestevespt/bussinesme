@@ -614,6 +614,84 @@ export default function OperacaoPage() {
           </Card>
         )}
 
+        {/* Task detail dialog */}
+        <Dialog open={!!taskDetailId} onOpenChange={open => !open && setTaskDetailId(null)}>
+          <DialogContent className="max-w-md">
+            {(() => {
+              const t = tasks.find(x => x.id === taskDetailId);
+              if (!t) return null;
+              const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
+              const projName = t.project_id ? projectNameMap.get(t.project_id) : null;
+              const overdue = isTaskOverdue(t as any, today);
+              const priorityLabel = PRIORITY_OPTIONS.find(p => p.value === t.priority)?.label || t.priority;
+              const statusLabel = t.status?.replace(/_/g, ' ');
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-start gap-2 text-base">
+                      <PriorityDot priority={t.priority} />
+                      <span className="flex-1">{t.name}</span>
+                    </DialogTitle>
+                    {projName && (
+                      <p className="text-xs text-muted-foreground">{projName}</p>
+                    )}
+                  </DialogHeader>
+                  <div className="space-y-3 pt-2 text-sm">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Estado</p>
+                        <Badge variant="outline" className="capitalize">{statusLabel}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Prioridade</p>
+                        <Badge variant="outline" className="capitalize">{priorityLabel}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Deadline</p>
+                        {t.deadline ? (
+                          <div className="flex items-center gap-2">
+                            <span className={overdue ? 'text-destructive font-medium' : ''}>
+                              {format(new Date(t.deadline), "dd 'de' MMM yyyy", { locale: pt })}
+                            </span>
+                            {overdue && <Badge variant="destructive" className="text-[9px]">Atrasada</Badge>}
+                          </div>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Departamento</p>
+                        <span className="capitalize">{t.department ? (DEPT_LABELS[t.department] || t.department) : '—'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Responsável</p>
+                      {assignee ? (
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={getPhotoUrl(assignee)} />
+                            <AvatarFallback className="text-[9px]">{getInitials(assignee.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <span>{assignee.full_name}</span>
+                        </div>
+                      ) : <span className="text-muted-foreground">Sem responsável</span>}
+                    </div>
+                    {t.project_id && (
+                      <div className="pt-2 border-t">
+                        <Link
+                          to={`/hub/projetos/${t.project_id}`}
+                          className="text-sm text-primary hover:underline font-medium"
+                          onClick={() => setTaskDetailId(null)}
+                        >
+                          Abrir projeto →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+
         {/* Health detail dialog */}
         <Dialog open={!!healthDetailProjectId} onOpenChange={open => !open && setHealthDetailProjectId(null)}>
           <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
