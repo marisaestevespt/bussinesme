@@ -121,9 +121,14 @@ export default function FinanceiroPage() {
 
   // Expense category insights
   const categoryInsights = useMemo(() => {
+    // Excluir categorias não-operacionais ou genéricas que não dão insight útil:
+    //  - 'outro' → catch-all sem valor analítico
+    //  - 'seguranca_social' / 'impostos' / 'ordenados' → obrigações fiscais, não despesa de gestão
+    const EXCLUDED = new Set(['outro', 'seguranca_social', 'impostos', 'ordenados']);
     const byCat = new Map<string, number>();
     yearExpenses.forEach(e => {
-      const cat = e.category || 'outro';
+      const cat = e.category;
+      if (!cat || EXCLUDED.has(cat)) return;
       byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
     });
     const sorted = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
@@ -405,27 +410,6 @@ export default function FinanceiroPage() {
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-1.5 mb-1"><UserCheck className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Clientes no ano</p></div>
               <p className="text-xl font-bold">{clientsInYear}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* IVA & SS Balance */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-warning" /><p className="text-xs text-muted-foreground">Balanço IVA — {year}</p></div>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div><p className="text-[10px] text-muted-foreground">Cobrado</p><p className="font-semibold">{fmt(ivaCobrado)}</p></div>
-                <div><p className="text-[10px] text-muted-foreground">Pago</p><p className="font-semibold">{fmt(ivaPago)}</p></div>
-                <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${ivaBalanco > 0 ? 'text-warning' : ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(ivaBalanco)}</p></div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-2"><Shield className="h-3.5 w-3.5 text-cyan-600" /><p className="text-xs text-muted-foreground">Segurança Social — {year}</p></div>
-              <p className="text-xl font-bold">{fmt(ssTotal)}</p>
-              <p className="text-[10px] text-muted-foreground">Total pago no ano</p>
             </CardContent>
           </Card>
         </div>
