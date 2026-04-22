@@ -14,6 +14,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { addBusinessDays } from '@/lib/holidays';
+import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import {
   isDeliverableDone,
   isPhaseDone,
