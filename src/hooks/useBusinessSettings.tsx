@@ -87,6 +87,19 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
     fetchSettings();
   }, [fetchSettings]);
 
+  // Re-fetch on auth state change (settings are gated by RLS to authenticated users)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        fetchSettings();
+      }
+      if (event === 'SIGNED_OUT') {
+        setSettings(null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [fetchSettings]);
+
   return (
     <BusinessSettingsContext.Provider
       value={{
