@@ -19,7 +19,6 @@ const FinTrimestral = lazy(() => import('@/components/financial/FinTrimestral').
 const FinSegurancaSocial = lazy(() => import('@/components/financial/FinSegurancaSocial').then(m => ({ default: m.FinSegurancaSocial })));
 const FinAllDocuments = lazy(() => import('@/components/financial/FinAllDocuments').then(m => ({ default: m.FinAllDocuments })));
 const FinSetupFinanceiro = lazy(() => import('@/components/financial/FinSetupFinanceiro').then(m => ({ default: m.FinSetupFinanceiro })));
-const FinPrevisibilidade = lazy(() => import('@/components/financial/FinPrevisibilidade').then(m => ({ default: m.FinPrevisibilidade })));
 const FinGoals = lazy(() => import('@/components/financial/FinGoals').then(m => ({ default: m.FinGoals })));
 const FinContabilidade = lazy(() => import('@/components/financial/FinContabilidade').then(m => ({ default: m.FinContabilidade })));
 const FinListaProdutos = lazy(() => import('@/components/financial/FinListaProdutos').then(m => ({ default: m.FinListaProdutos })));
@@ -35,11 +34,10 @@ const TITLES: Record<string, string> = {
   documentos: 'Documentos',
   'setup-financeiro': 'Lista de Fornecedores',
   'lista-produtos': 'Lista de Produtos',
-  previsibilidade: 'Previsibilidade Financeira',
   contabilidade: 'Prazos Fiscais',
 };
 
-const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'contabilidade'];
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'contabilidade'];
 
 /**
  * Per-section query requirements — only fetch what's actually needed.
@@ -57,8 +55,6 @@ function getFinancialOptions(section: string | undefined): FinancialDataOptions 
     case 'iva':
     case 'seguranca-social':
       return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
-    case 'previsibilidade':
-      return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
     case 'setup-financeiro':
       return { expenses: true, recurring: true, documents: true, payroll: true, contractors: true };
     case 'entradas':
@@ -70,7 +66,7 @@ function getFinancialOptions(section: string | undefined): FinancialDataOptions 
 }
 
 function needsCommercialData(section: string | undefined): boolean {
-  return ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'contabilidade'].includes(section || '');
+  return ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'metas-financeiras', 'contabilidade'].includes(section || '');
 }
 
 function LoadingFallback() {
@@ -123,8 +119,6 @@ export default function FinanceiroSubPage() {
         return <FinAllDocuments />;
       case 'setup-financeiro':
         return <FinSetupFinanceiro fin={fin} />;
-      case 'previsibilidade':
-        return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
       case 'metas-financeiras': {
         const yearSales = sales.filter(s => s.sale_year === year);
         const yearExpenses = expenses.filter(e => e.expense_year === year);
