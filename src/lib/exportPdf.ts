@@ -74,10 +74,14 @@ export function exportPdf(title: string, elementId: string) {
     text-align: left; font-weight: 600; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.05em;
     color: #475569; padding: 10px 12px; background: #f8fafc;
     border-bottom: 1.5px solid #cbd5e1; border-top: 1px solid #e2e8f0;
+    white-space: nowrap;
   }
   td {
     padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top;
     color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   tbody tr:nth-child(even) td { background: #fafbfc; }
   tbody tr:last-child td { border-bottom: 1px solid #cbd5e1; }
