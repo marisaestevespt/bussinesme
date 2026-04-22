@@ -102,7 +102,9 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
         if (ssPat > 0) labels.push('SS Pat.');
       }
 
-      // IVA
+      // IVA — só apura se NÃO estiver isenta (art. 53.º) e não for contab. organizada.
+      // Quando iva_exempt = true: não cobra IVA nas vendas e não deduz IVA das despesas
+      // (o IVA pago vira custo, não entra no apuramento). Estimativa fica sempre a 0 €.
       if (!fiscalConfig.ivaExempt && !isContabOrganizada) {
         const monthSales = sales.filter(sl => sl.sale_year === currentYear && sl.sale_month === m);
         const ivaCobrado = monthSales.reduce((s, v) => s + (v.invoice_total - v.base_value), 0);
