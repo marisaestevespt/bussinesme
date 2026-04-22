@@ -1118,14 +1118,15 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
       items.push({ key: 'iva_pay_m', label: `IVA Pagamento — ${MONTHS[refMonth - 1]} ${refYear} (até dia 25)` });
     }
 
-    // IRS — April to June (submission period)
-    if (fiscalConfig.taxIrsRegime === 'simplificado') {
-      if (month === 4) {
-        items.push({ key: 'irs_start', label: `IRS ${year - 1} — Início da entrega (1 de Abril)` });
-      }
-      if (month >= 4 && month <= 6) {
-        items.push({ key: 'irs_deadline', label: `IRS ${year - 1} — Prazo final (30 de Junho)` });
-      }
+    // IRS — April to June (submission period).
+    // "Início da entrega" e "Prazo final" são a mesma obrigação (entregar o IRS).
+    // Se já marcaste o início (= já entregaste), o prazo final fica automaticamente cumprido,
+    // por isso não voltamos a mostrá-lo.
+    if (fiscalConfig.taxIrsRegime === 'simplificado' && month >= 4 && month <= 6) {
+      // We need access to checkedMap here, but it's defined below. We add both keys
+      // and filter visually further down once we know what's checked.
+      items.push({ key: 'irs_start', label: `IRS ${year - 1} — Entrega (a partir de 1 de Abril)` });
+      items.push({ key: 'irs_deadline', label: `IRS ${year - 1} — Prazo final (até 30 de Junho)` });
     }
 
     // Bank statement upload check
@@ -1165,9 +1166,17 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['fiscal-checks', year, month] }),
   });
 
-  if (checkItems.length === 0) return null;
+  // If IRS submission was marked as started/done, hide the redundant "Prazo final" item.
+  const visibleCheckItems = useMemo(() => {
+    if (checkedMap['irs_start']) {
+      return checkItems.filter(i => i.key !== 'irs_deadline');
+    }
+    return checkItems;
+  }, [checkItems, checkedMap]);
 
-  const doneCount = checkItems.filter(i => checkedMap[i.key]).length;
+  if (visibleCheckItems.length === 0) return null;
+
+  const doneCount = visibleCheckItems.filter(i => checkedMap[i.key]).length;
 
   return (
     <Card>
@@ -1175,14 +1184,14 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
         <CardTitle className="text-sm flex items-center gap-2">
           <ClipboardCheck className="h-4 w-4" />
           Obrigações Fiscais — {MONTHS[month - 1]}
-          <Badge variant="secondary" className="ml-auto text-xs">{doneCount}/{checkItems.length}</Badge>
+          <Badge variant="secondary" className="ml-auto text-xs">{doneCount}/{visibleCheckItems.length}</Badge>
         </CardTitle>
         {isContabOrganizada && (
           <p className="text-xs text-muted-foreground">O teu contabilista trata destas obrigações — usa esta checklist como guia.</p>
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {checkItems.map(item => (
+        {visibleCheckItems.map(item => (
           <label key={item.key} className="flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-muted/50 cursor-pointer">
             <Checkbox
               checked={checkedMap[item.key] || false}
