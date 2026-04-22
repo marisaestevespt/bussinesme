@@ -149,7 +149,7 @@ export function FinSetupNegocio() {
   return (
     <div className="space-y-6">
       {/* Dados da Empresa */}
-      <Card>
+      <Card id="sec-empresa" className="scroll-mt-24">
         <CardHeader>
           <CardTitle className="text-base">Dados da Empresa</CardTitle>
         </CardHeader>
@@ -174,7 +174,7 @@ export function FinSetupNegocio() {
       </Card>
 
       {/* Contactos do Negócio */}
-      <Card>
+      <Card id="sec-contactos" className="scroll-mt-24">
         <CardHeader>
           <CardTitle className="text-base">Contactos do Negócio</CardTitle>
         </CardHeader>
@@ -195,7 +195,7 @@ export function FinSetupNegocio() {
       </Card>
 
       {/* Métodos de Pagamento */}
-      <Card>
+      <Card id="sec-pagamentos" className="scroll-mt-24">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Métodos de Pagamento</CardTitle>
           <Button size="sm" variant="outline" onClick={addPaymentMethod}>
@@ -315,7 +315,7 @@ export function FinSetupNegocio() {
       </Card>
 
       {/* Notas */}
-      <Card>
+      <Card id="sec-notas" className="scroll-mt-24">
         <CardHeader>
           <CardTitle className="text-base">Notas</CardTitle>
         </CardHeader>

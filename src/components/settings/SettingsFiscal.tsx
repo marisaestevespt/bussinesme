@@ -164,7 +164,7 @@ export function SettingsFiscal() {
   return (
     <div className="space-y-6">
       {/* TIPO DE NEGÓCIO */}
-      <div className="space-y-4">
+      <div id="sec-tipo-negocio" className="space-y-4 scroll-mt-24">
         <div className="flex items-center gap-2 text-foreground">
           <Building2 className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
           <h2 className="text-sm font-semibold tracking-tight uppercase">Tipo de Negócio</h2>
@@ -232,7 +232,7 @@ export function SettingsFiscal() {
       <Separator />
 
       {/* IDENTIFICAÇÃO FISCAL */}
-      <div className="space-y-4">
+      <div id="sec-identificacao-fiscal" className="space-y-4 scroll-mt-24">
         <div className="flex items-center gap-2 text-foreground">
           <FileText className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
           <h2 className="text-sm font-semibold tracking-tight uppercase">Identificação Fiscal</h2>
@@ -265,7 +265,7 @@ export function SettingsFiscal() {
       <Separator />
 
       {/* CONFIGURAÇÃO FISCAL */}
-      <div className="space-y-4">
+      <div id="sec-config-fiscal" className="space-y-4 scroll-mt-24">
         <div className="flex items-center gap-2 text-foreground">
           <Receipt className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
           <h2 className="text-sm font-semibold tracking-tight uppercase">Configuração Fiscal</h2>
@@ -447,7 +447,7 @@ export function SettingsFiscal() {
       <Separator />
 
       {/* CONTABILISTA & EQUIPA */}
-      <div className="space-y-4">
+      <div id="sec-contabilista-equipa" className="space-y-4 scroll-mt-24">
         <div className="flex items-center gap-2 text-foreground">
           <Users className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
           <h2 className="text-sm font-semibold tracking-tight uppercase">Equipa & Contabilista</h2>
