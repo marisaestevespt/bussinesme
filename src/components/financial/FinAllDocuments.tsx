@@ -8,9 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Search, X, ExternalLink, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
+import { formatEuro } from '@/lib/formatting';
 type UnifiedDoc = {
   id: string;
   type: 'entrada' | 'saida';
@@ -179,7 +177,7 @@ export function FinAllDocuments() {
                     <TableCell className="text-xs max-w-[200px] truncate">{d.description || '—'}</TableCell>
                     <TableCell className="text-xs">{d.date || '—'}</TableCell>
                     <TableCell className={`text-xs text-right font-medium ${d.type === 'entrada' ? 'text-success' : 'text-destructive'}`}>
-                      {d.type === 'entrada' ? '+' : '-'}{fmt(d.value)}
+                      {d.type === 'entrada' ? '+' : '-'}{formatEuro(d.value)}
                     </TableCell>
                     <TableCell>
                       {(() => {

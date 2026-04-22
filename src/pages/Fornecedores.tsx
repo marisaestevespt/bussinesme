@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { getAutoExpenseStatus, isPaidExpenseStatus, normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { formatEuro } from '@/lib/formatting';
 
 const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
 
@@ -54,9 +55,6 @@ const calcMonthlyEquivalent = (base: number, periodicity: string) => {
   const map: Record<string, number> = { semanal: 52/12, mensal: 1, bimestral: 1/2, trimestral: 1/3, semestral: 1/6, anual: 1/12 };
   return Math.round(base * (map[periodicity] || 1) * 100) / 100;
 };
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 /**
  * Simple date generator: from firstPaymentDate, step by periodicity, until endDate.
  * No guessing — uses exactly the dates the user provides.
@@ -886,11 +884,11 @@ export default function FornecedoresPage() {
                     if (form.edit_recurring_includes_vat) {
                       const baseCalc = vatRate > 0 ? Math.round(val / (1 + vatRate / 100) * 100) / 100 : val;
                       const ivaCalc = Math.round((val - baseCalc) * 100) / 100;
-                      return <p className="text-xs text-muted-foreground">Base: {fmt(baseCalc)} · IVA: {fmt(ivaCalc)} · Equiv. mensal: {fmt(calcMonthlyEquivalent(baseCalc, form.edit_recurring_periodicity || 'mensal'))}</p>;
+                      return <p className="text-xs text-muted-foreground">Base: {formatEuro(baseCalc)} · IVA: {formatEuro(ivaCalc)} · Equiv. mensal: {formatEuro(calcMonthlyEquivalent(baseCalc, form.edit_recurring_periodicity || 'mensal'))}</p>;
                     } else {
                       const totalCalc = Math.round(val * (1 + vatRate / 100) * 100) / 100;
                       const ivaCalc = Math.round(val * vatRate / 100 * 100) / 100;
-                      return <p className="text-xs text-muted-foreground">Total c/ IVA: {fmt(totalCalc)} · IVA: {fmt(ivaCalc)} · Equiv. mensal: {fmt(calcMonthlyEquivalent(val, form.edit_recurring_periodicity || 'mensal'))}</p>;
+                      return <p className="text-xs text-muted-foreground">Total c/ IVA: {formatEuro(totalCalc)} · IVA: {formatEuro(ivaCalc)} · Equiv. mensal: {formatEuro(calcMonthlyEquivalent(val, form.edit_recurring_periodicity || 'mensal'))}</p>;
                     }
                   })()}
                   <p className="text-[10px] text-muted-foreground">Ao guardar, as despesas por pagar deste fornecedor serão atualizadas com os novos valores.</p>
@@ -938,16 +936,16 @@ export default function FornecedoresPage() {
                       if (form.recurring_includes_vat) {
                         const baseCalc = Math.round(val / (1 + vatRate / 100) * 100) / 100;
                         const ivaCalc = Math.round((val - baseCalc) * 100) / 100;
-                        return <p className="text-xs text-muted-foreground">Base: {fmt(baseCalc)} · IVA: {fmt(ivaCalc)}</p>;
+                        return <p className="text-xs text-muted-foreground">Base: {formatEuro(baseCalc)} · IVA: {formatEuro(ivaCalc)}</p>;
                       } else {
                         const totalCalc = Math.round(val * (1 + vatRate / 100) * 100) / 100;
                         const ivaCalc = Math.round(val * vatRate / 100 * 100) / 100;
-                        return <p className="text-xs text-muted-foreground">Total c/ IVA: {fmt(totalCalc)} · IVA: {fmt(ivaCalc)}</p>;
+                        return <p className="text-xs text-muted-foreground">Total c/ IVA: {formatEuro(totalCalc)} · IVA: {formatEuro(ivaCalc)}</p>;
                       }
                     })()}
                     {form.recurring_value && parseFloat(form.recurring_value) > 0 && (
                       <p className="text-xs text-muted-foreground">
-                        Equivalente mensal: {fmt(calcMonthlyEquivalent(
+                        Equivalente mensal: {formatEuro(calcMonthlyEquivalent(
                           form.recurring_includes_vat
                             ? Math.round(parseFloat(form.recurring_value) / (1 + (form.recurring_vat_rate ?? form.default_vat_rate ?? 23) / 100) * 100) / 100
                             : parseFloat(form.recurring_value),
@@ -1016,8 +1014,8 @@ export default function FornecedoresPage() {
                       Despesas associadas ({supplierExpenses.filter((e: any) => e.source_type !== 'rule').length})
                     </Label>
                     <div className="flex gap-3 text-[11px] text-muted-foreground">
-                      <span>Pago: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && isPaidExpenseStatus(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
-                      <span>Pendente: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && !isPaidExpenseStatus(e.status) && e.status !== 'cancelado').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                      <span>Pago: {formatEuro(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && isPaidExpenseStatus(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                      <span>Pendente: {formatEuro(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && !isPaidExpenseStatus(e.status) && e.status !== 'cancelado').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
                     </div>
                   </div>
                   <div className="max-h-64 overflow-y-auto space-y-1 border rounded-md p-2">
@@ -1078,7 +1076,7 @@ export default function FornecedoresPage() {
                               </div>
                               <div>
                                 <Label className="text-[10px]">Total c/ IVA</Label>
-                                <div className="h-8 flex items-center text-xs font-medium">{fmt(totalPreview)}</div>
+                                <div className="h-8 flex items-center text-xs font-medium">{formatEuro(totalPreview)}</div>
                               </div>
                             </div>
                             <div>
@@ -1127,8 +1125,8 @@ export default function FornecedoresPage() {
                             <span className="truncate">{exp.description}</span>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-muted-foreground">{fmt(exp.base_value || 0)}</span>
-                            <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
+                            <span className="text-muted-foreground">{formatEuro(exp.base_value || 0)}</span>
+                            <span className="font-medium">{formatEuro(exp.total_with_vat || 0)}</span>
                             <Badge
                               variant="outline"
                               className={`cursor-pointer ${isPaidExpenseStatus(exp.status) ? 'bg-success/10 text-success' : exp.status === 'cancelado' ? 'bg-muted text-muted-foreground' : exp.status === 'em_atraso' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}

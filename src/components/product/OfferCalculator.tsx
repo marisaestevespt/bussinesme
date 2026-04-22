@@ -5,9 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown, Check } from 'lucide-react';
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
+import { formatEuro } from '@/lib/formatting';
 interface PersistedCost {
   id: string;
   name: string;
@@ -104,12 +102,12 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
       return { icon: TrendingDown, color: 'text-destructive', bg: 'bg-destructive/5 border-destructive/20', label: 'Atenção', desc: 'Este preço não cobre todos os custos e impostos.' };
     }
     if (testVal > recBase) {
-      return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Bom preço!', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+      return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Bom preço!', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${formatEuro(testRealProfit)}` };
     }
     if (Math.abs(testVal - recBase) < 0.01) {
-      return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Preço no limite', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+      return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Preço no limite', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${formatEuro(testRealProfit)}` };
     }
-    return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+    return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${formatEuro(testRealProfit)}` };
   };
   const verdict = getVerdict();
 
@@ -150,7 +148,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
           </Table>
           <div className="flex justify-between items-center pt-2 border-t">
             <span className="text-sm font-medium">Total Custos</span>
-            <span className="font-semibold">{fmt(totalCosts)}</span>
+            <span className="font-semibold">{formatEuro(totalCosts)}</span>
           </div>
         </div>
 
@@ -168,7 +166,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
                 <CardContent className="pt-4 pb-3 space-y-1">
                   <p className="text-xs text-muted-foreground">Preço mínimo absoluto</p>
                   <p className="text-lg font-bold text-destructive">
-                    {fmt(floorBase)} <span className="text-sm font-medium text-muted-foreground">({fmt(floorWithVat)} c/ IVA)</span>
+                    {formatEuro(floorBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(floorWithVat)} c/ IVA)</span>
                   </p>
                   <p className="text-[10px] text-muted-foreground">Custos, sem margem</p>
                 </CardContent>
@@ -177,7 +175,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
                 <CardContent className="pt-4 pb-3 space-y-1">
                   <p className="text-xs text-muted-foreground">Preço recomendado</p>
                   <p className="text-lg font-bold text-success">
-                    {fmt(recBase)} <span className="text-sm font-medium text-muted-foreground">({fmt(recWithVat)} c/ IVA)</span>
+                    {formatEuro(recBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(recWithVat)} c/ IVA)</span>
                   </p>
                   <p className="text-[10px] text-muted-foreground">Margem bruta de {recMargin.toFixed(1)}%</p>
                 </CardContent>
@@ -232,23 +230,23 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Preço c/ IVA</p>
-                <p className="text-sm font-semibold">{fmt(testWithVat)}</p>
+                <p className="text-sm font-semibold">{formatEuro(testWithVat)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">IRS/IRC ({taxPercent}% s/ 75%)</p>
-                <p className="text-sm font-semibold">{fmt(testIRS)}</p>
+                <p className="text-sm font-semibold">{formatEuro(testIRS)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Seg. Social ({ssPercent}% s/ 70%)</p>
-                <p className="text-sm font-semibold">{fmt(testSS)}</p>
+                <p className="text-sm font-semibold">{formatEuro(testSS)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Custos totais</p>
-                <p className="text-sm font-semibold">{fmt(totalCosts)} — {(totalCosts / testVal * 100).toFixed(1)}% do preço</p>
+                <p className="text-sm font-semibold">{formatEuro(totalCosts)} — {(totalCosts / testVal * 100).toFixed(1)}% do preço</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Lucro real</p>
-                <p className={`text-sm font-semibold ${testRealProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(testRealProfit)} — {(testRealProfit / testVal * 100).toFixed(1)}% do preço</p>
+                <p className={`text-sm font-semibold ${testRealProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(testRealProfit)} — {(testRealProfit / testVal * 100).toFixed(1)}% do preço</p>
               </div>
             </div>
           )}

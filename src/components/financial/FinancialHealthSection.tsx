@@ -6,6 +6,7 @@ import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Users } from 'lucid
 import { supabase } from '@/integrations/supabase/client';
 import { sumRevenue } from '@/lib/salesCalculations';
 import {
+import { formatEuro } from '@/lib/formatting';
   calculateMRR,
   forecastRecurringRevenue,
   recurringChurn,
@@ -13,8 +14,6 @@ import {
 } from '@/lib/financialHealth';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null; product?: string | null; client?: string | null; status?: string };
 
 interface Props {
@@ -87,7 +86,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                 <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">MRR (Receita Recorrente)</p>
               </div>
-              <p className="text-lg font-bold">{fmt(mrr.total)}</p>
+              <p className="text-lg font-bold">{formatEuro(mrr.total)}</p>
               <p className="text-[10px] text-muted-foreground">{mrr.count} cliente{mrr.count !== 1 ? 's' : ''} com produto mensal</p>
             </CardContent>
           </Card>
@@ -99,7 +98,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                 <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Previsão {forecast.label}</p>
               </div>
-              <p className="text-lg font-bold">{fmt(forecast.total)}</p>
+              <p className="text-lg font-bold">{formatEuro(forecast.total)}</p>
               <p className="text-[10px] text-muted-foreground">{forecast.count} cliente{forecast.count !== 1 ? 's' : ''} activo{forecast.count !== 1 ? 's' : ''}</p>
             </CardContent>
           </Card>
@@ -112,10 +111,10 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                 <p className="text-xs text-muted-foreground">Churn de Receita</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-success">+{fmt(churn.gainedRevenue)}</span>
-                <span className="text-xs text-destructive">-{fmt(churn.lostRevenue)}</span>
+                <span className="text-xs text-success">+{formatEuro(churn.gainedRevenue)}</span>
+                <span className="text-xs text-destructive">-{formatEuro(churn.lostRevenue)}</span>
               </div>
-              <p className={`text-lg font-bold ${churn.net >= 0 ? 'text-success' : 'text-destructive'}`}>{churn.net >= 0 ? '+' : ''}{fmt(churn.net)}</p>
+              <p className={`text-lg font-bold ${churn.net >= 0 ? 'text-success' : 'text-destructive'}`}>{churn.net >= 0 ? '+' : ''}{formatEuro(churn.net)}</p>
               <p className="text-[10px] text-muted-foreground">{churn.gainedCount} novo{churn.gainedCount !== 1 ? 's' : ''} · {churn.lostCount} saíd{churn.lostCount !== 1 ? 'as' : 'a'}</p>
             </CardContent>
           </Card>

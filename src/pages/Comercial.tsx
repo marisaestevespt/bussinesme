@@ -7,6 +7,7 @@ import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen, UserCheck, Packa
 import { CommercialOverview } from '@/components/commercial/CommercialOverview';
 import { Separator } from '@/components/ui/separator';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { formatNumber } from '@/lib/formatting';
 
 const SECTIONS = [
   { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target, iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
@@ -20,9 +21,6 @@ const SECTIONS = [
   { path: '/hub/comercial/clientes', label: 'Lista de Clientes', icon: UserCheck, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10' },
   { path: '/hub/comercial/produtos', label: 'Produtos', icon: Package, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10' },
 ];
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 export default function ComercialPage() {
   const navigate = useNavigate();
   const data = useCommercialData();
@@ -47,10 +45,10 @@ export default function ComercialPage() {
             <Progress value={Math.min(data.progressPct, 100)} className="h-3" />
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                Faturado: <span className="font-semibold text-foreground">€{fmt(data.totalInvoiced)}</span>
+                Faturado: <span className="font-semibold text-foreground">€{formatNumber(data.totalInvoiced)}</span>
               </span>
               <span className="text-muted-foreground">
-                Meta: <span className="font-semibold text-foreground">€{fmt(data.annualGoalAmount)}</span>
+                Meta: <span className="font-semibold text-foreground">€{formatNumber(data.annualGoalAmount)}</span>
               </span>
             </div>
           </CardContent>

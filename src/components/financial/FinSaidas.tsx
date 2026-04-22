@@ -30,6 +30,7 @@ import { TableSkeleton, EmptyState } from '@/components/ui/loading-skeletons';
 import { Receipt } from 'lucide-react';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { VatDeductibleCell } from './VatDeductibleCell';
+import { formatEuro } from '@/lib/formatting';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -57,9 +58,6 @@ const PERIODICITIES = [
 ];
 
 interface Props { fin: ReturnType<typeof useFinancialData>; currentYear: number; }
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 type Filter = 'all' | 'month' | 'quarter' | 'year' | 'recurring';
 
 export function FinSaidas({ fin, currentYear }: Props) {
@@ -223,7 +221,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
           <Card className="mb-4">
             <CardContent className="py-3 px-4 flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Custo mensal estimado (recorrentes ativas)</span>
-              <span className="font-semibold">{fmt(totalMonthlyRecurring)}</span>
+              <span className="font-semibold">{formatEuro(totalMonthlyRecurring)}</span>
             </CardContent>
           </Card>
         )}
@@ -272,9 +270,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
                       {(e as any).is_recurring && <RefreshCw className="inline h-3 w-3 ml-1 text-muted-foreground" />}
                     </TableCell>
                     <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
-                    <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
                     <TableCell>{e.vat_rate}%</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(e.total_with_vat)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatEuro(e.total_with_vat)}</TableCell>
                     {!ivaExempt && (
                       <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
                         <VatDeductibleCell expense={e as any} />
@@ -429,7 +427,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   </div>
                   {expForm.base_value && parseFloat(expForm.base_value) > 0 && expForm.periodicity !== 'mensal' && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(expForm.base_value) || 0, expForm.periodicity || 'mensal'))}
+                      Equivalente mensal: {formatEuro(calcMonthlyEquivalent(parseFloat(expForm.base_value) || 0, expForm.periodicity || 'mensal'))}
                     </p>
                   )}
                 </div>

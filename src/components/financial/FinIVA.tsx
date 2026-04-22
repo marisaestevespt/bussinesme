@@ -14,10 +14,9 @@ import { exportPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
 import { computeVatForExpenses, computeVatForSales } from '@/lib/vatCalculations';
 import { VatDeductibleCell } from './VatDeductibleCell';
+import { formatEuro } from '@/lib/formatting';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null; client?: string | null; product?: string | null; sale_id?: string };
 interface Props { sales: Sale[]; expenses: Expense[]; currentYear: number; fin: ReturnType<typeof useFinancialData>; }
 
@@ -162,16 +161,16 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                     className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
                     onClick={() => setCobradoMonth(i)}
                   >
-                    {fmt(d.cobrado)}
+                    {formatEuro(d.cobrado)}
                   </TableCell>
                   <TableCell
                     className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
                     onClick={() => setPagoMonth(i)}
                   >
-                    {fmt(d.pago)}
+                    {formatEuro(d.pago)}
                   </TableCell>
-                  <TableCell className="text-right font-medium text-primary">{fmt(d.deduzir)}</TableCell>
-                  <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-warning' : d.balanco < 0 ? 'text-success' : ''}`}>{fmt(d.balanco)}</TableCell>
+                  <TableCell className="text-right font-medium text-primary">{formatEuro(d.deduzir)}</TableCell>
+                  <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-warning' : d.balanco < 0 ? 'text-success' : ''}`}>{formatEuro(d.balanco)}</TableCell>
                   <TableCell>
                     {d.balanco > 0 && <Badge variant="outline" className="bg-warning/10 text-warning text-xs">A entregar</Badge>}
                     {d.balanco < 0 && <Badge variant="outline" className="bg-success/10 text-success text-xs">A recuperar</Badge>}
@@ -180,10 +179,10 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
               ))}
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
-                <TableCell className="text-right">{fmt(totalCobrado)}</TableCell>
-                <TableCell className="text-right">{fmt(totalPago)}</TableCell>
-                <TableCell className="text-right text-primary">{fmt(totalDeduzir)}</TableCell>
-                <TableCell className={`text-right ${totalBalanco > 0 ? 'text-warning' : totalBalanco < 0 ? 'text-success' : ''}`}>{fmt(totalBalanco)}</TableCell>
+                <TableCell className="text-right">{formatEuro(totalCobrado)}</TableCell>
+                <TableCell className="text-right">{formatEuro(totalPago)}</TableCell>
+                <TableCell className="text-right text-primary">{formatEuro(totalDeduzir)}</TableCell>
+                <TableCell className={`text-right ${totalBalanco > 0 ? 'text-warning' : totalBalanco < 0 ? 'text-success' : ''}`}>{formatEuro(totalBalanco)}</TableCell>
                 <TableCell />
               </TableRow>
             </TableBody>
@@ -226,15 +225,15 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 {autoLiquidacao.byMonth.filter(m => m.items.length > 0).map((m, i) => (
                   <TableRow key={i}>
                     <TableCell className="font-medium">{m.mes}</TableCell>
-                    <TableCell className="text-right">{fmt(m.totalBase)}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(m.ivaAutoLiq)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(m.totalBase)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatEuro(m.ivaAutoLiq)}</TableCell>
                     <TableCell className="text-right text-muted-foreground">{m.items.length}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="border-t-2 font-semibold">
                   <TableCell>Total</TableCell>
-                  <TableCell className="text-right">{fmt(autoLiquidacao.totalBase)}</TableCell>
-                  <TableCell className="text-right">{fmt(autoLiquidacao.totalIva)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(autoLiquidacao.totalBase)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(autoLiquidacao.totalIva)}</TableCell>
                   <TableCell />
                 </TableRow>
               </TableBody>
@@ -267,17 +266,17 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{s.client || s.product || s.sale_id || `Venda ${idx + 1}`}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(s.invoice_total)}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(s.base_value)}</TableCell>
-                      <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(s.invoice_total)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(s.base_value)}</TableCell>
+                      <TableCell className="text-right text-sm font-medium">{formatEuro(iva)}</TableCell>
                     </TableRow>
                   );
                 })}
                 <TableRow className="border-t-2 font-semibold">
                   <TableCell>Total</TableCell>
-                  <TableCell className="text-right">{fmt(cobradoDetail?.totalFatura || 0)}</TableCell>
-                  <TableCell className="text-right">{fmt(cobradoDetail?.totalBase || 0)}</TableCell>
-                  <TableCell className="text-right">{fmt(cobradoDetail?.iva || 0)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(cobradoDetail?.totalFatura || 0)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(cobradoDetail?.totalBase || 0)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(cobradoDetail?.iva || 0)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -310,9 +309,9 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{e.description || `Despesa ${idx + 1}`}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(e.total_with_vat)}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
-                      <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(e.total_with_vat)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(e.base_value)}</TableCell>
+                      <TableCell className="text-right text-sm font-medium">{formatEuro(iva)}</TableCell>
                       <TableCell className="text-right text-sm">
                         <VatDeductibleCell expense={e as any} />
                       </TableCell>
@@ -321,10 +320,10 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 })}
                 <TableRow className="border-t-2 font-semibold">
                   <TableCell>Total</TableCell>
-                  <TableCell className="text-right">{fmt(pagoDetail?.expenses.reduce((s, e) => s + e.total_with_vat, 0) || 0)}</TableCell>
-                  <TableCell className="text-right">{fmt(pagoDetail?.expenses.reduce((s, e) => s + e.base_value, 0) || 0)}</TableCell>
-                  <TableCell className="text-right">{fmt(pagoDetail?.totalIvaPago || 0)}</TableCell>
-                  <TableCell className="text-right text-primary">{fmt(pagoDetail?.totalIvaDeduzir || 0)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(pagoDetail?.expenses.reduce((s, e) => s + e.total_with_vat, 0) || 0)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(pagoDetail?.expenses.reduce((s, e) => s + e.base_value, 0) || 0)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(pagoDetail?.totalIvaPago || 0)}</TableCell>
+                  <TableCell className="text-right text-primary">{formatEuro(pagoDetail?.totalIvaDeduzir || 0)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

@@ -4,10 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { formatEuro } from '@/lib/formatting';
 
 const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 const CONTRACT_LABELS: Record<string, string> = {
   contrato_trabalho: 'Contrato de Trabalho',
   contrato_prestacao: 'Prestação de Serviços',
@@ -129,7 +128,7 @@ export function FinPayroll({ currentYear }: Props) {
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.team_members?.full_name || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{c.team_members?.role_title || '—'}</TableCell>
-                    <TableCell className="text-right font-medium">{c.monthly_value ? fmt(c.monthly_value) : '—'}</TableCell>
+                    <TableCell className="text-right font-medium">{c.monthly_value ? formatEuro(c.monthly_value) : '—'}</TableCell>
                     <TableCell>{c.payment_day ? `Dia ${c.payment_day}` : '—'}</TableCell>
                     <TableCell>{formatDate(c.start_date)}</TableCell>
                     <TableCell>{formatDate(c.end_date)}</TableCell>
@@ -149,12 +148,12 @@ export function FinPayroll({ currentYear }: Props) {
     <div className="space-y-8 mt-4">
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Mensal (Ativos)</p><p className="text-lg font-bold">{fmt(totalMensal)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Mensal (Ativos)</p><p className="text-lg font-bold">{formatEuro(totalMensal)}</p></CardContent></Card>
         {hasContratoTrabalho && (
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Colaboradores Fixos</p><p className="text-lg font-bold">{fmt(totalTrabalho)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Colaboradores Fixos</p><p className="text-lg font-bold">{formatEuro(totalTrabalho)}</p></CardContent></Card>
         )}
         {hasPrestacao && (
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Prestadores de Serviços</p><p className="text-lg font-bold">{fmt(totalPrestacao)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Prestadores de Serviços</p><p className="text-lg font-bold">{formatEuro(totalPrestacao)}</p></CardContent></Card>
         )}
       </div>
 

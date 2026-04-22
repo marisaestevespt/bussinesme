@@ -14,12 +14,10 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { formatNumber } from '@/lib/formatting';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -251,12 +249,12 @@ export function MonthlyReportSection() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <ReportCard icon={DollarSign} label="Receita" value={`€${fmt(reportData.financial?.revenue || 0)}`} />
-            <ReportCard icon={DollarSign} label="Despesas" value={`€${fmt(reportData.financial?.expenses || 0)}`} />
-            <ReportCard icon={TrendingUp} label="Margem" value={`€${fmt(reportData.financial?.margin || 0)}`}
+            <ReportCard icon={DollarSign} label="Receita" value={`€${formatNumber(reportData.financial?.revenue || 0)}`} />
+            <ReportCard icon={DollarSign} label="Despesas" value={`€${formatNumber(reportData.financial?.expenses || 0)}`} />
+            <ReportCard icon={TrendingUp} label="Margem" value={`€${formatNumber(reportData.financial?.margin || 0)}`}
               sub={`${(reportData.financial?.marginPct || 0).toFixed(1)}%`} />
             <ReportCard icon={Briefcase} label="Vendas" value={`${reportData.commercial?.salesCount || 0}`}
-              sub={`€${fmt(reportData.commercial?.totalSales || 0)}`} />
+              sub={`€${formatNumber(reportData.commercial?.totalSales || 0)}`} />
             <ReportCard icon={Users} label="Clientes Ativos" value={`${reportData.clients?.activeCount || 0}`}
               sub={`+${reportData.clients?.newCount || 0} novos`} />
             <ReportCard icon={CheckSquare} label="Tarefas Concluídas" value={`${reportData.operations?.tasksCompleted || 0}`}
@@ -272,7 +270,7 @@ export function MonthlyReportSection() {
               <CardContent className="space-y-2">
                 <Progress value={Math.min(reportData.commercial?.progressPct || 0, 100)} className="h-2.5" />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>€{fmt(reportData.commercial?.totalYtd || 0)} faturado</span>
+                  <span>€{formatNumber(reportData.commercial?.totalYtd || 0)} faturado</span>
                   <span>{(reportData.commercial?.progressPct || 0).toFixed(1)}%</span>
                 </div>
               </CardContent>
@@ -336,7 +334,7 @@ export function MonthlyReportSection() {
                   {reportData.commercial.topProducts.map(([name, value]: [string, number]) => (
                     <div key={name} className="flex items-center justify-between text-sm">
                       <span>{name}</span>
-                      <span className="font-medium">€{fmt(value)}</span>
+                      <span className="font-medium">€{formatNumber(value)}</span>
                     </div>
                   ))}
                 </div>

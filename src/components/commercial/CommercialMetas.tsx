@@ -8,6 +8,7 @@ import { AlertTriangle, Plus, Trash2, Save, Pencil } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { useProducts } from '@/hooks/useProducts';
+import { formatNumber } from '@/lib/formatting';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const QUARTER_RANGES: Record<number, string> = { 1: 'Jan–Mar', 2: 'Abr–Jun', 3: 'Jul–Set', 4: 'Out–Dez' };
@@ -17,8 +18,6 @@ const MONTH_RANGE = (m: number, year: number) => {
   const last = new Date(year, m, 0);
   return `${d.getDate().toString().padStart(2,'0')}/${(m).toString().padStart(2,'0')} – ${last.getDate()}/${(m).toString().padStart(2,'0')}`;
 };
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (part: number, whole: number) => whole > 0 ? ((part / whole) * 100).toFixed(1) + '%' : '0%';
 
 /** Inline editable cell: shows static value + pencil, or input + save */
@@ -37,7 +36,7 @@ function EditableAmount({
   if (!editing) {
     return (
       <div className="flex items-center justify-end gap-1">
-        <span className="font-medium">€{fmt(value)}</span>
+        <span className="font-medium">€{formatNumber(value)}</span>
         <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setInput(value ? String(value) : ''); setEditing(true); }}>
           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
         </Button>
@@ -176,7 +175,7 @@ export function CommercialMetas() {
     if (goal <= 0) return '';
     const p = ((invoiced / goal) * 100).toFixed(0);
     const remaining = goal - invoiced;
-    return `Progresso: ${p}% — Faturado: €${fmt(invoiced)} de €${fmt(goal)}. Faltam €${fmt(Math.max(0, remaining))}.`;
+    return `Progresso: ${p}% — Faturado: €${formatNumber(invoiced)} de €${formatNumber(goal)}. Faltam €${formatNumber(Math.max(0, remaining))}.`;
   };
 
   return (
@@ -192,7 +191,7 @@ export function CommercialMetas() {
                 <p className="text-sm text-muted-foreground mb-1">Meta de Vendas Anual (€)</p>
                 {data.annualGoalAmount > 0 && !editingAnnual ? (
                   <div className="flex items-center gap-2">
-                    <p className="text-lg font-medium">€{fmt(data.annualGoalAmount)}</p>
+                    <p className="text-lg font-medium">€{formatNumber(data.annualGoalAmount)}</p>
                     <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => { setAnnualInput(String(data.annualGoalAmount)); setEditingAnnual(true); }}>
                       <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
@@ -204,7 +203,7 @@ export function CommercialMetas() {
                   </div>
                 )}
               </div>
-              <div><p className="text-sm text-muted-foreground">Total Faturado</p><p className="text-lg font-medium">€{fmt(data.totalInvoiced)}</p></div>
+              <div><p className="text-sm text-muted-foreground">Total Faturado</p><p className="text-lg font-medium">€{formatNumber(data.totalInvoiced)}</p></div>
               <div><p className="text-sm text-muted-foreground">% Progresso</p><p className="text-lg font-medium">{data.progressPct.toFixed(1)}%</p></div>
               <div><p className="text-sm text-muted-foreground">Análise</p><p className="text-sm">{analysis(data.totalInvoiced, data.annualGoalAmount)}</p></div>
             </div>
@@ -239,7 +238,7 @@ export function CommercialMetas() {
                       onSave={v => data.upsertProductGoal.mutate({ id: p.id, product_name: p.product_name, goal_amount: v, intention: p.intention || undefined })}
                     />
                   </TableCell>
-                  <TableCell className="text-right">€{fmt(p.totalInvoiced)}</TableCell>
+                  <TableCell className="text-right">€{formatNumber(p.totalInvoiced)}</TableCell>
                   <TableCell className="text-right">{pct(p.totalInvoiced, Number(p.goal_amount))}</TableCell>
                   <TableCell><Button variant="ghost" size="sm" onClick={() => data.deleteProductGoal.mutate(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></TableCell>
                 </TableRow>
@@ -261,7 +260,7 @@ export function CommercialMetas() {
         {productMismatch && (
           <Alert className="mt-2 border-warning/30 bg-warning/15">
             <AlertTriangle className="h-4 w-4 text-warning" />
-            <AlertDescription className="text-warning">A soma das metas por produto (€{fmt(productGoalsSum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
+            <AlertDescription className="text-warning">A soma das metas por produto (€{formatNumber(productGoalsSum)}) não corresponde à meta anual (€{formatNumber(data.annualGoalAmount)}).</AlertDescription>
           </Alert>
         )}
       </section>
@@ -294,7 +293,7 @@ export function CommercialMetas() {
                       onSave={v => data.upsertQuarterlyGoal.mutate({ quarter: q.quarter, goal_amount: v })}
                     />
                   </TableCell>
-                  <TableCell className="text-right">€{fmt(data.quarterTotals[q.quarter - 1])}</TableCell>
+                  <TableCell className="text-right">€{formatNumber(data.quarterTotals[q.quarter - 1])}</TableCell>
                   <TableCell className="text-right">{pct(data.quarterTotals[q.quarter - 1], q.goal_amount)}</TableCell>
                   <TableCell className="text-sm">{analysis(data.quarterTotals[q.quarter - 1], q.goal_amount)}</TableCell>
                 </TableRow>
@@ -305,7 +304,7 @@ export function CommercialMetas() {
         {quarterlyMismatch && (
           <Alert className="mt-2 border-warning/30 bg-warning/15">
             <AlertTriangle className="h-4 w-4 text-warning" />
-            <AlertDescription className="text-warning">A soma dos trimestres (€{fmt(quarterlySum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
+            <AlertDescription className="text-warning">A soma dos trimestres (€{formatNumber(quarterlySum)}) não corresponde à meta anual (€{formatNumber(data.annualGoalAmount)}).</AlertDescription>
           </Alert>
         )}
       </section>
@@ -341,7 +340,7 @@ export function CommercialMetas() {
                         onSave={v => data.upsertMonthlyGoal.mutate({ month: m.month, goal_amount: v })}
                       />
                     </TableCell>
-                    <TableCell className="text-right">€{fmt(monthInvoiced)}</TableCell>
+                    <TableCell className="text-right">€{formatNumber(monthInvoiced)}</TableCell>
                     <TableCell className="text-right">{pct(monthInvoiced, m.goal_amount)}</TableCell>
                     <TableCell className="text-sm">{analysis(monthInvoiced, m.goal_amount)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{MONTH_RANGE(m.month, data.year)}</TableCell>
@@ -362,7 +361,7 @@ export function CommercialMetas() {
         {data.monthlyMismatch && (
           <Alert className="mt-2 border-warning/30 bg-warning/15">
             <AlertTriangle className="h-4 w-4 text-warning" />
-            <AlertDescription className="text-warning">A soma dos meses (€{fmt(data.monthlyGoalsSum)}) não corresponde à meta anual (€{fmt(data.annualGoalAmount)}).</AlertDescription>
+            <AlertDescription className="text-warning">A soma dos meses (€{formatNumber(data.monthlyGoalsSum)}) não corresponde à meta anual (€{formatNumber(data.annualGoalAmount)}).</AlertDescription>
           </Alert>
         )}
       </section>

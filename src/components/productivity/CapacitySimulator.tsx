@@ -20,6 +20,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { supabase } from '@/integrations/supabase/client';
 import { WEEKS_PER_MONTH } from './productivity-constants';
 import { isTaskDone, isTaskInProgress } from '@/lib/taskStatus';
+import { formatEuro } from '@/lib/formatting';
 
 interface Props {
   members: any[];
@@ -136,9 +137,6 @@ interface PhantomMember {
   startDate: string; // yyyy-MM-dd
   delegatedTaskIds: string[];
 }
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 export function HiringSimulator({ members, entries }: { members: any[]; entries: any[] }) {
   const { user } = useAuth();
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
@@ -607,16 +605,16 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-lg border p-3 space-y-1">
                 <p className="text-xs text-muted-foreground">Custo mensal adicional</p>
-                <p className="text-lg font-bold text-destructive">{fmt(simulation.totalMonthlyCost)}</p>
+                <p className="text-lg font-bold text-destructive">{formatEuro(simulation.totalMonthlyCost)}</p>
               </div>
               <div className="rounded-lg border p-3 space-y-1">
                 <p className="text-xs text-muted-foreground">Custo anual adicional</p>
-                <p className="text-lg font-bold text-destructive">{fmt(simulation.totalAnnualCost)}</p>
+                <p className="text-lg font-bold text-destructive">{formatEuro(simulation.totalAnnualCost)}</p>
                 <p className="text-[10px] text-muted-foreground">Colaboradores: 14 meses · Prestadores: 12 meses</p>
               </div>
               <div className="rounded-lg border p-3 space-y-1">
                 <p className="text-xs text-muted-foreground">Custo restante do ano</p>
-                <p className="text-lg font-bold">{fmt(simulation.costByMonth[simulation.costByMonth.length - 1]?.cumulative || 0)}</p>
+                <p className="text-lg font-bold">{formatEuro(simulation.costByMonth[simulation.costByMonth.length - 1]?.cumulative || 0)}</p>
                 <p className="text-[10px] text-muted-foreground">Acumulado até dezembro</p>
               </div>
             </div>
@@ -639,18 +637,18 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                     <TableCell className="text-sm">{f.name}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{f.type}</Badge></TableCell>
                     <TableCell className="text-xs">{f.startDate ? new Date(f.startDate + 'T00:00:00').toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }) : '—'}</TableCell>
-                    <TableCell className="text-right text-sm">{fmt(f.gross)}</TableCell>
-                    <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? fmt(f.ssEmployer) : <span className="text-muted-foreground">n/a</span>}</TableCell>
-                    <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? fmt(f.mealAllowance) : <span className="text-muted-foreground">n/a</span>}</TableCell>
-                    <TableCell className="text-right text-sm">{f.type === 'Prestador' ? fmt(f.iva) : <span className="text-muted-foreground">n/a</span>}</TableCell>
-                    <TableCell className="text-right text-sm font-medium">{fmt(f.totalCostMonth)}</TableCell>
-                    <TableCell className="text-right text-sm font-medium">{fmt(f.totalCostYear)}</TableCell>
+                    <TableCell className="text-right text-sm">{formatEuro(f.gross)}</TableCell>
+                    <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? formatEuro(f.ssEmployer) : <span className="text-muted-foreground">n/a</span>}</TableCell>
+                    <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? formatEuro(f.mealAllowance) : <span className="text-muted-foreground">n/a</span>}</TableCell>
+                    <TableCell className="text-right text-sm">{f.type === 'Prestador' ? formatEuro(f.iva) : <span className="text-muted-foreground">n/a</span>}</TableCell>
+                    <TableCell className="text-right text-sm font-medium">{formatEuro(f.totalCostMonth)}</TableCell>
+                    <TableCell className="text-right text-sm font-medium">{formatEuro(f.totalCostYear)}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="border-t-2">
                   <TableCell colSpan={7} className="text-sm font-semibold text-right">Total</TableCell>
-                  <TableCell className="text-right font-bold text-destructive">{fmt(simulation.totalMonthlyCost)}</TableCell>
-                  <TableCell className="text-right font-bold text-destructive">{fmt(simulation.totalAnnualCost)}</TableCell>
+                  <TableCell className="text-right font-bold text-destructive">{formatEuro(simulation.totalMonthlyCost)}</TableCell>
+                  <TableCell className="text-right font-bold text-destructive">{formatEuro(simulation.totalAnnualCost)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -663,7 +661,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                   <BarChart data={simulation.costByMonth}>
                     <XAxis dataKey="month" fontSize={10} />
                     <YAxis fontSize={10} tickFormatter={v => `${v}€`} />
-                    <Tooltip formatter={(v: number) => fmt(v)} />
+                    <Tooltip formatter={(v: number) => formatEuro(v)} />
                     <Legend />
                     <Bar dataKey="cost" name="Custo mensal" fill="hsl(var(--destructive))" radius={[4,4,0,0]} />
                     <Bar dataKey="cumulative" name="Acumulado" fill="hsl(var(--muted-foreground) / 0.3)" radius={[4,4,0,0]} />

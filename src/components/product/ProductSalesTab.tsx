@@ -8,9 +8,7 @@ import { Gift, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { sumRevenue, saleRevenue } from '@/lib/salesCalculations';
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
+import { formatNumber } from '@/lib/formatting';
 interface Props {
   productName: string;
   ticketValue?: number;
@@ -83,21 +81,21 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-muted-foreground">Faturação Total</p>
-            <p className="text-2xl font-bold">€{fmt(totalRevenue)}</p>
+            <p className="text-2xl font-bold">€{formatNumber(totalRevenue)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><TrendingUp className="h-3 w-3" /> Preço Normal</p>
             <p className="text-lg font-semibold">{normalSales.length} vendas</p>
-            <p className="text-xs text-muted-foreground">€{fmt(normalRevenue)}</p>
+            <p className="text-xs text-muted-foreground">€{formatNumber(normalRevenue)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><Gift className="h-3 w-3" /> Oferta Especial</p>
             <p className="text-lg font-semibold">{specialSales.length} vendas</p>
-            <p className="text-xs text-muted-foreground">€{fmt(specialRevenue)}</p>
+            <p className="text-xs text-muted-foreground">€{formatNumber(specialRevenue)}</p>
           </CardContent>
         </Card>
       </div>
@@ -128,7 +126,7 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
                   >
                     <TableCell className="font-medium text-primary hover:underline">{c.name}</TableCell>
                     <TableCell className="text-right">{c.count}</TableCell>
-                    <TableCell className="text-right">€{fmt(c.total)}</TableCell>
+                    <TableCell className="text-right">€{formatNumber(c.total)}</TableCell>
                     <TableCell>{c.lastDate ? format(new Date(c.lastDate), 'dd/MM/yyyy') : '—'}</TableCell>
                   </TableRow>
                 ))}
@@ -180,8 +178,8 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">€{fmt(Number(s.base_value))}</TableCell>
-                      <TableCell className="text-right">€{fmt(Number(s.invoice_total))}</TableCell>
+                      <TableCell className="text-right">€{formatNumber(Number(s.base_value))}</TableCell>
+                      <TableCell className="text-right">€{formatNumber(Number(s.invoice_total))}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{isSpecial && reason ? reason : '—'}</TableCell>
                       <TableCell>{s.source || '—'}</TableCell>
                     </TableRow>

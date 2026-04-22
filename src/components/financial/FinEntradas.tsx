@@ -15,6 +15,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { formatEuro } from '@/lib/formatting';
 
 type Sale = {
   id: string; sale_id: string; status: string; payment_date: string | null;
@@ -61,8 +62,6 @@ export function FinEntradas({ sales, currentYear }: Props) {
 
   const totalBase = filtered.reduce((s, v) => s + v.base_value, 0);
   const totalInvoice = sumRevenue(filtered);
-  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
   const openDetail = (sale: Sale) => {
     setSelectedSale(sale);
     setSheetOpen(true);
@@ -95,8 +94,8 @@ export function FinEntradas({ sales, currentYear }: Props) {
         </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Valor Base</p><p className="text-lg font-bold">{fmt(totalBase)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Fatura</p><p className="text-lg font-bold">{fmt(totalInvoice)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Valor Base</p><p className="text-lg font-bold">{formatEuro(totalBase)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Fatura</p><p className="text-lg font-bold">{formatEuro(totalInvoice)}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Registos</p><p className="text-lg font-bold">{filtered.length}</p></CardContent></Card>
       </div>
       <Card id="fin-entradas-export">
@@ -128,8 +127,8 @@ export function FinEntradas({ sales, currentYear }: Props) {
                     <TableCell className="font-mono text-xs">{s.sale_id}</TableCell>
                     <TableCell>{s.payment_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{s.description || '—'}</TableCell>
-                    <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(s.invoice_total)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(s.base_value)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatEuro(s.invoice_total)}</TableCell>
                     <TableCell>{s.product || '—'}</TableCell>
                     <TableCell>{s.client || '—'}</TableCell>
                     <TableCell>{s.source || '—'}</TableCell>

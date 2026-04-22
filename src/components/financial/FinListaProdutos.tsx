@@ -4,9 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
+import { formatEuro } from '@/lib/formatting';
 const PAYMENT_LABELS: Record<string, string> = {
   mbway: 'MB WAY', transferencia: 'Transferência', cartao: 'Cartão', paypal: 'PayPal',
   stripe: 'Stripe', numerario: 'Numerário', debito_direto: 'Débito Direto',
@@ -73,9 +71,9 @@ export function FinListaProdutos() {
                         {p.status === 'vendas_ativas' ? 'Vendas Ativas' : p.status === 'a_criar' ? 'A Criar' : p.status === 'em_ideia' ? 'Em Ideia' : 'Off'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{ticket > 0 ? fmt(ticket) : '—'}</TableCell>
+                    <TableCell className="text-right">{ticket > 0 ? formatEuro(ticket) : '—'}</TableCell>
                     <TableCell className="text-right">{vat > 0 ? `${vat}%` : '—'}</TableCell>
-                    <TableCell className="text-right font-medium">{ticket > 0 ? fmt(ticketWithVat) : '—'}</TableCell>
+                    <TableCell className="text-right font-medium">{ticket > 0 ? formatEuro(ticketWithVat) : '—'}</TableCell>
                     <TableCell>
                       {methods.length > 0 ? (
                         <div className="flex flex-wrap gap-1">

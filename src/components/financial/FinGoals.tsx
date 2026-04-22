@@ -8,10 +8,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { formatEuro } from '@/lib/formatting';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 interface Props {
   currentYear: number;
   yearSales: { invoice_total: number; sale_month: number | null }[];
@@ -95,25 +94,25 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Meta Despesa Anual</p>
-            <p className="text-lg font-bold">{fmt(totalTargetExpense)}</p>
+            <p className="text-lg font-bold">{formatEuro(totalTargetExpense)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Despesa Real</p>
-            <p className="text-lg font-bold text-destructive">{fmt(totalActualExpense)}</p>
+            <p className="text-lg font-bold text-destructive">{formatEuro(totalActualExpense)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Meta Lucro Anual</p>
-            <p className="text-lg font-bold">{fmt(totalTargetProfit)}</p>
+            <p className="text-lg font-bold">{formatEuro(totalTargetProfit)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Lucro Real</p>
-            <p className={`text-lg font-bold ${totalActualProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(totalActualProfit)}</p>
+            <p className={`text-lg font-bold ${totalActualProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(totalActualProfit)}</p>
           </CardContent>
         </Card>
       </div>
@@ -143,7 +142,7 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
                 return (
                   <TableRow key={m}>
                     <TableCell className="font-medium">{name}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{fmt(actual.revenue)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{formatEuro(actual.revenue)}</TableCell>
                     <TableCell>
                       <Input
                         type="number"
@@ -153,7 +152,7 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
                         placeholder="0"
                       />
                     </TableCell>
-                    <TableCell className="text-right text-destructive">{fmt(actual.expense)}</TableCell>
+                    <TableCell className="text-right text-destructive">{formatEuro(actual.expense)}</TableCell>
                     <TableCell>
                       <Input
                         type="number"
@@ -164,7 +163,7 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
                       />
                     </TableCell>
                     <TableCell className={`text-right font-medium ${actual.profit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                      {fmt(actual.profit)}
+                      {formatEuro(actual.profit)}
                     </TableCell>
                     <TableCell>
                       {edits[m] && (

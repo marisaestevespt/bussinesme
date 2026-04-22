@@ -12,8 +12,7 @@ import { exportPdf } from '@/lib/exportPdf';
 import { exportContabilistaExcel, getMonthLabel } from '@/lib/exportContabilista';
 import { toast } from 'sonner';
 import { sumRevenue } from '@/lib/salesCalculations';
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+import { formatEuro } from '@/lib/formatting';
 const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
 
 interface Props { year: number; month: number; }
@@ -172,17 +171,17 @@ export function ExportContabilistaButton({ year, month }: Props) {
         <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
           <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #10b981' }}>
             <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>Entradas</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalEnt)}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{formatEuro(totalEnt)}</div>
             <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>{monthSales.length} venda{monthSales.length !== 1 ? 's' : ''}</div>
           </div>
           <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #ef4444' }}>
             <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>Saídas</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalSai + totalPay + totalCtr)}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{formatEuro(totalSai + totalPay + totalCtr)}</div>
             <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>Despesas + Salários + Prestadores</div>
           </div>
           <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #0f172a' }}>
             <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>Resultado</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: totalEnt - totalSai - totalPay - totalCtr >= 0 ? '#10b981' : '#ef4444', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalEnt - totalSai - totalPay - totalCtr)}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: totalEnt - totalSai - totalPay - totalCtr >= 0 ? '#10b981' : '#ef4444', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{formatEuro(totalEnt - totalSai - totalPay - totalCtr)}</div>
             <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>Bruto do período</div>
           </div>
         </div>
@@ -191,8 +190,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
         <h2>Resumo Financeiro</h2>
         <table className="pdf-summary-table">
           <tbody>
-            <tr><td>Total Entradas</td><td className="text-right">{fmt(totalEnt)}</td><td>Total Saídas</td><td className="text-right">{fmt(totalSai)}</td></tr>
-            <tr><td>Salários (custo total)</td><td className="text-right">{fmt(totalPay)}</td><td>Prestadores</td><td className="text-right">{fmt(totalCtr)}</td></tr>
+            <tr><td>Total Entradas</td><td className="text-right">{formatEuro(totalEnt)}</td><td>Total Saídas</td><td className="text-right">{formatEuro(totalSai)}</td></tr>
+            <tr><td>Salários (custo total)</td><td className="text-right">{formatEuro(totalPay)}</td><td>Prestadores</td><td className="text-right">{formatEuro(totalCtr)}</td></tr>
           </tbody>
         </table>
 
@@ -218,9 +217,9 @@ export function ExportContabilistaButton({ year, month }: Props) {
                   <td>{s.sale_id}</td><td>{s.payment_date}</td>
                   <td>{s.client}</td><td>{cli.nif || ''}</td>
                   <td>{s.product || s.description}</td>
-                  <td className="text-right">{fmt(s.base_value || 0)}</td>
-                  <td className="text-right">{fmt((s.invoice_total || 0) - (s.base_value || 0))}</td>
-                  <td className="text-right">{fmt(s.invoice_total || 0)}</td>
+                  <td className="text-right">{formatEuro(s.base_value || 0)}</td>
+                  <td className="text-right">{formatEuro((s.invoice_total || 0) - (s.base_value || 0))}</td>
+                  <td className="text-right">{formatEuro(s.invoice_total || 0)}</td>
                 </tr>
               );
             })}
@@ -241,9 +240,9 @@ export function ExportContabilistaButton({ year, month }: Props) {
                   <td>{e.description}</td><td>{e.category}</td>
                   <td>{e.supplier_name || sup.name || ''}</td><td>{sup.nif || ''}</td>
                   <td>{LOC[e.location] || e.location || ''}</td>
-                  <td className="text-right">{fmt(e.base_value || 0)}</td>
+                  <td className="text-right">{formatEuro(e.base_value || 0)}</td>
                   <td className="text-right">{e.vat_rate ?? 0}%</td>
-                  <td className="text-right">{fmt(e.total_with_vat || 0)}</td>
+                  <td className="text-right">{formatEuro(e.total_with_vat || 0)}</td>
                   <td>{docs.length > 0 ? docs.map((d, i) => (
                     <span key={i}>{i > 0 ? ', ' : ''}<a href={d.url} style={{ color: '#2563eb', textDecoration: 'underline' }}>Ver</a></span>
                   )) : '—'}</td>
@@ -267,7 +266,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
                     <td>{e.expense_id}</td>
                     <td>{e.expense_date}</td>
                     <td>{e.supplier_name || ''}</td>
-                    <td className="text-right">{fmt(e.total_with_vat || 0)}</td>
+                    <td className="text-right">{formatEuro(e.total_with_vat || 0)}</td>
                     <td>{d.name || '—'}</td>
                     <td><a href={d.url} style={{ color: '#2563eb', textDecoration: 'underline', wordBreak: 'break-all' }}>{d.url}</a></td>
                   </tr>
@@ -286,12 +285,12 @@ export function ExportContabilistaButton({ year, month }: Props) {
               {monthPayroll.map((p: any) => (
                 <tr key={p.id}>
                   <td>{p.collaborator_name}</td>
-                  <td className="text-right">{fmt(p.gross_salary || 0)}</td>
-                  <td className="text-right">{fmt(p.withholding_value || 0)}</td>
-                  <td className="text-right">{fmt(p.ss_employee || 0)}</td>
-                  <td className="text-right">{fmt(p.ss_employer || 0)}</td>
-                  <td className="text-right">{fmt(p.net_salary || 0)}</td>
-                  <td className="text-right">{fmt(p.total_cost || 0)}</td>
+                  <td className="text-right">{formatEuro(p.gross_salary || 0)}</td>
+                  <td className="text-right">{formatEuro(p.withholding_value || 0)}</td>
+                  <td className="text-right">{formatEuro(p.ss_employee || 0)}</td>
+                  <td className="text-right">{formatEuro(p.ss_employer || 0)}</td>
+                  <td className="text-right">{formatEuro(p.net_salary || 0)}</td>
+                  <td className="text-right">{formatEuro(p.total_cost || 0)}</td>
                 </tr>
               ))}
             </tbody>
@@ -308,7 +307,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
                 <tr key={c.id}>
                   <td>{c.contractor_name}</td><td>{c.service}</td>
                   <td>{LOC[c.location] || c.location || ''}</td>
-                  <td className="text-right">{fmt(c.value || 0)}</td>
+                  <td className="text-right">{formatEuro(c.value || 0)}</td>
                 </tr>
               ))}
             </tbody>

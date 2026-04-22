@@ -7,10 +7,9 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { sumVat } from '@/lib/salesCalculations';
+import { formatEuro } from '@/lib/formatting';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 type Sale = {
   sale_month: number | null;
   sale_year: number | null;
@@ -174,10 +173,10 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
     <div className="space-y-6 mt-4">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas Previstas (Ano)</p><p className="text-lg font-bold text-success">{fmt(totals.entradas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas Previstas (Ano)</p><p className="text-lg font-bold text-destructive">{fmt(totals.saidas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Impostos Previstos (Ano)</p><p className="text-lg font-bold text-warning">{fmt(totals.impostos)}</p>{isContabOrganizada && <p className="text-[10px] text-muted-foreground">Gerido pelo contabilista</p>}</CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço Previsto (Ano)</p><p className={`text-lg font-bold ${totals.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(totals.balanco)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas Previstas (Ano)</p><p className="text-lg font-bold text-success">{formatEuro(totals.entradas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas Previstas (Ano)</p><p className="text-lg font-bold text-destructive">{formatEuro(totals.saidas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Impostos Previstos (Ano)</p><p className="text-lg font-bold text-warning">{formatEuro(totals.impostos)}</p>{isContabOrganizada && <p className="text-[10px] text-muted-foreground">Gerido pelo contabilista</p>}</CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço Previsto (Ano)</p><p className={`text-lg font-bold ${totals.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(totals.balanco)}</p></CardContent></Card>
       </div>
 
       {isContabOrganizada && (
@@ -209,18 +208,18 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
                 <TableRow key={i} className={!p.isPast ? 'opacity-70' : ''}>
                   <TableCell className="font-medium">{p.mes}</TableCell>
                   <TableCell className="text-right text-success">
-                    {fmt(p.entradas)}
+                    {formatEuro(p.entradas)}
                     {p.isEstimate && <span className="text-[10px] text-muted-foreground ml-1">(est.)</span>}
                   </TableCell>
-                  <TableCell className="text-right">{fmt(p.subs)}</TableCell>
-                  <TableCell className="text-right">{fmt(p.pessoal)}</TableCell>
-                  <TableCell className="text-right">{fmt(p.prestadores)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(p.subs)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(p.pessoal)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(p.prestadores)}</TableCell>
                   <TableCell className="text-right text-warning">
-                    {p.impostos > 0 ? fmt(p.impostos) : '—'}
+                    {p.impostos > 0 ? formatEuro(p.impostos) : '—'}
                     {p.impostos > 0 && <span className="text-[10px] text-muted-foreground ml-1">({p.taxLabel})</span>}
                   </TableCell>
-                  <TableCell className="text-right font-medium text-destructive">{fmt(p.totalSaidas)}</TableCell>
-                  <TableCell className={`text-right font-bold ${p.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(p.balanco)}</TableCell>
+                  <TableCell className="text-right font-medium text-destructive">{formatEuro(p.totalSaidas)}</TableCell>
+                  <TableCell className={`text-right font-bold ${p.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(p.balanco)}</TableCell>
                   <TableCell>
                     {p.renewals.length > 0 && <Badge variant="outline" className="bg-warning/15 text-warning dark:bg-amber-900/30 dark:text-amber-400 text-xs">{p.renewals.length} renovação(ões)</Badge>}
                   </TableCell>

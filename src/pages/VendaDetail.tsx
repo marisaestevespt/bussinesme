@@ -23,12 +23,11 @@ import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { formatNumber } from '@/lib/formatting';
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const SPECIAL_OFFER_REASONS = ['Campanha especial', 'Cliente antigo', 'Parceria', 'Desconto de lançamento', 'Upgrade de produto'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 export default function VendaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -469,11 +468,11 @@ export default function VendaDetailPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Valor Base</span>
-                    <span className="font-semibold">€{fmt(Number(form.base_value || 0))}</span>
+                    <span className="font-semibold">€{formatNumber(Number(form.base_value || 0))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Fatura Total</span>
-                    <span className="font-semibold">€{fmt(Number(form.invoice_total || 0))}</span>
+                    <span className="font-semibold">€{formatNumber(Number(form.invoice_total || 0))}</span>
                   </div>
                   {form.sale_month && (
                     <div className="flex justify-between">

@@ -14,9 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
+import { formatEuro } from '@/lib/formatting';
 const PAYMENT_LABELS: Record<string, string> = {
   mbway: 'MB WAY',
   transferencia: 'Transferência',
@@ -215,8 +213,8 @@ export function FinSetupFinanceiro({ fin }: Props) {
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium">Despesas ({visibleExpenses.length})</Label>
                     <div className="flex gap-3 text-xs text-muted-foreground">
-                      <span>Pago: {fmt(totalPago)}</span>
-                      <span>Pendente: {fmt(totalPendente)}</span>
+                      <span>Pago: {formatEuro(totalPago)}</span>
+                      <span>Pendente: {formatEuro(totalPendente)}</span>
                     </div>
                   </div>
                   <div className="max-h-[400px] overflow-y-auto space-y-1 border rounded-lg p-3">
@@ -277,7 +275,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
                               </div>
                               <div>
                                 <Label className="text-[10px]">Total c/ IVA</Label>
-                                <div className="h-8 flex items-center text-xs font-medium">{fmt(totalPreview)}</div>
+                                <div className="h-8 flex items-center text-xs font-medium">{formatEuro(totalPreview)}</div>
                               </div>
                             </div>
                             <div>
@@ -312,8 +310,8 @@ export function FinSetupFinanceiro({ fin }: Props) {
                             <span className="truncate">{exp.description}</span>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-muted-foreground">{fmt(exp.base_value || 0)}</span>
-                            <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
+                            <span className="text-muted-foreground">{formatEuro(exp.base_value || 0)}</span>
+                            <span className="font-medium">{formatEuro(exp.total_with_vat || 0)}</span>
                             <Badge
                               variant="outline"
                               className={`cursor-pointer ${['pago_falta_fatura', 'tudo_ok'].includes(exp.status) ? 'bg-success/10 text-success' : exp.status === 'cancelado' ? 'bg-muted text-muted-foreground' : exp.status === 'em_atraso' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}
