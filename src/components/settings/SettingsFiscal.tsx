@@ -96,15 +96,6 @@ export function SettingsFiscal() {
   const effectiveIrsRegime = businessType === 'empresa' ? 'contabilidade_organizada' : irsRegime;
   const isContabOrganizada = effectiveIrsRegime === 'contabilidade_organizada';
 
-  // Auto-guidance text
-  const exemptionGuide = useMemo(() => {
-    if (businessType !== 'eni') return null;
-    if (isFirstYear) {
-      return 'No 1.º ano de atividade, estás isento de IVA e Segurança Social por defeito. Podes desativar as isenções se optares por não beneficiar delas.';
-    }
-    return null;
-  }, [businessType, isFirstYear, isSecondYearPlus]);
-
   // When business type changes to empresa
   useEffect(() => {
     if (businessType === 'empresa') {
