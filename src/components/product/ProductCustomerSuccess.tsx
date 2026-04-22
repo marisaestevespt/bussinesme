@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays, isPast, isFuture } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { AlertTriangle, CheckCircle2, Clock, User } from 'lucide-react';
+import { daysUntilRenewal, DEFAULT_RENEWAL_WINDOW_DAYS } from '@/lib/clientLifecycle';
 
 const NPS_STATUS_OPTIONS = [
   { value: 'por_fazer', label: 'Por fazer' },
