@@ -91,6 +91,28 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
         config.ssExemptionEndDate,
       );
     }
+
+    // SS Declaração Trimestral (independentes) — entrega até ao último dia do mês seguinte ao trimestre.
+    // Q4 ano-1 → Janeiro | Q1 → Abril | Q2 → Julho | Q3 → Outubro
+    const ssQuarters = [
+      { q: 4, label: '4º Trim (Out-Dez)', refYear: year - 1, declMonth: 1,  declYear: year },
+      { q: 1, label: '1º Trim (Jan-Mar)', refYear: year,     declMonth: 4,  declYear: year },
+      { q: 2, label: '2º Trim (Abr-Jun)', refYear: year,     declMonth: 7,  declYear: year },
+      { q: 3, label: '3º Trim (Jul-Set)', refYear: year,     declMonth: 10, declYear: year },
+    ];
+    for (const q of ssQuarters) {
+      const last = lastDayOfMonth(q.declYear, q.declMonth);
+      push(
+        makeDl(
+          `ss-decl-q${q.q}-${q.refYear}`,
+          `SS Declaração Trimestral ${q.label} ${q.refYear} (até ${last.getDate()}/${q.declMonth})`,
+          last,
+          'ss',
+          'declaracao',
+        ),
+        config.ssExemptionEndDate,
+      );
+    }
   }
 
   // ── IVA Trimestral (declaration day 20, payment day 25 of 2nd month after quarter) ──
