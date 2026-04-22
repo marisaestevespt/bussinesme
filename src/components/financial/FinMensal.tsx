@@ -580,7 +580,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
                   <TableCell>{e.description || '—'}</TableCell>
                   <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
-                  <TableCell>{LOC_LABELS[(e as any).location] || (e as any).location || '—'}</TableCell>
+                  <TableCell>{locationLabel((e as any).location)}</TableCell>
                   <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
                   <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
                   <TableCell className="text-right">{formatEuro(e.total_with_vat)}</TableCell>
@@ -852,7 +852,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
             <div><Label>Localização</Label>
               <Select value={expForm.location} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{LOC_LABELS[l]}</SelectItem>)}</SelectContent>
+                <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{locationLabel(l)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <InvoiceUpload
