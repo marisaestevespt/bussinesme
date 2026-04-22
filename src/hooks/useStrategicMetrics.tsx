@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { subMonths, subDays, differenceInMonths, parseISO, format, startOfMonth, endOfMonth, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+import { calculateMRR, isRecurringProduct, parseTicket } from '@/lib/financialHealth';
 
 export type MetricPeriod = 'last_month' | 'last_quarter' | 'last_year' | 'all_time';
 
@@ -103,13 +104,7 @@ export function useStrategicMetrics(period: MetricPeriod): StrategicMetrics {
     const productByName = new Map(products.map(p => [p.name, p]));
     const productById = new Map(products.map(p => [p.id, p]));
 
-    let mrr = 0;
-    activeClients.forEach(c => {
-      const prod = c.current_product ? (productByName.get(c.current_product) || null) : null;
-      if (prod && prod.product_type === 'servico_mensal') {
-        mrr += parseFloat(prod.ticket || '0') || 0;
-      }
-    });
+    const mrr = calculateMRR(activeClients, products).total;
 
     // Retention: average months between start_date and end_of_cycle for terminated clients
     const terminatedClients = allClients.filter(c =>
@@ -204,8 +199,8 @@ export function useStrategicMetrics(period: MetricPeriod): StrategicMetrics {
           (c.status === 'ativo' || c.status === 'em_onboarding' || c.status === 'terminado' || c.status === 'cancelado' || c.status === 'concluido');
         if (wasActive) {
           const prod = c.current_product ? (productByName.get(c.current_product) || null) : null;
-          if (prod && prod.product_type === 'servico_mensal') {
-            mrrPrev! += parseFloat(prod.ticket || '0') || 0;
+          if (prod && isRecurringProduct(prod)) {
+            mrrPrev! += parseTicket(prod.ticket);
           }
         }
       });

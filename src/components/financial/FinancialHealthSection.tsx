@@ -5,6 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { sumRevenue } from '@/lib/salesCalculations';
+import {
+  calculateMRR,
+  forecastRecurringRevenue,
+  recurringChurn,
+  revenueConcentration,
+} from '@/lib/financialHealth';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -40,73 +46,20 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
   const monthSales = sales; // already filtered
 
   // 1. MRR — clients with active status + product_type = 'servico_mensal'
-  const mrr = useMemo(() => {
-    const recurringProducts = new Set(
-      products.filter(p => p.product_type === 'servico_mensal').map(p => p.name)
-    );
-    const recurringProductTickets = new Map(
-      products.filter(p => p.product_type === 'servico_mensal').map(p => [p.name, parseFloat(p.ticket || '0') || 0])
-    );
-
-    const activeRecurringClients = clients.filter(c =>
-      c.status === 'ativo' && c.current_product && recurringProducts.has(c.current_product)
-    );
-
-    const total = activeRecurringClients.reduce((sum, c) => {
-      return sum + (recurringProductTickets.get(c.current_product!) || 0);
-    }, 0);
-
-    return { total, count: activeRecurringClients.length };
-  }, [clients, products]);
+  const mrr = useMemo(() => calculateMRR(clients, products), [clients, products]);
 
   // 2. Revenue concentration — top 3 clients by revenue share
-  const concentration = useMemo(() => {
-    const totalRevenue = sumRevenue(monthSales);
-    if (totalRevenue === 0) return { topClients: [], alerts: [] };
-
-    const byClient = new Map<string, number>();
-    monthSales.forEach(s => {
-      const name = s.client || 'Sem cliente';
-      byClient.set(name, (byClient.get(name) || 0) + s.invoice_total);
-    });
-
-    const sorted = [...byClient.entries()]
-      .map(([name, value]) => ({ name, value, pct: (value / totalRevenue) * 100 }))
-      .sort((a, b) => b.value - a.value);
-
-    const topClients = sorted.slice(0, 3);
-    const alerts = sorted.filter(c => c.pct > 30);
-
-    return { topClients, alerts, totalRevenue };
-  }, [monthSales]);
+  const concentration = useMemo(() => revenueConcentration(monthSales), [monthSales]);
 
   // 3. Forecast next month
   const forecast = useMemo(() => {
     const nextMonth = month === 12 ? 1 : month + 1;
     const nextYear = month === 12 ? currentYear + 1 : currentYear;
     const nextMonthEnd = new Date(nextYear, nextMonth, 0); // last day of next month
-
-    const recurringProducts = new Map(
-      products.filter(p => p.product_type === 'servico_mensal').map(p => [p.name, parseFloat(p.ticket || '0') || 0])
-    );
-
-    const activeClients = clients.filter(c => {
-      if (c.status !== 'ativo' || !c.current_product) return false;
-      if (!recurringProducts.has(c.current_product)) return false;
-      if (c.end_of_cycle) {
-        const endDate = new Date(c.end_of_cycle);
-        return endDate > nextMonthEnd;
-      }
-      return true; // no end date = ongoing
-    });
-
-    const total = activeClients.reduce((sum, c) => {
-      return sum + (recurringProducts.get(c.current_product!) || 0);
-    }, 0);
-
+    const { total, count } = forecastRecurringRevenue(clients, products, nextMonthEnd);
     return {
       total,
-      count: activeClients.length,
+      count,
       label: `${MONTHS[nextMonth - 1]} ${nextYear}`,
     };
   }, [clients, products, month, currentYear]);
@@ -115,36 +68,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
   const churn = useMemo(() => {
     const monthStart = new Date(currentYear, month - 1, 1);
     const monthEnd = new Date(currentYear, month, 0);
-
-    // Clients that ended this month (status = 'terminado' and end_of_cycle in this month)
-    const lostClients = clients.filter(c => {
-      if (c.status !== 'terminado' || !c.end_of_cycle) return false;
-      const endDate = new Date(c.end_of_cycle);
-      return endDate >= monthStart && endDate <= monthEnd;
-    });
-
-    const recurringProductTickets = new Map(
-      products.filter(p => p.product_type === 'servico_mensal').map(p => [p.name, parseFloat(p.ticket || '0') || 0])
-    );
-
-    const lostRevenue = lostClients.reduce((sum, c) => {
-      return sum + (recurringProductTickets.get(c.current_product || '') || 0);
-    }, 0);
-
-    // New clients that started this month
-    const newClients = clients.filter(c => {
-      if (!c.start_date) return false;
-      const startDate = new Date(c.start_date);
-      return startDate >= monthStart && startDate <= monthEnd && c.status === 'ativo';
-    });
-
-    const gainedRevenue = newClients.reduce((sum, c) => {
-      return sum + (recurringProductTickets.get(c.current_product || '') || 0);
-    }, 0);
-
-    const net = gainedRevenue - lostRevenue;
-
-    return { lostRevenue, lostCount: lostClients.length, gainedRevenue, gainedCount: newClients.length, net };
+    return recurringChurn(clients, products, monthStart, monthEnd);
   }, [clients, products, currentYear, month]);
 
   return (
