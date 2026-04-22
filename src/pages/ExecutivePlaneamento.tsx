@@ -126,7 +126,7 @@ export default function ExecutivePlaneamento() {
         </div>
 
         {/* View mode cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {VIEW_CARDS.map(v => (
             <Card
               key={v.key}
@@ -163,7 +163,15 @@ export default function ExecutivePlaneamento() {
         {viewMode === 'trimestral' && <QuarterlyGallery planning={planning} year={year} />}
         {viewMode === 'semestral' && <SemesterGallery planning={planning} year={year} />}
         {viewMode === 'metas' && <PlanningGoalsTab planning={planning} viewMode="metas" />}
+        {viewMode === 'previsibilidade' && <PrevisibilidadeView year={year} />}
       </div>
     </AppLayout>
   );
+}
+
+function PrevisibilidadeView({ year }: { year: number }) {
+  const fin = useFinancialData({ expenses: true, recurring: true, documents: false, payroll: true, contractors: true });
+  const com = useCommercialData(year);
+  const sales = excludeCancelled(com.sales.data || []);
+  return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
 }
