@@ -6,6 +6,7 @@ import { startOfWeek, endOfWeek, startOfDay, parseISO, isBefore } from 'date-fns
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
 import { getDateRange, catLabel, PIE_COLORS, DONE_STATUSES } from './productivity-constants';
+import { filterActiveMembers, isWeeklyOverloaded } from '@/lib/memberCapacity';
 
 export function OverviewTab({ entries, members, tasks }: { entries: any[]; members: any[]; tasks: any[] }) {
   const { start, end } = getDateRange('week');
@@ -47,14 +48,9 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
   );
   const taskRatio = weeklyTasksPlanned > 0 ? Math.round((weeklyTasksDone / weeklyTasksPlanned) * 100) : weeklyTasksDone > 0 ? 100 : 0;
 
-  const activeMembers = members.filter(m => m.status === 'ativo' || m.status === 'prestador');
+  const activeMembers = filterActiveMembers(members);
   const overloadedCount = useMemo(() => {
-    return activeMembers.filter(m => {
-      const weeklyH = Number(m.expected_weekly_hours || 40);
-      const mEntries = weekEntries.filter(e => e.member_id === m.id);
-      const worked = mEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-      return weeklyH > 0 && (worked / weeklyH) > 1.1;
-    }).length;
+    return activeMembers.filter(m => isWeeklyOverloaded(m, weekEntries)).length;
   }, [activeMembers, weekEntries]);
 
   const barData = members.filter(m => m.status === 'ativo').map(m => ({

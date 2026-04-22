@@ -10,6 +10,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { teamMonthlyCapacitySummary } from '@/lib/memberCapacity';
 
 const now = new Date();
 const currentMonth = now.getMonth() + 1;
@@ -46,17 +47,15 @@ export function ExecutiveKpiAlerts() {
 
   const capacityAlert = useMemo(() => {
     if (!d) return null;
-    const active = d.members.filter(m => m.status === 'ativo' || m.status === 'prestador');
-    if (active.length === 0) return null;
-    const totalCap = active.reduce((s, m) => s + (Number(m.expected_weekly_hours) || 40) * 4.33, 0);
-    const totalUsed = d.timeEntries.reduce((s, e) => s + (Number(e.duration) || 0), 0);
-    const pct = totalCap > 0 ? Math.round((totalUsed / totalCap) * 100) : 0;
-    const overloaded = active.filter(m => {
-      const mh = d.timeEntries.filter(e => e.member_id === m.id).reduce((s, e) => s + (Number(e.duration) || 0), 0);
-      const cap = (Number(m.expected_weekly_hours) || 40) * 4.33;
-      return cap > 0 && (mh / cap) > 0.85;
-    });
-    return { pct, totalUsed: Math.round(totalUsed), totalCap: Math.round(totalCap), overloaded: overloaded.length, total: active.length };
+    const summary = teamMonthlyCapacitySummary(d.members, d.timeEntries);
+    if (!summary) return null;
+    return {
+      pct: summary.pct,
+      totalUsed: summary.totalUsed,
+      totalCap: summary.totalCapacity,
+      overloaded: summary.overloadedCount,
+      total: summary.total,
+    };
   }, [d]);
 
   const allClients = d?.clients || [];

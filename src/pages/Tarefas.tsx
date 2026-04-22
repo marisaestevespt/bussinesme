@@ -29,6 +29,7 @@ import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbse
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { weeklyHours as memberWeeklyHours } from '@/lib/memberCapacity';
 import { cn } from '@/lib/utils';
 import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -332,7 +333,7 @@ export default function TarefasPage() {
     const member = teamMembers.find(m => m.profile_id === assignedTo && m.status === 'ativo');
     if (!member) return null;
 
-    const weeklyHours = Number(member.expected_weekly_hours || 40);
+    const weeklyHours = memberWeeklyHours(member);
     // Calculate existing committed hours for the deadline week
     const dlDate = deadline;
     const weekStart = startOfDay(dlDate);
