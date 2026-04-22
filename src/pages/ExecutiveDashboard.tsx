@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { differenceInDays } from 'date-fns';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { DepartmentLinks } from '@/components/shared/DepartmentLinks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -43,10 +42,7 @@ export default function ExecutiveDashboard() {
     <AppLayout>
       <div className="space-y-6">
         {/* Cover Header */}
-        <PageHeader title="Executive Room" subtitle="Planeamento estratégico & visão do negócio" />
-
-        <DepartmentLinks department="executive" />
-
+        <PageHeader title="Executive Room" subtitle="Planeamento estratégico & visão do negócio" department="executive" />
         {/* KPIs — resumo executivo logo no topo */}
         <ExecutiveKpiAlerts />
 

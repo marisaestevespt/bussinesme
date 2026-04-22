@@ -44,7 +44,13 @@ const TYPE_META: Record<LinkType, { label: string; icon: any; color: string }> =
 
 const TYPES: LinkType[] = ["whatsapp", "drive", "notion", "figma", "slack", "trello", "loom"];
 
-export function DepartmentLinks({ department }: { department: DepartmentKey }) {
+export function DepartmentLinks({
+  department,
+  variant = "card",
+}: {
+  department: DepartmentKey;
+  variant?: "card" | "inline";
+}) {
   const { isOwner } = useAuth();
   const [links, setLinks] = useState<DepartmentLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,12 +121,22 @@ export function DepartmentLinks({ department }: { department: DepartmentKey }) {
   if (loading && links.length === 0 && !isOwner) return null;
   if (!isOwner && links.length === 0) return null;
 
+  const isInline = variant === "inline";
+  const wrapperCls = isInline
+    ? "flex flex-wrap items-center gap-1.5"
+    : "flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/50";
+  const chipCls = isInline
+    ? "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-background/70 backdrop-blur-sm border border-border/60 hover:bg-background text-[11px] font-medium transition-colors"
+    : "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background border border-border hover:bg-accent text-xs font-medium transition-colors";
+
   return (
-    <div className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/50">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
-        <Link2 className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Links rápidos:</span>
-      </div>
+    <div className={wrapperCls}>
+      {!isInline && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
+          <Link2 className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Links rápidos:</span>
+        </div>
+      )}
 
       {links.map((l) => {
         const meta = TYPE_META[l.link_type];
@@ -131,12 +147,12 @@ export function DepartmentLinks({ department }: { department: DepartmentKey }) {
               href={l.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background border border-border hover:bg-accent text-xs font-medium transition-colors"
+              className={chipCls}
               title={l.url}
             >
-              <Icon className={`h-3.5 w-3.5 ${meta.color}`} />
+              <Icon className={`${isInline ? "h-3 w-3" : "h-3.5 w-3.5"} ${meta.color}`} />
               <span>{l.label || meta.label}</span>
-              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+              {!isInline && <ExternalLink className="h-3 w-3 text-muted-foreground" />}
             </a>
             {isOwner && (
               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex">
@@ -163,8 +179,13 @@ export function DepartmentLinks({ department }: { department: DepartmentKey }) {
       {isOwner && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={startCreate}>
-              <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar link
+            <Button
+              size="sm"
+              variant="ghost"
+              className={isInline ? "h-6 px-1.5 text-[11px]" : "h-7 px-2 text-xs"}
+              onClick={startCreate}
+            >
+              <Plus className="h-3 w-3 mr-1" /> {isInline ? "Link" : "Adicionar link"}
             </Button>
           </DialogTrigger>
           <DialogContent>

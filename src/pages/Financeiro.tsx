@@ -17,7 +17,6 @@ import { YearSelector } from '@/components/YearSelector';
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, TrendingUp, TrendingDown, Package, UserCheck, Download, BarChart3, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
-import { DepartmentLinks } from '@/components/shared/DepartmentLinks';
 
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -216,9 +215,7 @@ export default function FinanceiroPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
-
-        <DepartmentLinks department="financeiro" />
+        <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." department="financeiro" />
 
         {/* Navigation cards */}
         <div className="space-y-3">
