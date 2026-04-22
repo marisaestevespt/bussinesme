@@ -166,17 +166,7 @@ export function useWeeklyAlignData(weekOffset: number) {
   }, [gl?.expiringContracts]);
 
   const capacityAlert = useMemo(() => {
-    const activeMembers = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
-    if (activeMembers.length === 0) return null;
-    const totalCapacity = activeMembers.reduce((sum: number, m: any) => sum + (Number(m.weekly_hours) || 40) * 4.33, 0);
-    const totalUsed = (gl?.timeEntriesMonth || []).reduce((sum: number, e: any) => sum + (Number(e.duration) || 0), 0);
-    const pct = totalCapacity > 0 ? Math.round((totalUsed / totalCapacity) * 100) : 0;
-    const overloaded = activeMembers.filter((m: any) => {
-      const mh = (gl?.timeEntriesMonth || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + (Number(e.duration) || 0), 0);
-      const cap = (Number(m.weekly_hours) || 40) * 4.33;
-      return cap > 0 && (mh / cap) > 0.85;
-    });
-    return { pct, totalCapacity: Math.round(totalCapacity), totalUsed: Math.round(totalUsed), overloadedCount: overloaded.length, total: activeMembers.length };
+    return teamMonthlyCapacitySummary(teamMembers as any, (gl?.timeEntriesMonth || []) as any);
   }, [teamMembers, gl?.timeEntriesMonth]);
 
   const financialSummary = useMemo(() => {
