@@ -16,6 +16,14 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { BusinessLegalDocs } from './BusinessLegalDocs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export function SettingsFiscal() {
   const { settings, refetch } = useBusinessSettings();
@@ -58,6 +66,10 @@ export function SettingsFiscal() {
   const [ivaExempt, setIvaExempt] = useState(false);
   const [ivaExemptionEndDate, setIvaExemptionEndDate] = useState<Date | undefined>();
   const [ssExemptionEndDate, setSsExemptionEndDate] = useState<Date | undefined>();
+
+  // Dialog state for capturing the effective date when switching exemption OFF
+  const [endDateDialog, setEndDateDialog] = useState<null | 'iva' | 'ss'>(null);
+  const [endDateDraft, setEndDateDraft] = useState<Date | undefined>(new Date());
 
   // Team members for internal accountant picker
   const { data: teamMembers } = useQuery({
