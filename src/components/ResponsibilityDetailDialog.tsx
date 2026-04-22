@@ -15,13 +15,10 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { UnifiedItem } from '@/hooks/useUnifiedResponsibilities';
 import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
+import { TASK_STATUSES as CANON_TASK_STATUSES } from '@/lib/taskStatus';
 
-const TASK_STATUSES = [
-  { value: 'por_comecar', label: 'Por Começar', color: 'bg-gray-100 text-gray-800' },
-  { value: 'pendente', label: 'Pendente', color: 'bg-warning/15 text-warning' },
-  { value: 'em_progresso', label: 'Em Progresso', color: 'bg-info/15 text-info' },
-  { value: 'done', label: 'Concluída', color: 'bg-success/15 text-success' },
-];
+// Use the canonical task statuses so badges/dropdowns match the Tarefas page.
+const TASK_STATUSES = CANON_TASK_STATUSES;
 
 const MILESTONE_STATUSES = [
   { value: 'por_fazer', label: 'Por Fazer', color: 'bg-gray-100 text-gray-800' },
