@@ -21,14 +21,12 @@ import { toast } from 'sonner';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
-import { isDeliverableDone, deliverableProgress } from '@/lib/projectProgress';
-
-const DELIVERABLE_STATUSES = [
-  { value: 'pendente', label: 'Pendente', color: 'bg-muted text-muted-foreground' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-info/10 text-info' },
-  { value: 'entregue', label: 'Entregue', color: 'bg-success/10 text-success' },
-  { value: 'atrasado', label: 'Atrasado', color: 'bg-destructive/10 text-destructive' },
-];
+import {
+  isDeliverableDone,
+  deliverableProgress,
+  DELIVERABLE_STATUSES,
+  getDeliverableStatusInfo,
+} from '@/lib/projectProgress';
 
 const WEEK_OPTIONS = [
   { value: '1', label: '1ª semana' },
@@ -49,9 +47,7 @@ const WEEKDAY_OPTIONS = [
   { value: '0', label: 'Domingo' },
 ];
 
-function getStatusInfo(v: string) {
-  return DELIVERABLE_STATUSES.find(s => s.value === v) || DELIVERABLE_STATUSES[0];
-}
+const getStatusInfo = getDeliverableStatusInfo;
 
 /**
  * Calculate the next occurrence date given a week-of-month and weekday rule.
