@@ -520,8 +520,8 @@ export default function ComercialAnalisePage() {
   // ─── Annual summary ───
   const annualSummary = useMemo(() => {
     const totalSales = salesData.length;
-    const totalRevenue = salesData.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
-    const ticketMedio = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
+    const totalRevenue = sumRevenue(salesData);
+    const ticketMedio = averageTicket(salesData);
 
     const newClients = clientsData.filter(c => {
       if (!c.start_date) return false;
@@ -562,10 +562,10 @@ export default function ComercialAnalisePage() {
     const conversionRate = yearLeads.length > 0 ? Math.round((yearWins.length / yearLeads.length) * 100) : 0;
 
     // Revenue by product
-    const revenueByProduct: { name: string; revenue: number }[] = [];
-    const prodMap: Record<string, number> = {};
-    salesData.forEach(s => { const p = s.product || 'Sem produto'; prodMap[p] = (prodMap[p] || 0) + Number(s.invoice_total || 0); });
-    Object.entries(prodMap).sort((a, b) => b[1] - a[1]).forEach(([name, revenue]) => revenueByProduct.push({ name, revenue }));
+    const prodMap = revenueGroupedBy(salesData, s => s.product, 'Sem produto');
+    const revenueByProduct = Array.from(prodMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, revenue]) => ({ name, revenue }));
 
     return { totalRevenue, totalSales, ticketMedio, newClients, churn, renewalRate, avgNps, leadsCount: yearLeads.length, conversionRate, revenueByProduct };
   }, [salesData, clientsData, leads, year, npsAnnualQ.data]);
@@ -575,7 +575,7 @@ export default function ComercialAnalisePage() {
     return MONTH_NAMES.map((name, idx) => {
       const m = idx + 1;
       const mSales = salesData.filter(s => s.sale_month === m);
-      const revenue = mSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const revenue = sumRevenue(mSales);
       const goalAmount = (monthlyGoals.data || []).find(g => g.month === m)?.goal_amount || 0;
       const pct = goalAmount > 0 ? Math.min(Math.round((revenue / goalAmount) * 100), 100) : 0;
       return { name, revenue, goalAmount, pct, salesCount: mSales.length };
