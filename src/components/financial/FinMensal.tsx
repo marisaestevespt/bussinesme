@@ -398,11 +398,6 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
           <span className="text-muted-foreground text-sm">{currentYear}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => {
-            exportPdf(`Relatório Mensal — ${MONTHS[m - 1]} ${currentYear}`, 'fin-mensal-report');
-          }}>
-            <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
-          </Button>
           <ExportContabilistaButton year={currentYear} month={m} />
         </div>
       </div>
