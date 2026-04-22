@@ -164,7 +164,7 @@ export function SettingsFiscal() {
   return (
     <div className="space-y-6">
       {/* TIPO DE NEGÓCIO */}
-      <div className="space-y-4">
+      <div id="sec-tipo-negocio" className="space-y-4 scroll-mt-24">
         <div className="flex items-center gap-2 text-foreground">
           <Building2 className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
           <h2 className="text-sm font-semibold tracking-tight uppercase">Tipo de Negócio</h2>
