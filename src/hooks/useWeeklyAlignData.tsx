@@ -5,6 +5,7 @@ import { startOfWeek, endOfWeek, format, addWeeks, addDays, subDays, startOfMont
 import { useTeamData } from '@/hooks/useTeamData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone } from '@/lib/taskStatus';
+import { teamMonthlyCapacitySummary } from '@/lib/memberCapacity';
 
 const STALE = 2 * 60 * 1000;
 
