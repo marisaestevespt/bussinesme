@@ -478,6 +478,26 @@ export default function ConteudoDetailPage() {
                     </div>
                   </Field>
 
+                  {(() => {
+                    const availableAccounts = channelAccounts.filter(a => selectedChannels.includes(a.channel_id));
+                    if (availableAccounts.length === 0) return null;
+                    return (
+                      <Field label="Conta">
+                        <Select value={form.account_id || 'none'} onValueChange={v => setForm(f => ({ ...f, account_id: v === 'none' ? '' : v }))}>
+                          <SelectTrigger className="h-9"><SelectValue placeholder="Sem conta específica" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Sem conta específica</SelectItem>
+                            {availableAccounts.map(acc => {
+                              const ch = channels.find(c => c.id === acc.channel_id);
+                              const label = `${ch?.name || ''} · ${acc.handle}${acc.label ? ` (${acc.label})` : ''}`;
+                              return <SelectItem key={acc.id} value={acc.id}>{label}</SelectItem>;
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                    );
+                  })()}
+
                   <Field label="Etapa de Funil">
                     <Select value={form.funnel_stage} onValueChange={v => setForm(f => ({ ...f, funnel_stage: v }))}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
