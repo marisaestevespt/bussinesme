@@ -500,6 +500,66 @@ export function SettingsFiscal() {
         <Save className="h-4 w-4" />
         {saving ? 'A guardar...' : 'Guardar definições fiscais'}
       </Button>
+
+      {/* Dialog: a partir de quando deixou de ser isento */}
+      <Dialog open={endDateDialog !== null} onOpenChange={(open) => { if (!open) setEndDateDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {endDateDialog === 'iva' ? 'Perda de isenção de IVA' : 'Perda de isenção de Segurança Social'}
+            </DialogTitle>
+            <DialogDescription>
+              A partir de que data deixaste de estar isento? Esta data é usada para calcular obrigações fiscais a partir do momento certo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-sm font-medium">Data efetiva</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn('w-full justify-start text-left font-normal h-11', !endDateDraft && 'text-muted-foreground')}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDateDraft ? format(endDateDraft, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDateDraft}
+                  onSelect={setEndDateDraft}
+                  initialFocus
+                  className={cn('p-3 pointer-events-auto')}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEndDateDialog(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (!endDateDraft) {
+                  toast.error('Indica a data efetiva.');
+                  return;
+                }
+                if (endDateDialog === 'iva') {
+                  setIvaExempt(false);
+                  setIvaExemptionEndDate(endDateDraft);
+                } else if (endDateDialog === 'ss') {
+                  setSsExempt(false);
+                  setSsExemptionEndDate(endDateDraft);
+                }
+                setEndDateDialog(null);
+              }}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
