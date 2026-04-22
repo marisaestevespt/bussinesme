@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { FileText, Copy, Trash2 } from 'lucide-react';
+import { formatEuro } from '@/lib/formatting';
 
 const ENTRY_STATUSES = [
   { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', cls: 'bg-muted text-muted-foreground' },
@@ -62,9 +63,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const qc = useQueryClient();
 
@@ -235,11 +233,11 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Valor Base</p>
-              <p className="font-medium">{fmt(sale.base_value)}</p>
+              <p className="font-medium">{formatEuro(sale.base_value)}</p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Fatura Total</p>
-              <p className="font-medium">{fmt(sale.invoice_total)}</p>
+              <p className="font-medium">{formatEuro(sale.invoice_total)}</p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Data Pagamento</p>

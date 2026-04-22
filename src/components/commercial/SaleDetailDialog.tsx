@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { formatNumber } from '@/lib/formatting';
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
@@ -31,8 +32,6 @@ const SALE_PAYMENT_METHODS = [
   { value: 'mbway', label: 'MB WAY' },
   { value: 'multibanco', label: 'Multibanco' },
 ];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 interface Props {
   saleId: string | null;
   open: boolean;

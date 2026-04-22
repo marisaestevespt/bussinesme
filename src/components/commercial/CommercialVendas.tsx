@@ -16,13 +16,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { EntryStatusSelect } from '@/components/financial/InlineStatusSelect';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { formatNumber } from '@/lib/formatting';
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const QUARTER_LABEL = (q: number | null) => q ? `T${q}` : '—';
 const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 const DEFAULT_VIEWS: DefaultView[] = [
   { key: 'all', label: 'Todas as Vendas', isDefault: true },
   { key: 'overdue', label: 'Pagamentos em Atraso', isDefault: true },
@@ -176,8 +175,8 @@ export function CommercialVendas() {
 
       {/* Summary */}
       <div className="flex gap-6 text-sm">
-        <span>Total Valor Base: <strong>€{fmt(totalBase)}</strong></span>
-        <span>Total Fatura Total: <strong>€{fmt(totalInvoice)}</strong></span>
+        <span>Total Valor Base: <strong>€{formatNumber(totalBase)}</strong></span>
+        <span>Total Fatura Total: <strong>€{formatNumber(totalInvoice)}</strong></span>
         <span>Registos: <strong>{filteredSales.length}</strong></span>
       </div>
 
@@ -213,8 +212,8 @@ export function CommercialVendas() {
                   <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={docs.length > 0} /></TableCell>
                   <TableCell>{s.payment_date ? format(new Date(s.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{s.description || '—'}</TableCell>
-                  <TableCell className="text-right">€{fmt(Number(s.base_value))}</TableCell>
-                  <TableCell className="text-right">€{fmt(Number(s.invoice_total))}</TableCell>
+                  <TableCell className="text-right">€{formatNumber(Number(s.base_value))}</TableCell>
+                  <TableCell className="text-right">€{formatNumber(Number(s.invoice_total))}</TableCell>
                   <TableCell>{s.product || '—'}</TableCell>
                   <TableCell>{s.client || '—'}</TableCell>
                   <TableCell>{s.source || '—'}{(s as any).is_special_offer && <Gift className="inline h-3.5 w-3.5 ml-1 text-amber-500" />}</TableCell>

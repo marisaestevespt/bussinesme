@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isDeliverableDone } from '@/lib/projectProgress';
+import { formatInt } from '@/lib/formatting';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -218,9 +219,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     altura_renovacao: 'Renovação',
     terminado: 'Terminado',
   };
-
-  const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
-
   return (
     <div className="space-y-6">
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
@@ -236,7 +234,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Em onboarding" value={onboardingClients.length} icon={Users} />}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-          {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Valor médio / cliente" value={`${fmt(avgValuePerClient)} €`} icon={DollarSign} />}
+          {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Valor médio / cliente" value={`${formatInt(avgValuePerClient)} €`} icon={DollarSign} />}
           {isKpiEnabled('clientes', 'taxa_renovacao') && <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />}
           {isKpiEnabled('clientes', 'marcos_atingidos') && <KpiCard label="Marcos atingidos" value={`${monthMilestonesDone.length} / ${monthMilestonesExpected.length}`} icon={Target} />}
         </div>

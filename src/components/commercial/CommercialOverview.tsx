@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { saleRevenue } from '@/lib/salesCalculations';
+import { formatNumber } from '@/lib/formatting';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -40,9 +41,6 @@ export function CommercialOverview() {
       return count || 0;
     },
   });
-
-  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
   const barData = MONTH_LABELS.map((name, i) => ({ name, total: data.monthlyTotals[i] }));
   const remaining = Math.max(0, data.annualGoalAmount - data.totalInvoiced);
   const donutData = [
@@ -67,17 +65,17 @@ export function CommercialOverview() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Meta Anual</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">€{fmt(data.annualGoalAmount)}</p></CardContent></Card>
+          <CardContent><p className="text-2xl font-bold">€{formatNumber(data.annualGoalAmount)}</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Faturado</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">€{fmt(data.totalInvoiced)}</p></CardContent></Card>
+          <CardContent><p className="text-2xl font-bold">€{formatNumber(data.totalInvoiced)}</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">% Progresso Anual</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">{data.progressPct.toFixed(1)}%</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Faturado este mês</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">€{fmt(data.currentMonthTotal)}</p></CardContent></Card>
+          <CardContent><p className="text-2xl font-bold">€{formatNumber(data.currentMonthTotal)}</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Produto mais vendido</CardTitle></CardHeader>
           <CardContent>
             {topProduct && topProduct.total > 0 ? (
-              <div><p className="text-2xl font-bold">{topProduct.name}</p><p className="text-sm text-muted-foreground">€{fmt(topProduct.total)}</p></div>
+              <div><p className="text-2xl font-bold">{topProduct.name}</p><p className="text-sm text-muted-foreground">€{formatNumber(topProduct.total)}</p></div>
             ) : (
               <p className="text-muted-foreground">Sem dados</p>
             )}
@@ -119,7 +117,7 @@ export function CommercialOverview() {
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="name" className="text-xs" />
                 <YAxis className="text-xs" />
-                <Tooltip formatter={(v: number) => `€${fmt(v)}`} />
+                <Tooltip formatter={(v: number) => `€${formatNumber(v)}`} />
                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -133,7 +131,7 @@ export function CommercialOverview() {
                 <Pie data={donutData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} dataKey="value" paddingAngle={2}>
                   {donutData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => `€${fmt(v)}`} />
+                <Tooltip formatter={(v: number) => `€${formatNumber(v)}`} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -166,8 +164,8 @@ export function CommercialOverview() {
                 <TableRow key={s.id}>
                   <TableCell>{s.payment_date ? format(new Date(s.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
                   <TableCell>{s.description || '—'}</TableCell>
-                  <TableCell className="text-right">€{fmt(Number(s.base_value))}</TableCell>
-                  <TableCell className="text-right">€{fmt(Number(s.invoice_total))}</TableCell>
+                  <TableCell className="text-right">€{formatNumber(Number(s.base_value))}</TableCell>
+                  <TableCell className="text-right">€{formatNumber(Number(s.invoice_total))}</TableCell>
                   <TableCell>{s.product || '—'}</TableCell>
                   <TableCell>{s.client || '—'}</TableCell>
                 </TableRow>

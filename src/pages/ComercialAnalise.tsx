@@ -20,6 +20,7 @@ import { useClients } from '@/hooks/useClients';
 import { differenceInDays, parseISO, endOfMonth, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { sumRevenue, salesInMonth, revenueGroupedBy, averageTicket } from '@/lib/salesCalculations';
+import { formatInt } from '@/lib/formatting';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -271,9 +272,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     new: productRows.reduce((s, r) => s + r.new, 0),
     churn: productRows.reduce((s, r) => s + r.churn, 0),
   }), [productRows]);
-
-  const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
-  const fmtEur = (n: number) => `${fmt(n)} €`;
+  const fmtEur = (n: number) => `${formatInt(n)} €`;
 
   return (
     <div className="space-y-6">
@@ -581,9 +580,7 @@ export default function ComercialAnalisePage() {
       return { name, revenue, goalAmount, pct, salesCount: mSales.length };
     });
   }, [salesData, monthlyGoals.data]);
-
-  const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
-  const fmtEur = (n: number) => `${fmt(n)} €`;
+  const fmtEur = (n: number) => `${formatInt(n)} €`;
   const yearProgressPct = annualGoalAmount > 0 ? Math.min(Math.round((annualSummary.totalRevenue / annualGoalAmount) * 100), 100) : 0;
 
   if (selectedMonth !== null) {
@@ -673,7 +670,7 @@ export default function ComercialAnalisePage() {
                     <span className="font-semibold text-sm">{m.name}</span>
                     <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <p className="text-lg font-bold">{fmt(m.revenue)} €</p>
+                  <p className="text-lg font-bold">{formatInt(m.revenue)} €</p>
                   {m.goalAmount > 0 ? (
                     <div className="space-y-1">
                       <Progress value={m.pct} className="h-1.5" />

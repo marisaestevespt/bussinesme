@@ -8,6 +8,7 @@ import { Download, TrendingUp, TrendingDown, Package, ArrowUpRight, Receipt, Shi
 import { exportPdf } from '@/lib/exportPdf';
 import type { Expense } from '@/hooks/useFinancialData';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { formatEuro } from '@/lib/formatting';
 
 const QUARTERS = [
   { label: 'T1', range: 'Jan — Mar', months: [1, 2, 3] },
@@ -26,8 +27,6 @@ interface Props {
   expenses: Expense[];
   currentYear: number;
 }
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const catLabel = (key: string) => {
   const map: Record<string, string> = {
     plataformas: 'Plataformas', marketing: 'Marketing', material: 'Material', servicos: 'Serviços',
@@ -199,9 +198,9 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
       <div id="fin-trimestral-report" className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Entradas</p><p className="text-xl font-bold text-success">{fmt(dv.entradas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Saídas</p><p className="text-xl font-bold text-destructive">{fmt(dv.saidas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Resultado</p><p className={`text-xl font-bold ${dv.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(dv.resultado)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Entradas</p><p className="text-xl font-bold text-success">{formatEuro(dv.entradas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Saídas</p><p className="text-xl font-bold text-destructive">{formatEuro(dv.saidas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Resultado</p><p className={`text-xl font-bold ${dv.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(dv.resultado)}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-xl font-bold ${dv.margem >= 0 ? 'text-success' : 'text-destructive'}`}>{dv.margem}%</p></CardContent></Card>
       </div>
 
@@ -213,13 +212,13 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
             <Card className="border-success/30 bg-success/15/50 dark:bg-emerald-950/20 dark:border-emerald-800">
               <CardContent className="pt-4 flex items-center gap-3">
                 <TrendingUp className="h-5 w-5 text-success shrink-0" />
-                <div><p className="text-xs text-muted-foreground">Melhor trimestre</p><p className="font-semibold">{bestQuarter?.label} ({bestQuarter?.range})</p><p className="text-sm text-success">{fmt(bestQuarter?.resultado || 0)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Melhor trimestre</p><p className="font-semibold">{bestQuarter?.label} ({bestQuarter?.range})</p><p className="text-sm text-success">{formatEuro(bestQuarter?.resultado || 0)}</p></div>
               </CardContent>
             </Card>
             <Card className="border-destructive/30 bg-destructive/15/50 dark:bg-red-950/20 dark:border-red-800">
               <CardContent className="pt-4 flex items-center gap-3">
                 <TrendingDown className="h-5 w-5 text-destructive shrink-0" />
-                <div><p className="text-xs text-muted-foreground">Pior trimestre</p><p className="font-semibold">{worstQuarter?.label} ({worstQuarter?.range})</p><p className="text-sm text-destructive">{fmt(worstQuarter?.resultado || 0)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Pior trimestre</p><p className="font-semibold">{worstQuarter?.label} ({worstQuarter?.range})</p><p className="text-sm text-destructive">{formatEuro(worstQuarter?.resultado || 0)}</p></div>
               </CardContent>
             </Card>
           </div>
@@ -235,9 +234,9 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                     <TableRow key={d.label} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedQ(d.label)}>
                       <TableCell className="font-medium">{d.label}</TableCell>
                       <TableCell className="text-muted-foreground">{d.range}</TableCell>
-                      <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
-                      <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
-                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.entradas)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.saidas)}</TableCell>
+                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(d.resultado)}</TableCell>
                       <TableCell className="text-right">{d.margem}%</TableCell>
                       <TableCell className="text-right">{d.numSales}</TableCell>
                       <TableCell className="text-right">{d.clients}</TableCell>
@@ -245,9 +244,9 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                   ))}
                   <TableRow className="bg-muted/50 font-semibold">
                     <TableCell>TOTAL</TableCell><TableCell></TableCell>
-                    <TableCell className="text-right">{fmt(totals.entradas)}</TableCell>
-                    <TableCell className="text-right">{fmt(totals.saidas)}</TableCell>
-                    <TableCell className={`text-right ${totals.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(totals.resultado)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(totals.entradas)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(totals.saidas)}</TableCell>
+                    <TableCell className={`text-right ${totals.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(totals.resultado)}</TableCell>
                     <TableCell className="text-right">{totals.margem}%</TableCell><TableCell></TableCell><TableCell></TableCell>
                   </TableRow>
                 </TableBody>
@@ -263,7 +262,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} /><YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v: number) => fmt(v)} /><Legend />
+                  <Tooltip formatter={(v: number) => formatEuro(v)} /><Legend />
                   <Bar dataKey="entradas" name="Entradas" fill="#10b981" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="saidas" name="Saídas" fill="#ef4444" radius={[3, 3, 0, 0]} />
                 </BarChart>
@@ -281,18 +280,18 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                   {data.map(d => (
                     <TableRow key={d.label}>
                       <TableCell className="font-medium">{d.label}</TableCell>
-                      <TableCell className="text-right">{fmt(d.ivaCobrado)}</TableCell>
-                      <TableCell className="text-right">{fmt(d.ivaPago)}</TableCell>
-                      <TableCell className={`text-right font-medium ${d.ivaBalanco > 0 ? 'text-warning' : d.ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(d.ivaBalanco)}</TableCell>
-                      <TableCell className="text-right">{fmt(d.ss)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.ivaCobrado)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.ivaPago)}</TableCell>
+                      <TableCell className={`text-right font-medium ${d.ivaBalanco > 0 ? 'text-warning' : d.ivaBalanco < 0 ? 'text-success' : ''}`}>{formatEuro(d.ivaBalanco)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.ss)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-semibold">
                     <TableCell>TOTAL</TableCell>
-                    <TableCell className="text-right">{fmt(totals.ivaCobrado)}</TableCell>
-                    <TableCell className="text-right">{fmt(totals.ivaPago)}</TableCell>
-                    <TableCell className={`text-right ${totals.ivaBalanco > 0 ? 'text-warning' : totals.ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(totals.ivaBalanco)}</TableCell>
-                    <TableCell className="text-right">{fmt(totals.ss)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(totals.ivaCobrado)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(totals.ivaPago)}</TableCell>
+                    <TableCell className={`text-right ${totals.ivaBalanco > 0 ? 'text-warning' : totals.ivaBalanco < 0 ? 'text-success' : ''}`}>{formatEuro(totals.ivaBalanco)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(totals.ss)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -306,8 +305,8 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
               <CardContent>
                 {allProducts.length > 0 ? (
                   <div className="flex items-center gap-4">
-                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={allProducts} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{allProducts.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart></ResponsiveContainer></div>
-                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{allProducts.map((p, i) => (<div key={p.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{p.name}</span><span className="text-muted-foreground text-xs shrink-0">{fmt(p.value)}</span></div>))}</div>
+                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={allProducts} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{allProducts.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart></ResponsiveContainer></div>
+                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{allProducts.map((p, i) => (<div key={p.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{p.name}</span><span className="text-muted-foreground text-xs shrink-0">{formatEuro(p.value)}</span></div>))}</div>
                   </div>
                 ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
               </CardContent>
@@ -317,8 +316,8 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
               <CardContent>
                 {allCategories.length > 0 ? (
                   <div className="flex items-center gap-4">
-                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={allCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{allCategories.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart></ResponsiveContainer></div>
-                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{allCategories.map((c, i) => (<div key={c.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{c.name}</span><span className="text-muted-foreground text-xs shrink-0">{fmt(c.value)}</span></div>))}</div>
+                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={allCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{allCategories.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart></ResponsiveContainer></div>
+                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{allCategories.map((c, i) => (<div key={c.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{c.name}</span><span className="text-muted-foreground text-xs shrink-0">{formatEuro(c.value)}</span></div>))}</div>
                   </div>
                 ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
               </CardContent>
@@ -331,14 +330,14 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
               <CardHeader className="pb-2"><CardTitle className="text-sm">{d.label} — {d.range} — Detalhe</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div><p className="text-[10px] text-muted-foreground">Entradas</p><p className="font-semibold text-success">{fmt(d.entradas)}</p></div>
-                  <div><p className="text-[10px] text-muted-foreground">Saídas</p><p className="font-semibold text-destructive">{fmt(d.saidas)}</p></div>
-                  <div><p className="text-[10px] text-muted-foreground">Resultado</p><p className={`font-semibold ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Entradas</p><p className="font-semibold text-success">{formatEuro(d.entradas)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Saídas</p><p className="font-semibold text-destructive">{formatEuro(d.saidas)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Resultado</p><p className={`font-semibold ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(d.resultado)}</p></div>
                   <div><p className="text-[10px] text-muted-foreground">Margem</p><p className="font-semibold">{d.margem}%</p></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {d.products.length > 0 && (<div><p className="text-xs text-muted-foreground mb-2">Receita por produto</p><div className="space-y-1">{d.products.map(p => (<div key={p.name} className="flex justify-between text-sm"><span className="truncate">{p.name}</span><span className="text-muted-foreground shrink-0 ml-2">{fmt(p.value)}</span></div>))}</div></div>)}
-                  {d.categories.length > 0 && (<div><p className="text-xs text-muted-foreground mb-2">Despesas por categoria</p><div className="space-y-1">{d.categories.map(c => (<div key={c.name} className="flex justify-between text-sm"><span className="truncate">{catLabel(c.name)}</span><span className="text-muted-foreground shrink-0 ml-2">{fmt(c.value)}</span></div>))}</div></div>)}
+                  {d.products.length > 0 && (<div><p className="text-xs text-muted-foreground mb-2">Receita por produto</p><div className="space-y-1">{d.products.map(p => (<div key={p.name} className="flex justify-between text-sm"><span className="truncate">{p.name}</span><span className="text-muted-foreground shrink-0 ml-2">{formatEuro(p.value)}</span></div>))}</div></div>)}
+                  {d.categories.length > 0 && (<div><p className="text-xs text-muted-foreground mb-2">Despesas por categoria</p><div className="space-y-1">{d.categories.map(c => (<div key={c.name} className="flex justify-between text-sm"><span className="truncate">{catLabel(c.name)}</span><span className="text-muted-foreground shrink-0 ml-2">{formatEuro(c.value)}</span></div>))}</div></div>)}
                 </div>
               </CardContent>
             </Card>
@@ -357,7 +356,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                 <BarChart data={selectedMonthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11 }} /><YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(v: number) => fmt(v)} /><Legend />
+                  <Tooltip formatter={(v: number) => formatEuro(v)} /><Legend />
                   <Bar dataKey="entradas" name="Entradas" fill="#10b981" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="saidas" name="Saídas" fill="#ef4444" radius={[3, 3, 0, 0]} />
                 </BarChart>
@@ -375,20 +374,20 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
                   {selectedMonthlyData.map(d => (
                     <TableRow key={d.mes}>
                       <TableCell className="font-medium">{d.mes}</TableCell>
-                      <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
-                      <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
-                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(d.resultado)}</TableCell>
-                      <TableCell className="text-right">{fmt(d.ivaCobrado)}</TableCell>
-                      <TableCell className="text-right">{fmt(d.ivaPago)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.entradas)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.saidas)}</TableCell>
+                      <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(d.resultado)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.ivaCobrado)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(d.ivaPago)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-semibold">
                     <TableCell>TOTAL</TableCell>
-                    <TableCell className="text-right">{fmt(dv.entradas)}</TableCell>
-                    <TableCell className="text-right">{fmt(dv.saidas)}</TableCell>
-                    <TableCell className={`text-right ${dv.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(dv.resultado)}</TableCell>
-                    <TableCell className="text-right">{fmt(dv.ivaCobrado)}</TableCell>
-                    <TableCell className="text-right">{fmt(dv.ivaPago)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(dv.entradas)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(dv.saidas)}</TableCell>
+                    <TableCell className={`text-right ${dv.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(dv.resultado)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(dv.ivaCobrado)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(dv.ivaPago)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -401,16 +400,16 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
               <CardContent className="pt-4 pb-3">
                 <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-warning" /><p className="text-xs text-muted-foreground">IVA — {selectedData.label}</p></div>
                 <div className="grid grid-cols-3 gap-2 text-sm">
-                  <div><p className="text-[10px] text-muted-foreground">Cobrado</p><p className="font-semibold">{fmt(dv.ivaCobrado)}</p></div>
-                  <div><p className="text-[10px] text-muted-foreground">Pago</p><p className="font-semibold">{fmt(dv.ivaPago)}</p></div>
-                  <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${dv.ivaBalanco > 0 ? 'text-warning' : dv.ivaBalanco < 0 ? 'text-success' : ''}`}>{fmt(dv.ivaBalanco)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Cobrado</p><p className="font-semibold">{formatEuro(dv.ivaCobrado)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Pago</p><p className="font-semibold">{formatEuro(dv.ivaPago)}</p></div>
+                  <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${dv.ivaBalanco > 0 ? 'text-warning' : dv.ivaBalanco < 0 ? 'text-success' : ''}`}>{formatEuro(dv.ivaBalanco)}</p></div>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4 pb-3">
                 <div className="flex items-center gap-1.5 mb-2"><Shield className="h-3.5 w-3.5 text-cyan-600" /><p className="text-xs text-muted-foreground">Segurança Social — {selectedData.label}</p></div>
-                <p className="text-xl font-bold">{fmt(dv.ss)}</p>
+                <p className="text-xl font-bold">{formatEuro(dv.ss)}</p>
               </CardContent>
             </Card>
           </div>
@@ -422,8 +421,8 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
               <CardContent>
                 {filteredProducts.length > 0 ? (
                   <div className="flex items-center gap-4">
-                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={filteredProducts} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{filteredProducts.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart></ResponsiveContainer></div>
-                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{filteredProducts.map((p, i) => (<div key={p.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{p.name}</span><span className="text-muted-foreground text-xs shrink-0">{fmt(p.value)}</span></div>))}</div>
+                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={filteredProducts} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{filteredProducts.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart></ResponsiveContainer></div>
+                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{filteredProducts.map((p, i) => (<div key={p.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{p.name}</span><span className="text-muted-foreground text-xs shrink-0">{formatEuro(p.value)}</span></div>))}</div>
                   </div>
                 ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
               </CardContent>
@@ -433,8 +432,8 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
               <CardContent>
                 {filteredCategories.length > 0 ? (
                   <div className="flex items-center gap-4">
-                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={filteredCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{filteredCategories.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart></ResponsiveContainer></div>
-                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{filteredCategories.map((c, i) => (<div key={c.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{c.name}</span><span className="text-muted-foreground text-xs shrink-0">{fmt(c.value)}</span></div>))}</div>
+                    <div className="h-48 w-48 shrink-0"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={filteredCategories} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{filteredCategories.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart></ResponsiveContainer></div>
+                    <div className="space-y-1.5 text-sm flex-1 min-w-0">{filteredCategories.map((c, i) => (<div key={c.name} className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} /><span className="truncate flex-1">{c.name}</span><span className="text-muted-foreground text-xs shrink-0">{formatEuro(c.value)}</span></div>))}</div>
                   </div>
                 ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
               </CardContent>

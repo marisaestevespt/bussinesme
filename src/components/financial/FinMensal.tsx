@@ -31,6 +31,7 @@ import { getAutoExpenseStatus } from '@/lib/expenseStatus';
 import { ExportContabilistaButton } from './ExportContabilistaButton';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/lib/vatCalculations';
+import { formatEuro } from '@/lib/formatting';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -74,9 +75,6 @@ interface Props {
   currentYear: number;
   fin: ReturnType<typeof useFinancialData>;
 }
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
   const qc = useQueryClient();
@@ -434,9 +432,9 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       <div id="fin-mensal-report" className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-2xl font-bold text-success">{fmt(totalEntradas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas</p><p className="text-2xl font-bold text-destructive">{fmt(totalSaidas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço</p><p className={`text-2xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(resultado)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-2xl font-bold text-success">{formatEuro(totalEntradas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas</p><p className="text-2xl font-bold text-destructive">{formatEuro(totalSaidas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço</p><p className={`text-2xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(resultado)}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-2xl font-bold ${margem >= 0 ? 'text-success' : 'text-destructive'}`}>{margem}%</p></CardContent></Card>
       </div>
 
@@ -461,8 +459,8 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
                     <TableCell>{s.description || '—'}</TableCell>
                     <TableCell>{s.client || '—'}</TableCell>
-                    <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
-                    <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(s.base_value)}</TableCell>
+                    <TableCell className="text-right">{formatEuro(s.invoice_total)}</TableCell>
                     <TableCell>{docs.length > 0 ? <Badge variant="outline" className="text-xs">{docs.length} ficheiro{docs.length > 1 ? 's' : ''}</Badge> : <span className="text-muted-foreground text-xs">—</span>}</TableCell>
                   </TableRow>
                 );
@@ -472,8 +470,8 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               <tfoot>
                 <TableRow className="border-t-2 bg-muted/40 font-semibold hover:bg-muted/40">
                   <TableCell colSpan={5} className="text-right">Total</TableCell>
-                  <TableCell className="text-right">{fmt(totalBaseEntradas)}</TableCell>
-                  <TableCell className="text-right">{fmt(totalEntradas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalBaseEntradas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalEntradas)}</TableCell>
                   <TableCell />
                 </TableRow>
               </tfoot>
@@ -500,7 +498,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
             <div className="flex items-center gap-2">
               {ssExpense && !ssEditing ? (
                 <>
-                  <span className="text-2xl font-bold text-primary">{fmt(ssExpense.total_with_vat)}</span>
+                  <span className="text-2xl font-bold text-primary">{formatEuro(ssExpense.total_with_vat)}</span>
                   <Button size="sm" variant="outline" onClick={() => setSsEditing(true)}>Editar</Button>
                 </>
               ) : (
@@ -582,9 +580,9 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   <TableCell>{e.description || '—'}</TableCell>
                   <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                   <TableCell>{LOC_LABELS[(e as any).location] || (e as any).location || '—'}</TableCell>
-                  <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
                   <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
-                  <TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(e.total_with_vat)}</TableCell>
                   <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
                     <VatDeductibleCell expense={e as any} />
                   </TableCell>
@@ -721,9 +719,9 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               <tfoot>
                 <TableRow className="border-t-2 bg-muted/40 font-semibold hover:bg-muted/40">
                   <TableCell colSpan={6} className="text-right">Total</TableCell>
-                  <TableCell className="text-right">{fmt(totalBaseSaidas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalBaseSaidas)}</TableCell>
                   <TableCell />
-                  <TableCell className="text-right">{fmt(totalSaidas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalSaidas)}</TableCell>
                 </TableRow>
               </tfoot>
             )}
@@ -746,17 +744,17 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{s.client || s.product || `Venda ${idx + 1}`}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(s.invoice_total)}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(s.base_value)}</TableCell>
-                      <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(s.invoice_total)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(s.base_value)}</TableCell>
+                      <TableCell className="text-right text-sm font-medium">{formatEuro(iva)}</TableCell>
                     </TableRow>
                   );
                 })}
                 <TableRow className="border-t-2 font-semibold">
                   <TableCell>Total</TableCell>
-                  <TableCell className="text-right">{fmt(totalEntradas)}</TableCell>
-                  <TableCell className="text-right">{fmt(totalBaseEntradas)}</TableCell>
-                  <TableCell className="text-right">{fmt(ivaCobrado)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalEntradas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalBaseEntradas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(ivaCobrado)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -781,9 +779,9 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{e.description || `Despesa ${idx + 1}`}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(e.total_with_vat)}</TableCell>
-                      <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
-                      <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(e.total_with_vat)}</TableCell>
+                      <TableCell className="text-right text-sm">{formatEuro(e.base_value)}</TableCell>
+                      <TableCell className="text-right text-sm font-medium">{formatEuro(iva)}</TableCell>
                       <TableCell className="text-right text-sm" onClick={ev => ev.stopPropagation()}>
                         <VatDeductibleCell expense={e as any} />
                       </TableCell>
@@ -792,14 +790,14 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                 })}
                 <TableRow className="border-t-2 font-semibold">
                   <TableCell>Total</TableCell>
-                  <TableCell className="text-right">{fmt(totalSaidas)}</TableCell>
-                  <TableCell className="text-right">{fmt(totalBaseSaidas)}</TableCell>
-                  <TableCell className="text-right">{fmt(ivaPago)}</TableCell>
-                  <TableCell className="text-right">{fmt(ivaDeduzir)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalSaidas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(totalBaseSaidas)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(ivaPago)}</TableCell>
+                  <TableCell className="text-right">{formatEuro(ivaDeduzir)}</TableCell>
                 </TableRow>
                 <TableRow className="bg-muted/30">
                   <TableCell colSpan={4} className="text-sm font-medium">Balanço IVA (Cobrado − Deduzir)</TableCell>
-                  <TableCell className={cn("text-right font-semibold", ivaBalanco >= 0 ? 'text-destructive' : 'text-success')}>{fmt(ivaBalanco)}</TableCell>
+                  <TableCell className={cn("text-right font-semibold", ivaBalanco >= 0 ? 'text-destructive' : 'text-success')}>{formatEuro(ivaBalanco)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -889,9 +887,6 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   const displayBase = linkedExpense ? linkedExpense.base_value : sub.base_value;
   const displayTotal = linkedExpense ? linkedExpense.total_with_vat : sub.total_with_vat;
   const projectedExpenseDate = getSubscriptionDueDate(sub, month, currentYear);
-
-  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
   const isCurrentMonth = month === new Date().getMonth() + 1 && currentYear === new Date().getFullYear();
   const defaultStatus = isCurrentMonth ? 'pendente' : 'por_pagar';
   const currentStatus = linkedExpense?.status || defaultStatus;
@@ -936,9 +931,9 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
       <TableCell>{linkedExpense?.description || subName}</TableCell>
       <TableCell>{getCategoryLabel('expense', category)}</TableCell>
       <TableCell>{LOC_LABELS[linkedExpense ? ((linkedExpense as any).location || sub.location) : sub.location] || sub.location || '—'}</TableCell>
-      <TableCell className="text-right">{fmt(displayBase)}</TableCell>
+      <TableCell className="text-right">{formatEuro(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
-      <TableCell className="text-right">{fmt(displayTotal)}</TableCell>
+      <TableCell className="text-right">{formatEuro(displayTotal)}</TableCell>
     </TableRow>
   );
 }
@@ -967,10 +962,6 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   const value = contract.monthly_value || 0;
   const contractType = contract.contract_type || 'outro';
   const typeLabel = CONTRACT_TYPE_LABELS[contractType] || contractType;
-
-
-  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
   const isCurrentMonth = month === new Date().getMonth() + 1 && currentYear === new Date().getFullYear();
   const defaultStatus = isCurrentMonth ? 'pendente' : 'por_pagar';
   const currentStatus = linkedExpense?.status || defaultStatus;
@@ -1017,9 +1008,9 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
       <TableCell>{description}</TableCell>
       <TableCell>{categoryLabel}</TableCell>
       <TableCell>{location}</TableCell>
-      <TableCell className="text-right">{fmt(baseValue)}</TableCell>
+      <TableCell className="text-right">{formatEuro(baseValue)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
-      <TableCell className="text-right">{fmt(totalWithVat)}</TableCell>
+      <TableCell className="text-right">{formatEuro(totalWithVat)}</TableCell>
     </TableRow>
   );
 }

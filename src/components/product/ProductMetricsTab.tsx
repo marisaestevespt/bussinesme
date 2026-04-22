@@ -13,6 +13,7 @@ import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, Refre
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { formatInt } from '@/lib/formatting';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -310,9 +311,6 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
     yellow: 'bg-amber-500',
     red: 'bg-red-500',
   };
-
-  const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
-
   return (
     <div className="space-y-6">
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
@@ -322,16 +320,16 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs Base</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <AutoKpiCard label="Vendas do mês" value={monthSales.length} prevValue={prevMonthSales.length} icon={BarChart3} />
-          <AutoKpiCard label="Faturação do mês" value={`${fmt(monthRevenue)} €`} prevValue={prevMonthRevenue} icon={DollarSign} />
+          <AutoKpiCard label="Faturação do mês" value={`${formatInt(monthRevenue)} €`} prevValue={prevMonthRevenue} icon={DollarSign} />
           <AutoKpiCard label="Novos clientes" value={newClients.length} prevValue={prevNewClients.length} icon={UserPlus} />
           <AutoKpiCard label="Clientes ativos" value={activeClients.length} icon={Users} />
           <AutoKpiCard label="Churn" value={churnClients.length} icon={UserMinus} color={churnClients.length > 0 ? 'text-destructive' : undefined} />
           <AutoKpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />
           <AutoKpiCard label="NPS médio atual" value={avgNps} icon={Star} />
-          <AutoKpiCard label="Ticket médio" value={`${fmt(ticketMedio)} €`} prevValue={prevTicketMedio} icon={DollarSign} />
+          <AutoKpiCard label="Ticket médio" value={`${formatInt(ticketMedio)} €`} prevValue={prevTicketMedio} icon={DollarSign} />
         </div>
         <div className="mt-3">
-          <AutoKpiCard label="Receita acumulada do ano" value={`${fmt(yearRevenue)} €`} icon={TrendingUp} />
+          <AutoKpiCard label="Receita acumulada do ano" value={`${formatInt(yearRevenue)} €`} icon={TrendingUp} />
         </div>
       </div>
 
@@ -363,14 +361,14 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
                         <td className="p-3 font-medium text-foreground">{kpi.name}</td>
                         <td className="p-3 text-right text-muted-foreground">
                           {goalVal != null ? (
-                            kpi.kpi_type === 'monetario' ? `${fmt(goalVal)} €` : kpi.kpi_type === 'percentagem' ? `${goalVal}%` : fmt(goalVal)
+                            kpi.kpi_type === 'monetario' ? `${formatInt(goalVal)} €` : kpi.kpi_type === 'percentagem' ? `${goalVal}%` : formatInt(goalVal)
                           ) : '—'}
                         </td>
                         <td className="p-3 text-right">
                           {isAuto ? (
                             <span className="font-medium">
                               {autoVal != null ? (
-                                kpi.kpi_type === 'monetario' ? `${fmt(autoVal)} €` : kpi.kpi_type === 'percentagem' ? `${autoVal}%` : fmt(autoVal)
+                                kpi.kpi_type === 'monetario' ? `${formatInt(autoVal)} €` : kpi.kpi_type === 'percentagem' ? `${autoVal}%` : formatInt(autoVal)
                               ) : '—'}
                             </span>
                           ) : (
@@ -576,9 +574,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
       return { name, revenue, salesCount: mSales.length };
     });
   }, [salesData]);
-
-  const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
-  const fmtEur = (n: number) => `${fmt(n)} €`;
+  const fmtEur = (n: number) => `${formatInt(n)} €`;
 
   if (selectedMonth !== null) {
     return (
@@ -622,11 +618,11 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">
                       {k.value != null ? (
-                        k.kpiType === 'monetario' ? fmtEur(k.value) : k.kpiType === 'percentagem' ? `${k.value}%` : fmt(k.value)
+                        k.kpiType === 'monetario' ? fmtEur(k.value) : k.kpiType === 'percentagem' ? `${k.value}%` : formatInt(k.value)
                       ) : '—'}
                     </span>
                     {k.goal != null && (
-                      <span className="text-xs text-muted-foreground">/ {k.kpiType === 'monetario' ? fmtEur(k.goal) : k.kpiType === 'percentagem' ? `${k.goal}%` : fmt(k.goal)}</span>
+                      <span className="text-xs text-muted-foreground">/ {k.kpiType === 'monetario' ? fmtEur(k.goal) : k.kpiType === 'percentagem' ? `${k.goal}%` : formatInt(k.goal)}</span>
                     )}
                   </div>
                 </div>
@@ -655,7 +651,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
                   <span className="font-semibold text-sm">{m.name}</span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <p className="text-lg font-bold">{fmt(m.revenue)} €</p>
+                <p className="text-lg font-bold">{formatInt(m.revenue)} €</p>
                 <p className="text-[10px] text-muted-foreground">{m.salesCount} vendas</p>
               </CardContent>
             </Card>

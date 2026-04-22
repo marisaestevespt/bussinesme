@@ -18,9 +18,7 @@ import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shie
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
 import { sumRevenue } from '@/lib/salesCalculations';
-
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+import { formatEuro } from '@/lib/formatting';
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 
@@ -272,12 +270,12 @@ export default function FinanceiroPage() {
         {/* Summary Cards */}
         <div id="fin-annual-report" className="space-y-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas</p><p className="text-lg sm:text-xl font-bold text-success">{fmt(totalEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas</p><p className="text-lg sm:text-xl font-bold text-destructive">{fmt(totalSaidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(resultado)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas</p><p className="text-lg sm:text-xl font-bold text-success">{formatEuro(totalEntradas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas</p><p className="text-lg sm:text-xl font-bold text-destructive">{formatEuro(totalSaidas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(resultado)}</p></CardContent></Card>
           <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Margem</p><p className={`text-lg sm:text-xl font-bold ${margem >= 0 ? 'text-success' : 'text-destructive'}`}>{margem}%</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-lg sm:text-xl font-bold">{fmt(avgEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-lg sm:text-xl font-bold">{fmt(avgSaidas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-lg sm:text-xl font-bold">{formatEuro(avgEntradas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-lg sm:text-xl font-bold">{formatEuro(avgSaidas)}</p></CardContent></Card>
         </div>
 
         {/* Best/Worst month */}
@@ -285,13 +283,13 @@ export default function FinanceiroPage() {
           <Card className="border-success/30 bg-success/15/50 dark:bg-emerald-950/20 dark:border-emerald-800">
             <CardContent className="pt-4 flex items-center gap-3">
               <TrendingUp className="h-5 w-5 text-success shrink-0" />
-              <div><p className="text-xs text-muted-foreground">Melhor mês</p><p className="font-semibold">{bestMonth.mes}</p><p className="text-sm text-success">{fmt(bestMonth.resultado)}</p></div>
+              <div><p className="text-xs text-muted-foreground">Melhor mês</p><p className="font-semibold">{bestMonth.mes}</p><p className="text-sm text-success">{formatEuro(bestMonth.resultado)}</p></div>
             </CardContent>
           </Card>
           <Card className="border-destructive/30 bg-destructive/15/50 dark:bg-red-950/20 dark:border-red-800">
             <CardContent className="pt-4 flex items-center gap-3">
               <TrendingDown className="h-5 w-5 text-destructive shrink-0" />
-              <div><p className="text-xs text-muted-foreground">Pior mês</p><p className="font-semibold">{worstMonth.mes}</p><p className="text-sm text-destructive">{fmt(worstMonth.resultado)}</p></div>
+              <div><p className="text-xs text-muted-foreground">Pior mês</p><p className="font-semibold">{worstMonth.mes}</p><p className="text-sm text-destructive">{formatEuro(worstMonth.resultado)}</p></div>
             </CardContent>
           </Card>
         </div>
@@ -305,7 +303,7 @@ export default function FinanceiroPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                 <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Tooltip formatter={(v: number) => formatEuro(v)} />
                 <Legend />
                 <Bar dataKey="entradas" name="Entradas" fill="#10b981" radius={[3, 3, 0, 0]} />
                 <Bar dataKey="saidas" name="Saídas" fill="#ef4444" radius={[3, 3, 0, 0]} />
@@ -323,7 +321,7 @@ export default function FinanceiroPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="mes" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                 <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Tooltip formatter={(v: number) => formatEuro(v)} />
                 <Bar dataKey="resultado" name="Resultado" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -339,7 +337,7 @@ export default function FinanceiroPage() {
                 <div className="flex items-center gap-4">
                   <div className="h-48 w-48 shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart><Pie data={productPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{productPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart>
+                      <PieChart><Pie data={productPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{productPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="space-y-1.5 text-sm flex-1 min-w-0">
@@ -347,7 +345,7 @@ export default function FinanceiroPage() {
                       <div key={p.name} className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
                         <span className="truncate flex-1">{p.name}</span>
-                        <span className="text-muted-foreground text-xs shrink-0">{fmt(p.value)}</span>
+                        <span className="text-muted-foreground text-xs shrink-0">{formatEuro(p.value)}</span>
                       </div>
                     ))}
                   </div>
@@ -363,7 +361,7 @@ export default function FinanceiroPage() {
                 <div className="flex items-center gap-4">
                   <div className="h-48 w-48 shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart><Pie data={categoryPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{categoryPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart>
+                      <PieChart><Pie data={categoryPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{categoryPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="space-y-1.5 text-sm flex-1 min-w-0">
@@ -371,7 +369,7 @@ export default function FinanceiroPage() {
                       <div key={c.name} className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
                         <span className="truncate flex-1">{c.name}</span>
-                        <span className="text-muted-foreground text-xs shrink-0">{fmt(c.value)}</span>
+                        <span className="text-muted-foreground text-xs shrink-0">{formatEuro(c.value)}</span>
                       </div>
                     ))}
                   </div>
@@ -386,25 +384,25 @@ export default function FinanceiroPage() {
           <Card>
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-1.5 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto + vendido</p></div>
-              {productInsights.best ? (<><p className="text-sm font-semibold truncate">{productInsights.best.name}</p><p className="text-xs text-muted-foreground">{fmt(productInsights.best.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              {productInsights.best ? (<><p className="text-sm font-semibold truncate">{productInsights.best.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.best.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-1.5 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto - vendido</p></div>
-              {productInsights.worst ? (<><p className="text-sm font-semibold truncate">{productInsights.worst.name}</p><p className="text-xs text-muted-foreground">{fmt(productInsights.worst.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              {productInsights.worst ? (<><p className="text-sm font-semibold truncate">{productInsights.worst.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.worst.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-1.5 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Maior despesa</p></div>
-              {categoryInsights.biggest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p><p className="text-xs text-muted-foreground">{fmt(categoryInsights.biggest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              {categoryInsights.biggest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.biggest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-1.5 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Menor despesa</p></div>
-              {categoryInsights.smallest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p><p className="text-xs text-muted-foreground">{fmt(categoryInsights.smallest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              {categoryInsights.smallest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.smallest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
           <Card>

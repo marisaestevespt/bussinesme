@@ -17,6 +17,7 @@ import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import {
+import { formatEuro } from '@/lib/formatting';
   computeSsIndependente,
   computeSsPatronalForMonth,
   buildIndependenteQuarterMap,
@@ -27,9 +28,6 @@ import {
 } from '@/lib/payrollCalculations';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
 interface Props {
   fin: ReturnType<typeof useFinancialData>;
   expenses: Expense[];
@@ -266,14 +264,14 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs text-muted-foreground">SS Independente Prevista</p>
-                <p className="text-lg font-bold">{fmt(totalIndPrevisto)}</p>
+                <p className="text-lg font-bold">{formatEuro(totalIndPrevisto)}</p>
                 <p className="text-[10px] text-muted-foreground">21,4% s/ 70% faturação</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs text-muted-foreground">SS Independente Paga</p>
-                <p className="text-lg font-bold">{fmt(totalIndPago)}</p>
+                <p className="text-lg font-bold">{formatEuro(totalIndPago)}</p>
               </CardContent>
             </Card>
           </>
@@ -283,14 +281,14 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs text-muted-foreground">SS Patronal Prevista</p>
-                <p className="text-lg font-bold">{fmt(totalPatPrevisto)}</p>
+                <p className="text-lg font-bold">{formatEuro(totalPatPrevisto)}</p>
                 <p className="text-[10px] text-muted-foreground">23,75% s/ salários brutos</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
                 <p className="text-xs text-muted-foreground">SS Patronal Paga</p>
-                <p className="text-lg font-bold">{fmt(totalPatPago)}</p>
+                <p className="text-lg font-bold">{formatEuro(totalPatPago)}</p>
               </CardContent>
             </Card>
           </>
@@ -429,9 +427,9 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
                         onToggle={onToggle}
                         extraCells={
                           <>
-                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.quarterRevenue > 0 ? fmt(d.quarterRevenue) : '—'}</TableCell>
-                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.rendimentoRelevante > 0 ? fmt(d.rendimentoRelevante) : '—'}</TableCell>
-                            <TableCell className="text-right">{d.hasData && d.baseIncidencia > 0 ? fmt(d.baseIncidencia) : '—'}</TableCell>
+                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.quarterRevenue > 0 ? formatEuro(d.quarterRevenue) : '—'}</TableCell>
+                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.rendimentoRelevante > 0 ? formatEuro(d.rendimentoRelevante) : '—'}</TableCell>
+                            <TableCell className="text-right">{d.hasData && d.baseIncidencia > 0 ? formatEuro(d.baseIncidencia) : '—'}</TableCell>
                           </>
                         }
                       />
@@ -442,8 +440,8 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
                 <TableCell colSpan={3} />
-                <TableCell className="text-right">{fmt(total)}</TableCell>
-                <TableCell className="text-right">{fmt(data.reduce((s, d) => s + d.paid, 0))}</TableCell>
+                <TableCell className="text-right">{formatEuro(total)}</TableCell>
+                <TableCell className="text-right">{formatEuro(data.reduce((s, d) => s + d.paid, 0))}</TableCell>
                 <TableCell colSpan={3} />
               </TableRow>
             </TableBody>
@@ -506,16 +504,16 @@ function PatronalSection({ data, contracts, currentYear, onSave, onToggle }: {
                   onToggle={onToggle}
                   extraCells={
                     <>
-                      <TableCell className="text-right text-muted-foreground">{d.totalGross > 0 ? fmt(d.totalGross) : '—'}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{d.totalGross > 0 ? formatEuro(d.totalGross) : '—'}</TableCell>
                     </>
                   }
                 />
               ))}
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
-                <TableCell className="text-right">{fmt(totalGrossAnual)}</TableCell>
-                <TableCell className="text-right">{fmt(totalPrevisto)}</TableCell>
-                <TableCell className="text-right">{fmt(data.reduce((s, d) => s + d.paid, 0))}</TableCell>
+                <TableCell className="text-right">{formatEuro(totalGrossAnual)}</TableCell>
+                <TableCell className="text-right">{formatEuro(totalPrevisto)}</TableCell>
+                <TableCell className="text-right">{formatEuro(data.reduce((s, d) => s + d.paid, 0))}</TableCell>
                 <TableCell colSpan={3} />
               </TableRow>
             </TableBody>
@@ -545,9 +543,9 @@ function PatronalSection({ data, contracts, currentYear, onSave, onToggle }: {
                   return (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{(c.team_members as any)?.full_name || '—'}</TableCell>
-                      <TableCell className="text-right">{fmt(gross)}</TableCell>
-                      <TableCell className="text-right">{fmt(Math.round(gross * SS_EMPLOYER_RATE * 100) / 100)}</TableCell>
-                      <TableCell className="text-right">{fmt(Math.round(gross * SS_EMPLOYEE_RATE * 100) / 100)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(gross)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(Math.round(gross * SS_EMPLOYER_RATE * 100) / 100)}</TableCell>
+                      <TableCell className="text-right">{formatEuro(Math.round(gross * SS_EMPLOYEE_RATE * 100) / 100)}</TableCell>
                     </TableRow>
                   );
                 })}
@@ -598,8 +596,8 @@ function PaymentRow({ month, predicted, paid, isPaid, onSave, onToggle, extraCel
     <TableRow>
       <TableCell className="font-medium">{String(month).padStart(2, '0')} {MONTHS[month - 1]}</TableCell>
       {extraCells}
-      <TableCell className="text-right">{predicted > 0 ? fmt(predicted) : '—'}</TableCell>
-      <TableCell className="text-right">{isPaid ? fmt(paid) : '—'}</TableCell>
+      <TableCell className="text-right">{predicted > 0 ? formatEuro(predicted) : '—'}</TableCell>
+      <TableCell className="text-right">{isPaid ? formatEuro(paid) : '—'}</TableCell>
       <TableCell>
         <Button
           size="sm"
