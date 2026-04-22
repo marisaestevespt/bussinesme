@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { BusinessLegalDocs } from './BusinessLegalDocs';
 
 export function SettingsFiscal() {
   const { settings, refetch } = useBusinessSettings();
@@ -207,6 +208,8 @@ export function SettingsFiscal() {
               </p>
             )}
           </div>
+
+          <BusinessLegalDocs />
         </div>
       </div>
 
