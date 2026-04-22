@@ -10270,6 +10270,7 @@ export type Database = {
       }
     }
     Functions: {
+      backfill_deliverable_tasks: { Args: never; Returns: number }
       current_user_has_sensitive_access: {
         Args: { _category: string }
         Returns: boolean
