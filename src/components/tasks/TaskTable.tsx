@@ -10,10 +10,10 @@ import { isTaskDone } from '@/lib/taskStatus';
 const TASK_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
   { value: 'a_fazer', label: 'A fazer', color: 'bg-info/15 text-info border-info/30' },
-  { value: 'aguarda_feedback', label: 'Aguarda Feedback', color: 'bg-warning/15 text-warning border-warning/30' },
-  { value: 'para_aprovacao', label: 'Para Aprovação', color: 'bg-primary/15 text-primary border-primary/30' },
-  { value: 'precisa_alteracoes', label: 'Precisa de Alterações', color: 'bg-warning/20 text-warning border-warning/40' },
-  { value: 'done', label: 'Done', color: 'bg-success/15 text-success border-success/30' },
+  { value: 'aguarda_feedback', label: 'Aguarda feedback cliente', color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'para_aprovacao', label: 'Para aprovação (interna)', color: 'bg-primary/15 text-primary border-primary/30' },
+  { value: 'precisa_alteracoes', label: 'Precisa de alterações', color: 'bg-warning/20 text-warning border-warning/40' },
+  { value: 'done', label: 'Feito', color: 'bg-success/15 text-success border-success/30' },
 ];
 
 const PRIORITIES = [
