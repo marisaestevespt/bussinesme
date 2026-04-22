@@ -25,9 +25,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex-1 flex flex-col min-w-0">
             <header className="h-14 flex items-center border-b bg-background/80 backdrop-blur-sm px-3 sm:px-5 shrink-0 sticky top-0 z-30">
               <SidebarTrigger className="mr-2 sm:mr-3" />
-              <span className="text-sm font-medium text-muted-foreground truncate flex-1 min-w-0">
-                {settings?.business_name || 'Lyrata'}
-              </span>
+              <div className="flex-1 min-w-0 flex flex-col">
+                <span className="text-sm font-medium text-foreground truncate">
+                  Sistema Lyrata
+                </span>
+                {settings?.business_name && (
+                  <span className="text-xs text-muted-foreground truncate">
+                    {settings.business_name}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <AiInsightsButton />
                 <NewTabButton />
