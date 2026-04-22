@@ -39,6 +39,7 @@ import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimelin
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { ExportInitialQuestionsButton } from '@/components/project/ExportInitialQuestionsButton';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
 
