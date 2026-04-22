@@ -29,6 +29,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { isTaskDone } from '@/lib/taskStatus';
+import { isDeliverableDone, isPhaseDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 import { Card, CardContent } from '@/components/ui/card';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -265,14 +266,12 @@ export default function ProjetosPage() {
 
     const projectDeliverables = allProjectDeliverables.filter(d => d.project_id === projectId);
     if (projectDeliverables.length > 0) {
-      const completed = projectDeliverables.filter(d => d.status === 'concluido').length;
-      return Math.round((completed / projectDeliverables.length) * 100);
+      return deliverableProgress(projectDeliverables);
     }
 
     const projectPhases = allProjectPhases.filter(p => p.project_id === projectId);
     if (projectPhases.length > 0) {
-      const completed = projectPhases.filter(p => p.status === 'concluida').length;
-      return Math.round((completed / projectPhases.length) * 100);
+      return phaseProgress(projectPhases);
     }
 
     return 0;

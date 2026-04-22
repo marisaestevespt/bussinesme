@@ -14,6 +14,14 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { addBusinessDays } from '@/lib/holidays';
+import {
+  isDeliverableDone,
+  isPhaseDone,
+  countDoneDeliverables,
+  countDonePhases,
+  projectProgress as computeProjectProgress,
+  progressLabel as computeProgressLabel,
+} from '@/lib/projectProgress';
 
 interface ProjectPhase {
   id: string;
@@ -502,16 +510,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     );
   }
 
-  const completedDeliverables = deliverables.filter(d => d.status === 'concluido').length;
-  const completedPhases = phases.filter(p => p.status === 'concluida').length;
-  const progress = deliverables.length > 0
-    ? Math.round((completedDeliverables / deliverables.length) * 100)
-    : phases.length > 0
-      ? Math.round((completedPhases / phases.length) * 100)
-      : 0;
-  const progressLabel = deliverables.length > 0
-    ? `${completedDeliverables}/${deliverables.length} points`
-    : `${completedPhases}/${phases.length} fases`;
+  const completedDeliverables = countDoneDeliverables(deliverables);
+  const completedPhases = countDonePhases(phases);
+  const progress = computeProjectProgress(deliverables, phases);
+  const progressLabel = computeProgressLabel(deliverables, phases, { deliverables: 'points', phases: 'fases' });
 
   return (
     <>
