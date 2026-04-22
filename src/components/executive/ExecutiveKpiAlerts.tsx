@@ -65,8 +65,8 @@ export function ExecutiveKpiAlerts() {
 
   const sales = d?.sales || [];
   const monthSales = sales.filter(s => s.sale_month === currentMonth);
-  const monthRevenue = monthSales.reduce((sum, s) => sum + (Number(s.invoice_total) || 0), 0);
-  const yearRevenue = sales.reduce((sum, s) => sum + (Number(s.invoice_total) || 0), 0);
+  const monthRevenue = sumRevenue(monthSales);
+  const yearRevenue = sumRevenue(sales);
   const overdueSales = sales.filter(s => s.status === 'em_atraso').length;
 
   const annualGoal = d?.annualGoal || 0;

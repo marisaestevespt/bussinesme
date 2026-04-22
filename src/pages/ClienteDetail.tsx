@@ -909,7 +909,7 @@ export default function ClienteDetailPage() {
                 {clientSales.length > 0 && (
                   <div className="px-4 py-3 text-xs font-medium border-t flex justify-between">
                     <span>Total: {clientSales.length} pagamento(s)</span>
-                    <span>Valor total: {clientSales.reduce((s, p) => s + Number(p.invoice_total || 0), 0).toFixed(2)}€</span>
+                    <span>Valor total: {sumRevenue(clientSales).toFixed(2)}€</span>
                   </div>
                 )}
               </CardContent>

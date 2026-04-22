@@ -160,8 +160,8 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
     ? salesData.filter(s => s.sale_month === month - 1)
     : prevYearSales.filter(s => s.sale_month === 12);
 
-  const monthRevenue = monthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
-  const prevMonthRevenue = prevMonthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const monthRevenue = sumRevenue(monthSales);
+  const prevMonthRevenue = sumRevenue(prevMonthSales);
 
   const activeClients = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding');
   const newClients = clientsData.filter(c => {
@@ -194,7 +194,7 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
   const ticketMedio = monthSales.length > 0 ? Math.round(monthRevenue / monthSales.length) : 0;
   const prevTicketMedio = prevMonthSales.length > 0 ? Math.round(prevMonthRevenue / prevMonthSales.length) : null;
 
-  const yearRevenue = salesData.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const yearRevenue = sumRevenue(salesData);
 
   // NPS - latest per client (not filtered by month)
   const latestNpsByClient = useMemo(() => {

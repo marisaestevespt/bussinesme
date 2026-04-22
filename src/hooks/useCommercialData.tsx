@@ -270,21 +270,21 @@ export function useCommercialData(year = currentYear) {
   // Computed values
   const annualGoalAmount = Number(annualGoal.data?.goal_amount || 0);
   const yearSales = excludeCancelled(sales.data || []);
-  const totalInvoiced = yearSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const totalInvoiced = sumRevenue(yearSales);
   const progressPct = annualGoalAmount > 0 ? (totalInvoiced / annualGoalAmount) * 100 : 0;
   const currentMonthSales = yearSales.filter(v => v.sale_month === currentMonth);
-  const currentMonthTotal = currentMonthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const currentMonthTotal = sumRevenue(currentMonthSales);
 
   const monthlyTotals = Array.from({ length: 12 }, (_, i) => {
     const m = i + 1;
-    return yearSales.filter(v => v.sale_month === m).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+    return sumRevenue(yearSales.filter(v => v.sale_month === m));
   });
 
   const monthlyGoalsSum = (monthlyGoals.data || []).reduce((s, m) => s + Number(m.goal_amount || 0), 0);
   const monthlyMismatch = annualGoalAmount > 0 && monthlyGoalsSum < annualGoalAmount - 0.01;
 
   const quarterTotals = [1, 2, 3, 4].map(q =>
-    yearSales.filter(v => v.sale_quarter === q).reduce((s, v) => s + Number(v.invoice_total || 0), 0)
+    sumRevenue(yearSales.filter(v => v.sale_quarter === q))
   );
 
   // Aggregate sales by product_id (relational source of truth).
@@ -293,7 +293,7 @@ export function useCommercialData(year = currentYear) {
     ...pg,
     totalInvoiced: yearSales
       .filter(v => pg.product_id && (v as any).product_id === pg.product_id)
-      .reduce((s, v) => s + Number(v.invoice_total || 0), 0),
+      .reduce((s, v) => s + saleRevenue(v), 0),
   }));
 
   return {

@@ -266,7 +266,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
   // ─── Computed data ─────────────────────────────
 
   const sales = salesQ.data || [];
-  const totalInvoiced = sales.reduce((sum: number, v: any) => sum + Number(v.invoice_total || 0), 0);
+  const totalInvoiced = sumRevenue(sales);
   const semesterGoalTarget = (monthlyGoalsQ.data || []).reduce((sum: number, g: any) => sum + Number(g.goal_amount || 0), 0);
   const avgMonthlyNeeded = semesterGoalTarget > 0 ? semesterGoalTarget / 6 : 0;
 
@@ -274,7 +274,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
     return s.monthNames.map((name, i) => {
       const mNum = s.monthIndices[i] + 1;
       const mSales = sales.filter((sl: any) => sl.sale_month === mNum);
-      const total = mSales.reduce((sum: number, sl: any) => sum + Number(sl.invoice_total || 0), 0);
+      const total = sumRevenue(mSales);
       return { name, total };
     });
   }, [sales, s]);
@@ -283,7 +283,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
   const progressPct = semesterGoalTarget > 0 ? Math.round((totalInvoiced / semesterGoalTarget) * 100) : 0;
 
   // Previous semester comparison
-  const prevTotal = (prevSalesQ.data || []).reduce((sum: number, v: any) => sum + Number(v.invoice_total || 0), 0);
+  const prevTotal = sumRevenue(prevSalesQ.data || []);
   const hasPrevData = (prevSalesQ.data || []).length > 0;
   const prevVariationEur = totalInvoiced - prevTotal;
   const prevVariationPct = prevTotal > 0 ? Math.round((prevVariationEur / prevTotal) * 100) : null;
@@ -295,7 +295,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
       const key = sl.product || 'Sem produto';
       if (!map[key]) map[key] = { name: key, count: 0, total: 0 };
       map[key].count++;
-      map[key].total += Number(sl.invoice_total || 0);
+      map[key].total += saleRevenue(sl);
     });
     return Object.values(map).sort((a, b) => b.total - a.total).map(p => ({
       ...p,

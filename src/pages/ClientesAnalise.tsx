@@ -123,7 +123,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const onboardingClients = clientsData.filter(c => c.status === 'em_onboarding');
 
   const monthSales = salesData.filter(s => s.sale_month === month);
-  const monthRevenue = monthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const monthRevenue = sumRevenue(monthSales);
   const avgValuePerClient = activeClients.length > 0 ? Math.round(monthRevenue / activeClients.length) : 0;
 
   const renewalClients = clientsData.filter(c => {

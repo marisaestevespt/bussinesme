@@ -95,7 +95,7 @@ export function CommercialVendas() {
   }, [allSalesData, activeView, searchText, filterStatus, filterProduct, filterSource, filterYear, filterQuarter, todayStr]);
 
   const totalBase = filteredSales.reduce((s, v) => s + Number(v.base_value || 0), 0);
-  const totalInvoice = filteredSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const totalInvoice = sumRevenue(filteredSales);
 
   // Available years for filter
   const availableYears = [...new Set(allSalesData.map(s => s.sale_year).filter(Boolean))].sort((a, b) => (b || 0) - (a || 0));
