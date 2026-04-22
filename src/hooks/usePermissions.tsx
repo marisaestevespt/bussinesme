@@ -33,15 +33,17 @@ export function usePermissions() {
     const fetchPermissions = async () => {
       let depts: string[] = [];
 
+      let teamMemberId: string | null = null;
       const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
       if (profile) {
         const { data: teamMember } = await supabase
           .from('team_members')
-          .select('department, departments, role_title')
+          .select('id, department, departments, role_title, custom_role_id')
           .eq('profile_id', profile.id)
           .maybeSingle();
 
         if (teamMember) {
+          teamMemberId = teamMember.id;
           depts = Array.isArray(teamMember.departments) && teamMember.departments.length > 0
             ? teamMember.departments as string[]
             : (teamMember.department ? [teamMember.department] : []);
@@ -58,22 +60,18 @@ export function usePermissions() {
             setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
             return;
           }
+
+          // Use custom_role_id directly from team_members
+          var customRoleIdFromTM: string | null = (teamMember as any).custom_role_id ?? null;
         }
       }
 
-      // Get user's custom role via members table
-      let customRoleId: string | null = null;
+      // Get user's custom role from team_members (set above)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let customRoleId: string | null = (typeof customRoleIdFromTM !== 'undefined' ? customRoleIdFromTM : null) as any;
 
-      const { data: member } = await supabase
-        .from('members')
-        .select('custom_role_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      customRoleId = member?.custom_role_id ?? null;
-
-      // Fallback: if no members record, auto-create one from department-based role
-      if (!customRoleId && depts.length > 0) {
+      // Fallback: if no custom_role_id, auto-assign based on departments
+      if (!customRoleId && depts.length > 0 && teamMemberId) {
         const deptRoleName = `dept_${[...depts].sort().join('_')}`;
         const { data: roleByName } = await supabase
           .from('custom_roles')
@@ -83,11 +81,8 @@ export function usePermissions() {
 
         if (roleByName?.id) {
           customRoleId = roleByName.id;
-          // Auto-create the members record for next time
-          await supabase.from('members').insert({
-            user_id: user.id,
-            custom_role_id: roleByName.id,
-          });
+          // Persist on team_members for next time
+          await supabase.from('team_members').update({ custom_role_id: roleByName.id } as any).eq('id', teamMemberId);
         }
       }
 

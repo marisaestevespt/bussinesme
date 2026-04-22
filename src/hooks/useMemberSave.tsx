@@ -48,18 +48,7 @@ async function autoAssignPermissions(memberId: string, departments: string[]) {
     await supabase.from('role_permissions').insert(perms);
   }
 
-  const { data: tm } = await supabase.from('team_members').select('profile_id').eq('id', memberId).maybeSingle();
-  if (!tm?.profile_id) return;
-
-  const { data: profile } = await supabase.from('profiles').select('user_id').eq('id', tm.profile_id).maybeSingle();
-  if (!profile?.user_id) return;
-
-  const { data: existingMember } = await supabase.from('members').select('id').eq('user_id', profile.user_id).maybeSingle();
-  if (existingMember) {
-    await supabase.from('members').update({ custom_role_id: role.id }).eq('id', existingMember.id);
-  } else {
-    await supabase.from('members').insert({ user_id: profile.user_id, custom_role_id: role.id });
-  }
+  await supabase.from('team_members').update({ custom_role_id: role.id } as any).eq('id', memberId);
 }
 
 export function useMemberSave() {

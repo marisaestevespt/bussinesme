@@ -99,8 +99,11 @@ export function CommercialCRM() {
       const commercialRoleIds = (commercialPerms || []).map(p => p.custom_role_id);
       let commercialUserIds: string[] = [];
       if (commercialRoleIds.length > 0) {
-        const { data: members } = await supabase.from('members').select('user_id').in('custom_role_id', commercialRoleIds);
-        commercialUserIds = (members || []).map(m => m.user_id);
+        const { data: tms } = await supabase
+          .from('team_members')
+          .select('profile_id, profiles!inner(user_id)')
+          .in('custom_role_id', commercialRoleIds);
+        commercialUserIds = ((tms || []) as any[]).map(t => t.profiles?.user_id).filter(Boolean);
       }
       const allUserIds = [...new Set([...ownerIds, ...commercialUserIds])];
       if (allUserIds.length === 0) return [];

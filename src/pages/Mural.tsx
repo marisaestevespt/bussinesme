@@ -105,16 +105,19 @@ export default function MuralPage() {
     queryFn: async () => {
       if (isOwner) return true;
       if (!user) return false;
-      const { data: member } = await supabase
-        .from('members')
+      const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
+      if (!profile) return false;
+      const { data: tm } = await supabase
+        .from('team_members')
         .select('custom_role_id')
-        .eq('user_id', user.id)
+        .eq('profile_id', profile.id)
         .maybeSingle();
-      if (!member) return false;
+      const customRoleId = (tm as any)?.custom_role_id;
+      if (!customRoleId) return false;
       const { data: perm } = await supabase
         .from('role_permissions')
         .select('can_view')
-        .eq('custom_role_id', member.custom_role_id)
+        .eq('custom_role_id', customRoleId)
         .eq('module_key', 'mural_publish')
         .maybeSingle();
       return !!perm?.can_view;

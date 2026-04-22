@@ -53,7 +53,8 @@ export function SettingsUsers() {
 
   const handleRevokeAccess = async (profile: any) => {
     try {
-      await supabase.from('members').delete().eq('user_id', profile.user_id);
+      // Clear custom role on team_members for this user
+      await supabase.from('team_members').update({ custom_role_id: null } as any).eq('profile_id', profile.id);
       await supabase.from('user_roles').delete().eq('user_id', profile.user_id).neq('role', 'owner');
       qc.invalidateQueries({ queryKey: ['settings-profiles'] });
       qc.invalidateQueries({ queryKey: ['settings-user-roles'] });
