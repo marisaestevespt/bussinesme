@@ -110,7 +110,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       // (o IVA pago vira custo). Quando tem contabilista: este trata do apuramento.
       if (!fiscalConfig.ivaExempt && !isContabOrganizada) {
         const monthSales = sales.filter(sl => sl.sale_year === currentYear && sl.sale_month === m);
-        const ivaCobrado = monthSales.reduce((s, v) => s + (v.invoice_total - v.base_value), 0);
+        const ivaCobrado = sumVat(monthSales);
         const monthExpenses = (expenses || []).filter(e => e.expense_year === currentYear && e.expense_month === m);
         const ivaPago = monthExpenses.reduce((s, v) => s + (v.total_with_vat - v.base_value), 0);
         iva = Math.round(Math.max(0, ivaCobrado - ivaPago) * 100) / 100;
