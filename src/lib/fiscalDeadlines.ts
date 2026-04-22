@@ -45,7 +45,7 @@ export interface FiscalDeadline {
   name: string;
   date: string; // yyyy-MM-dd (adjusted)
   rawDate: string; // yyyy-MM-dd (original before adjustment)
-  category: 'ss' | 'iva' | 'irs';
+  category: 'ss' | 'iva';
   deadline_type: 'declaracao' | 'pagamento';
 }
 
