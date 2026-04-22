@@ -70,6 +70,7 @@ When iva_exempt=true:
 - Monthly fiscal obligations checklist in Mensal (fiscal_monthly_checks table: SS paid, quarterly declaration, IRS, bank statement)
 - Business legal documents upload card (BusinessLegalDocs) on Tipo de Negócio
 - NISS field on Identificação Fiscal card
+- Owner notification on sale insert by non-owners (DB trigger `trg_notify_owners_on_sale_insert` on `commercial_sales`): notifies owners in the bell when the accountant (or any non-owner) registers a new invoice on a client. Skipped when author is themselves an owner. Type: `sale_added_by_accountant`.
 
 ## Planned (not yet implemented)
 - Fiscal deadlines in daily digest emails for member digests (currently owner only)
