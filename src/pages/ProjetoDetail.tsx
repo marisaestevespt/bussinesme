@@ -903,25 +903,17 @@ export default function ProjetoDetailPage() {
           defaultProjectName={local.name}
         />
 
-        {/* Task dialog */}
-        <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
-            <div className="grid gap-3 py-2">
-              <div className="space-y-1.5"><Label>Nome da tarefa *</Label><Input value={taskName} onChange={e => setTaskName(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label>Prioridade</Label>
-                  <Select value={taskPriority} onValueChange={setTaskPriority}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="alta">Alta</SelectItem><SelectItem value="media">Média</SelectItem><SelectItem value="baixa">Baixa</SelectItem></SelectContent></Select>
-                </div>
-                <div className="space-y-1.5"><Label>Data final</Label>
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !taskDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{taskDeadline ? format(taskDeadline, 'd MMM yyyy', { locale: pt }) : 'Data'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={taskDeadline} onSelect={setTaskDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Projeto: {local.name} {local.department ? `• ${getDeptLabel(local.department)}` : ''}</p>
-              <Button onClick={() => { if (!taskName.trim()) { toast.error('Nome obrigatório'); return; } createTaskMutation.mutate(); }} disabled={createTaskMutation.isPending}>{createTaskMutation.isPending ? 'A criar...' : 'Criar Tarefa'}</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Task dialog (mesmo da página Tarefas) */}
+        <TaskFormDialog
+          open={taskDialogOpen}
+          onOpenChange={setTaskDialogOpen}
+          defaultProjectId={id}
+          defaultClientId={local.client_id || undefined}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['project-tasks', id] });
+            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          }}
+        />
 
         <TaskFormDialog
           open={!!taskDetailId}
