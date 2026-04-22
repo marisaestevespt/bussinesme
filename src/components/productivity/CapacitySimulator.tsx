@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { WEEKS_PER_MONTH } from './productivity-constants';
+import { isTaskDone, isTaskInProgress } from '@/lib/taskStatus';
 
 interface Props {
   members: any[];
@@ -532,17 +533,17 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                                   {[...deptTasks]
                                     .sort((a, b) => (Number(b.estimated_time) || 0) - (Number(a.estimated_time) || 0))
                                     .map(task => (
-                                    <label key={task.id} className={`flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 ${task.status === 'done' ? 'opacity-70' : ''}`}>
+                                    <label key={task.id} className={`flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 ${isTaskDone(task) ? 'opacity-70' : ''}`}>
                                       <Checkbox
                                         checked={p.delegatedTaskIds.includes(task.id)}
                                         onCheckedChange={() => toggleTaskDelegation(p.id, task.id)}
                                         className="mt-0.5 h-3.5 w-3.5"
                                       />
                                       <div className="flex-1 min-w-0">
-                                        <span className={`text-foreground ${task.status === 'done' ? 'line-through' : ''}`}>{task.name}</span>
+                                        <span className={`text-foreground ${isTaskDone(task) ? 'line-through' : ''}`}>{task.name}</span>
                                         <div className="flex items-center gap-2 text-muted-foreground flex-wrap">
-                                          {task.status === 'done' && <Badge variant="secondary" className="text-[10px] h-4 px-1">concluída</Badge>}
-                                          {task.status === 'in_progress' && <Badge className="text-[10px] h-4 px-1 bg-primary/15 text-primary border-0">em curso</Badge>}
+                                          {isTaskDone(task) && <Badge variant="secondary" className="text-[10px] h-4 px-1">concluída</Badge>}
+                                          {isTaskInProgress(task) && <Badge className="text-[10px] h-4 px-1 bg-primary/15 text-primary border-0">em curso</Badge>}
                                           {task.estimated_time ? (
                                             <Badge variant="outline" className="text-[10px] h-4 px-1">{task.estimated_time}h</Badge>
                                           ) : (

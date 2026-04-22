@@ -6,6 +6,7 @@ import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { isTaskDone, isTaskOverdue, countDone } from '@/lib/taskStatus';
 
 interface RoutinesSectionProps {
   thisWeekRoutines: any[];
@@ -15,8 +16,8 @@ interface RoutinesSectionProps {
 export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: RoutinesSectionProps) {
   const navigate = useNavigate();
 
-  const thisWeekDone = thisWeekRoutines.filter(t => t.status === 'done' || t.status === 'concluida').length;
-  const prevWeekDone = prevWeekRoutines.filter(t => t.status === 'done' || t.status === 'concluida').length;
+  const thisWeekDone = countDone(thisWeekRoutines);
+  const prevWeekDone = countDone(prevWeekRoutines);
   const prevWeekTotal = prevWeekRoutines.length;
 
   const RoutineTable = ({ tasks, showStatus }: { tasks: any[]; showStatus?: boolean }) => (
@@ -37,9 +38,8 @@ export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: Routines
             </TableHeader>
             <TableBody>
               {tasks.map((t: any) => {
-                const isDone = t.status === 'done' || t.status === 'concluida';
-                const deadlineDate = t.deadline ? parseISO(t.deadline) : null;
-                const isLate = !isDone && deadlineDate && deadlineDate < new Date();
+                const isDone = isTaskDone(t);
+                const isLate = isTaskOverdue(t);
                 const routineInfo = t.planning_routines as any;
 
                 return (

@@ -28,6 +28,7 @@ import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData } from '@/hooks/useCrmData';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -769,9 +770,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         const nextY = monthNum === 12 ? year + 1 : year;
         const monthEnd = `${nextY}-${String(nextM).padStart(2,'0')}-01`;
 
-        const noDate = allTasks.filter(t => !t.deadline && t.status !== 'done');
+        const noDate = allTasks.filter(t => !t.deadline && isTaskOpen(t));
         const thisMonth = allTasks.filter(t => t.deadline && t.deadline >= monthStart && t.deadline < monthEnd);
-        const pendingPrev = allTasks.filter(t => t.deadline && t.deadline < monthStart && t.status !== 'done');
+        const pendingPrev = allTasks.filter(t => t.deadline && t.deadline < monthStart && isTaskOpen(t));
 
         const renderList = (items: any[], emptyMsg: string) => items.length === 0
           ? <p className="text-xs text-muted-foreground py-2">{emptyMsg}</p>
@@ -785,7 +786,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableRow key={t.id}>
                     <TableCell className="text-xs font-medium">{t.name}</TableCell>
                     <TableCell><Badge variant={t.priority === 'alta' ? 'destructive' : 'secondary'} className="text-[10px]">{t.priority}</Badge></TableCell>
-                    <TableCell><Badge variant={t.status === 'done' ? 'default' : 'outline'} className="text-[10px]">{t.status}</Badge></TableCell>
+                    <TableCell><Badge variant={isTaskDone(t) ? 'default' : 'outline'} className="text-[10px]">{t.status}</Badge></TableCell>
                     <TableCell className="text-xs text-muted-foreground">{t.deadline || '—'}</TableCell>
                   </TableRow>
                 ))}
@@ -901,7 +902,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             Rotinas Semanais e Mensais
             {(() => {
               const tasks = routineTasksQ.data || [];
-              const done = tasks.filter((t: any) => t.status === 'done' || t.status === 'concluida').length;
+              const done = tasks.filter((t: any) => isTaskDone(t)).length;
               const total = tasks.length;
               if (total === 0) return null;
               const pct = Math.round((done / total) * 100);
@@ -915,7 +916,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           ) : (
             <div className="space-y-1.5">
               {(routineTasksQ.data || []).map((t: any) => {
-                const isDone = t.status === 'done' || t.status === 'concluida';
+                const isDone = isTaskDone(t);
                 const deadlineDate = t.deadline ? parseISO(t.deadline) : null;
                 const completedAt = t.completed_at ? parseISO(t.completed_at) : null;
                 const isLate = !isDone && deadlineDate && deadlineDate < new Date();
@@ -959,7 +960,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       {/* ═══ ROUTINE TASK DETAIL ═══ */}
       {selectedRoutineTask && (() => {
         const t = selectedRoutineTask;
-        const isDone = t.status === 'done' || t.status === 'concluida';
+        const isDone = isTaskDone(t);
         const routineInfo = t.planning_routines as any;
         const fields: DetailField[] = [
           { label: 'Estado', value: isDone ? 'Concluída' : 'Por fazer', badge: true, badgeVariant: isDone ? 'default' : 'destructive' },

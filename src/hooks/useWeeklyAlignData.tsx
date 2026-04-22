@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, addWeeks, addDays, subDays, startOfMonth, endOfMonth, differenceInDays, parseISO } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { isTaskDone } from '@/lib/taskStatus';
 
 const STALE = 2 * 60 * 1000;
 
@@ -150,7 +151,7 @@ export function useWeeklyAlignData(weekOffset: number) {
   const prevSalesWeekTotal = useMemo(() => sumRevenue(prev?.prevSalesWeek || []), [prev?.prevSalesWeek]);
 
   const tasksWeekCount = (wk?.tasks || []).length;
-  const tasksWeekDone = (wk?.tasks || []).filter((t: any) => t.status === 'concluida').length;
+  const tasksWeekDone = (wk?.tasks || []).filter((t: any) => isTaskDone(t)).length;
   const contentWeekCount = (wk?.contents || []).length;
   const meetingsWeekCount = (wk?.meetings || []).length;
 

@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isWithinInterval, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { isTaskDone } from '@/lib/taskStatus';
 import { Card, CardContent } from '@/components/ui/card';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -258,7 +259,7 @@ export default function ProjetosPage() {
     if (projectType === 'cliente_servico_mensal' && projectMode === 'recorrente') {
       const tasks = monthlyTasksByProject.filter(t => t.project_id === projectId);
       if (tasks.length === 0) return 0;
-      const completed = tasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
+      const completed = tasks.filter(isTaskDone).length;
       return Math.round((completed / tasks.length) * 100);
     }
 

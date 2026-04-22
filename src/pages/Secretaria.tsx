@@ -25,6 +25,7 @@ import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useMyProfile, useMyTeamMember, useMyTasks, useMyProjects, useMyMeetings, useMyOnboarding, greetingText } from '@/components/secretaria/secretaria-shared';
+import { isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { DashboardPersonalWidgets } from '@/components/secretaria/SecretariaWidgets';
 import { KpiSkeleton, CardListSkeleton } from '@/components/ui/loading-skeletons';
 
@@ -112,8 +113,8 @@ export default function SecretariaPage() {
   });
 
   // Dashboard summary counts (only computed when on dashboard)
-  const todayTasks = useMemo(() => (tasks.data || []).filter(t => t.deadline && isToday(parseISO(t.deadline)) && t.status !== 'done'), [tasks.data]);
-  const overdueTasks = useMemo(() => (tasks.data || []).filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today)), [tasks.data]);
+  const todayTasks = useMemo(() => (tasks.data || []).filter(t => t.deadline && isToday(parseISO(t.deadline)) && isTaskOpen(t)), [tasks.data]);
+  const overdueTasks = useMemo(() => (tasks.data || []).filter(t => isTaskOverdue(t, today)), [tasks.data]);
   const todayMeetings = useMemo(() => (meetings.data || []).filter(m => isToday(parseISO(m.date_time))), [meetings.data]);
   const activeProjects = useMemo(() => (projects.data || []).filter(p => p.status === 'em_curso'), [projects.data]);
 

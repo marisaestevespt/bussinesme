@@ -21,6 +21,7 @@ import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWee
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
+import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -166,7 +167,7 @@ function TaskDynamicFilters({ filters, onChange, profiles, projects }: {
 }
 
 function TaskBadge({ deadline, status }: { deadline: string | null; status: string }) {
-  if (status === 'concluida') return null;
+  if (isTaskDone({ status })) return null;
   if (!deadline) return null;
   const d = new Date(deadline);
   const today = startOfToday();
@@ -187,7 +188,7 @@ function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
   switch (filters.time) {
     case 'hoje': result = result.filter(t => t.deadline && isToday(new Date(t.deadline))); break;
     case 'semana': result = result.filter(t => t.deadline && !isBefore(new Date(t.deadline), today) && !isAfter(new Date(t.deadline), weekEnd)); break;
-    case 'atrasadas': result = result.filter(t => t.deadline && isBefore(new Date(t.deadline), today) && t.status !== 'concluida'); break;
+    case 'atrasadas': result = result.filter(t => isTaskOverdue(t as any, today)); break;
   }
   if (filters.department) result = result.filter(t => t.department === filters.department);
   if (filters.responsible) result = result.filter(t => t.assigned_to === filters.responsible);
@@ -296,8 +297,8 @@ export default function OperacaoPage() {
   const clientProjectIds = useMemo(() => new Set(clientProjects.map(p => p.id)), [clientProjects]);
   const internoProjectIds = useMemo(() => new Set(internoProjects.map(p => p.id)), [internoProjects]);
 
-  const clientTasks = useMemo(() => tasks.filter(t => t.project_id && clientProjectIds.has(t.project_id) && t.status !== 'concluida'), [tasks, clientProjectIds]);
-  const internoTasks = useMemo(() => tasks.filter(t => t.project_id && internoProjectIds.has(t.project_id) && t.status !== 'concluida'), [tasks, internoProjectIds]);
+  const clientTasks = useMemo(() => tasks.filter(t => t.project_id && clientProjectIds.has(t.project_id) && isTaskOpen(t)), [tasks, clientProjectIds]);
+  const internoTasks = useMemo(() => tasks.filter(t => t.project_id && internoProjectIds.has(t.project_id) && isTaskOpen(t)), [tasks, internoProjectIds]);
 
   const activeClients = useMemo(() => clients.filter(c => c.status !== 'terminado'), [clients]);
 
@@ -323,7 +324,7 @@ export default function OperacaoPage() {
     tasks.forEach(t => {
       if (!t.project_id) return;
       totals.set(t.project_id, (totals.get(t.project_id) || 0) + 1);
-      if (t.status === 'concluida') dones.set(t.project_id, (dones.get(t.project_id) || 0) + 1);
+      if (isTaskDone(t)) dones.set(t.project_id, (dones.get(t.project_id) || 0) + 1);
     });
     totals.forEach((total, pid) => {
       map.set(pid, total > 0 ? Math.round(((dones.get(pid) || 0) / total) * 100) : 0);
@@ -377,13 +378,13 @@ export default function OperacaoPage() {
   const weekEnd2 = endOfWeek(today, { weekStartsOn: 1 });
 
   const overdueTasks = useMemo(() =>
-    tasks.filter(t => t.deadline && t.status !== 'concluida' && isBefore(new Date(t.deadline), today)),
+    tasks.filter(t => isTaskOverdue(t, today)),
     [tasks, today]
   );
 
   const weeklyCompletion = useMemo(() => {
     const weekTasks = tasks.filter(t => t.deadline && new Date(t.deadline) >= weekStart && new Date(t.deadline) <= weekEnd2);
-    const done = weekTasks.filter(t => t.status === 'concluida').length;
+    const done = weekTasks.filter(isTaskDone).length;
     return { done, total: weekTasks.length, rate: weekTasks.length > 0 ? Math.round((done / weekTasks.length) * 100) : 0 };
   }, [tasks, weekStart, weekEnd2]);
 
@@ -451,7 +452,7 @@ export default function OperacaoPage() {
       if (isTarefasLivres) {
         // Only red if project has overdue tasks
         const hasOverdue = tasks.some(t =>
-          t.project_id === p.id && t.status !== 'concluida' && t.deadline && isBefore(new Date(t.deadline), today)
+          t.project_id === p.id && isTaskOverdue(t, today)
         );
         if (hasOverdue) health = 'red';
       } else if (prog !== null) {
@@ -494,7 +495,7 @@ export default function OperacaoPage() {
       });
 
       // Tasks
-      tasks.filter(t => t.status !== 'concluida').forEach(t => {
+      tasks.filter(isTaskOpen).forEach(t => {
         if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
           items.push({ name: t.name, type: 'task', id: t.id });
         }
@@ -570,8 +571,8 @@ export default function OperacaoPage() {
             {(() => {
               const p = allActiveProjects.find(proj => proj.id === healthDetailProjectId);
               if (!p) return null;
-              const pTasks = tasks.filter(t => t.project_id === p.id && t.status !== 'concluida');
-              const pOverdueTasks = pTasks.filter(t => t.deadline && isBefore(new Date(t.deadline), today));
+              const pTasks = tasks.filter(t => t.project_id === p.id && isTaskOpen(t));
+              const pOverdueTasks = pTasks.filter(t => isTaskOverdue(t, today));
               const pOverdueDeliverables = deliverables.filter(d => d.project_id === p.id && d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue');
               const pUnassigned = pTasks.filter(t => !t.assigned_to);
               const hp = projectHealth.find(h => h.id === p.id);

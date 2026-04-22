@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format, isToday, subMonths, addMonths } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { isTaskDone } from '@/lib/taskStatus';
 
 interface CalendarViewProps {
   calMonth: Date;
@@ -56,7 +57,7 @@ export function CalendarView({
                       "text-[10px] leading-tight px-1 py-0.5 rounded cursor-pointer truncate",
                       isOverdue(t)
                         ? 'bg-destructive/10 text-destructive'
-                        : t.status === 'done'
+                        : isTaskDone(t)
                           ? 'bg-success/15 text-success'
                           : 'bg-primary/10 text-primary'
                     )}

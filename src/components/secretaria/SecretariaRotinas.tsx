@@ -4,11 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { CheckSquare, Square, RotateCw } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 
 export function RoutineMonthCard({ tasks: routineTasks }: { tasks: any[] }) {
   const navigate = useNavigate();
-  const done = routineTasks.filter(t => t.status === 'done' || t.status === 'concluida');
-  const todo = routineTasks.filter(t => t.status !== 'done' && t.status !== 'concluida');
+  const done = routineTasks.filter(isTaskDone);
+  const todo = routineTasks.filter(isTaskOpen);
 
   if (routineTasks.length === 0) return null;
 

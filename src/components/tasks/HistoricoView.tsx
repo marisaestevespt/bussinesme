@@ -14,6 +14,7 @@ import { Search, CalendarIcon, Clock, TrendingUp, User, Repeat } from 'lucide-re
 import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { isTaskDone } from '@/lib/taskStatus';
 
 // ─── Fuzzy normalizer ───────────────────────────────────────
 function normalize(s: string) {
@@ -28,7 +29,7 @@ function fuzzyMatch(a: string, b: string) {
 
 function countSimilar(taskName: string, allTasks: any[]) {
   const norm = normalize(taskName);
-  return allTasks.filter(t => t.status === 'done' && fuzzyMatch(t.name, taskName)).length;
+  return allTasks.filter(t => isTaskDone(t) && fuzzyMatch(t.name, taskName)).length;
 }
 
 const PERIOD_OPTIONS = [
@@ -58,7 +59,7 @@ export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props)
 
   // All completed tasks
   const doneTasks = useMemo(() =>
-    tasks.filter(t => t.status === 'done').sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || '')),
+    tasks.filter(isTaskDone).sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || '')),
     [tasks]
   );
 

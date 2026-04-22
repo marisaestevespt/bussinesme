@@ -7,6 +7,7 @@ import {
   isToday, isBefore, isWithinInterval, parseISO, startOfDay, startOfWeek,
   endOfWeek, addDays, format,
 } from 'date-fns';
+import { isTaskDone } from '@/lib/taskStatus';
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -206,7 +207,7 @@ export function useUnifiedResponsibilities(userId?: string) {
 
     // 1. Tasks (split into tarefa vs rotina based on tag)
     (tasksQ.data || []).forEach(t => {
-      if (t.status === 'done') return;
+      if (isTaskDone(t)) return;
       const isRoutine = t.tag === 'Rotina' || !!t.routine_id;
       result.push({
         id: `${isRoutine ? 'rotina' : 'tarefa'}-${t.id}`,
@@ -218,7 +219,7 @@ export function useUnifiedResponsibilities(userId?: string) {
         deadline: t.deadline || undefined,
         priority: t.priority,
         isInfoOnly: false,
-        completed: t.status === 'done',
+        completed: isTaskDone(t),
         estimatedHours: t.estimated_time ? Number(t.estimated_time) : 0,
       });
     });

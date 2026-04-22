@@ -21,6 +21,7 @@ import {
 } from '@/hooks/useTeamData';
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DeptBadge, currentYear, currentMonth, scheduleToLines } from './team-helpers';
+import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 
 export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [newTask, setNewTask] = useState('');
@@ -132,7 +133,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const payments = (team.payments.data || []).filter((p: any) => p.member_id === member.id);
   const totalHours = (memberTime.data || []).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
   const monthHours = (memberTime.data || []).filter((e: any) => e.entry_month === currentMonth && e.entry_year === currentYear).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-  const pendingTasks = (memberTasks.data || []).filter((t: any) => t.status !== 'concluida').length;
+  const pendingTasks = (memberTasks.data || []).filter(isTaskOpen).length;
   const feedbackSessions = memberFeedback.data || [];
 
   // Vacation business days count
@@ -239,8 +240,8 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 <div className="space-y-1">
                   {(memberTasks.data || []).map((t: any) => (
                     <div key={t.id} className="flex items-center gap-2 py-1.5 border-b border-border/50">
-                      <CheckSquare className={`h-3.5 w-3.5 ${t.status === 'concluida' ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <span className={`text-sm flex-1 ${t.status === 'concluida' ? 'line-through text-muted-foreground' : ''}`}>{t.name}</span>
+                      <CheckSquare className={`h-3.5 w-3.5 ${isTaskDone(t) ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-sm flex-1 ${isTaskDone(t) ? 'line-through text-muted-foreground' : ''}`}>{t.name}</span>
                       <Badge variant="outline" className="text-[10px]">{t.status}</Badge>
                       {t.deadline && <span className="text-[10px] text-muted-foreground">{t.deadline}</span>}
                     </div>
