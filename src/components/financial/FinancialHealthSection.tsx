@@ -6,12 +6,12 @@ import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Users } from 'lucid
 import { supabase } from '@/integrations/supabase/client';
 import { sumRevenue } from '@/lib/salesCalculations';
 import {
-import { formatEuro } from '@/lib/formatting';
   calculateMRR,
   forecastRecurringRevenue,
   recurringChurn,
   revenueConcentration,
 } from '@/lib/financialHealth';
+import { formatEuro } from '@/lib/formatting';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null; product?: string | null; client?: string | null; status?: string };

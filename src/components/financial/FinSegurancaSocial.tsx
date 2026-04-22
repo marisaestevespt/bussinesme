@@ -17,7 +17,6 @@ import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import {
-import { formatEuro } from '@/lib/formatting';
   computeSsIndependente,
   computeSsPatronalForMonth,
   buildIndependenteQuarterMap,
@@ -26,6 +25,7 @@ import { formatEuro } from '@/lib/formatting';
   SS_INDEPENDENTE_RATE,
   SS_RENDIMENTO_RELEVANTE,
 } from '@/lib/payrollCalculations';
+import { formatEuro } from '@/lib/formatting';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 interface Props {
