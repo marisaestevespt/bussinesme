@@ -277,7 +277,7 @@ export default function OperacaoPage() {
       // Exclui concluídos/entregues e apenas mostra os com data planeada.
       const { data } = await supabase
         .from('project_deliverables')
-        .select('id,name,planned_end,status,project_id,assigned_to')
+        .select('id,name,planned_end,status,project_id,assigned_to,responsible_type')
         .not('status', 'in', '(concluido,entregue)')
         .not('planned_end', 'is', null)
         .order('planned_end', { ascending: true });
@@ -288,7 +288,8 @@ export default function OperacaoPage() {
         status: d.status,
         project_id: d.project_id,
         assigned_to: d.assigned_to,
-      })) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null }[];
+        responsible_type: (d as any).responsible_type as string | null,
+      })) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null; responsible_type: string | null }[];
     },
   });
 
