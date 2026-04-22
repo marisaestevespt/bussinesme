@@ -915,7 +915,17 @@ export function SectionRenderer({ content, onContentChange }: SectionRendererPro
         const Renderer = BLOCK_RENDERERS[block.type];
         if (!Renderer) return <div key={i} className="text-xs text-muted-foreground">Bloco desconhecido: {block.type}</div>;
         return (
-          <div key={i} className="relative">
+          <div key={i} className="relative group/block">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Eliminar este bloco?')) deleteBlock(i);
+              }}
+              aria-label="Eliminar bloco"
+              className="absolute -top-2 -right-2 z-10 h-6 w-6 rounded-full bg-background border border-border shadow-sm flex items-center justify-center text-destructive/60 hover:text-destructive hover:border-destructive/40 opacity-0 group-hover/block:opacity-100 transition-opacity"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
             <Renderer block={block} onUpdate={b => updateBlock(i, b)} onDelete={() => deleteBlock(i)} />
           </div>
         );
