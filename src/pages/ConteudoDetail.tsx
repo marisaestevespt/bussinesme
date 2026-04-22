@@ -41,6 +41,7 @@ export default function ConteudoDetailPage() {
     funnel_stage: '', content_type: '', format: '', objective: '',
     product_name: '', product_id: '', project_id: '', assigned_to: '', copy_content: '',
     body_template: null as Record<string, any> | null,
+    account_id: '' as string,
   });
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -116,6 +117,7 @@ export default function ConteudoDetailPage() {
         project_id: item.project_id || '',
         assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
         body_template: (item as any).body_template || null,
+        account_id: (item as any).account_id || '',
       });
     }
   }, [item]);
