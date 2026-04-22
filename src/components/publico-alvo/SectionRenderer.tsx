@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import React, { useState, forwardRef } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // ── helpers ──────────────────────────────────────────────────────
 
