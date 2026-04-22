@@ -12,9 +12,9 @@ type: feature
 No `team_type` field in UI — derived from existing `member_contracts`. The Ordenados/Prestadores pages are always available; rows populate from contracts. Column kept in DB for backward compat but unused.
 
 ## Has Accountant (business_settings.has_accountant)
-- Single source of truth: `accountant_member_id IS NOT NULL`. The `has_accountant` column is still written (in sync as `!!accountant_member_id`) for backward compat with edge functions, but the UI no longer exposes a toggle.
+- Single source of truth: `accountant_member_id IS NOT NULL`. The `has_accountant` column is auto-synced by DB trigger `trg_sync_has_accountant` (BEFORE INSERT/UPDATE on business_settings) — app code does not write it. UI exposes no toggle.
 - SettingsFiscal has ONE picker only: "Contabilista" → seleciona membro ou "Sem contabilista".
-- The accountant is always a service provider (contrato_prestacao). No "internal/external" distinction — `accountant_type` column kept in DB but unused.
+- The accountant is always a service provider (contrato_prestacao). No "internal/external" distinction — `accountant_type` column kept in DB but unused and no longer written by app code.
 - When set + contabilidade_organizada: IVA/SS pages become informational guides (not hidden).
 
 ## ENI First Year Rules
