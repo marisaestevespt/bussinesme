@@ -146,19 +146,18 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
 
   // ─── Financial KPIs ───
   const monthSales = salesData.filter(s => s.sale_month === month);
-  const monthRevenue = monthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const monthRevenue = sumRevenue(monthSales);
   const monthlyGoalAmount = (monthlyGoals.data || []).find(g => g.month === month)?.goal_amount || 0;
   const monthProgressPct = monthlyGoalAmount > 0 ? Math.min((monthRevenue / monthlyGoalAmount) * 100, 100) : 0;
   const yearProgressPct = annualGoalAmount > 0 ? Math.min((totalInvoiced / annualGoalAmount) * 100, 100) : 0;
-  const ticketMedio = monthSales.length > 0 ? Math.round(monthRevenue / monthSales.length) : 0;
+  const ticketMedio = averageTicket(monthSales);
   const pipelineValue = useMemo(() =>
     leads.filter(l => l.status !== 'ganho' && l.status !== 'perdido').reduce((s, l) => s + Number(l.estimated_value || 0), 0),
     [leads]
   );
   const revenueByProduct = useMemo(() => {
-    const map: Record<string, number> = {};
-    monthSales.forEach(s => { const p = s.product || 'Sem produto'; map[p] = (map[p] || 0) + Number(s.invoice_total || 0); });
-    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+    const map = revenueGroupedBy(monthSales, s => s.product, 'Sem produto');
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [monthSales]);
 
   // ─── Client KPIs ───
@@ -197,9 +196,9 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
 
     return activeProducts.map(p => {
       const pSales = monthSales.filter(s => (s as any).product_id === p.id);
-      const pRevenue = pSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const pRevenue = sumRevenue(pSales);
       const pCount = pSales.length;
-      const pTicket = pCount > 0 ? Math.round(pRevenue / pCount) : 0;
+      const pTicket = averageTicket(pSales);
 
       const pClients = clientsData.filter(c =>
         (c as any).current_product_id ? (c as any).current_product_id === p.id : c.current_product === p.name
@@ -242,7 +241,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const pNps = scores.length > 0 ? parseFloat((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : null;
 
       // Trend vs same month last year
-      const prevRevenue = prevYearSalesData.filter(s => (s as any).product_id === p.id && s.sale_month === month).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const prevRevenue = sumRevenue(prevYearSalesData.filter(s => (s as any).product_id === p.id && s.sale_month === month));
       const hasPrev = prevYearSalesData.some(s => (s as any).product_id === p.id && s.sale_month === month);
       const trend: 'up' | 'down' | 'none' = !hasPrev ? 'none' : pRevenue > prevRevenue ? 'up' : pRevenue < prevRevenue ? 'down' : 'none';
 
