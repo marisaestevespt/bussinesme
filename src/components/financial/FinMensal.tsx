@@ -1166,9 +1166,17 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['fiscal-checks', year, month] }),
   });
 
-  if (checkItems.length === 0) return null;
+  // If IRS submission was marked as started/done, hide the redundant "Prazo final" item.
+  const visibleCheckItems = useMemo(() => {
+    if (checkedMap['irs_start']) {
+      return checkItems.filter(i => i.key !== 'irs_deadline');
+    }
+    return checkItems;
+  }, [checkItems, checkedMap]);
 
-  const doneCount = checkItems.filter(i => checkedMap[i.key]).length;
+  if (visibleCheckItems.length === 0) return null;
+
+  const doneCount = visibleCheckItems.filter(i => checkedMap[i.key]).length;
 
   return (
     <Card>
@@ -1176,14 +1184,14 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
         <CardTitle className="text-sm flex items-center gap-2">
           <ClipboardCheck className="h-4 w-4" />
           Obrigações Fiscais — {MONTHS[month - 1]}
-          <Badge variant="secondary" className="ml-auto text-xs">{doneCount}/{checkItems.length}</Badge>
+          <Badge variant="secondary" className="ml-auto text-xs">{doneCount}/{visibleCheckItems.length}</Badge>
         </CardTitle>
         {isContabOrganizada && (
           <p className="text-xs text-muted-foreground">O teu contabilista trata destas obrigações — usa esta checklist como guia.</p>
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        {checkItems.map(item => (
+        {visibleCheckItems.map(item => (
           <label key={item.key} className="flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-muted/50 cursor-pointer">
             <Checkbox
               checked={checkedMap[item.key] || false}
