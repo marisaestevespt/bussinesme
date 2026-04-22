@@ -769,21 +769,64 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       {/* IVA Pago Detail */}
       <Dialog open={ivaPagoOpen} onOpenChange={setIvaPagoOpen}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle className="text-base">IVA Pago — {MONTHS[m - 1]}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-base">IVA Pago / Dedutível — {MONTHS[m - 1]}</DialogTitle></DialogHeader>
           {monthExpenses.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4">Sem despesas registadas neste mês.</p>
           ) : (
             <Table>
-              <TableHeader><TableRow><TableHead>Despesa</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">IVA</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Despesa</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">IVA Pago</TableHead><TableHead className="text-right">IVA a Deduzir</TableHead></TableRow></TableHeader>
               <TableBody>
                 {monthExpenses.map((e, idx) => {
                   const iva = Math.round((e.total_with_vat - e.base_value) * 100) / 100;
+                  const ded = (e as any).vat_deductible_amount;
+                  const dedDisplay = ded != null ? Number(ded) : iva;
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{e.description || `Despesa ${idx + 1}`}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(e.total_with_vat)}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                      <TableCell className="text-right text-sm" onClick={ev => ev.stopPropagation()}>
+                        {editingDeductId === e.id ? (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            autoFocus
+                            value={editingDeductValue}
+                            onChange={ev => setEditingDeductValue(ev.target.value)}
+                            onBlur={async () => {
+                              const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
+                              const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, iva));
+                              const { error } = await supabase
+                                .from('financial_expenses')
+                                .update({ vat_deductible_amount: finalValue } as any)
+                                .eq('id', e.id);
+                              if (error) toast.error('Erro ao guardar');
+                              else {
+                                toast.success('IVA dedutível atualizado');
+                                qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+                              }
+                              setEditingDeductId(null);
+                            }}
+                            onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
+                            className="h-7 w-24 text-right text-xs ml-auto"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 hover:text-primary group"
+                            onClick={() => {
+                              setEditingDeductValue(ded != null ? String(ded) : iva.toFixed(2));
+                              setEditingDeductId(e.id);
+                            }}
+                          >
+                            <span className={ded != null ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                              {fmt(dedDisplay)}
+                            </span>
+                            <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60" />
+                          </button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -792,6 +835,11 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   <TableCell className="text-right">{fmt(totalSaidas)}</TableCell>
                   <TableCell className="text-right">{fmt(totalBaseSaidas)}</TableCell>
                   <TableCell className="text-right">{fmt(ivaPago)}</TableCell>
+                  <TableCell className="text-right">{fmt(ivaDeduzir)}</TableCell>
+                </TableRow>
+                <TableRow className="bg-muted/30">
+                  <TableCell colSpan={4} className="text-sm font-medium">Balanço IVA (Cobrado − Deduzir)</TableCell>
+                  <TableCell className={cn("text-right font-semibold", ivaBalanco >= 0 ? 'text-destructive' : 'text-success')}>{fmt(ivaBalanco)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
