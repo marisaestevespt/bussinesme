@@ -447,7 +447,7 @@ export default function OperacaoPage() {
   }, [clients, today]);
 
   const overdueDeliverables = useMemo(() =>
-    deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue'),
+    deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && !isDeliverableDone(d)),
     [deliverables, today]
   );
 

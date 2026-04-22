@@ -143,7 +143,7 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
 
   // Stats
   const allDeliverables = deliverables.length;
-  const overdue = enrichedDeliverables.filter(d => d.computed_deadline && d.status !== 'entregue' && new Date(d.computed_deadline) < new Date()).length;
+  const overdue = enrichedDeliverables.filter(d => d.computed_deadline && !isDeliverableDone(d) && new Date(d.computed_deadline) < new Date()).length;
   const pendingTasks = tasks.length;
 
   return (
