@@ -29,6 +29,7 @@ import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
 import { getAutoExpenseStatus } from '@/lib/expenseStatus';
+import { ExportContabilistaButton } from './ExportContabilistaButton';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -396,12 +397,14 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
           </Select>
           <span className="text-muted-foreground text-sm">{currentYear}</span>
         </div>
-        <Button size="sm" variant="outline" onClick={() => {
-          const MONTHS_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-          exportPdf(`Relatório Mensal — ${MONTHS_NAMES[m - 1]} ${currentYear}`, 'fin-mensal-report');
-        }}>
-          <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => {
+            exportPdf(`Relatório Mensal — ${MONTHS[m - 1]} ${currentYear}`, 'fin-mensal-report');
+          }}>
+            <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
+          </Button>
+          <ExportContabilistaButton year={currentYear} month={m} />
+        </div>
       </div>
 
       {/* Monthly Documents: Bank Statement + Meta Ads */}
