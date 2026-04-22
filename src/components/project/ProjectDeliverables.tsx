@@ -218,7 +218,10 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
       const { error } = await supabase.from('project_deliverables').update({ status }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
+    },
   });
 
   const deleteMutation = useMutation({
@@ -228,6 +231,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       toast.success('Entrega eliminada');
     },
   });
@@ -239,6 +243,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       toast.success('Data atualizada');
     },
   });
