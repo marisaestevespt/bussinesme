@@ -12,6 +12,9 @@ import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -22,6 +25,9 @@ interface Props { sales: Sale[]; expenses: Expense[]; currentYear: number; fin: 
 export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const [cobradoMonth, setCobradoMonth] = useState<number | null>(null);
   const [pagoMonth, setPagoMonth] = useState<number | null>(null);
+  const qc = useQueryClient();
+  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
+  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
 
   // IVA documents
   const ivaDoc = useMemo(() => {
