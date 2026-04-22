@@ -88,8 +88,6 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false);
   const [ivaCobradoOpen, setIvaCobradoOpen] = useState(false);
   const [ivaPagoOpen, setIvaPagoOpen] = useState(false);
-  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
-  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
   const m = parseInt(month);
 
   // Active member contracts
@@ -247,23 +245,18 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   useEffect(() => { autoMaterialize(); }, [autoMaterialize]);
 
 
-  const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
-  const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
-  const ivaCobrado = totalEntradas - totalBaseEntradas;
-
-  const totalSaidas = monthExpenses.reduce((s, v) => s + v.total_with_vat, 0);
-  const totalBaseSaidas = monthExpenses.reduce((s, v) => s + v.base_value, 0);
-  const ivaPago = totalSaidas - totalBaseSaidas;
-
-  // IVA a Deduzir: usa vat_deductible_amount se preenchido, senão assume IVA pago (100%)
-  const ivaDeduzir = monthExpenses.reduce((s, e) => {
-    const ivaP = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
-    const ded = (e as any).vat_deductible_amount;
-    return s + (ded != null ? Number(ded) : ivaP);
-  }, 0);
-
-  // Balanço IVA = IVA Cobrado − IVA a Deduzir
-  const ivaBalanco = Math.round((ivaCobrado - ivaDeduzir) * 100) / 100;
+  // Cálculos centralizados em src/lib/vatCalculations.ts
+  const salesTotals = computeVatForSales(monthSales);
+  const expensesTotals = computeVatForExpenses(monthExpenses);
+  const vatBalance = computeVatBalance(monthSales, monthExpenses);
+  const totalEntradas = salesTotals.totalEntradas;
+  const totalBaseEntradas = salesTotals.totalBase;
+  const ivaCobrado = salesTotals.ivaCobrado;
+  const totalSaidas = expensesTotals.totalSaidas;
+  const totalBaseSaidas = expensesTotals.totalBase;
+  const ivaPago = expensesTotals.ivaPago;
+  const ivaDeduzir = expensesTotals.ivaDeduzir;
+  const ivaBalanco = vatBalance.balanco;
 
   const resultado = totalEntradas - totalSaidas;
   const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
