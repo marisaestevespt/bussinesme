@@ -32,11 +32,12 @@ import { ExportContabilistaButton } from './ExportContabilistaButton';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/lib/vatCalculations';
 import { formatEuro } from '@/lib/formatting';
+import { locationLabel, EXPENSE_LOCATIONS } from '@/lib/labelMaps';
+import { CONTRACT_TYPES } from '@/hooks/useTeamData';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
-const LOCATIONS = ['portugal', 'ue', 'fora_ue'];
-const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
+const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
 function parseDateString(value: string | null | undefined) {
   if (!value) return null;
@@ -579,7 +580,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
                   <TableCell>{e.description || '—'}</TableCell>
                   <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
-                  <TableCell>{LOC_LABELS[(e as any).location] || (e as any).location || '—'}</TableCell>
+                  <TableCell>{locationLabel((e as any).location)}</TableCell>
                   <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
                   <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
                   <TableCell className="text-right">{formatEuro(e.total_with_vat)}</TableCell>
@@ -851,7 +852,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
             <div><Label>Localização</Label>
               <Select value={expForm.location} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{LOC_LABELS[l]}</SelectItem>)}</SelectContent>
+                <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{locationLabel(l)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <InvoiceUpload
@@ -880,7 +881,6 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   getCategoryLabel: (type: string, value: string) => string;
 }) {
   const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
   const [confirming, setConfirming] = useState(false);
 
   const vatRate = sub.vat_rate || 0;
@@ -930,7 +930,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
       <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
       <TableCell>{linkedExpense?.description || subName}</TableCell>
       <TableCell>{getCategoryLabel('expense', category)}</TableCell>
-      <TableCell>{LOC_LABELS[linkedExpense ? ((linkedExpense as any).location || sub.location) : sub.location] || sub.location || '—'}</TableCell>
+      <TableCell>{locationLabel(linkedExpense ? ((linkedExpense as any).location || sub.location) : sub.location)}</TableCell>
       <TableCell className="text-right">{formatEuro(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{formatEuro(displayTotal)}</TableCell>
@@ -938,10 +938,14 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   );
 }
 
+/**
+ * Short labels used in payroll table rows.
+ * Long labels live in `useTeamData.CONTRACT_TYPES` and are used in forms / detail views.
+ */
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
   contrato_trabalho: 'Colaborador',
   contrato_prestacao: 'Prestador',
-  prestacao_servicos: 'Prestador',
+  prestacao_servicos: 'Prestador', // legacy alias
   acordo: 'Acordo',
   outro: 'Ordenado',
 };
@@ -992,7 +996,7 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   const expenseId = linkedExpense ? (linkedExpense as any).expense_id || 'A gerar' : 'A gerar';
   const description = linkedExpense?.description || `Pagamento — ${memberName} — ${String(month).padStart(2, '0')}/${currentYear}`;
   const categoryLabel = contractType === 'contrato_prestacao' || contractType === 'prestacao_servicos' ? 'Prestadores' : 'Ordenados';
-  const location = linkedExpense ? (LOC_LABELS[(linkedExpense as any).location] || (linkedExpense as any).location || 'Portugal') : 'Portugal';
+  const location = linkedExpense ? locationLabel((linkedExpense as any).location || 'portugal') : 'Portugal';
   const baseValue = linkedExpense?.base_value ?? value;
   const vatRate = (linkedExpense as any)?.vat_rate ?? 0;
   const totalWithVat = linkedExpense?.total_with_vat ?? value;

@@ -27,7 +27,7 @@ const SPECIAL_OFFER_REASONS = [
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 
-const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+import { DEFAULT_SALE_SOURCES, buildSaleSourceOptions } from '@/lib/labelMaps';
 
 interface SaleFormDialogProps {
   open: boolean;
@@ -123,7 +123,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
       return unique;
     },
   });
-  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources.data || [])])];
+  const sourceOptions = buildSaleSourceOptions(customSources.data || []);
 
   const getEffectiveVatRate = () => {
     if (form.vat_rate !== '') return parseFloat(form.vat_rate) || 0;

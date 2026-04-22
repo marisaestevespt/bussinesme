@@ -13,7 +13,7 @@ import { exportContabilistaExcel, getMonthLabel } from '@/lib/exportContabilista
 import { toast } from 'sonner';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { formatEuro } from '@/lib/formatting';
-const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
+import { locationLabel, regimeIvaLabel, regimeIrsLabel } from '@/lib/labelMaps';
 
 interface Props { year: number; month: number; }
 
@@ -33,8 +33,6 @@ export function ExportContabilistaButton({ year, month }: Props) {
   // Combina: business_setup (NIF, NISS, CAE, CIRS, IBAN, morada) + business_settings (regimes IVA/IRS, tipo)
   const s: any = settings || {};
   const bs: any = businessSetup || {};
-  const REGIME_IVA: Record<string, string> = { isento: 'Isento (art. 53.º)', trimestral: 'Trimestral', mensal: 'Mensal' };
-  const REGIME_IRS: Record<string, string> = { simplificado: 'Simplificado', contabilidade_organizada: 'Contabilidade Organizada' };
   // IBAN vem dos métodos de pagamento configurados (business_setup.payment_methods)
   const paymentMethods: any[] = Array.isArray(bs.payment_methods) ? bs.payment_methods : [];
   const ibanMethod = paymentMethods.find((m: any) => m?.type === 'iban' && m?.value);
@@ -51,8 +49,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
     iban: bs.iban || ibanFromMethods,
     banco: bs.banco || bancoFromMethods,
     morada_fiscal: bs.morada_fiscal,
-    regime_iva: REGIME_IVA[s.tax_iva_regime] || s.tax_iva_regime || '',
-    regime_fiscal: REGIME_IRS[s.tax_irs_regime] || s.tax_irs_regime || '',
+    regime_iva: regimeIvaLabel(s.tax_iva_regime),
+    regime_fiscal: regimeIrsLabel(s.tax_irs_regime),
     payment_methods: paymentMethods,
   };
 
@@ -239,7 +237,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
                   <td>{e.expense_id}</td><td>{e.expense_date}</td>
                   <td>{e.description}</td><td>{e.category}</td>
                   <td>{e.supplier_name || sup.name || ''}</td><td>{sup.nif || ''}</td>
-                  <td>{LOC[e.location] || e.location || ''}</td>
+                  <td>{locationLabel(e.location, true)}</td>
                   <td className="text-right">{formatEuro(e.base_value || 0)}</td>
                   <td className="text-right">{e.vat_rate ?? 0}%</td>
                   <td className="text-right">{formatEuro(e.total_with_vat || 0)}</td>
@@ -306,7 +304,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
               {monthContractors.map((c: any) => (
                 <tr key={c.id}>
                   <td>{c.contractor_name}</td><td>{c.service}</td>
-                  <td>{LOC[c.location] || c.location || ''}</td>
+                  <td>{locationLabel(c.location, true)}</td>
                   <td className="text-right">{formatEuro(c.value || 0)}</td>
                 </tr>
               ))}

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
 import { planStatusLabel, PERIODS, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
+import { planningAreaLabel } from '@/lib/labelMaps';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -79,8 +80,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
   const getObjectiveArea = (id: string) => {
     const obj = objectives.find((o: any) => o.id === id);
     if (!obj) return null;
-    const areas: Record<string, string> = { financeiro: 'Financeiro', comercial: 'Comercial', marketing: 'Marketing', operacao: 'Operação', equipa: 'Equipa', inovacao: 'Inovação', outro: 'Outro' };
-    return areas[obj.area] || obj.area;
+    return planningAreaLabel(obj.area);
   };
 
   const getObjectiveDeadline = (id: string) => objectives.find((o: any) => o.id === id)?.deadline || null;
