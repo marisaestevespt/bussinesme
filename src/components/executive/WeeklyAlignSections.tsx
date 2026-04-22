@@ -580,7 +580,7 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
           {tasks.length === 0 ? <p className="text-xs text-muted-foreground">Sem tarefas</p> :
             tasks.map(t => (
               <div key={t.id} className={cn("flex items-center gap-2 py-1 px-1 rounded", clickableRow)} onClick={() => openTaskDetail(t)}>
-                <div className={`h-2 w-2 rounded-full shrink-0 ${t.status === 'concluida' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <div className={`h-2 w-2 rounded-full shrink-0 ${isTaskDone(t) ? 'bg-green-500' : 'bg-yellow-500'}`} />
                 <span className="text-xs">{t.name}</span>
               </div>
             ))
