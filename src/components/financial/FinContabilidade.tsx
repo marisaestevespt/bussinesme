@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,10 +11,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { computeFiscalDeadlines, getDeadlineStatus, type FiscalConfig, type FiscalDeadline } from '@/lib/fiscalDeadlines';
 import { CalendarCheck, CheckSquare, Info, AlertTriangle, Clock, ListPlus } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-const ML = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 interface Props {
   currentYear: number;
