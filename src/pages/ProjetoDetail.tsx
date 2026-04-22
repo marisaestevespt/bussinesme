@@ -257,142 +257,33 @@ export default function ProjetoDetailPage() {
   // Members dialog
   const [membersDialogOpen, setMembersDialogOpen] = useState(false);
 
-  // Projects list for MeetingFormDialog
-  const { data: allProjectsForMeeting = [] } = useQuery({
-    queryKey: ['projects-for-meetings'],
-    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name'); return (data || []) as ProjectOption[]; },
-  });
-
-  const { data: project, isLoading } = useQuery({
-    queryKey: ['project', id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('*').eq('id', id!).maybeSingle();
-      if (error) throw error;
-      return data as unknown as ProjectFull;
-    },
-    enabled: !!id,
-  });
-
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
-    queryFn: async () => { const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url'); return (data || []) as Profile[]; },
-  });
-
-  const { data: teamMembersPhotos = [] } = useQuery({
-    queryKey: ['team-members-photos'],
-    queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('profile_id, full_name, photo_url');
-      return (data || []) as { profile_id: string | null; full_name: string; photo_url: string | null }[];
-    },
-  });
-
-  const { data: projectMembers = [] } = useQuery({
-    queryKey: ['project-members', id],
-    queryFn: async () => { const { data } = await supabase.from('project_members').select('profile_id').eq('project_id', id!); return (data || []).map((d: any) => d.profile_id as string); },
-    enabled: !!id,
-  });
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['project-tasks', id],
-    queryFn: async () => { const { data } = await supabase.from('tasks').select('*').eq('project_id', id!).order('created_at'); return (data || []) as Task[]; },
-    enabled: !!id,
-  });
-
-  const { data: clientsList = [] } = useQuery({
-    queryKey: ['clients_list'],
-    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name').order('full_name'); return data || []; },
-  });
-
-  // Project cost calculation: time_entries × team_members.hourly_cost
-  const { data: projectCost = 0 } = useQuery({
-    queryKey: ['project-cost', id],
-    queryFn: async () => {
-      // Get time entries for this project (direct + via tasks)
-      const { data: directEntries } = await supabase
-        .from('time_entries')
-        .select('duration, member_id')
-        .eq('project_id', id!);
-
-      const { data: taskIds } = await supabase
-        .from('tasks').select('id').eq('project_id', id!);
-
-      let taskEntries: { duration: number; member_id: string | null }[] = [];
-      if (taskIds && taskIds.length > 0) {
-        const { data } = await supabase
-          .from('time_entries')
-          .select('duration, member_id')
-          .in('task_id', taskIds.map(t => t.id));
-        taskEntries = (data || []) as any[];
-      }
-
-      const allEntries = [...(directEntries || []), ...taskEntries] as { duration: number; member_id: string | null }[];
-      if (allEntries.length === 0) return 0;
-
-      // Get unique member IDs
-      const memberIds = [...new Set(allEntries.filter(e => e.member_id).map(e => e.member_id!))];
-      const { data: members } = memberIds.length > 0
-        ? await supabase.from('team_members').select('id, hourly_cost').in('id', memberIds)
-        : { data: [] };
-      const costMap = new Map((members || []).map((m: any) => [m.id, m.hourly_cost || 0]));
-
-      return allEntries.reduce((sum, e) => {
-        const hours = (e.duration || 0) / 60;
-        const cost = e.member_id ? (costMap.get(e.member_id) || 0) : 0;
-        return sum + hours * cost;
-      }, 0);
-    },
-    enabled: !!id,
-  });
-
-  const { data: clientForProject } = useQuery({
-    queryKey: ['client-by-name', project?.client_id, project?.client_name],
-    queryFn: async () => {
-      if (project!.client_id) return { id: project!.client_id };
-      const { data } = await supabase.from('clients').select('id').eq('full_name', project!.client_name!).maybeSingle();
-      return data as { id: string } | null;
-    },
-    enabled: !!(project?.client_id || project?.client_name),
-  });
-  const resolvedClientId = clientForProject?.id;
-
-  const { data: projectPhases = [] } = useQuery({
-    queryKey: ['project-phases', id],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('project_phases').select('*').eq('project_id', id!).order('sort_order');
-      return (data || []) as { status: string }[];
-    },
-    enabled: !!id,
-  });
-
-  const { data: projectDeliverables = [] } = useQuery({
-    queryKey: ['project-deliverables', id],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('project_deliverables').select('*').eq('project_id', id!).order('sort_order');
-      return (data || []) as { status: string }[];
-    },
-    enabled: !!id,
-  });
-
-  // Monthly tasks for recorrente serviço mensal progress
+  // Compute monthly window (used by data hook for recorrente mensal projects)
   const isServicoMensal = local?.type === 'cliente_servico_mensal';
   const isRecorrenteMensal = isServicoMensal && (local as any)?.project_mode === 'recorrente';
   const now = new Date();
   const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
 
-  const { data: monthlyTasks = [] } = useQuery({
-    queryKey: ['project-monthly-tasks', id, monthStart],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('tasks')
-        .select('id, status, deadline')
-        .eq('project_id', id!)
-        .gte('deadline', monthStart)
-        .lte('deadline', monthEnd);
-      return (data || []) as { id: string; status: string; deadline: string }[];
-    },
-    enabled: !!id && isRecorrenteMensal,
-  });
+  // Aggregated data hook: 11 queries + 2 mutations extraídos para reduzir 200+ linhas
+  const {
+    allProjectsForMeeting,
+    project,
+    isLoading,
+    profiles,
+    teamMembersPhotos,
+    projectMembers,
+    tasks,
+    clientsList,
+    projectCost,
+    clientForProject,
+    projectPhases,
+    projectDeliverables,
+    monthlyTasks,
+    meetings,
+    toggleMember,
+    deleteMutation,
+  } = useProjectDetailData(id, { isRecorrenteMensal, monthStart, monthEnd });
+  const resolvedClientId = clientForProject?.id;
 
   function getProjectProgress() {
     // Recorrente mensal: progress by current month tasks
