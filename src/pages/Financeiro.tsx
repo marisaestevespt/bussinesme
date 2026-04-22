@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { formatEuro } from '@/lib/formatting';
+import { expenseLabel, EXPENSE_INSIGHT_EXCLUDED } from '@/lib/financialCategories';
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 
