@@ -32,10 +32,12 @@ import { ExportContabilistaButton } from './ExportContabilistaButton';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/lib/vatCalculations';
 import { formatEuro } from '@/lib/formatting';
+import { locationLabel, EXPENSE_LOCATIONS } from '@/lib/labelMaps';
+import { CONTRACT_TYPES } from '@/hooks/useTeamData';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
-const LOCATIONS = ['portugal', 'ue', 'fora_ue'];
+const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
 function parseDateString(value: string | null | undefined) {
   if (!value) return null;
