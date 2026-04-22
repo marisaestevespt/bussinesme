@@ -29,8 +29,7 @@ import { exportPdf } from '@/lib/exportPdf';
 import { TableSkeleton, EmptyState } from '@/components/ui/loading-skeletons';
 import { Receipt } from 'lucide-react';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
-import { useQueryClient } from '@tanstack/react-query';
-import { Pencil } from 'lucide-react';
+import { VatDeductibleCell } from './VatDeductibleCell';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -69,9 +68,6 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
   const allExpenses = fin.expenses.data || [];
   const [filter, setFilter] = useState<Filter>('year');
-  const qc = useQueryClient();
-  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
-  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
@@ -281,50 +277,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell className="text-right font-medium">{fmt(e.total_with_vat)}</TableCell>
                     {!ivaExempt && (
                       <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
-                        {editingDeductId === e.id ? (
-                          <div className="flex items-center justify-end gap-1">
-                            <Input
-                              type="number"
-                              step="0.01"
-                              autoFocus
-                              value={editingDeductValue}
-                              onChange={ev => setEditingDeductValue(ev.target.value)}
-                              onBlur={async () => {
-                                const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
-                                const ivaPago = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
-                                const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, ivaPago));
-                                const { error } = await supabase
-                                  .from('financial_expenses')
-                                  .update({ vat_deductible_amount: finalValue } as any)
-                                  .eq('id', e.id);
-                                if (error) toast.error('Erro ao guardar');
-                                else {
-                                  toast.success('IVA dedutível atualizado');
-                                  qc.invalidateQueries({ queryKey: ['financial-expenses'] });
-                                }
-                                setEditingDeductId(null);
-                              }}
-                              onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
-                              className="h-7 w-24 text-right text-xs"
-                            />
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1 hover:text-primary group"
-                            onClick={() => {
-                              const ivaPago = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
-                              const current = (e as any).vat_deductible_amount;
-                              setEditingDeductValue(current != null ? String(current) : ivaPago.toFixed(2));
-                              setEditingDeductId(e.id);
-                            }}
-                          >
-                            <span className={(e as any).vat_deductible_amount != null ? 'font-medium text-primary' : 'text-muted-foreground'}>
-                              {fmt((e as any).vat_deductible_amount != null ? (e as any).vat_deductible_amount : Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0)))}
-                            </span>
-                            <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60" />
-                          </button>
-                        )}
+                        <VatDeductibleCell expense={e as any} />
                       </TableCell>
                     )}
                     <TableCell>{LOCATIONS.find(l => l.value === e.location)?.label || e.location}</TableCell>

@@ -12,9 +12,8 @@ import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
+import { computeVatForExpenses, computeVatForSales } from '@/lib/vatCalculations';
+import { VatDeductibleCell } from './VatDeductibleCell';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -25,9 +24,6 @@ interface Props { sales: Sale[]; expenses: Expense[]; currentYear: number; fin: 
 export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const [cobradoMonth, setCobradoMonth] = useState<number | null>(null);
   const [pagoMonth, setPagoMonth] = useState<number | null>(null);
-  const qc = useQueryClient();
-  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
-  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
 
   // IVA documents
   const ivaDoc = useMemo(() => {
@@ -51,18 +47,23 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
     });
   }, [ivaDoc, currentYear, fin]);
 
-  // IVA Cobrado (vendas)
+  // IVA Cobrado (vendas) — cálculo centralizado em lib/vatCalculations
   const ivaCobrado = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
       const ms = sales.filter(s => s.sale_year === currentYear && s.sale_month === m);
-      const totalFatura = ms.reduce((s, v) => s + v.invoice_total, 0);
-      const totalBase = ms.reduce((s, v) => s + v.base_value, 0);
-      return { mes: FULL[i], totalFatura, totalBase, iva: Math.round((totalFatura - totalBase) * 100) / 100, sales: ms };
+      const totals = computeVatForSales(ms);
+      return {
+        mes: FULL[i],
+        totalFatura: totals.totalEntradas,
+        totalBase: totals.totalBase,
+        iva: totals.ivaCobrado,
+        sales: ms,
+      };
     });
   }, [sales, currentYear]);
 
-  // IVA Pago (despesas)
+  // IVA Pago / Dedutível (despesas) — cálculo centralizado, com breakdown por localização
   const ivaPago = useMemo(() => {
     const locs = ['portugal', 'ue', 'fora_ue'] as const;
     return Array.from({ length: 12 }, (_, i) => {
@@ -70,18 +71,17 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
       const me = expenses.filter(e => e.expense_year === currentYear && e.expense_month === m);
       const byLoc = locs.map(loc => {
         const le = me.filter(e => e.location === loc);
-        const totalComIva = le.reduce((s, v) => s + v.total_with_vat, 0);
-        const totalSemIva = le.reduce((s, v) => s + v.base_value, 0);
-        return { loc, totalComIva, totalSemIva, iva: Math.round((totalComIva - totalSemIva) * 100) / 100 };
+        const t = computeVatForExpenses(le);
+        return { loc, totalComIva: t.totalSaidas, totalSemIva: t.totalBase, iva: t.ivaPago };
       });
-      const totalIvaPago = byLoc.reduce((s, l) => s + l.iva, 0);
-      // IVA a deduzir: usa vat_deductible_amount se preenchido, senão assume 100% (= IVA pago)
-      const totalIvaDeduzir = me.reduce((s, e) => {
-        const ivaPago = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
-        const dedutivel = (e as any).vat_deductible_amount;
-        return s + (dedutivel != null ? Number(dedutivel) : ivaPago);
-      }, 0);
-      return { mes: FULL[i], byLoc, totalIvaPago, totalIvaDeduzir: Math.round(totalIvaDeduzir * 100) / 100, expenses: me };
+      const totals = computeVatForExpenses(me);
+      return {
+        mes: FULL[i],
+        byLoc,
+        totalIvaPago: totals.ivaPago,
+        totalIvaDeduzir: totals.ivaDeduzir,
+        expenses: me,
+      };
     });
   }, [expenses, currentYear]);
 
@@ -307,8 +307,6 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
               <TableBody>
                 {pagoDetail?.expenses.map((e, idx) => {
                   const iva = Math.round((e.total_with_vat - e.base_value) * 100) / 100;
-                  const dedutivel = (e as any).vat_deductible_amount;
-                  const deduzir = dedutivel != null ? Number(dedutivel) : iva;
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{e.description || `Despesa ${idx + 1}`}</TableCell>
@@ -316,27 +314,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                       <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
                       <TableCell className="text-right text-sm">
-                        {editingDeductId === e.id ? (
-                          <Input
-                            type="number" step="0.01" autoFocus
-                            value={editingDeductValue}
-                            onChange={ev => setEditingDeductValue(ev.target.value)}
-                            onBlur={async () => {
-                              const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
-                              const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, iva));
-                              const { error } = await supabase.from('financial_expenses').update({ vat_deductible_amount: finalValue } as any).eq('id', e.id);
-                              if (error) toast.error('Erro ao guardar');
-                              else { toast.success('Atualizado'); qc.invalidateQueries({ queryKey: ['financial-expenses'] }); }
-                              setEditingDeductId(null);
-                            }}
-                            onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
-                            className="h-7 w-24 text-right text-xs ml-auto"
-                          />
-                        ) : (
-                          <button type="button" className={`hover:text-primary underline decoration-dotted underline-offset-2 ${dedutivel != null ? 'font-medium text-primary' : 'text-muted-foreground'}`}
-                            onClick={() => { setEditingDeductValue(dedutivel != null ? String(dedutivel) : iva.toFixed(2)); setEditingDeductId(e.id); }}
-                          >{fmt(deduzir)}</button>
-                        )}
+                        <VatDeductibleCell expense={e as any} />
                       </TableCell>
                     </TableRow>
                   );

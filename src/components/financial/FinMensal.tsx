@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck, Pencil } from 'lucide-react';
+import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -29,6 +29,8 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
 import { getAutoExpenseStatus } from '@/lib/expenseStatus';
 import { ExportContabilistaButton } from './ExportContabilistaButton';
+import { VatDeductibleCell } from './VatDeductibleCell';
+import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/lib/vatCalculations';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -86,8 +88,6 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false);
   const [ivaCobradoOpen, setIvaCobradoOpen] = useState(false);
   const [ivaPagoOpen, setIvaPagoOpen] = useState(false);
-  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
-  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
   const m = parseInt(month);
 
   // Active member contracts
@@ -245,23 +245,18 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   useEffect(() => { autoMaterialize(); }, [autoMaterialize]);
 
 
-  const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
-  const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
-  const ivaCobrado = totalEntradas - totalBaseEntradas;
-
-  const totalSaidas = monthExpenses.reduce((s, v) => s + v.total_with_vat, 0);
-  const totalBaseSaidas = monthExpenses.reduce((s, v) => s + v.base_value, 0);
-  const ivaPago = totalSaidas - totalBaseSaidas;
-
-  // IVA a Deduzir: usa vat_deductible_amount se preenchido, senão assume IVA pago (100%)
-  const ivaDeduzir = monthExpenses.reduce((s, e) => {
-    const ivaP = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
-    const ded = (e as any).vat_deductible_amount;
-    return s + (ded != null ? Number(ded) : ivaP);
-  }, 0);
-
-  // Balanço IVA = IVA Cobrado − IVA a Deduzir
-  const ivaBalanco = Math.round((ivaCobrado - ivaDeduzir) * 100) / 100;
+  // Cálculos centralizados em src/lib/vatCalculations.ts
+  const salesTotals = computeVatForSales(monthSales);
+  const expensesTotals = computeVatForExpenses(monthExpenses);
+  const vatBalance = computeVatBalance(monthSales, monthExpenses);
+  const totalEntradas = salesTotals.totalEntradas;
+  const totalBaseEntradas = salesTotals.totalBase;
+  const ivaCobrado = salesTotals.ivaCobrado;
+  const totalSaidas = expensesTotals.totalSaidas;
+  const totalBaseSaidas = expensesTotals.totalBase;
+  const ivaPago = expensesTotals.ivaPago;
+  const ivaDeduzir = expensesTotals.ivaDeduzir;
+  const ivaBalanco = vatBalance.balanco;
 
   const resultado = totalEntradas - totalSaidas;
   const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
@@ -591,50 +586,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
                   <TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell>
                   <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
-                    {(() => {
-                      const ivaP = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
-                      const ded = (e as any).vat_deductible_amount;
-                      const dedDisplay = ded != null ? Number(ded) : ivaP;
-                      return editingDeductId === e.id ? (
-                        <Input
-                          type="number"
-                          step="0.01"
-                          autoFocus
-                          value={editingDeductValue}
-                          onChange={ev => setEditingDeductValue(ev.target.value)}
-                          onBlur={async () => {
-                            const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
-                            const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, ivaP));
-                            const { error } = await supabase
-                              .from('financial_expenses')
-                              .update({ vat_deductible_amount: finalValue } as any)
-                              .eq('id', e.id);
-                            if (error) toast.error('Erro ao guardar');
-                            else {
-                              toast.success('IVA dedutível atualizado');
-                              qc.invalidateQueries({ queryKey: ['financial-expenses'] });
-                            }
-                            setEditingDeductId(null);
-                          }}
-                          onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
-                          className="h-7 w-24 text-right text-xs ml-auto"
-                        />
-                      ) : (
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1 hover:text-primary group"
-                          onClick={() => {
-                            setEditingDeductValue(ded != null ? String(ded) : ivaP.toFixed(2));
-                            setEditingDeductId(e.id);
-                          }}
-                        >
-                          <span className={ded != null ? 'font-medium text-primary' : 'text-muted-foreground'}>
-                            {fmt(dedDisplay)}
-                          </span>
-                          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60" />
-                        </button>
-                      );
-                    })()}
+                    <VatDeductibleCell expense={e as any} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -833,45 +785,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                       <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
                       <TableCell className="text-right text-sm" onClick={ev => ev.stopPropagation()}>
-                        {editingDeductId === e.id ? (
-                          <Input
-                            type="number"
-                            step="0.01"
-                            autoFocus
-                            value={editingDeductValue}
-                            onChange={ev => setEditingDeductValue(ev.target.value)}
-                            onBlur={async () => {
-                              const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
-                              const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, iva));
-                              const { error } = await supabase
-                                .from('financial_expenses')
-                                .update({ vat_deductible_amount: finalValue } as any)
-                                .eq('id', e.id);
-                              if (error) toast.error('Erro ao guardar');
-                              else {
-                                toast.success('IVA dedutível atualizado');
-                                qc.invalidateQueries({ queryKey: ['financial-expenses'] });
-                              }
-                              setEditingDeductId(null);
-                            }}
-                            onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
-                            className="h-7 w-24 text-right text-xs ml-auto"
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-1 hover:text-primary group"
-                            onClick={() => {
-                              setEditingDeductValue(ded != null ? String(ded) : iva.toFixed(2));
-                              setEditingDeductId(e.id);
-                            }}
-                          >
-                            <span className={ded != null ? 'font-medium text-primary' : 'text-muted-foreground'}>
-                              {fmt(dedDisplay)}
-                            </span>
-                            <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60" />
-                          </button>
-                        )}
+                        <VatDeductibleCell expense={e as any} />
                       </TableCell>
                     </TableRow>
                   );
