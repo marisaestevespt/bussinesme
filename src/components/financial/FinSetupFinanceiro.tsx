@@ -354,57 +354,6 @@ export function FinSetupFinanceiro({ fin }: Props) {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* PRODUTOS */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Produtos — Visão Financeira</h3>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Ticket s/ IVA</TableHead>
-                  <TableHead className="text-right">IVA</TableHead>
-                  <TableHead className="text-right">Ticket c/ IVA</TableHead>
-                  <TableHead>Formas de Pagamento</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem produtos</TableCell></TableRow>
-                ) : products.map(p => {
-                  const ticket = parseFloat(p.ticket || '0') || 0;
-                  const vat = parseFloat(p.vat_rate || '0') || 0;
-                  const ticketWithVat = computeTicketWithVat(p.ticket, p.vat_rate);
-                  const methods = getPaymentMethodsForProduct(p.id);
-                  return (
-                    <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/produtos/${p.id}`)}>
-                      <TableCell className="font-medium">{p.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={p.status === 'vendas_ativas' ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground'}>
-                          {p.status === 'vendas_ativas' ? 'Vendas Ativas' : p.status === 'a_criar' ? 'A Criar' : p.status === 'em_ideia' ? 'Em Ideia' : 'Off'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">{ticket > 0 ? fmt(ticket) : '—'}</TableCell>
-                      <TableCell className="text-right">{vat > 0 ? `${vat}%` : '—'}</TableCell>
-                      <TableCell className="text-right font-medium">{ticket > 0 ? fmt(ticketWithVat) : '—'}</TableCell>
-                      <TableCell>
-                        {methods.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {methods.map(m => <Badge key={m} variant="secondary" className="text-xs">{m}</Badge>)}
-                          </div>
-                        ) : <span className="text-muted-foreground text-xs">—</span>}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
