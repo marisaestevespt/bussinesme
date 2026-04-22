@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck } from 'lucide-react';
-import { exportPdf } from '@/lib/exportPdf';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -398,11 +397,6 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
           <span className="text-muted-foreground text-sm">{currentYear}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => {
-            exportPdf(`Relatório Mensal — ${MONTHS[m - 1]} ${currentYear}`, 'fin-mensal-report');
-          }}>
-            <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
-          </Button>
           <ExportContabilistaButton year={currentYear} month={m} />
         </div>
       </div>
