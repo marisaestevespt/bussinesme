@@ -91,7 +91,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
       return [...new Set((data || []).map(d => d.source).filter(Boolean))] as string[];
     },
   });
-  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources || [])])];
+  const sourceOptions = buildSaleSourceOptions(customSources || []);
 
   const { data: clientsList } = useQuery({
     queryKey: ['clients-list-names'],

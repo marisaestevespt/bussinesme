@@ -53,7 +53,7 @@ export default function VendaDetailPage() {
       return unique;
     },
   });
-  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources || [])])];
+  const sourceOptions = buildSaleSourceOptions(customSources || []);
 
   const { data: clientsList } = useQuery({
     queryKey: ['clients-list-names'],
