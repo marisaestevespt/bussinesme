@@ -436,19 +436,19 @@ export default function OperacaoPage() {
     [deliverables, today]
   );
 
-  // ── Countdown — next delivery (deliverables first, then project deadlines) ──
+  // ── Countdown — next delivery (tasks + meetings + project deadlines) ──
   const nextDelivery = useMemo(() => {
-    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'deliverable' | 'project' | 'meeting'; projectId?: string };
+    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'task' | 'project' | 'meeting'; projectId?: string };
     const candidates: NextItem[] = [];
 
-    // Deliverables
-    deliverables.forEach(d => {
-      if (d.deadline && !isBefore(new Date(d.deadline), today)) {
-        const proj = allActiveProjects.find(p => p.id === d.project_id);
+    // Tasks (incluem entregas auto-geradas via deliverable_id)
+    tasks.filter(isTaskOpen).forEach(t => {
+      if (t.deadline && !isBefore(new Date(t.deadline), today)) {
+        const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
         candidates.push({
-          id: d.id, name: d.name, deadline: d.deadline,
-          daysLeft: differenceInDays(new Date(d.deadline), today),
-          projectName: proj?.name || '', type: 'deliverable', projectId: d.project_id,
+          id: t.id, name: t.name, deadline: t.deadline,
+          daysLeft: differenceInDays(new Date(t.deadline), today),
+          projectName: proj?.name || '', type: 'task', projectId: t.project_id || undefined,
         });
       }
     });
@@ -479,7 +479,7 @@ export default function OperacaoPage() {
 
     candidates.sort((a, b) => a.daysLeft - b.daysLeft);
     return candidates[0] || null;
-  }, [allActiveProjects, deliverables, meetings, today]);
+  }, [allActiveProjects, tasks, meetings, today]);
 
   // ── Project health indicators ──────────────────────────────
   const projectHealth = useMemo(() => {
@@ -510,21 +510,14 @@ export default function OperacaoPage() {
     });
   }, [allActiveProjects, projectProgress, tasks, today]);
 
-  // ── Delivery timeline (next 14 days) — includes deliverables ──
+  // ── Delivery timeline (next 14 days) — tasks + meetings + project milestones ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string }[] }[] = [];
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] = [];
-
-      // Deliverables
-      deliverables.forEach(del => {
-        if (del.deadline && format(new Date(del.deadline), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: del.name, type: 'deliverable', id: del.id });
-        }
-      });
+      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string }[] = [];
 
       // Projects
       allActiveProjects.forEach(p => {
@@ -533,7 +526,7 @@ export default function OperacaoPage() {
         }
       });
 
-      // Tasks
+      // Tasks (já incluem entregas auto-geradas)
       tasks.filter(isTaskOpen).forEach(t => {
         if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
           items.push({ name: t.name, type: 'task', id: t.id });
@@ -552,7 +545,7 @@ export default function OperacaoPage() {
       }
     }
     return days;
-  }, [allActiveProjects, deliverables, tasks, meetings, today]);
+  }, [allActiveProjects, tasks, meetings, today]);
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
@@ -620,12 +613,11 @@ export default function OperacaoPage() {
               if (!p) return null;
               const pTasks = tasks.filter(t => t.project_id === p.id && isTaskOpen(t));
               const pOverdueTasks = pTasks.filter(t => isTaskOverdue(t, today));
-              const pOverdueDeliverables = deliverables.filter(d => d.project_id === p.id && d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue');
               const pUnassigned = pTasks.filter(t => !t.assigned_to);
               const hp = projectHealth.find(h => h.id === p.id);
               const healthLabel = hp?.health === 'red' ? 'Em risco' : hp?.health === 'yellow' ? 'Atenção' : 'Em dia';
               const healthColor = hp?.health === 'red' ? 'text-destructive' : hp?.health === 'yellow' ? 'text-warning' : 'text-success';
-              const hasIssues = pOverdueTasks.length > 0 || pOverdueDeliverables.length > 0 || pUnassigned.length > 0;
+              const hasIssues = pOverdueTasks.length > 0 || pUnassigned.length > 0;
 
               return (
                 <>
@@ -656,24 +648,6 @@ export default function OperacaoPage() {
                             <PriorityDot priority={t.priority} />
                             <span className="flex-1 truncate">{t.name}</span>
                             <span className="text-[10px] text-destructive shrink-0">{format(new Date(t.deadline!), 'dd/MM')}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {pOverdueDeliverables.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
-                        <AlertTriangle className="h-4 w-4 text-destructive" /> Entregas atrasadas
-                        <Badge variant="destructive" className="text-[10px]">{pOverdueDeliverables.length}</Badge>
-                      </h4>
-                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
-                        {pOverdueDeliverables.map(d => (
-                          <div key={d.id} className="flex items-center gap-2 py-1.5 px-3 rounded-md bg-destructive/5 text-sm">
-                            <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
-                            <span className="flex-1 truncate">{d.name}</span>
-                            <span className="text-[10px] text-destructive shrink-0">{format(new Date(d.deadline!), 'dd/MM')}</span>
                           </div>
                         ))}
                       </div>
@@ -783,10 +757,9 @@ export default function OperacaoPage() {
                           <div
                             key={i}
                             className={`text-[11px] leading-snug px-2 py-1.5 rounded-md ${
-                              item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
                               item.type === 'meeting' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/20' :
                               item.type === 'project' ? 'bg-primary/10 text-primary font-medium' :
-                              'bg-muted text-muted-foreground'
+                              'bg-accent/15 text-accent-foreground'
                             }`}
                             title={item.name}
                           >
