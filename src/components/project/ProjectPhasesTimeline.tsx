@@ -694,7 +694,27 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                                   ) : (
                                     <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                                   )}
-                                  <span className={cn('text-sm flex-1 font-medium', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
+                                  {(() => {
+                                    const linkedTask = taskByDeliverable.get(d.id);
+                                    const clickable = !!linkedTask;
+                                    return (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (linkedTask) setTaskDetailId(linkedTask.id);
+                                          else startEditDel(d);
+                                        }}
+                                        className={cn(
+                                          'text-sm flex-1 font-medium text-left truncate hover:text-primary transition-colors',
+                                          clickable && 'cursor-pointer',
+                                          d.status === 'concluido' && 'text-muted-foreground line-through'
+                                        )}
+                                        title={clickable ? 'Abrir detalhes da tarefa' : 'Editar entrega'}
+                                      >
+                                        {d.name}
+                                      </button>
+                                    );
+                                  })()}
                                   {(d.planned_start || d.planned_end) && (
                                     <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
                                       <CalendarDays className="h-3 w-3" />
