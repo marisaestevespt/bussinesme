@@ -172,7 +172,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setDependsOnIds(deps);
       } else {
         setName(''); setStatus('por_comecar'); setPriority('alta');
-        setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setClientId(''); setNotes('');
+        setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(defaultProjectId || ''); setClientId(defaultClientId || ''); setNotes('');
         setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
         setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime(''); setSopId('');
       }
