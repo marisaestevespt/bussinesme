@@ -91,7 +91,7 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
                   />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {chartData.map((entry) => (
-                      <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || '#6366f1'} />
+                      <Cell key={entry.status} fill={getCrmStatusHex(entry.status)} />
                     ))}
                   </Bar>
                 </BarChart>
