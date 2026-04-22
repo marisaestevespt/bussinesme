@@ -9,13 +9,14 @@ import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Package, CheckCircle2, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 import { format, isAfter, subDays, startOfMonth, endOfMonth, addMonths, addDays, getDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { isDeliverableDone, getDeliverableStatusInfo } from '@/lib/projectProgress';
 
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pendente: { label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
-  em_curso: { label: 'Em curso', color: 'bg-info/15 text-info' },
-  entregue: { label: 'Entregue', color: 'bg-success/15 text-success' },
-  atrasado: { label: 'Atrasado', color: 'bg-destructive/15 text-destructive' },
-};
+const STATUS_MAP = new Proxy({} as Record<string, { label: string; color: string }>, {
+  get: (_t, key: string) => {
+    const info = getDeliverableStatusInfo(key);
+    return { label: info.label, color: info.color };
+  },
+});
 
 const TASK_STATUS_MAP: Record<string, { label: string; color: string }> = {
   pendente: { label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
@@ -143,7 +144,7 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
 
   // Stats
   const allDeliverables = deliverables.length;
-  const overdue = enrichedDeliverables.filter(d => d.computed_deadline && d.status !== 'entregue' && new Date(d.computed_deadline) < new Date()).length;
+  const overdue = enrichedDeliverables.filter(d => d.computed_deadline && !isDeliverableDone(d) && new Date(d.computed_deadline) < new Date()).length;
   const pendingTasks = tasks.length;
 
   return (

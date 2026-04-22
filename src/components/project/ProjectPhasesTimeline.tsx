@@ -57,20 +57,40 @@ interface ProjectDeliverable {
   planned_end: string | null;
 }
 
-const PHASE_STATUS = [
-  { value: 'pendente', label: 'Pendente', icon: Circle, color: 'text-muted-foreground' },
-  { value: 'em_curso', label: 'Em curso', icon: Clock, color: 'text-info' },
-  { value: 'concluida', label: 'Concluída', icon: CheckCircle2, color: 'text-success' },
-];
+import {
+  PHASE_STATUSES as CANON_PHASE_STATUSES,
+  DELIVERABLE_STATUSES as CANON_DEL_STATUSES,
+  getPhaseStatusInfo,
+  getDeliverableStatusInfo,
+} from '@/lib/projectProgress';
 
-const DELIVERABLE_STATUS = [
-  { value: 'pendente', label: 'Pendente' },
-  { value: 'em_progresso', label: 'Em progresso' },
-  { value: 'concluido', label: 'Concluído' },
-];
+const PHASE_ICONS: Record<string, typeof Circle> = {
+  pendente: Circle,
+  em_curso: Clock,
+  concluida: CheckCircle2,
+};
+const PHASE_ICON_COLORS: Record<string, string> = {
+  pendente: 'text-muted-foreground',
+  em_curso: 'text-info',
+  concluida: 'text-success',
+};
+
+const PHASE_STATUS = CANON_PHASE_STATUSES.map(s => ({
+  ...s,
+  icon: PHASE_ICONS[s.value] || Circle,
+  // Keep the legacy `color` (text-only) for icon coloring; badge color lives in `s.color`.
+  iconColor: PHASE_ICON_COLORS[s.value] || 'text-muted-foreground',
+}));
+
+const DELIVERABLE_STATUS = CANON_DEL_STATUSES;
 
 function getStatusInfo(status: string) {
-  return PHASE_STATUS.find(s => s.value === status) || PHASE_STATUS[0];
+  const base = getPhaseStatusInfo(status);
+  return {
+    ...base,
+    icon: PHASE_ICONS[base.value] || Circle,
+    color: PHASE_ICON_COLORS[base.value] || 'text-muted-foreground',
+  };
 }
 
 interface Props {
@@ -674,11 +694,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                     <div className="mt-3 space-y-1 pl-2">
                       {phaseDeliverables.map((d, di) => {
                         const isEditingThis = editingDel === d.id;
-                        const delStatusConfig = d.status === 'concluido'
-                          ? { bg: 'bg-success/15 text-success border-success/30', label: 'Concluído' }
-                          : d.status === 'em_progresso'
-                          ? { bg: 'bg-info/15 text-info border-info/30', label: 'Em progresso' }
-                          : { bg: 'bg-muted text-muted-foreground border-muted', label: 'Pendente' };
+                        const _delInfo = getDeliverableStatusInfo(d.status);
+                        const delStatusConfig = { bg: _delInfo.color, label: _delInfo.label };
                         return (
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
                             <div className="flex items-center gap-2.5">

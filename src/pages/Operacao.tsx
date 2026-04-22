@@ -22,6 +22,7 @@ import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { isDeliverableDone } from '@/lib/projectProgress';
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 
@@ -447,7 +448,7 @@ export default function OperacaoPage() {
   }, [clients, today]);
 
   const overdueDeliverables = useMemo(() =>
-    deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue'),
+    deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && !isDeliverableDone(d)),
     [deliverables, today]
   );
 
