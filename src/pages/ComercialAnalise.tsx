@@ -19,6 +19,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { useClients } from '@/hooks/useClients';
 import { differenceInDays, parseISO, endOfMonth, format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { sumRevenue, salesInMonth, revenueGroupedBy, averageTicket } from '@/lib/salesCalculations';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
