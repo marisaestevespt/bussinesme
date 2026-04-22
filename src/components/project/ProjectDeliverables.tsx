@@ -585,6 +585,17 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
           </div>
         </DialogContent>
       </Dialog>
+
+    {/* Task detail modal (mesmo da página Tarefas e Operação) */}
+    <TaskFormDialog
+      open={!!taskDetailId}
+      onOpenChange={(open) => !open && setTaskDetailId(null)}
+      editingTask={editingTask}
+      onSuccess={() => {
+        qc.invalidateQueries({ queryKey: ['project-deliverable-tasks', projectId] });
+        qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      }}
+    />
     </>
   );
 }
