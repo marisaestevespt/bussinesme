@@ -12,16 +12,21 @@ import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle, LineChart } from 'lucide-react';
 import { YearSelector } from '@/components/YearSelector';
+import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
+import { useFinancialData } from '@/hooks/useFinancialData';
+import { useCommercialData } from '@/hooks/useCommercialData';
+import { excludeCancelled } from '@/lib/utils';
 
-type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
+type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | 'previsibilidade' | null;
 
 const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; desc: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
   { key: 'mensal', label: 'Mensal', desc: '12 meses', icon: Calendar, iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
   { key: 'trimestral', label: 'Trimestral', desc: '4 trimestres', icon: BarChart3, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
   { key: 'semestral', label: 'Semestral', desc: '2 semestres', icon: PieChart, iconColor: 'text-warning', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
   { key: 'metas', label: 'Metas', desc: 'Todas as metas', icon: Target, iconColor: 'text-destructive', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
+  { key: 'previsibilidade', label: 'Previsibilidade', desc: 'Cashflow anual', icon: LineChart, iconColor: 'text-primary', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
 ];
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
