@@ -135,6 +135,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: phaseKey });
     qc.invalidateQueries({ queryKey: delKey });
+    qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
+    qc.invalidateQueries({ queryKey: ['linked-tasks', projectId] });
   };
 
   // --- Shared: recalculate a phase's deliverables, return last anchor date ---
