@@ -205,6 +205,7 @@ export default function OperacaoPage() {
   const [internoFilters, setInternoFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
   const [healthDetailProjectId, setHealthDetailProjectId] = useState<string | null>(null);
+  const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
 
   // ── Queries ─────────────────────────────────────────────────
   const { data: projects = [] } = useQuery({
@@ -563,17 +564,15 @@ export default function OperacaoPage() {
         )}
       </>
     );
-    if (t.project_id) {
-      return (
-        <Link key={t.id} to={`/hub/projetos/${t.project_id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm cursor-pointer">
-          {content}
-        </Link>
-      );
-    }
     return (
-      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm">
+      <button
+        key={t.id}
+        type="button"
+        onClick={() => setTaskDetailId(t.id)}
+        className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm cursor-pointer w-full text-left"
+      >
         {content}
-      </div>
+      </button>
     );
   }
 
@@ -614,6 +613,84 @@ export default function OperacaoPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Task detail dialog */}
+        <Dialog open={!!taskDetailId} onOpenChange={open => !open && setTaskDetailId(null)}>
+          <DialogContent className="max-w-md">
+            {(() => {
+              const t = tasks.find(x => x.id === taskDetailId);
+              if (!t) return null;
+              const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
+              const projName = t.project_id ? projectNameMap.get(t.project_id) : null;
+              const overdue = isTaskOverdue(t as any, today);
+              const priorityLabel = PRIORITY_OPTIONS.find(p => p.value === t.priority)?.label || t.priority;
+              const statusLabel = t.status?.replace(/_/g, ' ');
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-start gap-2 text-base">
+                      <PriorityDot priority={t.priority} />
+                      <span className="flex-1">{t.name}</span>
+                    </DialogTitle>
+                    {projName && (
+                      <p className="text-xs text-muted-foreground">{projName}</p>
+                    )}
+                  </DialogHeader>
+                  <div className="space-y-3 pt-2 text-sm">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Estado</p>
+                        <Badge variant="outline" className="capitalize">{statusLabel}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Prioridade</p>
+                        <Badge variant="outline" className="capitalize">{priorityLabel}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Deadline</p>
+                        {t.deadline ? (
+                          <div className="flex items-center gap-2">
+                            <span className={overdue ? 'text-destructive font-medium' : ''}>
+                              {format(new Date(t.deadline), "dd 'de' MMM yyyy", { locale: pt })}
+                            </span>
+                            {overdue && <Badge variant="destructive" className="text-[9px]">Atrasada</Badge>}
+                          </div>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Departamento</p>
+                        <span className="capitalize">{t.department ? (DEPT_LABELS[t.department] || t.department) : '—'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase text-muted-foreground font-semibold tracking-wider mb-1">Responsável</p>
+                      {assignee ? (
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={getPhotoUrl(assignee)} />
+                            <AvatarFallback className="text-[9px]">{getInitials(assignee.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <span>{assignee.full_name}</span>
+                        </div>
+                      ) : <span className="text-muted-foreground">Sem responsável</span>}
+                    </div>
+                    {t.project_id && (
+                      <div className="pt-2 border-t">
+                        <Link
+                          to={`/hub/projetos/${t.project_id}`}
+                          className="text-sm text-primary hover:underline font-medium"
+                          onClick={() => setTaskDetailId(null)}
+                        >
+                          Abrir projeto →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
 
         {/* Health detail dialog */}
         <Dialog open={!!healthDetailProjectId} onOpenChange={open => !open && setHealthDetailProjectId(null)}>
@@ -769,12 +846,12 @@ export default function OperacaoPage() {
                                   const assignee = item.assigneeId ? profileMap.get(item.assigneeId) : null;
                                   const href = item.type === 'meeting'
                                     ? `/hub/reunioes/${item.id}`
-                                    : item.projectId ? `/hub/projetos/${item.projectId}` : null;
+                                    : item.type === 'project' && item.projectId ? `/hub/projetos/${item.projectId}` : null;
                                   const className = `text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
                                     item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
                                     item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
                                     'bg-accent/20 text-accent-foreground'
-                                  } ${href ? 'hover:opacity-80 cursor-pointer transition-opacity' : ''}`;
+                                  } ${href || item.type === 'task' ? 'hover:opacity-80 cursor-pointer transition-opacity' : ''}`;
                                   const inner = (
                                     <>
                                       {item.type === 'meeting' && <span className="shrink-0 leading-none">📅</span>}
@@ -792,6 +869,19 @@ export default function OperacaoPage() {
                                       <Link key={i} to={href} className={className} title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}>
                                         {inner}
                                       </Link>
+                                    );
+                                  }
+                                  if (item.type === 'task') {
+                                    return (
+                                      <button
+                                        key={i}
+                                        type="button"
+                                        onClick={() => setTaskDetailId(item.id)}
+                                        className={className + ' w-full text-left'}
+                                        title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}
+                                      >
+                                        {inner}
+                                      </button>
                                     );
                                   }
                                   return (
