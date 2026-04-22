@@ -69,15 +69,9 @@ export function FinContabilidade({ currentYear }: Props) {
   });
 
   const deadlines = useMemo(() => {
-    // computeFiscalDeadlines now hides SS/IVA when hasAccountant=true; only IRS remains.
-    // IRS works on a campaign basis: rendimentos de YYYY são entregues em YYYY+1.
-    // → Mostrar apenas a campanha do IRS do ano ANTERIOR (entregue este ano).
-    //   Esconder SS/IVA do ano anterior (já passaram) e o IRS do ano corrente (só no próximo ano).
-    const cur = computeFiscalDeadlines(currentYear, fiscalConfig)
-      .filter(d => d.category !== 'irs');
-    const prevIrs = computeFiscalDeadlines(currentYear - 1, fiscalConfig)
-      .filter(d => d.category === 'irs');
-    return [...prevIrs, ...cur].sort((a, b) => a.date.localeCompare(b.date));
+    return computeFiscalDeadlines(currentYear, fiscalConfig)
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date));
   }, [currentYear, fiscalConfig]);
 
   // Fiscal deadline completions
@@ -89,63 +83,14 @@ export function FinContabilidade({ currentYear }: Props) {
     },
   });
 
-  // IRS is also tracked in fiscal_monthly_checks (used by the Mensal page).
-  // The Mensal stores "IRS year-1 filed in year" under year=currentYear.
-  // We also fetch year=currentYear+1 in case the user pre-marked next year's campaign.
-  const { data: irsMonthlyChecks = [] } = useQuery({
-    queryKey: ['fiscal-monthly-checks-irs', currentYear],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('fiscal_monthly_checks')
-        .select('*')
-        .in('year', [currentYear, currentYear + 1])
-        .in('check_key', ['irs_start']);
-      return data || [];
-    },
-  });
-  // Map: storage year (when filed) → campaign year (rendimentos year-1)
-  const irsDoneCampaignYears = useMemo(() => {
-    const set = new Set<number>();
-    irsMonthlyChecks.forEach((c: any) => {
-      if (c.checked) set.add((c.year as number) - 1);
-    });
-    return set;
-  }, [irsMonthlyChecks]);
-
-  const completedKeys = useMemo(() => {
-    const set = new Set(completions.map(c => c.deadline_key));
-    irsDoneCampaignYears.forEach(campaignYear => {
-      set.add(`irs-start-${campaignYear}`);
-      set.add(`irs-end-${campaignYear}`);
-    });
-    return set;
-  }, [completions, irsDoneCampaignYears]);
+  const completedKeys = useMemo(
+    () => new Set(completions.map(c => c.deadline_key)),
+    [completions],
+  );
 
   const toggleDeadlineCompletion = useMutation({
     mutationFn: async (dl: FiscalDeadline) => {
       if (!user) throw new Error('Not authenticated');
-      // IRS rows mirror to fiscal_monthly_checks so the Mensal page stays in sync.
-      if (dl.category === 'irs') {
-        // Campaign year = year embedded in the deadline key (e.g. irs-start-2025 → 2025).
-        // Mensal stores it under year = campaignYear + 1 (the year it's filed).
-        const campaignYear = Number(dl.key.split('-').pop());
-        const storageYear = campaignYear + 1;
-        const existingMonthly = irsMonthlyChecks.find(
-          (c: any) => c.check_key === 'irs_start' && c.year === storageYear,
-        );
-        const nowChecked = !irsDoneCampaignYears.has(campaignYear);
-        if (existingMonthly) {
-          await supabase
-            .from('fiscal_monthly_checks')
-            .update({ checked: nowChecked, checked_at: nowChecked ? new Date().toISOString() : null })
-            .eq('id', (existingMonthly as any).id);
-        } else if (nowChecked) {
-          await supabase
-            .from('fiscal_monthly_checks')
-            .insert({ year: storageYear, month: 4, check_key: 'irs_start', checked: true, checked_at: new Date().toISOString() });
-        }
-        return;
-      }
       const existing = completions.find(c => c.deadline_key === dl.key);
       if (existing) {
         await supabase.from('fiscal_deadline_completions' as any).delete().eq('id', existing.id);
@@ -155,8 +100,6 @@ export function FinContabilidade({ currentYear }: Props) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['fiscal-deadline-completions', currentYear] });
-      qc.invalidateQueries({ queryKey: ['fiscal-monthly-checks-irs', currentYear] });
-      qc.invalidateQueries({ queryKey: ['fiscal-checks-annual', currentYear] });
     },
     onError: () => toast.error('Erro ao atualizar estado'),
   });
