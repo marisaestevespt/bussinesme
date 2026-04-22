@@ -726,7 +726,7 @@ export default function OperacaoPage() {
             </CardHeader>
             <CardContent className="pt-0">
               {deliveryTimeline.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">Sem entregas nos próximos 14 dias 🎉</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">Sem entregas nos próximos 7 dias 🎉</p>
               ) : (
                 <div className="pb-2">
                   {/* Timeline horizontal: eixo de dias + items por dia (ocupa toda a largura do card) */}
