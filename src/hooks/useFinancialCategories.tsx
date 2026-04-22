@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { EXPENSE_CATEGORIES } from '@/lib/financialCategories';
 
 export type CategoryType = 'expense' | 'subscription';
 
@@ -12,20 +13,7 @@ interface FinancialCategory {
   sort_order: number;
 }
 
-const DEFAULT_EXP_CATEGORIES = [
-  { value: 'pessoal', label: 'Pessoal' },
-  { value: 'freelancer', label: 'Freelancer' },
-  { value: 'campanha', label: 'Campanha' },
-  { value: 'ferramenta', label: 'Ferramenta' },
-  { value: 'formacao', label: 'Formação' },
-  { value: 'servico_contratado', label: 'Serviço Contratado' },
-  { value: 'plataformas', label: 'Plataformas' },
-  { value: 'impostos', label: 'Impostos' },
-  { value: 'seguranca_social', label: 'Segurança Social' },
-  { value: 'ordenados', label: 'Ordenados' },
-  { value: 'prestadores', label: 'Prestadores' },
-  { value: 'outro', label: 'Outro' },
-];
+const DEFAULT_EXP_CATEGORIES = EXPENSE_CATEGORIES.map(c => ({ value: c.value, label: c.label }));
 
 const DEFAULT_SUB_CATEGORIES = [
   { value: 'marketing', label: 'Marketing' },
