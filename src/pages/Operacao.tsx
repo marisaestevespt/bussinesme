@@ -436,19 +436,19 @@ export default function OperacaoPage() {
     [deliverables, today]
   );
 
-  // ── Countdown — next delivery (deliverables first, then project deadlines) ──
+  // ── Countdown — next delivery (tasks + meetings + project deadlines) ──
   const nextDelivery = useMemo(() => {
-    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'deliverable' | 'project' | 'meeting'; projectId?: string };
+    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'task' | 'project' | 'meeting'; projectId?: string };
     const candidates: NextItem[] = [];
 
-    // Deliverables
-    deliverables.forEach(d => {
-      if (d.deadline && !isBefore(new Date(d.deadline), today)) {
-        const proj = allActiveProjects.find(p => p.id === d.project_id);
+    // Tasks (incluem entregas auto-geradas via deliverable_id)
+    tasks.filter(isTaskOpen).forEach(t => {
+      if (t.deadline && !isBefore(new Date(t.deadline), today)) {
+        const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
         candidates.push({
-          id: d.id, name: d.name, deadline: d.deadline,
-          daysLeft: differenceInDays(new Date(d.deadline), today),
-          projectName: proj?.name || '', type: 'deliverable', projectId: d.project_id,
+          id: t.id, name: t.name, deadline: t.deadline,
+          daysLeft: differenceInDays(new Date(t.deadline), today),
+          projectName: proj?.name || '', type: 'task', projectId: t.project_id || undefined,
         });
       }
     });
@@ -479,7 +479,7 @@ export default function OperacaoPage() {
 
     candidates.sort((a, b) => a.daysLeft - b.daysLeft);
     return candidates[0] || null;
-  }, [allActiveProjects, deliverables, meetings, today]);
+  }, [allActiveProjects, tasks, meetings, today]);
 
   // ── Project health indicators ──────────────────────────────
   const projectHealth = useMemo(() => {
@@ -510,21 +510,14 @@ export default function OperacaoPage() {
     });
   }, [allActiveProjects, projectProgress, tasks, today]);
 
-  // ── Delivery timeline (next 14 days) — includes deliverables ──
+  // ── Delivery timeline (next 14 days) — tasks + meetings + project milestones ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string }[] }[] = [];
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] = [];
-
-      // Deliverables
-      deliverables.forEach(del => {
-        if (del.deadline && format(new Date(del.deadline), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: del.name, type: 'deliverable', id: del.id });
-        }
-      });
+      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string }[] = [];
 
       // Projects
       allActiveProjects.forEach(p => {
@@ -533,7 +526,7 @@ export default function OperacaoPage() {
         }
       });
 
-      // Tasks
+      // Tasks (já incluem entregas auto-geradas)
       tasks.filter(isTaskOpen).forEach(t => {
         if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
           items.push({ name: t.name, type: 'task', id: t.id });
@@ -552,7 +545,7 @@ export default function OperacaoPage() {
       }
     }
     return days;
-  }, [allActiveProjects, deliverables, tasks, meetings, today]);
+  }, [allActiveProjects, tasks, meetings, today]);
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
