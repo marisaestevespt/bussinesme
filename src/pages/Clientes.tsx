@@ -21,7 +21,10 @@ const fmtBirthday = (d: string | null | undefined) => {
   if (!d) return '—';
   try { return format(parseISO(d), 'dd/MM'); } catch { return '—'; }
 };
-import { getClientStatusInfo, ACTIVE_CLIENT_STATUSES as ACTIVE_STATUSES, ARCHIVED_CLIENT_STATUSES as ARCHIVED_STATUSES } from '@/lib/clientStatus';
+import { getClientStatusInfo, ACTIVE_CLIENT_STATUSES, ARCHIVED_CLIENT_STATUSES } from '@/lib/clientStatus';
+
+const ACTIVE_STATUSES: string[] = ACTIVE_CLIENT_STATUSES;
+const ARCHIVED_STATUSES: string[] = ARCHIVED_CLIENT_STATUSES;
 
 export default function ClientesPage() {
   const navigate = useNavigate();
@@ -67,8 +70,8 @@ export default function ClientesPage() {
         <div className="grid grid-cols-[90px_140px_1fr_1fr] gap-2 items-center text-xs">
           <span className="font-mono text-muted-foreground">{c.client_id}</span>
           <span>
-            <Badge variant="outline" className={`text-[10px] ${STATUS_BADGE[c.status]?.className || ''}`}>
-              {STATUS_BADGE[c.status]?.label || c.status}
+            <Badge variant="outline" className={`text-[10px] ${getClientStatusInfo(c.status).color}`}>
+              {getClientStatusInfo(c.status).label}
             </Badge>
           </span>
           <span className="text-muted-foreground"><span className="text-foreground/60">Início:</span> {fmtDate(c.start_date)}</span>
@@ -87,8 +90,8 @@ export default function ClientesPage() {
       <div className="md:hidden space-y-1">
         <div className="flex items-center justify-between gap-2">
           <span className="font-medium truncate">{c.full_name}</span>
-          <Badge variant="outline" className={`shrink-0 text-[10px] ${STATUS_BADGE[c.status]?.className || ''}`}>
-            {STATUS_BADGE[c.status]?.label || c.status}
+          <Badge variant="outline" className={`shrink-0 text-[10px] ${getClientStatusInfo(c.status).color}`}>
+            {getClientStatusInfo(c.status).label}
           </Badge>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">

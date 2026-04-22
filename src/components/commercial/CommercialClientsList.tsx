@@ -147,8 +147,8 @@ export function CommercialClientsList() {
                   <span className="font-mono text-xs">{c.client_id}</span>
                   <span>{c.start_date ? format(parseISO(c.start_date), 'dd/MM/yyyy') : '—'}</span>
                   <span>
-                    <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
-                      {STATUS_BADGE[c.status]?.label || c.status}
+                    <Badge variant="outline" className={getClientStatusInfo(c.status).color}>
+                      {getClientStatusInfo(c.status).label}
                     </Badge>
                   </span>
                   <span className="truncate">{c.full_name}</span>
