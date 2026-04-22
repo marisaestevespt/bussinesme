@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Megaphone, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { MarketingChannel } from '@/lib/marketing-constants';
+import { ChannelAccountsManager } from './ChannelAccountsManager';
 
 const CHANNEL_EMOJI: Record<string, string> = {
   Instagram: '📸', Youtube: '🎬', Facebook: '👥', TikTok: '🎵',
@@ -60,12 +61,15 @@ export function ChannelSettings() {
             {channels.map(ch => {
               const emoji = CHANNEL_EMOJI[ch.name] || '📢';
               return (
-                <div key={ch.id} className="flex items-center justify-between py-2 px-1 rounded-md hover:bg-muted/40 hq-transition">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-base">{emoji}</span>
-                    <span className="text-sm font-medium text-foreground">{ch.name}</span>
+                <div key={ch.id} className="py-2 px-1 rounded-md hover:bg-muted/30 hq-transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">{emoji}</span>
+                      <span className="text-sm font-medium text-foreground">{ch.name}</span>
+                    </div>
+                    <Switch checked={ch.is_active} onCheckedChange={v => toggle(ch.id, v)} />
                   </div>
-                  <Switch checked={ch.is_active} onCheckedChange={v => toggle(ch.id, v)} />
+                  {ch.is_active && <ChannelAccountsManager channelId={ch.id} channelName={ch.name} />}
                 </div>
               );
             })}
