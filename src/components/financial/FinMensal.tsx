@@ -1118,14 +1118,15 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
       items.push({ key: 'iva_pay_m', label: `IVA Pagamento — ${MONTHS[refMonth - 1]} ${refYear} (até dia 25)` });
     }
 
-    // IRS — April to June (submission period)
-    if (fiscalConfig.taxIrsRegime === 'simplificado') {
-      if (month === 4) {
-        items.push({ key: 'irs_start', label: `IRS ${year - 1} — Início da entrega (1 de Abril)` });
-      }
-      if (month >= 4 && month <= 6) {
-        items.push({ key: 'irs_deadline', label: `IRS ${year - 1} — Prazo final (30 de Junho)` });
-      }
+    // IRS — April to June (submission period).
+    // "Início da entrega" e "Prazo final" são a mesma obrigação (entregar o IRS).
+    // Se já marcaste o início (= já entregaste), o prazo final fica automaticamente cumprido,
+    // por isso não voltamos a mostrá-lo.
+    if (fiscalConfig.taxIrsRegime === 'simplificado' && month >= 4 && month <= 6) {
+      // We need access to checkedMap here, but it's defined below. We add both keys
+      // and filter visually further down once we know what's checked.
+      items.push({ key: 'irs_start', label: `IRS ${year - 1} — Entrega (a partir de 1 de Abril)` });
+      items.push({ key: 'irs_deadline', label: `IRS ${year - 1} — Prazo final (até 30 de Junho)` });
     }
 
     // Bank statement upload check
