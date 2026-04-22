@@ -183,6 +183,15 @@ function PriorityDot({ priority }: { priority: string }) {
   return <span className={`inline-block h-2 w-2 rounded-full ${colors[priority] || 'bg-muted'}`} />;
 }
 
+const TASK_STATUS_META: Record<string, { label: string; color: string }> = {
+  por_comecar: { label: 'Por começar', color: 'bg-muted text-muted-foreground' },
+  a_fazer: { label: 'A fazer', color: 'bg-info/15 text-info border-info/30' },
+  aguarda_feedback: { label: 'Aguarda feedback cliente', color: 'bg-warning/15 text-warning border-warning/30' },
+  para_aprovacao: { label: 'Para aprovação', color: 'bg-primary/15 text-primary border-primary/30' },
+  precisa_alteracoes: { label: 'Precisa de alterações', color: 'bg-warning/20 text-warning border-warning/40' },
+  done: { label: 'Feito', color: 'bg-success/15 text-success border-success/30' },
+};
+
 function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
   let result = tasks;
   const today = startOfToday();
