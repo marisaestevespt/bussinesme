@@ -512,31 +512,31 @@ export default function OperacaoPage() {
 
   // ── Delivery timeline (next 7 days) — tasks + meetings + project milestones ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null; projectId?: string | null }[] }[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null }[] = [];
+      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null; projectId?: string | null }[] = [];
 
       // Projects
       allActiveProjects.forEach(p => {
         if (p.deadline && format(new Date(p.deadline), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: p.name, type: 'project', id: p.id });
+          items.push({ name: p.name, type: 'project', id: p.id, projectId: p.id });
         }
       });
 
       // Tasks (já incluem entregas auto-geradas)
       tasks.filter(isTaskOpen).forEach(t => {
         if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: t.name, type: 'task', id: t.id, assigneeId: t.assigned_to });
+          items.push({ name: t.name, type: 'task', id: t.id, assigneeId: t.assigned_to, projectId: t.project_id });
         }
       });
 
       // Meetings
       meetings.forEach(m => {
         if (format(new Date(m.date_time), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: m.title, type: 'meeting', id: m.id });
+          items.push({ name: m.title, type: 'meeting', id: m.id, projectId: m.project_id });
         }
       });
 
@@ -548,8 +548,8 @@ export default function OperacaoPage() {
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
     const projName = t.project_id ? projectNameMap.get(t.project_id) : null;
-    return (
-      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm">
+    const content = (
+      <>
         <PriorityDot priority={t.priority} />
         <span className="flex-1 min-w-0 truncate">{t.name}</span>
         <TaskBadge deadline={t.deadline} status={t.status} />
@@ -561,6 +561,18 @@ export default function OperacaoPage() {
             <AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback>
           </Avatar>
         )}
+      </>
+    );
+    if (t.project_id) {
+      return (
+        <Link key={t.id} to={`/hub/projetos/${t.project_id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm cursor-pointer">
+          {content}
+        </Link>
+      );
+    }
+    return (
+      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm">
+        {content}
       </div>
     );
   }
@@ -755,16 +767,16 @@ export default function OperacaoPage() {
                               {day.items.map((item, i) => (
                                 (() => {
                                   const assignee = item.assigneeId ? profileMap.get(item.assigneeId) : null;
-                                  return (
-                                    <div
-                                      key={i}
-                                      className={`text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
-                                        item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
-                                        item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
-                                        'bg-accent/20 text-accent-foreground'
-                                      }`}
-                                      title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}
-                                    >
+                                  const href = item.type === 'meeting'
+                                    ? `/hub/reunioes/${item.id}`
+                                    : item.projectId ? `/hub/projetos/${item.projectId}` : null;
+                                  const className = `text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
+                                    item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
+                                    item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
+                                    'bg-accent/20 text-accent-foreground'
+                                  } ${href ? 'hover:opacity-80 cursor-pointer transition-opacity' : ''}`;
+                                  const inner = (
+                                    <>
                                       {item.type === 'meeting' && <span className="shrink-0 leading-none">📅</span>}
                                       <span className="flex-1 min-w-0 break-words text-left line-clamp-2">{item.name}</span>
                                       {assignee && (
@@ -773,6 +785,18 @@ export default function OperacaoPage() {
                                           <AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback>
                                         </Avatar>
                                       )}
+                                    </>
+                                  );
+                                  if (href) {
+                                    return (
+                                      <Link key={i} to={href} className={className} title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}>
+                                        {inner}
+                                      </Link>
+                                    );
+                                  }
+                                  return (
+                                    <div key={i} className={className} title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}>
+                                      {inner}
                                     </div>
                                   );
                                 })()
