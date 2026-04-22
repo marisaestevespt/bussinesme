@@ -7,6 +7,7 @@ import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen, UserCheck, Packa
 import { CommercialOverview } from '@/components/commercial/CommercialOverview';
 import { Separator } from '@/components/ui/separator';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { DepartmentLinks } from '@/components/shared/DepartmentLinks';
 
 const SECTIONS = [
   { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target, iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
@@ -31,6 +32,8 @@ export default function ComercialPage() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Comercial" subtitle="Gestão comercial, vendas e metas do negócio." />
+
+        <DepartmentLinks department="comercial" />
 
         {/* Annual goal progress bar */}
         <Card className="border-primary/20">

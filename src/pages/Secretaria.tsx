@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { useMyProfile, useMyTeamMember, useMyTasks, useMyProjects, useMyMeetings, useMyOnboarding, greetingText } from '@/components/secretaria/secretaria-shared';
 import { DashboardPersonalWidgets } from '@/components/secretaria/SecretariaWidgets';
 import { KpiSkeleton, CardListSkeleton } from '@/components/ui/loading-skeletons';
+import { DepartmentLinks } from '@/components/shared/DepartmentLinks';
 
 // ─── Lazy-loaded tab components ─────────────────────────────
 const SecretariaDia = lazy(() => import('@/components/secretaria/SecretariaDia'));
@@ -140,6 +141,8 @@ export default function SecretariaPage() {
       <div className="space-y-6">
         <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
         <PageHeader title={`${greetingText()}, ${firstName}.`} subtitle={format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })} />
+
+        <DepartmentLinks department="secretaria" />
 
         {/* Navigation cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
