@@ -22,6 +22,7 @@ const FinSetupFinanceiro = lazy(() => import('@/components/financial/FinSetupFin
 const FinPrevisibilidade = lazy(() => import('@/components/financial/FinPrevisibilidade').then(m => ({ default: m.FinPrevisibilidade })));
 const FinGoals = lazy(() => import('@/components/financial/FinGoals').then(m => ({ default: m.FinGoals })));
 const FinContabilidade = lazy(() => import('@/components/financial/FinContabilidade').then(m => ({ default: m.FinContabilidade })));
+const FinListaProdutos = lazy(() => import('@/components/financial/FinListaProdutos').then(m => ({ default: m.FinListaProdutos })));
 
 const TITLES: Record<string, string> = {
   mensal: 'Mensal',
@@ -32,9 +33,10 @@ const TITLES: Record<string, string> = {
   iva: 'IVA',
   'seguranca-social': 'Segurança Social',
   documentos: 'Documentos',
-  'setup-financeiro': 'Setup Financeiro',
+  'setup-financeiro': 'Lista de Fornecedores',
+  'lista-produtos': 'Lista de Produtos',
   previsibilidade: 'Previsibilidade Financeira',
-  contabilidade: 'Contabilidade',
+  contabilidade: 'Prazos Fiscais',
 };
 
 const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'contabilidade'];
@@ -130,6 +132,8 @@ export default function FinanceiroSubPage() {
       }
       case 'contabilidade':
         return <FinContabilidade currentYear={year} />;
+      case 'lista-produtos':
+        return <FinListaProdutos />;
       default:
         return <EmptyModulePage title={title} />;
     }
