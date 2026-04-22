@@ -17,13 +17,7 @@ const NPS_STATUS_OPTIONS = [
   { value: 'em_atraso', label: 'Em atraso' },
 ];
 
-const CLIENT_STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  ativo: { label: 'Ativo', className: 'bg-success/15 text-success' },
-  em_onboarding: { label: 'Em Onboarding', className: 'bg-info/15 text-info' },
-  em_pausa: { label: 'Em Pausa', className: 'bg-warning/15 text-warning' },
-  churned: { label: 'Churned', className: 'bg-destructive/15 text-destructive' },
-  concluido: { label: 'Concluído', className: 'bg-muted text-muted-foreground' },
-};
+import { getClientStatusInfo } from '@/lib/clientStatus';
 
 interface Props {
   productId: string;
@@ -225,7 +219,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
               <TableBody>
                 {productClients.map((c: any) => {
                   const renewal = getRenewalInfo(c.end_of_cycle);
-                  const st = CLIENT_STATUS_LABELS[c.status] || { label: c.status, className: 'bg-muted text-muted-foreground' };
+                  const st = getClientStatusInfo(c.status);
                   return (
                     <TableRow
                       key={c.id}
@@ -234,7 +228,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
                     >
                       <TableCell className="font-medium">{c.full_name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={st.className}>{st.label}</Badge>
+                        <Badge variant="outline" className={st.color}>{st.label}</Badge>
                       </TableCell>
                       <TableCell>
                         {c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}

@@ -9,11 +9,18 @@
 /** Product types considered "recurring" (monthly retainer-like). */
 export const RECURRING_PRODUCT_TYPES = ['servico_mensal'] as const;
 
+/**
+ * Re-export from canonical clientStatus module to avoid drift.
+ * The previous local list incorrectly included 'cancelado' and 'concluido'
+ * which are project statuses, not client statuses.
+ */
+import { MRR_CLIENT_STATUSES, ARCHIVED_CLIENT_STATUSES } from './clientStatus';
+
 /** Client statuses considered "active" for MRR purposes. */
-export const ACTIVE_CLIENT_STATUSES = ['ativo', 'em_onboarding'] as const;
+export const ACTIVE_CLIENT_STATUSES = MRR_CLIENT_STATUSES;
 
 /** Client statuses that mean the client lifecycle has ended. */
-export const TERMINATED_CLIENT_STATUSES = ['terminado', 'cancelado', 'concluido'] as const;
+export const TERMINATED_CLIENT_STATUSES = ARCHIVED_CLIENT_STATUSES;
 
 /** Threshold above which a single client's revenue share triggers a concentration alert. */
 export const CONCENTRATION_ALERT_PCT = 30;
