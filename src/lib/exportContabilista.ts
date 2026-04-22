@@ -1,81 +1,235 @@
-import { exportCsv } from './exportCsv';
+import * as XLSX from 'xlsx';
 
-const ML = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+const ML = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
 
-export interface ExportData {
+const num = (v: any) => {
+  const n = Number(v);
+  return isFinite(n) ? Math.round(n * 100) / 100 : 0;
+};
+
+export interface ContabilistaExportInput {
   businessName: string;
   label: string;
+  period: { year: number; month?: number };
+  business: any;
   sales: any[];
   expenses: any[];
   documents: any[];
-}
-
-export function buildContabilistaCsv({ businessName, label, sales, expenses, documents }: ExportData) {
-  const salesHeaders = ['Data', 'Descrição', 'Produto', 'Cliente', 'NIF Cliente', 'Valor s/IVA', 'IVA', 'Valor c/IVA', 'Nº Documento'];
-  const salesRows = sales.map(s => [
-    s.payment_date || '', s.description || '', s.product || '', s.client || '', s.client_nif || '',
-    s.base_value, s.invoice_total - s.base_value, s.invoice_total, s.sale_id,
-  ]);
-
-  const expHeaders = ['Data', 'Descrição', 'Categoria', 'Fornecedor', 'Localização', 'Valor s/IVA', 'IVA (%)', 'IVA (€)', 'Valor c/IVA', 'Departamento', 'Nº Documento'];
-  const expRows = expenses.map(e => [
-    e.expense_date || '', e.description || '', e.category || '', e.supplier_name || '',
-    LOC[e.location] || e.location || '', e.base_value, e.vat_rate ?? 0,
-    e.total_with_vat - e.base_value, e.total_with_vat, e.department || '', e.expense_id,
-  ]);
-
-  const totalEnt = sales.reduce((s, v) => s + v.invoice_total, 0);
-  const totalSai = expenses.reduce((s, v) => s + v.total_with_vat, 0);
-
-  const colCount = Math.max(salesHeaders.length, expHeaders.length) + 1;
-  const pad = (arr: any[], len: number) => [...arr, ...Array(Math.max(0, len - arr.length)).fill('')];
-
-  const allHeaders = ['Secção', ...expHeaders];
-  const allRows: (string | number)[][] = [
-    pad(['RESUMO', businessName], colCount),
-    pad(['', 'Período', label], colCount),
-    pad(['', 'Total Entradas', '', '', '', fmt(totalEnt)], colCount),
-    pad(['', 'Total Saídas', '', '', '', fmt(totalSai)], colCount),
-    pad(['', 'Resultado', '', '', '', fmt(totalEnt - totalSai)], colCount),
-    pad([], colCount),
-    pad(['ENTRADAS', ...salesHeaders], colCount),
-    ...salesRows.map(r => pad(['', ...r], colCount)),
-    pad([], colCount),
-    ['SAÍDAS', ...expHeaders],
-    ...expRows.map(r => ['', ...r]),
-  ];
-
-  const bankDocs = documents.filter(d => d.doc_type === 'extrato_bancario');
-  const metaDocs = documents.filter(d => d.doc_type === 'meta_ads_report');
-  const otherDocs = documents.filter(d => d.doc_type !== 'extrato_bancario' && d.doc_type !== 'meta_ads_report');
-
-  if (bankDocs.length > 0) {
-    allRows.push(pad([], colCount));
-    allRows.push(pad(['EXTRATOS BANCÁRIOS', 'Nome', 'Mês', 'URL'], colCount));
-    bankDocs.forEach(d => allRows.push(pad(['', d.document_name || d.title || '', `${d.period_month}/${d.period_year}`, d.document_url || ''], colCount)));
-  }
-  if (metaDocs.length > 0) {
-    allRows.push(pad([], colCount));
-    allRows.push(pad(['RELATÓRIOS META ADS', 'Nome', 'Mês', 'URL'], colCount));
-    metaDocs.forEach(d => allRows.push(pad(['', d.document_name || d.title || '', `${d.period_month}/${d.period_year}`, d.document_url || ''], colCount)));
-  }
-  if (otherDocs.length > 0) {
-    allRows.push(pad([], colCount));
-    allRows.push(pad(['DOCUMENTOS', 'Nome', 'Data'], colCount));
-    otherDocs.forEach(d => allRows.push(pad(['', d.document_name || d.title || '', d.period_start || ''], colCount)));
-  }
-
-  return { headers: allHeaders, rows: allRows };
-}
-
-export function exportContabilistaCsv(data: ExportData) {
-  const { headers, rows } = buildContabilistaCsv(data);
-  const safeLabel = data.label.replace(/\s/g, '_').replace(/[^\w\-_.]/g, '');
-  exportCsv(`contabilidade_${safeLabel}.csv`, headers, rows);
+  payroll: any[];
+  contractors: any[];
+  clients: any[];
+  suppliers: any[];
 }
 
 export function getMonthLabel(year: number, month: number) {
   return `${ML[month - 1]} ${year}`;
+}
+
+function aoa(rows: (string | number | null)[][]) {
+  return XLSX.utils.aoa_to_sheet(rows);
+}
+
+function setColWidths(ws: XLSX.WorkSheet, widths: number[]) {
+  ws['!cols'] = widths.map(w => ({ wch: w }));
+}
+
+export function exportContabilistaExcel(data: ContabilistaExportInput) {
+  const wb = XLSX.utils.book_new();
+  const { businessName, label, business, sales, expenses, documents, payroll, contractors, clients, suppliers } = data;
+
+  const totalEnt = sales.reduce((s, v) => s + num(v.invoice_total), 0);
+  const totalEntBase = sales.reduce((s, v) => s + num(v.base_value), 0);
+  const totalIvaLiq = totalEnt - totalEntBase;
+  const totalSai = expenses.reduce((s, v) => s + num(v.total_with_vat), 0);
+  const totalSaiBase = expenses.reduce((s, v) => s + num(v.base_value), 0);
+  const totalIvaDed = totalSai - totalSaiBase;
+  const totalPayroll = payroll.reduce((s, v) => s + num(v.total_cost), 0);
+  const totalContractors = contractors.reduce((s, v) => s + num(v.value), 0);
+
+  // ─── Folha 1: Resumo ──────────────────────────────
+  const resumo: (string | number | null)[][] = [
+    ['EXPORTAÇÃO PARA CONTABILISTA'],
+    [],
+    ['Negócio', businessName],
+    ['NIF', business?.nif || ''],
+    ['Período', label],
+    ['Data exportação', new Date().toLocaleDateString('pt-PT')],
+    [],
+    ['RESUMO FINANCEIRO'],
+    ['Total Entradas (c/IVA)', totalEnt],
+    ['  Base tributável', totalEntBase],
+    ['  IVA liquidado', totalIvaLiq],
+    [],
+    ['Total Saídas (c/IVA)', totalSai],
+    ['  Base tributável', totalSaiBase],
+    ['  IVA dedutível', totalIvaDed],
+    [],
+    ['Salários (custo total)', totalPayroll],
+    ['Prestadores de serviços', totalContractors],
+    [],
+    ['IVA a entregar / a receber', totalIvaLiq - totalIvaDed],
+    ['Resultado bruto', totalEnt - totalSai - totalPayroll - totalContractors],
+    [],
+    ['CONTAGENS'],
+    ['Nº de vendas', sales.length],
+    ['Nº de despesas', expenses.length],
+    ['Nº de salários', payroll.length],
+    ['Nº de prestadores', contractors.length],
+    ['Nº de clientes', clients.length],
+    ['Nº de fornecedores', suppliers.length],
+    ['Nº de documentos', documents.length],
+  ];
+  const wsResumo = aoa(resumo);
+  setColWidths(wsResumo, [32, 24]);
+  XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+  // ─── Folha 2: Negócio ──────────────────────────────
+  const neg: (string | number | null)[][] = [
+    ['DADOS DO NEGÓCIO'],
+    [],
+    ['Designação', business?.business_legal_name || businessName],
+    ['NIF', business?.nif || ''],
+    ['NISS', business?.niss || ''],
+    ['CAE Principal', business?.cae_principal || ''],
+    ['CAE Secundários', Array.isArray(business?.cae_secundarios) ? business.cae_secundarios.join(', ') : (business?.cae_secundarios || '')],
+    ['Regime Fiscal', business?.regime_fiscal || ''],
+    ['Regime IVA', business?.regime_iva || ''],
+    ['Código CIRS', business?.cirs_code || ''],
+    ['Capital Social', business?.capital_social || ''],
+    ['Morada Fiscal', business?.morada_fiscal || ''],
+    ['Email', business?.business_email || ''],
+    ['Telefone', business?.business_phone || ''],
+    ['Website', business?.business_website || ''],
+    ['IBAN', business?.iban || ''],
+    ['Banco', business?.banco || ''],
+    ['Contabilista', business?.contabilista || ''],
+    ['Contacto contabilista', business?.contabilista_contacto || ''],
+    ['Notas', business?.notas || ''],
+  ];
+  const wsNeg = aoa(neg);
+  setColWidths(wsNeg, [24, 60]);
+  XLSX.utils.book_append_sheet(wb, wsNeg, 'Negócio');
+
+  // ─── Folha 3: Vendas ──────────────────────────────
+  const vendasHeaders = [
+    'Nº Documento', 'Data Pagamento', 'Cliente', 'NIF Cliente', 'Email Cliente', 'Morada Cliente',
+    'Produto', 'Descrição', 'Base s/IVA', 'IVA (€)', 'Total c/IVA',
+    'Método Pagamento', 'Status', 'Fonte', 'Projeto ID', 'Oferta Especial',
+  ];
+  const vendasRows = sales.map(s => {
+    const cli = clients.find(c => c.full_name === s.client) || {};
+    return [
+      s.sale_id || '', s.payment_date || '', s.client || '', cli.nif || '', cli.email || '', cli.fiscal_address || '',
+      s.product || '', s.description || '',
+      num(s.base_value), num(s.invoice_total) - num(s.base_value), num(s.invoice_total),
+      s.payment_method || '', s.status || '', s.source || '', s.project_id || '',
+      s.is_special_offer ? `Sim (${s.special_offer_reason || ''})` : 'Não',
+    ];
+  });
+  vendasRows.push([]);
+  vendasRows.push(['', '', '', '', '', '', '', 'TOTAL', totalEntBase, totalIvaLiq, totalEnt, '', '', '', '', '']);
+  const wsVendas = aoa([vendasHeaders, ...vendasRows]);
+  setColWidths(wsVendas, [12, 12, 24, 12, 24, 30, 18, 28, 12, 10, 12, 16, 12, 14, 12, 18]);
+  XLSX.utils.book_append_sheet(wb, wsVendas, 'Vendas');
+
+  // ─── Folha 4: Despesas ──────────────────────────────
+  const desHeaders = [
+    'Nº Documento', 'Data', 'Descrição', 'Categoria', 'Departamento',
+    'Fornecedor', 'NIF Fornecedor', 'Localização',
+    'Base s/IVA', 'IVA (%)', 'IVA (€)', 'Total c/IVA',
+    'Método Pagamento', 'Recorrente', 'Periodicidade', 'Status',
+  ];
+  const desRows = expenses.map(e => {
+    const sup = suppliers.find(s => s.id === e.supplier_id) || {};
+    return [
+      e.expense_id || '', e.expense_date || '', e.description || e.expense_name || '',
+      e.category || '', e.department || '',
+      e.supplier_name || sup.name || '', sup.nif || '',
+      LOC[e.location] || e.location || '',
+      num(e.base_value), num(e.vat_rate ?? 0),
+      num(e.total_with_vat) - num(e.base_value), num(e.total_with_vat),
+      e.payment_method || '', e.is_recurring ? 'Sim' : 'Não', e.periodicity || '', e.status || '',
+    ];
+  });
+  desRows.push([]);
+  desRows.push(['', '', '', '', '', '', '', 'TOTAL', totalSaiBase, '', totalIvaDed, totalSai, '', '', '', '']);
+  const wsDes = aoa([desHeaders, ...desRows]);
+  setColWidths(wsDes, [12, 12, 28, 16, 14, 22, 12, 12, 12, 8, 10, 12, 16, 10, 14, 12]);
+  XLSX.utils.book_append_sheet(wb, wsDes, 'Despesas');
+
+  // ─── Folha 5: Salários ──────────────────────────────
+  if (payroll.length > 0) {
+    const payHeaders = [
+      'Colaborador', 'Mês', 'Ano',
+      'Salário Bruto', 'Retenção (%)', 'Retenção (€)',
+      'SS Trabalhador', 'SS Empresa', 'Salário Líquido', 'Custo Total', 'Status',
+    ];
+    const payRows = payroll.map(p => [
+      p.collaborator_name || '', p.month || '', p.year || '',
+      num(p.gross_salary), num(p.withholding_rate), num(p.withholding_value),
+      num(p.ss_employee), num(p.ss_employer), num(p.net_salary), num(p.total_cost), p.status || '',
+    ]);
+    payRows.push([]);
+    payRows.push(['TOTAL', '', '', '', '', '', '', '', '', totalPayroll, '']);
+    const wsPay = aoa([payHeaders, ...payRows]);
+    setColWidths(wsPay, [24, 6, 6, 14, 12, 14, 14, 14, 14, 14, 12]);
+    XLSX.utils.book_append_sheet(wb, wsPay, 'Salários');
+  }
+
+  // ─── Folha 6: Prestadores ──────────────────────────────
+  if (contractors.length > 0) {
+    const cHeaders = ['Prestador', 'Mês', 'Ano', 'Serviço', 'Valor', 'Localização', 'Status', 'Nº Documento'];
+    const cRows = contractors.map(c => [
+      c.contractor_name || '', c.month || '', c.year || '',
+      c.service || '', num(c.value), LOC[c.location] || c.location || '',
+      c.status || '', c.expense_id || '',
+    ]);
+    cRows.push([]);
+    cRows.push(['TOTAL', '', '', '', totalContractors, '', '', '']);
+    const wsC = aoa([cHeaders, ...cRows]);
+    setColWidths(wsC, [24, 6, 6, 28, 12, 12, 12, 12]);
+    XLSX.utils.book_append_sheet(wb, wsC, 'Prestadores');
+  }
+
+  // ─── Folha 7: Clientes (envolvidos no período) ──────────
+  if (clients.length > 0) {
+    const cliHeaders = ['ID Cliente', 'Nome', 'NIF', 'Email', 'WhatsApp', 'Morada Fiscal', 'Status', 'Produto Atual'];
+    const cliRows = clients.map(c => [
+      c.client_id || '', c.full_name || '', c.nif || '', c.email || '',
+      c.whatsapp || '', c.fiscal_address || '', c.status || '', c.current_product || '',
+    ]);
+    const wsCli = aoa([cliHeaders, ...cliRows]);
+    setColWidths(wsCli, [12, 24, 12, 24, 16, 30, 12, 18]);
+    XLSX.utils.book_append_sheet(wb, wsCli, 'Clientes');
+  }
+
+  // ─── Folha 8: Fornecedores (envolvidos no período) ──────
+  if (suppliers.length > 0) {
+    const sHeaders = ['Nome', 'NIF', 'Email', 'Telefone', 'Morada', 'Categoria', 'IBAN', 'Método Pagamento', 'IVA Pred. (%)', 'Website'];
+    const sRows = suppliers.map(s => [
+      s.name || '', s.nif || '', s.email || '', s.phone || '',
+      s.address || '', s.category || '', s.iban || '',
+      s.payment_method || '', num(s.default_vat_rate ?? 0), s.website || '',
+    ]);
+    const wsS = aoa([sHeaders, ...sRows]);
+    setColWidths(wsS, [24, 12, 24, 14, 30, 16, 24, 16, 10, 24]);
+    XLSX.utils.book_append_sheet(wb, wsS, 'Fornecedores');
+  }
+
+  // ─── Folha 9: Documentos ──────────────────────────────
+  if (documents.length > 0) {
+    const dHeaders = ['Tipo', 'Nome', 'Período', 'Data', 'Status', 'URL', 'Notas'];
+    const dRows = documents.map(d => [
+      d.doc_type || '', d.document_name || d.title || '',
+      d.period_month && d.period_year ? `${d.period_month}/${d.period_year}` : '',
+      d.period_start || '', d.status || '', d.document_url || '', d.notes || '',
+    ]);
+    const wsD = aoa([dHeaders, ...dRows]);
+    setColWidths(wsD, [20, 28, 12, 12, 12, 50, 28]);
+    XLSX.utils.book_append_sheet(wb, wsD, 'Documentos');
+  }
+
+  const safeLabel = label.replace(/\s/g, '_').replace(/[^\w\-_.]/g, '');
+  XLSX.writeFile(wb, `contabilidade_${safeLabel}.xlsx`);
 }
