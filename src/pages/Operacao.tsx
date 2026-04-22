@@ -688,81 +688,6 @@ export default function OperacaoPage() {
           </Card>
         )}
 
-        {/* À espera do cliente */}
-        {awaitingClient.length > 0 && (() => {
-          const renderItem = (item: WaitItem) => {
-            const inner = (
-              <>
-                <span className="shrink-0">
-                  {item.kind === 'task' ? (
-                    <Clock className="h-3.5 w-3.5 text-info" />
-                  ) : (
-                    <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-                  )}
-                </span>
-                <span className="flex-1 truncate">
-                  <span className="font-medium">{item.name}</span>
-                  {item.projectName && (
-                    <span className="text-muted-foreground"> · {item.projectName}</span>
-                  )}
-                </span>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-[10px] shrink-0',
-                    !item.overdue
-                      ? 'border-muted text-muted-foreground'
-                      : item.daysWaiting > 7
-                      ? 'border-destructive/40 text-destructive'
-                      : 'border-warning/40 text-warning'
-                  )}
-                >
-                  {item.overdue ? `${item.daysWaiting}d atraso` : 'no prazo'}
-                </Badge>
-              </>
-            );
-            const cls =
-              'flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors text-sm w-full text-left';
-            if (item.kind === 'task') {
-              return (
-                <button key={item.id} type="button" onClick={() => setTaskDetailId(item.id)} className={cls}>
-                  {inner}
-                </button>
-              );
-            }
-            return (
-              <Link key={item.id} to={item.projectId ? `/hub/projetos/${item.projectId}` : '/hub/operacao'} className={cls}>
-                {inner}
-              </Link>
-            );
-          };
-
-          return (
-            <Card className="border border-info/30 bg-info/5">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Hourglass className="h-4 w-4 text-info" />
-                  <h3 className="text-sm font-semibold text-info">À espera do cliente</h3>
-                  <Badge variant="outline" className="bg-info/15 text-info border-info/30 text-[10px]">
-                    {awaitingClient.length}
-                  </Badge>
-                </div>
-                <p className="text-[11px] text-muted-foreground mb-2">
-                  Entregas do cliente em aberto e tarefas a aguardar feedback.
-                </p>
-                <div className="space-y-1">
-                  {awaitingClient.slice(0, 8).map(renderItem)}
-                  {awaitingClient.length > 8 && (
-                    <p className="text-[11px] text-muted-foreground pt-1 px-2">
-                      + {awaitingClient.length - 8} a aguardar resposta do cliente
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
-
         {/* Task detail dialog */}
         <Dialog open={!!taskDetailId} onOpenChange={open => !open && setTaskDetailId(null)}>
           <DialogContent className="max-w-md">
@@ -1245,6 +1170,76 @@ export default function OperacaoPage() {
                 ) : filteredClientTasks.map(t => renderTaskRow(t))}
               </CardContent>
             </Card>
+
+            {/* À espera do cliente */}
+            {awaitingClient.length > 0 && (
+              <Card className="border border-info/30 bg-info/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Hourglass className="h-4 w-4 text-info" />
+                    <span className="text-info">À espera do cliente</span>
+                    <Badge variant="outline" className="bg-info/15 text-info border-info/30 text-[10px]">
+                      {awaitingClient.length}
+                    </Badge>
+                  </CardTitle>
+                  <p className="text-[11px] text-muted-foreground">
+                    Entregas do cliente em aberto e tarefas a aguardar feedback.
+                  </p>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-1 max-h-[400px] overflow-y-auto">
+                  {awaitingClient.map(item => {
+                    const inner = (
+                      <>
+                        <span className="shrink-0">
+                          {item.kind === 'task' ? (
+                            <Clock className="h-3.5 w-3.5 text-info" />
+                          ) : (
+                            <AlertTriangle className="h-3.5 w-3.5 text-warning" />
+                          )}
+                        </span>
+                        <span className="flex-1 truncate">
+                          <span className="font-medium">{item.name}</span>
+                          {item.projectName && (
+                            <span className="text-muted-foreground"> · {item.projectName}</span>
+                          )}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'text-[10px] shrink-0',
+                            !item.overdue
+                              ? 'border-muted text-muted-foreground'
+                              : item.daysWaiting > 7
+                              ? 'border-destructive/40 text-destructive'
+                              : 'border-warning/40 text-warning'
+                          )}
+                        >
+                          {item.overdue ? `${item.daysWaiting}d atraso` : 'no prazo'}
+                        </Badge>
+                      </>
+                    );
+                    const cls =
+                      'flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors text-sm w-full text-left';
+                    if (item.kind === 'task') {
+                      return (
+                        <button key={item.id} type="button" onClick={() => setTaskDetailId(item.id)} className={cls}>
+                          {inner}
+                        </button>
+                      );
+                    }
+                    return (
+                      <Link
+                        key={item.id}
+                        to={item.projectId ? `/hub/projetos/${item.projectId}` : '/hub/operacao'}
+                        className={cls}
+                      >
+                        {inner}
+                      </Link>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* ─── TAB INTERNO ─── */}
