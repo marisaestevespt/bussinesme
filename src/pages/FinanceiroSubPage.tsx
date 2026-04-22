@@ -132,6 +132,8 @@ export default function FinanceiroSubPage() {
       }
       case 'contabilidade':
         return <FinContabilidade currentYear={year} />;
+      case 'lista-produtos':
+        return <FinListaProdutos />;
       default:
         return <EmptyModulePage title={title} />;
     }
