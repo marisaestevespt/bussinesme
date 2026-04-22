@@ -475,47 +475,6 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Saídas</CardTitle>
           <div className="flex items-center gap-2">
-            {/* SS inline — compact when already saved */}
-            {ssExpense && !ssEditing ? (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground cursor-pointer hover:bg-muted" onClick={() => setSsEditing(true)}>SS: {fmt(ssExpense.total_with_vat)}</Badge>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">SS</span>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  className="h-7 w-20 text-xs"
-                  value={ssValue}
-                  onChange={e => setSsValue(e.target.value)}
-                />
-                <Button aria-label="Confirmar" size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={async () => {
-                  const val = parseFloat(ssValue) || 0;
-                  if (val <= 0 && !ssExpense) return;
-                  const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
-                  if (ssExpense) {
-                    await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
-                  } else {
-                    await fin.upsertExpense.mutateAsync({
-                      description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
-                      category: 'seguranca_social',
-                      base_value: val,
-                      vat_rate: 0,
-                      total_with_vat: val,
-                      location: 'portugal',
-                      expense_date: dateStr,
-                      expense_month: m,
-                      expense_quarter: Math.ceil(m / 3),
-                      expense_year: currentYear,
-                      status: 'pago_falta_fatura',
-                    } as any);
-                  }
-                  setSsEditing(false);
-                  toast.success('Segurança Social guardada');
-                }}>
-                  <Check className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
             <Button size="sm" variant="outline" onClick={() => setExpOpen(true)}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Saída</Button>
           </div>
         </CardHeader>
