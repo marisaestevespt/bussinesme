@@ -224,10 +224,10 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
         {concentration.alerts.length > 0 && (
           <div className="space-y-1.5">
             {concentration.alerts.map((c, i) => (
-              <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-warning/15 border border-warning/30">
+              <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-background border-2 border-warning/60 shadow-sm">
                 <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-                <p className="text-xs text-warning">
-                  <span className="font-semibold">Atenção</span> — {c.name} representa {c.pct.toFixed(1)}% da receita este mês.
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-warning">Atenção</span> — {c.name} representa {c.pct.toFixed(1)}% da receita este mês.
                 </p>
               </div>
             ))}

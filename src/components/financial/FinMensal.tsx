@@ -726,31 +726,6 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </CardContent>
       </Card>
 
-      {/* IVA Balance */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div className="cursor-pointer hover:opacity-80" onClick={() => setIvaCobradoOpen(true)}>
-              <p className="text-muted-foreground">IVA Cobrado (vendas)</p>
-              <p className="font-semibold underline decoration-dotted underline-offset-2">{fmt(ivaCobrado)}</p>
-            </div>
-            <div className="cursor-pointer hover:opacity-80" onClick={() => setIvaPagoOpen(true)}>
-              <p className="text-muted-foreground">IVA Pago (despesas)</p>
-              <p className="font-semibold underline decoration-dotted underline-offset-2">{fmt(ivaPago)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Balanço</p>
-              <p className={`font-semibold ${ivaBalanco > 0 ? 'text-warning' : ivaBalanco < 0 ? 'text-success' : ''}`}>
-                {fmt(ivaBalanco)}
-                {ivaBalanco > 0 && <Badge variant="outline" className="ml-2 bg-warning/10 text-warning text-[10px]">A entregar</Badge>}
-                {ivaBalanco < 0 && <Badge variant="outline" className="ml-2 bg-success/10 text-success text-[10px]">A recuperar</Badge>}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* IVA Cobrado Detail */}
       <Dialog open={ivaCobradoOpen} onOpenChange={setIvaCobradoOpen}>
         <DialogContent className="max-w-2xl">
