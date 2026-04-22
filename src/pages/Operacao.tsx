@@ -272,8 +272,22 @@ export default function OperacaoPage() {
   const { data: deliverables = [] } = useQuery({
     queryKey: ['op-deliverables'],
     queryFn: async () => {
-      const { data } = await supabase.from('project_deliverables').select('id,name,deadline,status,project_id,assigned_to').neq('status', 'entregue').order('deadline', { ascending: true });
-      return (data || []) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null }[];
+      // Usa planned_end (data planeada de fim) — coluna deadline está deprecated nos entregáveis.
+      // Exclui concluídos/entregues e apenas mostra os com data planeada.
+      const { data } = await supabase
+        .from('project_deliverables')
+        .select('id,name,planned_end,status,project_id,assigned_to')
+        .not('status', 'in', '(concluido,entregue)')
+        .not('planned_end', 'is', null)
+        .order('planned_end', { ascending: true });
+      return (data || []).map(d => ({
+        id: d.id,
+        name: d.name,
+        deadline: d.planned_end as string | null, // alias para reutilizar lógica existente
+        status: d.status,
+        project_id: d.project_id,
+        assigned_to: d.assigned_to,
+      })) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null }[];
     },
   });
 
