@@ -21,7 +21,7 @@ import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users
 import { BackNavigation } from '@/components/BackNavigation';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -41,33 +41,13 @@ import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
+import { useProjectDetailData, calcTotalTime, type ProjectFull, type Profile, type Task, type Meeting } from '@/hooks/useProjectDetailData';
+import { EntregaveisSubPage } from '@/components/project/subpages/EntregaveisSubPage';
+import { CronogramaSubPage } from '@/components/project/subpages/CronogramaSubPage';
+import { OutrasInfoSubPage } from '@/components/project/subpages/OutrasInfoSubPage';
+import { ReunioesSubPage } from '@/components/project/subpages/ReunioesSubPage';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// ─── Types ──────────────────────────────────────────────────────
-
-interface ProjectFull {
-  id: string; name: string; type: string; status: string; department: string | null;
-  departments: string[] | null;
-  client_name: string | null; client_id: string | null;
-  product_id: string | null; product_name: string | null;
-  start_date: string | null; deadline: string | null; progress: number; notes: string | null;
-  objetivo: string | null; diretrizes: string | null; cronograma: string | null; dependencias: string | null;
-  entregaveis: string | null; recursos: string | null; project_notes: string | null;
-  closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
-  created_by: string | null; created_at: string; cover_url: string | null;
-  total_time_minutes: number | null;
-  project_mode: string | null;
-  task_mode: string | null;
-  whatsapp_group_url: string | null;
-  contract_documents: Array<{ name: string; url: string }> | null;
-  payment_method: string | null;
-  payment_config: Record<string, any> | null;
-}
-
-interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
-interface Task { id: string; name: string; status: string; priority: string; deadline: string | null; assigned_to: string | null; project_id: string | null; department: string | null; }
-interface Meeting { id: string; title: string; date_time: string; status: string; project_id: string | null; }
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
@@ -99,163 +79,6 @@ function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
   );
 }
 
-// ─── Entregáveis Sub-Page Component ─────────────────────────────
-
-function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, saving, dirty, onBack }: { projectId: string; entregaveisText: string; onTextChange: (v: string) => void; onSave: () => void; saving: boolean; dirty: boolean; onBack: () => void }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [dragging, setDragging] = useState(false);
-
-  const { data: files = [], refetch } = useQuery({
-    queryKey: ['project-files', projectId],
-    queryFn: async () => {
-      const { data, error } = await supabase.storage.from('project-files').list(projectId, { sortBy: { column: 'created_at', order: 'desc' } });
-      if (error) throw error;
-      return (data || []).filter(f => f.name !== '.emptyFolderPlaceholder');
-    },
-  });
-
-  const uploadFiles = async (fileList: FileList | File[]) => {
-    const arr = Array.from(fileList);
-    if (arr.length === 0) return;
-    setUploading(true);
-    try {
-      for (const file of arr) {
-        const path = `${projectId}/${Date.now()}_${file.name}`;
-        const { error } = await supabase.storage.from('project-files').upload(path, file);
-        if (error) throw error;
-      }
-      toast.success(`${arr.length} ficheiro(s) carregado(s)`);
-      refetch();
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao carregar ficheiro');
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) uploadFiles(e.target.files);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    if (e.dataTransfer.files) uploadFiles(e.dataTransfer.files);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragging(true); };
-  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setDragging(false); };
-
-  const handleDelete = async (fileName: string) => {
-    const { error } = await supabase.storage.from('project-files').remove([`${projectId}/${fileName}`]);
-    if (error) { toast.error(error.message); return; }
-    toast.success('Ficheiro eliminado');
-    refetch();
-  };
-
-  const getFileUrl = (fileName: string) => {
-    const { data } = supabase.storage.from('project-files').getPublicUrl(`${projectId}/${fileName}`);
-    return data.publicUrl;
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const getFileIcon = (name: string) => {
-    const ext = name.split('.').pop()?.toLowerCase() || '';
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return '🖼️';
-    if (['pdf'].includes(ext)) return '📄';
-    if (['doc', 'docx'].includes(ext)) return '📝';
-    if (['xls', 'xlsx', 'csv'].includes(ext)) return '📊';
-    if (['ppt', 'pptx'].includes(ext)) return '📑';
-    if (['zip', 'rar', '7z'].includes(ext)) return '📦';
-    if (['mp4', 'mov', 'avi'].includes(ext)) return '🎬';
-    return '📎';
-  };
-
-  const displayName = (name: string) => name.replace(/^\d+_/, '');
-
-  return (
-    <AppLayout>
-      <div className="space-y-4 max-w-3xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={onBack} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-            <h2 className="text-xl font-bold">Entregáveis</h2>
-          </div>
-          <div>
-            <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
-            <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="gap-1.5">
-              <Upload className="h-3.5 w-3.5" /> {uploading ? 'A carregar...' : 'Carregar ficheiros'}
-            </Button>
-          </div>
-        </div>
-
-        {/* Notes / links / text area */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block">Notas, links e descrição dos entregáveis</Label>
-          <MentionTextarea
-            value={entregaveisText}
-            onChange={onTextChange}
-            rows={6}
-            placeholder="Descreve os entregáveis, adiciona links, referências..."
-          />
-        </div>
-
-        {dirty && <Button onClick={onSave} disabled={saving} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
-
-        <Separator />
-
-        {/* Files section */}
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-        >
-          <Label className="text-xs text-muted-foreground mb-2 block">Ficheiros</Label>
-          {files.length === 0 ? (
-            <div className={cn("flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl transition-colors cursor-pointer", dragging ? "border-primary bg-primary/5" : "border-border")} onClick={() => fileInputRef.current?.click()}>
-              <Upload className={cn("h-10 w-10 mb-3 transition-colors", dragging ? "text-primary" : "text-muted-foreground")} />
-              <p className="text-sm text-muted-foreground">{dragging ? 'Larga os ficheiros aqui' : 'Arrasta ficheiros ou clica para carregar'}</p>
-              <p className="text-xs text-muted-foreground mt-1">Suporta qualquer tipo de ficheiro</p>
-            </div>
-          ) : (
-            <>
-              <div className={cn("border rounded-lg divide-y divide-border mb-3", dragging && "ring-2 ring-primary")}>
-              {files.map(f => (
-                <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/60 border border-border/50 transition-colors">
-                  <span className="text-lg">{getFileIcon(f.name)}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{displayName(f.name)}</p>
-                    <p className="text-xs text-muted-foreground">{f.metadata?.size ? formatFileSize(f.metadata.size) : ''} {f.created_at ? `• ${format(new Date(f.created_at), 'd MMM yyyy', { locale: pt })}` : ''}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <a href={getFileUrl(f.name)} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Download className="h-4 w-4" /></Button>
-                    </a>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(f.name)}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </div>
-              ))}
-              </div>
-              {dragging && (
-                <div className="flex items-center justify-center py-4 text-sm text-primary font-medium border-2 border-dashed border-primary rounded-lg bg-primary/5">
-                  <Upload className="h-4 w-4 mr-2" /> Larga os ficheiros aqui
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </AppLayout>
-  );
-}
-
 // ─── Main Component ─────────────────────────────────────────────
 
 export default function ProjetoDetailPage() {
@@ -281,142 +104,33 @@ export default function ProjetoDetailPage() {
   // Members dialog
   const [membersDialogOpen, setMembersDialogOpen] = useState(false);
 
-  // Projects list for MeetingFormDialog
-  const { data: allProjectsForMeeting = [] } = useQuery({
-    queryKey: ['projects-for-meetings'],
-    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name'); return (data || []) as ProjectOption[]; },
-  });
-
-  const { data: project, isLoading } = useQuery({
-    queryKey: ['project', id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('*').eq('id', id!).maybeSingle();
-      if (error) throw error;
-      return data as unknown as ProjectFull;
-    },
-    enabled: !!id,
-  });
-
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
-    queryFn: async () => { const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url'); return (data || []) as Profile[]; },
-  });
-
-  const { data: teamMembersPhotos = [] } = useQuery({
-    queryKey: ['team-members-photos'],
-    queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('profile_id, full_name, photo_url');
-      return (data || []) as { profile_id: string | null; full_name: string; photo_url: string | null }[];
-    },
-  });
-
-  const { data: projectMembers = [] } = useQuery({
-    queryKey: ['project-members', id],
-    queryFn: async () => { const { data } = await supabase.from('project_members').select('profile_id').eq('project_id', id!); return (data || []).map((d: any) => d.profile_id as string); },
-    enabled: !!id,
-  });
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['project-tasks', id],
-    queryFn: async () => { const { data } = await supabase.from('tasks').select('*').eq('project_id', id!).order('created_at'); return (data || []) as Task[]; },
-    enabled: !!id,
-  });
-
-  const { data: clientsList = [] } = useQuery({
-    queryKey: ['clients_list'],
-    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name').order('full_name'); return data || []; },
-  });
-
-  // Project cost calculation: time_entries × team_members.hourly_cost
-  const { data: projectCost = 0 } = useQuery({
-    queryKey: ['project-cost', id],
-    queryFn: async () => {
-      // Get time entries for this project (direct + via tasks)
-      const { data: directEntries } = await supabase
-        .from('time_entries')
-        .select('duration, member_id')
-        .eq('project_id', id!);
-
-      const { data: taskIds } = await supabase
-        .from('tasks').select('id').eq('project_id', id!);
-
-      let taskEntries: { duration: number; member_id: string | null }[] = [];
-      if (taskIds && taskIds.length > 0) {
-        const { data } = await supabase
-          .from('time_entries')
-          .select('duration, member_id')
-          .in('task_id', taskIds.map(t => t.id));
-        taskEntries = (data || []) as any[];
-      }
-
-      const allEntries = [...(directEntries || []), ...taskEntries] as { duration: number; member_id: string | null }[];
-      if (allEntries.length === 0) return 0;
-
-      // Get unique member IDs
-      const memberIds = [...new Set(allEntries.filter(e => e.member_id).map(e => e.member_id!))];
-      const { data: members } = memberIds.length > 0
-        ? await supabase.from('team_members').select('id, hourly_cost').in('id', memberIds)
-        : { data: [] };
-      const costMap = new Map((members || []).map((m: any) => [m.id, m.hourly_cost || 0]));
-
-      return allEntries.reduce((sum, e) => {
-        const hours = (e.duration || 0) / 60;
-        const cost = e.member_id ? (costMap.get(e.member_id) || 0) : 0;
-        return sum + hours * cost;
-      }, 0);
-    },
-    enabled: !!id,
-  });
-
-  const { data: clientForProject } = useQuery({
-    queryKey: ['client-by-name', project?.client_id, project?.client_name],
-    queryFn: async () => {
-      if (project!.client_id) return { id: project!.client_id };
-      const { data } = await supabase.from('clients').select('id').eq('full_name', project!.client_name!).maybeSingle();
-      return data as { id: string } | null;
-    },
-    enabled: !!(project?.client_id || project?.client_name),
-  });
-  const resolvedClientId = clientForProject?.id;
-
-  const { data: projectPhases = [] } = useQuery({
-    queryKey: ['project-phases', id],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('project_phases').select('*').eq('project_id', id!).order('sort_order');
-      return (data || []) as { status: string }[];
-    },
-    enabled: !!id,
-  });
-
-  const { data: projectDeliverables = [] } = useQuery({
-    queryKey: ['project-deliverables', id],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from('project_deliverables').select('*').eq('project_id', id!).order('sort_order');
-      return (data || []) as { status: string }[];
-    },
-    enabled: !!id,
-  });
-
-  // Monthly tasks for recorrente serviço mensal progress
+  // Compute monthly window (used by data hook for recorrente mensal projects)
   const isServicoMensal = local?.type === 'cliente_servico_mensal';
   const isRecorrenteMensal = isServicoMensal && (local as any)?.project_mode === 'recorrente';
   const now = new Date();
   const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
 
-  const { data: monthlyTasks = [] } = useQuery({
-    queryKey: ['project-monthly-tasks', id, monthStart],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('tasks')
-        .select('id, status, deadline')
-        .eq('project_id', id!)
-        .gte('deadline', monthStart)
-        .lte('deadline', monthEnd);
-      return (data || []) as { id: string; status: string; deadline: string }[];
-    },
-    enabled: !!id && isRecorrenteMensal,
-  });
+  // Aggregated data hook: 11 queries + 2 mutations extraídos para reduzir 200+ linhas
+  const {
+    allProjectsForMeeting,
+    project,
+    isLoading,
+    profiles,
+    teamMembersPhotos,
+    projectMembers,
+    tasks,
+    clientsList,
+    projectCost,
+    clientForProject,
+    projectPhases,
+    projectDeliverables,
+    monthlyTasks,
+    meetings,
+    toggleMember,
+    deleteMutation,
+  } = useProjectDetailData(id, { isRecorrenteMensal, monthStart, monthEnd });
+  const resolvedClientId = clientForProject?.id;
 
   function getProjectProgress() {
     // Recorrente mensal: progress by current month tasks
@@ -472,12 +186,6 @@ export default function ProjetoDetailPage() {
 
   const formatCost = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k €` : `${v.toFixed(0)} €`;
 
-  const { data: meetings = [] } = useQuery({
-    queryKey: ['project-meetings', id],
-    queryFn: async () => { const { data } = await supabase.from('meetings').select('id, title, date_time, status, project_id').eq('project_id', id!).order('date_time'); return (data || []) as Meeting[]; },
-    enabled: !!id,
-  });
-
   const teamPhotoByProfileId = new Map(
     teamMembersPhotos
       .filter((t) => t.profile_id && t.photo_url)
@@ -521,23 +229,6 @@ export default function ProjetoDetailPage() {
     return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
   }, [dirty, local]);
 
-  const calcTotalTime = async (projectId: string) => {
-    // Sum time from time_entries directly linked to project
-    const { data: directTime } = await supabase.from('time_entries').select('duration').eq('project_id', projectId);
-    // Sum time from time_entries linked to project tasks
-    const { data: taskIds } = await supabase.from('tasks').select('id').eq('project_id', projectId);
-    let taskTime: { duration: number }[] = [];
-    if (taskIds && taskIds.length > 0) {
-      const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
-      taskTime = (data || []) as { duration: number }[];
-    }
-    // Sum meeting durations linked to project
-    const { data: meetingDurations } = await supabase.from('meetings').select('duration_minutes').eq('project_id', projectId);
-    const meetingTime = (meetingDurations || []).reduce((sum, m) => sum + ((m as any).duration_minutes || 0), 0);
-    const timeEntryTotal = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
-    return timeEntryTotal + meetingTime;
-  };
-
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!local) return;
@@ -563,28 +254,6 @@ export default function ProjetoDetailPage() {
       if (error) throw error;
     },
     onSuccess: () => { setDirty(false); queryClient.invalidateQueries({ queryKey: ['project', id] }); toast.success('Guardado'); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const toggleMember = useMutation({
-    mutationFn: async (profileId: string) => {
-      const isMember = projectMembers.includes(profileId);
-      if (isMember) {
-        await supabase.from('project_members').delete().eq('project_id', id!).eq('profile_id', profileId);
-      } else {
-        await supabase.from('project_members').insert({ project_id: id!, profile_id: profileId } as any);
-      }
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-members', id] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('projects').delete().eq('id', id!);
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['projects'] }); toast.success('Projeto eliminado'); navigate('/hub/projetos'); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -670,110 +339,39 @@ export default function ProjetoDetailPage() {
 
   // ─── Cronograma sub-page (table with Macro + Prazo) ──────────
   if (subPage === 'cronograma') {
-    // Parse cronograma JSON or init empty rows
-    let rows: { macro: string; prazo: string }[] = [];
-    try { rows = local.cronograma ? JSON.parse(local.cronograma) : []; } catch { rows = []; }
-    if (rows.length === 0) rows = [{ macro: '', prazo: '' }];
-
-    const updateRows = (newRows: { macro: string; prazo: string }[]) => {
-      updateField('cronograma', JSON.stringify(newRows));
-    };
-
     return (
-      <AppLayout>
-        <div className="space-y-4 max-w-3xl">
-          <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-          <h2 className="text-xl font-bold">Cronograma Geral</h2>
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader><TableRow><TableHead>Macro</TableHead><TableHead className="w-[180px]">Prazo</TableHead><TableHead className="w-[40px]" /></TableRow></TableHeader>
-              <TableBody>
-                {rows.map((row, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Input value={row.macro} onChange={e => { const r = [...rows]; r[i] = { ...r[i], macro: e.target.value }; updateRows(r); }} placeholder="Ex: Fase de pesquisa" className="border-0 focus-visible:ring-0 px-0" /></TableCell>
-                    <TableCell><Input type="date" value={row.prazo} onChange={e => { const r = [...rows]; r[i] = { ...r[i], prazo: e.target.value }; updateRows(r); }} className="border-0 focus-visible:ring-0 px-0" /></TableCell>
-                    <TableCell><button onClick={() => { const r = rows.filter((_, j) => j !== i); updateRows(r.length ? r : [{ macro: '', prazo: '' }]); }} className="text-muted-foreground hover:text-destructive text-xs">✕</button></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => updateRows([...rows, { macro: '', prazo: '' }])} className="gap-1"><Plus className="h-3.5 w-3.5" /> Adicionar linha</Button>
-          {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
-        </div>
-      </AppLayout>
+      <CronogramaSubPage
+        cronogramaJson={local.cronograma}
+        onChange={v => updateField('cronograma', v)}
+        onBack={() => setSubPage(null)}
+        onSave={() => saveMutation.mutate()}
+        saving={saveMutation.isPending}
+        dirty={dirty}
+      />
     );
   }
-  // ─── Outras Informações sub-page ────────────────────────────────
   if (subPage === 'outras_info') {
     return (
-      <AppLayout>
-        <div className="space-y-4 max-w-3xl">
-          <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-          <h2 className="text-xl font-bold">Outras Informações</h2>
-          <MentionTextarea
-            value={(local.project_notes as string) || ''}
-            onChange={v => updateField('project_notes', v)}
-            rows={12}
-            placeholder="Informações adicionais sobre o projeto..."
-          />
-          {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
-        </div>
-      </AppLayout>
+      <OutrasInfoSubPage
+        value={(local.project_notes as string) || ''}
+        onChange={v => updateField('project_notes', v)}
+        onBack={() => setSubPage(null)}
+        onSave={() => saveMutation.mutate()}
+        saving={saveMutation.isPending}
+        dirty={dirty}
+      />
     );
   }
-
-  // ─── Reuniões sub-page (table view like Reunioes page) ────────
   if (subPage === 'reunioes') {
-    const MEETING_STATUSES = [
-      { value: 'por_organizar', label: 'Por organizar', color: '#3b82f6' },
-      { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
-      { value: 'confirmada', label: 'Confirmada', color: '#22c55e' },
-      { value: 'realizada', label: 'Realizada', color: '#8b5cf6' },
-      { value: 'terminada', label: 'Terminada', color: '#6b7280' },
-      { value: 'cancelada', label: 'Cancelada', color: '#ef4444' },
-    ];
-    const getMeetingStatusInfo = (s: string) => MEETING_STATUSES.find(x => x.value === s) || MEETING_STATUSES[0];
-
     return (
-      <AppLayout>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-              <h2 className="text-xl font-bold">Reuniões do Projeto</h2>
-            </div>
-            <Button size="sm" onClick={() => setMeetingDialogOpen(true)} className="gap-1.5"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>
-          </div>
-          {meetings.length === 0 ? (
-            <p className="text-center text-muted-foreground py-12">Nenhuma reunião ligada a este projeto.</p>
-          ) : (
-            <div className="border rounded-lg overflow-hidden divide-y divide-border">
-              <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
-                <div className="col-span-4">Reunião</div>
-                <div className="col-span-3">Data / Hora</div>
-                <div className="col-span-2">Status</div>
-                <div className="col-span-3">Participantes</div>
-              </div>
-              {meetings.map(m => {
-                const ms = getMeetingStatusInfo(m.status);
-                return (
-                  <button key={m.id} onClick={() => navigate(`/hub/reunioes/${m.id}`)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
-                    <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
-                    <div className="col-span-3 text-muted-foreground">{format(new Date(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}</div>
-                    <div className="col-span-2">
-                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${ms.color}20`, color: ms.color }}>{ms.label}</span>
-                    </div>
-                    <div className="col-span-3">
-                      <div className="flex -space-x-1">{projectMembers.slice(0, 5).map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}{projectMembers.length > 5 && <span className="text-xs text-muted-foreground ml-2">+{projectMembers.length - 5}</span>}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </AppLayout>
+      <ReunioesSubPage
+        meetings={meetings}
+        projectMembers={projectMembers}
+        profileMap={profileMap}
+        getPhotoUrl={getPhotoUrl}
+        onBack={() => setSubPage(null)}
+        onNewMeeting={() => setMeetingDialogOpen(true)}
+      />
     );
   }
 
