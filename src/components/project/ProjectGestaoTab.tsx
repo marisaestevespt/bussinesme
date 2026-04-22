@@ -41,13 +41,7 @@ const PAYMENT_FORMS = [
   { value: 'subscricao', label: 'Subscrição' },
 ];
 
-const PAYMENT_METHOD_OPTIONS = [
-  { value: 'transferencia', label: 'Transferência Bancária' },
-  { value: 'cartao', label: 'Cartão de Crédito/Débito' },
-  { value: 'debito_direto', label: 'Débito Direto' },
-  { value: 'mbway', label: 'MB WAY' },
-  { value: 'multibanco', label: 'Multibanco' },
-];
+import { PAYMENT_METHOD_OPTIONS } from '@/lib/salesConstants';
 
 const SUBSCRIPTION_PERIODICITIES = [
   { value: 'mensal', label: 'Mensal' },
