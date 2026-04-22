@@ -613,12 +613,11 @@ export default function OperacaoPage() {
               if (!p) return null;
               const pTasks = tasks.filter(t => t.project_id === p.id && isTaskOpen(t));
               const pOverdueTasks = pTasks.filter(t => isTaskOverdue(t, today));
-              const pOverdueDeliverables = deliverables.filter(d => d.project_id === p.id && d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue');
               const pUnassigned = pTasks.filter(t => !t.assigned_to);
               const hp = projectHealth.find(h => h.id === p.id);
               const healthLabel = hp?.health === 'red' ? 'Em risco' : hp?.health === 'yellow' ? 'Atenção' : 'Em dia';
               const healthColor = hp?.health === 'red' ? 'text-destructive' : hp?.health === 'yellow' ? 'text-warning' : 'text-success';
-              const hasIssues = pOverdueTasks.length > 0 || pOverdueDeliverables.length > 0 || pUnassigned.length > 0;
+              const hasIssues = pOverdueTasks.length > 0 || pUnassigned.length > 0;
 
               return (
                 <>
@@ -649,24 +648,6 @@ export default function OperacaoPage() {
                             <PriorityDot priority={t.priority} />
                             <span className="flex-1 truncate">{t.name}</span>
                             <span className="text-[10px] text-destructive shrink-0">{format(new Date(t.deadline!), 'dd/MM')}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {pOverdueDeliverables.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
-                        <AlertTriangle className="h-4 w-4 text-destructive" /> Entregas atrasadas
-                        <Badge variant="destructive" className="text-[10px]">{pOverdueDeliverables.length}</Badge>
-                      </h4>
-                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
-                        {pOverdueDeliverables.map(d => (
-                          <div key={d.id} className="flex items-center gap-2 py-1.5 px-3 rounded-md bg-destructive/5 text-sm">
-                            <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
-                            <span className="flex-1 truncate">{d.name}</span>
-                            <span className="text-[10px] text-destructive shrink-0">{format(new Date(d.deadline!), 'dd/MM')}</span>
                           </div>
                         ))}
                       </div>
