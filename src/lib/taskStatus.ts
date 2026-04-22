@@ -37,6 +37,20 @@ export function getTaskStatusInfo(value: string | null | undefined) {
   return TASK_STATUSES.find(s => s.value === value) || TASK_STATUSES[0];
 }
 
+/**
+ * CANONICAL task priorities.
+ * Stored values in DB: 'alta' | 'media' | 'baixa'. Displayed as P1 / P2 / P3.
+ */
+export const TASK_PRIORITIES = [
+  { value: 'alta',  label: 'Prioridade 1', short: 'P1', color: 'bg-destructive/15 text-destructive border-destructive/30' },
+  { value: 'media', label: 'Prioridade 2', short: 'P2', color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'baixa', label: 'Prioridade 3', short: 'P3', color: 'bg-muted text-muted-foreground border-border' },
+] as const;
+
+export function getTaskPriorityInfo(value: string | null | undefined) {
+  return TASK_PRIORITIES.find(p => p.value === value) || TASK_PRIORITIES[2];
+}
+
 /** Status values that mean "completed". */
 export const DONE_STATUSES = ['done', 'concluida', 'concluído', 'concluido', 'completed'] as const;
 

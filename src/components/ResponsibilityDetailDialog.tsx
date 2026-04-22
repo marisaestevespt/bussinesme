@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { UnifiedItem } from '@/hooks/useUnifiedResponsibilities';
 import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
-import { TASK_STATUSES as CANON_TASK_STATUSES } from '@/lib/taskStatus';
+import { TASK_STATUSES as CANON_TASK_STATUSES, getTaskPriorityInfo } from '@/lib/taskStatus';
 
 // Use the canonical task statuses so badges/dropdowns match the Tarefas page.
 const TASK_STATUSES = CANON_TASK_STATUSES;
@@ -135,7 +135,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
         </Badge>
         {task.priority && (
           <Badge variant="outline" className="text-xs">
-            Prioridade: {task.priority === 'alta' ? 'Alta' : task.priority === 'media' ? 'Média' : 'Baixa'}
+            {getTaskPriorityInfo(task.priority).label}
           </Badge>
         )}
         {(task as any).profiles?.full_name && (
