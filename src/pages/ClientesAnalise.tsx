@@ -21,6 +21,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { isDeliverableDone } from '@/lib/projectProgress';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -142,7 +143,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     const d = new Date(m.expected_date);
     return d.getMonth() + 1 === month && d.getFullYear() === year;
   });
-  const monthMilestonesDone = monthMilestonesExpected.filter(m => m.status === 'concluido');
+  const monthMilestonesDone = monthMilestonesExpected.filter(isDeliverableDone);
 
   // ─── NPS (global, not filtered by month) ───
   const latestNpsByClient = useMemo(() => {

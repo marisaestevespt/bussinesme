@@ -538,7 +538,7 @@ export default function PortalViewPage() {
                       {onboarding.map((phase: any, i: number) => {
                         const dels = phase.deliverables || [];
                         const done = isPhaseComplete(phase);
-                        const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
+                        const completedDels = dels.filter(isDeliverableDone).length;
                         return (
                           <div
                             key={phase.id}
@@ -576,7 +576,7 @@ export default function PortalViewPage() {
                           const phase = onboarding.find((p: any) => p.id === expandedOnbStep);
                           if (!phase) return null;
                           const dels = phase.deliverables || [];
-                          const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
+                          const completedDels = dels.filter(isDeliverableDone).length;
                           const done = isPhaseComplete(phase);
                           return (
                             <>
@@ -600,7 +600,7 @@ export default function PortalViewPage() {
                               {dels.length > 0 && (
                                 <div className="space-y-2 mt-2">
                                   {dels.map((d: any) => {
-                                    const dDone = d.status === 'concluido' || d.status === 'concluida';
+                                    const dDone = isDeliverableDone(d);
                                     const isClient = (d.responsible_type || 'equipa') === 'cliente';
                                     return (
                                       <div key={d.id} className={`flex items-start gap-3 p-3 rounded-lg border ${dDone ? 'bg-muted/30 border-border/20' : 'bg-background border-border/40'} ${isClient && !dDone ? 'cursor-pointer hover:border-primary/40' : ''}`}
@@ -940,7 +940,7 @@ export default function PortalViewPage() {
                       {/* Phase timeline */}
                       <div className="space-y-4">
                         {phases.map((p: any, i: number) => {
-                          const isDone = p.status === 'concluido' || p.status === 'concluida';
+                          const isDone = isPhaseDone(p);
                           const isActive = p.status === 'em_curso';
                           const deliverables = Array.isArray(p.deliverables) ? p.deliverables : [];
                           return (
