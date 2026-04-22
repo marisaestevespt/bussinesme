@@ -22,6 +22,15 @@ export function ExportContabilistaButton({ year, month }: Props) {
   const fin = useFinancialData({ expenses: true, recurring: false, documents: true, payroll: true, contractors: true });
   const com = useCommercialData(year);
 
+  const { data: businessSetup } = useQuery({
+    queryKey: ['business-setup-export-contabilista'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup').select('*').limit(1).maybeSingle();
+      return data;
+    },
+  });
+  const business: any = { ...(businessSetup || {}), ...(settings || {}), ...(businessSetup || {}) };
+
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
   const documents = fin.documents.data || [];
@@ -78,7 +87,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
   }, [suppliersAll, monthExpenses]);
 
   const label = getMonthLabel(year, month);
-  const businessName = settings?.business_name || settings?.business_legal_name || 'Negócio';
+  const businessName = (settings as any)?.business_name || business?.business_legal_name || 'Negócio';
 
   const totalEnt = monthSales.reduce((s, v) => s + v.invoice_total, 0);
   const totalEntBase = monthSales.reduce((s, v) => s + (v.base_value || 0), 0);
@@ -90,7 +99,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
   const handleExcel = () => {
     exportContabilistaExcel({
       businessName, label, period: { year, month },
-      business: settings,
+      business,
       sales: monthSales, expenses: monthExpenses, documents: monthDocs,
       payroll: monthPayroll, contractors: monthContractors,
       clients: involvedClients, suppliers: involvedSuppliers,
