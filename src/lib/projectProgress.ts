@@ -14,6 +14,44 @@ export const PHASE_IN_PROGRESS_STATUSES = ['em_curso', 'em_progresso', 'in_progr
 
 export const PROJECT_DONE_STATUSES = ['concluido', 'concluida', 'completed', 'done'] as const;
 
+/* ---------- Display info (single source of truth for badges & dropdowns) ---------- */
+
+/**
+ * Canonical deliverable statuses with labels & colors.
+ * Matches the values written by the DB triggers `sync_task_status_to_deliverable`
+ * and `update_project_progress`.
+ */
+export const DELIVERABLE_STATUSES = [
+  { value: 'pendente',         label: 'Pendente',         color: 'bg-muted text-muted-foreground border-border' },
+  { value: 'em_progresso',     label: 'Em progresso',     color: 'bg-info/15 text-info border-info/30' },
+  { value: 'aguarda_cliente',  label: 'Aguarda cliente',  color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'concluido',        label: 'Concluído',        color: 'bg-success/15 text-success border-success/30' },
+] as const;
+
+export type DeliverableStatus = typeof DELIVERABLE_STATUSES[number]['value'];
+
+export function getDeliverableStatusInfo(value: string | null | undefined) {
+  return DELIVERABLE_STATUSES.find(s => s.value === value)
+      || { value: value || 'pendente', label: value || 'Pendente', color: 'bg-muted text-muted-foreground border-border' };
+}
+
+/**
+ * Canonical phase statuses with labels & colors.
+ * Matches the values written by `update_project_progress` and project_phases UI.
+ */
+export const PHASE_STATUSES = [
+  { value: 'pendente',  label: 'Pendente',  color: 'bg-muted text-muted-foreground border-border' },
+  { value: 'em_curso',  label: 'Em curso',  color: 'bg-info/15 text-info border-info/30' },
+  { value: 'concluida', label: 'Concluída', color: 'bg-success/15 text-success border-success/30' },
+] as const;
+
+export type PhaseStatus = typeof PHASE_STATUSES[number]['value'];
+
+export function getPhaseStatusInfo(value: string | null | undefined) {
+  return PHASE_STATUSES.find(s => s.value === value)
+      || { value: value || 'pendente', label: value || 'Pendente', color: 'bg-muted text-muted-foreground border-border' };
+}
+
 export interface DeliverableLike {
   status?: string | null;
   phase_id?: string | null;
