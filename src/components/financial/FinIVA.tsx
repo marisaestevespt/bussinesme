@@ -69,17 +69,24 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
         return { loc, totalComIva, totalSemIva, iva: Math.round((totalComIva - totalSemIva) * 100) / 100 };
       });
       const totalIvaPago = byLoc.reduce((s, l) => s + l.iva, 0);
-      return { mes: FULL[i], byLoc, totalIvaPago, expenses: me };
+      // IVA a deduzir: usa vat_deductible_amount se preenchido, senão assume 100% (= IVA pago)
+      const totalIvaDeduzir = me.reduce((s, e) => {
+        const ivaPago = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
+        const dedutivel = (e as any).vat_deductible_amount;
+        return s + (dedutivel != null ? Number(dedutivel) : ivaPago);
+      }, 0);
+      return { mes: FULL[i], byLoc, totalIvaPago, totalIvaDeduzir: Math.round(totalIvaDeduzir * 100) / 100, expenses: me };
     });
   }, [expenses, currentYear]);
 
-  // Balanço IVA
+  // Balanço IVA = IVA Cobrado − IVA a Deduzir (não IVA pago)
   const balanco = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const cobrado = ivaCobrado[i].iva;
       const pago = ivaPago[i].totalIvaPago;
-      const bal = Math.round((cobrado - pago) * 100) / 100;
-      return { mes: FULL[i], cobrado, pago, balanco: bal };
+      const deduzir = ivaPago[i].totalIvaDeduzir;
+      const bal = Math.round((cobrado - deduzir) * 100) / 100;
+      return { mes: FULL[i], cobrado, pago, deduzir, balanco: bal };
     });
   }, [ivaCobrado, ivaPago]);
 
@@ -103,6 +110,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
 
   const totalCobrado = balanco.reduce((s, d) => s + d.cobrado, 0);
   const totalPago = balanco.reduce((s, d) => s + d.pago, 0);
+  const totalDeduzir = balanco.reduce((s, d) => s + d.deduzir, 0);
   const totalBalanco = balanco.reduce((s, d) => s + d.balanco, 0);
 
   // Detail data for popups
@@ -110,9 +118,9 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const pagoDetail = pagoMonth !== null ? ivaPago[pagoMonth] : null;
 
   const handleExportCsv = () => {
-    const headers = ['Mês', 'IVA Cobrado', 'IVA Pago', 'Balanço'];
-    const rows = balanco.map(b => [b.mes, b.cobrado, b.pago, b.balanco]);
-    rows.push(['TOTAL', totalCobrado, totalPago, totalBalanco]);
+    const headers = ['Mês', 'IVA Cobrado', 'IVA Pago', 'IVA a Deduzir', 'Balanço'];
+    const rows = balanco.map(b => [b.mes, b.cobrado, b.pago, b.deduzir, b.balanco]);
+    rows.push(['TOTAL', totalCobrado, totalPago, totalDeduzir, totalBalanco]);
     exportCsv(`iva_${currentYear}.csv`, headers, rows);
     toast.success('CSV exportado');
   };
