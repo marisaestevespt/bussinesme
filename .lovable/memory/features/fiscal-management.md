@@ -15,6 +15,8 @@ type: feature
 
 ## Has Accountant (business_settings.has_accountant)
 - Forced true when contabilidade_organizada
+- Always requires `accountant_member_id` (member of the team, with or without account access)
+- The accountant is always a service provider (contrato_prestacao). No "internal/external" distinction — `accountant_type` column kept in DB but unused.
 - When true + contabilidade_organizada: IVA/SS pages become informational guides (not hidden)
 
 ## ENI First Year Rules
@@ -37,8 +39,11 @@ type: feature
 - contabilidade_organizada: IVA/SS pages SHOWN as informational guides
 - team_type='externa' → Ordenados page hidden
 
-## Has Accountant — Fiscal Deadlines
-When has_accountant=true, ALL SS and IVA deadlines are hidden (computeFiscalDeadlines + edge function digest). Only IRS remains visible (still belongs to the natural person). Rationale: with an accountant, fiscal obligations are no longer the user's daily concern. FinPrevisibilidade also forces SS/IVA estimates to 0 € when has_accountant=true (accountantManagesFiscal flag).
+## Has Accountant — Behaviour
+Tudo continua visível mesmo com contabilista (prazos SS/IVA, estimativas em previsibilidade, checklist mensal). A ÚNICA diferença é que **não se criam tarefas fiscais automaticamente** (nem no botão "Criar tarefa" assignment, nem no daily-status-update edge function), porque o contabilista gere isso internamente. As declarações em FinContabilidade aparecem atribuídas ao membro contabilista (em vez de Owner).
+
+## Contract type lock
+If a member is set as the accountant (`business_settings.accountant_member_id`), `useMemberSave` blocks changing their contract type away from `contrato_prestacao`. User must remove them as accountant in Definições > Fiscal first.
 
 ## SS Type Logic
 - independente: 21.4% on 70% of revenue (rendimento relevante)
