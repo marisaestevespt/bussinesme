@@ -344,7 +344,7 @@ export function FinContabilidade({ currentYear }: Props) {
                   {deadlines.map(dl => {
                     const isCompleted = completedKeys.has(dl.key);
                     const status = isCompleted ? 'done' : getDeadlineStatus(dl.date, todayStr);
-                    const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantMember?.full_name
+                    const assigneeName = hasAccountant && accountantMember?.full_name
                       ? accountantMember.full_name
                       : 'Owner';
                     return (
