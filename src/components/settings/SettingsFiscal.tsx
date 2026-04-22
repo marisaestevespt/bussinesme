@@ -59,7 +59,6 @@ export function SettingsFiscal() {
   const [ssType, setSsType] = useState('independente');
   const [teamType, setTeamType] = useState('externa');
   const [hasAccountant, setHasAccountant] = useState(false);
-  const [accountantType, setAccountantType] = useState('externo');
   const [accountantMemberId, setAccountantMemberId] = useState<string | null>(null);
   const [activityStartDate, setActivityStartDate] = useState<Date | undefined>();
   const [ssExempt, setSsExempt] = useState(false);
@@ -89,7 +88,6 @@ export function SettingsFiscal() {
     setSsType(s.ss_type || 'independente');
     setTeamType(s.team_type || 'externa');
     setHasAccountant(s.has_accountant ?? false);
-    setAccountantType(s.accountant_type || 'externo');
     setAccountantMemberId(s.accountant_member_id || null);
     setActivityStartDate(s.activity_start_date ? new Date(s.activity_start_date + 'T00:00:00') : undefined);
     setSsExempt(s.ss_exempt ?? false);
