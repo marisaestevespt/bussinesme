@@ -431,6 +431,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     },
     onSuccess: (delayInfo) => {
       qc.invalidateQueries({ queryKey: delKey });
+      qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
+      qc.invalidateQueries({ queryKey: ['linked-tasks', projectId] });
       if (delayInfo) {
         const diff = differenceInCalendarDays(parseISO(delayInfo.newEnd), parseISO(delayInfo.originalEnd));
         if (diff > 0) {
@@ -458,7 +460,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     mutationFn: async (id: string) => {
       await (supabase as any).from('project_deliverables').delete().eq('id', id);
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: delKey }); toast.success('Entrega removida'); },
+    onSuccess: () => { invalidateAll(); toast.success('Entrega removida'); },
   });
 
   const moveDel = useMutation({
