@@ -720,10 +720,18 @@ export default function OperacaoPage() {
                   <p className="text-xs font-semibold text-primary uppercase tracking-wider">Próxima Entrega</p>
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
-                    {nextDelivery.daysLeft}
-                  </span>
-                  <span className="text-sm text-muted-foreground font-medium">dias</span>
+                  {nextDelivery.daysLeft === 0 ? (
+                    <span className={`text-4xl font-black tabular-nums text-destructive`}>Hoje</span>
+                  ) : nextDelivery.daysLeft === 1 ? (
+                    <span className={`text-4xl font-black tabular-nums text-destructive`}>Amanhã</span>
+                  ) : (
+                    <>
+                      <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
+                        {nextDelivery.daysLeft}
+                      </span>
+                      <span className="text-sm text-muted-foreground font-medium">dias</span>
+                    </>
+                  )}
                 </div>
                 <Link to={`/hub/projetos/${nextDelivery.projectId || nextDelivery.id}`} className="group">
                   <p className="text-sm font-semibold group-hover:text-primary transition-colors leading-snug">{nextDelivery.name}</p>
