@@ -208,6 +208,8 @@ export function SettingsFiscal() {
               </p>
             )}
           </div>
+
+          <BusinessLegalDocs />
         </div>
       </div>
 
