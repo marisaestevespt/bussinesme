@@ -732,19 +732,19 @@ export default function OperacaoPage() {
               ) : (
                 <div className="overflow-x-auto pb-2">
                   {/* Timeline horizontal: eixo de dias + items por dia */}
-                  <div className="relative min-w-[840px]" style={{ minHeight: `${80 + Math.max(...deliveryTimeline.map(d => d.items.length)) * 26}px` }}>
+                  <div className="relative" style={{ minWidth: `${14 * 140}px` }}>
                     {/* Linha do tempo */}
                     <div className="absolute left-0 right-0 top-8 h-px bg-border" />
                     {/* Marcadores de dia */}
-                    <div className="grid grid-cols-14 gap-0 relative" style={{ gridTemplateColumns: 'repeat(14, minmax(0, 1fr))' }}>
+                    <div className="grid relative" style={{ gridTemplateColumns: 'repeat(14, minmax(140px, 1fr))' }}>
                       {deliveryTimeline.map((day, idx) => {
                         const today = isToday(day.date);
                         return (
-                          <div key={idx} className="flex flex-col items-center relative px-1">
+                          <div key={idx} className="flex flex-col items-center relative px-1.5">
                             {/* Cabeçalho do dia */}
-                            <div className={`text-[10px] font-medium leading-tight text-center mb-1 ${today ? 'text-primary' : 'text-muted-foreground'}`}>
+                            <div className={`text-xs font-semibold leading-tight text-center mb-1 ${today ? 'text-primary' : 'text-muted-foreground'}`}>
                               <div className="capitalize">{day.label.split(' ')[0]}</div>
-                              <div className="text-[9px] opacity-80">{day.label.split(' ').slice(1).join(' ')}</div>
+                              <div className="text-[10px] opacity-80 font-normal">{day.label.split(' ').slice(1).join(' ')}</div>
                             </div>
                             {/* Marcador na linha */}
                             <div className={`relative z-10 h-3 w-3 rounded-full border-2 ${
@@ -753,26 +753,26 @@ export default function OperacaoPage() {
                                 : 'bg-card border-border'
                             }`} />
                             {/* Items empilhados abaixo */}
-                            <div className="mt-2 w-full flex flex-col gap-1">
+                            <div className="mt-2 w-full flex flex-col gap-1.5">
                               {day.items.map((item, i) => (
                                 (() => {
                                   const assignee = item.assigneeId ? profileMap.get(item.assigneeId) : null;
                                   return (
                                     <div
                                       key={i}
-                                      className={`text-[10px] leading-tight px-1.5 py-1 rounded flex items-center gap-1 ${
+                                      className={`text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
                                         item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
                                         item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
                                         'bg-accent/20 text-accent-foreground'
                                       }`}
                                       title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}
                                     >
-                                      {item.type === 'meeting' && <span className="shrink-0">📅</span>}
-                                      <span className="flex-1 min-w-0 truncate text-left">{item.name}</span>
+                                      {item.type === 'meeting' && <span className="shrink-0 leading-none">📅</span>}
+                                      <span className="flex-1 min-w-0 break-words text-left line-clamp-2">{item.name}</span>
                                       {assignee && (
-                                        <Avatar className="h-3.5 w-3.5 shrink-0">
+                                        <Avatar className="h-4 w-4 shrink-0 mt-0.5">
                                           <AvatarImage src={getPhotoUrl(assignee)} />
-                                          <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
+                                          <AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback>
                                         </Avatar>
                                       )}
                                     </div>
