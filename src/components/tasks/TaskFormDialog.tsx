@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { format, parseISO, isBefore, startOfDay, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { isTaskDone, isTaskOverdue } from '@/lib/taskStatus';
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'mensal_ultimo' | 'diario' | 'personalizado';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -229,7 +230,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     const wEnd = endOfWeek(deadline, { weekStartsOn: 1 });
     let committedHours = 0;
     allTasks.forEach(t => {
-      if (t.assigned_to !== assignedTo || t.status === 'done') return;
+      if (t.assigned_to !== assignedTo || isTaskDone(t)) return;
       if (editingTask && t.id === editingTask.id) return;
       if (!t.deadline) return;
       const td = parseISO(t.deadline);
@@ -243,9 +244,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   }, [assignedTo, estimatedTime, deadline, allTasks, teamMembers, profiles, editingTask]);
 
   const today = startOfDay(new Date());
-  const isOverdue = (task: any) => task?.status !== 'done' && task?.deadline && isBefore(parseISO(task.deadline), today);
+  const isOverdue = (task: any) => isTaskOverdue(task, today);
   const isDoneAfterDeadline = (task: any) => {
-    if (task?.status !== 'done' || !task?.deadline) return false;
+    if (!isTaskDone(task) || !task?.deadline) return false;
     const completedAt = task.updated_at ? parseISO(task.updated_at) : null;
     return completedAt && isBefore(parseISO(task.deadline), startOfDay(completedAt));
   };
@@ -602,7 +603,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
             {/* Dependency warnings */}
             {editingTask && dependsOnIds.length > 0 && (() => {
-              const blockers = dependsOnIds.map(depId => allTasks.find(t => t.id === depId)).filter(t => t && t.status !== 'done');
+              const blockers = dependsOnIds.map(depId => allTasks.find(t => t.id === depId)).filter(t => t && !isTaskDone(t));
               if (blockers.length === 0) return null;
               return (
                 <div className="rounded-md border border-warning/30 bg-warning/15 p-3 space-y-1.5">

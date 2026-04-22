@@ -5,6 +5,7 @@ import { ChevronRight, GitBranch, Repeat, Link2, AlertTriangle } from 'lucide-re
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { isTaskDone } from '@/lib/taskStatus';
 
 const TASK_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
@@ -76,7 +77,7 @@ export function TaskTable({
               .filter(d => d.task_id === task.id)
               .some(d => {
                 const dep = allTasks.find((t: any) => t.id === d.depends_on_task_id);
-                return dep && dep.status !== 'done';
+                return dep && !isTaskDone(dep);
               });
             const subtaskCount = allTasks.filter((t: any) => t.parent_task_id === task.id).length;
 
