@@ -6446,6 +6446,50 @@ export type Database = {
           },
         ]
       }
+      product_competitors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          price: number | null
+          product_id: string
+          sort_order: number
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          price?: number | null
+          product_id: string
+          sort_order?: number
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          price?: number | null
+          product_id?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_competitors_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_costs: {
         Row: {
           created_at: string
@@ -7507,6 +7551,7 @@ export type Database = {
           about_content: string | null
           accounting_notes: string | null
           archive_notes: string | null
+          brainstorming: string | null
           brainstorming_content: string | null
           branding: Json
           client_profile: Json | null
@@ -7545,6 +7590,7 @@ export type Database = {
           about_content?: string | null
           accounting_notes?: string | null
           archive_notes?: string | null
+          brainstorming?: string | null
           brainstorming_content?: string | null
           branding?: Json
           client_profile?: Json | null
@@ -7583,6 +7629,7 @@ export type Database = {
           about_content?: string | null
           accounting_notes?: string | null
           archive_notes?: string | null
+          brainstorming?: string | null
           brainstorming_content?: string | null
           branding?: Json
           client_profile?: Json | null
