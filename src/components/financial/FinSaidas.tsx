@@ -69,6 +69,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
   const allExpenses = fin.expenses.data || [];
   const [filter, setFilter] = useState<Filter>('year');
+  const qc = useQueryClient();
+  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
+  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
