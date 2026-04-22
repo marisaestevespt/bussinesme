@@ -3876,6 +3876,7 @@ export type Database = {
           supplier_id: string | null
           total_with_vat: number
           updated_at: string
+          vat_deductible_amount: number | null
           vat_rate: number
         }
         Insert: {
@@ -3908,6 +3909,7 @@ export type Database = {
           supplier_id?: string | null
           total_with_vat?: number
           updated_at?: string
+          vat_deductible_amount?: number | null
           vat_rate?: number
         }
         Update: {
@@ -3940,6 +3942,7 @@ export type Database = {
           supplier_id?: string | null
           total_with_vat?: number
           updated_at?: string
+          vat_deductible_amount?: number | null
           vat_rate?: number
         }
         Relationships: [

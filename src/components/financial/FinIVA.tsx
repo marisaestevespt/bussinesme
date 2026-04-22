@@ -12,6 +12,9 @@ import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -22,6 +25,9 @@ interface Props { sales: Sale[]; expenses: Expense[]; currentYear: number; fin: 
 export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const [cobradoMonth, setCobradoMonth] = useState<number | null>(null);
   const [pagoMonth, setPagoMonth] = useState<number | null>(null);
+  const qc = useQueryClient();
+  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
+  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
 
   // IVA documents
   const ivaDoc = useMemo(() => {
@@ -69,17 +75,24 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
         return { loc, totalComIva, totalSemIva, iva: Math.round((totalComIva - totalSemIva) * 100) / 100 };
       });
       const totalIvaPago = byLoc.reduce((s, l) => s + l.iva, 0);
-      return { mes: FULL[i], byLoc, totalIvaPago, expenses: me };
+      // IVA a deduzir: usa vat_deductible_amount se preenchido, senão assume 100% (= IVA pago)
+      const totalIvaDeduzir = me.reduce((s, e) => {
+        const ivaPago = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
+        const dedutivel = (e as any).vat_deductible_amount;
+        return s + (dedutivel != null ? Number(dedutivel) : ivaPago);
+      }, 0);
+      return { mes: FULL[i], byLoc, totalIvaPago, totalIvaDeduzir: Math.round(totalIvaDeduzir * 100) / 100, expenses: me };
     });
   }, [expenses, currentYear]);
 
-  // Balanço IVA
+  // Balanço IVA = IVA Cobrado − IVA a Deduzir (não IVA pago)
   const balanco = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const cobrado = ivaCobrado[i].iva;
       const pago = ivaPago[i].totalIvaPago;
-      const bal = Math.round((cobrado - pago) * 100) / 100;
-      return { mes: FULL[i], cobrado, pago, balanco: bal };
+      const deduzir = ivaPago[i].totalIvaDeduzir;
+      const bal = Math.round((cobrado - deduzir) * 100) / 100;
+      return { mes: FULL[i], cobrado, pago, deduzir, balanco: bal };
     });
   }, [ivaCobrado, ivaPago]);
 
@@ -103,6 +116,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
 
   const totalCobrado = balanco.reduce((s, d) => s + d.cobrado, 0);
   const totalPago = balanco.reduce((s, d) => s + d.pago, 0);
+  const totalDeduzir = balanco.reduce((s, d) => s + d.deduzir, 0);
   const totalBalanco = balanco.reduce((s, d) => s + d.balanco, 0);
 
   // Detail data for popups
@@ -110,9 +124,9 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const pagoDetail = pagoMonth !== null ? ivaPago[pagoMonth] : null;
 
   const handleExportCsv = () => {
-    const headers = ['Mês', 'IVA Cobrado', 'IVA Pago', 'Balanço'];
-    const rows = balanco.map(b => [b.mes, b.cobrado, b.pago, b.balanco]);
-    rows.push(['TOTAL', totalCobrado, totalPago, totalBalanco]);
+    const headers = ['Mês', 'IVA Cobrado', 'IVA Pago', 'IVA a Deduzir', 'Balanço'];
+    const rows = balanco.map(b => [b.mes, b.cobrado, b.pago, b.deduzir, b.balanco]);
+    rows.push(['TOTAL', totalCobrado, totalPago, totalDeduzir, totalBalanco]);
     exportCsv(`iva_${currentYear}.csv`, headers, rows);
     toast.success('CSV exportado');
   };
@@ -135,6 +149,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 <TableHead>Mês</TableHead>
                 <TableHead className="text-right">IVA Cobrado</TableHead>
                 <TableHead className="text-right">IVA Pago</TableHead>
+                <TableHead className="text-right">IVA a Deduzir</TableHead>
                 <TableHead className="text-right">Balanço</TableHead>
                 <TableHead />
               </TableRow>
@@ -155,6 +170,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   >
                     {fmt(d.pago)}
                   </TableCell>
+                  <TableCell className="text-right font-medium text-primary">{fmt(d.deduzir)}</TableCell>
                   <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-warning' : d.balanco < 0 ? 'text-success' : ''}`}>{fmt(d.balanco)}</TableCell>
                   <TableCell>
                     {d.balanco > 0 && <Badge variant="outline" className="bg-warning/10 text-warning text-xs">A entregar</Badge>}
@@ -166,6 +182,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 <TableCell>Total</TableCell>
                 <TableCell className="text-right">{fmt(totalCobrado)}</TableCell>
                 <TableCell className="text-right">{fmt(totalPago)}</TableCell>
+                <TableCell className="text-right text-primary">{fmt(totalDeduzir)}</TableCell>
                 <TableCell className={`text-right ${totalBalanco > 0 ? 'text-warning' : totalBalanco < 0 ? 'text-success' : ''}`}>{fmt(totalBalanco)}</TableCell>
                 <TableCell />
               </TableRow>
@@ -270,7 +287,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
 
       {/* IVA Pago Detail Dialog */}
       <Dialog open={pagoMonth !== null} onOpenChange={(open) => !open && setPagoMonth(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-base">IVA Pago — {pagoDetail?.mes}</DialogTitle>
           </DialogHeader>
@@ -283,18 +300,44 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   <TableHead>Despesa</TableHead>
                   <TableHead className="text-right">Total c/ IVA</TableHead>
                   <TableHead className="text-right">Base</TableHead>
-                  <TableHead className="text-right">IVA</TableHead>
+                  <TableHead className="text-right">IVA Pago</TableHead>
+                  <TableHead className="text-right">IVA a Deduzir</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pagoDetail?.expenses.map((e, idx) => {
                   const iva = Math.round((e.total_with_vat - e.base_value) * 100) / 100;
+                  const dedutivel = (e as any).vat_deductible_amount;
+                  const deduzir = dedutivel != null ? Number(dedutivel) : iva;
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{e.description || `Despesa ${idx + 1}`}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(e.total_with_vat)}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                      <TableCell className="text-right text-sm">
+                        {editingDeductId === e.id ? (
+                          <Input
+                            type="number" step="0.01" autoFocus
+                            value={editingDeductValue}
+                            onChange={ev => setEditingDeductValue(ev.target.value)}
+                            onBlur={async () => {
+                              const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
+                              const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, iva));
+                              const { error } = await supabase.from('financial_expenses').update({ vat_deductible_amount: finalValue } as any).eq('id', e.id);
+                              if (error) toast.error('Erro ao guardar');
+                              else { toast.success('Atualizado'); qc.invalidateQueries({ queryKey: ['financial-expenses'] }); }
+                              setEditingDeductId(null);
+                            }}
+                            onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
+                            className="h-7 w-24 text-right text-xs ml-auto"
+                          />
+                        ) : (
+                          <button type="button" className={`hover:text-primary underline decoration-dotted underline-offset-2 ${dedutivel != null ? 'font-medium text-primary' : 'text-muted-foreground'}`}
+                            onClick={() => { setEditingDeductValue(dedutivel != null ? String(dedutivel) : iva.toFixed(2)); setEditingDeductId(e.id); }}
+                          >{fmt(deduzir)}</button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -303,6 +346,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   <TableCell className="text-right">{fmt(pagoDetail?.expenses.reduce((s, e) => s + e.total_with_vat, 0) || 0)}</TableCell>
                   <TableCell className="text-right">{fmt(pagoDetail?.expenses.reduce((s, e) => s + e.base_value, 0) || 0)}</TableCell>
                   <TableCell className="text-right">{fmt(pagoDetail?.totalIvaPago || 0)}</TableCell>
+                  <TableCell className="text-right text-primary">{fmt(pagoDetail?.totalIvaDeduzir || 0)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
