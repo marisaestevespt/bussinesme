@@ -53,12 +53,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'dependencias' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
 
-const TASK_STATUSES = [
-  { value: 'pendente', label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-info/15 text-info' },
-  { value: 'concluida', label: 'Concluída', color: 'bg-success/15 text-success' },
-];
-
 const TASK_PRIORITIES = [
   { value: 'baixa', label: 'Baixa', color: 'bg-gray-100 text-gray-600' },
   { value: 'media', label: 'Média', color: 'bg-warning/15 text-warning' },
@@ -67,7 +61,6 @@ const TASK_PRIORITIES = [
 ];
 
 function getPriorityInfo(v: string) { return TASK_PRIORITIES.find(p => p.value === v) || TASK_PRIORITIES[1]; }
-function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value === v) || TASK_STATUSES[0]; }
 
 function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
   const { data: totalMinutes = 0 } = useTaskTimeTotals(taskIds);
