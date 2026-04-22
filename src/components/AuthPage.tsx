@@ -89,7 +89,7 @@ export function AuthPage() {
                     ? 'Cria a tua conta para começar.'
                     : businessName
                       ? `Entra no teu espaço ${businessName}.`
-                      : 'Bem-vinda de volta ao teu sistema Lyrata®.'}
+                      : 'Bem-vinda de volta ao teu sistema Lirah®.'}
               </p>
             </div>
           </div>
