@@ -56,13 +56,12 @@ export function FinContabilidade({ currentYear }: Props) {
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
   const hasAccountant = s?.has_accountant ?? false;
-  const accountantType = s?.accountant_type || 'externo';
   const accountantMemberId = s?.accountant_member_id || null;
 
-  // Get the accountant's profile_id for task assignment (internal accountant)
+  // Get the accountant's profile (member is always linked when has_accountant is true)
   const { data: accountantMember } = useQuery({
     queryKey: ['accountant-member', accountantMemberId],
-    enabled: !!accountantMemberId && accountantType === 'interno',
+    enabled: !!accountantMemberId,
     queryFn: async () => {
       const { data } = await supabase.from('team_members').select('id, full_name, profile_id').eq('id', accountantMemberId).maybeSingle();
       return data;
@@ -118,12 +117,9 @@ export function FinContabilidade({ currentYear }: Props) {
         return;
       }
 
-      // Determine assignment:
-      // - Payments → always owner
-      // - Declarations with internal accountant → accountant's profile_id
-      // - Otherwise → owner
+      // Assignment: declarations go to the accountant if linked; payments and everything else → owner.
       let assignedTo = user.id;
-      if (dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.profile_id) {
+      if (dl.deadline_type === 'declaracao' && hasAccountant && accountantMember?.profile_id) {
         assignedTo = accountantMember.profile_id;
       }
 
@@ -296,7 +292,7 @@ export function FinContabilidade({ currentYear }: Props) {
                   {deadlines.map(dl => {
                     const isCompleted = completedKeys.has(dl.key);
                     const status = isCompleted ? 'done' : getDeadlineStatus(dl.date, todayStr);
-                    const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.full_name
+                    const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantMember?.full_name
                       ? accountantMember.full_name
                       : 'Owner';
                     return (

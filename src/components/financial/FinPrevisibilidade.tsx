@@ -44,10 +44,9 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
     hasAccountant,
   };
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
-  // When user has an accountant (or contab. organizada), SS/IVA estimates are hidden — accountant manages.
-  const accountantManagesFiscal = hasAccountant || isContabOrganizada;
-  const showIndependente = (ssType === 'independente' || ssType === 'ambos') && !fiscalConfig.ssExempt && !accountantManagesFiscal;
-  const showPatronal = (ssType === 'entidade_patronal' || ssType === 'ambos') && !fiscalConfig.ssExempt && !accountantManagesFiscal;
+  // Estimates remain visible when there's an accountant — only contabilidade organizada hides them.
+  const showIndependente = (ssType === 'independente' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
+  const showPatronal = (ssType === 'entidade_patronal' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
 
   const now = new Date();
   const currentMonth = now.getFullYear() === currentYear ? now.getMonth() + 1 : 12;
@@ -109,7 +108,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       // IVA — só apura se NÃO estiver isenta (art. 53.º), não tiver contabilista e não for contab. organizada.
       // Quando iva_exempt = true: não cobra IVA nas vendas e não deduz IVA das despesas
       // (o IVA pago vira custo). Quando tem contabilista: este trata do apuramento.
-      if (!fiscalConfig.ivaExempt && !accountantManagesFiscal) {
+      if (!fiscalConfig.ivaExempt && !isContabOrganizada) {
         const monthSales = sales.filter(sl => sl.sale_year === currentYear && sl.sale_month === m);
         const ivaCobrado = monthSales.reduce((s, v) => s + (v.invoice_total - v.base_value), 0);
         const monthExpenses = (expenses || []).filter(e => e.expense_year === currentYear && e.expense_month === m);

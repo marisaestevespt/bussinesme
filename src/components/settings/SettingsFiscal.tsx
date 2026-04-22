@@ -59,7 +59,6 @@ export function SettingsFiscal() {
   const [ssType, setSsType] = useState('independente');
   const [teamType, setTeamType] = useState('externa');
   const [hasAccountant, setHasAccountant] = useState(false);
-  const [accountantType, setAccountantType] = useState('externo');
   const [accountantMemberId, setAccountantMemberId] = useState<string | null>(null);
   const [activityStartDate, setActivityStartDate] = useState<Date | undefined>();
   const [ssExempt, setSsExempt] = useState(false);
@@ -89,7 +88,6 @@ export function SettingsFiscal() {
     setSsType(s.ss_type || 'independente');
     setTeamType(s.team_type || 'externa');
     setHasAccountant(s.has_accountant ?? false);
-    setAccountantType(s.accountant_type || 'externo');
     setAccountantMemberId(s.accountant_member_id || null);
     setActivityStartDate(s.activity_start_date ? new Date(s.activity_start_date + 'T00:00:00') : undefined);
     setSsExempt(s.ss_exempt ?? false);
@@ -131,8 +129,8 @@ export function SettingsFiscal() {
           ss_type: ssType,
           team_type: teamType,
           has_accountant: hasAccountant,
-          accountant_type: hasAccountant ? accountantType : 'externo',
-          accountant_member_id: hasAccountant && accountantType === 'interno' ? accountantMemberId : null,
+          accountant_type: 'externo',
+          accountant_member_id: hasAccountant ? accountantMemberId : null,
           activity_start_date: activityStartDate ? format(activityStartDate, 'yyyy-MM-dd') : null,
           ss_exempt: ssExempt,
           iva_exempt: ivaExempt,
@@ -445,43 +443,23 @@ export function SettingsFiscal() {
 
           {/* Accountant type - only when has accountant */}
           {hasAccountant && (
-            <>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Tipo de contabilista</Label>
-                <Select value={accountantType} onValueChange={setAccountantType}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="externo">Externo (gabinete de contabilidade)</SelectItem>
-                    <SelectItem value="interno">Interno (membro da equipa)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  {accountantType === 'externo'
-                    ? 'Contabilista externo trata das declarações fiscais. Tarefas de declaração não são criadas.'
-                    : 'Contabilista é membro da equipa. Tarefas de declaração são atribuídas a esta pessoa.'}
-                </p>
-              </div>
-
-              {accountantType === 'interno' && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Contabilista (membro)</Label>
-                  <Select value={accountantMemberId || 'none'} onValueChange={v => setAccountantMemberId(v === 'none' ? null : v)}>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Selecionar membro..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">— Nenhum —</SelectItem>
-                      {(teamMembers || []).map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">As tarefas de declaração fiscal serão atribuídas a este membro.</p>
-                </div>
-              )}
-            </>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Contabilista (membro da equipa)</Label>
+              <Select value={accountantMemberId || 'none'} onValueChange={v => setAccountantMemberId(v === 'none' ? null : v)}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Selecionar membro..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Nenhum —</SelectItem>
+                  {(teamMembers || []).map(m => (
+                    <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Adiciona o contabilista como membro da equipa (mesmo sem conta de acesso) com contrato de prestação de serviços. Tudo continua visível — só não criamos tarefas fiscais automáticas, porque o contabilista gere isso internamente.
+              </p>
+            </div>
           )}
 
           {/* Team type */}
