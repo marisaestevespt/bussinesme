@@ -37,6 +37,9 @@ type: feature
 - contabilidade_organizada: IVA/SS pages SHOWN as informational guides
 - team_type='externa' → Ordenados page hidden
 
+## Has Accountant — Fiscal Deadlines
+When has_accountant=true, ALL SS and IVA deadlines are hidden (computeFiscalDeadlines + edge function digest). Only IRS remains visible (still belongs to the natural person). Rationale: with an accountant, fiscal obligations are no longer the user's daily concern. FinPrevisibilidade also forces SS/IVA estimates to 0 € when has_accountant=true (accountantManagesFiscal flag).
+
 ## SS Type Logic
 - independente: 21.4% on 70% of revenue (rendimento relevante)
 - entidade_patronal: 23.75% employer + 11% employee on gross salaries

@@ -51,6 +51,7 @@ export function FinContabilidade({ currentYear }: Props) {
     taxIrsRegime: s?.tax_irs_regime || 'simplificado',
     ssExempt: s?.ss_exempt ?? false,
     ivaExempt: s?.iva_exempt ?? false,
+    hasAccountant: s?.has_accountant ?? false,
   };
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
@@ -69,13 +70,9 @@ export function FinContabilidade({ currentYear }: Props) {
   });
 
   const deadlines = useMemo(() => {
-    const allDeadlines = computeFiscalDeadlines(currentYear, fiscalConfig);
-    // External accountant: filter out declarations (accountant handles them)
-    if (hasAccountant && accountantType === 'externo') {
-      return allDeadlines.filter(dl => dl.deadline_type === 'pagamento');
-    }
-    return allDeadlines;
-  }, [currentYear, fiscalConfig, hasAccountant, accountantType]);
+    // computeFiscalDeadlines now hides SS/IVA when hasAccountant=true; only IRS remains.
+    return computeFiscalDeadlines(currentYear, fiscalConfig);
+  }, [currentYear, fiscalConfig]);
 
   // Fiscal deadline completions
   const { data: completions = [] } = useQuery({

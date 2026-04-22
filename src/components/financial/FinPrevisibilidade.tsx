@@ -35,15 +35,19 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
 
   const s = settings as any;
   const ssType: string = s?.ss_type || 'independente';
+  const hasAccountant: boolean = s?.has_accountant ?? false;
   const fiscalConfig: FiscalConfig = {
     taxIvaRegime: s?.tax_iva_regime || 'trimestral',
     taxIrsRegime: s?.tax_irs_regime || 'simplificado',
     ssExempt: s?.ss_exempt ?? false,
     ivaExempt: s?.iva_exempt ?? false,
+    hasAccountant,
   };
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
-  const showIndependente = (ssType === 'independente' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
-  const showPatronal = (ssType === 'entidade_patronal' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
+  // When user has an accountant (or contab. organizada), SS/IVA estimates are hidden — accountant manages.
+  const accountantManagesFiscal = hasAccountant || isContabOrganizada;
+  const showIndependente = (ssType === 'independente' || ssType === 'ambos') && !fiscalConfig.ssExempt && !accountantManagesFiscal;
+  const showPatronal = (ssType === 'entidade_patronal' || ssType === 'ambos') && !fiscalConfig.ssExempt && !accountantManagesFiscal;
 
   const now = new Date();
   const currentMonth = now.getFullYear() === currentYear ? now.getMonth() + 1 : 12;
@@ -102,10 +106,10 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
         if (ssPat > 0) labels.push('SS Pat.');
       }
 
-      // IVA — só apura se NÃO estiver isenta (art. 53.º) e não for contab. organizada.
+      // IVA — só apura se NÃO estiver isenta (art. 53.º), não tiver contabilista e não for contab. organizada.
       // Quando iva_exempt = true: não cobra IVA nas vendas e não deduz IVA das despesas
-      // (o IVA pago vira custo, não entra no apuramento). Estimativa fica sempre a 0 €.
-      if (!fiscalConfig.ivaExempt && !isContabOrganizada) {
+      // (o IVA pago vira custo). Quando tem contabilista: este trata do apuramento.
+      if (!fiscalConfig.ivaExempt && !accountantManagesFiscal) {
         const monthSales = sales.filter(sl => sl.sale_year === currentYear && sl.sale_month === m);
         const ivaCobrado = monthSales.reduce((s, v) => s + (v.invoice_total - v.base_value), 0);
         const monthExpenses = (expenses || []).filter(e => e.expense_year === currentYear && e.expense_month === m);
