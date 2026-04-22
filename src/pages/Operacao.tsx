@@ -688,8 +688,8 @@ export default function OperacaoPage() {
           </Card>
         )}
 
-        {/* Bloqueios — espera externa (cliente) e aprovação interna */}
-        {(awaitingClient.length > 0 || pendingInternalApproval.length > 0) && (() => {
+        {/* À espera do cliente */}
+        {awaitingClient.length > 0 && (() => {
           const renderItem = (item: WaitItem) => {
             const inner = (
               <>
@@ -738,57 +738,28 @@ export default function OperacaoPage() {
           };
 
           return (
-            <div className="grid gap-4 md:grid-cols-2">
-              {awaitingClient.length > 0 && (
-                <Card className="border border-info/30 bg-info/5">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Hourglass className="h-4 w-4 text-info" />
-                      <h3 className="text-sm font-semibold text-info">À espera do cliente</h3>
-                      <Badge variant="outline" className="bg-info/15 text-info border-info/30 text-[10px]">
-                        {awaitingClient.length}
-                      </Badge>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mb-2">
-                      Entregas do cliente em aberto e tarefas a aguardar feedback.
+            <Card className="border border-info/30 bg-info/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Hourglass className="h-4 w-4 text-info" />
+                  <h3 className="text-sm font-semibold text-info">À espera do cliente</h3>
+                  <Badge variant="outline" className="bg-info/15 text-info border-info/30 text-[10px]">
+                    {awaitingClient.length}
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-2">
+                  Entregas do cliente em aberto e tarefas a aguardar feedback.
+                </p>
+                <div className="space-y-1">
+                  {awaitingClient.slice(0, 8).map(renderItem)}
+                  {awaitingClient.length > 8 && (
+                    <p className="text-[11px] text-muted-foreground pt-1 px-2">
+                      + {awaitingClient.length - 8} a aguardar resposta do cliente
                     </p>
-                    <div className="space-y-1">
-                      {awaitingClient.slice(0, 8).map(renderItem)}
-                      {awaitingClient.length > 8 && (
-                        <p className="text-[11px] text-muted-foreground pt-1 px-2">
-                          + {awaitingClient.length - 8} a aguardar resposta do cliente
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {pendingInternalApproval.length > 0 && (
-                <Card className="border border-primary/30 bg-primary/5">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      <h3 className="text-sm font-semibold text-primary">Em aprovação interna</h3>
-                      <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30 text-[10px]">
-                        {pendingInternalApproval.length}
-                      </Badge>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mb-2">
-                      Tarefas concluídas que aguardam validação do responsável.
-                    </p>
-                    <div className="space-y-1">
-                      {pendingInternalApproval.slice(0, 8).map(renderItem)}
-                      {pendingInternalApproval.length > 8 && (
-                        <p className="text-[11px] text-muted-foreground pt-1 px-2">
-                          + {pendingInternalApproval.length - 8} por aprovar
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           );
         })()}
 
