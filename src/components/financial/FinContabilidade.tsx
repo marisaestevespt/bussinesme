@@ -23,17 +23,8 @@ interface Props {
 export function FinContabilidade({ currentYear }: Props) {
   const { settings } = useBusinessSettings();
   const { user } = useAuth();
-  const fin = useFinancialData();
-  const com = useCommercialData(currentYear);
   const [creatingTask, setCreatingTask] = useState<string | null>(null);
   const qc = useQueryClient();
-
-  // Export state
-  const [exportPeriod, setExportPeriod] = useState<'month' | 'quarter' | 'year' | 'custom'>('month');
-  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
-  const [exportQuarter, setExportQuarter] = useState(Math.ceil((new Date().getMonth() + 1) / 3));
-  const [exportStartDate, setExportStartDate] = useState<Date | undefined>();
-  const [exportEndDate, setExportEndDate] = useState<Date | undefined>();
 
   const s = settings as any;
   const fiscalConfig: FiscalConfig = {
