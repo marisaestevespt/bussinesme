@@ -229,10 +229,11 @@ export function ExportContabilistaButton({ year, month }: Props) {
         {/* Despesas */}
         <h2>Saídas / Despesas <span style={{ color: '#94a3b8', fontWeight: 500 }}>({monthExpenses.length})</span></h2>
         <table>
-          <thead><tr><th>Doc</th><th>Data</th><th>Descrição</th><th>Categoria</th><th>Fornecedor</th><th>NIF</th><th>Loc.</th><th>Base</th><th>IVA%</th><th>Total</th></tr></thead>
+          <thead><tr><th>Doc</th><th>Data</th><th>Descrição</th><th>Categoria</th><th>Fornecedor</th><th>NIF</th><th>Loc.</th><th>Base</th><th>IVA%</th><th>Total</th><th>Fatura</th></tr></thead>
           <tbody>
             {monthExpenses.map((e: any) => {
               const sup = involvedSuppliers.find((s: any) => s.id === e.supplier_id) || {};
+              const docs: any[] = Array.isArray(e.documents) ? e.documents : [];
               return (
                 <tr key={e.id}>
                   <td>{e.expense_id}</td><td>{e.expense_date}</td>
@@ -242,11 +243,38 @@ export function ExportContabilistaButton({ year, month }: Props) {
                   <td className="text-right">{fmt(e.base_value || 0)}</td>
                   <td className="text-right">{e.vat_rate ?? 0}%</td>
                   <td className="text-right">{fmt(e.total_with_vat || 0)}</td>
+                  <td>{docs.length > 0 ? docs.map((d, i) => (
+                    <span key={i}>{i > 0 ? ', ' : ''}<a href={d.url} style={{ color: '#2563eb', textDecoration: 'underline' }}>Ver</a></span>
+                  )) : '—'}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+
+        {/* Anexos das faturas de despesas — lista dedicada para o contabilista */}
+        {monthExpenses.some((e: any) => Array.isArray(e.documents) && e.documents.length > 0) && (<>
+          <h2>Anexos de faturas de despesas</h2>
+          <table>
+            <thead><tr><th>Doc</th><th>Data</th><th>Fornecedor</th><th>Total</th><th>Ficheiro</th><th>Link</th></tr></thead>
+            <tbody>
+              {monthExpenses.flatMap((e: any) => {
+                const docs: any[] = Array.isArray(e.documents) ? e.documents : [];
+                if (docs.length === 0) return [];
+                return docs.map((d, i) => (
+                  <tr key={e.id + '-' + i}>
+                    <td>{e.expense_id}</td>
+                    <td>{e.expense_date}</td>
+                    <td>{e.supplier_name || ''}</td>
+                    <td className="text-right">{fmt(e.total_with_vat || 0)}</td>
+                    <td>{d.name || '—'}</td>
+                    <td><a href={d.url} style={{ color: '#2563eb', textDecoration: 'underline', wordBreak: 'break-all' }}>{d.url}</a></td>
+                  </tr>
+                ));
+              })}
+            </tbody>
+          </table>
+        </>)}
 
         {/* Salários */}
         {monthPayroll.length > 0 && (<>
