@@ -45,16 +45,7 @@ const PROJECT_TYPES = [
   { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
 ];
 
-const PROJECT_STATUSES = [
-  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-amber-500' },
-  { value: 'em_ideia', label: 'Em ideia', color: 'bg-gray-100 text-gray-700 border-gray-300', dot: 'bg-gray-400' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-info/15 text-info border-info/30', dot: 'bg-blue-500' },
-  { value: 'em_pausa', label: 'Em pausa', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-yellow-500' },
-  { value: 'em_revisao', label: 'Em revisão', color: 'bg-purple-100 text-purple-800 border-purple-300', dot: 'bg-purple-500' },
-  { value: 'concluido', label: 'Concluído', color: 'bg-success/15 text-success border-success/30', dot: 'bg-green-500' },
-  { value: 'cancelado', label: 'Cancelado', color: 'bg-destructive/15 text-destructive border-destructive/30', dot: 'bg-red-500' },
-  { value: 'arquivo', label: 'Arquivo', color: 'bg-slate-100 text-slate-600 border-slate-300', dot: 'bg-slate-400' },
-];
+import { PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
 
 const DEPARTMENTS = [
   { value: 'administrativo', label: 'Administrativo', color: 'bg-stone-100 text-stone-700 border-stone-300' },
@@ -67,7 +58,7 @@ const DEPARTMENTS = [
 ];
 
 function getTypeInfo(v: string) { return PROJECT_TYPES.find(t => t.value === v) || PROJECT_TYPES[0]; }
-function getStatusInfo(v: string) { return PROJECT_STATUSES.find(s => s.value === v) || PROJECT_STATUSES[0]; }
+function getStatusInfo(v: string) { return getProjectStatusInfo(v); }
 function getDeptInfo(v: string) { return DEPARTMENTS.find(d => d.value === v); }
 function getDeptLabel(v: string) { return DEPARTMENTS.find(d => d.value === v)?.label || v; }
 function getInitials(n: string | null) { return n ? n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?'; }
