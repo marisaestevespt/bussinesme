@@ -470,52 +470,81 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </CardContent>
       </Card>
 
+      {/* Segurança Social — destaque mensal */}
+      <Card className="border-2 border-primary/40 bg-primary/5 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary/15 text-primary text-xs font-bold">SS</span>
+                Segurança Social — {MONTHS[m - 1]} {currentYear}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                {ssExpense
+                  ? 'Valor pago este mês. Clica em editar para alterar.'
+                  : 'Insere aqui o valor pago de Segurança Social este mês.'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {ssExpense && !ssEditing ? (
+                <>
+                  <span className="text-2xl font-bold text-primary">{fmt(ssExpense.total_with_vat)}</span>
+                  <Button size="sm" variant="outline" onClick={() => setSsEditing(true)}>Editar</Button>
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    className="h-10 w-32 text-base font-semibold"
+                    value={ssValue}
+                    onChange={e => setSsValue(e.target.value)}
+                    autoFocus={ssEditing}
+                  />
+                  <span className="text-sm text-muted-foreground">€</span>
+                  <Button size="sm" onClick={async () => {
+                    const val = parseFloat(ssValue) || 0;
+                    if (val <= 0 && !ssExpense) return;
+                    const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
+                    if (ssExpense) {
+                      await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
+                    } else {
+                      await fin.upsertExpense.mutateAsync({
+                        description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
+                        category: 'seguranca_social',
+                        base_value: val,
+                        vat_rate: 0,
+                        total_with_vat: val,
+                        location: 'portugal',
+                        expense_date: dateStr,
+                        expense_month: m,
+                        expense_quarter: Math.ceil(m / 3),
+                        expense_year: currentYear,
+                        status: 'pago_falta_fatura',
+                      } as any);
+                    }
+                    setSsEditing(false);
+                    toast.success('Segurança Social guardada');
+                  }}>
+                    <Check className="h-4 w-4 mr-1" /> Guardar
+                  </Button>
+                  {ssExpense && (
+                    <Button size="sm" variant="ghost" onClick={() => { setSsValue(String(ssExpense.total_with_vat)); setSsEditing(false); }}>
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
       {/* Saídas */}
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Saídas</CardTitle>
           <div className="flex items-center gap-2">
-            {/* SS inline — compact when already saved */}
-            {ssExpense && !ssEditing ? (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground cursor-pointer hover:bg-muted" onClick={() => setSsEditing(true)}>SS: {fmt(ssExpense.total_with_vat)}</Badge>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">SS</span>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  className="h-7 w-20 text-xs"
-                  value={ssValue}
-                  onChange={e => setSsValue(e.target.value)}
-                />
-                <Button aria-label="Confirmar" size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={async () => {
-                  const val = parseFloat(ssValue) || 0;
-                  if (val <= 0 && !ssExpense) return;
-                  const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
-                  if (ssExpense) {
-                    await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
-                  } else {
-                    await fin.upsertExpense.mutateAsync({
-                      description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
-                      category: 'seguranca_social',
-                      base_value: val,
-                      vat_rate: 0,
-                      total_with_vat: val,
-                      location: 'portugal',
-                      expense_date: dateStr,
-                      expense_month: m,
-                      expense_quarter: Math.ceil(m / 3),
-                      expense_year: currentYear,
-                      status: 'pago_falta_fatura',
-                    } as any);
-                  }
-                  setSsEditing(false);
-                  toast.success('Segurança Social guardada');
-                }}>
-                  <Check className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
             <Button size="sm" variant="outline" onClick={() => setExpOpen(true)}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Saída</Button>
           </div>
         </CardHeader>
