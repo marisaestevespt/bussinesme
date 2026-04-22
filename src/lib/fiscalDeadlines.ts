@@ -81,8 +81,8 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
   };
 
   // ── Segurança Social (monthly — payment until day 20 of next month) ──
-  // Hidden if user has an accountant — accountant takes over fiscal responsibility.
-  if (!config.ssExempt && !config.hasAccountant && config.taxIrsRegime !== 'contabilidade_organizada') {
+  // Always shown unless exempt or in contabilidade organizada (accountant handles fully).
+  if (!config.ssExempt && config.taxIrsRegime !== 'contabilidade_organizada') {
     for (let m = 1; m <= 12; m++) {
       const nm = m === 12 ? 1 : m + 1;
       const ny = m === 12 ? year + 1 : year;
@@ -94,7 +94,7 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
   }
 
   // ── IVA Trimestral (declaration day 20, payment day 25 of 2nd month after quarter) ──
-  if (!config.ivaExempt && !config.hasAccountant && config.taxIvaRegime === 'trimestral' && config.taxIrsRegime !== 'contabilidade_organizada') {
+  if (!config.ivaExempt && config.taxIvaRegime === 'trimestral' && config.taxIrsRegime !== 'contabilidade_organizada') {
     const quarters = [
       { q: 1, label: '1º Trim (Jan-Mar)', dm: 5, dy: year },
       { q: 2, label: '2º Trim (Abr-Jun)', dm: 8, dy: year },
@@ -116,7 +116,7 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
   }
 
   // ── IVA Mensal (declaration day 20, payment day 25 of 2nd month after) ──
-  if (!config.ivaExempt && !config.hasAccountant && config.taxIvaRegime === 'mensal' && config.taxIrsRegime !== 'contabilidade_organizada') {
+  if (!config.ivaExempt && config.taxIvaRegime === 'mensal' && config.taxIrsRegime !== 'contabilidade_organizada') {
     for (let m = 1; m <= 12; m++) {
       // Declaration & payment fall in m+2 (e.g., Jan IVA due in March)
       const declMonth = ((m - 1 + 2) % 12) + 1;
