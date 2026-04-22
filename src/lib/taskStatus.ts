@@ -17,6 +17,26 @@ export type TaskLike = {
   completed_at?: string | null;
 };
 
+/**
+ * CANONICAL task statuses — the single source of truth for the `tasks` table UI
+ * (matches the values used on the Tarefas page and TaskFormDialog).
+ */
+export const TASK_STATUSES = [
+  { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
+  { value: 'a_fazer', label: 'A fazer', color: 'bg-info/15 text-info border-info/30' },
+  { value: 'aguarda_feedback', label: 'Aguarda feedback cliente', color: 'bg-warning/15 text-warning border-warning/30' },
+  { value: 'para_aprovacao', label: 'Para aprovação (interna)', color: 'bg-primary/15 text-primary border-primary/30' },
+  { value: 'precisa_alteracoes', label: 'Precisa de alterações', color: 'bg-warning/20 text-warning border-warning/40' },
+  { value: 'done', label: 'Feito', color: 'bg-success/15 text-success border-success/30' },
+] as const;
+
+export const TASK_DONE = 'done' as const;
+export const TASK_TODO = 'por_comecar' as const;
+
+export function getTaskStatusInfo(value: string | null | undefined) {
+  return TASK_STATUSES.find(s => s.value === value) || TASK_STATUSES[0];
+}
+
 /** Status values that mean "completed". */
 export const DONE_STATUSES = ['done', 'concluida', 'concluído', 'concluido', 'completed'] as const;
 
