@@ -17,20 +17,17 @@ import { useAuth } from '@/hooks/useAuth';
 
 const BASE_TABS = [
   { key: 'identidade', label: 'Identidade' },
-  { key: 'fiscal', label: 'Fiscal' },
-  { key: 'setup-negocio', label: 'Setup de Negócio' },
+  { key: 'dados-fiscal', label: 'Dados & Fiscal' },
   { key: 'marketing', label: 'Marketing' },
-  { key: 'utilizadores', label: 'Utilizadores' },
-  { key: 'kpis', label: 'KPIs e Análise' },
   { key: 'resumo', label: 'Resumo Diário' },
   { key: 'emails', label: 'Emails' },
+  { key: 'preferencias', label: 'Preferências' },
 ] as const;
 
 const OWNER_TABS = [
   ...BASE_TABS,
-  { key: 'automacoes' as const, label: 'Automações' },
-  { key: 'backups' as const, label: 'Backups' },
   { key: 'auditoria' as const, label: 'Auditoria' },
+  { key: 'sistema' as const, label: 'Sistema' },
 ] as const;
 
 type TabKey = typeof OWNER_TABS[number]['key'];
@@ -66,16 +63,28 @@ export default function DefinicoesPage() {
         {/* Tab content */}
         <div className="w-full">
           {tab === 'identidade' && <SettingsIdentity />}
-          {tab === 'fiscal' && <SettingsFiscal />}
-          {tab === 'setup-negocio' && <FinSetupNegocio />}
+          {tab === 'dados-fiscal' && (
+            <div className="space-y-10">
+              <FinSetupNegocio />
+              <SettingsFiscal />
+            </div>
+          )}
           {tab === 'marketing' && <ChannelSettings />}
-          {tab === 'utilizadores' && <SettingsUsers />}
-          {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
           {tab === 'emails' && <SettingsEmails />}
-          {tab === 'automacoes' && <SettingsAutomations />}
-          {tab === 'backups' && <SettingsBackups />}
-          {tab === 'auditoria' && <SettingsAuditLog />}
+          {tab === 'preferencias' && (
+            <div className="space-y-10">
+              <SettingsKpis />
+              <SettingsAutomations />
+            </div>
+          )}
+          {tab === 'auditoria' && (
+            <div className="space-y-10">
+              <SettingsAuditLog />
+              <SettingsUsers />
+            </div>
+          )}
+          {tab === 'sistema' && <SettingsBackups />}
         </div>
 
         {/* Reset section moved to SettingsBackups */}
