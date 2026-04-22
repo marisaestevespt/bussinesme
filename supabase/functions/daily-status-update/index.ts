@@ -581,6 +581,8 @@ Deno.serve(async (req) => {
     const currentYear2 = today.getFullYear();
     const { data: bsData } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt, has_accountant").limit(1).maybeSingle();
     if (!bsData) return null;
+    // When there's an accountant, fiscal tasks are NOT auto-created — accountant manages them internally.
+    if ((bsData as any).has_accountant === true) return null;
     const fiscalConfig = {
       taxIvaRegime: (bsData as any).tax_iva_regime || "trimestral",
       taxIrsRegime: (bsData as any).tax_irs_regime || "simplificado",
