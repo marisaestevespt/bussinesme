@@ -3,8 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { cn } from '@/lib/utils';
 import { SettingsIdentity } from '@/components/settings/SettingsIdentity';
-import { SettingsFiscal } from '@/components/settings/SettingsFiscal';
-import { FinSetupNegocio } from '@/components/financial/FinSetupNegocio';
+import { DadosFiscalLayout } from '@/components/settings/DadosFiscalLayout';
 import { ChannelSettings } from '@/components/settings/ChannelSettings';
 import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
@@ -63,12 +62,7 @@ export default function DefinicoesPage() {
         {/* Tab content */}
         <div className="w-full">
           {tab === 'identidade' && <SettingsIdentity />}
-          {tab === 'dados-fiscal' && (
-            <div className="space-y-10">
-              <FinSetupNegocio />
-              <SettingsFiscal />
-            </div>
-          )}
+          {tab === 'dados-fiscal' && <DadosFiscalLayout />}
           {tab === 'marketing' && <ChannelSettings />}
           {tab === 'resumo' && <SettingsDigest />}
           {tab === 'emails' && <SettingsEmails />}
