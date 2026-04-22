@@ -41,10 +41,10 @@ export function exportPdf(title: string, elementId: string) {
   /* ── Typography ──────────────────────────────────── */
   h1, h2, h3 { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; letter-spacing: -0.01em; color: #0b1220; }
   h1 { font-size: 22pt; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; }
-  h2 { font-size: 12pt; font-weight: 700; margin: 22px 0 10px; padding: 0 0 6px; border-bottom: 1.5px solid #e2e8f0;
+  h2 { font-size: 12pt; font-weight: 700; margin: 32px 0 14px; padding: 0 0 8px; border-bottom: 1.5px solid #e2e8f0;
        text-transform: uppercase; letter-spacing: 0.06em; color: #475569; font-size: 9pt; }
-  h3 { font-size: 11pt; font-weight: 700; margin: 16px 0 8px; color: #1e293b; }
-  p { margin: 0 0 4px; }
+  h3 { font-size: 11pt; font-weight: 700; margin: 22px 0 10px; color: #1e293b; }
+  p { margin: 0 0 6px; }
   strong { font-weight: 600; color: #0b1220; }
 
   /* ── Document header ─────────────────────────────── */
@@ -65,18 +65,18 @@ export function exportPdf(title: string, elementId: string) {
 
   /* ── Tables (financial style) ────────────────────── */
   table {
-    width: 100%; border-collapse: collapse; margin: 0 0 14px 0; font-size: 8.5pt;
+    width: 100%; border-collapse: collapse; margin: 0 0 26px 0; font-size: 8.5pt;
     page-break-inside: auto;
   }
   thead { display: table-header-group; }
   tr { page-break-inside: avoid; page-break-after: auto; }
   th {
     text-align: left; font-weight: 600; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.05em;
-    color: #475569; padding: 8px 10px; background: #f8fafc;
+    color: #475569; padding: 10px 12px; background: #f8fafc;
     border-bottom: 1.5px solid #cbd5e1; border-top: 1px solid #e2e8f0;
   }
   td {
-    padding: 7px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top;
+    padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top;
     color: #1e293b;
   }
   tbody tr:nth-child(even) td { background: #fafbfc; }
@@ -85,14 +85,16 @@ export function exportPdf(title: string, elementId: string) {
 
   /* Summary table (Resumo Financeiro) — special styling */
   .pdf-summary-table td {
-    padding: 9px 12px; border-bottom: 1px solid #f1f5f9;
+    padding: 11px 14px; border-bottom: 1px solid #f1f5f9;
     font-size: 9pt;
   }
   .pdf-summary-table td:nth-child(odd) { color: #64748b; font-weight: 500; }
   .pdf-summary-table td:nth-child(even) { font-variant-numeric: tabular-nums; }
 
   /* ── Section "card" wrapper ──────────────────────── */
-  h3 + table, h2 + table { page-break-before: avoid; }
+  h3 + table, h2 + table { page-break-before: avoid; margin-top: 4px; }
+  table + h2 { margin-top: 36px; }
+  table + h3 { margin-top: 28px; }
 
   /* ── Hide noisy inputs/charts ────────────────────── */
   button, [role="tablist"], .recharts-responsive-container, .recharts-wrapper { display: none !important; }
