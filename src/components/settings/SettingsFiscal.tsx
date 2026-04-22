@@ -117,8 +117,6 @@ export function SettingsFiscal() {
           tax_iva_regime: ivaRegime,
           tax_irs_regime: businessType === 'empresa' ? 'contabilidade_organizada' : irsRegime,
           ss_type: ssType,
-          has_accountant: hasAccountant,
-          accountant_type: 'externo',
           accountant_member_id: accountantMemberId,
           activity_start_date: activityStartDate ? format(activityStartDate, 'yyyy-MM-dd') : null,
           ss_exempt: ssExempt,
