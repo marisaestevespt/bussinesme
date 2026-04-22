@@ -13,19 +13,37 @@ type CrmLeadAction = Tables<'crm_lead_actions'>;
 
 // cleanPayload imported from utils
 
+/**
+ * Canonical CRM lead statuses. Includes Tailwind class strings for badges and
+ * hex values for charts. Custom user-defined stages (crm_custom_stages) extend
+ * this list at runtime via useCrmStages.
+ */
 export const CRM_STATUSES = [
-  { value: 'lead', label: 'Lead' },
-  { value: 'primeiro_contacto', label: 'Primeiro Contacto' },
-  { value: 'sessao_agendada', label: 'Sessão Agendada' },
-  { value: 'proposta_enviada', label: 'Proposta Enviada' },
-  { value: 'follow_up_1', label: 'Follow Up 1' },
-  { value: 'follow_up_2', label: 'Follow Up 2' },
-  { value: 'follow_up_3', label: 'Follow Up 3' },
-  { value: 'aguarda_retorno', label: 'Aguarda Retorno' },
-  { value: 'outra_altura', label: 'Outra Altura' },
-  { value: 'ganho', label: 'Ganho' },
-  { value: 'perdido', label: 'Perdido' },
+  { value: 'lead',              label: 'Lead',              color: 'bg-slate-100 text-slate-700 border-slate-200',   hex: '#6366f1' },
+  { value: 'primeiro_contacto', label: 'Primeiro Contacto', color: 'bg-sky-100 text-sky-700 border-sky-200',         hex: '#8b5cf6' },
+  { value: 'sessao_agendada',   label: 'Sessão Agendada',   color: 'bg-indigo-100 text-indigo-700 border-indigo-200',hex: '#a78bfa' },
+  { value: 'proposta_enviada',  label: 'Proposta Enviada',  color: 'bg-violet-100 text-violet-700 border-violet-200',hex: '#3b82f6' },
+  { value: 'follow_up_1',       label: 'Follow Up 1',       color: 'bg-amber-100 text-amber-700 border-amber-200',   hex: '#f59e0b' },
+  { value: 'follow_up_2',       label: 'Follow Up 2',       color: 'bg-orange-100 text-orange-700 border-orange-200',hex: '#f97316' },
+  { value: 'follow_up_3',       label: 'Follow Up 3',       color: 'bg-rose-100 text-rose-700 border-rose-200',      hex: '#ef4444' },
+  { value: 'aguarda_retorno',   label: 'Aguarda Retorno',   color: 'bg-cyan-100 text-cyan-700 border-cyan-200',      hex: '#64748b' },
+  { value: 'outra_altura',      label: 'Outra Altura',      color: 'bg-zinc-100 text-zinc-600 border-zinc-200',      hex: '#94a3b8' },
+  { value: 'ganho',             label: 'Ganho',             color: 'bg-emerald-100 text-emerald-700 border-emerald-200', hex: '#22c55e' },
+  { value: 'perdido',           label: 'Perdido',           color: 'bg-red-100 text-red-700 border-red-200',         hex: '#dc2626' },
 ] as const;
+
+/** Status values that are "closed" (not in active pipeline). */
+export const CLOSED_CRM_STATUSES = ['ganho', 'perdido'] as const;
+
+export function getCrmStatusInfo(value: string) {
+  return CRM_STATUSES.find(s => s.value === value);
+}
+export function getCrmStatusColor(value: string): string {
+  return getCrmStatusInfo(value)?.color || 'bg-muted text-muted-foreground border';
+}
+export function getCrmStatusHex(value: string): string {
+  return getCrmStatusInfo(value)?.hex || '#94a3b8';
+}
 
 export const CRM_SOURCES = [
   'Lead Magnet', 'Instagram', 'Recomendação', 'Sessão de Diagnóstico', 'Orgânico', 'Outro',
@@ -39,7 +57,7 @@ export const INTERACTION_TYPES = [
   { value: 'outro', label: 'Outro' },
 ];
 
-const ACTIVE_STATUSES: string[] = CRM_STATUSES.filter(s => s.value !== 'ganho' && s.value !== 'perdido').map(s => s.value);
+const ACTIVE_STATUSES: string[] = CRM_STATUSES.filter(s => !(CLOSED_CRM_STATUSES as readonly string[]).includes(s.value)).map(s => s.value);
 
 export function statusLabel(val: string) {
   return CRM_STATUSES.find(s => s.value === val)?.label || val;
