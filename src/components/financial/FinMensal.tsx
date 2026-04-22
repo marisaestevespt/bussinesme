@@ -881,7 +881,6 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   getCategoryLabel: (type: string, value: string) => string;
 }) {
   const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
   const [confirming, setConfirming] = useState(false);
 
   const vatRate = sub.vat_rate || 0;
@@ -931,7 +930,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
       <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
       <TableCell>{linkedExpense?.description || subName}</TableCell>
       <TableCell>{getCategoryLabel('expense', category)}</TableCell>
-      <TableCell>{LOC_LABELS[linkedExpense ? ((linkedExpense as any).location || sub.location) : sub.location] || sub.location || '—'}</TableCell>
+      <TableCell>{locationLabel(linkedExpense ? ((linkedExpense as any).location || sub.location) : sub.location)}</TableCell>
       <TableCell className="text-right">{formatEuro(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{formatEuro(displayTotal)}</TableCell>
@@ -993,7 +992,7 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   const expenseId = linkedExpense ? (linkedExpense as any).expense_id || 'A gerar' : 'A gerar';
   const description = linkedExpense?.description || `Pagamento — ${memberName} — ${String(month).padStart(2, '0')}/${currentYear}`;
   const categoryLabel = contractType === 'contrato_prestacao' || contractType === 'prestacao_servicos' ? 'Prestadores' : 'Ordenados';
-  const location = linkedExpense ? (LOC_LABELS[(linkedExpense as any).location] || (linkedExpense as any).location || 'Portugal') : 'Portugal';
+  const location = linkedExpense ? locationLabel((linkedExpense as any).location || 'portugal') : 'Portugal';
   const baseValue = linkedExpense?.base_value ?? value;
   const vatRate = (linkedExpense as any)?.vat_rate ?? 0;
   const totalWithVat = linkedExpense?.total_with_vat ?? value;
