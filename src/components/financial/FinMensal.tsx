@@ -938,10 +938,14 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   );
 }
 
+/**
+ * Short labels used in payroll table rows.
+ * Long labels live in `useTeamData.CONTRACT_TYPES` and are used in forms / detail views.
+ */
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
   contrato_trabalho: 'Colaborador',
   contrato_prestacao: 'Prestador',
-  prestacao_servicos: 'Prestador',
+  prestacao_servicos: 'Prestador', // legacy alias
   acordo: 'Acordo',
   outro: 'Ordenado',
 };
