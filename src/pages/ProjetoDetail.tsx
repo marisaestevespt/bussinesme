@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { isTaskDone } from '@/lib/taskStatus';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
@@ -421,7 +422,7 @@ export default function ProjetoDetailPage() {
     // Recorrente mensal: progress by current month tasks
     if (isRecorrenteMensal) {
       if (monthlyTasks.length === 0) return 0;
-      const completed = monthlyTasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
+      const completed = monthlyTasks.filter(isTaskDone).length;
       return Math.round((completed / monthlyTasks.length) * 100);
     }
 
@@ -442,7 +443,7 @@ export default function ProjetoDetailPage() {
   function getProjectProgressSummary() {
     if (isRecorrenteMensal) {
       if (monthlyTasks.length === 0) return 'Sem tarefas este mês';
-      const completed = monthlyTasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
+      const completed = monthlyTasks.filter(isTaskDone).length;
       return `${completed}/${monthlyTasks.length} tarefas do mês concluídas`;
     }
 

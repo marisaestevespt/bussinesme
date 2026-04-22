@@ -28,6 +28,7 @@ import { sendNotification } from '@/hooks/useNotifications';
 import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbsenceCoverage';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { cn } from '@/lib/utils';
 import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -341,7 +342,7 @@ export default function TarefasPage() {
 
     let committedHours = 0;
     tasks.forEach(t => {
-      if (t.assigned_to !== assignedTo || t.status === 'done') return;
+      if (t.assigned_to !== assignedTo || isTaskDone(t)) return;
       if (editingTask && t.id === editingTask.id) return;
       if (!t.deadline) return;
       const td = parseISO(t.deadline);
@@ -456,17 +457,17 @@ export default function TarefasPage() {
     let result: typeof tasks;
     switch (view) {
       case 'todo':
-        result = tasks.filter(t => t.status !== 'done').sort((a, b) => {
+        result = tasks.filter(isTaskOpen).sort((a, b) => {
           const da = a.deadline || '9999';
           const db = b.deadline || '9999';
           return da.localeCompare(db);
         }); break;
       case 'atrasadas':
-        result = tasks.filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today)); break;
+        result = tasks.filter(t => isTaskOverdue(t, today)); break;
       case 'proximas':
         result = tasks.filter(t => t.status === 'por_comecar' && t.deadline && !isBefore(parseISO(t.deadline), today)); break;
       case 'historico':
-        result = tasks.filter(t => t.status === 'done'); break;
+        result = tasks.filter(isTaskDone); break;
       case 'todas':
       case 'responsavel':
       case 'calendario':
@@ -481,9 +482,9 @@ export default function TarefasPage() {
   }, [tasks, view, today, filterDept, filterResponsible, filterPriority, filterProject]);
 
   // Helpers
-  const isOverdue = (task: any) => task.status !== 'done' && task.deadline && isBefore(parseISO(task.deadline), today);
+  const isOverdue = (task: any) => isTaskOverdue(task, today);
   const isDoneAfterDeadline = (task: any) => {
-    if (task.status !== 'done' || !task.deadline) return false;
+    if (!isTaskDone(task) || !task.deadline) return false;
     const completedAt = task.updated_at ? parseISO(task.updated_at) : null;
     return completedAt && isBefore(parseISO(task.deadline), startOfDay(completedAt));
   };
@@ -669,7 +670,7 @@ export default function TarefasPage() {
           />
         ) : view === 'responsavel' ? (
           <ResponsavelView
-            tasks={tasks.filter(t => t.status !== 'done')}
+            tasks={tasks.filter(isTaskOpen)}
             profiles={profiles}
             isOverdue={isOverdue}
             isDoneAfterDeadline={isDoneAfterDeadline}
@@ -959,7 +960,7 @@ export default function TarefasPage() {
             {editingTask && dependsOnIds.length > 0 && (() => {
               const blockers = dependsOnIds
                 .map(depId => tasks.find(t => t.id === depId))
-                .filter(t => t && t.status !== 'done');
+                .filter(t => t && !isTaskDone(t));
               if (blockers.length === 0) return null;
               return (
                 <div className="rounded-md border border-warning/30 bg-warning/15 p-3 space-y-1.5">

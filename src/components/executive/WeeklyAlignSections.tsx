@@ -13,6 +13,7 @@ import { getMonthName } from '@/hooks/useExecutiveData';
 import { planStatusLabel } from '@/hooks/usePlanningData';
 import { DeltaBadge } from './WeeklyAlignKpis';
 import type { DetailField } from './WeeklyAlignDetailSheet';
+import { isTaskDone } from '@/lib/taskStatus';
 
 const clickableRow = "cursor-pointer hover:bg-muted/70 transition-colors";
 
