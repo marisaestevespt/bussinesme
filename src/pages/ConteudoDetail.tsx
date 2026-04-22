@@ -179,6 +179,7 @@ export default function ConteudoDetailPage() {
         assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
         cover_url: autoCover,
         body_template: form.body_template || null,
+        account_id: form.account_id || null,
       } as any).eq('id', id);
       if (updateErr) throw updateErr;
       await supabase.from('content_channels').delete().eq('content_id', id);
