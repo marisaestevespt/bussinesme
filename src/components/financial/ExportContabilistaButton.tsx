@@ -134,34 +134,61 @@ export function ExportContabilistaButton({ year, month }: Props) {
 
       {/* Hidden export area for PDF — completo */}
       <div id={exportId} className="hidden print:block text-xs">
-        <h2 className="text-lg font-bold mb-1">{businessName}</h2>
-        <p className="text-xs text-muted-foreground">
-          NIF: {business?.nif || '—'} • Período: <strong>{label}</strong> • Exportado em {new Date().toLocaleDateString('pt-PT')}
-        </p>
+        {/* Cabeçalho do negócio */}
+        <div style={{ marginBottom: 18, padding: '14px 16px', background: '#f8fafc', borderLeft: '4px solid #0f172a', borderRadius: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0b1220', marginBottom: 4 }}>{businessName}</div>
+          <div style={{ fontSize: 9, color: '#64748b' }}>
+            NIF {business?.nif || '—'} {business?.niss ? ` • NISS ${business.niss}` : ''} • Período <strong style={{ color: '#0f172a' }}>{label}</strong>
+          </div>
+        </div>
 
-        {/* Resumo */}
-        <h3 className="font-semibold mt-4 mb-1">Resumo Financeiro</h3>
-        <table className="w-full mb-3" style={{ borderCollapse: 'collapse' }}>
+        {/* Totais destacados */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
+          <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #10b981' }}>
+            <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>Entradas</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalEnt)}</div>
+            <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>{monthSales.length} venda{monthSales.length !== 1 ? 's' : ''}</div>
+          </div>
+          <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #ef4444' }}>
+            <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>Saídas</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalSai + totalPay + totalCtr)}</div>
+            <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>Despesas + Salários + Prestadores</div>
+          </div>
+          <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #6366f1' }}>
+            <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>IVA a entregar</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0b1220', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt((totalEnt - totalEntBase) - (totalSai - totalSaiBase))}</div>
+            <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>Liquidado − dedutível</div>
+          </div>
+          <div style={{ flex: 1, padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 6, borderTop: '3px solid #0f172a' }}>
+            <div style={{ fontSize: 7.5, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', fontWeight: 600 }}>Resultado</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: totalEnt - totalSai - totalPay - totalCtr >= 0 ? '#10b981' : '#ef4444', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmt(totalEnt - totalSai - totalPay - totalCtr)}</div>
+            <div style={{ fontSize: 8, color: '#94a3b8', marginTop: 2 }}>Bruto do período</div>
+          </div>
+        </div>
+
+        {/* Resumo detalhado */}
+        <h2>Resumo Financeiro</h2>
+        <table className="pdf-summary-table">
           <tbody>
-            <tr><td>Total Entradas (c/IVA)</td><td className="text-right font-semibold">{fmt(totalEnt)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalEntBase)}</td><td>IVA liquidado</td><td className="text-right">{fmt(totalEnt - totalEntBase)}</td></tr>
-            <tr><td>Total Saídas (c/IVA)</td><td className="text-right font-semibold">{fmt(totalSai)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalSaiBase)}</td><td>IVA dedutível</td><td className="text-right">{fmt(totalSai - totalSaiBase)}</td></tr>
-            <tr><td>Salários (custo total)</td><td className="text-right font-semibold">{fmt(totalPay)}</td><td>Prestadores</td><td className="text-right font-semibold">{fmt(totalCtr)}</td><td>Resultado</td><td className="text-right font-semibold">{fmt(totalEnt - totalSai - totalPay - totalCtr)}</td></tr>
+            <tr><td>Total Entradas (c/IVA)</td><td className="text-right">{fmt(totalEnt)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalEntBase)}</td><td>IVA liquidado</td><td className="text-right">{fmt(totalEnt - totalEntBase)}</td></tr>
+            <tr><td>Total Saídas (c/IVA)</td><td className="text-right">{fmt(totalSai)}</td><td>Base s/IVA</td><td className="text-right">{fmt(totalSaiBase)}</td><td>IVA dedutível</td><td className="text-right">{fmt(totalSai - totalSaiBase)}</td></tr>
+            <tr><td>Salários (custo total)</td><td className="text-right">{fmt(totalPay)}</td><td>Prestadores</td><td className="text-right">{fmt(totalCtr)}</td><td>—</td><td></td></tr>
           </tbody>
         </table>
 
         {/* Negócio */}
-        <h3 className="font-semibold mt-3 mb-1">Dados do Negócio</h3>
-        <table className="w-full mb-3"><tbody>
-          <tr><td><strong>NIF</strong></td><td>{business?.nif || '—'}</td><td><strong>NISS</strong></td><td>{business?.niss || '—'}</td></tr>
-          <tr><td><strong>CAE</strong></td><td>{business?.cae_principal || '—'}</td><td><strong>Regime IVA</strong></td><td>{business?.regime_iva || '—'}</td></tr>
-          <tr><td><strong>Regime Fiscal</strong></td><td>{business?.regime_fiscal || '—'}</td><td><strong>CIRS</strong></td><td>{business?.cirs_code || '—'}</td></tr>
-          <tr><td><strong>IBAN</strong></td><td colSpan={3}>{business?.iban || '—'} ({business?.banco || '—'})</td></tr>
-          <tr><td><strong>Morada</strong></td><td colSpan={3}>{business?.morada_fiscal || '—'}</td></tr>
+        <h2>Dados do Negócio</h2>
+        <table className="pdf-summary-table"><tbody>
+          <tr><td>NIF</td><td>{business?.nif || '—'}</td><td>NISS</td><td>{business?.niss || '—'}</td></tr>
+          <tr><td>CAE</td><td>{business?.cae_principal || '—'}</td><td>Regime IVA</td><td>{business?.regime_iva || '—'}</td></tr>
+          <tr><td>Regime Fiscal</td><td>{business?.regime_fiscal || '—'}</td><td>CIRS</td><td>{business?.cirs_code || '—'}</td></tr>
+          <tr><td>IBAN</td><td colSpan={3}>{business?.iban || '—'} {business?.banco ? `(${business.banco})` : ''}</td></tr>
+          <tr><td>Morada</td><td colSpan={3}>{business?.morada_fiscal || '—'}</td></tr>
         </tbody></table>
 
         {/* Vendas */}
-        <h3 className="font-semibold mt-3 mb-1">Entradas / Vendas ({monthSales.length})</h3>
-        <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+        <h2>Entradas / Vendas <span style={{ color: '#94a3b8', fontWeight: 500 }}>({monthSales.length})</span></h2>
+        <table>
           <thead><tr><th>Doc</th><th>Data</th><th>Cliente</th><th>NIF</th><th>Produto</th><th>Base</th><th>IVA</th><th>Total</th></tr></thead>
           <tbody>
             {monthSales.map((s: any) => {
