@@ -103,13 +103,7 @@ export function useStrategicMetrics(period: MetricPeriod): StrategicMetrics {
     const productByName = new Map(products.map(p => [p.name, p]));
     const productById = new Map(products.map(p => [p.id, p]));
 
-    let mrr = 0;
-    activeClients.forEach(c => {
-      const prod = c.current_product ? (productByName.get(c.current_product) || null) : null;
-      if (prod && prod.product_type === 'servico_mensal') {
-        mrr += parseFloat(prod.ticket || '0') || 0;
-      }
-    });
+    const mrr = calculateMRR(activeClients, products).total;
 
     // Retention: average months between start_date and end_of_cycle for terminated clients
     const terminatedClients = allClients.filter(c =>
