@@ -33,15 +33,11 @@ import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 // ─── Types ──────────────────────────────────────────────────────
 
-type MeetingStatus = 'por_confirmar' | 'por_organizar' | 'confirmada' | 'terminada';
+import { MEETING_STATUSES as CANON_MEETING_STATUSES, type MeetingStatusValue } from '@/lib/meetingStatus';
+type MeetingStatus = MeetingStatusValue;
 type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
 
-const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
-  { value: 'por_organizar', label: 'Por organizar', color: '#3b82f6' },
-  { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
-  { value: 'confirmada', label: 'Confirmada', color: '#10b981' },
-  { value: 'terminada', label: 'Terminada', color: '#6b7280' },
-];
+const STATUSES = CANON_MEETING_STATUSES.map(s => ({ value: s.value, label: s.label, color: s.dotColor }));
 
 const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode; description: string }[] = [
   { value: 'inicial' as MeetingType, label: 'Reunião Inicial', icon: <Handshake className="h-5 w-5" />, description: 'Primeira reunião com o cliente (1 por cliente)' },
