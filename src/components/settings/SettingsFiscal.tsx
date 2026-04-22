@@ -319,6 +319,18 @@ export function SettingsFiscal() {
             />
           </div>
 
+          {ivaExempt && (
+            <div className="rounded-md border border-info/30 bg-info/10 p-3 text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-foreground">O que muda quando estás isenta de IVA:</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li>Não cobras IVA nas tuas vendas — o valor da fatura é igual ao valor base.</li>
+                <li>Não consegues deduzir o IVA das despesas — o IVA pago torna-se custo total.</li>
+                <li>A página de IVA e os respetivos prazos fiscais ficam ocultos.</li>
+                <li>A estimativa de IVA na previsibilidade fica a 0 €.</li>
+              </ul>
+            </div>
+          )}
+
           {/* SS Exempt toggle */}
           <div className="flex items-center justify-between py-2">
             <div className="space-y-0.5">

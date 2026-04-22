@@ -28,6 +28,7 @@ import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { TableSkeleton, EmptyState } from '@/components/ui/loading-skeletons';
 import { Receipt } from 'lucide-react';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -61,6 +62,8 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 type Filter = 'all' | 'month' | 'quarter' | 'year' | 'recurring';
 
 export function FinSaidas({ fin, currentYear }: Props) {
+  const { settings } = useBusinessSettings();
+  const ivaExempt = (settings as any)?.iva_exempt === true;
   const { getCategoryLabel } = useFinancialCategories();
   const allExpenses = fin.expenses.data || [];
   const [filter, setFilter] = useState<Filter>('year');
@@ -107,7 +110,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'pendente', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
+    setExpForm({ status: 'pendente', category: 'outro', vat_rate: ivaExempt ? 0 : 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
     setExpOpen(true);
   };
 
@@ -127,9 +130,14 @@ export function FinSaidas({ fin, currentYear }: Props) {
 
   const saveExpense = async () => {
     const inputValue = parseFloat(expForm.base_value) || 0;
-    const vat = parseFloat(expForm.vat_rate) || 0;
+    // When IVA-exempt, the user pays the gross amount and cannot deduct IVA → store base = total
+    const vat = ivaExempt ? 0 : (parseFloat(expForm.vat_rate) || 0);
     let base: number, total: number;
-    if (expForm.includes_vat) {
+    if (ivaExempt) {
+      // Treat the entered value as the real cost (with IVA included as cost)
+      base = inputValue;
+      total = inputValue;
+    } else if (expForm.includes_vat) {
       total = inputValue;
       base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
     } else {
@@ -326,26 +334,43 @@ export function FinSaidas({ fin, currentYear }: Props) {
             <div><Label>Categoria</Label>
               <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
-            <div className="flex items-center gap-2 py-1">
-              <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
-              <Label className="text-sm font-normal">Valor inclui IVA</Label>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
-              <div><Label>IVA (%)</Label>
-                <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{VAT_OPTIONS.map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}</SelectContent>
-                </Select>
+            {ivaExempt ? (
+              <div>
+                <Label>Valor Total Pago (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={expForm.base_value || ''}
+                  onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Estás isenta de IVA — não consegues deduzir, por isso indica o valor total pago (IVA incluído).
+                </p>
               </div>
-            </div>
-            {expForm.base_value && parseFloat(expForm.base_value) > 0 && (expForm.vat_rate ?? 23) > 0 && (
-              <p className="text-xs text-muted-foreground">
-                {expForm.includes_vat
-                  ? `Base: ${(parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) - parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} €`
-                  : `Total c/ IVA: ${(parseFloat(expForm.base_value) * (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) * (expForm.vat_rate ?? 23) / 100).toFixed(2)} €`
-                }
-              </p>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 py-1">
+                  <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+                  <Label className="text-sm font-normal">Valor inclui IVA</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+                  <div><Label>IVA (%)</Label>
+                    <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{VAT_OPTIONS.map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {expForm.base_value && parseFloat(expForm.base_value) > 0 && (expForm.vat_rate ?? 23) > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {expForm.includes_vat
+                      ? `Base: ${(parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) - parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} €`
+                      : `Total c/ IVA: ${(parseFloat(expForm.base_value) * (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) * (expForm.vat_rate ?? 23) / 100).toFixed(2)} €`
+                    }
+                  </p>
+                )}
+              </>
             )}
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Localização</Label>
