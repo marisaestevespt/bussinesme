@@ -98,6 +98,26 @@ export function useMemberSave() {
         const paymentDay = parseInt(contractData.payment_day) || 1;
         const isPrestacao = contractData.contract_type === 'contrato_prestacao';
 
+        // Block contract type change away from prestação if member is the configured accountant
+        if (!isNew && contractData.id && !isPrestacao) {
+          const { data: existingContract } = await supabase
+            .from('member_contracts')
+            .select('contract_type')
+            .eq('id', contractData.id)
+            .maybeSingle();
+          if (existingContract?.contract_type === 'contrato_prestacao') {
+            const { data: bs } = await supabase
+              .from('business_settings')
+              .select('accountant_member_id, has_accountant')
+              .limit(1)
+              .maybeSingle();
+            if (bs?.has_accountant && bs?.accountant_member_id === memberId) {
+              toast.error('Não podes mudar o tipo de contrato deste membro porque está definido como contabilista. Remove-o em Definições > Fiscal primeiro.');
+              return;
+            }
+          }
+        }
+
         if (isNew) {
           // Create contract + payments for new members
           await supabase.from('member_contracts').insert({
