@@ -6,6 +6,7 @@ import { parseISO } from 'date-fns';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
 import type { useFinancialData } from '@/hooks/useFinancialData';
+import { sumVat } from '@/lib/salesCalculations';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
