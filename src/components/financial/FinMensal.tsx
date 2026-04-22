@@ -567,7 +567,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Data Pgto.</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Data Pgto.</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead className="text-right whitespace-nowrap">IVA a Deduzir</TableHead></TableRow></TableHeader>
             <TableBody>
               {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
               {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
@@ -590,6 +590,52 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                   <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
                   <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
                   <TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell>
+                  <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
+                    {(() => {
+                      const ivaP = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
+                      const ded = (e as any).vat_deductible_amount;
+                      const dedDisplay = ded != null ? Number(ded) : ivaP;
+                      return editingDeductId === e.id ? (
+                        <Input
+                          type="number"
+                          step="0.01"
+                          autoFocus
+                          value={editingDeductValue}
+                          onChange={ev => setEditingDeductValue(ev.target.value)}
+                          onBlur={async () => {
+                            const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
+                            const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, ivaP));
+                            const { error } = await supabase
+                              .from('financial_expenses')
+                              .update({ vat_deductible_amount: finalValue } as any)
+                              .eq('id', e.id);
+                            if (error) toast.error('Erro ao guardar');
+                            else {
+                              toast.success('IVA dedutível atualizado');
+                              qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+                            }
+                            setEditingDeductId(null);
+                          }}
+                          onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
+                          className="h-7 w-24 text-right text-xs ml-auto"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 hover:text-primary group"
+                          onClick={() => {
+                            setEditingDeductValue(ded != null ? String(ded) : ivaP.toFixed(2));
+                            setEditingDeductId(e.id);
+                          }}
+                        >
+                          <span className={ded != null ? 'font-medium text-primary' : 'text-muted-foreground'}>
+                            {fmt(dedDisplay)}
+                          </span>
+                          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60" />
+                        </button>
+                      );
+                    })()}
+                  </TableCell>
                 </TableRow>
               ))}
               {/* Subscription rows due this month */}
