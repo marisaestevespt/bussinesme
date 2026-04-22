@@ -21,17 +21,10 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { formatNumber } from '@/lib/formatting';
+import { PAYMENT_METHOD_OPTIONS as SALE_PAYMENT_METHODS, SPECIAL_OFFER_REASONS } from '@/lib/salesConstants';
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
 import { buildSaleSourceOptions } from '@/lib/labelMaps';
-const SPECIAL_OFFER_REASONS = ['Campanha especial', 'Cliente antigo', 'Parceria', 'Desconto de lançamento', 'Upgrade de produto'];
-const SALE_PAYMENT_METHODS = [
-  { value: 'transferencia', label: 'Transferência Bancária' },
-  { value: 'cartao', label: 'Cartão de Crédito/Débito' },
-  { value: 'debito_direto', label: 'Débito Direto' },
-  { value: 'mbway', label: 'MB WAY' },
-  { value: 'multibanco', label: 'Multibanco' },
-];
 interface Props {
   saleId: string | null;
   open: boolean;
