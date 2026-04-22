@@ -767,16 +767,16 @@ export default function OperacaoPage() {
                               {day.items.map((item, i) => (
                                 (() => {
                                   const assignee = item.assigneeId ? profileMap.get(item.assigneeId) : null;
-                                  return (
-                                    <div
-                                      key={i}
-                                      className={`text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
-                                        item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
-                                        item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
-                                        'bg-accent/20 text-accent-foreground'
-                                      }`}
-                                      title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}
-                                    >
+                                  const href = item.type === 'meeting'
+                                    ? `/hub/reunioes/${item.id}`
+                                    : item.projectId ? `/hub/projetos/${item.projectId}` : null;
+                                  const className = `text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
+                                    item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
+                                    item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
+                                    'bg-accent/20 text-accent-foreground'
+                                  } ${href ? 'hover:opacity-80 cursor-pointer transition-opacity' : ''}`;
+                                  const inner = (
+                                    <>
                                       {item.type === 'meeting' && <span className="shrink-0 leading-none">📅</span>}
                                       <span className="flex-1 min-w-0 break-words text-left line-clamp-2">{item.name}</span>
                                       {assignee && (
@@ -785,6 +785,18 @@ export default function OperacaoPage() {
                                           <AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback>
                                         </Avatar>
                                       )}
+                                    </>
+                                  );
+                                  if (href) {
+                                    return (
+                                      <Link key={i} to={href} className={className} title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}>
+                                        {inner}
+                                      </Link>
+                                    );
+                                  }
+                                  return (
+                                    <div key={i} className={className} title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}>
+                                      {inner}
                                     </div>
                                   );
                                 })()
