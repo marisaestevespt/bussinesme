@@ -430,15 +430,14 @@ export default function FornecedoresPage() {
           for (const exp of existingExps) {
             const updates: Record<string, any> = {};
 
-            // Update location & VAT — keep total_with_vat unchanged, recalculate base_value
+            // Cascade location & VAT — keep base_value (real cost without VAT) and recalculate total_with_vat.
+            // This is the correct fiscal behaviour: when a supplier changes from PT 23% to UE 0%,
+            // the base cost stays the same and the total simply equals the base (no VAT applied).
             if (exp.location !== newLocation || exp.vat_rate !== newVat) {
               updates.location = newLocation;
               updates.vat_rate = newVat;
-              const total = exp.total_with_vat || (exp.base_value || 0) * (1 + (exp.vat_rate || 0) / 100);
-              updates.total_with_vat = total;
-              updates.base_value = newVat > 0
-                ? Math.round(total / (1 + newVat / 100) * 100) / 100
-                : total;
+              const base = exp.base_value ?? 0;
+              updates.total_with_vat = Math.round(base * (1 + newVat / 100) * 100) / 100;
             }
 
             // Update description template if set
