@@ -332,7 +332,7 @@ export default function TarefasPage() {
     const member = teamMembers.find(m => m.profile_id === assignedTo && m.status === 'ativo');
     if (!member) return null;
 
-    const weeklyHours = Number(member.expected_weekly_hours || 40);
+    const weeklyHours = memberWeeklyHours(member);
     // Calculate existing committed hours for the deadline week
     const dlDate = deadline;
     const weekStart = startOfDay(dlDate);
