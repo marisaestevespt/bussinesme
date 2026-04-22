@@ -17,6 +17,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { MEETING_STATUSES as CANON_MEETING_STATUSES_FOR_GESTAO } from '@/lib/meetingStatus';
 
 interface Props {
   projectId: string;
