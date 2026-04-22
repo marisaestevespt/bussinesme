@@ -43,6 +43,7 @@ import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUplo
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
 import { useProjectDetailData, calcTotalTime, type ProjectFull, type Profile, type Task, type Meeting } from '@/hooks/useProjectDetailData';
+import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EntregaveisSubPage } from '@/components/project/subpages/EntregaveisSubPage';
 import { CronogramaSubPage } from '@/components/project/subpages/CronogramaSubPage';
 import { OutrasInfoSubPage } from '@/components/project/subpages/OutrasInfoSubPage';
@@ -88,6 +89,7 @@ export default function ProjetoDetailPage() {
 
   // Task dialog
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
   const [taskName, setTaskName] = useState('');
   const [taskPriority, setTaskPriority] = useState('media');
   const [taskDeadline, setTaskDeadline] = useState<Date | undefined>();
@@ -782,7 +784,11 @@ export default function ProjetoDetailPage() {
                           const pi = getPriorityInfo(t.priority);
                           const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
                           return (
-                            <TableRow key={t.id} className="hover:bg-muted/30">
+                            <TableRow
+                              key={t.id}
+                              className="cursor-pointer hover:bg-muted/30"
+                              onClick={() => setTaskDetailId(t.id)}
+                            >
                               <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
                               <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
                               <TableCell className="font-medium text-sm">{t.name}</TableCell>
@@ -916,6 +922,16 @@ export default function ProjetoDetailPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <TaskFormDialog
+          open={!!taskDetailId}
+          onOpenChange={(open) => !open && setTaskDetailId(null)}
+          editingTask={taskDetailId ? tasks.find((task) => task.id === taskDetailId) : null}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['project-tasks', id] });
+            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          }}
+        />
 
         {/* Members dialog */}
         <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
@@ -1126,7 +1142,11 @@ export default function ProjetoDetailPage() {
                     const pi = getPriorityInfo(t.priority);
                     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
                     return (
-                      <TableRow key={t.id} className="hover:bg-muted/30">
+                      <TableRow
+                        key={t.id}
+                        className="cursor-pointer hover:bg-muted/30"
+                        onClick={() => setTaskDetailId(t.id)}
+                      >
                         <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
                         <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
                         <TableCell className="font-medium text-sm">{t.name}</TableCell>
@@ -1244,6 +1264,16 @@ export default function ProjetoDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+        <TaskFormDialog
+          open={!!taskDetailId}
+          onOpenChange={(open) => !open && setTaskDetailId(null)}
+          editingTask={taskDetailId ? tasks.find((task) => task.id === taskDetailId) : null}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['project-tasks', id] });
+            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          }}
+        />
     </AppLayout>
   );
 }
