@@ -1176,12 +1176,14 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
 
   const toggleCheck = useMutation({
     mutationFn: async ({ key, checked }: { key: string; checked: boolean }) => {
-      const existing = checks.find((c: any) => c.check_key === key)
-        || (key === 'irs_start' ? annualChecks.find((c: any) => c.check_key === 'irs_start') : undefined);
+      // IRS is a single annual obligation — store both "start" and "deadline" under irs_start.
+      const storageKey = key === 'irs_deadline' ? 'irs_start' : key;
+      const existing = checks.find((c: any) => c.check_key === storageKey)
+        || (storageKey === 'irs_start' ? annualChecks.find((c: any) => c.check_key === 'irs_start') : undefined);
       if (existing) {
         await supabase.from('fiscal_monthly_checks').update({ checked, checked_at: checked ? new Date().toISOString() : null }).eq('id', (existing as any).id);
       } else {
-        await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: key, checked, checked_at: checked ? new Date().toISOString() : null });
+        await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: storageKey, checked, checked_at: checked ? new Date().toISOString() : null });
       }
     },
     onSuccess: () => {
