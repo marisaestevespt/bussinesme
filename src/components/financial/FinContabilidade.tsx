@@ -70,11 +70,14 @@ export function FinContabilidade({ currentYear }: Props) {
 
   const deadlines = useMemo(() => {
     // computeFiscalDeadlines now hides SS/IVA when hasAccountant=true; only IRS remains.
-    // Include previous year's IRS campaign (filed in currentYear) too.
-    const cur = computeFiscalDeadlines(currentYear, fiscalConfig);
-    const prev = computeFiscalDeadlines(currentYear - 1, fiscalConfig)
+    // IRS works on a campaign basis: rendimentos de YYYY são entregues em YYYY+1.
+    // → Mostrar apenas a campanha do IRS do ano ANTERIOR (entregue este ano).
+    //   Esconder SS/IVA do ano anterior (já passaram) e o IRS do ano corrente (só no próximo ano).
+    const cur = computeFiscalDeadlines(currentYear, fiscalConfig)
+      .filter(d => d.category !== 'irs');
+    const prevIrs = computeFiscalDeadlines(currentYear - 1, fiscalConfig)
       .filter(d => d.category === 'irs');
-    return [...prev, ...cur].sort((a, b) => a.date.localeCompare(b.date));
+    return [...prevIrs, ...cur].sort((a, b) => a.date.localeCompare(b.date));
   }, [currentYear, fiscalConfig]);
 
   // Fiscal deadline completions
