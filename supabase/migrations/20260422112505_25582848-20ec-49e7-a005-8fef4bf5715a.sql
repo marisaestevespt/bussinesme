@@ -1,0 +1,1 @@
+UPDATE public.commercial_sales SET status = 'tudo_ok' WHERE id = '46f4a065-9a81-4ca8-aa0d-a6eb8f3d62c3';
