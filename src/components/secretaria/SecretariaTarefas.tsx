@@ -10,9 +10,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, FileText } from 'lucide-react';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useMyTasks, useProjects, STATUS_COLORS, STATUS_LABELS, PRIORITY_LABELS } from './secretaria-shared';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
-import { isTaskDone, isTaskOpen, isTaskOverdue, countOverdue } from '@/lib/taskStatus';
+import { useMyTasks, useProjects } from './secretaria-shared';
+import {
+  isTaskDone,
+  isTaskOpen,
+  isTaskOverdue,
+  countOverdue,
+  getTaskStatusInfo,
+  getTaskPriorityInfo,
+} from '@/lib/taskStatus';
 
 const today = startOfDay(new Date());
 
@@ -99,8 +106,16 @@ export default function SecretariaTarefas() {
                   )}
                 </div>
               </TableCell>
-              <TableCell><Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge></TableCell>
-              <TableCell><Badge variant="outline" className="text-[10px]">{PRIORITY_LABELS[t.priority] || t.priority}</Badge></TableCell>
+              {(() => {
+                const si = getTaskStatusInfo(t.status);
+                const pi = getTaskPriorityInfo(t.priority);
+                return (
+                  <>
+                    <TableCell><Badge variant="outline" className={cn('text-[10px]', si.color)}>{si.label}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className={cn('text-[10px]', pi.color)}>{pi.short}</Badge></TableCell>
+                  </>
+                );
+              })()}
               <TableCell className="text-sm">{t.deadline ? format(parseISO(t.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{getProjectName(t.project_id)}</TableCell>
             </TableRow>
