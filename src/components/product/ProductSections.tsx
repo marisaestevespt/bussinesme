@@ -19,14 +19,7 @@ import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnost
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 
 // ─── Processos Section ─────────────────────────────────────────
-
-const SOP_STATUSES: Record<string, { label: string; color: string }> = {
-  para_criar: { label: 'Para criar', color: 'bg-muted text-muted-foreground' },
-  em_criacao: { label: 'Em criação', color: 'bg-warning/15 text-warning border-warning/30' },
-  ativo: { label: 'Ativo', color: 'bg-success/15 text-success border-success/30' },
-  em_revisao: { label: 'Em revisão', color: 'bg-info/15 text-info border-info/30' },
-  off: { label: 'Off', color: 'bg-destructive/15 text-destructive border-destructive/30' },
-};
+import { getSopStatusInfo } from '@/lib/sopStatus';
 
 interface ProcessosSectionProps {
   productSops: Array<Record<string, unknown>>;
@@ -59,7 +52,7 @@ export function ProductProcessosSection({ productSops, projectTemplate, isOwner,
                 <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem processos associados</TableCell></TableRow>
               )}
               {productSops.map((sop) => {
-                const st = SOP_STATUSES[sop.status as string] || SOP_STATUSES.para_criar;
+                const st = getSopStatusInfo(sop.status as string);
                 return (
                   <TableRow key={sop.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
                     <TableCell className="text-xs font-mono text-muted-foreground">{sop.sop_id as string}</TableCell>

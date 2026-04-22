@@ -12,14 +12,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { parseISO, addDays } from 'date-fns';
 import { addBusinessDays } from '@/lib/holidays';
-
-const SOP_STATUSES: Record<string, { label: string; color: string }> = {
-  para_criar: { label: 'Para criar', color: 'bg-muted text-muted-foreground' },
-  em_criacao: { label: 'Em criação', color: 'bg-warning/15 text-warning border-warning/30' },
-  ativo: { label: 'Ativo', color: 'bg-success/15 text-success border-success/30' },
-  em_revisao: { label: 'Em revisão', color: 'bg-info/15 text-info border-info/30' },
-  off: { label: 'Off', color: 'bg-destructive/15 text-destructive border-destructive/30' },
-};
+import { getSopStatusInfo } from '@/lib/sopStatus';
 
 interface LinkedSopsSectionProps {
   entityType: 'produto' | 'cliente' | 'projeto';
@@ -253,7 +246,7 @@ export function LinkedSopsSection({ entityType, entityId, productId, clientId, p
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {sops.map((sop: any) => {
-            const st = SOP_STATUSES[sop.status] || SOP_STATUSES.para_criar;
+            const st = getSopStatusInfo(sop.status);
             return (
               <Card key={sop.id} className="group cursor-pointer hover:shadow-md transition-shadow relative">
                 <CardContent className="p-4" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
@@ -297,7 +290,7 @@ export function LinkedSopsSection({ entityType, entityId, productId, clientId, p
               </p>
             ) : (
               filteredSops.map((sop: any) => {
-                const st = SOP_STATUSES[sop.status] || SOP_STATUSES.para_criar;
+                const st = getSopStatusInfo(sop.status);
                 return (
                   <button
                     key={sop.id}

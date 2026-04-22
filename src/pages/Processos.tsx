@@ -32,20 +32,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { DEPARTMENTS, PROCESS_DEPARTMENTS, getDept, getDeptLabel } from '@/lib/departments';
 import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
-
-// ─── Constants ──────────────────────────────────────────────────
-
-const SOP_STATUSES = [
-  { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
-  { value: 'em_criacao', label: 'Em criação', color: 'bg-warning/15 text-warning border-warning/30' },
-  { value: 'ativo', label: 'Ativo', color: 'bg-success/15 text-success border-success/30' },
-  { value: 'em_revisao', label: 'Em revisão', color: 'bg-info/15 text-info border-info/30' },
-  { value: 'off', label: 'Off', color: 'bg-destructive/15 text-destructive border-destructive/30' },
-];
-
-function getStatusInfo(status: string) {
-  return SOP_STATUSES.find(s => s.value === status) || SOP_STATUSES[0];
-}
+import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
