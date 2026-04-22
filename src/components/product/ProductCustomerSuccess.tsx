@@ -132,12 +132,11 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
 
   const getRenewalInfo = (endOfCycle: string | null) => {
     if (!endOfCycle) return { label: 'Sem data definida', icon: <Clock className="h-3.5 w-3.5 text-muted-foreground" />, className: 'text-muted-foreground' };
-    const date = new Date(endOfCycle);
-    const days = differenceInDays(date, new Date());
-    if (isPast(date)) {
+    const days = daysUntilRenewal({ end_of_cycle: endOfCycle }) ?? 0;
+    if (days < 0) {
       return { label: `Expirou há ${Math.abs(days)} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-destructive" />, className: 'text-destructive font-medium' };
     }
-    if (days <= 30) {
+    if (days <= DEFAULT_RENEWAL_WINDOW_DAYS) {
       return { label: `Faltam ${days} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-warning" />, className: 'text-warning font-medium' };
     }
     return { label: `Faltam ${days} dias`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-success" />, className: 'text-success' };

@@ -22,6 +22,7 @@ import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { isUpcomingRenewal, daysUntilRenewal } from '@/lib/clientLifecycle';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -398,11 +399,7 @@ export default function OperacaoPage() {
 
    // ── Alerts data ─────────────────────────────────────────────
   const clientsNearEndOfCycle = useMemo(() => {
-    return clients.filter(c => {
-      if (c.status === 'terminado' || !c.end_of_cycle) return false;
-      const daysLeft = differenceInDays(new Date(c.end_of_cycle), today);
-      return daysLeft >= 0 && daysLeft <= 30;
-    });
+    return clients.filter(c => isUpcomingRenewal(c, 30, today));
   }, [clients, today]);
 
   const overdueDeliverables = useMemo(() =>
@@ -552,7 +549,7 @@ export default function OperacaoPage() {
               </div>
               <div className="flex flex-wrap gap-3">
                 {clientsNearEndOfCycle.map(c => {
-                  const daysLeft = differenceInDays(new Date(c.end_of_cycle!), today);
+                  const daysLeft = daysUntilRenewal(c, today) ?? 0;
                   return (
                     <Link key={c.id} to={`/clientes/${c.id}`} className="flex items-center gap-2 text-sm hover:underline">
                       <span className="font-medium text-warning dark:text-amber-300">{c.full_name}</span>
