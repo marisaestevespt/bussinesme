@@ -287,7 +287,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
 
       {/* IVA Pago Detail Dialog */}
       <Dialog open={pagoMonth !== null} onOpenChange={(open) => !open && setPagoMonth(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-base">IVA Pago — {pagoDetail?.mes}</DialogTitle>
           </DialogHeader>
@@ -300,18 +300,44 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   <TableHead>Despesa</TableHead>
                   <TableHead className="text-right">Total c/ IVA</TableHead>
                   <TableHead className="text-right">Base</TableHead>
-                  <TableHead className="text-right">IVA</TableHead>
+                  <TableHead className="text-right">IVA Pago</TableHead>
+                  <TableHead className="text-right">IVA a Deduzir</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pagoDetail?.expenses.map((e, idx) => {
                   const iva = Math.round((e.total_with_vat - e.base_value) * 100) / 100;
+                  const dedutivel = (e as any).vat_deductible_amount;
+                  const deduzir = dedutivel != null ? Number(dedutivel) : iva;
                   return (
                     <TableRow key={idx}>
                       <TableCell className="text-sm">{e.description || `Despesa ${idx + 1}`}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(e.total_with_vat)}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                      <TableCell className="text-right text-sm">
+                        {editingDeductId === e.id ? (
+                          <Input
+                            type="number" step="0.01" autoFocus
+                            value={editingDeductValue}
+                            onChange={ev => setEditingDeductValue(ev.target.value)}
+                            onBlur={async () => {
+                              const parsed = editingDeductValue === '' ? null : parseFloat(editingDeductValue);
+                              const finalValue = parsed === null || isNaN(parsed) ? null : Math.max(0, Math.min(parsed, iva));
+                              const { error } = await supabase.from('financial_expenses').update({ vat_deductible_amount: finalValue } as any).eq('id', e.id);
+                              if (error) toast.error('Erro ao guardar');
+                              else { toast.success('Atualizado'); qc.invalidateQueries({ queryKey: ['financial-expenses'] }); }
+                              setEditingDeductId(null);
+                            }}
+                            onKeyDown={ev => { if (ev.key === 'Enter') (ev.target as HTMLInputElement).blur(); if (ev.key === 'Escape') setEditingDeductId(null); }}
+                            className="h-7 w-24 text-right text-xs ml-auto"
+                          />
+                        ) : (
+                          <button type="button" className={`hover:text-primary underline decoration-dotted underline-offset-2 ${dedutivel != null ? 'font-medium text-primary' : 'text-muted-foreground'}`}
+                            onClick={() => { setEditingDeductValue(dedutivel != null ? String(dedutivel) : iva.toFixed(2)); setEditingDeductId(e.id); }}
+                          >{fmt(deduzir)}</button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -320,6 +346,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   <TableCell className="text-right">{fmt(pagoDetail?.expenses.reduce((s, e) => s + e.total_with_vat, 0) || 0)}</TableCell>
                   <TableCell className="text-right">{fmt(pagoDetail?.expenses.reduce((s, e) => s + e.base_value, 0) || 0)}</TableCell>
                   <TableCell className="text-right">{fmt(pagoDetail?.totalIvaPago || 0)}</TableCell>
+                  <TableCell className="text-right text-primary">{fmt(pagoDetail?.totalIvaDeduzir || 0)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
