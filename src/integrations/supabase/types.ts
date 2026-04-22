@@ -5365,38 +5365,6 @@ export type Database = {
           },
         ]
       }
-      members: {
-        Row: {
-          created_at: string
-          custom_role_id: string
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          custom_role_id: string
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          custom_role_id?: string
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "members_custom_role_id_fkey"
-            columns: ["custom_role_id"]
-            isOneToOne: false
-            referencedRelation: "custom_roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       metric_history: {
         Row: {
           created_at: string
@@ -9219,6 +9187,7 @@ export type Database = {
           birthday: string | null
           created_at: string
           custom_holidays: Json | null
+          custom_role_id: string | null
           department: string | null
           departments: Json | null
           email: string | null
@@ -9254,6 +9223,7 @@ export type Database = {
           birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
+          custom_role_id?: string | null
           department?: string | null
           departments?: Json | null
           email?: string | null
@@ -9289,6 +9259,7 @@ export type Database = {
           birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
+          custom_role_id?: string | null
           department?: string | null
           departments?: Json | null
           email?: string | null
@@ -9320,6 +9291,13 @@ export type Database = {
           works_holidays?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "team_members_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "team_members_profile_id_fkey"
             columns: ["profile_id"]
