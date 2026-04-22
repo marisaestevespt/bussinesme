@@ -108,10 +108,10 @@ export function useMemberSave() {
           if (existingContract?.contract_type === 'contrato_prestacao') {
             const { data: bs } = await supabase
               .from('business_settings')
-              .select('accountant_member_id, has_accountant')
+              .select('accountant_member_id')
               .limit(1)
               .maybeSingle();
-            if (bs?.has_accountant && bs?.accountant_member_id === memberId) {
+            if (bs?.accountant_member_id === memberId) {
               toast.error('Não podes mudar o tipo de contrato deste membro porque está definido como contabilista. Remove-o em Definições > Fiscal primeiro.');
               return;
             }
