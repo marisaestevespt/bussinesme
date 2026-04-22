@@ -8,15 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { getStatusOption } from '@/lib/marketing-constants';
 
-const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  por_criar: { label: 'Por criar', className: 'bg-muted text-muted-foreground' },
-  em_criacao: { label: 'Em criação', className: 'bg-info/15 text-info' },
-  para_aprovacao: { label: 'Para aprovação', className: 'bg-purple-100 text-purple-800' },
-  aprovado: { label: 'Aprovado', className: 'bg-success/15 text-success' },
-  agendado: { label: 'Agendado', className: 'bg-warning/15 text-warning' },
-  publicado: { label: 'Publicado', className: 'bg-success/15 text-success' },
-};
+// Statuses that mean "still requires work from the assignee" (excludes scheduled/published).
+const PENDING_CONTENT_STATUSES = [
+  'em_ideia',
+  'pronto_para_copy',
+  'em_copy',
+  'pronto_para_design',
+  'em_design',
+  'gravar',
+  'editar',
+  'aprovacao_final',
+];
 
 export default function SecretariaConteudos() {
   const { user } = useAuth();
@@ -50,7 +54,7 @@ export default function SecretariaConteudos() {
   ), [myContent, monthStart, monthEnd]);
 
   const pending = useMemo(() => myContent.filter(c =>
-    ['por_criar', 'em_criacao', 'para_aprovacao'].includes(c.status)
+    PENDING_CONTENT_STATUSES.includes(c.status)
   ), [myContent]);
 
   if (myContent.length === 0) return null;
@@ -100,7 +104,10 @@ function ContentTable({ items, onNavigate }: { items: any[]; onNavigate: (id: st
       </TableHeader>
       <TableBody>
         {items.map(c => {
-          const st = STATUS_MAP[c.status] || { label: c.status, className: 'bg-muted text-muted-foreground' };
+          const opt = getStatusOption(c.status);
+          const st = opt
+            ? { label: opt.label, className: opt.color }
+            : { label: c.status, className: 'bg-muted text-muted-foreground' };
           return (
             <TableRow key={c.id} className="cursor-pointer" onClick={() => onNavigate(c.id)}>
               <TableCell className="font-medium">{c.title}</TableCell>
