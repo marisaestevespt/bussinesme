@@ -512,12 +512,12 @@ export default function OperacaoPage() {
 
   // ── Delivery timeline (next 14 days) — tasks + meetings + project milestones ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null }[] }[] = [];
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string }[] = [];
+      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null }[] = [];
 
       // Projects
       allActiveProjects.forEach(p => {
@@ -529,7 +529,7 @@ export default function OperacaoPage() {
       // Tasks (já incluem entregas auto-geradas)
       tasks.filter(isTaskOpen).forEach(t => {
         if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: t.name, type: 'task', id: t.id });
+          items.push({ name: t.name, type: 'task', id: t.id, assigneeId: t.assigned_to });
         }
       });
 
