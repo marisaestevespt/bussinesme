@@ -512,31 +512,31 @@ export default function OperacaoPage() {
 
   // ── Delivery timeline (next 7 days) — tasks + meetings + project milestones ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null; projectId?: string | null }[] }[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null }[] = [];
+      const items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null; projectId?: string | null }[] = [];
 
       // Projects
       allActiveProjects.forEach(p => {
         if (p.deadline && format(new Date(p.deadline), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: p.name, type: 'project', id: p.id });
+          items.push({ name: p.name, type: 'project', id: p.id, projectId: p.id });
         }
       });
 
       // Tasks (já incluem entregas auto-geradas)
       tasks.filter(isTaskOpen).forEach(t => {
         if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: t.name, type: 'task', id: t.id, assigneeId: t.assigned_to });
+          items.push({ name: t.name, type: 'task', id: t.id, assigneeId: t.assigned_to, projectId: t.project_id });
         }
       });
 
       // Meetings
       meetings.forEach(m => {
         if (format(new Date(m.date_time), 'yyyy-MM-dd') === dateStr) {
-          items.push({ name: m.title, type: 'meeting', id: m.id });
+          items.push({ name: m.title, type: 'meeting', id: m.id, projectId: m.project_id });
         }
       });
 
