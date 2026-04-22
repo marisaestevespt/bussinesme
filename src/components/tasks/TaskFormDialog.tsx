@@ -44,11 +44,15 @@ interface TaskFormDialogProps {
   editingTask?: any;
   /** Default deadline for new tasks */
   defaultDeadline?: Date;
+  /** Default project for new tasks */
+  defaultProjectId?: string;
+  /** Default client for new tasks */
+  defaultClientId?: string;
   /** Called after successful create/update */
   onSuccess?: () => void;
 }
 
-export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadline, onSuccess }: TaskFormDialogProps) {
+export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadline, defaultProjectId, defaultClientId, onSuccess }: TaskFormDialogProps) {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
   const { startTimer: globalStartTimer } = useActiveTimer();
