@@ -57,13 +57,7 @@ const SUBSCRIPTION_PERIODICITIES = [
   { value: 'anual', label: 'Anual' },
 ];
 
-const SALE_STATUSES: Record<string, { label: string; color: string }> = {
-  aguarda_pagamento: { label: 'Aguarda Pagamento', color: 'bg-warning/15 text-warning border-warning/30' },
-  pago: { label: 'Pago', color: 'bg-success/15 text-success border-success/30' },
-  tudo_ok: { label: 'Tudo OK', color: 'bg-success/15 text-success border-success/30' },
-  em_atraso: { label: 'Em Atraso', color: 'bg-destructive/15 text-destructive border-destructive/30' },
-  cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground border-muted' },
-};
+import { getSaleStatusInfo } from '@/lib/saleStatus';
 
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, projectPaymentMethod, projectPaymentConfig, onNewMeeting, onUpdateProject }: Props) {
   const navigate = useNavigate();
