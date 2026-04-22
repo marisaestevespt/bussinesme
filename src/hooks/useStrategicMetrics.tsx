@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { subMonths, subDays, differenceInMonths, parseISO, format, startOfMonth, endOfMonth, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+import { calculateMRR, isRecurringProduct, parseTicket } from '@/lib/financialHealth';
 
 export type MetricPeriod = 'last_month' | 'last_quarter' | 'last_year' | 'all_time';
 
