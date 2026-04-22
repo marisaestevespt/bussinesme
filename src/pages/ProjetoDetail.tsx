@@ -21,7 +21,7 @@ import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users
 import { BackNavigation } from '@/components/BackNavigation';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -41,33 +41,9 @@ import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
+import { useProjectDetailData, calcTotalTime, type ProjectFull, type Profile, type Task, type Meeting } from '@/hooks/useProjectDetailData';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// ─── Types ──────────────────────────────────────────────────────
-
-interface ProjectFull {
-  id: string; name: string; type: string; status: string; department: string | null;
-  departments: string[] | null;
-  client_name: string | null; client_id: string | null;
-  product_id: string | null; product_name: string | null;
-  start_date: string | null; deadline: string | null; progress: number; notes: string | null;
-  objetivo: string | null; diretrizes: string | null; cronograma: string | null; dependencias: string | null;
-  entregaveis: string | null; recursos: string | null; project_notes: string | null;
-  closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
-  created_by: string | null; created_at: string; cover_url: string | null;
-  total_time_minutes: number | null;
-  project_mode: string | null;
-  task_mode: string | null;
-  whatsapp_group_url: string | null;
-  contract_documents: Array<{ name: string; url: string }> | null;
-  payment_method: string | null;
-  payment_config: Record<string, any> | null;
-}
-
-interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
-interface Task { id: string; name: string; status: string; priority: string; deadline: string | null; assigned_to: string | null; project_id: string | null; department: string | null; }
-interface Meeting { id: string; title: string; date_time: string; status: string; project_id: string | null; }
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
