@@ -56,13 +56,12 @@ export function FinContabilidade({ currentYear }: Props) {
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
   const hasAccountant = s?.has_accountant ?? false;
-  const accountantType = s?.accountant_type || 'externo';
   const accountantMemberId = s?.accountant_member_id || null;
 
-  // Get the accountant's profile_id for task assignment (internal accountant)
+  // Get the accountant's profile (member is always linked when has_accountant is true)
   const { data: accountantMember } = useQuery({
     queryKey: ['accountant-member', accountantMemberId],
-    enabled: !!accountantMemberId && accountantType === 'interno',
+    enabled: !!accountantMemberId,
     queryFn: async () => {
       const { data } = await supabase.from('team_members').select('id, full_name, profile_id').eq('id', accountantMemberId).maybeSingle();
       return data;

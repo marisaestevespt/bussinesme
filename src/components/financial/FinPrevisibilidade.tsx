@@ -44,10 +44,9 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
     hasAccountant,
   };
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
-  // When user has an accountant (or contab. organizada), SS/IVA estimates are hidden — accountant manages.
-  const accountantManagesFiscal = hasAccountant || isContabOrganizada;
-  const showIndependente = (ssType === 'independente' || ssType === 'ambos') && !fiscalConfig.ssExempt && !accountantManagesFiscal;
-  const showPatronal = (ssType === 'entidade_patronal' || ssType === 'ambos') && !fiscalConfig.ssExempt && !accountantManagesFiscal;
+  // Estimates remain visible when there's an accountant — only contabilidade organizada hides them.
+  const showIndependente = (ssType === 'independente' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
+  const showPatronal = (ssType === 'entidade_patronal' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
 
   const now = new Date();
   const currentMonth = now.getFullYear() === currentYear ? now.getMonth() + 1 : 12;
