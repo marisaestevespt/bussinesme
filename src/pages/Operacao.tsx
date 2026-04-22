@@ -438,7 +438,7 @@ export default function OperacaoPage() {
 
   // ── Countdown — next delivery (deliverables first, then project deadlines) ──
   const nextDelivery = useMemo(() => {
-    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'deliverable' | 'project'; projectId?: string };
+    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'deliverable' | 'project' | 'meeting'; projectId?: string };
     const candidates: NextItem[] = [];
 
     // Deliverables
@@ -464,9 +464,22 @@ export default function OperacaoPage() {
       }
     });
 
+    // Meetings
+    meetings.forEach(m => {
+      const dt = new Date(m.date_time);
+      if (!isBefore(dt, today)) {
+        const proj = m.project_id ? allActiveProjects.find(p => p.id === m.project_id) : null;
+        candidates.push({
+          id: m.id, name: `📅 ${m.title}`, deadline: m.date_time,
+          daysLeft: differenceInDays(dt, today),
+          projectName: proj?.name || m.client_name || '', type: 'meeting', projectId: m.project_id || undefined,
+        });
+      }
+    });
+
     candidates.sort((a, b) => a.daysLeft - b.daysLeft);
     return candidates[0] || null;
-  }, [allActiveProjects, deliverables, today]);
+  }, [allActiveProjects, deliverables, meetings, today]);
 
   // ── Project health indicators ──────────────────────────────
   const projectHealth = useMemo(() => {
