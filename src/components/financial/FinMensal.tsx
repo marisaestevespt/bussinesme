@@ -1135,7 +1135,38 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     return items;
   }, [month, year, fiscalConfig]);
 
-  // Load saved checks for this month
+  // Map a Mensal check key to the corresponding deadline_key used by FinContabilidade.
+  // Returns null when the key is not mirrored (IRS handled separately, bank_statement is local).
+  const toDeadlineKey = (key: string): string | null => {
+    if (key === 'ss_payment') {
+      const refMonth = month === 1 ? 12 : month - 1;
+      const refYear = month === 1 ? year - 1 : year;
+      return `ss-${refYear}-${refMonth}`;
+    }
+    if (key.startsWith('iva_decl_q_') || key.startsWith('iva_pay_q_')) {
+      const isPay = key.startsWith('iva_pay_q_');
+      // month → quarter mapping used by computeFiscalDeadlines
+      // Feb=Q4 prev year, May=Q1, Aug=Q2, Nov=Q3
+      const map: Record<number, { q: number; y: number }> = {
+        2: { q: 4, y: year - 1 },
+        5: { q: 1, y: year },
+        8: { q: 2, y: year },
+        11: { q: 3, y: year },
+      };
+      const m = map[month];
+      if (!m) return null;
+      return `iva-${isPay ? 'pay' : 'decl'}-q${m.q}-${m.y}`;
+    }
+    if (key === 'iva_decl_m' || key === 'iva_pay_m') {
+      const isPay = key === 'iva_pay_m';
+      const refMonth = month <= 2 ? 10 + month : month - 2;
+      const refYear = month <= 2 ? year - 1 : year;
+      return `iva-${isPay ? 'pay' : 'decl'}-m${refMonth}-${refYear}`;
+    }
+    return null;
+  };
+
+  // Load saved checks for this month (local-only keys: bank_statement, legacy IRS, etc.)
   const { data: checks = [] } = useQuery({
     queryKey: ['fiscal-checks', year, month],
     queryFn: async () => {
@@ -1147,6 +1178,22 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
       return data || [];
     },
   });
+
+  // SS/IVA completions live in fiscal_deadline_completions (shared with Contabilidade).
+  const { data: deadlineCompletions = [] } = useQuery({
+    queryKey: ['fiscal-deadline-completions', year],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('fiscal_deadline_completions' as any)
+        .select('*')
+        .eq('year', year);
+      return (data || []) as any[];
+    },
+  });
+  const completedDeadlineKeys = useMemo(
+    () => new Set(deadlineCompletions.map((c: any) => c.deadline_key)),
+    [deadlineCompletions],
+  );
 
   // Annual checks (e.g. IRS): a single tick covers the whole year.
   // We look across the entire year for the irs_start key.
@@ -1171,11 +1218,29 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     const map: Record<string, boolean> = {};
     checks.forEach((c: any) => { map[c.check_key] = c.checked; });
     if (irsDoneAnnual) map['irs_start'] = true;
+    // Layer in SS/IVA from fiscal_deadline_completions
+    checkItems.forEach(item => {
+      const dk = toDeadlineKey(item.key);
+      if (dk && completedDeadlineKeys.has(dk)) map[item.key] = true;
+    });
     return map;
-  }, [checks, irsDoneAnnual]);
+  }, [checks, irsDoneAnnual, checkItems, completedDeadlineKeys, month, year]);
 
   const toggleCheck = useMutation({
     mutationFn: async ({ key, checked }: { key: string; checked: boolean }) => {
+      // SS / IVA → mirror into fiscal_deadline_completions (shared with Contabilidade)
+      const deadlineKey = toDeadlineKey(key);
+      if (deadlineKey) {
+        const existing = deadlineCompletions.find((c: any) => c.deadline_key === deadlineKey);
+        if (checked && !existing) {
+          await supabase
+            .from('fiscal_deadline_completions' as any)
+            .insert({ deadline_key: deadlineKey, year, completed_by: (await supabase.auth.getUser()).data.user?.id });
+        } else if (!checked && existing) {
+          await supabase.from('fiscal_deadline_completions' as any).delete().eq('id', existing.id);
+        }
+        return;
+      }
       // IRS is a single annual obligation — store both "start" and "deadline" under irs_start.
       const storageKey = key === 'irs_deadline' ? 'irs_start' : key;
       const existing = checks.find((c: any) => c.check_key === storageKey)
@@ -1189,6 +1254,8 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['fiscal-checks', year, month] });
       qc.invalidateQueries({ queryKey: ['fiscal-checks-annual', year] });
+      qc.invalidateQueries({ queryKey: ['fiscal-deadline-completions', year] });
+      qc.invalidateQueries({ queryKey: ['fiscal-monthly-checks-irs', year] });
     },
   });
 
