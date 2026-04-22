@@ -517,7 +517,7 @@ export default function OperacaoPage() {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task' | 'deliverable'; id: string }[] = [];
+      const items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] = [];
 
       // Deliverables
       deliverables.forEach(del => {
@@ -539,12 +539,20 @@ export default function OperacaoPage() {
           items.push({ name: t.name, type: 'task', id: t.id });
         }
       });
+
+      // Meetings
+      meetings.forEach(m => {
+        if (format(new Date(m.date_time), 'yyyy-MM-dd') === dateStr) {
+          items.push({ name: m.title, type: 'meeting', id: m.id });
+        }
+      });
+
       if (items.length > 0) {
         days.push({ date: d, label: isToday(d) ? 'Hoje' : format(d, 'EEE dd', { locale: pt }), items });
       }
     }
     return days;
-  }, [allActiveProjects, deliverables, tasks, today]);
+  }, [allActiveProjects, deliverables, tasks, meetings, today]);
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
