@@ -540,9 +540,7 @@ export default function OperacaoPage() {
         }
       });
 
-      if (items.length > 0) {
-        days.push({ date: d, label: isToday(d) ? 'Hoje' : format(d, 'EEE dd', { locale: pt }), items });
-      }
+      days.push({ date: d, label: isToday(d) ? 'Hoje' : format(d, 'EEE dd', { locale: pt }), items });
     }
     return days;
   }, [allActiveProjects, tasks, meetings, today]);
