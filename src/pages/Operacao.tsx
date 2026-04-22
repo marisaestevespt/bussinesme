@@ -291,6 +291,18 @@ export default function OperacaoPage() {
     },
   });
 
+  const { data: meetings = [] } = useQuery({
+    queryKey: ['op-meetings'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('meetings')
+        .select('id,title,date_time,status,project_id,client_id,client_name')
+        .not('status', 'in', '(realizada,cancelada)')
+        .order('date_time', { ascending: true });
+      return (data || []) as { id: string; title: string; date_time: string; status: string; project_id: string | null; client_id: string | null; client_name: string | null }[];
+    },
+  });
+
   // ── Derived data ────────────────────────────────────────────
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
@@ -426,7 +438,7 @@ export default function OperacaoPage() {
 
   // ── Countdown — next delivery (deliverables first, then project deadlines) ──
   const nextDelivery = useMemo(() => {
-    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'deliverable' | 'project'; projectId?: string };
+    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'deliverable' | 'project' | 'meeting'; projectId?: string };
     const candidates: NextItem[] = [];
 
     // Deliverables
@@ -452,9 +464,22 @@ export default function OperacaoPage() {
       }
     });
 
+    // Meetings
+    meetings.forEach(m => {
+      const dt = new Date(m.date_time);
+      if (!isBefore(dt, today)) {
+        const proj = m.project_id ? allActiveProjects.find(p => p.id === m.project_id) : null;
+        candidates.push({
+          id: m.id, name: `📅 ${m.title}`, deadline: m.date_time,
+          daysLeft: differenceInDays(dt, today),
+          projectName: proj?.name || m.client_name || '', type: 'meeting', projectId: m.project_id || undefined,
+        });
+      }
+    });
+
     candidates.sort((a, b) => a.daysLeft - b.daysLeft);
     return candidates[0] || null;
-  }, [allActiveProjects, deliverables, today]);
+  }, [allActiveProjects, deliverables, meetings, today]);
 
   // ── Project health indicators ──────────────────────────────
   const projectHealth = useMemo(() => {
@@ -487,12 +512,12 @@ export default function OperacaoPage() {
 
   // ── Delivery timeline (next 14 days) — includes deliverables ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'deliverable'; id: string }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] }[] = [];
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task' | 'deliverable'; id: string }[] = [];
+      const items: { name: string; type: 'project' | 'task' | 'deliverable' | 'meeting'; id: string }[] = [];
 
       // Deliverables
       deliverables.forEach(del => {
@@ -514,12 +539,20 @@ export default function OperacaoPage() {
           items.push({ name: t.name, type: 'task', id: t.id });
         }
       });
+
+      // Meetings
+      meetings.forEach(m => {
+        if (format(new Date(m.date_time), 'yyyy-MM-dd') === dateStr) {
+          items.push({ name: m.title, type: 'meeting', id: m.id });
+        }
+      });
+
       if (items.length > 0) {
         days.push({ date: d, label: isToday(d) ? 'Hoje' : format(d, 'EEE dd', { locale: pt }), items });
       }
     }
     return days;
-  }, [allActiveProjects, deliverables, tasks, today]);
+  }, [allActiveProjects, deliverables, tasks, meetings, today]);
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
@@ -687,10 +720,18 @@ export default function OperacaoPage() {
                   <p className="text-xs font-semibold text-primary uppercase tracking-wider">Próxima Entrega</p>
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
-                  <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
-                    {nextDelivery.daysLeft}
-                  </span>
-                  <span className="text-sm text-muted-foreground font-medium">dias</span>
+                  {nextDelivery.daysLeft === 0 ? (
+                    <span className={`text-4xl font-black tabular-nums text-destructive`}>Hoje</span>
+                  ) : nextDelivery.daysLeft === 1 ? (
+                    <span className={`text-4xl font-black tabular-nums text-destructive`}>Amanhã</span>
+                  ) : (
+                    <>
+                      <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
+                        {nextDelivery.daysLeft}
+                      </span>
+                      <span className="text-sm text-muted-foreground font-medium">dias</span>
+                    </>
+                  )}
                 </div>
                 <Link to={`/hub/projetos/${nextDelivery.projectId || nextDelivery.id}`} className="group">
                   <p className="text-sm font-semibold group-hover:text-primary transition-colors leading-snug">{nextDelivery.name}</p>
@@ -715,35 +756,44 @@ export default function OperacaoPage() {
               {deliveryTimeline.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">Sem entregas nos próximos 14 dias 🎉</p>
               ) : (
-                <div className="flex gap-0 overflow-x-auto pb-2">
+                <div className="flex gap-3 overflow-x-auto pb-3 -mx-1 px-1">
                   {deliveryTimeline.map((day, idx) => (
-                    <div key={idx} className="flex flex-col items-center min-w-0 flex-1">
-                      {/* Connector line + dot */}
-                      <div className="flex items-center w-full">
-                        <div className={`h-0.5 flex-1 ${idx === 0 ? 'bg-transparent' : 'bg-border'}`} />
-                        <div className={`h-3 w-3 rounded-full shrink-0 border-2 ${
-                          isToday(day.date) ? 'bg-primary border-primary' : 
-                          day.items.some(i => i.type === 'project') ? 'bg-amber-500 border-amber-500' : 'bg-muted-foreground/40 border-muted-foreground/40'
-                        }`} />
-                        <div className={`h-0.5 flex-1 ${idx === deliveryTimeline.length - 1 ? 'bg-transparent' : 'bg-border'}`} />
+                    <div
+                      key={idx}
+                      className={`flex flex-col shrink-0 w-44 rounded-lg border ${
+                        isToday(day.date)
+                          ? 'border-primary/40 bg-primary/5'
+                          : 'border-border bg-card'
+                      }`}
+                    >
+                      <div className={`flex items-center justify-between px-2.5 py-1.5 border-b ${
+                        isToday(day.date) ? 'border-primary/30' : 'border-border'
+                      }`}>
+                        <span className={`text-xs font-semibold capitalize ${
+                          isToday(day.date) ? 'text-primary' : 'text-foreground'
+                        }`}>
+                          {day.label}
+                        </span>
+                        <Badge variant="outline" className="h-4 text-[9px] px-1.5">
+                          {day.items.length}
+                        </Badge>
                       </div>
-                      {/* Label */}
-                      <p className={`text-[10px] mt-1.5 font-medium capitalize ${isToday(day.date) ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {day.label}
-                      </p>
-                      {/* Items */}
-                      <div className="mt-1 space-y-0.5 w-full px-0.5">
-                        {day.items.slice(0, 3).map((item, i) => (
-                          <div key={i} className={`text-[9px] leading-tight px-1.5 py-1 rounded-md truncate text-center ${
-                            item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
-                            item.type === 'project' ? 'bg-primary/10 text-primary font-medium' : 'bg-muted text-muted-foreground'
-                          }`} title={item.name}>
-                            {item.name.length > 12 ? item.name.slice(0, 12) + '…' : item.name}
+                      <div className="p-1.5 space-y-1">
+                        {day.items.map((item, i) => (
+                          <div
+                            key={i}
+                            className={`text-[11px] leading-snug px-2 py-1.5 rounded-md ${
+                              item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
+                              item.type === 'meeting' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/20' :
+                              item.type === 'project' ? 'bg-primary/10 text-primary font-medium' :
+                              'bg-muted text-muted-foreground'
+                            }`}
+                            title={item.name}
+                          >
+                            {item.type === 'meeting' && '📅 '}
+                            {item.name}
                           </div>
                         ))}
-                        {day.items.length > 3 && (
-                          <p className="text-[9px] text-muted-foreground text-center">+{day.items.length - 3}</p>
-                        )}
                       </div>
                     </div>
                   ))}
