@@ -579,13 +579,14 @@ Deno.serve(async (req) => {
     if (!ownerId) return null;
     const currentMonth2 = today.getMonth() + 1;
     const currentYear2 = today.getFullYear();
-    const { data: bsData } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt").limit(1).maybeSingle();
+    const { data: bsData } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt, has_accountant").limit(1).maybeSingle();
     if (!bsData) return null;
     const fiscalConfig = {
       taxIvaRegime: (bsData as any).tax_iva_regime || "trimestral",
       taxIrsRegime: (bsData as any).tax_irs_regime || "simplificado",
       ssExempt: (bsData as any).ss_exempt ?? false,
       ivaExempt: (bsData as any).iva_exempt ?? false,
+      hasAccountant: (bsData as any).has_accountant ?? false,
     };
     const deadlines = computeFiscalDeadlinesEdge(currentYear2, fiscalConfig);
     let fiscalTasksCreated = 0;
