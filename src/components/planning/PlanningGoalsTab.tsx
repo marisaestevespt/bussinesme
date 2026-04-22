@@ -79,8 +79,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
   const getObjectiveArea = (id: string) => {
     const obj = objectives.find((o: any) => o.id === id);
     if (!obj) return null;
-    const areas: Record<string, string> = { financeiro: 'Financeiro', comercial: 'Comercial', marketing: 'Marketing', operacao: 'Operação', equipa: 'Equipa', inovacao: 'Inovação', outro: 'Outro' };
-    return areas[obj.area] || obj.area;
+    return planningAreaLabel(obj.area);
   };
 
   const getObjectiveDeadline = (id: string) => objectives.find((o: any) => o.id === id)?.deadline || null;

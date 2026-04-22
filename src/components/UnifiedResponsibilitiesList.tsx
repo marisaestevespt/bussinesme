@@ -45,9 +45,7 @@ const SOURCE_COLOR: Record<ResponsibilitySource, string> = {
   rotina: 'bg-purple-100 text-purple-800 border-purple-200',
 };
 
-const PRIORITY_LABELS: Record<string, string> = {
-  alta: 'P1', media: 'P2', baixa: 'P3',
-};
+import { PRIORITY_LABELS } from '@/components/secretaria/secretaria-shared';
 
 export type SourceFilter = 'todos' | ResponsibilitySource;
 
