@@ -253,7 +253,15 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const totalBaseSaidas = monthExpenses.reduce((s, v) => s + v.base_value, 0);
   const ivaPago = totalSaidas - totalBaseSaidas;
 
-  const ivaBalanco = ivaCobrado - ivaPago;
+  // IVA a Deduzir: usa vat_deductible_amount se preenchido, senão assume IVA pago (100%)
+  const ivaDeduzir = monthExpenses.reduce((s, e) => {
+    const ivaP = Math.max(0, (e.total_with_vat || 0) - (e.base_value || 0));
+    const ded = (e as any).vat_deductible_amount;
+    return s + (ded != null ? Number(ded) : ivaP);
+  }, 0);
+
+  // Balanço IVA = IVA Cobrado − IVA a Deduzir
+  const ivaBalanco = Math.round((ivaCobrado - ivaDeduzir) * 100) / 100;
 
   const resultado = totalEntradas - totalSaidas;
   const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
