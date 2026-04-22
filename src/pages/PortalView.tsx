@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
@@ -274,10 +275,7 @@ export default function PortalViewPage() {
   ];
 
   // Onboarding progress: count phases where all deliverables are done
-  const isPhaseComplete = (p: any) => {
-    const dels = p.deliverables || [];
-    return dels.length > 0 && dels.every((d: any) => d.status === 'concluido' || d.status === 'concluida');
-  };
+  const isPhaseComplete = (p: any) => allDeliverablesDone(p.deliverables || []);
   const completedOnb = onboarding.filter(isPhaseComplete).length;
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
@@ -286,7 +284,7 @@ export default function PortalViewPage() {
   const nextStep = (() => {
     for (const phase of onboarding) {
       const dels = phase.deliverables || [];
-      const pending = dels.find((d: any) => d.status !== 'concluido' && d.status !== 'concluida');
+      const pending = dels.find((d: any) => !isDeliverableDone(d));
       if (pending) return { ...pending, phase_name: phase.name };
     }
     return null;
@@ -325,8 +323,8 @@ export default function PortalViewPage() {
   // Current active phase for status display
   const activePhase = phases.find((p: any) => p.status === 'em_curso');
   const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
-  const completedDeliverables = allDeliverables.filter((d: any) => d.status === 'concluido').length;
-  const projectProgress = allDeliverables.length > 0 ? Math.round((completedDeliverables / allDeliverables.length) * 100) : 0;
+  const completedDeliverables = allDeliverables.filter(isDeliverableDone).length;
+  const projectProgress = deliverableProgress(allDeliverables);
 
   return (
     <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pcAlpha(0.04)} 100%)` }}>
@@ -540,7 +538,7 @@ export default function PortalViewPage() {
                       {onboarding.map((phase: any, i: number) => {
                         const dels = phase.deliverables || [];
                         const done = isPhaseComplete(phase);
-                        const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
+                        const completedDels = dels.filter(isDeliverableDone).length;
                         return (
                           <div
                             key={phase.id}
@@ -578,7 +576,7 @@ export default function PortalViewPage() {
                           const phase = onboarding.find((p: any) => p.id === expandedOnbStep);
                           if (!phase) return null;
                           const dels = phase.deliverables || [];
-                          const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
+                          const completedDels = dels.filter(isDeliverableDone).length;
                           const done = isPhaseComplete(phase);
                           return (
                             <>
@@ -602,7 +600,7 @@ export default function PortalViewPage() {
                               {dels.length > 0 && (
                                 <div className="space-y-2 mt-2">
                                   {dels.map((d: any) => {
-                                    const dDone = d.status === 'concluido' || d.status === 'concluida';
+                                    const dDone = isDeliverableDone(d);
                                     const isClient = (d.responsible_type || 'equipa') === 'cliente';
                                     return (
                                       <div key={d.id} className={`flex items-start gap-3 p-3 rounded-lg border ${dDone ? 'bg-muted/30 border-border/20' : 'bg-background border-border/40'} ${isClient && !dDone ? 'cursor-pointer hover:border-primary/40' : ''}`}
@@ -925,8 +923,8 @@ export default function PortalViewPage() {
             {/* Project phases - Cards with progress bar */}
             {(() => {
               const total = phases.length;
-              const done = phases.filter((p: any) => p.status === 'concluido' || p.status === 'concluida').length;
-              const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+              const done = phases.filter(isPhaseDone).length;
+              const pct = phaseProgress(phases);
               return (
                 <SectionCard className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -942,7 +940,7 @@ export default function PortalViewPage() {
                       {/* Phase timeline */}
                       <div className="space-y-4">
                         {phases.map((p: any, i: number) => {
-                          const isDone = p.status === 'concluido' || p.status === 'concluida';
+                          const isDone = isPhaseDone(p);
                           const isActive = p.status === 'em_curso';
                           const deliverables = Array.isArray(p.deliverables) ? p.deliverables : [];
                           return (

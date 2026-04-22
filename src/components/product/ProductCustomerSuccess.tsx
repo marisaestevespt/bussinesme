@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays, isPast, isFuture } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { AlertTriangle, CheckCircle2, Clock, User } from 'lucide-react';
-import { daysUntilRenewal, DEFAULT_RENEWAL_WINDOW_DAYS } from '@/lib/clientLifecycle';
 
 const NPS_STATUS_OPTIONS = [
   { value: 'por_fazer', label: 'Por fazer' },
@@ -133,11 +132,12 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
 
   const getRenewalInfo = (endOfCycle: string | null) => {
     if (!endOfCycle) return { label: 'Sem data definida', icon: <Clock className="h-3.5 w-3.5 text-muted-foreground" />, className: 'text-muted-foreground' };
-    const days = daysUntilRenewal({ end_of_cycle: endOfCycle }) ?? 0;
-    if (days < 0) {
+    const date = new Date(endOfCycle);
+    const days = differenceInDays(date, new Date());
+    if (isPast(date)) {
       return { label: `Expirou há ${Math.abs(days)} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-destructive" />, className: 'text-destructive font-medium' };
     }
-    if (days <= DEFAULT_RENEWAL_WINDOW_DAYS) {
+    if (days <= 30) {
       return { label: `Faltam ${days} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-warning" />, className: 'text-warning font-medium' };
     }
     return { label: `Faltam ${days} dias`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-success" />, className: 'text-success' };

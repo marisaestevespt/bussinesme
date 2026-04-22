@@ -21,7 +21,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { sumRevenue } from '@/lib/salesCalculations';
-import { daysUntilRenewal, DEFAULT_RENEWAL_WINDOW_DAYS } from '@/lib/clientLifecycle';
+import { isDeliverableDone } from '@/lib/projectProgress';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -143,7 +143,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     const d = new Date(m.expected_date);
     return d.getMonth() + 1 === month && d.getFullYear() === year;
   });
-  const monthMilestonesDone = monthMilestonesExpected.filter(m => m.status === 'concluido');
+  const monthMilestonesDone = monthMilestonesExpected.filter(isDeliverableDone);
 
   // ─── NPS (global, not filtered by month) ───
   const latestNpsByClient = useMemo(() => {
@@ -189,10 +189,10 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
       const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
       const overdueMilestones = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
-      const endCycleDays = daysUntilRenewal(c, today) ?? 999;
+      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
 
       let color: HealthColor = 'green';
-      if (endCycleDays <= DEFAULT_RENEWAL_WINDOW_DAYS || (clientNps != null && clientNps <= 6)) {
+      if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) {
         color = 'red';
       } else if (daysSinceNps > 90 || overdueMilestones.length > 0) {
         color = 'yellow';
@@ -410,9 +410,9 @@ export default function ClientesAnalisePage() {
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
       const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
       const overdue = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
-      const endCycleDays = daysUntilRenewal(c, today) ?? 999;
+      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
 
-      if (endCycleDays <= DEFAULT_RENEWAL_WINDOW_DAYS || (clientNps != null && clientNps <= 6)) red++;
+      if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) red++;
       else if (daysSinceNps > 90 || overdue.length > 0) yellow++;
       else green++;
     });

@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { isDeliverableDone, deliverableProgress } from '@/lib/projectProgress';
 
 const DELIVERABLE_STATUSES = [
   { value: 'pendente', label: 'Pendente', color: 'bg-muted text-muted-foreground' },
@@ -269,9 +270,9 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     onError: () => toast.error('Erro ao importar entregas'),
   });
 
-  const doneCount = deliverables.filter(d => d.status === 'entregue').length;
+  const doneCount = deliverables.filter(isDeliverableDone).length;
   const totalCount = deliverables.length;
-  const progressPct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+  const progressPct = deliverableProgress(deliverables);
 
   return (
     <>

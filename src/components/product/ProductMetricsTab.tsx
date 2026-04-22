@@ -13,7 +13,6 @@ import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, Refre
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { sumRevenue } from '@/lib/salesCalculations';
-import { daysUntilRenewal, DEFAULT_RENEWAL_WINDOW_DAYS } from '@/lib/clientLifecycle';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -293,10 +292,10 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
       const lastNpsDate = npsRecords.find(n => n.clients?.id === c.id && n.nps_score != null)?.actual_date;
       const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
       const overdueMilestones = milestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
-      const endCycleDays = daysUntilRenewal(c, today) ?? 999;
+      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
 
       let color: HealthColor = 'green';
-      if (endCycleDays <= DEFAULT_RENEWAL_WINDOW_DAYS || (clientNps != null && clientNps <= 6)) color = 'red';
+      if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) color = 'red';
       else if (daysSinceNps > 90 || overdueMilestones.length > 0) color = 'yellow';
 
       return { client: c, color, endCycleDays, lastNps: clientNps ?? null, lastNpsDate };
