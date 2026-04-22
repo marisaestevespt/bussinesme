@@ -123,8 +123,14 @@ export function FinContabilidade({ currentYear }: Props) {
       if (!user) throw new Error('Not authenticated');
       // IRS rows mirror to fiscal_monthly_checks so the Mensal page stays in sync.
       if (dl.category === 'irs') {
-        const existingMonthly = irsMonthlyChecks.find((c: any) => c.check_key === 'irs_start');
-        const nowChecked = !irsDoneAnnual;
+        // Campaign year = year embedded in the deadline key (e.g. irs-start-2025 → 2025).
+        // Mensal stores it under year = campaignYear + 1 (the year it's filed).
+        const campaignYear = Number(dl.key.split('-').pop());
+        const storageYear = campaignYear + 1;
+        const existingMonthly = irsMonthlyChecks.find(
+          (c: any) => c.check_key === 'irs_start' && c.year === storageYear,
+        );
+        const nowChecked = !irsDoneCampaignYears.has(campaignYear);
         if (existingMonthly) {
           await supabase
             .from('fiscal_monthly_checks')
@@ -133,7 +139,7 @@ export function FinContabilidade({ currentYear }: Props) {
         } else if (nowChecked) {
           await supabase
             .from('fiscal_monthly_checks')
-            .insert({ year: currentYear, month: 4, check_key: 'irs_start', checked: true, checked_at: new Date().toISOString() });
+            .insert({ year: storageYear, month: 4, check_key: 'irs_start', checked: true, checked_at: new Date().toISOString() });
         }
         return;
       }
