@@ -2,26 +2,18 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { TASK_STATUSES, getTaskStatusInfo } from '@/lib/taskStatus';
+import { PROJECT_STATUSES as CANON_PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
 
 // ─── Constants ──────────────────────────────────────────────
-
-export const STATUS_COLORS: Record<string, string> = {
-  por_comecar: 'bg-muted text-muted-foreground',
-  a_fazer: 'bg-info/15 text-info',
-  aguarda_feedback: 'bg-warning/15 text-warning',
-  para_aprovacao: 'bg-purple-100 text-purple-800',
-  precisa_alteracoes: 'bg-warning/15 text-warning',
-  done: 'bg-success/15 text-success',
-};
-
-export const STATUS_LABELS: Record<string, string> = {
-  por_comecar: 'Por começar',
-  a_fazer: 'A fazer',
-  aguarda_feedback: 'Aguarda Feedback',
-  para_aprovacao: 'Para Aprovação',
-  precisa_alteracoes: 'Precisa de Alterações',
-  done: 'Done',
-};
+// Re-export task status helpers from the canonical module so the secretária
+// page renders identically to the main Tarefas page.
+export const STATUS_COLORS: Record<string, string> = Object.fromEntries(
+  TASK_STATUSES.map(s => [s.value, s.color])
+);
+export const STATUS_LABELS: Record<string, string> = Object.fromEntries(
+  TASK_STATUSES.map(s => [s.value, s.label])
+);
 
 export const PRIORITY_LABELS: Record<string, string> = {
   alta: 'P1', media: 'P2', baixa: 'P3',
@@ -36,15 +28,10 @@ export const TIME_CATEGORIES = [
   { value: 'outro', label: 'Outro' },
 ];
 
-export const PROJ_STATUS_MAP: Record<string, { label: string; color: string }> = {
-  em_ideia: { label: 'Em ideia', color: 'bg-gray-100 text-gray-700' },
-  em_curso: { label: 'Em curso', color: 'bg-info/15 text-info' },
-  em_pausa: { label: 'Em pausa', color: 'bg-warning/15 text-warning' },
-  em_revisao: { label: 'Em revisão', color: 'bg-purple-100 text-purple-800' },
-  concluido: { label: 'Concluído', color: 'bg-success/15 text-success' },
-  cancelado: { label: 'Cancelado', color: 'bg-destructive/15 text-destructive' },
-  arquivo: { label: 'Arquivo', color: 'bg-slate-100 text-slate-600' },
-};
+// Canonical project status map — same labels/colors as Projetos page.
+export const PROJ_STATUS_MAP: Record<string, { label: string; color: string }> = Object.fromEntries(
+  CANON_PROJECT_STATUSES.map(s => [s.value, { label: s.label, color: s.color }])
+);
 
 // ─── Helpers ──────────────────────────────────────────────
 

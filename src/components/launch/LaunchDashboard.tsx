@@ -42,7 +42,8 @@ const PHASES = [
   { value: 'debriefing_pos_fecho', label: 'Debriefing & Pós Fecho', color: 'bg-slate-100 text-slate-800', dot: 'bg-slate-500' },
 ];
 
-const TASK_STATUSES = [
+// NOTE: launch_tasks has its OWN status enum, distinct from the global tasks table.
+const LAUNCH_TASK_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' },
   { value: 'em_curso', label: 'Em curso', color: 'bg-info/10 text-info', dot: 'bg-info' },
   { value: 'concluido', label: 'Concluído', color: 'bg-success/10 text-success', dot: 'bg-success' },
@@ -54,7 +55,7 @@ const SECTOR_AREAS = ['Copywriting', 'Design', 'Estratégia', 'Vídeo', 'Operaç
 const MATERIAL_CATEGORIES = ['Tema & Branding', 'Instagram', 'Conteúdos', 'E-mails', 'Mensagens/WhatsApp', 'Anúncios', 'Apresentações', 'Páginas', 'Automações & Funis'];
 
 function getPhaseInfo(v: string) { return PHASES.find(p => p.value === v) || PHASES[0]; }
-function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value === v) || TASK_STATUSES[0]; }
+function getLaunchTaskStatusInfo(v: string) { return LAUNCH_TASK_STATUSES.find(s => s.value === v) || LAUNCH_TASK_STATUSES[0]; }
 function getInitials(n: string | null) { return n ? n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?'; }
 
 // ─── Hooks ──────────────────────────────────────────────────────
@@ -407,14 +408,14 @@ function TaskStatusSelect({ task, qc, projectId, userId }: any) {
     qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
   };
 
-  const info = getTaskStatusInfo(task.status);
+  const info = getLaunchTaskStatusInfo(task.status);
   return (
     <Select value={task.status} onValueChange={updateStatus}>
       <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none w-auto">
         <Badge className={cn(info.color, 'border-0 text-[10px] cursor-pointer')}>{info.label}</Badge>
       </SelectTrigger>
       <SelectContent>
-        {TASK_STATUSES.map(s => (
+        {LAUNCH_TASK_STATUSES.map(s => (
           <SelectItem key={s.value} value={s.value}>
             <span className="flex items-center gap-2"><span className={cn('h-2 w-2 rounded-full', s.dot)} />{s.label}</span>
           </SelectItem>
@@ -497,7 +498,7 @@ function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
             </div>
             <div className="space-y-1.5">
               {phaseTasks.map((t: any) => {
-                const si = getTaskStatusInfo(t.status);
+                const si = getLaunchTaskStatusInfo(t.status);
                 const assignee = t.responsible_id ? profileMap.get(t.responsible_id) : null;
                 return (
                   <div key={t.id} className="bg-background rounded-md border p-2 space-y-1">
@@ -539,7 +540,7 @@ function TarefasPorDataView({ tasks, profileMap }: any) {
         <TableBody>
           {sorted.map((t: any) => {
             const pi = getPhaseInfo(t.phase);
-            const si = getTaskStatusInfo(t.status);
+            const si = getLaunchTaskStatusInfo(t.status);
             const assignee = t.responsible_id ? profileMap.get(t.responsible_id) : null;
             return (
               <TableRow key={t.id}>
@@ -630,7 +631,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
           <p className="text-xs font-semibold mb-2 text-muted-foreground">Sem responsável</p>
           <div className="space-y-1.5">
             {unassigned.map((t: any) => {
-              const si = getTaskStatusInfo(t.status);
+              const si = getLaunchTaskStatusInfo(t.status);
               return (
                 <div key={t.id} className="bg-background rounded-md border p-2">
                   <p className="text-xs font-medium">{t.title}</p>
@@ -652,7 +653,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
             </div>
             <div className="space-y-1.5">
               {pTasks.map((t: any) => {
-                const si = getTaskStatusInfo(t.status);
+                const si = getLaunchTaskStatusInfo(t.status);
                 return (
                   <div key={t.id} className="bg-background rounded-md border p-2">
                     <p className="text-xs font-medium">{t.title}</p>

@@ -105,7 +105,7 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
       if (projectIds.length === 0) return [];
       const { data } = await supabase.from('tasks').select('*')
         .in('project_id', projectIds)
-        .neq('status', 'concluida')
+        .neq('status', 'done')
         .order('deadline', { ascending: true, nullsFirst: false });
       return data || [];
     },
