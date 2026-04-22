@@ -199,8 +199,8 @@ export function useStrategicMetrics(period: MetricPeriod): StrategicMetrics {
           (c.status === 'ativo' || c.status === 'em_onboarding' || c.status === 'terminado' || c.status === 'cancelado' || c.status === 'concluido');
         if (wasActive) {
           const prod = c.current_product ? (productByName.get(c.current_product) || null) : null;
-          if (prod && prod.product_type === 'servico_mensal') {
-            mrrPrev! += parseFloat(prod.ticket || '0') || 0;
+          if (prod && isRecurringProduct(prod)) {
+            mrrPrev! += parseTicket(prod.ticket);
           }
         }
       });
