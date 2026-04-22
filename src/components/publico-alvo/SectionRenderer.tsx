@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import React, { useState, forwardRef } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // ── helpers ──────────────────────────────────────────────────────
 
@@ -287,11 +288,31 @@ function AccentGridBlock({ block, onUpdate }: BlockProps) {
 
 function BarChartBlock({ block, onUpdate }: BlockProps) {
   const items = block.items || [];
-  const BAR_COLORS: Record<string, string> = { primary: 'bg-primary', warning: 'bg-warning', muted: 'bg-muted-foreground' };
-  const tempLabel = (pct: number) => {
-    if (pct >= 70) return { label: 'Alta', cls: 'bg-primary/10 text-primary' };
-    if (pct >= 40) return { label: 'Média', cls: 'bg-warning/15 text-warning' };
-    return { label: 'Baixa', cls: 'bg-muted text-muted-foreground' };
+function BarChartBlock({ block, onUpdate }: BlockProps) {
+  const items = block.items || [];
+
+  type Temp = 'alta' | 'media' | 'baixa';
+  const TEMP_META: Record<Temp, { label: string; pct: number; bar: string; badge: string; rank: number }> = {
+    alta:  { label: 'Alta',  pct: 90, bar: 'bg-primary',          badge: 'bg-primary/10 text-primary',         rank: 0 },
+    media: { label: 'Média', pct: 55, bar: 'bg-warning',          badge: 'bg-warning/15 text-warning',         rank: 1 },
+    baixa: { label: 'Baixa', pct: 25, bar: 'bg-muted-foreground', badge: 'bg-muted text-muted-foreground',     rank: 2 },
+  };
+
+  // Derive temperature from item: explicit `temperature` wins; otherwise derive from legacy count/total
+  const getTemp = (b: any): Temp => {
+    if (b?.temperature && TEMP_META[b.temperature as Temp]) return b.temperature;
+    const pct = b?.total > 0 ? Math.round((b.count / b.total) * 100) : 0;
+    if (pct >= 70) return 'alta';
+    if (pct >= 40) return 'media';
+    return 'baixa';
+  };
+
+  const setTemp = (idx: number, temp: Temp) => {
+    const newItems = [...items];
+    // Drop legacy count/total — temperature is now the source of truth
+    const { count: _c, total: _t, ...rest } = newItems[idx] || {};
+    newItems[idx] = { ...rest, temperature: temp };
+    onUpdate({ ...block, items: newItems });
   };
 
   const updateItem = (idx: number, patch: any) => {
@@ -305,22 +326,46 @@ function BarChartBlock({ block, onUpdate }: BlockProps) {
   };
 
   const addItem = () => {
-    onUpdate({ ...block, items: [...items, { label: 'Novo item', count: 1, total: 7, color: 'primary' }] });
+    onUpdate({ ...block, items: [...items, { label: 'Novo item', temperature: 'media' }] });
   };
+
+  // Sort visually by temperature (alta → média → baixa) without mutating storage order
+  const sortedIndices = items
+    .map((b: any, i: number) => ({ i, rank: TEMP_META[getTemp(b)].rank }))
+    .sort((a: any, b: any) => a.rank - b.rank)
+    .map((x: any) => x.i);
 
   return (
     <div className="space-y-0 mb-6">
-      {items.map((b: any, i: number) => {
-        const pct = b.total > 0 ? Math.round((b.count / b.total) * 100) : 0;
-        const t = tempLabel(pct);
+      {sortedIndices.map((i: number) => {
+        const b = items[i];
+        const temp = getTemp(b);
+        const meta = TEMP_META[temp];
         return (
           <div key={i} className="flex items-center gap-4 py-2.5 border-b group">
             <EditableText value={b.label} onSave={l => updateItem(i, { label: l })} className="text-xs font-medium w-[200px] truncate text-foreground" />
             <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-muted">
-              <div className={`h-full rounded-full ${BAR_COLORS[b.color] || 'bg-primary'}`} style={{ width: `${pct}%` }} />
+              <div className={`h-full rounded-full ${meta.bar}`} style={{ width: `${meta.pct}%` }} />
             </div>
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded w-14 text-center ${t.cls}`}>{t.label}</span>
-            <button onClick={() => deleteItem(i)} className="opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded w-14 text-center hover:opacity-80 transition-opacity ${meta.badge}`}
+                  aria-label="Alterar temperatura"
+                >
+                  {meta.label}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[120px]">
+                {(['alta','media','baixa'] as Temp[]).map(t => (
+                  <DropdownMenuItem key={t} onClick={() => setTemp(i, t)} className="text-xs">
+                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${TEMP_META[t].bar}`} />
+                    {TEMP_META[t].label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button onClick={() => deleteItem(i)} className="opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive shrink-0" aria-label="Eliminar item">
               <Trash2 className="h-3 w-3" />
             </button>
           </div>
