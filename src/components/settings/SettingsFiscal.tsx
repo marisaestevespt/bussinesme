@@ -16,6 +16,14 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { BusinessLegalDocs } from './BusinessLegalDocs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export function SettingsFiscal() {
   const { settings, refetch } = useBusinessSettings();
@@ -58,6 +66,10 @@ export function SettingsFiscal() {
   const [ivaExempt, setIvaExempt] = useState(false);
   const [ivaExemptionEndDate, setIvaExemptionEndDate] = useState<Date | undefined>();
   const [ssExemptionEndDate, setSsExemptionEndDate] = useState<Date | undefined>();
+
+  // Dialog state for capturing the effective date when switching exemption OFF
+  const [endDateDialog, setEndDateDialog] = useState<null | 'iva' | 'ss'>(null);
+  const [endDateDraft, setEndDateDraft] = useState<Date | undefined>(new Date());
 
   // Team members for internal accountant picker
   const { data: teamMembers } = useQuery({
@@ -291,43 +303,21 @@ export function SettingsFiscal() {
                     : 'Ativar se tiveres isenção de IVA'}
               </p>
             </div>
-            <Switch checked={ivaExempt} onCheckedChange={(v) => { setIvaExempt(v); if (v) setIvaExemptionEndDate(undefined); }} />
+            <Switch
+              checked={ivaExempt}
+              onCheckedChange={(v) => {
+                if (v) {
+                  // Voltou a ser isento → limpa data efetiva
+                  setIvaExempt(true);
+                  setIvaExemptionEndDate(undefined);
+                } else {
+                  // Perdeu a isenção → pergunta a partir de quando
+                  setEndDateDraft(ivaExemptionEndDate || new Date());
+                  setEndDateDialog('iva');
+                }
+              }}
+            />
           </div>
-
-          {/* IVA exemption end date — shown when NOT exempt but was previously */}
-          {!ivaExempt && (
-            <div className="space-y-2 pl-1">
-              <Label className="text-sm font-medium">Data de fim da isenção de IVA</Label>
-              <p className="text-xs text-muted-foreground">
-                Se já foste isento e deixaste de ser, indica a data. Deixa em branco se nunca foste isento.
-              </p>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn('w-full justify-start text-left font-normal h-11', !ivaExemptionEndDate && 'text-muted-foreground')}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {ivaExemptionEndDate ? format(ivaExemptionEndDate, 'dd/MM/yyyy') : 'Nunca fui isento'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={ivaExemptionEndDate}
-                    onSelect={setIvaExemptionEndDate}
-                    initialFocus
-                    className={cn('p-3 pointer-events-auto')}
-                  />
-                </PopoverContent>
-              </Popover>
-              {ivaExemptionEndDate && (
-                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setIvaExemptionEndDate(undefined)}>
-                  Limpar (nunca fui isento)
-                </Button>
-              )}
-            </div>
-          )}
 
           {/* SS Exempt toggle */}
           <div className="flex items-center justify-between py-2">
@@ -339,43 +329,19 @@ export function SettingsFiscal() {
                   : 'Ativar se estiveres isento de Segurança Social'}
               </p>
             </div>
-            <Switch checked={ssExempt} onCheckedChange={(v) => { setSsExempt(v); if (v) setSsExemptionEndDate(undefined); }} />
+            <Switch
+              checked={ssExempt}
+              onCheckedChange={(v) => {
+                if (v) {
+                  setSsExempt(true);
+                  setSsExemptionEndDate(undefined);
+                } else {
+                  setEndDateDraft(ssExemptionEndDate || new Date());
+                  setEndDateDialog('ss');
+                }
+              }}
+            />
           </div>
-
-          {/* SS exemption end date */}
-          {!ssExempt && (
-            <div className="space-y-2 pl-1">
-              <Label className="text-sm font-medium">Data de fim da isenção de SS</Label>
-              <p className="text-xs text-muted-foreground">
-                Se já foste isento e deixaste de ser, indica a data. Deixa em branco se nunca foste isento.
-              </p>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn('w-full justify-start text-left font-normal h-11', !ssExemptionEndDate && 'text-muted-foreground')}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {ssExemptionEndDate ? format(ssExemptionEndDate, 'dd/MM/yyyy') : 'Nunca fui isento'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={ssExemptionEndDate}
-                    onSelect={setSsExemptionEndDate}
-                    initialFocus
-                    className={cn('p-3 pointer-events-auto')}
-                  />
-                </PopoverContent>
-              </Popover>
-              {ssExemptionEndDate && (
-                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setSsExemptionEndDate(undefined)}>
-                  Limpar (nunca fui isento)
-                </Button>
-              )}
-            </div>
-          )}
 
           {/* SS Type — only if not exempt */}
           {!ssExempt && (
@@ -534,6 +500,66 @@ export function SettingsFiscal() {
         <Save className="h-4 w-4" />
         {saving ? 'A guardar...' : 'Guardar definições fiscais'}
       </Button>
+
+      {/* Dialog: a partir de quando deixou de ser isento */}
+      <Dialog open={endDateDialog !== null} onOpenChange={(open) => { if (!open) setEndDateDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {endDateDialog === 'iva' ? 'Perda de isenção de IVA' : 'Perda de isenção de Segurança Social'}
+            </DialogTitle>
+            <DialogDescription>
+              A partir de que data deixaste de estar isento? Esta data é usada para calcular obrigações fiscais a partir do momento certo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-sm font-medium">Data efetiva</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn('w-full justify-start text-left font-normal h-11', !endDateDraft && 'text-muted-foreground')}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDateDraft ? format(endDateDraft, 'dd/MM/yyyy') : 'Selecionar data'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDateDraft}
+                  onSelect={setEndDateDraft}
+                  initialFocus
+                  className={cn('p-3 pointer-events-auto')}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEndDateDialog(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (!endDateDraft) {
+                  toast.error('Indica a data efetiva.');
+                  return;
+                }
+                if (endDateDialog === 'iva') {
+                  setIvaExempt(false);
+                  setIvaExemptionEndDate(endDateDraft);
+                } else if (endDateDialog === 'ss') {
+                  setSsExempt(false);
+                  setSsExemptionEndDate(endDateDraft);
+                }
+                setEndDateDialog(null);
+              }}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
