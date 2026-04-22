@@ -70,9 +70,11 @@ export function FinContabilidade({ currentYear }: Props) {
 
   const deadlines = useMemo(() => {
     // computeFiscalDeadlines now hides SS/IVA when hasAccountant=true; only IRS remains.
-    return computeFiscalDeadlines(currentYear, fiscalConfig)
-      .slice()
-      .sort((a, b) => a.date.localeCompare(b.date));
+    // Include previous year's IRS campaign (filed in currentYear) too.
+    const cur = computeFiscalDeadlines(currentYear, fiscalConfig);
+    const prev = computeFiscalDeadlines(currentYear - 1, fiscalConfig)
+      .filter(d => d.category === 'irs');
+    return [...prev, ...cur].sort((a, b) => a.date.localeCompare(b.date));
   }, [currentYear, fiscalConfig]);
 
   // Fiscal deadline completions
@@ -85,43 +87,50 @@ export function FinContabilidade({ currentYear }: Props) {
   });
 
   // IRS is also tracked in fiscal_monthly_checks (used by the Mensal page).
-  // Mirror that state here so a tick on either page reflects on both.
+  // The Mensal stores "IRS year-1 filed in year" under year=currentYear.
+  // We also fetch year=currentYear+1 in case the user pre-marked next year's campaign.
   const { data: irsMonthlyChecks = [] } = useQuery({
     queryKey: ['fiscal-monthly-checks-irs', currentYear],
     queryFn: async () => {
       const { data } = await supabase
         .from('fiscal_monthly_checks')
         .select('*')
-        .eq('year', currentYear)
+        .in('year', [currentYear, currentYear + 1])
         .in('check_key', ['irs_start']);
       return data || [];
     },
   });
-  const irsDoneAnnual = useMemo(
-    () => irsMonthlyChecks.some((c: any) => c.check_key === 'irs_start' && c.checked),
-    [irsMonthlyChecks],
-  );
+  // Map: storage year (when filed) → campaign year (rendimentos year-1)
+  const irsDoneCampaignYears = useMemo(() => {
+    const set = new Set<number>();
+    irsMonthlyChecks.forEach((c: any) => {
+      if (c.checked) set.add((c.year as number) - 1);
+    });
+    return set;
+  }, [irsMonthlyChecks]);
 
   const completedKeys = useMemo(() => {
     const set = new Set(completions.map(c => c.deadline_key));
-    if (irsDoneAnnual) {
-      // IRS deadlines in this year (e.g. irs-start-YYYY, irs-end-YYYY)
-      set.add(`irs-start-${currentYear}`);
-      set.add(`irs-end-${currentYear}`);
-      // Some deadlines are computed for the *previous* year's tax campaign
-      set.add(`irs-start-${currentYear - 1}`);
-      set.add(`irs-end-${currentYear - 1}`);
-    }
+    irsDoneCampaignYears.forEach(campaignYear => {
+      set.add(`irs-start-${campaignYear}`);
+      set.add(`irs-end-${campaignYear}`);
+    });
     return set;
-  }, [completions, irsDoneAnnual, currentYear]);
+  }, [completions, irsDoneCampaignYears]);
 
   const toggleDeadlineCompletion = useMutation({
     mutationFn: async (dl: FiscalDeadline) => {
       if (!user) throw new Error('Not authenticated');
       // IRS rows mirror to fiscal_monthly_checks so the Mensal page stays in sync.
       if (dl.category === 'irs') {
-        const existingMonthly = irsMonthlyChecks.find((c: any) => c.check_key === 'irs_start');
-        const nowChecked = !irsDoneAnnual;
+        // Campaign year = year embedded in the deadline key (e.g. irs-start-2025 → 2025).
+        // Mensal stores it under year = campaignYear + 1 (the year it's filed).
+        const campaignYear = Number(dl.key.split('-').pop());
+        const storageYear = campaignYear + 1;
+        const existingMonthly = irsMonthlyChecks.find(
+          (c: any) => c.check_key === 'irs_start' && c.year === storageYear,
+        );
+        const nowChecked = !irsDoneCampaignYears.has(campaignYear);
         if (existingMonthly) {
           await supabase
             .from('fiscal_monthly_checks')
@@ -130,7 +139,7 @@ export function FinContabilidade({ currentYear }: Props) {
         } else if (nowChecked) {
           await supabase
             .from('fiscal_monthly_checks')
-            .insert({ year: currentYear, month: 4, check_key: 'irs_start', checked: true, checked_at: new Date().toISOString() });
+            .insert({ year: storageYear, month: 4, check_key: 'irs_start', checked: true, checked_at: new Date().toISOString() });
         }
         return;
       }
