@@ -29,7 +29,26 @@ export function ExportContabilistaButton({ year, month }: Props) {
       return data;
     },
   });
-  const business: any = { ...(businessSetup || {}), ...(settings || {}), ...(businessSetup || {}) };
+
+  // Combina: business_setup (NIF, NISS, CAE, CIRS, IBAN, morada) + business_settings (regimes IVA/IRS, tipo)
+  const s: any = settings || {};
+  const bs: any = businessSetup || {};
+  const REGIME_IVA: Record<string, string> = { isento: 'Isento (art. 53.º)', trimestral: 'Trimestral', mensal: 'Mensal' };
+  const REGIME_IRS: Record<string, string> = { simplificado: 'Simplificado', contabilidade_organizada: 'Contabilidade Organizada' };
+  const business: any = {
+    ...bs,
+    business_legal_name: bs.business_legal_name || s.business_name,
+    nif: bs.nif,
+    niss: bs.niss,
+    cae_principal: bs.cae_principal,
+    cae_secundarios: bs.cae_secundarios,
+    cirs_code: bs.cirs_code,
+    iban: bs.iban,
+    banco: bs.banco,
+    morada_fiscal: bs.morada_fiscal,
+    regime_iva: REGIME_IVA[s.tax_iva_regime] || s.tax_iva_regime || '',
+    regime_fiscal: REGIME_IRS[s.tax_irs_regime] || s.tax_irs_regime || '',
+  };
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
