@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -24,7 +24,6 @@ import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
-import { useQueryClient } from '@tanstack/react-query';
 
 // ─── Types ──────────────────────────────────────────────────────
 
