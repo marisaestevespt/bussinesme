@@ -510,10 +510,10 @@ export default function OperacaoPage() {
     });
   }, [allActiveProjects, projectProgress, tasks, today]);
 
-  // ── Delivery timeline (next 14 days) — tasks + meetings + project milestones ──
+  // ── Delivery timeline (next 7 days) — tasks + meetings + project milestones ──
   const deliveryTimeline = useMemo(() => {
     const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'meeting'; id: string; assigneeId?: string | null }[] }[] = [];
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 7; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
