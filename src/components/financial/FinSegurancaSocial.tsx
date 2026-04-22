@@ -16,13 +16,17 @@ import type { Expense } from '@/hooks/useFinancialData';
 import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
+import {
+  computeSsIndependente,
+  computeSsPatronalForMonth,
+  buildIndependenteQuarterMap,
+  SS_EMPLOYER_RATE,
+  SS_EMPLOYEE_RATE,
+  SS_INDEPENDENTE_RATE,
+  SS_RENDIMENTO_RELEVANTE,
+} from '@/lib/payrollCalculations';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-const SS_EMPLOYER_RATE = 0.2375; // 23.75%
-const SS_EMPLOYEE_RATE = 0.11;   // 11%
-const SS_INDEPENDENTE_RATE = 0.214; // 21.4%
-const SS_RENDIMENTO_RELEVANTE = 0.70; // 70% of revenue
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
@@ -92,25 +96,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
     return map;
   }, [sales]);
 
-  /*
-   * SS Independente — Declaração trimestral e efeito nos meses:
-   *
-   * Rendimentos de  | Declaração em       | Contribuição aplica-se a
-   * Jan-Mar (Q1)    | Abril               | Abr, Mai, Jun
-   * Abr-Jun (Q2)    | Julho               | Jul, Ago, Set
-   * Jul-Set (Q3)    | Outubro             | Out, Nov, Dez
-   * Out-Dez (Q4)    | Janeiro (ano+1)     | Jan, Fev, Mar (ano+1)
-   */
-  const QUARTER_MAP = [
-    // Jan-Mar contributions come from Q4 of previous year (Oct-Dec), declared in January
-    { months: [1, 2, 3], srcYear: prevYear, srcQ: 4, declMonth: 'Janeiro', declYear: currentYear, srcLabel: `Out-Dez ${prevYear}` },
-    // Apr-Jun contributions come from Q1 of current year (Jan-Mar), declared in April
-    { months: [4, 5, 6], srcYear: currentYear, srcQ: 1, declMonth: 'Abril', declYear: currentYear, srcLabel: `Jan-Mar ${currentYear}` },
-    // Jul-Sep contributions come from Q2 of current year (Apr-Jun), declared in July
-    { months: [7, 8, 9], srcYear: currentYear, srcQ: 2, declMonth: 'Julho', declYear: currentYear, srcLabel: `Abr-Jun ${currentYear}` },
-    // Oct-Dec contributions come from Q3 of current year (Jul-Sep), declared in October
-    { months: [10, 11, 12], srcYear: currentYear, srcQ: 3, declMonth: 'Outubro', declYear: currentYear, srcLabel: `Jul-Set ${currentYear}` },
-  ];
+  const QUARTER_MAP = useMemo(() => buildIndependenteQuarterMap(currentYear), [currentYear]);
 
   const independenteData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
@@ -120,19 +106,16 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
       const quarterRevenue = salesByQuarter[key] || 0;
       const hasData = key in salesByQuarter;
 
-      const rendimentoRelevante = quarterRevenue * SS_RENDIMENTO_RELEVANTE;
-      const baseIncidencia = Math.round(rendimentoRelevante / 3 * 100) / 100;
-      const contribution = Math.round(baseIncidencia * SS_INDEPENDENTE_RATE * 100) / 100;
-      const finalContribution = baseIncidencia > 0 ? Math.max(20, contribution) : 0;
+      const calc = computeSsIndependente(quarterRevenue);
 
       const paid = ssExpenses.find(e => e.expense_month === m && e.description?.toLowerCase().includes('independente'));
 
       return {
         month: m,
-        quarterRevenue,
-        rendimentoRelevante,
-        baseIncidencia,
-        contribution: finalContribution,
+        quarterRevenue: calc.quarterRevenue,
+        rendimentoRelevante: calc.rendimentoRelevante,
+        baseIncidencia: calc.baseIncidencia,
+        contribution: calc.contribution,
         paid: paid?.total_with_vat ?? 0,
         isPaid: (paid?.total_with_vat ?? 0) > 0,
         hasData,
@@ -141,7 +124,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         declYear: mapping.declYear,
       };
     });
-  }, [salesByQuarter, ssExpenses, currentYear, prevYear]);
+  }, [salesByQuarter, ssExpenses, QUARTER_MAP]);
 
   // ── Patronal calculations ──
   const contractMemberIds = useMemo(() => new Set(contracts.map((c: any) => c.member_id)), [contracts]);
@@ -158,10 +141,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
       const monthPayroll = relevantPayroll.filter((p: any) => p.month === m);
-      const totalGross = monthPayroll.reduce((s: number, p: any) => s + (p.gross_salary || 0), 0);
-      const ssEmployer = Math.round(totalGross * SS_EMPLOYER_RATE * 100) / 100;
-      const ssEmployee = Math.round(totalGross * SS_EMPLOYEE_RATE * 100) / 100;
-      const totalSS = ssEmployer + ssEmployee;
+      const { totalGross, ssEmployer, ssEmployee, totalSS } = computeSsPatronalForMonth(monthPayroll);
 
       const paid = ssExpenses.find(e => e.expense_month === m && !e.description?.toLowerCase().includes('independente'));
 
