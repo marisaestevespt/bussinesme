@@ -291,6 +291,18 @@ export default function OperacaoPage() {
     },
   });
 
+  const { data: meetings = [] } = useQuery({
+    queryKey: ['op-meetings'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('meetings')
+        .select('id,title,date_time,status,project_id,client_id,client_name')
+        .not('status', 'in', '(realizada,cancelada)')
+        .order('date_time', { ascending: true });
+      return (data || []) as { id: string; title: string; date_time: string; status: string; project_id: string | null; client_id: string | null; client_name: string | null }[];
+    },
+  });
+
   // ── Derived data ────────────────────────────────────────────
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
