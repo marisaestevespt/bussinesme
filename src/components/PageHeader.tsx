@@ -1,13 +1,15 @@
 import { PageAccessButton } from './PageAccessButton';
 import { useLocation } from 'react-router-dom';
+import { DepartmentLinks, type DepartmentKey } from '@/components/shared/DepartmentLinks';
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   showAccessButton?: boolean;
+  department?: DepartmentKey;
 }
 
-export function PageHeader({ title, subtitle, showAccessButton = true }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, showAccessButton = true, department }: PageHeaderProps) {
   const location = useLocation();
 
   return (
@@ -37,6 +39,11 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">{title}</h1>
           {subtitle && (
             <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-muted-foreground hidden sm:block">{subtitle}</p>
+          )}
+          {department && (
+            <div className="mt-3">
+              <DepartmentLinks department={department} variant="inline" />
+            </div>
           )}
         </div>
         {showAccessButton && (
