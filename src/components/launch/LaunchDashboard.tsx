@@ -42,7 +42,8 @@ const PHASES = [
   { value: 'debriefing_pos_fecho', label: 'Debriefing & Pós Fecho', color: 'bg-slate-100 text-slate-800', dot: 'bg-slate-500' },
 ];
 
-const TASK_STATUSES = [
+// NOTE: launch_tasks has its OWN status enum, distinct from the global tasks table.
+const LAUNCH_TASK_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' },
   { value: 'em_curso', label: 'Em curso', color: 'bg-info/10 text-info', dot: 'bg-info' },
   { value: 'concluido', label: 'Concluído', color: 'bg-success/10 text-success', dot: 'bg-success' },
@@ -54,7 +55,7 @@ const SECTOR_AREAS = ['Copywriting', 'Design', 'Estratégia', 'Vídeo', 'Operaç
 const MATERIAL_CATEGORIES = ['Tema & Branding', 'Instagram', 'Conteúdos', 'E-mails', 'Mensagens/WhatsApp', 'Anúncios', 'Apresentações', 'Páginas', 'Automações & Funis'];
 
 function getPhaseInfo(v: string) { return PHASES.find(p => p.value === v) || PHASES[0]; }
-function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value === v) || TASK_STATUSES[0]; }
+function getLaunchTaskStatusInfo(v: string) { return LAUNCH_TASK_STATUSES.find(s => s.value === v) || LAUNCH_TASK_STATUSES[0]; }
 function getInitials(n: string | null) { return n ? n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?'; }
 
 // ─── Hooks ──────────────────────────────────────────────────────
