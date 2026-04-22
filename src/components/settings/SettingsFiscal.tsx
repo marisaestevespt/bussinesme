@@ -102,9 +102,6 @@ export function SettingsFiscal() {
     if (isFirstYear) {
       return 'No 1.º ano de atividade, estás isento de IVA e Segurança Social por defeito. Podes desativar as isenções se optares por não beneficiar delas.';
     }
-    if (isSecondYearPlus) {
-      return 'A partir do 2.º ano, continuas isento de IVA (salvo se optares por não ser). A Segurança Social passa a ser obrigatória.';
-    }
     return null;
   }, [businessType, isFirstYear, isSecondYearPlus]);
 
