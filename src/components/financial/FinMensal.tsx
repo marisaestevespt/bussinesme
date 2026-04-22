@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck } from 'lucide-react';
+import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck, Pencil } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -86,6 +86,8 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false);
   const [ivaCobradoOpen, setIvaCobradoOpen] = useState(false);
   const [ivaPagoOpen, setIvaPagoOpen] = useState(false);
+  const [editingDeductId, setEditingDeductId] = useState<string | null>(null);
+  const [editingDeductValue, setEditingDeductValue] = useState<string>('');
   const m = parseInt(month);
 
   // Active member contracts
