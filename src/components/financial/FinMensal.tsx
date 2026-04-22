@@ -1199,12 +1199,16 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
   const visibleCheckItems = useMemo(() => {
     return checkItems.filter(item => {
       if (item.key === 'irs_start') {
-        if (irsDoneAnnual) return false; // already done — hide everywhere
-        return month === 4; // only show "Entrega" in April
+        // April: always show (checked or not) so user can see/toggle the tick.
+        // May/June: only show if not yet done (acts as pending reminder).
+        if (month === 4) return true;
+        if (month >= 5 && month <= 6) return !irsDoneAnnual;
+        return false;
       }
       if (item.key === 'irs_deadline') {
-        if (irsDoneAnnual) return false;
-        return month >= 5 && month <= 6; // pending warning in May/June
+        // Deadline item is redundant with irs_start — never show standalone
+        // (we keep it in checkItems only for legacy storage compatibility).
+        return false;
       }
       return true;
     });
