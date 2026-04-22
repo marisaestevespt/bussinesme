@@ -477,7 +477,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary/15 text-primary text-xs font-bold">SS</span>
-                Segurança Social — {MONTHS_NAMES[m - 1]} {currentYear}
+                Segurança Social — {MONTHS[m - 1]} {currentYear}
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-1">
                 {ssExpense
