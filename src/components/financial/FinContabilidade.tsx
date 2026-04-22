@@ -58,7 +58,7 @@ export function FinContabilidade({ currentYear }: Props) {
   const hasAccountant = s?.has_accountant ?? false;
   const accountantMemberId = s?.accountant_member_id || null;
 
-  // Get the accountant's profile (member is always linked when has_accountant is true)
+  // Get the accountant's profile. has_accountant is kept in sync with accountant_member_id by a DB trigger.
   const { data: accountantMember } = useQuery({
     queryKey: ['accountant-member', accountantMemberId],
     enabled: !!accountantMemberId,

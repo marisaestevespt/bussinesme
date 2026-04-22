@@ -1302,7 +1302,7 @@ serve(async (req) => {
     const { data: profile } = await supabaseAdmin.from("profiles").select("full_name").eq("user_id", user.id).single();
     userName = profile?.full_name || user.email?.split("@")[0] || "";
 
-    const { data: settings } = await supabaseAdmin.from("business_settings").select("business_name, business_type, team_type").limit(1).single();
+    const { data: settings } = await supabaseAdmin.from("business_settings").select("business_name, business_type").limit(1).single();
     const businessName = settings?.business_name || "o negócio";
 
     const today = new Date().toISOString().split('T')[0];
