@@ -30,13 +30,7 @@ import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
 
 const DEPARTMENTS = SHARED_DEPARTMENTS.map(d => ({ value: d.value, label: d.label }));
 
-const SOP_STATUSES = [
-  { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
-  { value: 'em_criacao', label: 'Em criação', color: 'bg-warning/15 text-warning border-warning/30' },
-  { value: 'ativo', label: 'Ativo', color: 'bg-success/15 text-success border-success/30' },
-  { value: 'em_revisao', label: 'Em revisão', color: 'bg-info/15 text-info border-info/30' },
-  { value: 'off', label: 'Off', color: 'bg-destructive/15 text-destructive border-destructive/30' },
-];
+import { SOP_STATUSES, getSopStatusInfo } from '@/lib/sopStatus';
 
 type ListItem = { text: string; checked?: boolean };
 
