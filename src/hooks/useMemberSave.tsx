@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cleanPayloadStrip as cleanPayload } from '@/lib/utils';
+import { vatBreakdown, VAT_DEFAULT_RATE } from '@/lib/payrollCalculations';
 
 // Module keys that belong to each department
 const ALL_DEPT_MODULES = ['marketing', 'comercial', 'clientes', 'financeiro', 'operacao', 'produtos', 'recursos-humanos', 'equipa', 'planeamento', 'weekly-align', 'gestao-equipa-ceo'];
@@ -168,21 +169,15 @@ export function useMemberSave() {
               : contractData.start_date;
             const startDate = new Date(paymentStartStr);
 
-            // Calculate IVA values for prestadores
+            // Calculate IVA values for prestadores (centralized in payrollCalculations)
             let baseValue = monthlyVal;
             let vatRate = 0;
             let totalWithVat = monthlyVal;
             if (isPrestacao) {
-              vatRate = 23;
-              if (contractData.value_includes_vat) {
-                // Value includes VAT — extract base
-                baseValue = Math.round((monthlyVal / 1.23) * 100) / 100;
-                totalWithVat = monthlyVal;
-              } else {
-                // Value is base — add VAT
-                baseValue = monthlyVal;
-                totalWithVat = Math.round(monthlyVal * 1.23 * 100) / 100;
-              }
+              const v = vatBreakdown(monthlyVal, VAT_DEFAULT_RATE, !!contractData.value_includes_vat);
+              baseValue = v.baseValue;
+              vatRate = v.vatRate;
+              totalWithVat = v.totalWithVat;
             }
 
             const payments = [];
