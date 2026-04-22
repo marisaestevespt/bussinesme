@@ -8,16 +8,14 @@ type: feature
 - 'eni': Empresário em Nome Individual
 - 'empresa': Sociedade — always contabilidade_organizada, always has_accountant
 
-## Team Type (business_settings.team_type)
-- 'externa': only external contractors — no Ordenados page
-- 'interna': only internal employees — Ordenados visible
-- 'ambas': both — Ordenados visible
+## Team composition
+No `team_type` field in UI — derived from existing `member_contracts`. The Ordenados/Prestadores pages are always available; rows populate from contracts. Column kept in DB for backward compat but unused.
 
 ## Has Accountant (business_settings.has_accountant)
-- Forced true when contabilidade_organizada
-- Always requires `accountant_member_id` (member of the team, with or without account access)
+- Single source of truth: `accountant_member_id IS NOT NULL`. The `has_accountant` column is still written (in sync as `!!accountant_member_id`) for backward compat with edge functions, but the UI no longer exposes a toggle.
+- SettingsFiscal has ONE picker only: "Contabilista" → seleciona membro ou "Sem contabilista".
 - The accountant is always a service provider (contrato_prestacao). No "internal/external" distinction — `accountant_type` column kept in DB but unused.
-- When true + contabilidade_organizada: IVA/SS pages become informational guides (not hidden)
+- When set + contabilidade_organizada: IVA/SS pages become informational guides (not hidden).
 
 ## ENI First Year Rules
 - 1st year (<12 months from activity_start_date): auto-exempt IVA + SS (user can opt out)
@@ -37,13 +35,13 @@ type: feature
 - iva_exempt=true AND NOT contabilidade_organizada → IVA page hidden
 - ss_exempt=true AND NOT contabilidade_organizada → SS page hidden
 - contabilidade_organizada: IVA/SS pages SHOWN as informational guides
-- team_type='externa' → Ordenados page hidden
+- Ordenados/Prestadores pages: always available (filtered by existing contracts)
 
 ## Has Accountant — Behaviour
 Tudo continua visível mesmo com contabilista (prazos SS/IVA, estimativas em previsibilidade, checklist mensal). A ÚNICA diferença é que **não se criam tarefas fiscais automaticamente** (nem no botão "Criar tarefa" assignment, nem no daily-status-update edge function), porque o contabilista gere isso internamente. As declarações em FinContabilidade aparecem atribuídas ao membro contabilista (em vez de Owner).
 
 ## Contract type lock
-If a member is set as the accountant (`business_settings.accountant_member_id`), `useMemberSave` blocks changing their contract type away from `contrato_prestacao`. User must remove them as accountant in Definições > Fiscal first.
+If a member is set as the accountant (`business_settings.accountant_member_id`), `useMemberSave` blocks changing their contract type away from `contrato_prestacao`. The MemberDialog header shows a "Contabilista" badge + explanatory note so the lock is visible up-front.
 
 ## SS Type Logic
 - independente: 21.4% on 70% of revenue (rendimento relevante)

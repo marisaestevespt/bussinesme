@@ -196,6 +196,7 @@ function ContractDocUpload({ contract, setC, uploading, setUploading, memberId }
 export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const { settings } = useBusinessSettings();
   const isENI = settings?.business_type === 'eni';
+  const isAccountant = !!settings && !!initial?.id && (settings as any).accountant_member_id === initial.id;
 
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
@@ -329,7 +330,19 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{isEdit ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {isEdit ? 'Editar Membro' : 'Novo Membro'}
+            {isAccountant && (
+              <Badge variant="secondary" className="text-[10px] font-medium">Contabilista</Badge>
+            )}
+          </DialogTitle>
+          {isAccountant && (
+            <p className="text-xs text-muted-foreground pt-1">
+              Este membro está definido como contabilista do negócio. O tipo de contrato está bloqueado em "prestação de serviços". Para alterar, remove-o primeiro em Definições &gt; Fiscal.
+            </p>
+          )}
+        </DialogHeader>
         <div className="space-y-5">
 
           {/* ═══ BLOCO 1: IDENTIDADE ═══ */}
