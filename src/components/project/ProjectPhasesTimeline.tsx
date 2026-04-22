@@ -845,6 +845,17 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {/* Task detail modal (mesmo da página Tarefas e Operação) */}
+    <TaskFormDialog
+      open={!!taskDetailId}
+      onOpenChange={(open) => !open && setTaskDetailId(null)}
+      editingTask={editingTask}
+      onSuccess={() => {
+        qc.invalidateQueries({ queryKey: taskKey });
+        qc.invalidateQueries({ queryKey: delKey });
+      }}
+    />
     </>
   );
 }
