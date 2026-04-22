@@ -548,8 +548,8 @@ export default function OperacaoPage() {
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
     const projName = t.project_id ? projectNameMap.get(t.project_id) : null;
-    return (
-      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm">
+    const content = (
+      <>
         <PriorityDot priority={t.priority} />
         <span className="flex-1 min-w-0 truncate">{t.name}</span>
         <TaskBadge deadline={t.deadline} status={t.status} />
@@ -561,6 +561,18 @@ export default function OperacaoPage() {
             <AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback>
           </Avatar>
         )}
+      </>
+    );
+    if (t.project_id) {
+      return (
+        <Link key={t.id} to={`/hub/projetos/${t.project_id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm cursor-pointer">
+          {content}
+        </Link>
+      );
+    }
+    return (
+      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm">
+        {content}
       </div>
     );
   }
