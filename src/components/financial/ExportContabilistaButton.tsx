@@ -208,8 +208,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
         </table>
 
         {/* Despesas */}
-        <h3 className="font-semibold mt-3 mb-1">Saídas / Despesas ({monthExpenses.length})</h3>
-        <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+        <h2>Saídas / Despesas <span style={{ color: '#94a3b8', fontWeight: 500 }}>({monthExpenses.length})</span></h2>
+        <table>
           <thead><tr><th>Doc</th><th>Data</th><th>Descrição</th><th>Categoria</th><th>Fornecedor</th><th>NIF</th><th>Loc.</th><th>Base</th><th>IVA%</th><th>Total</th></tr></thead>
           <tbody>
             {monthExpenses.map((e: any) => {
@@ -231,8 +231,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
 
         {/* Salários */}
         {monthPayroll.length > 0 && (<>
-          <h3 className="font-semibold mt-3 mb-1">Salários ({monthPayroll.length})</h3>
-          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+          <h2>Salários <span style={{ color: '#94a3b8', fontWeight: 500 }}>({monthPayroll.length})</span></h2>
+          <table>
             <thead><tr><th>Colaborador</th><th>Bruto</th><th>Ret.</th><th>SS Trab.</th><th>SS Emp.</th><th>Líquido</th><th>Custo Total</th></tr></thead>
             <tbody>
               {monthPayroll.map((p: any) => (
@@ -252,8 +252,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
 
         {/* Prestadores */}
         {monthContractors.length > 0 && (<>
-          <h3 className="font-semibold mt-3 mb-1">Prestadores de Serviços ({monthContractors.length})</h3>
-          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+          <h2>Prestadores de Serviços <span style={{ color: '#94a3b8', fontWeight: 500 }}>({monthContractors.length})</span></h2>
+          <table>
             <thead><tr><th>Prestador</th><th>Serviço</th><th>Localização</th><th>Valor</th></tr></thead>
             <tbody>
               {monthContractors.map((c: any) => (
@@ -269,8 +269,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
 
         {/* Clientes envolvidos */}
         {involvedClients.length > 0 && (<>
-          <h3 className="font-semibold mt-3 mb-1">Clientes do período ({involvedClients.length})</h3>
-          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+          <h2>Clientes do período <span style={{ color: '#94a3b8', fontWeight: 500 }}>({involvedClients.length})</span></h2>
+          <table>
             <thead><tr><th>ID</th><th>Nome</th><th>NIF</th><th>Email</th><th>Morada Fiscal</th></tr></thead>
             <tbody>
               {involvedClients.map((c: any) => (
@@ -282,8 +282,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
 
         {/* Fornecedores envolvidos */}
         {involvedSuppliers.length > 0 && (<>
-          <h3 className="font-semibold mt-3 mb-1">Fornecedores do período ({involvedSuppliers.length})</h3>
-          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+          <h2>Fornecedores do período <span style={{ color: '#94a3b8', fontWeight: 500 }}>({involvedSuppliers.length})</span></h2>
+          <table>
             <thead><tr><th>Nome</th><th>NIF</th><th>Email</th><th>IBAN</th><th>Categoria</th></tr></thead>
             <tbody>
               {involvedSuppliers.map((s: any) => (
@@ -295,8 +295,8 @@ export function ExportContabilistaButton({ year, month }: Props) {
 
         {/* Documentos */}
         {monthDocs.length > 0 && (<>
-          <h3 className="font-semibold mt-3 mb-1">Documentos ({monthDocs.length})</h3>
-          <table className="w-full mb-3" style={{ fontSize: '10px' }}>
+          <h2>Documentos <span style={{ color: '#94a3b8', fontWeight: 500 }}>({monthDocs.length})</span></h2>
+          <table>
             <thead><tr><th>Tipo</th><th>Nome</th><th>URL</th></tr></thead>
             <tbody>
               {monthDocs.map((d: any) => (
