@@ -34,6 +34,7 @@ export function SettingsFiscal() {
   const [caePrincipal, setCaePrincipal] = useState('');
   const [caeSecundarios, setCaeSecundarios] = useState('');
   const [cirsCode, setCirsCode] = useState('');
+  const [niss, setNiss] = useState('');
 
   useEffect(() => {
     if (!setupData) return;
@@ -41,6 +42,7 @@ export function SettingsFiscal() {
     setCaePrincipal(setupData.cae_principal || '');
     setCaeSecundarios(setupData.cae_secundarios || '');
     setCirsCode(setupData.cirs_code || '');
+    setNiss(setupData.niss || '');
   }, [setupData]);
 
   const [businessType, setBusinessType] = useState('eni');
@@ -129,7 +131,7 @@ export function SettingsFiscal() {
       if (error) throw error;
 
       // Save business_setup fields (NIF, CAE, CIRS)
-      const setupPayload = { nif, cae_principal: caePrincipal, cae_secundarios: caeSecundarios, cirs_code: cirsCode };
+      const setupPayload = { nif, cae_principal: caePrincipal, cae_secundarios: caeSecundarios, cirs_code: cirsCode, niss };
       if (setupData?.id) {
         const { error: e2 } = await supabase.from('business_setup' as any).update(setupPayload).eq('id', setupData.id);
         if (e2) throw e2;
