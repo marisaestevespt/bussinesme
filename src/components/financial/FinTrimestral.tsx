@@ -46,7 +46,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
     return QUARTERS.map(q => {
       const qSales = yearSales.filter(s => q.months.includes(s.sale_month || 0));
       const qExpenses = yearExpenses.filter(e => q.months.includes(e.expense_month || 0));
-      const ent = qSales.reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(qSales);
       const entBase = qSales.reduce((s, v) => s + v.base_value, 0);
       const sai = qExpenses.reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = qExpenses.reduce((s, v) => s + v.base_value, 0);

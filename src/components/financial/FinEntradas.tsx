@@ -59,7 +59,7 @@ export function FinEntradas({ sales, currentYear }: Props) {
   }, [sales, filter, currentYear, currentMonth, currentQuarter]);
 
   const totalBase = filtered.reduce((s, v) => s + v.base_value, 0);
-  const totalInvoice = filtered.reduce((s, v) => s + v.invoice_total, 0);
+  const totalInvoice = sumRevenue(filtered);
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
   const openDetail = (sale: Sale) => {
