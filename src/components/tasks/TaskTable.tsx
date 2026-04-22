@@ -6,20 +6,12 @@ import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { isTaskDone } from '@/lib/taskStatus';
-import { TASK_STATUSES } from '@/lib/taskStatus';
+import { TASK_STATUSES, TASK_PRIORITIES, getTaskStatusInfo, getTaskPriorityInfo } from '@/lib/taskStatus';
 
-const PRIORITIES = [
-  { value: 'alta', label: 'Prioridade 1', color: 'bg-destructive/15 text-destructive border-destructive/30' },
-  { value: 'media', label: 'Prioridade 2', color: 'bg-warning/15 text-warning border-warning/30' },
-  { value: 'baixa', label: 'Prioridade 3', color: 'bg-muted text-muted-foreground border-border' },
-];
+const PRIORITIES = TASK_PRIORITIES;
 
-export function getStatusInfo(val: string) {
-  return TASK_STATUSES.find(s => s.value === val) || TASK_STATUSES[0];
-}
-export function getPriorityInfo(val: string) {
-  return PRIORITIES.find(p => p.value === val) || PRIORITIES[2];
-}
+export const getStatusInfo = getTaskStatusInfo;
+export const getPriorityInfo = getTaskPriorityInfo;
 export function getDeptInfo(val: string) {
   return PROCESS_DEPARTMENTS.find(d => d.value === val);
 }

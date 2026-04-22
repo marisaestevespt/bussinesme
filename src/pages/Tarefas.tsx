@@ -79,7 +79,7 @@ export default function TarefasPage() {
   // Form state
   const [name, setName] = useState('');
   const [status, setStatus] = useState('por_comecar');
-  const [priority, setPriority] = useState('prioridade_1');
+  const [priority, setPriority] = useState('alta');
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [assignedTo, setAssignedTo] = useState('');
   const [department, setDepartment] = useState('');

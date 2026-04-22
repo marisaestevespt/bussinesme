@@ -135,7 +135,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
         </Badge>
         {task.priority && (
           <Badge variant="outline" className="text-xs">
-            Prioridade: {task.priority === 'alta' ? 'Alta' : task.priority === 'media' ? 'Média' : 'Baixa'}
+            {getTaskPriorityInfo(task.priority).label}
           </Badge>
         )}
         {(task as any).profiles?.full_name && (
