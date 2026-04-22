@@ -28,6 +28,7 @@ import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { TableSkeleton, EmptyState } from '@/components/ui/loading-skeletons';
 import { Receipt } from 'lucide-react';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -61,6 +62,8 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 type Filter = 'all' | 'month' | 'quarter' | 'year' | 'recurring';
 
 export function FinSaidas({ fin, currentYear }: Props) {
+  const { settings } = useBusinessSettings();
+  const ivaExempt = (settings as any)?.iva_exempt === true;
   const { getCategoryLabel } = useFinancialCategories();
   const allExpenses = fin.expenses.data || [];
   const [filter, setFilter] = useState<Filter>('year');
