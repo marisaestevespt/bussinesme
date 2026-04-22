@@ -19,7 +19,8 @@ import { sumRevenue } from '@/lib/salesCalculations';
 import { formatNumber } from '@/lib/formatting';
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
-const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+import { DEFAULT_SALE_SOURCES } from '@/lib/labelMaps';
+const SOURCE_OPTIONS = DEFAULT_SALE_SOURCES;
 const QUARTER_LABEL = (q: number | null) => q ? `T${q}` : '—';
 const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const DEFAULT_VIEWS: DefaultView[] = [
