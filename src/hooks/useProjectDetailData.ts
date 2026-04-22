@@ -88,7 +88,16 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
 
   const tasksQ = useQuery({
     queryKey: ['project-tasks', id],
-    queryFn: async () => { const { data } = await supabase.from('tasks').select('*').eq('project_id', id!).order('created_at'); return (data || []) as Task[]; },
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('project_id', id!)
+        .order('deadline', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true });
+
+      return (data || []) as Task[];
+    },
     enabled: !!id,
   });
 
