@@ -288,8 +288,6 @@ function AccentGridBlock({ block, onUpdate }: BlockProps) {
 
 function BarChartBlock({ block, onUpdate }: BlockProps) {
   const items = block.items || [];
-function BarChartBlock({ block, onUpdate }: BlockProps) {
-  const items = block.items || [];
 
   type Temp = 'alta' | 'media' | 'baixa';
   const TEMP_META: Record<Temp, { label: string; pct: number; bar: string; badge: string; rank: number }> = {
