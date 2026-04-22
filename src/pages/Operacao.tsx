@@ -755,18 +755,29 @@ export default function OperacaoPage() {
                             {/* Items empilhados abaixo */}
                             <div className="mt-2 w-full flex flex-col gap-1">
                               {day.items.map((item, i) => (
-                                <div
-                                  key={i}
-                                  className={`text-[10px] leading-tight px-1.5 py-1 rounded text-center truncate ${
-                                    item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
-                                    item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
-                                    'bg-accent/20 text-accent-foreground'
-                                  }`}
-                                  title={item.name}
-                                >
-                                  {item.type === 'meeting' && '📅 '}
-                                  {item.name}
-                                </div>
+                                (() => {
+                                  const assignee = item.assigneeId ? profileMap.get(item.assigneeId) : null;
+                                  return (
+                                    <div
+                                      key={i}
+                                      className={`text-[10px] leading-tight px-1.5 py-1 rounded flex items-center gap-1 ${
+                                        item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
+                                        item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
+                                        'bg-accent/20 text-accent-foreground'
+                                      }`}
+                                      title={item.name + (assignee?.full_name ? ` — ${assignee.full_name}` : '')}
+                                    >
+                                      {item.type === 'meeting' && <span className="shrink-0">📅</span>}
+                                      <span className="flex-1 min-w-0 truncate text-left">{item.name}</span>
+                                      {assignee && (
+                                        <Avatar className="h-3.5 w-3.5 shrink-0">
+                                          <AvatarImage src={getPhotoUrl(assignee)} />
+                                          <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
+                                        </Avatar>
+                                      )}
+                                    </div>
+                                  );
+                                })()
                               ))}
                             </div>
                           </div>
