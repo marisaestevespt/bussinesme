@@ -11,7 +11,7 @@ import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot } from 'lucide-react';
+import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot, Hourglass } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,6 +22,7 @@ import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { cn } from '@/lib/utils';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -277,7 +278,7 @@ export default function OperacaoPage() {
       // Exclui concluídos/entregues e apenas mostra os com data planeada.
       const { data } = await supabase
         .from('project_deliverables')
-        .select('id,name,planned_end,status,project_id,assigned_to')
+        .select('id,name,planned_end,status,project_id,assigned_to,responsible_type')
         .not('status', 'in', '(concluido,entregue)')
         .not('planned_end', 'is', null)
         .order('planned_end', { ascending: true });
@@ -288,7 +289,8 @@ export default function OperacaoPage() {
         status: d.status,
         project_id: d.project_id,
         assigned_to: d.assigned_to,
-      })) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null }[];
+        responsible_type: (d as any).responsible_type as string | null,
+      })) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null; responsible_type: string | null }[];
     },
   });
 
@@ -436,6 +438,56 @@ export default function OperacaoPage() {
     deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue'),
     [deliverables, today]
   );
+
+  // ── À espera do cliente ─────────────────────────────────────
+  // Agrega tarefas em "Aguarda Feedback"/"Para Aprovação" + entregas do cliente em atraso
+  const awaitingClient = useMemo(() => {
+    const AWAIT_TASK_STATUSES = ['aguarda_feedback', 'para_aprovacao', 'aguarda_cliente'];
+    type Item = {
+      id: string;
+      name: string;
+      kind: 'task' | 'deliverable';
+      since?: string | null; // updated_at ou planned_end
+      projectId: string | null;
+      projectName: string;
+      daysWaiting: number;
+    };
+    const items: Item[] = [];
+
+    tasks.forEach(t => {
+      if (!AWAIT_TASK_STATUSES.includes(t.status)) return;
+      const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
+      const ref = t.deadline ? new Date(t.deadline) : today;
+      items.push({
+        id: t.id,
+        name: t.name,
+        kind: 'task',
+        since: t.deadline,
+        projectId: t.project_id,
+        projectName: proj?.name || '',
+        daysWaiting: Math.max(0, differenceInDays(today, ref)),
+      });
+    });
+
+    deliverables.forEach(d => {
+      if (d.responsible_type !== 'cliente') return;
+      if (!d.deadline) return;
+      if (!isBefore(new Date(d.deadline), today)) return;
+      if (d.status === 'entregue' || d.status === 'concluido') return;
+      const proj = allActiveProjects.find(p => p.id === d.project_id);
+      items.push({
+        id: d.id,
+        name: d.name,
+        kind: 'deliverable',
+        since: d.deadline,
+        projectId: d.project_id,
+        projectName: proj?.name || '',
+        daysWaiting: differenceInDays(today, new Date(d.deadline)),
+      });
+    });
+
+    return items.sort((a, b) => b.daysWaiting - a.daysWaiting);
+  }, [tasks, deliverables, allActiveProjects, today]);
 
   // ── Countdown — next delivery (tasks + meetings + project deadlines) ──
   const nextDelivery = useMemo(() => {
@@ -609,6 +661,76 @@ export default function OperacaoPage() {
                     </Link>
                   );
                 })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* À espera do cliente */}
+        {awaitingClient.length > 0 && (
+          <Card className="border border-info/30 bg-info/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Hourglass className="h-4 w-4 text-info" />
+                <h3 className="text-sm font-semibold text-info">À espera do cliente</h3>
+                <Badge variant="outline" className="bg-info/15 text-info border-info/30 text-[10px]">
+                  {awaitingClient.length}
+                </Badge>
+              </div>
+              <div className="space-y-1">
+                {awaitingClient.slice(0, 8).map(item => {
+                  const inner = (
+                    <>
+                      <span className="shrink-0">
+                        {item.kind === 'task' ? (
+                          <Clock className="h-3.5 w-3.5 text-info" />
+                        ) : (
+                          <AlertTriangle className="h-3.5 w-3.5 text-warning" />
+                        )}
+                      </span>
+                      <span className="flex-1 truncate">
+                        <span className="font-medium">{item.name}</span>
+                        {item.projectName && (
+                          <span className="text-muted-foreground"> · {item.projectName}</span>
+                        )}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'text-[10px] shrink-0',
+                          item.daysWaiting > 7
+                            ? 'border-destructive/40 text-destructive'
+                            : 'border-warning/40 text-warning'
+                        )}
+                      >
+                        {item.daysWaiting === 0 ? 'hoje' : `${item.daysWaiting}d`}
+                      </Badge>
+                    </>
+                  );
+                  const className =
+                    'flex items-center gap-2 py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors text-sm w-full text-left';
+                  if (item.kind === 'task') {
+                    return (
+                      <button key={item.id} type="button" onClick={() => setTaskDetailId(item.id)} className={className}>
+                        {inner}
+                      </button>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={item.id}
+                      to={item.projectId ? `/hub/projetos/${item.projectId}` : '/hub/operacao'}
+                      className={className}
+                    >
+                      {inner}
+                    </Link>
+                  );
+                })}
+                {awaitingClient.length > 8 && (
+                  <p className="text-[11px] text-muted-foreground pt-1 px-2">
+                    + {awaitingClient.length - 8} a aguardar resposta do cliente
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
