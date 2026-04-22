@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2, Pencil, Check, CreditCard, Building2, Smartphone, Wallet, Hash, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PaymentMethod {
@@ -73,6 +73,7 @@ const EMPTY: SetupData = {
 
 export function FinSetupNegocio() {
   const qc = useQueryClient();
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const { data: setup, isLoading } = useQuery({
     queryKey: ['business-setup'],
@@ -105,6 +106,7 @@ export function FinSetupNegocio() {
   const addPaymentMethod = () => {
     const methods = [...(current.payment_methods || []), { type: 'iban', label: '', value: '' }];
     update('payment_methods', methods);
+    setEditingIndex(methods.length - 1);
   };
 
   const updatePaymentMethod = (index: number, field: keyof PaymentMethod, val: string) => {
@@ -207,13 +209,53 @@ export function FinSetupNegocio() {
           {(current.payment_methods || []).length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Nenhum método de pagamento adicionado.</p>
           ) : (
-            (current.payment_methods || []).map((pm, i) => (
+            (current.payment_methods || []).map((pm, i) => {
+              const isEditing = editingIndex === i;
+              const typeLabel = PAYMENT_TYPE_OPTIONS.find(o => o.value === pm.type)?.label || pm.type;
+              const TypeIcon = pm.type === 'cartao' ? CreditCard
+                : pm.type === 'iban' ? Building2
+                : pm.type === 'mbway' ? Smartphone
+                : pm.type === 'paypal' || pm.type === 'stripe' ? Wallet
+                : pm.type === 'mb_ref' ? Hash
+                : MoreHorizontal;
+              const summary = pm.type === 'cartao'
+                ? [pm.card_last4 ? `**** ${pm.card_last4}` : null, pm.card_expiry || null].filter(Boolean).join(' · ')
+                : pm.value;
+
+              if (!isEditing) {
+                return (
+                  <div key={i} className="rounded-lg border bg-card p-3 flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center shrink-0">
+                      <TypeIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{pm.label || typeLabel}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {typeLabel}{summary ? ` · ${summary}` : ''}
+                      </p>
+                    </div>
+                    <Button aria-label="Editar" size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingIndex(i)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => removePaymentMethod(i)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                );
+              }
+
+              return (
               <div key={i} className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">Método {i + 1}</span>
-                  <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => removePaymentMethod(i)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <span className="text-xs font-medium text-muted-foreground">A editar método {i + 1}</span>
+                  <div className="flex items-center gap-1">
+                    <Button aria-label="Concluir" size="icon" variant="ghost" className="h-7 w-7 text-primary" onClick={() => setEditingIndex(null)}>
+                      <Check className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => { removePaymentMethod(i); setEditingIndex(null); }}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="space-y-1">
@@ -257,7 +299,8 @@ export function FinSetupNegocio() {
                   )}
                 </div>
               </div>
-            ))
+              );
+            })
           )}
 
           {/* Legacy bank fields — show if they have data */}
