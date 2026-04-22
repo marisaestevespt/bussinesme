@@ -344,7 +344,23 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                       </SelectContent>
                     </Select>
 
-                    <span className="flex-1 text-sm font-medium truncate">{d.name}</span>
+                    {(() => {
+                      const linkedTask = taskByDeliverable.get(d.id);
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => { if (linkedTask) setTaskDetailId(linkedTask.id); }}
+                          disabled={!linkedTask}
+                          className={cn(
+                            'flex-1 text-sm font-medium truncate text-left',
+                            linkedTask ? 'cursor-pointer hover:text-primary transition-colors' : 'cursor-default'
+                          )}
+                          title={linkedTask ? 'Abrir detalhes da tarefa' : undefined}
+                        >
+                          {d.name}
+                        </button>
+                      );
+                    })()}
 
                     {d.is_recurring && d.recurrence_week != null && d.recurrence_weekday != null && (
                       <Badge variant="outline" className="text-[9px] shrink-0">
