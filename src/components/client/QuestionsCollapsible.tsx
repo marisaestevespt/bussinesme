@@ -9,6 +9,7 @@ import { ChevronRight, Plus, RefreshCw, Trash2, FileText, Upload, Image as Image
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { ExportInitialQuestionsButton } from '@/components/project/ExportInitialQuestionsButton';
 
 interface Props {
   portalId: string | undefined;
@@ -17,6 +18,9 @@ interface Props {
   updateQuestion: any;
   deleteQuestion: any;
   seedQuestionsFromProduct: () => void;
+  clientId?: string | null;
+  clientName?: string | null;
+  projectName?: string | null;
 }
 
 export function QuestionsCollapsible({
@@ -26,6 +30,9 @@ export function QuestionsCollapsible({
   updateQuestion,
   deleteQuestion,
   seedQuestionsFromProduct,
+  clientId,
+  clientName,
+  projectName,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -70,6 +77,9 @@ export function QuestionsCollapsible({
             <Badge variant="secondary" className="text-xs px-2 py-0.5 tabular-nums">{answeredCount}/{questionsList.length}</Badge>
           </CollapsibleTrigger>
           <div className="flex gap-2">
+            {clientId && (
+              <ExportInitialQuestionsButton clientId={clientId} clientName={clientName} projectName={projectName} />
+            )}
             <Button size="sm" variant="outline" onClick={() => seedQuestionsFromProduct()}>
               <RefreshCw className="h-3 w-3 mr-1" />Importar do Produto
             </Button>
