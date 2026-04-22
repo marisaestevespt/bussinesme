@@ -57,8 +57,6 @@ export function SettingsFiscal() {
   const [ivaRegime, setIvaRegime] = useState('trimestral');
   const [irsRegime, setIrsRegime] = useState('simplificado');
   const [ssType, setSsType] = useState('independente');
-  const [teamType, setTeamType] = useState('externa');
-  const [hasAccountant, setHasAccountant] = useState(false);
   const [accountantMemberId, setAccountantMemberId] = useState<string | null>(null);
   const [activityStartDate, setActivityStartDate] = useState<Date | undefined>();
   const [ssExempt, setSsExempt] = useState(false);
@@ -86,8 +84,6 @@ export function SettingsFiscal() {
     setIvaRegime(s.tax_iva_regime || 'trimestral');
     setIrsRegime(s.tax_irs_regime || 'simplificado');
     setSsType(s.ss_type || 'independente');
-    setTeamType(s.team_type || 'externa');
-    setHasAccountant(s.has_accountant ?? false);
     setAccountantMemberId(s.accountant_member_id || null);
     setActivityStartDate(s.activity_start_date ? new Date(s.activity_start_date + 'T00:00:00') : undefined);
     setSsExempt(s.ss_exempt ?? false);
@@ -109,17 +105,11 @@ export function SettingsFiscal() {
   const effectiveIrsRegime = businessType === 'empresa' ? 'contabilidade_organizada' : irsRegime;
   const isContabOrganizada = effectiveIrsRegime === 'contabilidade_organizada';
 
-  // When business type changes to empresa
-  useEffect(() => {
-    if (businessType === 'empresa') {
-      setHasAccountant(true);
-    }
-  }, [businessType]);
-
   const handleSave = async () => {
     if (!settings) return;
     setSaving(true);
     try {
+      const hasAccountant = !!accountantMemberId;
       const { error } = await supabase
         .from('business_settings')
         .update({
@@ -127,10 +117,9 @@ export function SettingsFiscal() {
           tax_iva_regime: ivaRegime,
           tax_irs_regime: businessType === 'empresa' ? 'contabilidade_organizada' : irsRegime,
           ss_type: ssType,
-          team_type: teamType,
           has_accountant: hasAccountant,
           accountant_type: 'externo',
-          accountant_member_id: hasAccountant ? accountantMemberId : null,
+          accountant_member_id: accountantMemberId,
           activity_start_date: activityStartDate ? format(activityStartDate, 'yyyy-MM-dd') : null,
           ss_exempt: ssExempt,
           iva_exempt: ivaExempt,
