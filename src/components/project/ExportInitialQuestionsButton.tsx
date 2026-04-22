@@ -28,6 +28,18 @@ const parseFileUrls = (raw: any): string[] => {
   } catch { return []; }
 };
 
+const fileNameFromUrl = (url: string): string => {
+  try {
+    const u = new URL(url);
+    const last = decodeURIComponent(u.pathname.split('/').filter(Boolean).pop() || url);
+    // Strip leading uuid/timestamp prefixes like "1700000000-name.pdf"
+    return last.replace(/^\d{10,}[-_]/, '');
+  } catch {
+    const parts = url.split('/');
+    return decodeURIComponent(parts[parts.length - 1] || url);
+  }
+};
+
 export function ExportInitialQuestionsButton({ clientId, clientName, projectName }: Props) {
   const [loading, setLoading] = useState(false);
 
@@ -66,7 +78,10 @@ export function ExportInitialQuestionsButton({ clientId, clientName, projectName
       const itemsHtml = questions.map((q, i) => {
         const files = parseFileUrls((q as any).file_urls);
         const filesHtml = files.length
-          ? `<div class="files"><strong>Ficheiros anexados:</strong><ul>${files.map(u => `<li><a href="${escapeHtml(u)}">${escapeHtml(u)}</a></li>`).join('')}</ul></div>`
+          ? `<div class="files"><strong>📎 Ficheiros anexados (${files.length}):</strong><ul>${files.map(u => {
+              const name = fileNameFromUrl(u);
+              return `<li><a href="${escapeHtml(u)}" target="_blank" rel="noopener">${escapeHtml(name)}</a> <span class="file-url">${escapeHtml(u)}</span></li>`;
+            }).join('')}</ul></div>`
           : '';
         const answeredAt = (q as any).answered_at
           ? `<div class="meta">Respondida em ${new Date((q as any).answered_at).toLocaleDateString('pt-PT')}</div>`
@@ -105,8 +120,11 @@ export function ExportInitialQuestionsButton({ clientId, clientName, projectName
   .qa .q .num { color: #64748b; margin-right: 6px; }
   .qa .a { color: #1e293b; font-size: 10pt; white-space: pre-wrap; }
   .qa .files { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 8.5pt; color: #475569; }
-  .qa .files ul { margin: 4px 0 0 18px; }
-  .qa .files a { color: #2E75B6; text-decoration: none; word-break: break-all; }
+  .qa .files ul { margin: 6px 0 0 18px; list-style: none; padding: 0; }
+  .qa .files li { margin: 0 0 4px 0; padding-left: 14px; position: relative; }
+  .qa .files li::before { content: "📄"; position: absolute; left: 0; top: 0; font-size: 8pt; }
+  .qa .files a { color: #2E75B6; text-decoration: underline; font-weight: 600; word-break: break-word; }
+  .qa .files .file-url { display: block; font-size: 7.5pt; color: #94a3b8; word-break: break-all; margin-top: 1px; }
   .qa .meta { margin-top: 8px; font-size: 8pt; color: #94a3b8; font-style: italic; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .qa { page-break-inside: avoid; } }
 </style></head>
