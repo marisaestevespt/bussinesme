@@ -721,7 +721,7 @@ export default function OperacaoPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <CalendarClock className="h-4 w-4" /> Timeline de Entregas
-                <span className="text-xs text-muted-foreground font-normal ml-1">próximos 14 dias</span>
+                <span className="text-xs text-muted-foreground font-normal ml-1">próximos 7 dias</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
@@ -734,7 +734,7 @@ export default function OperacaoPage() {
                     {/* Linha do tempo */}
                     <div className="absolute left-0 right-0 top-8 h-px bg-border" />
                     {/* Marcadores de dia */}
-                    <div className="grid relative w-full" style={{ gridTemplateColumns: 'repeat(14, minmax(0, 1fr))' }}>
+                    <div className="grid relative w-full" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
                       {deliveryTimeline.map((day, idx) => {
                         const today = isToday(day.date);
                         return (
