@@ -1,0 +1,28 @@
+-- Update trigger to support 'aguarda_cliente' status
+CREATE OR REPLACE FUNCTION public.sync_task_status_to_deliverable()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  IF NEW.deliverable_id IS NULL THEN RETURN NEW; END IF;
+  IF NEW.status = OLD.status THEN RETURN NEW; END IF;
+
+  IF NEW.status = 'concluida' THEN
+    UPDATE public.project_deliverables
+    SET status = 'concluido', updated_at = now()
+    WHERE id = NEW.deliverable_id AND status NOT IN ('concluido','entregue');
+  ELSIF NEW.status = 'aguarda_cliente' THEN
+    UPDATE public.project_deliverables
+    SET status = 'aguarda_cliente', updated_at = now()
+    WHERE id = NEW.deliverable_id AND status NOT IN ('concluido','entregue');
+  ELSIF OLD.status IN ('concluida','aguarda_cliente') THEN
+    UPDATE public.project_deliverables
+    SET status = 'pendente', updated_at = now()
+    WHERE id = NEW.deliverable_id AND status NOT IN ('concluido','entregue');
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
