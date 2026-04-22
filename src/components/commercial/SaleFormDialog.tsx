@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 import { ENTRY_STATUSES } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 const SPECIAL_OFFER_REASONS = [
   'Campanha especial',
@@ -37,6 +38,8 @@ interface SaleFormDialogProps {
 }
 
 export function SaleFormDialog({ open, onOpenChange, products, onSave, initialData }: SaleFormDialogProps) {
+  const { settings } = useBusinessSettings();
+  const ivaExempt = (settings as any)?.iva_exempt === true;
   const [form, setForm] = useState({
     id: '',
     sale_id: '',
@@ -141,11 +144,11 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
   useEffect(() => {
     if (form.base_value) {
       const base = parseFloat(form.base_value) || 0;
-      const vat = getEffectiveVatRate();
+      const vat = ivaExempt ? 0 : getEffectiveVatRate();
       const total = Math.round(base * (1 + vat / 100) * 100) / 100;
       setForm(f => ({ ...f, invoice_total: total.toString() }));
     }
-  }, [form.base_value, form.vat_rate]);
+  }, [form.base_value, form.vat_rate, ivaExempt]);
 
   const handleSave = () => {
     if (!form.description?.trim()) { toast.error('Preenche a descrição'); return; }
@@ -221,26 +224,44 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
             <Label>Descrição</Label>
             <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={form.base_value} onChange={e => setForm(f => ({ ...f, base_value: e.target.value }))} /></div>
+          {ivaExempt ? (
             <div>
-              <Label>IVA (%)</Label>
-              <Select value={form.vat_rate || '23'} onValueChange={v => setForm(f => ({ ...f, vat_rate: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">0% (Isento)</SelectItem>
-                  <SelectItem value="6">6%</SelectItem>
-                  <SelectItem value="13">13%</SelectItem>
-                  <SelectItem value="23">23%</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Valor da Venda (€)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.base_value}
+                onChange={e => {
+                  const v = e.target.value;
+                  setForm(f => ({ ...f, base_value: v, vat_rate: '0', invoice_total: v }));
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Estás isenta de IVA — não cobras IVA nas faturas (art. 53.º).
+              </p>
             </div>
-            <div>
-              <Label>Fatura Total (€)</Label>
-              <Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} />
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={form.base_value} onChange={e => setForm(f => ({ ...f, base_value: e.target.value }))} /></div>
+              <div>
+                <Label>IVA (%)</Label>
+                <Select value={form.vat_rate || '23'} onValueChange={v => setForm(f => ({ ...f, vat_rate: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0% (Isento)</SelectItem>
+                    <SelectItem value="6">6%</SelectItem>
+                    <SelectItem value="13">13%</SelectItem>
+                    <SelectItem value="23">23%</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Fatura Total (€)</Label>
+                <Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} />
+              </div>
             </div>
-          </div>
-          {form.base_value && parseFloat(form.base_value) > 0 && parseFloat(form.vat_rate || '0') > 0 && (
+          )}
+          {!ivaExempt && form.base_value && parseFloat(form.base_value) > 0 && parseFloat(form.vat_rate || '0') > 0 && (
             <p className="text-xs text-muted-foreground -mt-2">
               IVA: {((parseFloat(form.invoice_total) || 0) - (parseFloat(form.base_value) || 0)).toFixed(2)} €
             </p>
