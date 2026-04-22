@@ -16,7 +16,7 @@ import { computeFiscalDeadlines, getDeadlineStatus, type FiscalConfig, type Fisc
 import { excludeCancelled } from '@/lib/utils';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
-import { CalendarCheck, CheckSquare, Download, FileSpreadsheet, Info, AlertTriangle, Clock } from 'lucide-react';
+import { CalendarCheck, CheckSquare, Download, FileSpreadsheet, Info, AlertTriangle, Clock, ListPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -372,14 +372,15 @@ export function FinContabilidade({ currentYear }: Props) {
                         <TableCell className="text-right">
                           {!isCompleted && (
                             <Button
-                              size="sm"
-                              variant="outline"
+                              size="icon"
+                              variant="ghost"
                               disabled={creatingTask === dl.key}
                               onClick={() => handleCreateTask(dl)}
-                              className="gap-1"
+                              title="Criar tarefa"
+                              aria-label="Criar tarefa"
+                              className="h-8 w-8"
                             >
-                              <CheckSquare className="h-3 w-3" />
-                              Criar tarefa
+                              <ListPlus className="h-4 w-4" />
                             </Button>
                           )}
                         </TableCell>
