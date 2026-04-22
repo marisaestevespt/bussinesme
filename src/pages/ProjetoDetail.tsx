@@ -339,12 +339,6 @@ export default function ProjetoDetailPage() {
 
   const formatCost = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k €` : `${v.toFixed(0)} €`;
 
-  const { data: meetings = [] } = useQuery({
-    queryKey: ['project-meetings', id],
-    queryFn: async () => { const { data } = await supabase.from('meetings').select('id, title, date_time, status, project_id').eq('project_id', id!).order('date_time'); return (data || []) as Meeting[]; },
-    enabled: !!id,
-  });
-
   const teamPhotoByProfileId = new Map(
     teamMembersPhotos
       .filter((t) => t.profile_id && t.photo_url)
@@ -388,23 +382,6 @@ export default function ProjetoDetailPage() {
     return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
   }, [dirty, local]);
 
-  const calcTotalTime = async (projectId: string) => {
-    // Sum time from time_entries directly linked to project
-    const { data: directTime } = await supabase.from('time_entries').select('duration').eq('project_id', projectId);
-    // Sum time from time_entries linked to project tasks
-    const { data: taskIds } = await supabase.from('tasks').select('id').eq('project_id', projectId);
-    let taskTime: { duration: number }[] = [];
-    if (taskIds && taskIds.length > 0) {
-      const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
-      taskTime = (data || []) as { duration: number }[];
-    }
-    // Sum meeting durations linked to project
-    const { data: meetingDurations } = await supabase.from('meetings').select('duration_minutes').eq('project_id', projectId);
-    const meetingTime = (meetingDurations || []).reduce((sum, m) => sum + ((m as any).duration_minutes || 0), 0);
-    const timeEntryTotal = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
-    return timeEntryTotal + meetingTime;
-  };
-
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!local) return;
@@ -430,28 +407,6 @@ export default function ProjetoDetailPage() {
       if (error) throw error;
     },
     onSuccess: () => { setDirty(false); queryClient.invalidateQueries({ queryKey: ['project', id] }); toast.success('Guardado'); },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const toggleMember = useMutation({
-    mutationFn: async (profileId: string) => {
-      const isMember = projectMembers.includes(profileId);
-      if (isMember) {
-        await supabase.from('project_members').delete().eq('project_id', id!).eq('profile_id', profileId);
-      } else {
-        await supabase.from('project_members').insert({ project_id: id!, profile_id: profileId } as any);
-      }
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-members', id] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('projects').delete().eq('id', id!);
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['projects'] }); toast.success('Projeto eliminado'); navigate('/hub/projetos'); },
     onError: (e: Error) => toast.error(e.message),
   });
 
