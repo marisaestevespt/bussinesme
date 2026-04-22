@@ -341,7 +341,7 @@ export function usePlanningData(year = currentYear) {
         name: action.description,
         deadline: action.deadline || null,
         assigned_to: action.responsible_id || null,
-        status: action.status === 'feito' ? 'concluida' : 'pendente',
+        status: action.status === 'feito' ? 'done' : 'por_comecar',
       } as any).select('id').single();
       if (error) throw error;
       // Link task to action
