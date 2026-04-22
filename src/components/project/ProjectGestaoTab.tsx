@@ -245,13 +245,10 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     new Date(b.date_time).getTime() - new Date(a.date_time).getTime()
   );
 
-  const MEETING_STATUSES: Record<string, { label: string; badgeColor: string; color: string }> = {
-    por_organizar: { label: 'Por organizar', badgeColor: 'bg-info/15 text-info border-info/30', color: 'hsl(var(--primary))' },
-    por_confirmar: { label: 'Por confirmar', badgeColor: 'bg-warning/15 text-warning border-warning/30', color: 'hsl(var(--warning))' },
-    confirmada: { label: 'Confirmada', badgeColor: 'bg-success/15 text-success border-success/30', color: 'hsl(var(--success))' },
-    terminada: { label: 'Terminada', badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' },
-    cancelada: { label: 'Cancelada', badgeColor: 'bg-destructive/15 text-destructive border-destructive/30', color: 'hsl(var(--destructive))' },
-  };
+  // Use canonical meeting statuses (mapped to local shape) so badges match the Reunioes page.
+  const MEETING_STATUSES: Record<string, { label: string; badgeColor: string; color: string }> = Object.fromEntries(
+    CANON_MEETING_STATUSES_FOR_GESTAO.map(s => [s.value, { label: s.label, badgeColor: s.color, color: s.dotColor }])
+  );
 
   // ─── Helper: resolve payment method for a generated entry ─────
   const getMethodForEntry = (isEntrada: boolean) => {
