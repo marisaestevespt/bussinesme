@@ -1239,11 +1239,6 @@ function computeDigestFiscalDeadlines(year: number, config: { taxIvaRegime: stri
     }
   }
 
-  if (config.taxIrsRegime === 'simplificado') {
-    const raw = new Date(year + 1, 5, 30);
-    dls.push({ name: `Entrega IRS — Ano ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'irs' });
-  }
-
   return dls.sort((a, b) => a.date.localeCompare(b.date));
 }
 

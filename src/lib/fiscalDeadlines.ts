@@ -45,7 +45,7 @@ export interface FiscalDeadline {
   name: string;
   date: string; // yyyy-MM-dd (adjusted)
   rawDate: string; // yyyy-MM-dd (original before adjustment)
-  category: 'ss' | 'iva' | 'irs';
+  category: 'ss' | 'iva';
   deadline_type: 'declaracao' | 'pagamento';
 }
 
@@ -154,29 +154,7 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
     }
   }
 
-  // ── IRS (simplified regime — April 1 to June 30 of next year) ──
-  if (config.taxIrsRegime === 'simplificado') {
-    // Submission opens April 1, deadline June 30
-    const rawStart = new Date(year + 1, 3, 1); // April 1
-    const rawEnd = new Date(year + 1, 5, 30);  // June 30
-    const adjustedEnd = adjustToPrevBusinessDay(rawEnd);
-    deadlines.push({
-      key: `irs-start-${year}`,
-      name: `IRS ${year} — Início da entrega (1 de Abril)`,
-      date: fmtDate(rawStart),
-      rawDate: fmtDate(rawStart),
-      category: 'irs',
-      deadline_type: 'declaracao',
-    });
-    deadlines.push({
-      key: `irs-end-${year}`,
-      name: `IRS ${year} — Prazo final (30 de Junho)`,
-      date: fmtDate(adjustedEnd),
-      rawDate: fmtDate(rawEnd),
-      category: 'irs',
-      deadline_type: 'declaracao',
-    });
-  }
+  // IRS removido do sistema — é uma obrigação pessoal, não da empresa.
 
   return deadlines.sort((a, b) => a.date.localeCompare(b.date));
 }

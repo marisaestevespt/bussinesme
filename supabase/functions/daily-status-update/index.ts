@@ -724,9 +724,5 @@ function computeFiscalDeadlinesEdge(year: number, config: { taxIvaRegime: string
       deadlines.push({ name: `IVA — ${ML_EDGE[m - 1]} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
     }
   }
-  if (config.taxIrsRegime === "simplificado") {
-    const raw = new Date(year + 1, 5, 30);
-    deadlines.push({ name: `Entrega IRS — Ano ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
-  }
   return deadlines;
 }
