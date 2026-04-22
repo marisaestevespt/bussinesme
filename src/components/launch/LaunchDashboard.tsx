@@ -408,14 +408,14 @@ function TaskStatusSelect({ task, qc, projectId, userId }: any) {
     qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
   };
 
-  const info = getTaskStatusInfo(task.status);
+  const info = getLaunchTaskStatusInfo(task.status);
   return (
     <Select value={task.status} onValueChange={updateStatus}>
       <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none w-auto">
         <Badge className={cn(info.color, 'border-0 text-[10px] cursor-pointer')}>{info.label}</Badge>
       </SelectTrigger>
       <SelectContent>
-        {TASK_STATUSES.map(s => (
+        {LAUNCH_TASK_STATUSES.map(s => (
           <SelectItem key={s.value} value={s.value}>
             <span className="flex items-center gap-2"><span className={cn('h-2 w-2 rounded-full', s.dot)} />{s.label}</span>
           </SelectItem>
@@ -498,7 +498,7 @@ function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
             </div>
             <div className="space-y-1.5">
               {phaseTasks.map((t: any) => {
-                const si = getTaskStatusInfo(t.status);
+                const si = getLaunchTaskStatusInfo(t.status);
                 const assignee = t.responsible_id ? profileMap.get(t.responsible_id) : null;
                 return (
                   <div key={t.id} className="bg-background rounded-md border p-2 space-y-1">
@@ -540,7 +540,7 @@ function TarefasPorDataView({ tasks, profileMap }: any) {
         <TableBody>
           {sorted.map((t: any) => {
             const pi = getPhaseInfo(t.phase);
-            const si = getTaskStatusInfo(t.status);
+            const si = getLaunchTaskStatusInfo(t.status);
             const assignee = t.responsible_id ? profileMap.get(t.responsible_id) : null;
             return (
               <TableRow key={t.id}>
@@ -631,7 +631,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
           <p className="text-xs font-semibold mb-2 text-muted-foreground">Sem responsável</p>
           <div className="space-y-1.5">
             {unassigned.map((t: any) => {
-              const si = getTaskStatusInfo(t.status);
+              const si = getLaunchTaskStatusInfo(t.status);
               return (
                 <div key={t.id} className="bg-background rounded-md border p-2">
                   <p className="text-xs font-medium">{t.title}</p>
@@ -653,7 +653,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
             </div>
             <div className="space-y-1.5">
               {pTasks.map((t: any) => {
-                const si = getTaskStatusInfo(t.status);
+                const si = getLaunchTaskStatusInfo(t.status);
                 return (
                   <div key={t.id} className="bg-background rounded-md border p-2">
                     <p className="text-xs font-medium">{t.title}</p>
