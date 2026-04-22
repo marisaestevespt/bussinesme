@@ -26,7 +26,7 @@ import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive
 import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
-import { useCrmData } from '@/hooks/useCrmData';
+import { useCrmData, CRM_STATUSES } from '@/hooks/useCrmData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { monthlyCapacity } from '@/lib/memberCapacity';
