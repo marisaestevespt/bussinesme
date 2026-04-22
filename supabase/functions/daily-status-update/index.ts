@@ -685,9 +685,10 @@ interface FiscalDl { name: string; date: string; }
 const ML_EDGE = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-function computeFiscalDeadlinesEdge(year: number, config: { taxIvaRegime: string; taxIrsRegime: string; ssExempt: boolean; ivaExempt: boolean }): FiscalDl[] {
+function computeFiscalDeadlinesEdge(year: number, config: { taxIvaRegime: string; taxIrsRegime: string; ssExempt: boolean; ivaExempt: boolean; hasAccountant?: boolean }): FiscalDl[] {
   const deadlines: FiscalDl[] = [];
-  if (!config.ssExempt && config.taxIrsRegime !== "contabilidade_organizada") {
+  // SS/IVA hidden when user has an accountant — accountant handles fiscal obligations.
+  if (!config.ssExempt && !config.hasAccountant && config.taxIrsRegime !== "contabilidade_organizada") {
     for (let m = 1; m <= 12; m++) {
       const nm = m === 12 ? 1 : m + 1;
       const ny = m === 12 ? year + 1 : year;
@@ -695,7 +696,7 @@ function computeFiscalDeadlinesEdge(year: number, config: { taxIvaRegime: string
       deadlines.push({ name: `Pagamento SS — ${ML_EDGE[m - 1]} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
     }
   }
-  if (!config.ivaExempt && config.taxIvaRegime === "trimestral" && config.taxIrsRegime !== "contabilidade_organizada") {
+  if (!config.ivaExempt && !config.hasAccountant && config.taxIvaRegime === "trimestral" && config.taxIrsRegime !== "contabilidade_organizada") {
     const qs = [
       { q: 1, label: "1º Trim (Jan-Mar)", dm: 5, dy: year },
       { q: 2, label: "2º Trim (Abr-Jun)", dm: 8, dy: year },
@@ -707,7 +708,7 @@ function computeFiscalDeadlinesEdge(year: number, config: { taxIvaRegime: string
       deadlines.push({ name: `IVA ${q.label} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
     }
   }
-  if (!config.ivaExempt && config.taxIvaRegime === "mensal" && config.taxIrsRegime !== "contabilidade_organizada") {
+  if (!config.ivaExempt && !config.hasAccountant && config.taxIvaRegime === "mensal" && config.taxIrsRegime !== "contabilidade_organizada") {
     for (let m = 1; m <= 12; m++) {
       const nm = m === 12 ? 1 : m + 1;
       const ny = m === 12 ? year + 1 : year;
