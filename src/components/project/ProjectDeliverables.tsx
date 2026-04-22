@@ -18,6 +18,7 @@ import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, 
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { isDeliverableDone, deliverableProgress } from '@/lib/projectProgress';
@@ -127,6 +128,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const [recurrenceLabel, setRecurrenceLabel] = useState('');
   const [recurrenceWeek, setRecurrenceWeek] = useState('');
   const [recurrenceWeekday, setRecurrenceWeekday] = useState('');
+  const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
   const qc = useQueryClient();
 
   const { data: deliverables = [] } = useQuery({
