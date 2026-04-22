@@ -411,65 +411,30 @@ export function SettingsFiscal() {
           <h2 className="text-sm font-semibold tracking-tight uppercase">Equipa & Contabilista</h2>
         </div>
         <div className="rounded-lg border bg-card p-5 space-y-5">
-          {/* Has accountant */}
-          <div className="flex items-center justify-between py-2">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Tem contabilista</Label>
-              <p className="text-xs text-muted-foreground">
-                {businessType === 'empresa'
-                  ? 'Obrigatório para empresas com contabilidade organizada'
-                  : isContabOrganizada
-                    ? 'Obrigatório em contabilidade organizada'
-                    : 'Contabilista contratado para avença mensal'}
-              </p>
-            </div>
-            <Switch
-              checked={hasAccountant}
-              onCheckedChange={setHasAccountant}
-              disabled={isContabOrganizada}
-            />
-          </div>
-
-          {/* Accountant type - only when has accountant */}
-          {hasAccountant && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Contabilista (membro da equipa)</Label>
-              <Select value={accountantMemberId || 'none'} onValueChange={v => setAccountantMemberId(v === 'none' ? null : v)}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Selecionar membro..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Nenhum —</SelectItem>
-                  {(teamMembers || []).map(m => (
-                    <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Adiciona o contabilista como membro da equipa (mesmo sem conta de acesso) com contrato de prestação de serviços. Tudo continua visível — só não criamos tarefas fiscais automáticas, porque o contabilista gere isso internamente.
-              </p>
-            </div>
-          )}
-
-          {/* Team type */}
+          {/* Contabilista — single source of truth: membro selecionado = tem contabilista */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Tipo de equipa</Label>
-            <Select value={teamType} onValueChange={setTeamType}>
+            <Label className="text-sm font-medium">Contabilista</Label>
+            <Select
+              value={accountantMemberId || 'none'}
+              onValueChange={v => setAccountantMemberId(v === 'none' ? null : v)}
+              disabled={isContabOrganizada && !accountantMemberId && (teamMembers || []).length === 0}
+            >
               <SelectTrigger className="h-11">
-                <SelectValue />
+                <SelectValue placeholder="Selecionar membro..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="externa">Só equipa externa (prestadores de serviços)</SelectItem>
-                <SelectItem value="interna">Só equipa interna (contratos de trabalho)</SelectItem>
-                <SelectItem value="ambas">Equipa interna e externa</SelectItem>
+                <SelectItem value="none">— Sem contabilista (és tu que tratas) —</SelectItem>
+                {(teamMembers || []).map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              {teamType === 'externa'
-                ? 'Sem contratos de trabalho — não existem ordenados, apenas pagamentos de serviços.'
-                : teamType === 'interna'
-                  ? 'Equipa com contratos de trabalho — inclui processamento de ordenados.'
-                  : 'Equipa mista com contratos de trabalho e prestadores de serviços.'}
+              {accountantMemberId
+                ? 'O contabilista é membro da equipa (com contrato de prestação de serviços). Não criamos tarefas fiscais automáticas — ele gere isso internamente. Tudo o resto continua visível.'
+                : isContabOrganizada
+                  ? 'Em contabilidade organizada precisas de associar um contabilista. Adiciona-o como membro da equipa primeiro.'
+                  : 'Sem contabilista, és tu (Owner) que tratas das obrigações fiscais. Adiciona um membro à equipa para o associares aqui.'}
             </p>
           </div>
         </div>
