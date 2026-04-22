@@ -5,23 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock, GitBranchPlus } from 'lucide-react';
 import { format } from 'date-fns';
-import { getFollowUpState, statusLabel } from '@/hooks/useCrmData';
+import { getFollowUpState, statusLabel, getCrmStatusHex } from '@/hooks/useCrmData';
 import { useCrmStages } from '@/hooks/useCrmStages';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-
-const STATUS_COLORS: Record<string, string> = {
-  lead: '#6366f1',
-  primeiro_contacto: '#8b5cf6',
-  sessao_agendada: '#a78bfa',
-  proposta_enviada: '#3b82f6',
-  follow_up_1: '#f59e0b',
-  follow_up_2: '#f97316',
-  follow_up_3: '#ef4444',
-  aguarda_retorno: '#64748b',
-  outra_altura: '#94a3b8',
-  ganho: '#22c55e',
-  perdido: '#dc2626',
-};
 
 interface CrmSummaryProps {
   activeCount: number;
@@ -105,7 +91,7 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
                   />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {chartData.map((entry) => (
-                      <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || '#6366f1'} />
+                      <Cell key={entry.status} fill={getCrmStatusHex(entry.status)} />
                     ))}
                   </Bar>
                 </BarChart>
