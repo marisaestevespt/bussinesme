@@ -60,7 +60,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
 
   // 2. Revenue concentration — top 3 clients by revenue share
   const concentration = useMemo(() => {
-    const totalRevenue = monthSales.reduce((s, v) => s + v.invoice_total, 0);
+    const totalRevenue = sumRevenue(monthSales);
     if (totalRevenue === 0) return { topClients: [], alerts: [] };
 
     const byClient = new Map<string, number>();

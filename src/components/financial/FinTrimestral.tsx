@@ -98,7 +98,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
   const monthlyData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
       const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
       return { mes: ML[i], entradas: ent, saidas: sai, resultado: ent - sai };
     });
@@ -139,7 +139,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
   const selectedMonthlyData = useMemo(() => {
     if (!selectedQDef) return [];
     return selectedQDef.months.map(m => {
-      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
       const entBase = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.base_value, 0);
       const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.base_value, 0);

@@ -516,7 +516,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
 
   // ─── Annual summary ───
   const annualSummary = useMemo(() => {
-    const totalRevenue = salesData.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+    const totalRevenue = sumRevenue(salesData);
     const totalSales = salesData.length;
     const ticketMedio = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
 
@@ -572,7 +572,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
     return MONTH_NAMES.map((name, idx) => {
       const m = idx + 1;
       const mSales = salesData.filter(s => s.sale_month === m);
-      const revenue = mSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const revenue = sumRevenue(mSales);
       return { name, revenue, salesCount: mSales.length };
     });
   }, [salesData]);
