@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Download, TrendingUp, TrendingDown, Package, ArrowUpRight, Receipt, Shield } from 'lucide-react';
 import { exportPdf } from '@/lib/exportPdf';
 import type { Expense } from '@/hooks/useFinancialData';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 const QUARTERS = [
   { label: 'T1', range: 'Jan — Mar', months: [1, 2, 3] },

@@ -17,6 +17,7 @@ import { YearSelector } from '@/components/YearSelector';
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, TrendingUp, TrendingDown, Package, UserCheck, Download, BarChart3, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
+import { sumRevenue } from '@/lib/salesCalculations';
 
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
