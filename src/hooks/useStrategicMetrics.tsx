@@ -242,7 +242,8 @@ export function useWeeklyStrategicMetrics() {
   const { data: lostThisWeek = [] } = useQuery({
     queryKey: ['strat-lost-clients-week', weekStartStr],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id').in('status', ['terminado', 'cancelado', 'concluido']).gte('end_of_cycle', weekStartStr).lte('end_of_cycle', weekEndStr);
+      // Only 'terminado' is a real archived client status (cancelado/concluido are project statuses).
+      const { data } = await supabase.from('clients').select('id').eq('status', 'terminado').gte('end_of_cycle', weekStartStr).lte('end_of_cycle', weekEndStr);
       return data || [];
     },
   });
