@@ -852,7 +852,10 @@ export default function ProjetoDetailPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <BackNavigation />
-            {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+            <div className="flex items-center gap-2">
+              <ExportInitialQuestionsButton clientId={local.client_id} clientName={local.client_name} projectName={local.name} />
+              {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+            </div>
           </div>
 
           {/* Cover image */}
