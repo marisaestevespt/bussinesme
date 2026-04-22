@@ -13,7 +13,7 @@ import { exportContabilistaExcel, getMonthLabel } from '@/lib/exportContabilista
 import { toast } from 'sonner';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { formatEuro } from '@/lib/formatting';
-const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
+import { locationLabel, regimeIvaLabel, regimeIrsLabel } from '@/lib/labelMaps';
 
 interface Props { year: number; month: number; }
 
