@@ -117,12 +117,9 @@ export function FinContabilidade({ currentYear }: Props) {
         return;
       }
 
-      // Determine assignment:
-      // - Payments → always owner
-      // - Declarations with internal accountant → accountant's profile_id
-      // - Otherwise → owner
+      // Assignment: declarations go to the accountant if linked; payments and everything else → owner.
       let assignedTo = user.id;
-      if (dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.profile_id) {
+      if (dl.deadline_type === 'declaracao' && hasAccountant && accountantMember?.profile_id) {
         assignedTo = accountantMember.profile_id;
       }
 
@@ -295,7 +292,7 @@ export function FinContabilidade({ currentYear }: Props) {
                   {deadlines.map(dl => {
                     const isCompleted = completedKeys.has(dl.key);
                     const status = isCompleted ? 'done' : getDeadlineStatus(dl.date, todayStr);
-                    const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.full_name
+                    const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantMember?.full_name
                       ? accountantMember.full_name
                       : 'Owner';
                     return (
