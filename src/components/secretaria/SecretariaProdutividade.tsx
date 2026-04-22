@@ -149,8 +149,8 @@ export default function SecretariaProdutividade() {
   }), [allTimeEntries, periodStart, periodEnd]);
 
   const totalHours = periodEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-  const completedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: periodStart, end: periodEnd })), [allTasks, periodStart, periodEnd]);
-  const overdueTasks = allTasks.filter((t: any) => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today));
+  const completedTasks = useMemo(() => allTasks.filter((t: any) => isTaskDone(t) && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: periodStart, end: periodEnd })), [allTasks, periodStart, periodEnd]);
+  const overdueTasks = allTasks.filter((t: any) => isTaskOverdue(t, today));
 
   const daysInPeriod = period === 'week' ? 5 : Math.max(1, Math.ceil((periodEnd.getTime() - periodStart.getTime()) / 86400000));
   const avgPerDay = daysInPeriod > 0 ? Math.round((totalHours / daysInPeriod) * 10) / 10 : 0;
@@ -184,8 +184,8 @@ export default function SecretariaProdutividade() {
 
   const expectedDaily = teamMember.data?.expected_weekly_hours ? Number(teamMember.data.expected_weekly_hours) / 5 : 8;
 
-  const weekCompletedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: weekStart, end: weekEnd })), [allTasks]);
-  const monthCompletedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: monthStart, end: monthEnd })), [allTasks]);
+  const weekCompletedTasks = useMemo(() => allTasks.filter((t: any) => isTaskDone(t) && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: weekStart, end: weekEnd })), [allTasks]);
+  const monthCompletedTasks = useMemo(() => allTasks.filter((t: any) => isTaskDone(t) && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: monthStart, end: monthEnd })), [allTasks]);
 
   const deleteEntry = async (id: string) => {
     if (id.startsWith('meeting-')) {
@@ -197,7 +197,7 @@ export default function SecretariaProdutividade() {
     toast.success('Registo eliminado');
   };
 
-  const openTasks = useMemo(() => allTasks.filter((t: any) => t.status !== 'done'), [allTasks]);
+  const openTasks = useMemo(() => allTasks.filter(isTaskOpen), [allTasks]);
 
   return (
     <div className="space-y-6 mt-4">
