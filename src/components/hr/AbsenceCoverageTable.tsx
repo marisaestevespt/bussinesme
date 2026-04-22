@@ -198,7 +198,7 @@ export function AbsenceCoverageTable() {
       .from('tasks')
       .select('id, name, deadline, assigned_to')
       .eq('assigned_to', member.profile_id)
-      .neq('status', 'concluida')
+      .neq('status', 'done')
       .gte('deadline', startDate)
       .lte('deadline', endDate);
 
