@@ -564,17 +564,15 @@ export default function OperacaoPage() {
         )}
       </>
     );
-    if (t.project_id) {
-      return (
-        <Link key={t.id} to={`/hub/projetos/${t.project_id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm cursor-pointer">
-          {content}
-        </Link>
-      );
-    }
     return (
-      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm">
+      <button
+        key={t.id}
+        type="button"
+        onClick={() => setTaskDetailId(t.id)}
+        className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors text-sm cursor-pointer w-full text-left"
+      >
         {content}
-      </div>
+      </button>
     );
   }
 
