@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, subDays, startOfWeek, endOfWeek, parseISO, isPast, isToday } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { isTaskOpen } from '@/lib/taskStatus';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -421,7 +422,7 @@ function WeeklySummary() {
     },
   });
 
-  const pendingTasks = tasks.filter((t: any) => t.status !== 'concluida');
+  const pendingTasks = tasks.filter(isTaskOpen);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

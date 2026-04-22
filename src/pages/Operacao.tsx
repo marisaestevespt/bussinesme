@@ -21,6 +21,7 @@ import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWee
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
+import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -166,7 +167,7 @@ function TaskDynamicFilters({ filters, onChange, profiles, projects }: {
 }
 
 function TaskBadge({ deadline, status }: { deadline: string | null; status: string }) {
-  if (status === 'concluida') return null;
+  if (isTaskDone({ status })) return null;
   if (!deadline) return null;
   const d = new Date(deadline);
   const today = startOfToday();
@@ -187,7 +188,7 @@ function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
   switch (filters.time) {
     case 'hoje': result = result.filter(t => t.deadline && isToday(new Date(t.deadline))); break;
     case 'semana': result = result.filter(t => t.deadline && !isBefore(new Date(t.deadline), today) && !isAfter(new Date(t.deadline), weekEnd)); break;
-    case 'atrasadas': result = result.filter(t => t.deadline && isBefore(new Date(t.deadline), today) && t.status !== 'concluida'); break;
+    case 'atrasadas': result = result.filter(t => isTaskOverdue(t as any, today)); break;
   }
   if (filters.department) result = result.filter(t => t.department === filters.department);
   if (filters.responsible) result = result.filter(t => t.assigned_to === filters.responsible);
