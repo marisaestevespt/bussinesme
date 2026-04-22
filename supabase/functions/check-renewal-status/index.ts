@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
         // Create task
         const { error: taskError } = await supabase.from("tasks").insert({
           name: `Renovação — ${client.full_name}`,
-          status: "pendente",
+          status: "por_comecar",
           priority: "alta",
           deadline: client.end_of_cycle,
           assigned_to: ownerProfileId,

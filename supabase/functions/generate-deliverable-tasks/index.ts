@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
         deadline,
         assigned_to: d.assigned_to,
         priority: "media",
-        status: "pendente",
+        status: "por_comecar",
       });
 
       if (!taskError) {
