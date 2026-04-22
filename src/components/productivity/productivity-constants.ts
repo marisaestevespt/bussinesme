@@ -1,4 +1,5 @@
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from 'date-fns';
+export { WEEKS_PER_MONTH } from '@/lib/memberCapacity';
 
 export const CATEGORIES = [
   { value: 'cliente', label: 'Cliente' },
@@ -17,8 +18,6 @@ export const PERIOD_FILTERS = [
 ];
 
 export const PIE_COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', '#f59e0b', '#8b5cf6', '#06b6d4', '#94a3b8'];
-
-export const WEEKS_PER_MONTH = 4.33;
 
 export const DONE_STATUSES = ['concluida', 'done'];
 
