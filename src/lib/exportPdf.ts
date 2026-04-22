@@ -9,75 +9,112 @@ export function exportPdf(title: string, elementId: string) {
   const printWindow = window.open('', '_blank', 'width=900,height=700');
   if (!printWindow) return;
 
-  // Get computed CSS variables from the root for theming
-  const rootStyles = getComputedStyle(document.documentElement);
-  const bg = rootStyles.getPropertyValue('--background').trim();
-  const fg = rootStyles.getPropertyValue('--foreground').trim();
-
   printWindow.document.write(`<!DOCTYPE html>
 <html>
 <head>
 <title>${title}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-  @page { size: A4; margin: 15mm 12mm; }
+  /* ── Page setup ─────────────────────────────────── */
+  @page {
+    size: A4;
+    margin: 18mm 14mm 20mm 14mm;
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      font-family: 'Inter', sans-serif; font-size: 8.5pt; color: #94a3b8;
+    }
+    @bottom-left {
+      content: "${title.replace(/"/g, '\\"')}";
+      font-family: 'Inter', sans-serif; font-size: 8.5pt; color: #94a3b8;
+    }
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.5; padding: 0; }
-  h1 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-  h2 { font-size: 14px; font-weight: 600; margin-top: 16px; margin-bottom: 6px; }
-  h3 { font-size: 12px; font-weight: 600; margin-top: 12px; margin-bottom: 4px; }
-  p { margin-bottom: 4px; }
-  
-  /* Cards as bordered boxes */
-  [class*="rounded-"] { border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; margin-bottom: 8px; page-break-inside: avoid; }
-  
-  /* Tables */
-  table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 10px; }
-  th, td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; text-align: left; }
-  th { font-weight: 600; background: #f9fafb; border-bottom: 2px solid #d1d5db; }
-  tr:last-child td { border-bottom: none; }
-  .text-right { text-align: right; }
-  
-  /* Grid layout approximation */
-  .grid { display: flex; flex-wrap: wrap; gap: 8px; }
-  .grid > * { flex: 1; min-width: 120px; }
-  
-  /* Colors */
-  .text-success, .text-success { color: #059669; }
-  .text-destructive { color: #dc2626; }
-  .text-warning { color: #d97706; }
-  .text-muted-foreground { color: #6b7280; }
-  
-  /* Charts — hide in print, they don't render in a new window */
-  .recharts-responsive-container, .recharts-wrapper, [class*="h-72"], [class*="h-64"], [class*="h-48"] { display: none !important; }
-  
-  /* Buttons, tabs, interactive elements — hide */
-  button, [role="tablist"], .cursor-pointer { display: none !important; }
-  
-  /* Badge */
-  [class*="badge"] { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; background: #f3f4f6; }
-  
-  /* Separator */
-  [role="separator"] { border: none; border-top: 1px solid #e5e7eb; margin: 12px 0; }
-  
-  /* Font weights */
-  .font-bold { font-weight: 700; }
-  .font-semibold { font-weight: 600; }
-  .font-medium { font-weight: 500; }
-  
-  /* Print header */
-  .pdf-header { border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
+  html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 10pt; color: #0f172a; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  body { padding: 0; }
+
+  /* ── Typography ──────────────────────────────────── */
+  h1, h2, h3 { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; letter-spacing: -0.01em; color: #0b1220; }
+  h1 { font-size: 22pt; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; }
+  h2 { font-size: 12pt; font-weight: 700; margin: 22px 0 10px; padding: 0 0 6px; border-bottom: 1.5px solid #e2e8f0;
+       text-transform: uppercase; letter-spacing: 0.06em; color: #475569; font-size: 9pt; }
+  h3 { font-size: 11pt; font-weight: 700; margin: 16px 0 8px; color: #1e293b; }
+  p { margin: 0 0 4px; }
+  strong { font-weight: 600; color: #0b1220; }
+
+  /* ── Document header ─────────────────────────────── */
+  .pdf-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 0 0 18px 0; margin: 0 0 24px 0;
+    border-bottom: 3px solid #0f172a;
+    position: relative;
+  }
+  .pdf-header::after {
+    content: ""; position: absolute; left: 0; bottom: -3px; width: 80px; height: 3px;
+    background: linear-gradient(90deg, #0f172a, transparent);
+  }
+  .pdf-header-meta { text-align: right; font-size: 8.5pt; color: #64748b; line-height: 1.6; }
+  .pdf-header-meta strong { color: #0f172a; display: block; font-size: 9pt; margin-bottom: 2px; }
   .pdf-header h1 { margin: 0; }
-  .pdf-date { font-size: 10px; color: #6b7280; }
-  
+  .pdf-subtitle { font-size: 9pt; color: #64748b; font-weight: 500; margin-top: 4px; letter-spacing: 0.02em; }
+
+  /* ── Tables (financial style) ────────────────────── */
+  table {
+    width: 100%; border-collapse: collapse; margin: 0 0 14px 0; font-size: 8.5pt;
+    page-break-inside: auto;
+  }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  th {
+    text-align: left; font-weight: 600; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.05em;
+    color: #475569; padding: 8px 10px; background: #f8fafc;
+    border-bottom: 1.5px solid #cbd5e1; border-top: 1px solid #e2e8f0;
+  }
+  td {
+    padding: 7px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top;
+    color: #1e293b;
+  }
+  tbody tr:nth-child(even) td { background: #fafbfc; }
+  tbody tr:last-child td { border-bottom: 1px solid #cbd5e1; }
+  .text-right { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Summary table (Resumo Financeiro) — special styling */
+  .pdf-summary-table td {
+    padding: 9px 12px; border-bottom: 1px solid #f1f5f9;
+    font-size: 9pt;
+  }
+  .pdf-summary-table td:nth-child(odd) { color: #64748b; font-weight: 500; }
+  .pdf-summary-table td:nth-child(even) { font-variant-numeric: tabular-nums; }
+
+  /* ── Section "card" wrapper ──────────────────────── */
+  h3 + table, h2 + table { page-break-before: avoid; }
+
+  /* ── Hide noisy inputs/charts ────────────────────── */
+  button, [role="tablist"], .recharts-responsive-container, .recharts-wrapper { display: none !important; }
+  input, select, textarea { border: none !important; background: transparent !important; padding: 0 !important; }
+
+  /* ── Print fidelity ──────────────────────────────── */
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h2, h3 { page-break-after: avoid; }
   }
 </style>
 </head>
 <body>
   <div class="pdf-header">
-    <h1>${title}</h1>
-    <span class="pdf-date">Exportado em ${new Date().toLocaleDateString('pt-PT')}</span>
+    <div>
+      <h1>${title}</h1>
+      <div class="pdf-subtitle">Documento contabilístico</div>
+    </div>
+    <div class="pdf-header-meta">
+      <strong>Data de exportação</strong>
+      ${new Date().toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })}
+    </div>
   </div>
   ${el.innerHTML}
 </body>
