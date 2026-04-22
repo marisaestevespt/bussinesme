@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { formatEuro } from '@/lib/formatting';
+import { expenseLabel, EXPENSE_INSIGHT_EXCLUDED } from '@/lib/financialCategories';
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 
@@ -120,14 +121,10 @@ export default function FinanceiroPage() {
 
   // Expense category insights
   const categoryInsights = useMemo(() => {
-    // Excluir categorias não-operacionais ou genéricas que não dão insight útil:
-    //  - 'outro' → catch-all sem valor analítico
-    //  - 'seguranca_social' / 'impostos' / 'ordenados' → obrigações fiscais, não despesa de gestão
-    const EXCLUDED = new Set(['outro', 'seguranca_social', 'impostos', 'ordenados']);
     const byCat = new Map<string, number>();
     yearExpenses.forEach(e => {
       const cat = e.category;
-      if (!cat || EXCLUDED.has(cat)) return;
+      if (!cat || EXPENSE_INSIGHT_EXCLUDED.has(cat)) return;
       byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
     });
     const sorted = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
@@ -137,14 +134,7 @@ export default function FinanceiroPage() {
     };
   }, [yearExpenses]);
 
-  const catLabel = (key: string) => {
-    const map: Record<string, string> = {
-      plataformas: 'Plataformas', marketing: 'Marketing', material: 'Material', servicos: 'Serviços',
-      impostos: 'Impostos', seguranca_social: 'Segurança Social', ordenados: 'Ordenados',
-      prestadores: 'Prestadores', outro: 'Outro', escritorio: 'Escritório',
-    };
-    return map[key] || key;
-  };
+  const catLabel = expenseLabel;
 
   // Monthly chart data
   const monthlyData = useMemo(() => {

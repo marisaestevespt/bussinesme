@@ -9,6 +9,7 @@ import { exportPdf } from '@/lib/exportPdf';
 import type { Expense } from '@/hooks/useFinancialData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { formatEuro } from '@/lib/formatting';
+import { expenseLabel } from '@/lib/financialCategories';
 
 const QUARTERS = [
   { label: 'T1', range: 'Jan — Mar', months: [1, 2, 3] },
@@ -27,14 +28,7 @@ interface Props {
   expenses: Expense[];
   currentYear: number;
 }
-const catLabel = (key: string) => {
-  const map: Record<string, string> = {
-    plataformas: 'Plataformas', marketing: 'Marketing', material: 'Material', servicos: 'Serviços',
-    impostos: 'Impostos', seguranca_social: 'Segurança Social', ordenados: 'Ordenados',
-    prestadores: 'Prestadores', outro: 'Outro', escritorio: 'Escritório',
-  };
-  return map[key] || key;
-};
+const catLabel = expenseLabel;
 
 export function FinTrimestral({ sales, expenses, currentYear }: Props) {
   const [selectedQ, setSelectedQ] = useState<string>('todos');
