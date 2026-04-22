@@ -130,7 +130,12 @@ export default function ChannelPage() {
   const { data: allContentItems = [] } = useQuery({
     queryKey: ['content-items'],
     queryFn: async () => {
-      const { data } = await supabase.from('content_items').select('*').order('scheduled_at');
+      // Limita a 1000 items para evitar carregar dataset completo (P2: performance audit)
+      const { data } = await supabase
+        .from('content_items')
+        .select('*')
+        .order('scheduled_at', { ascending: false })
+        .limit(1000);
       return (data || []) as ContentItem[];
     },
   });

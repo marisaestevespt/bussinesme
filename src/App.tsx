@@ -87,7 +87,24 @@ const FornecedoresPage = lazy(() => import("./pages/Fornecedores"));
 const OperacaoPage = lazy(() => import("./pages/Operacao"));
 const RecursosHumanosSubPage = lazy(() => import("./pages/RecursosHumanosSubPage"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache resultados durante 30s antes de considerar stale
+      staleTime: 30 * 1000,
+      // Mantém em memória 5min após última utilização
+      gcTime: 5 * 60 * 1000,
+      // 1 retry em vez de 3 (failures são geralmente rede ou RLS, não vale a pena martelar)
+      retry: 1,
+      // Evita refetch agressivo ao mudar de tab — utilizadores ficam frustrados com loaders constantes
+      refetchOnWindowFocus: false,
+      // Refetch ao reconectar mantém-se ligado (default: true)
+    },
+    mutations: {
+      retry: 0,
+    },
+  },
+});
 
 const PageLoader = () => (
   <div className="flex min-h-screen items-center justify-center">
