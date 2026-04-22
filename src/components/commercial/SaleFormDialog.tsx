@@ -123,7 +123,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
       return unique;
     },
   });
-  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources.data || [])])];
+  const sourceOptions = buildSaleSourceOptions(customSources.data || []);
 
   const getEffectiveVatRate = () => {
     if (form.vat_rate !== '') return parseFloat(form.vat_rate) || 0;

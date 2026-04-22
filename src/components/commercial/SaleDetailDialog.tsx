@@ -23,7 +23,7 @@ import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUplo
 import { formatNumber } from '@/lib/formatting';
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
-const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+import { buildSaleSourceOptions } from '@/lib/labelMaps';
 const SPECIAL_OFFER_REASONS = ['Campanha especial', 'Cliente antigo', 'Parceria', 'Desconto de lançamento', 'Upgrade de produto'];
 const SALE_PAYMENT_METHODS = [
   { value: 'transferencia', label: 'Transferência Bancária' },
