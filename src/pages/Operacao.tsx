@@ -209,6 +209,8 @@ export default function OperacaoPage() {
   const [healthDetailProjectId, setHealthDetailProjectId] = useState<string | null>(null);
   const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
 
+  const qc = useQueryClient();
+
   // ── Queries ─────────────────────────────────────────────────
   const { data: projects = [] } = useQuery({
     queryKey: ['op-projects'],
