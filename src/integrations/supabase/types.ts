@@ -6531,6 +6531,7 @@ export type Database = {
           phase_id: string | null
           portal_visible: boolean
           product_id: string
+          responsible_role: string | null
           responsible_type: string
           sort_order: number
         }
@@ -6548,6 +6549,7 @@ export type Database = {
           phase_id?: string | null
           portal_visible?: boolean
           product_id: string
+          responsible_role?: string | null
           responsible_type?: string
           sort_order?: number
         }
@@ -6565,6 +6567,7 @@ export type Database = {
           phase_id?: string | null
           portal_visible?: boolean
           product_id?: string
+          responsible_role?: string | null
           responsible_type?: string
           sort_order?: number
         }
@@ -7709,6 +7712,7 @@ export type Database = {
           recurrence_label: string | null
           recurrence_week: number | null
           recurrence_weekday: number | null
+          responsible_role: string | null
           responsible_type: string
           sort_order: number
           source_template_id: string | null
@@ -7736,6 +7740,7 @@ export type Database = {
           recurrence_label?: string | null
           recurrence_week?: number | null
           recurrence_weekday?: number | null
+          responsible_role?: string | null
           responsible_type?: string
           sort_order?: number
           source_template_id?: string | null
@@ -7763,6 +7768,7 @@ export type Database = {
           recurrence_label?: string | null
           recurrence_week?: number | null
           recurrence_weekday?: number | null
+          responsible_role?: string | null
           responsible_type?: string
           sort_order?: number
           source_template_id?: string | null
@@ -7813,18 +7819,21 @@ export type Database = {
           id: string
           profile_id: string
           project_id: string
+          role: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           profile_id: string
           project_id: string
+          role?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           profile_id?: string
           project_id?: string
+          role?: string | null
         }
         Relationships: [
           {
@@ -9034,6 +9043,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           deadline: string | null
+          deliverable_id: string | null
           department: string | null
           estimated_time: number | null
           id: string
@@ -9061,6 +9071,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deadline?: string | null
+          deliverable_id?: string | null
           department?: string | null
           estimated_time?: number | null
           id?: string
@@ -9088,6 +9099,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deadline?: string | null
+          deliverable_id?: string | null
           department?: string | null
           estimated_time?: number | null
           id?: string
@@ -10067,6 +10079,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      resolve_deliverable_assignee: {
+        Args: { _deliverable_id: string }
+        Returns: string
       }
       test_product_rename_cascade: {
         Args: never
