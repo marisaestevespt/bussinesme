@@ -207,13 +207,6 @@ export function SettingsFiscal() {
               </p>
             )}
           </div>
-
-          {exemptionGuide && (
-            <div className="rounded-md border border-info/30 bg-info/15/50 dark:bg-blue-950/20 dark:border-blue-800 p-4 text-sm text-muted-foreground flex gap-2">
-              <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
-              <span>{exemptionGuide}</span>
-            </div>
-          )}
         </div>
       </div>
 
