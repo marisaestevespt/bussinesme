@@ -4,16 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import type { Portal } from '@/hooks/usePortalData';
 import { Mail, ArrowRight } from 'lucide-react';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
+import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 
 export default function PortalAuthPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const [portal, setPortal] = useState<Portal | null>(null);
+  const [portal, setPortal] = useState<PublicPortal | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -49,18 +49,7 @@ export default function PortalAuthPage() {
 
   const loadPortal = async () => {
     if (!token) return;
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
-    let portalData: any = null;
-    if (isUUID) {
-      const { data } = await (supabase as any).rpc('get_portal_by_token', { _token: token });
-      const row = Array.isArray(data) ? data[0] : data;
-      if (row) portalData = { ...row, token };
-    }
-    if (!portalData) {
-      const { data } = await (supabase as any).rpc('get_portal_by_slug', { _slug: token });
-      const row = Array.isArray(data) ? data[0] : data;
-      if (row) portalData = { ...row, slug: token };
-    }
+    const portalData = await resolvePublicPortal(token, (fn, args) => (supabase as any).rpc(fn, args));
     if (!portalData) {
       setLoading(false);
       return;
