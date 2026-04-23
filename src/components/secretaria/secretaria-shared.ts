@@ -105,11 +105,21 @@ export function useMyTasks() {
 
 export function useMyProjects() {
   const { user } = useAuth();
-  return useQuery({
-    queryKey: ['my-projects', user?.id],
+  const profileQ = useQuery({
+    queryKey: ['my-profile-id', user?.id],
     enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data: memberRows } = await supabase.from('project_members').select('project_id').eq('profile_id', user!.id);
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      return data?.id as string | null;
+    },
+  });
+  const profileId = profileQ.data;
+  return useQuery({
+    queryKey: ['my-projects', user?.id, profileId],
+    enabled: !!user?.id && !!profileId,
+    queryFn: async () => {
+      const { data: memberRows } = await supabase.from('project_members').select('project_id').eq('profile_id', profileId!);
       if (!memberRows?.length) return [];
       const ids = memberRows.map(r => r.project_id);
       const { data } = await supabase.from('projects').select('*').in('id', ids).order('deadline');
@@ -120,11 +130,21 @@ export function useMyProjects() {
 
 export function useMyMeetings() {
   const { user } = useAuth();
-  return useQuery({
-    queryKey: ['my-meetings', user?.id],
+  const profileQ = useQuery({
+    queryKey: ['my-profile-id', user?.id],
     enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data: partRows } = await supabase.from('meeting_participants').select('meeting_id').eq('profile_id', user!.id);
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      return data?.id as string | null;
+    },
+  });
+  const profileId = profileQ.data;
+  return useQuery({
+    queryKey: ['my-meetings', user?.id, profileId],
+    enabled: !!user?.id && !!profileId,
+    queryFn: async () => {
+      const { data: partRows } = await supabase.from('meeting_participants').select('meeting_id').eq('profile_id', profileId!);
       if (!partRows?.length) return [];
       const ids = partRows.map(r => r.meeting_id);
       const { data } = await supabase.from('meetings').select('*').in('id', ids).order('date_time');
