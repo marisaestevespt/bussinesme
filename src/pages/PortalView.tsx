@@ -290,16 +290,17 @@ export default function PortalViewPage() {
       (nextStep as any).is_meeting === true ||
       /reuni[aã]o|alinhamento|kick[- ]?off|onboarding call/.test(name);
     if (!looksLikeMeeting) return null;
+    // 1. Preferred: explicit link via meeting_id on the deliverable
+    const linkedId = (nextStep as any).meeting_id;
+    if (linkedId) {
+      const linked = (meetings || []).find((m: any) => m.id === linkedId);
+      if (linked?.date_time) return linked.date_time;
+    }
+    // 2. Fallback: next upcoming meeting (this client only — RPC already filters)
     const upcoming = (meetings || [])
       .filter((m: any) => m?.date_time && !['cancelada', 'realizada'].includes(m.status))
       .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime());
-    // Try to match by overlapping words in title; otherwise fall back to the next upcoming meeting.
-    const tokens = name.split(/[^a-zà-ú0-9]+/i).filter(t => t.length > 3);
-    const match = upcoming.find((m: any) => {
-      const t = (m.title || '').toLowerCase();
-      return tokens.some(tok => t.includes(tok));
-    });
-    return (match || upcoming[0])?.date_time || null;
+    return upcoming[0]?.date_time || null;
   })();
 
   // Override next step if questions need filling
