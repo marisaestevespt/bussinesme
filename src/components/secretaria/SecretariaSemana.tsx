@@ -39,21 +39,22 @@ export default function SecretariaSemana() {
       </div>
 
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Calendário Semanal</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base font-medium">Calendário Semanal</CardTitle></CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
             {weekDays.map(day => {
               const dayKey = format(day, 'yyyy-MM-dd');
               const dayItems = unified.weekItems.filter(i => i.date && i.date.startsWith(dayKey));
               return (
-                <div key={dayKey} className={cn('rounded-lg border p-2 min-h-[80px]', isToday(day) && 'border-primary bg-primary/5')}>
-                  <p className="text-xs font-medium mb-1">{format(day, 'EEE d', { locale: pt })}</p>
-                  {dayItems.slice(0, 4).map(i => (
-                    <p key={i.id} className="text-[10px] truncate text-foreground">
-                      {i.source === 'reuniao' ? '📅' : i.source === 'projeto' ? '📦' : '📋'} {i.title.length > 20 ? i.title.slice(0, 20) + '…' : i.title}
-                    </p>
+                <div key={dayKey} className={cn('rounded-lg border p-3 min-h-[180px] flex flex-col gap-1.5', isToday(day) && 'border-primary bg-primary/5')}>
+                  <p className="text-sm font-semibold mb-1 capitalize">{format(day, 'EEE d', { locale: pt })}</p>
+                  {dayItems.length === 0 && <p className="text-xs text-muted-foreground italic">Sem itens</p>}
+                  {dayItems.map(i => (
+                    <div key={i.id} className="text-xs leading-snug text-foreground bg-muted/40 rounded px-1.5 py-1 break-words" title={i.title}>
+                      <span className="mr-1">{i.source === 'reuniao' ? '📅' : i.source === 'projeto' ? '📦' : '📋'}</span>
+                      {i.title}
+                    </div>
                   ))}
-                  {dayItems.length > 4 && <p className="text-[10px] text-muted-foreground">+{dayItems.length - 4} mais</p>}
                 </div>
               );
             })}
