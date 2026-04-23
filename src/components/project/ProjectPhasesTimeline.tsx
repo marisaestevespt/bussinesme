@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -582,6 +582,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={recalculateDates} disabled={recalculating || !projectStartDate}>
               <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", recalculating && "animate-spin")} /> Recalcular datas
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => applyDeliverables.mutate()} disabled={applyDeliverables.isPending}>
+              <Wand2 className={cn("h-3.5 w-3.5 mr-1.5", applyDeliverables.isPending && "animate-pulse")} /> Aplicar entregas
             </Button>
             <Button size="sm" onClick={() => { setAddingPhase(true); setNewName(''); }}>
               <Plus className="h-3.5 w-3.5 mr-1.5" /> Fase
