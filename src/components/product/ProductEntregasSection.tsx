@@ -156,50 +156,6 @@ function DeliverableRow({
           </div>
         )}
       </div>
-      {/* Timeline config for deliverable */}
-      {isOwner && (
-        <div className="flex items-center gap-3 flex-wrap ml-8 rounded-md bg-muted/30 px-2.5 py-1.5">
-          <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">Timeline:</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-muted-foreground">Começa</span>
-            <Input type="number" min={0} className="h-6 w-16 text-xs text-center px-1"
-              value={template.offset_days ?? 0}
-              onChange={e => onUpdate(template.id, { offset_days: parseInt(e.target.value) || 0 })} />
-            <Select value={unit}
-              onValueChange={v => onUpdate(template.id, { duration_unit: v })}>
-              <SelectTrigger className="h-5 text-[9px] w-20 border-none shadow-none">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="dias_uteis">dias úteis</SelectItem>
-                <SelectItem value="dias_corridos">dias corridos</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-[10px] text-muted-foreground">após</span>
-            <Select value={template.offset_trigger || 'inicio_fase'}
-              onValueChange={v => onUpdate(template.id, { offset_trigger: v })}>
-              <SelectTrigger className="h-5 text-[9px] w-28 border-none shadow-none">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="inicio_fase">início da fase</SelectItem>
-                <SelectItem value="entrega_anterior">entrega anterior</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-muted-foreground">Duração:</span>
-            <Input type="number" min={0} className="h-6 w-16 text-xs text-center px-1"
-              value={template.duration_days ?? ''}
-              placeholder="—"
-              onChange={e => {
-                const v = e.target.value ? parseInt(e.target.value) : null;
-                onUpdate(template.id, { duration_days: v });
-              }} />
-            <span className="text-[10px] text-muted-foreground">{unitLabel}</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
