@@ -117,9 +117,13 @@ export default function SecretariaProdutividade() {
     if (!memberId) return raw;
 
     const meetingEntries: any[] = [];
+    const now = new Date();
     (myMeetings.data || []).forEach((meeting: any) => {
       if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
       if (meeting.status === 'por_confirmar') return;
+      // Apenas reuniões já decorridas contam como horas registadas
+      const meetingDate = new Date(meeting.date_time);
+      if (meetingDate > now) return;
 
       const durationHours = Number((meeting.duration_minutes / 60).toFixed(2));
       const entryDate = format(new Date(meeting.date_time), 'yyyy-MM-dd');
