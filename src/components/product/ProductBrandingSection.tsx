@@ -277,6 +277,258 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
         </CardContent>
       </Card>
 
+      {/* Portal do Cliente — branding específico deste produto */}
+      {onUpdatePortalBranding && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Portal do Cliente</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Personaliza o portal dos clientes que têm este produto. Campos vazios herdam automaticamente da Identidade Visual global do negócio.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {/* Cores (HSL para combinar com o sistema) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Cor Primária (HSL)</Label>
+                <Input
+                  value={pb.primary_color || ''}
+                  onChange={(e) => setPB({ primary_color: e.target.value })}
+                  placeholder="Ex: 351 56% 28%"
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+                {pb.primary_color && (
+                  <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.primary_color})` }} />
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Cor de Destaque (HSL)</Label>
+                <Input
+                  value={pb.accent_color || ''}
+                  onChange={(e) => setPB({ accent_color: e.target.value })}
+                  placeholder="Ex: 26 40% 39%"
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+                {pb.accent_color && (
+                  <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.accent_color})` }} />
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Cor de Texto (HSL)</Label>
+                <Input
+                  value={pb.text_color || ''}
+                  onChange={(e) => setPB({ text_color: e.target.value })}
+                  placeholder="Ex: 0 0% 16%"
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+                {pb.text_color && (
+                  <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.text_color})` }} />
+                )}
+              </div>
+            </div>
+
+            {/* Tipografia */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Fonte Display / Títulos</Label>
+                <Input
+                  value={pb.font_display || ''}
+                  onChange={(e) => setPB({ font_display: e.target.value })}
+                  placeholder="Ex: Lora"
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Fonte Corpo</Label>
+                <Input
+                  value={pb.font_body || ''}
+                  onChange={(e) => setPB({ font_body: e.target.value })}
+                  placeholder="Ex: DM Sans"
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+              </div>
+            </div>
+
+            {/* Logo + nome */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Logo (URL)</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    value={pb.logo_url || ''}
+                    onChange={(e) => setPB({ logo_url: e.target.value })}
+                    placeholder="https://..."
+                    className="h-9 text-sm flex-1"
+                    readOnly={!isOwner}
+                  />
+                  {isOwner && (
+                    <label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          setUploadingKey('portal_logo');
+                          try {
+                            const ext = f.name.split('.').pop();
+                            const path = `portal-branding/logo-${Date.now()}.${ext}`;
+                            const { error } = await supabase.storage.from('brand-files').upload(path, f);
+                            if (error) { toast.error('Erro ao carregar logo'); return; }
+                            const { data: urlData } = supabase.storage.from('brand-files').getPublicUrl(path);
+                            setPB({ logo_url: urlData.publicUrl });
+                            toast.success('Logo carregado');
+                          } finally {
+                            setUploadingKey(null);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="outline" size="sm" disabled={uploadingKey === 'portal_logo'} asChild>
+                        <span className="cursor-pointer">
+                          <Upload className="h-3 w-3 mr-1" />
+                          {uploadingKey === 'portal_logo' ? '...' : 'Enviar'}
+                        </span>
+                      </Button>
+                    </label>
+                  )}
+                </div>
+                {pb.logo_url && (
+                  <img src={pb.logo_url} alt="Logo portal" className="h-10 mt-2 object-contain" />
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Nome a apresentar</Label>
+                <Input
+                  value={pb.business_name || ''}
+                  onChange={(e) => setPB({ business_name: e.target.value })}
+                  placeholder="Deixa vazio para usar o nome da empresa"
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+              </div>
+            </div>
+
+            {/* Textos do login */}
+            <div className="space-y-3 pt-2 border-t">
+              <Label className="text-sm font-semibold block">Login do portal</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Título</Label>
+                  <Input
+                    value={pb.login_title || ''}
+                    onChange={(e) => setPB({ login_title: e.target.value })}
+                    placeholder="Olá! 👋"
+                    className="h-9 text-sm"
+                    readOnly={!isOwner}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Subtítulo lateral</Label>
+                  <Input
+                    value={pb.login_subtitle || ''}
+                    onChange={(e) => setPB({ login_subtitle: e.target.value })}
+                    placeholder="O teu espaço. A tua jornada."
+                    className="h-9 text-sm"
+                    readOnly={!isOwner}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Mensagem de boas-vindas</Label>
+                <Textarea
+                  value={pb.welcome_text || ''}
+                  onChange={(e) => setPB({ welcome_text: e.target.value })}
+                  placeholder="Bem-vinda ao teu espaço pessoal..."
+                  className="min-h-[70px] text-sm"
+                  readOnly={!isOwner}
+                />
+              </div>
+            </div>
+
+            {/* Hero / imagem de fundo */}
+            <div className="space-y-3 pt-2 border-t">
+              <Label className="text-sm font-semibold block">Painel lateral (hero)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Imagem de fundo (URL)</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    value={pb.hero_image_url || ''}
+                    onChange={(e) => setPB({ hero_image_url: e.target.value })}
+                    placeholder="https://..."
+                    className="h-9 text-sm flex-1"
+                    readOnly={!isOwner}
+                  />
+                  {isOwner && (
+                    <label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          setUploadingKey('portal_hero');
+                          try {
+                            const ext = f.name.split('.').pop();
+                            const path = `portal-branding/hero-${Date.now()}.${ext}`;
+                            const { error } = await supabase.storage.from('brand-files').upload(path, f);
+                            if (error) { toast.error('Erro ao carregar imagem'); return; }
+                            const { data: urlData } = supabase.storage.from('brand-files').getPublicUrl(path);
+                            setPB({ hero_image_url: urlData.publicUrl });
+                            toast.success('Imagem carregada');
+                          } finally {
+                            setUploadingKey(null);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="outline" size="sm" disabled={uploadingKey === 'portal_hero'} asChild>
+                        <span className="cursor-pointer">
+                          <Upload className="h-3 w-3 mr-1" />
+                          {uploadingKey === 'portal_hero' ? '...' : 'Enviar'}
+                        </span>
+                      </Button>
+                    </label>
+                  )}
+                </div>
+                {pb.hero_image_url && (
+                  <img src={pb.hero_image_url} alt="Hero" className="h-24 w-full object-cover rounded-md mt-2" />
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Título do hero</Label>
+                  <Input
+                    value={pb.hero_title || ''}
+                    onChange={(e) => setPB({ hero_title: e.target.value })}
+                    placeholder="O teu espaço."
+                    className="h-9 text-sm"
+                    readOnly={!isOwner}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Subtítulo do hero</Label>
+                  <Input
+                    value={pb.hero_subtitle || ''}
+                    onChange={(e) => setPB({ hero_subtitle: e.target.value })}
+                    placeholder="A tua jornada."
+                    className="h-9 text-sm"
+                    readOnly={!isOwner}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Posicionamento */}
       <Card>
         <CardHeader><CardTitle className="text-base">Posicionamento & Mensagem</CardTitle></CardHeader>
