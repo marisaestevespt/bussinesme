@@ -125,7 +125,8 @@ export default function SecretariaAgenda() {
       const start = parseISO(e.start_date);
       const end = e.end_date ? parseISO(e.end_date) : start;
       return {
-        id: e.id, title: e.title, type: 'event' as const,
+        id: e.id, title: e.title,
+        type: ((e as any)._isMeeting ? 'meeting' : 'event') as any,
         startDate: start, endDate: end, time: format(start, 'HH:mm'),
         isMultiDay: startOfDay(start).getTime() !== startOfDay(end).getTime(),
       };
@@ -184,7 +185,8 @@ export default function SecretariaAgenda() {
   }, [firstDayOfWeek, monthDays]);
 
   const handleItemClick = (item: AgendaItem) => {
-    if (item.type === 'event') navigate('/hub/agenda');
+    if ((item.type as any) === 'meeting') navigate('/hub/reunioes');
+    else if (item.type === 'event') navigate('/hub/agenda');
     else navigate('/hub/tarefas');
   };
 
