@@ -10290,7 +10290,9 @@ export type Database = {
       get_portal_by_slug: {
         Args: { _slug: string }
         Returns: {
+          client_id: string
           id: string
+          is_active: boolean
           token: string
         }[]
       }
