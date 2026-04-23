@@ -1386,12 +1386,19 @@ export default function PortalViewPage() {
                     <p className="text-base font-semibold">{nextStep.name}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-muted-foreground">{nextStep.phase_name}</span>
-                      {nextStep.planned_end && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {format(parseISO(nextStep.planned_end), "d 'de' MMMM", { locale: pt })}
-                        </span>
-                      )}
+                      {(() => {
+                        const dateStr = nextStepMeetingDateTime || nextStep.planned_end;
+                        if (!dateStr) return null;
+                        const withTime = !!nextStepMeetingDateTime;
+                        return (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {withTime
+                              ? format(parseISO(dateStr), "d 'de' MMMM 'às' HH:mm", { locale: pt })
+                              : format(parseISO(dateStr), "d 'de' MMMM", { locale: pt })}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </SectionCard>
                 )}
