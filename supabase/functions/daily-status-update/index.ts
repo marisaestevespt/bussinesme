@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
           await supabase.from("tasks").insert({
             name: `Renovação — ${client.full_name}`, status: "por_comecar", priority: "alta",
             deadline: client.end_of_cycle, department: "clientes",
-            created_by: ownerId, assigned_to: ownerId, tag: "Renovação",
+            created_by: ownerId, assigned_to: ownerProfileId, tag: "Renovação",
           });
         }
         renewalCount++;
