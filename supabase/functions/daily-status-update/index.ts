@@ -64,6 +64,7 @@ Deno.serve(async (req) => {
 
   // ── Get owner for notifications (used by multiple sections) ──
   let ownerId: string | null = null;
+  let ownerProfileId: string | null = null;
   try {
     const { data: ownerRole } = await supabase
       .from("user_roles")
@@ -72,6 +73,14 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
     ownerId = ownerRole?.user_id || null;
+    if (ownerId) {
+      const { data: ownerProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", ownerId)
+        .maybeSingle();
+      ownerProfileId = ownerProfile?.id || null;
+    }
   } catch { /* no owner */ }
 
   // ── 1. Sales: mark overdue ──
@@ -146,7 +155,7 @@ Deno.serve(async (req) => {
           await supabase.from("tasks").insert({
             name: `Renovação — ${client.full_name}`, status: "por_comecar", priority: "alta",
             deadline: client.end_of_cycle, department: "clientes",
-            created_by: ownerId, assigned_to: ownerId, tag: "Renovação",
+            created_by: ownerId, assigned_to: ownerProfileId, tag: "Renovação",
           });
         }
         renewalCount++;
@@ -607,7 +616,7 @@ Deno.serve(async (req) => {
       await supabase.from("tasks").insert({
         name: dl.name, status: "por_comecar", priority: "alta",
         deadline: dl.date, department: "contabilidade",
-        created_by: ownerId, assigned_to: ownerId, tag: "Fiscal",
+        created_by: ownerId, assigned_to: ownerProfileId, tag: "Fiscal",
       });
       fiscalTasksCreated++;
     }
