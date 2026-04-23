@@ -26,6 +26,7 @@ interface Template {
   offset_days?: number | null;
   offset_trigger?: string;
   responsible_type?: string;
+  deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao';
 }
 
 interface Phase {
