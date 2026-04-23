@@ -155,7 +155,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       qc.invalidateQueries({ queryKey: ['md-leads'] });
       setConvertLead(null);
       toast.success('Cliente criado com sucesso!');
-      navigate(`/clientes/${data.id}`);
+      navigate(`/hub/clientes/${data.id}`);
     },
     onError: () => toast.error('Erro ao criar cliente'),
   });
@@ -423,7 +423,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-violet-500/10 text-violet-700 hover:bg-violet-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/reunioes/${e.id}`)}>{e.title}</div>
+            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-violet-500/10 text-violet-700 hover:bg-violet-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/hub/agenda`)}>{e.title}</div>
           )}
         </CardContent>
       </Card>
