@@ -101,12 +101,12 @@ export default function PortalViewPage() {
     const realToken = portalData.token; // always use UUID token for RPCs
     const [clientCtxRes, settingsRes] = await Promise.all([
       (supabase as any).rpc('get_portal_client_context', { _token: realToken }),
-      supabase.from('business_settings').select('*').limit(1).maybeSingle(),
+      (supabase as any).rpc('get_portal_branding', { _token: realToken }),
     ]);
     const clientData = Array.isArray(clientCtxRes.data) ? clientCtxRes.data[0] : null;
     if (clientCtxRes.error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
     setClient(clientData);
-    setSettings(settingsRes.data);
+    setSettings(settingsRes.data || {});
     const pid = portalData.id;
     const cid = portalData.client_id;
     const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
