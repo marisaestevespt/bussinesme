@@ -10433,13 +10433,19 @@ export type Database = {
       get_portal_meetings: {
         Args: { _token: string }
         Returns: {
+          client_actions: Json
           client_id: string
           date_time: string
           department: string
+          discussion_notes: string
+          discussion_points: Json
+          documents: Json
           duration_minutes: number
+          final_notes: Json
           id: string
           meeting_url: string
           portal_notes: string
+          priorities: Json
           project_id: string
           project_name: string
           status: string
