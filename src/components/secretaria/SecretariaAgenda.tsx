@@ -213,9 +213,9 @@ export default function SecretariaAgenda() {
 
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-7 gap-1 mb-1">
+          <div className="grid grid-cols-7 gap-2 mb-2">
             {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
-              <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
+              <div key={d} className="text-center text-sm font-semibold text-muted-foreground py-1">{d}</div>
             ))}
           </div>
 
@@ -227,11 +227,11 @@ export default function SecretariaAgenda() {
                 return (
                   <div key={rowIdx}>
                     {multiDayRows.length > 0 && (
-                      <div className="grid grid-cols-7 gap-1">
+                      <div className="grid grid-cols-7 gap-2">
                         {multiDayRows.map((row, rIdx) => (
-                          <div key={rIdx} className="col-span-7 grid grid-cols-7 gap-1" style={{ marginBottom: '2px' }}>
+                          <div key={rIdx} className="col-span-7 grid grid-cols-7 gap-2" style={{ marginBottom: '3px' }}>
                             {row.map(entry => (
-                              <div key={entry.item.id} className="bg-primary/20 text-primary text-[10px] font-medium px-1.5 py-0.5 rounded-md truncate cursor-pointer hover:bg-primary/30 transition-colors" style={{ gridColumn: `${entry.startCol + 1} / span ${entry.span}` }} onClick={() => handleItemClick(entry.item)}>
+                              <div key={entry.item.id} className="bg-primary/20 text-primary text-xs font-medium px-2 py-1 rounded-md truncate cursor-pointer hover:bg-primary/30 transition-colors" style={{ gridColumn: `${entry.startCol + 1} / span ${entry.span}` }} onClick={() => handleItemClick(entry.item)}>
                                 {entry.item.title}
                               </div>
                             ))}
@@ -239,21 +239,21 @@ export default function SecretariaAgenda() {
                         ))}
                       </div>
                     )}
-                    <div className="grid grid-cols-7 gap-1 mb-1">
+                    <div className="grid grid-cols-7 gap-2 mb-2">
                       {weekRow.map((day, colIdx) => {
-                        if (!day) return <div key={`empty-${rowIdx}-${colIdx}`} className="min-h-[80px]" />;
+                        if (!day) return <div key={`empty-${rowIdx}-${colIdx}`} className="min-h-[130px]" />;
                         const singleItems = getSingleDayItems(day);
                         const isCurrentDay = isToday(day);
                         return (
-                          <div key={day.getDate()} className={cn('min-h-[80px] rounded-lg border p-1.5 transition-colors', isCurrentDay && 'border-primary bg-primary/5')}>
-                            <p className={cn('text-xs font-medium mb-1', isCurrentDay && 'text-primary font-bold')}>{day.getDate()}</p>
-                            <div className="space-y-0.5">
-                              {singleItems.slice(0, 3).map(item => (
-                                <div key={`${item.type}-${item.id}`} className={cn('text-[10px] px-1 py-0.5 rounded truncate cursor-pointer transition-opacity hover:opacity-80', item.type === 'event' ? 'bg-primary/15 text-primary' : 'bg-secondary/30 text-secondary-foreground')} onClick={() => handleItemClick(item)}>
+                          <div key={day.getDate()} className={cn('min-h-[130px] rounded-lg border p-2 transition-colors', isCurrentDay && 'border-primary bg-primary/5')}>
+                            <p className={cn('text-sm font-semibold mb-1.5', isCurrentDay && 'text-primary font-bold')}>{day.getDate()}</p>
+                            <div className="space-y-1">
+                              {singleItems.slice(0, 4).map(item => (
+                                <div key={`${item.type}-${item.id}`} className={cn('text-xs px-1.5 py-1 rounded truncate cursor-pointer transition-opacity hover:opacity-80', item.type === 'event' ? 'bg-primary/15 text-primary' : 'bg-secondary/30 text-secondary-foreground')} onClick={() => handleItemClick(item)} title={item.title}>
                                   {item.time ? `${item.time} ` : ''}{item.title}
                                 </div>
                               ))}
-                              {singleItems.length > 3 && <p className="text-[10px] text-muted-foreground pl-1">+{singleItems.length - 3} mais</p>}
+                              {singleItems.length > 4 && <p className="text-xs text-muted-foreground pl-1">+{singleItems.length - 4} mais</p>}
                             </div>
                           </div>
                         );
@@ -268,11 +268,11 @@ export default function SecretariaAgenda() {
               {(() => {
                 const multiDayRows = computeMultiDayRows(weekDays);
                 return multiDayRows.length > 0 ? (
-                  <div className="grid grid-cols-7 gap-1 mb-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2 mb-2">
                     {multiDayRows.map((row, rIdx) => (
-                      <div key={rIdx} className="col-span-7 grid grid-cols-7 gap-1" style={{ marginBottom: '2px' }}>
+                      <div key={rIdx} className="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2" style={{ marginBottom: '3px' }}>
                         {row.map(entry => (
-                          <div key={entry.item.id} className="bg-primary/20 text-primary text-[11px] font-medium px-2 py-1 rounded-md truncate cursor-pointer hover:bg-primary/30 transition-colors" style={{ gridColumn: `${entry.startCol + 1} / span ${entry.span}` }} onClick={() => handleItemClick(entry.item)}>
+                          <div key={entry.item.id} className="bg-primary/20 text-primary text-xs font-medium px-2 py-1 rounded-md truncate cursor-pointer hover:bg-primary/30 transition-colors lg:[grid-column:var(--col)]" style={{ ['--col' as any]: `${entry.startCol + 1} / span ${entry.span}` }} onClick={() => handleItemClick(entry.item)}>
                             {entry.item.title}
                           </div>
                         ))}
@@ -281,16 +281,17 @@ export default function SecretariaAgenda() {
                   </div>
                 ) : null;
               })()}
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
                 {weekDays.map(day => {
                   const singleItems = getSingleDayItems(day);
                   const isCurrentDay = isToday(day);
                   return (
-                    <div key={format(day, 'yyyy-MM-dd')} className={cn('min-h-[200px] rounded-lg border p-2 transition-colors', isCurrentDay && 'border-primary bg-primary/5')}>
-                      <p className={cn('text-sm font-medium mb-2', isCurrentDay && 'text-primary font-bold')}>{format(day, 'EEE d', { locale: pt })}</p>
-                      <div className="space-y-1">
+                    <div key={format(day, 'yyyy-MM-dd')} className={cn('min-h-[260px] rounded-lg border p-3 transition-colors flex flex-col', isCurrentDay && 'border-primary bg-primary/5')}>
+                      <p className={cn('text-sm font-semibold mb-2 capitalize', isCurrentDay && 'text-primary font-bold')}>{format(day, 'EEE d', { locale: pt })}</p>
+                      <div className="space-y-1.5 flex-1">
+                        {singleItems.length === 0 && <p className="text-xs text-muted-foreground italic">Sem itens</p>}
                         {singleItems.map(item => (
-                          <div key={`${item.type}-${item.id}`} className={cn('text-xs px-1.5 py-1 rounded truncate cursor-pointer transition-opacity hover:opacity-80', item.type === 'event' ? 'bg-primary/15 text-primary' : 'bg-secondary/30 text-secondary-foreground')} onClick={() => handleItemClick(item)}>
+                          <div key={`${item.type}-${item.id}`} className={cn('text-xs px-2 py-1.5 rounded cursor-pointer transition-opacity hover:opacity-80 break-words leading-snug', item.type === 'event' ? 'bg-primary/15 text-primary' : 'bg-secondary/30 text-secondary-foreground')} onClick={() => handleItemClick(item)} title={item.title}>
                             {item.time ? `${item.time} ` : ''}{item.title}
                           </div>
                         ))}
