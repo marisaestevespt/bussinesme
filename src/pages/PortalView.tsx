@@ -20,6 +20,7 @@ import type { Portal } from '@/hooks/usePortalData';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
+import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
@@ -40,7 +41,7 @@ const SectionTitle = ({ children, icon: Icon }: { children: React.ReactNode; ico
 export default function PortalViewPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const [portal, setPortal] = useState<Portal | null>(null);
+  const [portal, setPortal] = useState<PublicPortal | null>(null);
   const [client, setClient] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const { branding: portalBranding } = usePortalBranding(token);
@@ -74,19 +75,7 @@ export default function PortalViewPage() {
 
   const init = async () => {
     if (!token) return;
-    // Try as UUID token first, then as slug
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
-    let portalData: any = null;
-    if (isUUID) {
-      const { data } = await (supabase as any).rpc('get_portal_by_token', { _token: token });
-      const row = Array.isArray(data) ? data[0] : data;
-      if (row) portalData = { ...row, token };
-    }
-    if (!portalData) {
-      const { data } = await (supabase as any).rpc('get_portal_by_slug', { _slug: token });
-      const row = Array.isArray(data) ? data[0] : data;
-      if (row) portalData = { ...row, slug: token };
-    }
+    const portalData = await resolvePublicPortal(token, (fn, args) => (supabase as any).rpc(fn, args));
     if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
     const session = localStorage.getItem(`portal_session_${portalData.id}`);
     if (!session) { navigate(`/portal/${token}`, { replace: true }); return; }
