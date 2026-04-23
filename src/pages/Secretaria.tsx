@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
-import { getDeptLabel } from '@/lib/departments';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import {
   CheckSquare, AlertTriangle, Users, FolderKanban,
-  CalendarIcon, FileText, BarChart3, ListTodo, ArrowLeft, Building2, Mail,
+  CalendarIcon, FileText, BarChart3, ListTodo, ArrowLeft, Mail,
 } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -171,42 +170,6 @@ export default function SecretariaPage() {
             </Card>
           ))}
         </div>
-
-        {/* Department card */}
-        {teamMember.data?.department && (
-          <Card
-            className="group cursor-pointer border bg-gradient-to-br from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-            onClick={() => {
-              const dept = teamMember.data!.department!;
-              // Map every department to a route that actually exists.
-              // Departments without a dedicated hub page fall back to /hub-equipa.
-              const DEPT_ROUTE: Record<string, string> = {
-                marketing: '/hub/marketing',
-                comercial: '/hub/comercial',
-                clientes: '/hub/clientes',
-                'customer-success': '/hub/clientes',
-                financeiro: '/hub/financeiro',
-                operacao: '/hub/operacao',
-                produtos: '/hub/produtos',
-                'recursos-humanos': '/hub/recursos-humanos',
-                pessoas: '/hub/recursos-humanos',
-                equipa: '/hub/recursos-humanos',
-                administrativo: '/hub-equipa',
-                admin: '/hub-equipa',
-                gestao: '/hub-equipa',
-              };
-              navigate(DEPT_ROUTE[dept] || '/hub-equipa');
-            }}
-          >
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 text-primary">
-                <Building2 className="h-4.5 w-4.5" />
-              </div>
-              <span className="font-medium text-sm text-foreground">O Meu Departamento</span>
-              <Badge variant="secondary" className="ml-auto text-xs">{getDeptLabel(teamMember.data.department)}</Badge>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Dashboard view (no tab active) */}
         {!activeTab && (
