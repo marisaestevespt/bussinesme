@@ -84,6 +84,19 @@ function DeliverableRow({
     <div className="space-y-1 pl-6 group">
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{index + 1}.</span>
+        <Select value={template.deliverable_type || 'tarefa'}
+          onValueChange={(v) => onUpdate(template.id, { deliverable_type: v })}
+          disabled={!isOwner}>
+          <SelectTrigger className="h-9 w-28 text-xs shrink-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tarefa">📋 Tarefa</SelectItem>
+            <SelectItem value="reuniao">📅 Reunião</SelectItem>
+            <SelectItem value="documento">📄 Documento</SelectItem>
+            <SelectItem value="aprovacao">✅ Aprovação</SelectItem>
+          </SelectContent>
+        </Select>
         <Input value={name} onChange={e => setName(e.target.value)}
           onBlur={() => { const t = name.trim(); if (t !== template.name) { nameRef.current = t; onUpdate(template.id, { name: t }); } }}
           className="flex-1 h-9 text-sm" placeholder="Nome da entrega..." readOnly={!isOwner} />
