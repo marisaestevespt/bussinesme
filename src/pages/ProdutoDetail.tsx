@@ -732,6 +732,8 @@ export default function ProdutoDetailPage() {
               branding={((form as any).branding || {}) as Record<string, unknown>}
               isOwner={isOwner}
               onUpdate={(next) => update('branding', next)}
+              portalBranding={((form as any).portal_branding || {}) as Record<string, unknown>}
+              onUpdatePortalBranding={(next) => update('portal_branding', next)}
             />
           )}
 
