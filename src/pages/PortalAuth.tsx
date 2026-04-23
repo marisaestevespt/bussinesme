@@ -110,7 +110,12 @@ export default function PortalAuthPage() {
   const logoUrl = settings?.logo_url;
   const businessName = settings?.business_name || '';
   const welcomeText = settings?.welcome_text || `Bem-vinda ao teu espaço pessoal${businessName ? ` com a ${businessName}` : ''}.`;
-  const loginBgUrl = settings?.login_bg_url;
+  const loginBgUrl = settings?.hero_image_url;
+  const heroTitle = settings?.hero_title || 'O teu espaço.';
+  const heroSubtitle = settings?.hero_subtitle || 'A tua jornada.';
+  const loginTitle = settings?.login_title || 'Olá! 👋';
+  const loginSubtitle = settings?.login_subtitle;
+  const fontDisplay = settings?.font_display ? `"${settings.font_display}", sans-serif` : 'var(--font-display, "Plus Jakarta Sans", sans-serif)';
 
   if (loading) {
     return (
@@ -156,12 +161,12 @@ export default function PortalAuthPage() {
         )}
         <div className="relative z-10 space-y-4 max-w-md">
           {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 object-contain brightness-0 invert" />}
-          <h2 className="text-3xl font-bold text-white leading-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
-            O teu espaço. <br />A tua jornada.
+          <h2 className="text-3xl font-bold text-white leading-tight" style={{ fontFamily: fontDisplay }}>
+            {heroTitle} <br />{heroSubtitle}
           </h2>
-          <p className="text-white/80 text-sm leading-relaxed">
-            Acompanha tudo o que está a acontecer, consulta materiais e mantém-te sempre a par.
-          </p>
+          {loginSubtitle && (
+            <p className="text-white/80 text-sm leading-relaxed">{loginSubtitle}</p>
+          )}
         </div>
       </div>
 
@@ -179,9 +184,9 @@ export default function PortalAuthPage() {
           <div className="space-y-2 text-center lg:text-left">
             <h1
               className="text-2xl font-bold tracking-tight"
-              style={{ color: pc, fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}
+              style={{ color: pc, fontFamily: fontDisplay }}
             >
-              Olá! 👋
+              {loginTitle}
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed">{welcomeText}</p>
           </div>
