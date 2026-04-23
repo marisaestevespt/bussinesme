@@ -15,7 +15,7 @@ import { RoutineMonthCard } from './SecretariaRotinas';
 interface AgendaItem {
   id: string;
   title: string;
-  type: 'event' | 'task';
+  type: 'event' | 'task' | 'meeting';
   startDate: Date;
   endDate: Date;
   time: string;
@@ -54,7 +54,7 @@ export default function SecretariaAgenda() {
   const fetchEnd = calView === 'semana' ? format(weekViewEnd, 'yyyy-MM-dd') : mEndStr;
 
   const myEvents = useQuery({
-    queryKey: ['agenda-events', user?.id, fetchStart, fetchEnd],
+    queryKey: ['agenda-events', user?.id, profileId, fetchStart, fetchEnd],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data: participations } = await supabase.from('event_members').select('event_id').eq('profile_id', user!.id);
@@ -65,7 +65,40 @@ export default function SecretariaAgenda() {
         const { data } = await supabase.from('events').select('*').in('id', participantIds).lte('start_date', fetchEnd + 'T23:59:59').or(`end_date.gte.${fetchStart},end_date.is.null,start_date.gte.${fetchStart}`);
         participantEvents = data || [];
       }
-      const all = [...(createdEvents || []), ...participantEvents];
+
+      // Reuniões (meetings): tanto criadas pelo user como em que é participante (via profile.id)
+      const meetingProfileIds = [user!.id, profileId].filter(Boolean) as string[];
+      const { data: meetingParts } = await supabase
+        .from('meeting_participants').select('meeting_id').in('profile_id', meetingProfileIds);
+      const meetingIds = Array.from(new Set((meetingParts || []).map(p => p.meeting_id)));
+
+      const meetingResults: any[] = [];
+      if (meetingIds.length > 0) {
+        const { data } = await supabase
+          .from('meetings').select('*')
+          .in('id', meetingIds)
+          .gte('date_time', fetchStart + 'T00:00:00')
+          .lte('date_time', fetchEnd + 'T23:59:59');
+        meetingResults.push(...(data || []));
+      }
+      const { data: createdMeetings } = await supabase
+        .from('meetings').select('*')
+        .eq('created_by', user!.id)
+        .gte('date_time', fetchStart + 'T00:00:00')
+        .lte('date_time', fetchEnd + 'T23:59:59');
+      meetingResults.push(...(createdMeetings || []));
+
+      // Normalizar meetings para o formato de event (start_date / end_date / title)
+      const normalizedMeetings = meetingResults.map((m: any) => ({
+        id: `meeting-${m.id}`,
+        _meetingId: m.id,
+        title: m.title || 'Reunião',
+        start_date: m.date_time,
+        end_date: m.date_time,
+        _isMeeting: true,
+      }));
+
+      const all = [...(createdEvents || []), ...participantEvents, ...normalizedMeetings];
       return Array.from(new Map(all.map(e => [e.id, e])).values());
     },
   });
@@ -92,7 +125,8 @@ export default function SecretariaAgenda() {
       const start = parseISO(e.start_date);
       const end = e.end_date ? parseISO(e.end_date) : start;
       return {
-        id: e.id, title: e.title, type: 'event' as const,
+        id: e.id, title: e.title,
+        type: ((e as any)._isMeeting ? 'meeting' : 'event') as any,
         startDate: start, endDate: end, time: format(start, 'HH:mm'),
         isMultiDay: startOfDay(start).getTime() !== startOfDay(end).getTime(),
       };
@@ -151,7 +185,8 @@ export default function SecretariaAgenda() {
   }, [firstDayOfWeek, monthDays]);
 
   const handleItemClick = (item: AgendaItem) => {
-    if (item.type === 'event') navigate('/hub/agenda');
+    if ((item.type as any) === 'meeting') navigate('/hub/reunioes');
+    else if (item.type === 'event') navigate('/hub/agenda');
     else navigate('/hub/tarefas');
   };
 
