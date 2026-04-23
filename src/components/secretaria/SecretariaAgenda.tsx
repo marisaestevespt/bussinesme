@@ -30,6 +30,17 @@ export default function SecretariaAgenda() {
   const [weekOffset, setWeekOffset] = useState(0);
   const routineTasks = useMonthRoutineTasks();
 
+  // Resolver profile.id (as tarefas usam assigned_to=profile.id, não user.id)
+  const profileQuery = useQuery({
+    queryKey: ['agenda-profile-id', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      return data?.id as string | undefined;
+    },
+  });
+  const profileId = profileQuery.data;
+
   const mStart = startOfMonth(currentMonth);
   const mEnd = endOfMonth(currentMonth);
   const mStartStr = format(mStart, 'yyyy-MM-dd');
@@ -60,10 +71,18 @@ export default function SecretariaAgenda() {
   });
 
   const myAgendaTasks = useQuery({
-    queryKey: ['agenda-tasks', user?.id, fetchStart, fetchEnd],
-    enabled: !!user?.id,
+    queryKey: ['agenda-tasks', user?.id, profileId, fetchStart, fetchEnd],
+    enabled: !!user?.id && !!profileId,
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('*').eq('assigned_to', user!.id).not('deadline', 'is', null).gte('deadline', fetchStart).lte('deadline', fetchEnd + 'T23:59:59');
+      // Aceita tarefas atribuídas tanto via user.id (legado) como via profile.id
+      const ids = [user!.id, profileId!].filter(Boolean) as string[];
+      const { data } = await supabase
+        .from('tasks')
+        .select('*')
+        .in('assigned_to', ids)
+        .not('deadline', 'is', null)
+        .gte('deadline', fetchStart)
+        .lte('deadline', fetchEnd + 'T23:59:59');
       return data || [];
     },
   });
