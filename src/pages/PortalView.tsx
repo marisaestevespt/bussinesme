@@ -19,6 +19,7 @@ import {
 import type { Portal } from '@/hooks/usePortalData';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
+import { usePortalBranding } from '@/hooks/usePortalBranding';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
@@ -42,6 +43,7 @@ export default function PortalViewPage() {
   const [portal, setPortal] = useState<Portal | null>(null);
   const [client, setClient] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
+  const { branding: portalBranding } = usePortalBranding(token);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('home');
 
