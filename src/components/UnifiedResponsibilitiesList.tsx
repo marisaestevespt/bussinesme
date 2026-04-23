@@ -66,8 +66,8 @@ function getItemRoute(item: UnifiedItem): string | null {
     case 'tarefa': return `/tarefas`;
     case 'crm': return `/comercial/crm`;
     case 'conteudo': return `/conteudo/${item.sourceId}`;
-    case 'reuniao': return `/reunioes/${item.sourceId}`;
-    case 'projeto': return `/projetos/${item.sourceId}`;
+    case 'reuniao': return `/hub/reunioes/${item.sourceId}`;
+    case 'projeto': return `/hub/projetos/${item.sourceId}`;
     case 'nps': return null;
     case 'marco': return null;
     case 'acao_venda': return `/comercial/acoes`;
