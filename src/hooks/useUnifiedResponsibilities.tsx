@@ -120,11 +120,11 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   // 4. Meetings (next 7 days)
   const meetingsQ = useQuery({
-    queryKey: ['unified-meetings', uid],
-    enabled: !!uid,
+    queryKey: ['unified-meetings', uid, profileId],
+    enabled: !!uid && !!profileId,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data: partRows } = await supabase.from('meeting_participants').select('meeting_id').eq('profile_id', uid!);
+      const { data: partRows } = await supabase.from('meeting_participants').select('meeting_id').eq('profile_id', profileId!);
       if (!partRows?.length) return [];
       const ids = partRows.map(r => r.meeting_id);
       const { data } = await supabase.from('meetings')
@@ -139,11 +139,11 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   // 5. Projects (deadline in next 7 days)
   const projectsQ = useQuery({
-    queryKey: ['unified-projects', uid],
-    enabled: !!uid,
+    queryKey: ['unified-projects', uid, profileId],
+    enabled: !!uid && !!profileId,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data: memberRows } = await supabase.from('project_members').select('project_id').eq('profile_id', uid!);
+      const { data: memberRows } = await supabase.from('project_members').select('project_id').eq('profile_id', profileId!);
       if (!memberRows?.length) return [];
       const ids = memberRows.map(r => r.project_id);
       const { data } = await supabase.from('projects')
