@@ -616,7 +616,7 @@ Deno.serve(async (req) => {
       await supabase.from("tasks").insert({
         name: dl.name, status: "por_comecar", priority: "alta",
         deadline: dl.date, department: "contabilidade",
-        created_by: ownerId, assigned_to: ownerId, tag: "Fiscal",
+        created_by: ownerId, assigned_to: ownerProfileId, tag: "Fiscal",
       });
       fiscalTasksCreated++;
     }
