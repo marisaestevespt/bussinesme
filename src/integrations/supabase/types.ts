@@ -7851,6 +7851,7 @@ export type Database = {
           is_meeting: boolean
           is_recurring: boolean
           linked_sop_id: string | null
+          meeting_id: string | null
           name: string
           offset_days: number
           offset_trigger: string
@@ -7880,6 +7881,7 @@ export type Database = {
           is_meeting?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
+          meeting_id?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
@@ -7909,6 +7911,7 @@ export type Database = {
           is_meeting?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
+          meeting_id?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
@@ -7940,6 +7943,13 @@ export type Database = {
             columns: ["linked_sop_id"]
             isOneToOne: false
             referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deliverables_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
           {
