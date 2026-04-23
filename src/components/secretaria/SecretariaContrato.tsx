@@ -23,11 +23,60 @@ export default function SecretariaContrato() {
   });
 
   const payments = useQuery({
-    queryKey: ['my-payments', teamMember.data?.id],
+    queryKey: ['my-payments', teamMember.data?.id, contracts.data?.map(c => c.id).join(',')],
     enabled: !!teamMember.data?.id,
     queryFn: async () => {
-      const { data } = await supabase.from('member_payments').select('*').eq('member_id', teamMember.data!.id).order('year', { ascending: false });
-      return data || [];
+      // 1. Pagamentos formais em member_payments
+      const { data: memberPayments } = await supabase
+        .from('member_payments')
+        .select('*')
+        .eq('member_id', teamMember.data!.id)
+        .order('year', { ascending: false });
+
+      // 2. Saídas financeiras (categoria 'ordenados') ligadas aos contratos do membro
+      const contractIds = (contracts.data || []).map((c: any) => c.id);
+      let expenses: any[] = [];
+      if (contractIds.length > 0) {
+        const { data: expData } = await supabase
+          .from('financial_expenses')
+          .select('id,expense_date,description,base_value,total_with_vat,status,documents,expense_month,expense_year,source_id,source_type,category')
+          .eq('category', 'ordenados')
+          .eq('source_type', 'contract')
+          .in('source_id', contractIds)
+          .order('expense_date', { ascending: false });
+        expenses = expData || [];
+      }
+
+      // Normalizar saídas para o mesmo shape
+      const normalizedExpenses = expenses.map((e: any) => {
+        const docs = Array.isArray(e.documents) ? e.documents : [];
+        const firstDoc = docs[0];
+        const docUrl = typeof firstDoc === 'string' ? firstDoc : firstDoc?.url || firstDoc?.file_url || null;
+        return {
+          id: `exp-${e.id}`,
+          source: 'expense' as const,
+          month: e.expense_month,
+          year: e.expense_year,
+          payment_type: 'ordenado',
+          gross_value: Number(e.total_with_vat || e.base_value || 0),
+          net_value: Number(e.base_value || 0),
+          status: e.status === 'pago' ? 'pago' : 'por_pagar',
+          document_url: docUrl,
+          description: e.description,
+          expense_date: e.expense_date,
+        };
+      });
+
+      const normalizedMemberPayments = (memberPayments || []).map((p: any) => ({ ...p, source: 'member_payment' as const }));
+
+      // Merge — evitar duplicados (mesmo mês/ano/tipo)
+      const merged = [...normalizedMemberPayments];
+      for (const e of normalizedExpenses) {
+        const dup = merged.find(m => m.year === e.year && m.month === e.month && m.payment_type === e.payment_type);
+        if (!dup) merged.push(e);
+      }
+
+      return merged.sort((a, b) => (b.year - a.year) || ((b.month || 0) - (a.month || 0)));
     },
   });
 
