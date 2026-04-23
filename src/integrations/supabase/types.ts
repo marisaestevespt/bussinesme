@@ -10293,6 +10293,16 @@ export type Database = {
           client_id: string
           id: string
           is_active: boolean
+          portal_type: Database["public"]["Enums"]["portal_type"]
+          show_faqs: boolean
+          show_materials: boolean
+          show_meetings: boolean
+          show_monthly_summary: boolean
+          show_onboarding: boolean
+          show_payments: boolean
+          show_timeline: boolean
+          show_workspace: boolean
+          slug: string
           token: string
         }[]
       }
