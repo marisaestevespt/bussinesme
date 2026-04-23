@@ -327,10 +327,15 @@ export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
   defaultProjectId, defaultProjectName,
+  onMeetingCreated, navigateAfterCreate = true,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
   defaultClientId?: string; defaultClientName?: string; defaultRecurrenceEndDate?: Date;
   defaultProjectId?: string; defaultProjectName?: string;
+  /** Called with the created meeting id BEFORE any navigation, so the caller can do follow-up writes (e.g. linking to a deliverable). */
+  onMeetingCreated?: (meetingId: string) => void | Promise<void>;
+  /** When false, the dialog closes but does not navigate to the meeting detail page. Useful when called from another context. */
+  navigateAfterCreate?: boolean;
 }) {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -530,14 +535,17 @@ export function MeetingFormDialog({
 
       return data.id;
     },
-    onSuccess: (id) => {
+    onSuccess: async (id) => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
       qc.invalidateQueries({ queryKey: ['events'] });
       logAudit('created', 'meeting', id, { title: title.trim(), meeting_type: meetingType, is_recurring: isRecurring });
       toast.success('Reunião criada');
       resetForm();
       onOpenChange(false);
-      navigate(`/hub/reunioes/${id}`);
+      if (onMeetingCreated) {
+        try { await onMeetingCreated(id); } catch (_) { /* swallow */ }
+      }
+      if (navigateAfterCreate) navigate(`/hub/reunioes/${id}`);
     },
     onError: (e: Error) => toast.error(e.message),
   });

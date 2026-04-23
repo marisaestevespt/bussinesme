@@ -6641,6 +6641,7 @@ export type Database = {
       product_deliverable_templates: {
         Row: {
           created_at: string
+          deliverable_type: Database["public"]["Enums"]["deliverable_type"]
           description: string | null
           duration_days: number | null
           duration_unit: string
@@ -6660,6 +6661,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
@@ -6679,6 +6681,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
@@ -7844,6 +7847,7 @@ export type Database = {
           assigned_to: string | null
           created_at: string
           deadline: string | null
+          deliverable_type: Database["public"]["Enums"]["deliverable_type"]
           description: string | null
           duration_days: number | null
           duration_unit: string
@@ -7874,6 +7878,7 @@ export type Database = {
           assigned_to?: string | null
           created_at?: string
           deadline?: string | null
+          deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
@@ -7904,6 +7909,7 @@ export type Database = {
           assigned_to?: string | null
           created_at?: string
           deadline?: string | null
+          deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
@@ -10642,6 +10648,7 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      deliverable_type: "tarefa" | "reuniao" | "documento" | "aprovacao"
       digest_frequency: "diario" | "semanal" | "mensal"
       launch_phase:
         | "estrategia"
@@ -10788,6 +10795,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao"],
       digest_frequency: ["diario", "semanal", "mensal"],
       launch_phase: [
         "estrategia",
