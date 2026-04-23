@@ -505,6 +505,21 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
   });
 
+  const applyDeliverables = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await (supabase as any).rpc('apply_project_deliverable_tasks', { _project_id: projectId });
+      if (error) throw error;
+      return (data as number) ?? 0;
+    },
+    onSuccess: (count) => {
+      invalidateAll();
+      qc.invalidateQueries({ queryKey: taskKey });
+      if (count === 0) toast.info('Sem entregas para aplicar. Define datas nas entregas primeiro.');
+      else toast.success(`${count} tarefa(s) criada(s) a partir das entregas`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   function startEditPhase(phase: ProjectPhase) {
     setEditingPhase(phase.id);
     setEditName(phase.name);
