@@ -15,7 +15,7 @@ import { RoutineMonthCard } from './SecretariaRotinas';
 interface AgendaItem {
   id: string;
   title: string;
-  type: 'event' | 'task';
+  type: 'event' | 'task' | 'meeting';
   startDate: Date;
   endDate: Date;
   time: string;
