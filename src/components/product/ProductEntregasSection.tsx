@@ -77,9 +77,6 @@ function DeliverableRow({
     if (d !== descRef.current) { descRef.current = d; setDesc(d); }
   }, [template.description]);
 
-  const unit = template.duration_unit || 'dias_uteis';
-  const unitLabel = unit === 'dias_uteis' ? 'dias úteis' : 'dias corridos';
-
   return (
     <div className="space-y-1 pl-6 group">
       <div className="flex items-center gap-3">
