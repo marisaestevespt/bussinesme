@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import type { Portal } from '@/hooks/usePortalData';
 import { Mail, ArrowRight } from 'lucide-react';
+import { usePortalBranding } from '@/hooks/usePortalBranding';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 
@@ -16,11 +17,11 @@ export default function PortalAuthPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [settings, setSettings] = useState<any>(null);
+  const { branding } = usePortalBranding(token);
+  const settings = branding;
 
   useEffect(() => {
     loadPortal();
-    loadSettings();
   }, [token]);
 
   useEffect(() => {
@@ -45,11 +46,6 @@ export default function PortalAuthPage() {
       }
     }
   }, [portal, token, navigate]);
-
-  const loadSettings = async () => {
-    const { data } = await supabase.from('business_settings').select('*').limit(1).maybeSingle();
-    setSettings(data);
-  };
 
   const loadPortal = async () => {
     if (!token) return;
