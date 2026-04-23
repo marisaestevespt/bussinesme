@@ -690,7 +690,7 @@ export default function OperacaoPage() {
                 {clientsNearEndOfCycle.map(c => {
                   const daysLeft = differenceInDays(new Date(c.end_of_cycle!), today);
                   return (
-                    <Link key={c.id} to={`/clientes/${c.id}`} className="flex items-center gap-2 text-sm hover:underline">
+                    <Link key={c.id} to={`/hub/clientes/${c.id}`} className="flex items-center gap-2 text-sm hover:underline">
                       <span className="font-medium text-warning dark:text-amber-300">{c.full_name}</span>
                       <Badge variant={daysLeft <= 7 ? 'destructive' : 'outline'} className="text-[10px]">{daysLeft}d</Badge>
                     </Link>

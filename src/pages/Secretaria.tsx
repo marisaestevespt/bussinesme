@@ -238,7 +238,7 @@ export default function SecretariaPage() {
                     <div
                       key={i}
                       className="flex items-start gap-3 p-3 rounded-lg bg-background border cursor-pointer hover:shadow-sm transition-shadow"
-                      onClick={() => navigate('/tarefas')}
+                      onClick={() => navigate('/hub/tarefas')}
                     >
                       <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                       <p className="text-sm text-foreground">
