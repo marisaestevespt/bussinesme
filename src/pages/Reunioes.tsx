@@ -535,14 +535,17 @@ export function MeetingFormDialog({
 
       return data.id;
     },
-    onSuccess: (id) => {
+    onSuccess: async (id) => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
       qc.invalidateQueries({ queryKey: ['events'] });
       logAudit('created', 'meeting', id, { title: title.trim(), meeting_type: meetingType, is_recurring: isRecurring });
       toast.success('Reunião criada');
       resetForm();
       onOpenChange(false);
-      navigate(`/hub/reunioes/${id}`);
+      if (onMeetingCreated) {
+        try { await onMeetingCreated(id); } catch (_) { /* swallow */ }
+      }
+      if (navigateAfterCreate) navigate(`/hub/reunioes/${id}`);
     },
     onError: (e: Error) => toast.error(e.message),
   });
