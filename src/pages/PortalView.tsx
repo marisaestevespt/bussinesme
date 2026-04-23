@@ -281,6 +281,27 @@ export default function PortalViewPage() {
     return null;
   })();
 
+  // If the next step is a meeting deliverable, prefer the actual scheduled date_time
+  // from the meetings table over the timeline's planned_end.
+  const nextStepMeetingDateTime = (() => {
+    if (!nextStep) return null;
+    const name: string = (nextStep.name || '').toLowerCase();
+    const looksLikeMeeting =
+      (nextStep as any).is_meeting === true ||
+      /reuni[aã]o|alinhamento|kick[- ]?off|onboarding call/.test(name);
+    if (!looksLikeMeeting) return null;
+    const upcoming = (meetings || [])
+      .filter((m: any) => m?.date_time && !['cancelada', 'realizada'].includes(m.status))
+      .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime());
+    // Try to match by overlapping words in title; otherwise fall back to the next upcoming meeting.
+    const tokens = name.split(/[^a-zà-ú0-9]+/i).filter(t => t.length > 3);
+    const match = upcoming.find((m: any) => {
+      const t = (m.title || '').toLowerCase();
+      return tokens.some(tok => t.includes(tok));
+    });
+    return (match || upcoming[0])?.date_time || null;
+  })();
+
   // Override next step if questions need filling
   const effectiveNextStep = hasUnansweredQuestions
     ? { name: 'Preencher perguntas iniciais', phase_name: 'Perguntas', planned_end: null, _isQuestions: true }
@@ -514,12 +535,19 @@ export default function PortalViewPage() {
                         <p className="text-sm font-semibold">{effectiveNextStep.name}</p>
                         <div className="flex items-center gap-3 mt-1.5">
                           <span className="text-[10px] text-muted-foreground">{effectiveNextStep.phase_name}</span>
-                          {effectiveNextStep.planned_end && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {format(parseISO(effectiveNextStep.planned_end), "d 'de' MMMM", { locale: pt })}
-                            </span>
-                          )}
+                          {(() => {
+                            const useDt = !(effectiveNextStep as any)._isQuestions && nextStepMeetingDateTime;
+                            const dateStr = useDt ? nextStepMeetingDateTime : effectiveNextStep.planned_end;
+                            if (!dateStr) return null;
+                            return (
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {useDt
+                                  ? format(parseISO(dateStr), "d 'de' MMMM 'às' HH:mm", { locale: pt })
+                                  : format(parseISO(dateStr), "d 'de' MMMM", { locale: pt })}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </SectionCard>
                     )}
@@ -1358,12 +1386,19 @@ export default function PortalViewPage() {
                     <p className="text-base font-semibold">{nextStep.name}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-muted-foreground">{nextStep.phase_name}</span>
-                      {nextStep.planned_end && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {format(parseISO(nextStep.planned_end), "d 'de' MMMM", { locale: pt })}
-                        </span>
-                      )}
+                      {(() => {
+                        const dateStr = nextStepMeetingDateTime || nextStep.planned_end;
+                        if (!dateStr) return null;
+                        const withTime = !!nextStepMeetingDateTime;
+                        return (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {withTime
+                              ? format(parseISO(dateStr), "d 'de' MMMM 'às' HH:mm", { locale: pt })
+                              : format(parseISO(dateStr), "d 'de' MMMM", { locale: pt })}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </SectionCard>
                 )}
