@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
-import { getDeptLabel } from '@/lib/departments';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import {
   CheckSquare, AlertTriangle, Users, FolderKanban,
-  CalendarIcon, FileText, BarChart3, ListTodo, ArrowLeft, Building2, Mail,
+  CalendarIcon, FileText, BarChart3, ListTodo, ArrowLeft, Mail,
 } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
