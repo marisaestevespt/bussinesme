@@ -26,7 +26,7 @@ export function RoutineMonthCard({ tasks: routineTasks }: { tasks: any[] }) {
           <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground">Por fazer</p>
             {todo.map(t => (
-              <div key={t.id} className="flex items-center gap-2 p-2 rounded-md bg-background border cursor-pointer hover:shadow-sm transition-shadow" onClick={() => navigate('/tarefas')}>
+              <div key={t.id} className="flex items-center gap-2 p-2 rounded-md bg-background border cursor-pointer hover:shadow-sm transition-shadow" onClick={() => navigate('/hub/tarefas')}>
                 <Square className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="text-sm flex-1 truncate">{t.name}</span>
                 {t.deadline && <span className="text-[10px] text-muted-foreground shrink-0">{format(parseISO(t.deadline), 'd MMM', { locale: pt })}</span>}
@@ -38,7 +38,7 @@ export function RoutineMonthCard({ tasks: routineTasks }: { tasks: any[] }) {
           <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground">Feitas</p>
             {done.map(t => (
-              <div key={t.id} className="flex items-center gap-2 p-2 rounded-md bg-background/50 border border-border/50 cursor-pointer" onClick={() => navigate('/tarefas')}>
+              <div key={t.id} className="flex items-center gap-2 p-2 rounded-md bg-background/50 border border-border/50 cursor-pointer" onClick={() => navigate('/hub/tarefas')}>
                 <CheckSquare className="h-3.5 w-3.5 text-success shrink-0" />
                 <span className="text-sm flex-1 truncate line-through text-muted-foreground">{t.name}</span>
               </div>

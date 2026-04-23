@@ -155,7 +155,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       qc.invalidateQueries({ queryKey: ['md-leads'] });
       setConvertLead(null);
       toast.success('Cliente criado com sucesso!');
-      navigate(`/clientes/${data.id}`);
+      navigate(`/hub/clientes/${data.id}`);
     },
     onError: () => toast.error('Erro ao criar cliente'),
   });
@@ -423,7 +423,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-violet-500/10 text-violet-700 hover:bg-violet-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/reunioes/${e.id}`)}>{e.title}</div>
+            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-violet-500/10 text-violet-700 hover:bg-violet-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/hub/agenda`)}>{e.title}</div>
           )}
         </CardContent>
       </Card>
@@ -661,7 +661,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 {activeClients.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
                 ) : activeClients.map((c: any) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="default" className="text-xs">{c.status === 'em_onboarding' ? 'Em onboarding' : 'Ativo'}</Badge></TableCell>
@@ -681,7 +681,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 {pausedClients.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes em pausa.</TableCell></TableRow>
                 ) : pausedClients.map((c: any) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">Pausado</Badge></TableCell>
@@ -701,7 +701,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 {endingClients.length === 0 ? (
                   <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem clientes a terminar este mês.</TableCell></TableRow>
                 ) : endingClients.map((c: any) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="secondary" className="text-xs">{c.status}</Badge></TableCell>
