@@ -45,13 +45,17 @@ export default function SecretariaTarefas() {
 
   const filtered = useMemo(() => {
     const data = tasks.data || [];
+    const byDeadlineAsc = (a: any, b: any) => {
+      const da = a.deadline || '';
+      const db = b.deadline || '';
+      if (!da && !db) return 0;
+      if (!da) return 1;   // sem data vai para o fim
+      if (!db) return -1;
+      return da.localeCompare(db);
+    };
     switch (view) {
-      case 'todo': return data.filter(isTaskOpen).sort((a: any, b: any) => {
-        const pa = a.priority === 'alta' ? 0 : a.priority === 'media' ? 1 : 2;
-        const pb = b.priority === 'alta' ? 0 : b.priority === 'media' ? 1 : 2;
-        return pa - pb || ((a.deadline || '') > (b.deadline || '') ? 1 : -1);
-      });
-      case 'atrasadas': return data.filter((t: any) => isTaskOverdue(t, today));
+      case 'todo': return data.filter(isTaskOpen).sort(byDeadlineAsc);
+      case 'atrasadas': return data.filter((t: any) => isTaskOverdue(t, today)).sort(byDeadlineAsc);
       case 'concluidas': return data.filter(isTaskDone).sort((a: any, b: any) => (b.updated_at || '').localeCompare(a.updated_at || ''));
       default: return data;
     }
