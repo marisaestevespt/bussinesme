@@ -1161,7 +1161,7 @@ export default function PortalViewPage() {
                         <div className="flex items-center gap-2 sm:shrink-0">
                           {m.meeting_url && (
                             <Button size="sm" variant="outline" className="h-8 text-xs rounded-lg" asChild>
-                              <a href={m.meeting_url} target="_blank" rel="noopener noreferrer">Entrar</a>
+                              <a href={/^https?:\/\//i.test(m.meeting_url) ? m.meeting_url : `https://${m.meeting_url}`} target="_blank" rel="noopener noreferrer">Entrar</a>
                             </Button>
                           )}
                           {isPending ? (
