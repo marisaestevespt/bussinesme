@@ -535,12 +535,19 @@ export default function PortalViewPage() {
                         <p className="text-sm font-semibold">{effectiveNextStep.name}</p>
                         <div className="flex items-center gap-3 mt-1.5">
                           <span className="text-[10px] text-muted-foreground">{effectiveNextStep.phase_name}</span>
-                          {effectiveNextStep.planned_end && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {format(parseISO(effectiveNextStep.planned_end), "d 'de' MMMM", { locale: pt })}
-                            </span>
-                          )}
+                          {(() => {
+                            const useDt = !(effectiveNextStep as any)._isQuestions && nextStepMeetingDateTime;
+                            const dateStr = useDt ? nextStepMeetingDateTime : effectiveNextStep.planned_end;
+                            if (!dateStr) return null;
+                            return (
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {useDt
+                                  ? format(parseISO(dateStr), "d 'de' MMMM 'às' HH:mm", { locale: pt })
+                                  : format(parseISO(dateStr), "d 'de' MMMM", { locale: pt })}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </SectionCard>
                     )}
