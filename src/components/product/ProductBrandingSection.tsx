@@ -39,11 +39,31 @@ interface Props {
   branding: BrandingData;
   isOwner: boolean;
   onUpdate: (next: BrandingData) => void;
+  portalBranding?: PortalBrandingData;
+  onUpdatePortalBranding?: (next: PortalBrandingData) => void;
 }
 
-export function ProductBrandingSection({ branding, isOwner, onUpdate }: Props) {
+export interface PortalBrandingData {
+  primary_color?: string;       // HSL "351 56% 28%" or empty (= usa identidade global)
+  accent_color?: string;
+  text_color?: string;
+  font_display?: string;
+  font_body?: string;
+  logo_url?: string;
+  business_name?: string;
+  welcome_text?: string;
+  login_title?: string;
+  login_subtitle?: string;
+  hero_image_url?: string;
+  hero_title?: string;
+  hero_subtitle?: string;
+}
+
+export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBranding, onUpdatePortalBranding }: Props) {
   const b = branding || {};
   const set = (patch: Partial<BrandingData>) => onUpdate({ ...b, ...patch });
+  const pb = portalBranding || {};
+  const setPB = (patch: Partial<PortalBrandingData>) => onUpdatePortalBranding?.({ ...pb, ...patch });
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
 
   const updateList = <K extends 'visual_assets' | 'folders'>(
