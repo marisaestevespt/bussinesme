@@ -324,19 +324,21 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                 : addCalendarDays(phaseStartDate, del.offset_days || 0);
             }
 
-            let delEnd: Date | null = null;
+            let delEnd: Date;
             if (del.duration_days != null && del.duration_days > 0) {
               delEnd = del.duration_unit === 'dias_uteis'
                 ? addBusinessDays(delStart, del.duration_days)
                 : addCalendarDays(delStart, del.duration_days);
+            } else {
+              delEnd = delStart;
             }
 
             await (supabase as any).from('project_deliverables').update({
               planned_start: format(delStart, 'yyyy-MM-dd'),
-              planned_end: delEnd ? format(delEnd, 'yyyy-MM-dd') : null,
+              planned_end: format(delEnd, 'yyyy-MM-dd'),
             }).eq('id', del.id);
 
-            prevEnd = delEnd || delStart;
+            prevEnd = delEnd;
           }
         }
 
