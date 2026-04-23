@@ -153,6 +153,33 @@ export default function SecretariaProdutividade() {
   }), [allTimeEntries, periodStart, periodEnd]);
 
   const totalHours = periodEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+
+  // Horas previstas no período: reuniões futuras + tempo estimado de tarefas abertas com deadline no período
+  const plannedHours = useMemo(() => {
+    const now = new Date();
+    let total = 0;
+
+    (myMeetings.data || []).forEach((meeting: any) => {
+      if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
+      if (meeting.status === 'por_confirmar' || meeting.status === 'cancelada') return;
+      const md = new Date(meeting.date_time);
+      if (md <= now) return;
+      if (!isWithinInterval(md, { start: periodStart, end: periodEnd })) return;
+      total += meeting.duration_minutes / 60;
+    });
+
+    (tasks.data || []).forEach((t: any) => {
+      if (isTaskDone(t)) return;
+      if (!t.deadline) return;
+      const d = parseISO(t.deadline);
+      if (!isWithinInterval(d, { start: periodStart, end: periodEnd })) return;
+      const est = Number(t.estimated_time || 0);
+      if (est > 0) total += est;
+    });
+
+    return total;
+  }, [myMeetings.data, tasks.data, periodStart, periodEnd]);
+
   const completedTasks = useMemo(() => allTasks.filter((t: any) => isTaskDone(t) && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: periodStart, end: periodEnd })), [allTasks, periodStart, periodEnd]);
   const overdueTasks = allTasks.filter((t: any) => isTaskOverdue(t, today));
 
@@ -255,8 +282,9 @@ export default function SecretariaProdutividade() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-2xl font-bold">{Math.round(totalHours * 10) / 10}h</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas previstas</p><p className="text-2xl font-bold text-primary">{Math.round(plannedHours * 10) / 10}h</p><p className="text-[10px] text-muted-foreground mt-1">Reuniões + tarefas planeadas</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas concluídas</p><p className="text-2xl font-bold">{completedTasks.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Média horas/dia</p><p className="text-2xl font-bold">{avgPerDay}h</p></CardContent></Card>
