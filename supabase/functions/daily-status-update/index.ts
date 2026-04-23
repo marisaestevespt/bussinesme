@@ -64,6 +64,7 @@ Deno.serve(async (req) => {
 
   // ── Get owner for notifications (used by multiple sections) ──
   let ownerId: string | null = null;
+  let ownerProfileId: string | null = null;
   try {
     const { data: ownerRole } = await supabase
       .from("user_roles")
@@ -72,6 +73,14 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
     ownerId = ownerRole?.user_id || null;
+    if (ownerId) {
+      const { data: ownerProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", ownerId)
+        .maybeSingle();
+      ownerProfileId = ownerProfile?.id || null;
+    }
   } catch { /* no owner */ }
 
   // ── 1. Sales: mark overdue ──
