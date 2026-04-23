@@ -1246,6 +1246,78 @@ export default function PortalViewPage() {
                           <p className="text-xs mt-1">{m.portal_notes}</p>
                         </div>
                       )}
+                      {(m.status === 'realizada' || m.status === 'concluida') && (() => {
+                        const points = Array.isArray(m.discussion_points) ? m.discussion_points.filter((p: any) => (typeof p === 'string' ? p.trim() : (p?.text || '').trim())) : [];
+                        const cActions = Array.isArray(m.client_actions) ? m.client_actions.filter((a: any) => (typeof a === 'string' ? a.trim() : (a?.text || a?.action || '').trim())) : [];
+                        const fNotes = Array.isArray(m.final_notes) ? m.final_notes.filter((n: any) => (typeof n === 'string' ? n.trim() : (n?.text || '').trim())) : [];
+                        const prios = Array.isArray(m.priorities) ? m.priorities.filter((p: any) => (typeof p === 'string' ? p.trim() : (p?.text || '').trim())) : [];
+                        const docs = Array.isArray(m.documents) ? m.documents.filter((d: any) => d?.url) : [];
+                        const dNotes = (m.discussion_notes || '').trim();
+                        const hasAny = points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes;
+                        if (!hasAny) return null;
+                        const renderText = (item: any) => typeof item === 'string' ? item : (item?.text || item?.action || '');
+                        return (
+                          <details className="mt-3 pt-3 border-t border-border/20 group">
+                            <summary className="cursor-pointer text-xs font-semibold flex items-center gap-1.5 select-none" style={{ color: pc }}>
+                              <span>📋 Ata da reunião</span>
+                              <span className="text-[10px] text-muted-foreground font-normal">(clica para abrir)</span>
+                            </summary>
+                            <div className="mt-3 space-y-3">
+                              {(points.length > 0 || dNotes) && (
+                                <div>
+                                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Pontos discutidos</p>
+                                  {points.length > 0 && (
+                                    <ul className="text-xs space-y-1 list-disc list-inside">
+                                      {points.map((p: any, i: number) => <li key={i}>{renderText(p)}</li>)}
+                                    </ul>
+                                  )}
+                                  {dNotes && <p className="text-xs whitespace-pre-wrap mt-1.5 bg-muted/20 rounded-lg p-2">{dNotes}</p>}
+                                </div>
+                              )}
+                              {cActions.length > 0 && (
+                                <div>
+                                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">As tuas ações</p>
+                                  <ul className="text-xs space-y-1 list-disc list-inside">
+                                    {cActions.map((a: any, i: number) => <li key={i}>{renderText(a)}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {prios.length > 0 && (
+                                <div>
+                                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Prioridades</p>
+                                  <ul className="text-xs space-y-1 list-disc list-inside">
+                                    {prios.map((p: any, i: number) => <li key={i}>{renderText(p)}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {fNotes.length > 0 && (
+                                <div>
+                                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Notas finais</p>
+                                  <ul className="text-xs space-y-1 list-disc list-inside">
+                                    {fNotes.map((n: any, i: number) => <li key={i}>{renderText(n)}</li>)}
+                                  </ul>
+                                </div>
+                              )}
+                              {docs.length > 0 && (
+                                <div>
+                                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Documentos</p>
+                                  <div className="space-y-1.5">
+                                    {docs.map((d: any, i: number) => (
+                                      <a key={i}
+                                         href={/^https?:\/\//i.test(d.url) ? d.url : `https://${d.url}`}
+                                         target="_blank" rel="noopener noreferrer"
+                                         className="flex items-center gap-2 text-xs hover:underline bg-muted/20 rounded-lg p-2">
+                                        <Download className="h-3 w-3 shrink-0" />
+                                        <span className="truncate">{d.name || d.url}</span>
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </details>
+                        );
+                      })()}
                     </SectionCard>
                   );
                 })}
