@@ -23,8 +23,9 @@ export default function SecretariaContrato() {
   });
 
   const payments = useQuery({
-    queryKey: ['my-payments', teamMember.data?.id, contracts.data?.map(c => c.id).join(',')],
-    enabled: !!teamMember.data?.id,
+    queryKey: ['my-payments', teamMember.data?.id, (contracts.data || []).map(c => c.id).join(',')],
+    // Esperar que os contratos carreguem para conseguir cruzar com financial_expenses
+    enabled: !!teamMember.data?.id && !contracts.isLoading,
     queryFn: async () => {
       // 1. Pagamentos formais em member_payments
       const { data: memberPayments } = await supabase
@@ -41,7 +42,6 @@ export default function SecretariaContrato() {
           .from('financial_expenses')
           .select('id,expense_date,description,base_value,total_with_vat,status,documents,expense_month,expense_year,source_id,source_type,category')
           .eq('category', 'ordenados')
-          .eq('source_type', 'contract')
           .in('source_id', contractIds)
           .order('expense_date', { ascending: false });
         expenses = expData || [];
@@ -52,6 +52,8 @@ export default function SecretariaContrato() {
         const docs = Array.isArray(e.documents) ? e.documents : [];
         const firstDoc = docs[0];
         const docUrl = typeof firstDoc === 'string' ? firstDoc : firstDoc?.url || firstDoc?.file_url || null;
+        // Mapear status das saídas ('tudo_ok'/'pago' = pago; resto = por pagar)
+        const isPaid = e.status === 'pago' || e.status === 'tudo_ok';
         return {
           id: `exp-${e.id}`,
           source: 'expense' as const,
@@ -60,7 +62,7 @@ export default function SecretariaContrato() {
           payment_type: 'ordenado',
           gross_value: Number(e.total_with_vat || e.base_value || 0),
           net_value: Number(e.base_value || 0),
-          status: e.status === 'pago' ? 'pago' : 'por_pagar',
+          status: isPaid ? 'pago' : 'por_pagar',
           document_url: docUrl,
           description: e.description,
           expense_date: e.expense_date,
