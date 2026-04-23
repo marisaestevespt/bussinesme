@@ -357,7 +357,9 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   const todayItems = useMemo(() =>
     items.filter(i => {
-      if (!i.date) return true;
+      // "Hoje" = itens com prazo hoje OU já atrasados.
+      // Itens sem data ficam fora — pertencem à lista geral de tarefas.
+      if (!i.date) return false;
       const d = parseISO(i.date.split('T')[0]);
       return isToday(d) || isBefore(d, today);
     }),
@@ -365,7 +367,7 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   const weekItems = useMemo(() =>
     items.filter(i => {
-      if (!i.date) return true;
+      if (!i.date) return false;
       const d = parseISO(i.date.split('T')[0]);
       return isWithinInterval(d, { start: weekStart_, end: weekEnd_ }) || isBefore(d, today);
     }),
