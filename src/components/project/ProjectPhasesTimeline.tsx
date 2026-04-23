@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -505,6 +505,21 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
   });
 
+  const applyDeliverables = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await (supabase as any).rpc('apply_project_deliverable_tasks', { _project_id: projectId });
+      if (error) throw error;
+      return (data as number) ?? 0;
+    },
+    onSuccess: (count) => {
+      invalidateAll();
+      qc.invalidateQueries({ queryKey: taskKey });
+      if (count === 0) toast.info('Sem entregas para aplicar. Define datas nas entregas primeiro.');
+      else toast.success(`${count} tarefa(s) criada(s) a partir das entregas`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   function startEditPhase(phase: ProjectPhase) {
     setEditingPhase(phase.id);
     setEditName(phase.name);
@@ -582,6 +597,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={recalculateDates} disabled={recalculating || !projectStartDate}>
               <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", recalculating && "animate-spin")} /> Recalcular datas
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => applyDeliverables.mutate()} disabled={applyDeliverables.isPending}>
+              <Wand2 className={cn("h-3.5 w-3.5 mr-1.5", applyDeliverables.isPending && "animate-pulse")} /> Aplicar entregas
             </Button>
             <Button size="sm" onClick={() => { setAddingPhase(true); setNewName(''); }}>
               <Plus className="h-3.5 w-3.5 mr-1.5" /> Fase
