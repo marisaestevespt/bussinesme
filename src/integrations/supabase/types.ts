@@ -7704,6 +7704,7 @@ export type Database = {
           max_simultaneous_clients: number | null
           monthly_hours_per_client: number | null
           name: string
+          portal_branding: Json
           product_type: string | null
           renewal_advance_days: number | null
           sales_page: Json
@@ -7742,6 +7743,7 @@ export type Database = {
           max_simultaneous_clients?: number | null
           monthly_hours_per_client?: number | null
           name: string
+          portal_branding?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_page?: Json
@@ -7780,6 +7782,7 @@ export type Database = {
           max_simultaneous_clients?: number | null
           monthly_hours_per_client?: number | null
           name?: string
+          portal_branding?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_page?: Json
@@ -10283,6 +10286,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_portal_branding: { Args: { _token: string }; Returns: Json }
       get_portal_by_slug: {
         Args: { _slug: string }
         Returns: {
