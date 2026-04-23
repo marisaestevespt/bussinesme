@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { resolvePublicPortal } from '@/lib/portalAccess';
 
 export interface PortalBranding {
   business_name?: string | null;
@@ -25,13 +26,8 @@ export function usePortalBranding(token: string | undefined | null) {
     let cancelled = false;
     if (!token) { setLoading(false); return; }
     (async () => {
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
-      let realToken = token;
-      if (!isUUID) {
-        const { data } = await (supabase as any).rpc('get_portal_by_slug', { _slug: token });
-        const row = Array.isArray(data) ? data[0] : data;
-        if (row?.token) realToken = row.token;
-      }
+      const portal = await resolvePublicPortal(token, (fn, args) => (supabase as any).rpc(fn, args));
+      const realToken = portal?.token ?? token;
       const { data } = await (supabase as any).rpc('get_portal_branding', { _token: realToken });
       if (!cancelled) {
         setBranding((data || {}) as PortalBranding);
