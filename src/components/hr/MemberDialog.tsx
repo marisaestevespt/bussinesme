@@ -558,6 +558,28 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           {/* ═══ BLOCO 3: ACESSOS & PERMISSÕES ═══ */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
+
+            {/* Função no sistema (RBAC) */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Função no sistema</span>
+              <p className="text-[10px] text-muted-foreground">Define o que esta pessoa pode ver e fazer no software. Diferente do "cargo" — controla a segurança.</p>
+              <Select value={f.system_role || 'team_member'} onValueChange={(v) => set('system_role', v)}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Membro de equipa" />
+                </SelectTrigger>
+                <SelectContent className="max-w-[320px]">
+                  {SYSTEM_ROLE_OPTIONS.map(r => (
+                    <SelectItem key={r.value} value={r.value} className="text-xs py-2">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{r.label}</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">{r.hint}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="rounded-md bg-muted/40 px-3 py-2">
               <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Acesso automático:</p>
               <p className="text-[11px]">Começa Aqui, Mural, Hub de Equipa, Agenda, Reuniões, Processos, Projetos, Tarefas, Acessos, Biblioteca, Secretaria + tudo dentro dos departamentos selecionados.</p>
