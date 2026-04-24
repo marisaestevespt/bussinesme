@@ -592,7 +592,14 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
 
             <div className="rounded-md bg-muted/40 px-3 py-2">
               <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Acesso automático:</p>
-              <p className="text-[11px]">Começa Aqui, Mural, Hub de Equipa, Agenda, Reuniões, Processos, Projetos, Tarefas, Acessos, Biblioteca, Secretaria + tudo dentro dos departamentos selecionados.</p>
+              <p className="text-[11px]">
+                Áreas comuns da equipa (Hub, Agenda, Tarefas, Projetos, Biblioteca…)
+                {Array.isArray(f.departments) && f.departments.length > 0 ? (
+                  <> + páginas dos departamentos: <span className="font-medium">{f.departments.map((d: string) => DEPARTMENTS.find(x => x.value === d)?.label || d).join(', ')}</span>.</>
+                ) : (
+                  <> (seleciona departamentos acima para dar acesso a páginas específicas).</>
+                )}
+              </p>
             </div>
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
