@@ -708,7 +708,7 @@ function ActionsSection({ objectiveId, actions, planning }: any) {
   const [editAction, setEditAction] = useState<any>(null);
   const [form, setForm] = useState({ description: '', action_type: 'simples', status: 'por_fazer', deadline: '', responsible_id: '' });
   const [editForm, setEditForm] = useState<any>({});
-  const { members } = useTeamData();
+  const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
 
   useEffect(() => {

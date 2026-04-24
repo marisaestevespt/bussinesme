@@ -36,7 +36,7 @@ interface Props {
 
 export function ClientCustomerSuccess({ clientId, clientName, productName, startDate }: Props) {
   const qc = useQueryClient();
-  const { members } = useTeamData();
+  const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
 
   // Fetch the product to get its id

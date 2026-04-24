@@ -42,7 +42,7 @@ export function useWeeklyAlignData(weekOffset: number) {
   const monthStartDate = format(startOfMonth(now), 'yyyy-MM-dd');
   const monthEndDate = format(endOfMonth(now), 'yyyy-MM-dd');
 
-  const { members } = useTeamData();
+  const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
 
   // ─── Batch: week-scoped queries ───

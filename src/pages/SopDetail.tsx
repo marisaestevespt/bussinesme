@@ -195,7 +195,7 @@ export default function SopDetailPage() {
   });
 
   // NPS Config for "Recolha de NPS/Feedbacks" SOP
-  const { members } = useTeamData();
+  const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
 
   const { data: npsConfig } = useQuery({
