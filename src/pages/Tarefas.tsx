@@ -192,6 +192,7 @@ export default function TarefasPage() {
   });
 
   const { coverages: absenceCoverages } = useAbsenceCoverage();
+  const { data: offRanges } = useOffDates();
 
   // Mutations
   const upsertTask = useMutation({
@@ -384,6 +385,11 @@ export default function TarefasPage() {
     if (isChangingToDone && isBefore(deadlineDate, startOfDay(now)) && !notes?.trim()) {
       toast.error('Esta tarefa está atrasada. Indica nas notas o motivo do atraso antes de concluir.');
       return;
+    }
+    // Soft warning: deadline lands on a business closure ("Off") day
+    const offRange = findOffRange(offRanges, deadline);
+    if (offRange && !editingTask) {
+      toast.warning(`Atenção: o prazo cai num período Off (${offRange.title}).`, { duration: 6000 });
     }
     // ─── Auto-reassignment based on absence coverage ──────────
     let finalAssignedTo = assignedTo || null;
