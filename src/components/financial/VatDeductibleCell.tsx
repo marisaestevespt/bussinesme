@@ -6,9 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Expense } from '@/hooks/useFinancialData';
 import { ivaDeduzirOf, ivaPagoOf } from '@/lib/vatCalculations';
-
-const fmt = (v: number) =>
-  v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+import { formatEuro } from '@/lib/formatting';
 
 interface Props {
   expense: Pick<Expense, 'id' | 'total_with_vat' | 'base_value'> & {
@@ -80,7 +78,7 @@ export function VatDeductibleCell({ expense, invalidateKeys, align = 'right' }: 
       onClick={startEditing}
     >
       <span className={isCustom ? 'font-medium text-primary' : 'text-muted-foreground'}>
-        {fmt(display)}
+        {formatEuro(display)}
       </span>
       <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-60" />
     </button>

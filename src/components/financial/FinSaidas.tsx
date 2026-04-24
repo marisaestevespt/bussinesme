@@ -32,6 +32,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
+import { VatPreview } from './VatPreview';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -369,14 +370,11 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     </Select>
                   </div>
                 </div>
-                {expForm.base_value && parseFloat(expForm.base_value) > 0 && (expForm.vat_rate ?? 23) > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {expForm.includes_vat
-                      ? `Base: ${(parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) - parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} €`
-                      : `Total c/ IVA: ${(parseFloat(expForm.base_value) * (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) * (expForm.vat_rate ?? 23) / 100).toFixed(2)} €`
-                    }
-                  </p>
-                )}
+                <VatPreview
+                  value={expForm.base_value}
+                  vatRate={expForm.vat_rate ?? 23}
+                  includesVat={!!expForm.includes_vat}
+                />
               </>
             )}
             <div className="grid grid-cols-2 gap-3">

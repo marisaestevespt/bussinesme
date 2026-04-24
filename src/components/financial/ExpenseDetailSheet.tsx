@@ -21,6 +21,7 @@ import { SupplierSelect } from './SupplierSelect';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
+import { VatPreview } from './VatPreview';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -285,14 +286,11 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             </div>
           </div>
 
-          {form.base_value && parseFloat(form.base_value) > 0 && (form.vat_rate ?? 23) > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {form.includes_vat
-                ? `Base: ${(parseFloat(form.base_value) / (1 + (form.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(form.base_value) - parseFloat(form.base_value) / (1 + (form.vat_rate ?? 23) / 100)).toFixed(2)} €`
-                : `Total c/ IVA: ${(parseFloat(form.base_value) * (1 + (form.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(form.base_value) * (form.vat_rate ?? 23) / 100).toFixed(2)} €`
-              }
-            </p>
-          )}
+          <VatPreview
+            value={form.base_value}
+            vatRate={form.vat_rate ?? 23}
+            includesVat={!!form.includes_vat}
+          />
 
           {/* Supplier */}
           <div>
