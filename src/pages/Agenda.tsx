@@ -1011,6 +1011,8 @@ const AGENDA_DEFAULT_VIEWS: DefaultView[] = [
   { key: 'list', label: 'Lista', icon: <List className="h-4 w-4" />, isDefault: true },
 ];
 
+const AGENDA_MODE_KEY = 'agenda:viewMode';
+
 export default function AgendaPage() {
   const { allViews, addView, renameView, deleteView } = useUserViews('agenda', AGENDA_DEFAULT_VIEWS);
   const [view, setView] = useState<string>('calendar');
