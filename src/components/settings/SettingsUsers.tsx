@@ -196,10 +196,12 @@ export function SettingsUsers() {
                               <SelectContent className="max-w-[280px]">
                                 {ASSIGNABLE_ROLES.map(r => (
                                   <SelectItem key={r.value} value={r.value} className="text-xs py-2">
-                                    <span className="font-medium">{r.label}</span>
-                                    <span className="block text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">
-                                      {r.hint}
-                                    </span>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{r.label}</span>
+                                      <span className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">
+                                        {r.hint}
+                                      </span>
+                                    </div>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
