@@ -341,6 +341,7 @@ export function MeetingFormDialog({
   const qc = useQueryClient();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: offRanges } = useOffDates();
 
   const hasDefaults = !!defaultClientId || !!defaultProjectId;
   const [step, setStep] = useState<'type' | 'form'>(hasDefaults ? 'form' : 'type');
