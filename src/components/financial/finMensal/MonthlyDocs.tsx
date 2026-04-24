@@ -11,10 +11,14 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { type FiscalConfig } from '@/lib/fiscalDeadlines';
 import { MONTHS } from './helpers';
 
+type DocRow = { id: string; document_url?: string | null; document_name?: string | null; title?: string | null };
+type FiscalCheckRow = { id: string; check_key: string; checked: boolean };
+type DeadlineCompletionRow = { id: string; deadline_key: string };
+
 export function MonthlyDocUpload({ title, icon, docs, accept, onUpload, onDelete }: {
   title: string;
   icon: React.ReactNode;
-  docs: any[];
+  docs: DocRow[];
   docType: string;
   accept: string;
   onUpload: (file: File) => Promise<void>;
@@ -50,9 +54,9 @@ export function MonthlyDocUpload({ title, icon, docs, accept, onUpload, onDelete
         </div>
         {docs.length > 0 ? (
           <div className="space-y-1.5">
-            {docs.map((doc: any) => (
+            {docs.map((doc) => (
               <div key={doc.id} className="flex items-center gap-2 text-sm rounded-md bg-muted/50 px-3 py-1.5">
-                <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 flex-1 min-w-0 hover:underline text-foreground">
+                <a href={doc.document_url || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 flex-1 min-w-0 hover:underline text-foreground">
                   <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
                   <span className="truncate">{doc.document_name || doc.title}</span>
                 </a>
@@ -73,17 +77,17 @@ export function MonthlyDocUpload({ title, icon, docs, accept, onUpload, onDelete
 export function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
   const { settings } = useBusinessSettings();
   const qc = useQueryClient();
-  const s = settings as any;
+  const s = settings as Record<string, unknown> | null;
 
-  const fiscalConfig: FiscalConfig = {
-    taxIvaRegime: s?.tax_iva_regime || 'trimestral',
-    taxIrsRegime: s?.tax_irs_regime || 'simplificado',
-    ssExempt: s?.ss_exempt ?? false,
-    ivaExempt: s?.iva_exempt ?? false,
-    ivaExemptionEndDate: s?.iva_exemption_end_date || null,
-    ssExemptionEndDate: s?.ss_exemption_end_date || null,
-    hasAccountant: s?.has_accountant ?? false,
-  };
+  const fiscalConfig: FiscalConfig = useMemo(() => ({
+    taxIvaRegime: (s?.tax_iva_regime as FiscalConfig['taxIvaRegime']) || 'trimestral',
+    taxIrsRegime: (s?.tax_irs_regime as FiscalConfig['taxIrsRegime']) || 'simplificado',
+    ssExempt: (s?.ss_exempt as boolean) ?? false,
+    ivaExempt: (s?.iva_exempt as boolean) ?? false,
+    ivaExemptionEndDate: (s?.iva_exemption_end_date as string | null) || null,
+    ssExemptionEndDate: (s?.ss_exemption_end_date as string | null) || null,
+    hasAccountant: (s?.has_accountant as boolean) ?? false,
+  }), [s]);
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
 
@@ -159,24 +163,25 @@ export function FiscalChecklistCard({ month, year }: { month: number; year: numb
     },
   });
 
-  const { data: deadlineCompletions = [] } = useQuery({
+  const { data: deadlineCompletions = [] } = useQuery<DeadlineCompletionRow[]>({
     queryKey: ['fiscal-deadline-completions', year],
     queryFn: async () => {
       const { data } = await supabase
-        .from('fiscal_deadline_completions' as any)
+        // Table not yet in generated Supabase types — typing the response shape locally
+        .from('fiscal_deadline_completions' as never)
         .select('*')
         .eq('year', year);
-      return (data || []) as any[];
+      return (data || []) as unknown as DeadlineCompletionRow[];
     },
   });
   const completedDeadlineKeys = useMemo(
-    () => new Set(deadlineCompletions.map((c: any) => c.deadline_key)),
+    () => new Set(deadlineCompletions.map((c) => c.deadline_key)),
     [deadlineCompletions],
   );
 
   const checkedMap = useMemo(() => {
     const map: Record<string, boolean> = {};
-    checks.forEach((c: any) => { map[c.check_key] = c.checked; });
+    (checks as FiscalCheckRow[]).forEach((c) => { map[c.check_key] = c.checked; });
     checkItems.forEach(item => {
       const dk = toDeadlineKey(item.key);
       if (dk && completedDeadlineKeys.has(dk)) map[item.key] = true;
@@ -189,19 +194,19 @@ export function FiscalChecklistCard({ month, year }: { month: number; year: numb
     mutationFn: async ({ key, checked }: { key: string; checked: boolean }) => {
       const deadlineKey = toDeadlineKey(key);
       if (deadlineKey) {
-        const existing = deadlineCompletions.find((c: any) => c.deadline_key === deadlineKey);
+        const existing = deadlineCompletions.find((c) => c.deadline_key === deadlineKey);
         if (checked && !existing) {
           await supabase
-            .from('fiscal_deadline_completions' as any)
+            .from('fiscal_deadline_completions' as never)
             .insert({ deadline_key: deadlineKey, year, completed_by: (await supabase.auth.getUser()).data.user?.id });
         } else if (!checked && existing) {
-          await supabase.from('fiscal_deadline_completions' as any).delete().eq('id', existing.id);
+          await supabase.from('fiscal_deadline_completions' as never).delete().eq('id', existing.id);
         }
         return;
       }
-      const existing = checks.find((c: any) => c.check_key === key);
+      const existing = (checks as FiscalCheckRow[]).find((c) => c.check_key === key);
       if (existing) {
-        await supabase.from('fiscal_monthly_checks').update({ checked, checked_at: checked ? new Date().toISOString() : null }).eq('id', (existing as any).id);
+        await supabase.from('fiscal_monthly_checks').update({ checked, checked_at: checked ? new Date().toISOString() : null }).eq('id', existing.id);
       } else {
         await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: key, checked, checked_at: checked ? new Date().toISOString() : null });
       }
