@@ -20,9 +20,10 @@ import { MonthlyDocUpload, FiscalChecklistCard } from './finMensal/MonthlyDocs';
 import { EntradasTable, IvaCobradoDialog } from './finMensal/EntradasTable';
 import { SegurancaSocialCard, SaidasTable, IvaPagoDialog, NewExpenseDialog } from './finMensal/SaidasSection';
 import { MONTHS, getSubscriptionDueDate, canRenderSubscriptionForMonth, type Sale } from './finMensal/helpers';
+import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './finMensal/expenseBuilders';
 
 interface Props {
-  sales: Sale[];
+  sales: (Sale & { id?: string; sale_id?: string | null; payment_date?: string | null; documents?: unknown; })[];
   expenses: Expense[];
   payrollData: PayrollEntry[];
   contractorsData: ContractorEntry[];
@@ -31,12 +32,14 @@ interface Props {
   fin: ReturnType<typeof useFinancialData>;
 }
 
+type SelectedSale = Sale & { id?: string; sale_id?: string | null; payment_date?: string | null; documents?: unknown; };
+
 export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
   const qc = useQueryClient();
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
-  const [selectedSale, setSelectedSale] = useState<any>(null);
+  const [selectedSale, setSelectedSale] = useState<SelectedSale | null>(null);
   const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false);
@@ -47,7 +50,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const m = parseInt(month);
 
   // Active member contracts
-  const { data: activeContracts = [] } = useQuery({
+  const { data: activeContracts = [] } = useQuery<ContractLike[]>({
     queryKey: ['active-member-contracts'],
     queryFn: async () => {
       const { data } = await supabase
@@ -55,7 +58,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         .select('*, team_members(id, full_name, role_title)')
         .in('status', ['ativo'])
         .neq('contract_type', 'contrato_prestacao');
-      return data || [];
+      return (data || []) as ContractLike[];
     },
   });
 
@@ -69,17 +72,17 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   });
 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m).sort((a, b) => {
-    const da = (a as any).payment_date || '';
-    const db = (b as any).payment_date || '';
+    const da = a.payment_date || '';
+    const db = b.payment_date || '';
     return da.localeCompare(db);
   }), [sales, currentYear, m]);
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).sort((a, b) => {
-    const da = (a as any).expense_date || '';
-    const db = (b as any).expense_date || '';
+    const da = a.expense_date || '';
+    const db = b.expense_date || '';
     return da.localeCompare(db);
   }), [expenses, currentYear, m]);
 
-  const recurringExps = fin.recurringExpenses.data || [];
+  const recurringExps = useMemo(() => fin.recurringExpenses.data || [], [fin.recurringExpenses.data]);
   const dueSubscriptions = useMemo(() => {
     return recurringExps.filter(sub => canRenderSubscriptionForMonth(sub, m, currentYear));
   }, [recurringExps, m, currentYear]);
@@ -125,32 +128,14 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         .eq('expense_year', currentYear);
       if ((count || 0) > 0) continue;
 
-      const subName = sub.expense_name || sub.description || '';
       const dateStr = getSubscriptionDueDate(sub, m, currentYear);
       const status = getAutoExpenseStatus(dateStr);
       toCreate.push(async () => {
-        await fin.upsertExpense.mutateAsync({
-          description: `${subName} — ${MONTHS[m - 1]} ${currentYear}`,
-          category: sub.category || 'outro',
-          base_value: sub.base_value,
-          vat_rate: sub.vat_rate || 0,
-          total_with_vat: sub.total_with_vat,
-          location: sub.location,
-          expense_date: dateStr,
-          expense_month: m,
-          expense_quarter: Math.ceil(m / 3),
-          expense_year: currentYear,
-          status,
-          source_type: 'subscription',
-          source_id: sub.id,
-          parent_expense_id: sub.id,
-          supplier_id: sub.supplier_id,
-          payment_method: sub.payment_method,
-        } as any);
+        await fin.upsertExpense.mutateAsync(buildSubscriptionExpense(sub, m, currentYear, status));
       });
     }
 
-    for (const contract of activeContracts as any[]) {
+    for (const contract of activeContracts) {
       const key = `contract-${contract.id}-${m}-${currentYear}`;
       if (contractExpenseMap.has(contract.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
@@ -163,18 +148,10 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         .eq('expense_year', currentYear);
       if ((count || 0) > 0) continue;
 
-      const memberName = contract.team_members?.full_name || '—';
-      const value = contract.monthly_value || 0;
       const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
       const status = getAutoExpenseStatus(dateStr);
       toCreate.push(async () => {
-        await fin.upsertExpense.mutateAsync({
-          description: `Pagamento — ${memberName} — ${String(m).padStart(2, '0')}/${currentYear}`,
-          category: 'ordenados',
-          base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
-          expense_date: dateStr, expense_month: m, expense_quarter: Math.ceil(m / 3),
-          expense_year: currentYear, status, source_type: 'contract', source_id: contract.id,
-        } as any);
+        await fin.upsertExpense.mutateAsync(buildContractExpense(contract, m, currentYear, status));
       });
     }
 
@@ -206,19 +183,19 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
   const ssExpense = useMemo(() => monthExpenses.find(e => e.category === 'seguranca_social'), [monthExpenses]);
 
-  const saveSale = async (saleData: any) => {
+  const saveSale = async (saleData: Record<string, unknown>) => {
     const q = Math.ceil(m / 3);
     const { error } = await supabase.from('commercial_sales').insert({
-      sale_id: saleData.sale_id || `V${currentYear}-${String(Date.now()).slice(-4)}`,
-      description: saleData.description || null,
-      product: saleData.product || null,
-      client: saleData.client || null,
-      source: saleData.source || null,
-      base_value: saleData.base_value || 0,
-      invoice_total: saleData.invoice_total || 0,
-      payment_date: saleData.payment_date || null,
-      status: saleData.status || 'aguarda_pagamento',
-      documents: saleData.documents || [],
+      sale_id: (saleData.sale_id as string) || `V${currentYear}-${String(Date.now()).slice(-4)}`,
+      description: (saleData.description as string) || null,
+      product: (saleData.product as string) || null,
+      client: (saleData.client as string) || null,
+      source: (saleData.source as string) || null,
+      base_value: Number(saleData.base_value) || 0,
+      invoice_total: Number(saleData.invoice_total) || 0,
+      payment_date: (saleData.payment_date as string) || null,
+      status: (saleData.status as string) || 'aguarda_pagamento',
+      documents: (saleData.documents as never) || [],
       sale_month: m,
       sale_quarter: q,
       sale_year: currentYear,
@@ -336,7 +313,8 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
           totalBaseEntradas={totalBaseEntradas}
           totalEntradas={totalEntradas}
           onAddSale={() => setSaleOpen(true)}
-          onSelectSale={(s) => { setSelectedSale(s); setSaleSheetOpen(true); }}
+          onSelectSale={(s) => { setSelectedSale(s as SelectedSale); setSaleSheetOpen(true); }}
+          onShowIvaCobrado={() => setIvaCobradoOpen(true)}
         />
 
         <SegurancaSocialCard ssExpense={ssExpense} month={m} currentYear={currentYear} fin={fin} />
@@ -356,6 +334,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
           onAddExpense={() => setExpOpen(true)}
           onSelectExpense={(e) => { setSelectedExpense(e); setExpenseSheetOpen(true); }}
           getCategoryLabel={getCategoryLabel}
+          onShowIvaPago={() => setIvaPagoOpen(true)}
         />
 
         <IvaCobradoDialog
@@ -392,7 +371,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
       <NewExpenseDialog open={expOpen} onOpenChange={setExpOpen} month={m} currentYear={currentYear} fin={fin} />
 
-      <EntryDetailSheet sale={selectedSale} open={saleSheetOpen} onOpenChange={setSaleSheetOpen} />
+      <EntryDetailSheet sale={selectedSale as Parameters<typeof EntryDetailSheet>[0]['sale']} open={saleSheetOpen} onOpenChange={setSaleSheetOpen} />
       <ExpenseDetailSheet expense={selectedExpense} open={expenseSheetOpen} onOpenChange={setExpenseSheetOpen} fin={fin} />
     </div>
   );

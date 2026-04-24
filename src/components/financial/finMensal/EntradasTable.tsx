@@ -3,25 +3,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import { Plus, Receipt } from 'lucide-react';
 import { EntryStatusSelect } from '../InlineStatusSelect';
 import { formatEuro } from '@/lib/formatting';
 import { MONTHS, type Sale } from './helpers';
 
 interface EntradasTableProps {
-  monthSales: any[];
+  monthSales: (Sale & { id?: string; sale_id?: string | null; payment_date?: string | null; documents?: unknown; })[];
   totalBaseEntradas: number;
   totalEntradas: number;
   onAddSale: () => void;
-  onSelectSale: (sale: any) => void;
+  onSelectSale: (sale: Sale & { id?: string }) => void;
+  onShowIvaCobrado?: () => void;
 }
 
-export function EntradasTable({ monthSales, totalBaseEntradas, totalEntradas, onAddSale, onSelectSale }: EntradasTableProps) {
+export function EntradasTable({ monthSales, totalBaseEntradas, totalEntradas, onAddSale, onSelectSale, onShowIvaCobrado }: EntradasTableProps) {
   return (
     <Card>
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-sm">Entradas</CardTitle>
-        <Button size="sm" variant="outline" onClick={onAddSale}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Entrada</Button>
+        <div className="flex items-center gap-2">
+          {onShowIvaCobrado && (
+            <Button size="sm" variant="outline" onClick={onShowIvaCobrado}><Receipt className="h-3.5 w-3.5 mr-1" /> Ver IVA</Button>
+          )}
+          <Button size="sm" variant="outline" onClick={onAddSale}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Entrada</Button>
+        </div>
       </CardHeader>
       <CardContent className="p-0 overflow-x-auto">
         <Table>
@@ -29,7 +35,7 @@ export function EntradasTable({ monthSales, totalBaseEntradas, totalEntradas, on
           <TableBody>
             {monthSales.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
-            ) : monthSales.map((s: any, i) => {
+            ) : monthSales.map((s, i) => {
               const docs = Array.isArray(s.documents) ? s.documents : [];
               return (
                 <TableRow key={i} className="cursor-pointer hover:bg-muted/50" onClick={() => onSelectSale(s)}>

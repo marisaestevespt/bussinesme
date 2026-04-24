@@ -7,21 +7,23 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { useFinancialData, Expense, RecurringExpense } from '@/hooks/useFinancialData';
+import type { TablesInsert } from '@/integrations/supabase/types';
 import type { useQueryClient } from '@tanstack/react-query';
 import { ExpenseStatusSelect } from '../InlineStatusSelect';
 import { CategorySelect } from '../CategorySelect';
-import { InvoiceUpload } from '../InvoiceUpload';
+import { InvoiceUpload, type DocEntry } from '../InvoiceUpload';
 import { VatDeductibleCell } from '../VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
 import { locationLabel, EXPENSE_LOCATIONS } from '@/lib/labelMaps';
 import { getAutoExpenseStatus } from '@/lib/expenseStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { SubRow, ContractRow } from './SubRows';
-import { MONTHS, VAT_RATES, getSubscriptionDueDate, canRenderSubscriptionForMonth } from './helpers';
+import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth, getSubscriptionDueDate } from './helpers';
+import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './expenseBuilders';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
@@ -76,7 +78,7 @@ export function SegurancaSocialCard({ ssExpense, month, currentYear, fin }: {
                   if (val <= 0 && !ssExpense) return;
                   const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
                   if (ssExpense) {
-                    await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}` } as any);
+                    await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}` });
                   } else {
                     await fin.upsertExpense.mutateAsync({
                       description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}`,
@@ -90,7 +92,7 @@ export function SegurancaSocialCard({ ssExpense, month, currentYear, fin }: {
                       expense_quarter: Math.ceil(month / 3),
                       expense_year: currentYear,
                       status: 'pago_falta_fatura',
-                    } as any);
+                    });
                   }
                   setSsEditing(false);
                   toast.success('Segurança Social guardada');
@@ -115,7 +117,7 @@ interface SaidasTableProps {
   monthExpenses: Expense[];
   dueSubscriptions: RecurringExpense[];
   subExpenseMap: Map<string, Expense>;
-  activeContracts: any[];
+  activeContracts: ContractLike[];
   contractExpenseMap: Map<string, Expense>;
   month: number;
   currentYear: number;
@@ -126,12 +128,13 @@ interface SaidasTableProps {
   onAddExpense: () => void;
   onSelectExpense: (e: Expense) => void;
   getCategoryLabel: (type: string, value: string) => string;
+  onShowIvaPago?: () => void;
 }
 
 export function SaidasTable({
   monthExpenses, dueSubscriptions, subExpenseMap, activeContracts, contractExpenseMap,
   month, currentYear, fin, qc, totalBaseSaidas, totalSaidas,
-  onAddExpense, onSelectExpense, getCategoryLabel,
+  onAddExpense, onSelectExpense, getCategoryLabel, onShowIvaPago,
 }: SaidasTableProps) {
   const handleSubClick = async (sub: RecurringExpense) => {
     const linkedExp = subExpenseMap.get(sub.id);
@@ -143,27 +146,8 @@ export function SaidasTable({
       toast.error('Esse pagamento já está fora do período do contrato.');
       return;
     }
-    const subName = sub.expense_name || sub.description || '';
-    const dateStr = getSubscriptionDueDate(sub, month, currentYear);
-    const status = getAutoExpenseStatus(dateStr);
-    await fin.upsertExpense.mutateAsync({
-      description: `${subName} — ${MONTHS[month - 1]} ${currentYear}`,
-      category: sub.category || 'outro',
-      base_value: sub.base_value,
-      vat_rate: sub.vat_rate || 0,
-      total_with_vat: sub.total_with_vat,
-      location: sub.location,
-      expense_date: dateStr,
-      expense_month: month,
-      expense_quarter: Math.ceil(month / 3),
-      expense_year: currentYear,
-      status,
-      source_type: 'subscription',
-      source_id: sub.id,
-      parent_expense_id: sub.id,
-      supplier_id: sub.supplier_id,
-      payment_method: sub.payment_method,
-    } as any);
+    const status = getAutoExpenseStatus(getSubscriptionDueDate(sub, month, currentYear));
+    await fin.upsertExpense.mutateAsync(buildSubscriptionExpense(sub, month, currentYear, status));
     await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     const { data: createdExpense } = await supabase
       .from('financial_expenses')
@@ -178,23 +162,15 @@ export function SaidasTable({
     if (createdExpense) onSelectExpense(createdExpense as Expense);
   };
 
-  const handleContractClick = async (contract: any) => {
+  const handleContractClick = async (contract: ContractLike) => {
     const linkedExp = contractExpenseMap.get(contract.id);
     if (linkedExp) {
       onSelectExpense(linkedExp);
       return;
     }
-    const memberName = contract.team_members?.full_name || '—';
-    const value = contract.monthly_value || 0;
     const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
     const status = getAutoExpenseStatus(dateStr);
-    await fin.upsertExpense.mutateAsync({
-      description: `Pagamento — ${memberName} — ${String(month).padStart(2, '0')}/${currentYear}`,
-      category: 'ordenados',
-      base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
-      expense_date: dateStr, expense_month: month, expense_quarter: Math.ceil(month / 3),
-      expense_year: currentYear, status, source_type: 'contract', source_id: contract.id,
-    } as any);
+    await fin.upsertExpense.mutateAsync(buildContractExpense(contract, month, currentYear, status));
     await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     const { data: createdExpense } = await supabase
       .from('financial_expenses')
@@ -217,6 +193,9 @@ export function SaidasTable({
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-sm">Saídas</CardTitle>
         <div className="flex items-center gap-2">
+          {onShowIvaPago && (
+            <Button size="sm" variant="outline" onClick={onShowIvaPago}><Receipt className="h-3.5 w-3.5 mr-1" /> Ver IVA</Button>
+          )}
           <Button size="sm" variant="outline" onClick={onAddExpense}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Saída</Button>
         </div>
       </CardHeader>
@@ -232,20 +211,20 @@ export function SaidasTable({
                     currentStatus={e.status}
                     hasDocuments={Array.isArray(e.documents) ? e.documents.length > 0 : !!e.documents}
                     onUpdate={async (id, status) => {
-                      await fin.upsertExpense.mutateAsync({ id, status } as any);
+                      await fin.upsertExpense.mutateAsync({ id, status });
                     }}
                   />
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{(e as any).expense_id || '—'}</TableCell>
-                <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{e.expense_id || '—'}</TableCell>
+                <TableCell className="whitespace-nowrap">{e.expense_date || '—'}</TableCell>
                 <TableCell>{e.description || '—'}</TableCell>
                 <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
-                <TableCell>{locationLabel((e as any).location)}</TableCell>
+                <TableCell>{locationLabel(e.location)}</TableCell>
                 <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
-                <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
+                <TableCell className="text-right">{e.vat_rate ?? 0}%</TableCell>
                 <TableCell className="text-right">{formatEuro(e.total_with_vat)}</TableCell>
                 <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
-                  <VatDeductibleCell expense={e as any} />
+                  <VatDeductibleCell expense={e} />
                 </TableCell>
               </TableRow>
             ))}
@@ -261,7 +240,7 @@ export function SaidasTable({
                 getCategoryLabel={getCategoryLabel}
               />
             ))}
-            {activeContracts.map((contract: any) => (
+            {activeContracts.map((contract) => (
               <ContractRow
                 key={`contract-${contract.id}`}
                 contract={contract}
@@ -323,7 +302,7 @@ export function IvaPagoDialog({ open, onOpenChange, monthExpenses, month, totalS
                     <TableCell className="text-right text-sm">{formatEuro(e.base_value)}</TableCell>
                     <TableCell className="text-right text-sm font-medium">{formatEuro(iva)}</TableCell>
                     <TableCell className="text-right text-sm" onClick={ev => ev.stopPropagation()}>
-                      <VatDeductibleCell expense={e as any} />
+                      <VatDeductibleCell expense={e} />
                     </TableCell>
                   </TableRow>
                 );
@@ -355,8 +334,19 @@ export interface NewExpenseDialogProps {
   fin: ReturnType<typeof useFinancialData>;
 }
 
+interface NewExpenseFormState {
+  description: string;
+  category: string;
+  base_value: string;
+  vat_rate: string;
+  location: string;
+  documents: DocEntry[];
+  includes_vat: boolean;
+}
+
 export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }: NewExpenseDialogProps) {
-  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
+  const initial: NewExpenseFormState = { description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false };
+  const [expForm, setExpForm] = useState<NewExpenseFormState>(initial);
 
   const saveExpense = async () => {
     if (!expForm.base_value) { toast.error('Valor é obrigatório'); return; }
@@ -384,10 +374,10 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
       expense_quarter: Math.ceil(month / 3),
       expense_year: currentYear,
       status: 'por_pagar',
-    } as any);
+    });
     toast.success('Saída adicionada');
     onOpenChange(false);
-    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
+    setExpForm(initial);
   };
 
   return (
@@ -395,18 +385,18 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Nova Saída — {MONTHS[month - 1]} {currentYear}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div><Label>Descrição</Label><Input value={expForm.description} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
+          <div><Label>Descrição</Label><Input value={expForm.description} onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))} /></div>
           <div><Label>Categoria</Label>
-            <CategorySelect type="expense" value={expForm.category} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
+            <CategorySelect type="expense" value={expForm.category} onValueChange={v => setExpForm(f => ({ ...f, category: v }))} />
           </div>
           <div className="flex items-center gap-2 py-1">
-            <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+            <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm(f => ({ ...f, includes_vat: v }))} />
             <Label className="text-sm font-normal">Valor inclui IVA</Label>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+            <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm(f => ({ ...f, base_value: e.target.value }))} /></div>
             <div><Label>IVA (%)</Label>
-              <Select value={expForm.vat_rate} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: v }))}>
+              <Select value={expForm.vat_rate} onValueChange={v => setExpForm(f => ({ ...f, vat_rate: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{VAT_RATES.map(r => <SelectItem key={r} value={String(r)}>{r}%</SelectItem>)}</SelectContent>
               </Select>
@@ -421,14 +411,14 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
             </p>
           )}
           <div><Label>Localização</Label>
-            <Select value={expForm.location} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
+            <Select value={expForm.location} onValueChange={v => setExpForm(f => ({ ...f, location: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{locationLabel(l)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <InvoiceUpload
             documents={Array.isArray(expForm.documents) ? expForm.documents : []}
-            onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+            onChange={docs => setExpForm(f => ({ ...f, documents: docs }))}
           />
           <Button className="w-full" onClick={saveExpense}>Guardar</Button>
         </div>
