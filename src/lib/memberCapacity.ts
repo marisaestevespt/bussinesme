@@ -20,7 +20,7 @@ export const OVERLOAD_THRESHOLD = 0.85;
 export const WEEKLY_OVER_CAPACITY_THRESHOLD = 1.1;
 
 /** Statuses considered active for capacity calculations. */
-export const ACTIVE_MEMBER_STATUSES = ['ativo', 'prestador'] as const;
+export const ACTIVE_MEMBER_STATUSES = ['ativo'] as const;
 
 export type MemberLike = {
   id?: string;
