@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
-import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { formatEuro } from '@/lib/formatting';
 const PAYMENT_LABELS: Record<string, string> = {
   mbway: 'MB WAY',
