@@ -176,6 +176,7 @@ function useMeetingsAsEvents(range: { from: string; to: string }) {
         start_date: m.date_time,
         end_date: null,
         product_name: null,
+        product_id: null,
         department: m.department || null,
         client_name: m.client_name || null,
         notes: m.project_name ? `Projeto: ${m.project_name}` : null,
