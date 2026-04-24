@@ -28,6 +28,7 @@ import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { TableSkeleton, EmptyState } from '@/components/ui/loading-skeletons';
 import { Receipt } from 'lucide-react';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
