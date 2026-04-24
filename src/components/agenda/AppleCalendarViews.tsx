@@ -193,7 +193,9 @@ function positionEventsForDay(events: AgendaEvent[], day: Date, types: AgendaEve
       const startMin = differenceInMinutes(clampedStart, dayStart);
       const endMin = Math.max(differenceInMinutes(clampedEnd, dayStart), startMin + 15);
       const topPx = (startMin / 60) * HOUR_HEIGHT;
-      const heightPx = ((endMin - startMin) / 60) * HOUR_HEIGHT;
+      // Garante que cada bloco ocupa pelo menos 1 hora visualmente
+      const rawHeight = ((endMin - startMin) / 60) * HOUR_HEIGHT;
+      const heightPx = Math.max(rawHeight, HOUR_HEIGHT);
       return { ev, topPx, heightPx, color: getColor(types, ev), startMin, endMin };
     })
     .sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin);
