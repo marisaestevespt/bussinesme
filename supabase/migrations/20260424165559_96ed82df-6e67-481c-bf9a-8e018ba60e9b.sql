@@ -1,4 +1,3 @@
--- Cleanup test member "Teste Lyrata" and related records
 DO $$
 DECLARE
   _member_id uuid;
