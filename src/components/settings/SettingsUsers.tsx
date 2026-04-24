@@ -14,6 +14,9 @@ import { format, parseISO } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
@@ -21,12 +24,29 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from '@/components/ui/dialog';
 
+// 8 funções do sistema (alinhado com app_role no backend).
+// Owner não está nesta lista — só pode existir um e não se troca por aqui.
+const ASSIGNABLE_ROLES = [
+  { value: 'admin',       label: 'Administradora',  hint: 'Vê e gere quase tudo (exceto trocar a Dona).' },
+  { value: 'accountant',  label: 'Contabilista',    hint: 'Acesso só à parte financeira/fiscal.' },
+  { value: 'hr',          label: 'Recursos Humanos',hint: 'Gere pessoas, salários, contratos.' },
+  { value: 'admin_staff', label: 'Administrativa',  hint: 'Apoio administrativo geral.' },
+  { value: 'sales',       label: 'Comercial',       hint: 'Vê CRM, leads, vendas.' },
+  { value: 'team_member', label: 'Membro de equipa',hint: 'Acesso ao próprio trabalho e clientes atribuídos.' },
+  { value: 'viewer',      label: 'Visualizador',    hint: 'Só pode ver, não pode editar nada.' },
+] as const;
+
+const ROLE_LABEL: Record<string, string> = Object.fromEntries(
+  ASSIGNABLE_ROLES.map(r => [r.value, r.label])
+);
+
 export function SettingsUsers() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const qc = useQueryClient();
   const [emailDialog, setEmailDialog] = useState<{ open: boolean; profile: any | null }>({ open: false, profile: null });
   const [newEmail, setNewEmail] = useState('');
   const [saving, setSaving] = useState(false);
+  const [roleSavingFor, setRoleSavingFor] = useState<string | null>(null);
   const { getPhotoUrl } = useTeamPhotos();
 
   const { data: profiles = [], isLoading } = useQuery({
@@ -50,6 +70,37 @@ export function SettingsUsers() {
   });
 
   const isOwnerUser = (userId: string) => roles.some(r => r.user_id === userId && r.role === 'owner');
+
+  // Devolve o role principal (não-owner) atribuído ao utilizador, se houver.
+  const getPrimaryRole = (userId: string): string | null => {
+    const userRoles = roles.filter(r => r.user_id === userId && r.role !== 'owner');
+    if (userRoles.length === 0) return null;
+    // Prioridade: admin > accountant > hr > admin_staff > sales > team_member > viewer > member
+    const order = ['admin','accountant','hr','admin_staff','sales','team_member','viewer','member'];
+    const sorted = userRoles
+      .map(r => r.role)
+      .sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    return sorted[0] ?? null;
+  };
+
+  const handleChangeRole = async (profile: any, newRole: string) => {
+    setRoleSavingFor(profile.user_id);
+    try {
+      // Limpar todos os roles atuais (exceto owner) e atribuir o novo.
+      await supabase.from('user_roles').delete().eq('user_id', profile.user_id).neq('role', 'owner');
+      const { error } = await supabase.from('user_roles').insert({
+        user_id: profile.user_id,
+        role: newRole as any,
+      });
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ['settings-user-roles'] });
+      toast.success(`Função atualizada para "${ROLE_LABEL[newRole] || newRole}"`);
+    } catch (err: any) {
+      toast.error('Erro ao atualizar função: ' + (err.message || err));
+    } finally {
+      setRoleSavingFor(null);
+    }
+  };
 
   const handleRevokeAccess = async (profile: any) => {
     try {
@@ -101,7 +152,7 @@ export function SettingsUsers() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Utilizador</TableHead>
-                    <TableHead>Cargo</TableHead>
+                    <TableHead>Função no sistema</TableHead>
                     <TableHead>Contacto</TableHead>
                     <TableHead>Registo</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -111,6 +162,7 @@ export function SettingsUsers() {
                   {profiles.map((p) => {
                     const owner = isOwnerUser(p.user_id);
                     const isSelf = p.user_id === user?.id;
+                    const primaryRole = getPrimaryRole(p.user_id);
                     return (
                       <TableRow key={p.id}>
                         <TableCell>
@@ -123,15 +175,37 @@ export function SettingsUsers() {
                             </Avatar>
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-medium">{p.full_name || 'Sem nome'}</p>
-                              {owner && <Badge variant="default" className="text-[10px]">Owner</Badge>}
+                              {owner && <Badge variant="default" className="text-[10px]">Dona</Badge>}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          {p.role_title ? (
-                            <Badge variant="secondary" className="text-[10px]">{p.role_title}</Badge>
+                          {owner ? (
+                            <span className="text-xs text-muted-foreground">Acesso total</span>
+                          ) : isOwner ? (
+                            <Select
+                              value={primaryRole ?? ''}
+                              onValueChange={(v) => handleChangeRole(p, v)}
+                              disabled={roleSavingFor === p.user_id}
+                            >
+                              <SelectTrigger className="h-8 w-[180px] text-xs">
+                                <SelectValue placeholder="Sem função atribuída" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ASSIGNABLE_ROLES.map(r => (
+                                  <SelectItem key={r.value} value={r.value} className="text-xs">
+                                    <div className="flex flex-col">
+                                      <span>{r.label}</span>
+                                      <span className="text-[10px] text-muted-foreground">{r.hint}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <Badge variant="secondary" className="text-[10px]">
+                              {primaryRole ? (ROLE_LABEL[primaryRole] || primaryRole) : '—'}
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
