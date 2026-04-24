@@ -816,6 +816,22 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
 
   const expandedEvents = expandRecurringEvents(events, monthStart, monthEnd);
 
+  // Off days (negócio fechado) — set of yyyy-MM-dd strings to highlight in grey
+  const offTypeId = types.find(t => t.slug === 'off')?.id;
+  const offDayStrs = new Set<string>();
+  if (offTypeId) {
+    expandedEvents.forEach(ev => {
+      if (ev.event_type_id !== offTypeId) return;
+      const s = parseISO(ev.start_date);
+      const e = ev.end_date ? parseISO(ev.end_date) : s;
+      let cur = new Date(s);
+      while (cur <= e) {
+        offDayStrs.add(format(cur, 'yyyy-MM-dd'));
+        cur = addDays(cur, 1);
+      }
+    });
+  }
+
   // Portuguese holidays for displayed year(s)
   const holidayMap = new Map<string, string>();
   const yearsToCheck = new Set([monthStart.getFullYear(), monthEnd.getFullYear()]);
