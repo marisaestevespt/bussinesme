@@ -34,8 +34,15 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
   const { data: sop } = await supabase.from('sops').select('sop_type, name').eq('id', sopId).single();
   if (!sop) return;
 
-  const isOnboarding = (sop as any).sop_type === 'onboarding' || (sop.name?.toLowerCase().includes('onboarding') && !sop.name?.toLowerCase().includes('offboarding'));
-  const isOffboarding = (sop as any).sop_type === 'offboarding' || (sop.name?.toLowerCase().includes('offboarding'));
+  // Prefer the typed `sop_type` enum; only fall back to name heuristics if it's null/undefined.
+  const sopType = (sop as any).sop_type as string | null | undefined;
+  const lname = sop.name?.toLowerCase() ?? '';
+  const isOnboarding = sopType
+    ? sopType === 'onboarding'
+    : (lname.includes('onboarding') && !lname.includes('offboarding'));
+  const isOffboarding = sopType
+    ? sopType === 'offboarding'
+    : lname.includes('offboarding');
 
   if (!isOnboarding && !isOffboarding) return;
 
