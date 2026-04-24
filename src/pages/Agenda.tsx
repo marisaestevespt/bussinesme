@@ -232,18 +232,20 @@ function getType(types: EventType[], id: string | null): EventType | undefined {
   return types.find(t => t.id === id);
 }
 
-function TypeBadge({ types, typeId, isMeeting }: { types: EventType[]; typeId: string | null; isMeeting?: boolean }) {
+function TypeBadge({ types, typeId, isMeeting, colorOverride }: { types: EventType[]; typeId: string | null; isMeeting?: boolean; colorOverride?: string }) {
   if (isMeeting) {
+    const c = colorOverride ?? MEETING_PSEUDO_COLOR;
     return (
-      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${MEETING_PSEUDO_COLOR}20`, color: MEETING_PSEUDO_COLOR }}>
+      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${c}20`, color: c }}>
         Reunião
       </span>
     );
   }
   const t = getType(types, typeId);
   if (!t) return <span className="text-xs text-muted-foreground">—</span>;
+  const c = colorOverride ?? t.color;
   return (
-    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${t.color}20`, color: t.color }}>
+    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${c}20`, color: c }}>
       {t.name}
     </span>
   );
