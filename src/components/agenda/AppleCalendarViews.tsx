@@ -6,7 +6,7 @@ import {
   getISOWeek,
 } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Repeat } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Repeat, Link2, MapPin, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getPortugueseHolidays } from '@/lib/holidays';
@@ -28,6 +28,35 @@ export interface AgendaEvent {
   recurrence_type: string | null;
   recurrence_end: string | null;
   meeting_url: string | null;
+}
+
+// Extract a usable URL out of various event fields (notes, meeting_url, etc.)
+const URL_RE = /(https?:\/\/[^\s)]+)/i;
+function extractUrl(ev: AgendaEvent): string | null {
+  if (ev.meeting_url) return ev.meeting_url;
+  if (ev.notes) {
+    const m = ev.notes.match(URL_RE);
+    if (m) return m[1];
+  }
+  return null;
+}
+function isVideoUrl(url: string): boolean {
+  return /(zoom\.us|meet\.google|teams\.microsoft|whereby\.com|webex\.com|jit\.si|jitsi)/i.test(url);
+}
+// Free-form location stored on the event (some sources stuff it into notes)
+function extractLocation(ev: AgendaEvent): string | null {
+  const loc = (ev as any).location as string | undefined;
+  if (loc && loc.trim()) return loc.trim();
+  return null;
+}
+// Friendly "context line" — Cliente · Produto · Projeto
+function buildContextLine(ev: AgendaEvent): string | null {
+  const parts: string[] = [];
+  if (ev.client_name) parts.push(ev.client_name);
+  if (ev.product_name) parts.push(ev.product_name);
+  const proj = (ev as any).project_name as string | undefined;
+  if (proj) parts.push(proj);
+  return parts.length ? parts.join(' · ') : null;
 }
 export interface AgendaEventType { id: string; name: string; color: string; slug: string; }
 
@@ -212,7 +241,15 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
   const leftPct = widthPct * p.laneIdx;
   const startTime = format(parseISO(p.ev.start_date), 'HH:mm');
   const endTime = p.ev.end_date ? format(parseISO(p.ev.end_date), 'HH:mm') : null;
+  const url = extractUrl(p.ev);
+  const location = extractLocation(p.ev);
+  const context = buildContextLine(p.ev);
+
+  // Progressive disclosure based on available height
   const showTime = p.heightPx >= 30;
+  const showContext = p.heightPx >= 56 && !!context;
+  const showMeta = p.heightPx >= 78 && (!!url || !!location);
+  const showNotes = p.heightPx >= 110 && !!p.ev.notes;
 
   return (
     <button
@@ -230,19 +267,34 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
         borderLeftColor: p.color,
         color: p.color,
       }}
-      title={p.ev.title}
+      title={[p.ev.title, context, location, url].filter(Boolean).join(' — ')}
     >
       <div className="flex items-center gap-1 min-w-0">
         {p.ev.recurrence_type && (
           <Repeat className="h-2.5 w-2.5 flex-shrink-0 opacity-70" />
         )}
-        {isMeeting && <span className="text-[10px]">📹</span>}
+        {isMeeting && <Video className="h-2.5 w-2.5 flex-shrink-0 opacity-80" />}
         <span className={cn(
           'truncate font-medium',
           compact ? 'text-[10px] leading-tight' : 'text-[11px] leading-tight'
         )}>
           {cleanTitle(p.ev.title)}
         </span>
+        {!showMeta && url && (
+          <span
+            role="link"
+            onClick={(e) => { e.stopPropagation(); window.open(url, '_blank', 'noopener'); }}
+            className="ml-auto flex-shrink-0 opacity-70 hover:opacity-100"
+            title={url}
+          >
+            {isVideoUrl(url)
+              ? <Video className="h-2.5 w-2.5" />
+              : <Link2 className="h-2.5 w-2.5" />}
+          </span>
+        )}
+        {!showMeta && !url && location && (
+          <MapPin className="h-2.5 w-2.5 flex-shrink-0 opacity-70 ml-auto" />
+        )}
       </div>
       {showTime && (
         <div className={cn(
@@ -252,6 +304,48 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
           {startTime}{endTime && ` – ${endTime}`}
         </div>
       )}
+      {showContext && (
+        <div className={cn(
+          'truncate opacity-80 mt-0.5 font-normal',
+          compact ? 'text-[9px]' : 'text-[10px]'
+        )}>
+          {context}
+        </div>
+      )}
+      {showMeta && (
+        <div className={cn(
+          'flex items-center gap-2 mt-0.5 opacity-75',
+          compact ? 'text-[9px]' : 'text-[10px]'
+        )}>
+          {url && (
+            <span
+              role="link"
+              onClick={(e) => { e.stopPropagation(); window.open(url, '_blank', 'noopener'); }}
+              className="inline-flex items-center gap-0.5 min-w-0 hover:opacity-100"
+              title={url}
+            >
+              {isVideoUrl(url)
+                ? <Video className="h-2.5 w-2.5 flex-shrink-0" />
+                : <Link2 className="h-2.5 w-2.5 flex-shrink-0" />}
+              <span className="truncate">{isVideoUrl(url) ? 'Entrar' : 'Link'}</span>
+            </span>
+          )}
+          {location && (
+            <span className="inline-flex items-center gap-0.5 min-w-0">
+              <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+              <span className="truncate">{location}</span>
+            </span>
+          )}
+        </div>
+      )}
+      {showNotes && (
+        <div className={cn(
+          'mt-0.5 opacity-65 line-clamp-2',
+          compact ? 'text-[9px]' : 'text-[10px]'
+        )}>
+          {p.ev.notes}
+        </div>
+      )}
     </button>
   );
 }
@@ -259,18 +353,36 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
 // All-day strip event (used in Week)
 function AllDayEventBlock({ ev, types, onClick }: { ev: AgendaEvent; types: AgendaEventType[]; onClick: () => void }) {
   const color = getColor(types, ev);
+  const url = extractUrl(ev);
+  const context = buildContextLine(ev);
   return (
     <button
       onClick={onClick}
-      className="block w-full text-left rounded px-1.5 py-0.5 mb-0.5 truncate text-[10px] font-medium border-l-2 hover:opacity-80 transition-opacity"
+      className="flex w-full items-center gap-1 text-left rounded px-1.5 py-0.5 mb-0.5 text-[10px] font-medium border-l-2 hover:opacity-80 transition-opacity"
       style={{
         backgroundColor: `${color}1A`,
         borderLeftColor: color,
         color,
       }}
-      title={ev.title}
+      title={[ev.title, context, url].filter(Boolean).join(' — ')}
     >
-      {ev.recurrence_type && '🔁 '}{cleanTitle(ev.title)}
+      {ev.recurrence_type && <Repeat className="h-2.5 w-2.5 flex-shrink-0 opacity-70" />}
+      <span className="truncate flex-1 min-w-0">
+        {cleanTitle(ev.title)}
+        {context && <span className="opacity-70 font-normal"> · {context}</span>}
+      </span>
+      {url && (
+        <span
+          role="link"
+          onClick={(e) => { e.stopPropagation(); window.open(url, '_blank', 'noopener'); }}
+          className="flex-shrink-0 opacity-70 hover:opacity-100"
+          title={url}
+        >
+          {isVideoUrl(url)
+            ? <Video className="h-2.5 w-2.5" />
+            : <Link2 className="h-2.5 w-2.5" />}
+        </span>
+      )}
     </button>
   );
 }
