@@ -1187,9 +1187,10 @@ export default function AgendaPage() {
   const expandedEvents = useMemo(() => {
     const rangeStart = subMonths(cursor, 6);
     const rangeEnd = addMonths(cursor, 18);
-    return expandRecurringEvents(allEvents, rangeStart, rangeEnd);
+    const expanded = expandRecurringEvents(allEvents, rangeStart, rangeEnd);
+    return expanded.filter(isEventVisible);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allEvents, cursor.getFullYear(), cursor.getMonth()]);
+  }, [allEvents, cursor.getFullYear(), cursor.getMonth(), calendarFilters.hidden]);
 
   const handleEventClick = (ev: EventRow) => {
     // If it's a meeting, navigate to meeting detail page
