@@ -26,6 +26,7 @@ import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResu
 import { supabase } from '@/integrations/supabase/client';
 import { sendNotification } from '@/hooks/useNotifications';
 import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbsenceCoverage';
+import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
@@ -191,6 +192,7 @@ export default function TarefasPage() {
   });
 
   const { coverages: absenceCoverages } = useAbsenceCoverage();
+  const { data: offRanges } = useOffDates();
 
   // Mutations
   const upsertTask = useMutation({
@@ -383,6 +385,11 @@ export default function TarefasPage() {
     if (isChangingToDone && isBefore(deadlineDate, startOfDay(now)) && !notes?.trim()) {
       toast.error('Esta tarefa está atrasada. Indica nas notas o motivo do atraso antes de concluir.');
       return;
+    }
+    // Soft warning: deadline lands on a business closure ("Off") day
+    const offRange = findOffRange(offRanges, deadline);
+    if (offRange && !editingTask) {
+      toast.warning(`Atenção: o prazo cai num período Off (${offRange.title}).`, { duration: 6000 });
     }
     // ─── Auto-reassignment based on absence coverage ──────────
     let finalAssignedTo = assignedTo || null;
