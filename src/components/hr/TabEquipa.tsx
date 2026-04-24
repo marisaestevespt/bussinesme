@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,6 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [settlementValue, setSettlementValue] = useState('');
   const [settlementNotes, setSettlementNotes] = useState('');
   const { saveMember } = useMemberSave();
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const allMembers = team.members.data || [];
   const activeMembers = allMembers.filter((m: any) => m.status === 'ativo');
