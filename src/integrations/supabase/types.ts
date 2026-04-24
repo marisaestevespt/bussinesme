@@ -10651,7 +10651,16 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "owner" | "admin" | "member"
+      app_role:
+        | "owner"
+        | "admin"
+        | "member"
+        | "accountant"
+        | "hr"
+        | "admin_staff"
+        | "sales"
+        | "team_member"
+        | "viewer"
       deliverable_type: "tarefa" | "reuniao" | "documento" | "aprovacao"
       digest_frequency: "diario" | "semanal" | "mensal"
       launch_phase:
@@ -10798,7 +10807,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["owner", "admin", "member"],
+      app_role: [
+        "owner",
+        "admin",
+        "member",
+        "accountant",
+        "hr",
+        "admin_staff",
+        "sales",
+        "team_member",
+        "viewer",
+      ],
       deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao"],
       digest_frequency: ["diario", "semanal", "mensal"],
       launch_phase: [
