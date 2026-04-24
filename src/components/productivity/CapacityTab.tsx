@@ -43,7 +43,7 @@ export function CapacityTab({ members, entries, clients, products, scenario, sce
 }
 
 function TeamCapacityView({ members, entries }: { members: any[]; entries: any[] }) {
-  const activeMembers = members.filter(m => m.status === 'ativo' || m.status === 'prestador');
+  const activeMembers = members.filter(m => m.status === 'ativo');
   const totalWeeklyHours = activeMembers.reduce((s, m) => s + (Number(m.expected_weekly_hours) || 0), 0);
   const totalMonthlyHours = Math.round(totalWeeklyHours * WEEKS_PER_MONTH);
 

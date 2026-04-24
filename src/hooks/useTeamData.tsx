@@ -15,7 +15,6 @@ const KEY = ['team'];
 export const MEMBER_STATUSES = [
   { value: 'ativo', label: 'Ativo' },
   { value: 'inativo', label: 'Inativo' },
-  { value: 'prestador', label: 'Prestador' },
 ];
 
 export const MEMBER_TYPES = [
