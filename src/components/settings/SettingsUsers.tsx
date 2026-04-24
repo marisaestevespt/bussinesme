@@ -69,6 +69,16 @@ export function SettingsUsers() {
     },
   });
 
+  // Saber quais profiles já têm ficha de membro de equipa
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['settings-team-members-link'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('profile_id, full_name').not('profile_id', 'is', null);
+      return data || [];
+    },
+  });
+  const profileIdsWithMember = new Set(teamMembers.map((tm: any) => tm.profile_id));
+
   const isOwnerUser = (userId: string) => roles.some(r => r.user_id === userId && r.role === 'owner');
 
   // Devolve o role principal (não-owner) atribuído ao utilizador, se houver.
@@ -163,6 +173,7 @@ export function SettingsUsers() {
                     const owner = isOwnerUser(p.user_id);
                     const isSelf = p.user_id === user?.id;
                     const primaryRole = getPrimaryRole(p.user_id);
+                    const hasMemberFile = profileIdsWithMember.has(p.id);
                     return (
                       <TableRow key={p.id}>
                         <TableCell>
@@ -182,6 +193,13 @@ export function SettingsUsers() {
                         <TableCell>
                           {owner ? (
                             <span className="text-xs text-muted-foreground">Acesso total</span>
+                          ) : hasMemberFile ? (
+                            <div className="flex flex-col gap-0.5">
+                              <Badge variant="secondary" className="text-[10px] w-fit">
+                                {primaryRole ? (ROLE_LABEL[primaryRole] || primaryRole) : 'Sem função'}
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">Editar em Equipa → ficha do membro</span>
+                            </div>
                           ) : isOwner ? (
                             <Select
                               value={primaryRole ?? ''}

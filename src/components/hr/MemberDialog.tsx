@@ -48,7 +48,20 @@ const DEFAULT_MEMBER_FORM = {
   works_holidays: false, // kept for DB compatibility
   custom_holidays: [] as string[],
   work_areas: [] as string[],
+  system_role: 'team_member' as string, // função no sistema (RBAC)
 };
+
+// Funções do sistema disponíveis para atribuir a um membro de equipa.
+// "owner" não está aqui — é único e gere-se à parte.
+const SYSTEM_ROLE_OPTIONS = [
+  { value: 'admin',       label: 'Administradora',   hint: 'Vê e gere quase tudo (exceto trocar a Dona).' },
+  { value: 'accountant',  label: 'Contabilista',     hint: 'Acesso só à parte financeira/fiscal.' },
+  { value: 'hr',          label: 'Recursos Humanos', hint: 'Gere pessoas, salários, contratos.' },
+  { value: 'admin_staff', label: 'Administrativa',   hint: 'Apoio administrativo geral.' },
+  { value: 'sales',       label: 'Comercial',        hint: 'Vê CRM, leads, vendas.' },
+  { value: 'team_member', label: 'Membro de equipa', hint: 'Acesso ao próprio trabalho e clientes atribuídos.' },
+  { value: 'viewer',      label: 'Visualizador',     hint: 'Só pode ver, não pode editar nada.' },
+];
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'transferencia', label: 'Transferência' },
@@ -236,6 +249,24 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           setF((prev: any) => ({ ...prev, sensitiveAccess: sa }));
         }
       });
+      // Load existing system role from user_roles (via profile_id → user_id)
+      if (initial.profile_id) {
+        supabase.from('profiles').select('user_id').eq('id', initial.profile_id).maybeSingle().then(({ data: prof }) => {
+          if (!prof?.user_id) return;
+          supabase.from('user_roles').select('role').eq('user_id', prof.user_id).then(({ data: rolesData }) => {
+            const nonOwner = (rolesData || []).map((r: any) => r.role).filter((r: string) => r !== 'owner');
+            // Se é owner, não mostramos seletor — caso contrário pega no primeiro role atribuído
+            const isOwner = (rolesData || []).some((r: any) => r.role === 'owner');
+            if (!isOwner) {
+              const order = ['admin','accountant','hr','admin_staff','sales','team_member','viewer','member'];
+              const sorted = nonOwner.sort((a: string, b: string) => order.indexOf(a) - order.indexOf(b));
+              if (sorted.length > 0) {
+                setF((prev: any) => ({ ...prev, system_role: sorted[0] === 'member' ? 'team_member' : sorted[0] }));
+              }
+            }
+          });
+        });
+      }
       // Load existing contract
       supabase.from('member_contracts').select('*').eq('member_id', initial.id).order('created_at', { ascending: false }).limit(1).then(({ data }) => {
         if (data && data.length > 0) {
@@ -527,6 +558,28 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           {/* ═══ BLOCO 3: ACESSOS & PERMISSÕES ═══ */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
+
+            {/* Função no sistema (RBAC) */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Função no sistema</span>
+              <p className="text-[10px] text-muted-foreground">Define o que esta pessoa pode ver e fazer no software. Diferente do "cargo" — controla a segurança.</p>
+              <Select value={f.system_role || 'team_member'} onValueChange={(v) => set('system_role', v)}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Membro de equipa" />
+                </SelectTrigger>
+                <SelectContent className="max-w-[320px]">
+                  {SYSTEM_ROLE_OPTIONS.map(r => (
+                    <SelectItem key={r.value} value={r.value} className="text-xs py-2">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{r.label}</span>
+                        <span className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">{r.hint}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="rounded-md bg-muted/40 px-3 py-2">
               <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Acesso automático:</p>
               <p className="text-[11px]">Começa Aqui, Mural, Hub de Equipa, Agenda, Reuniões, Processos, Projetos, Tarefas, Acessos, Biblioteca, Secretaria + tudo dentro dos departamentos selecionados.</p>
