@@ -78,13 +78,20 @@ function useEventTypes() {
   });
 }
 
-function useEvents(userId: string | undefined, isOwner: boolean) {
+function useEvents(userId: string | undefined, isOwner: boolean, range: { from: string; to: string }) {
   return useQuery({
-    queryKey: ['events', userId, isOwner],
+    queryKey: ['events', userId, isOwner, range.from, range.to],
     queryFn: async () => {
+      // Limit fetch to a reasonable window around the cursor (covers Year view).
+      // Recurring events expansion is performed client-side in expandRecurringEvents.
+      const inRange = (q: any) => q
+        .or(`and(start_date.gte.${range.from},start_date.lte.${range.to}),and(end_date.gte.${range.from},end_date.lte.${range.to}),and(start_date.lte.${range.from},end_date.gte.${range.to}),and(recurrence_type.not.is.null,start_date.lte.${range.to})`);
+
       if (isOwner || !userId) {
-        // Owners see everything
-        const { data, error } = await supabase.from('events').select('*').order('start_date', { ascending: true });
+        // Owners see everything within the visible range (+ recurring that started before)
+        const { data, error } = await inRange(
+          supabase.from('events').select('*')
+        ).order('start_date', { ascending: true });
         if (error) throw error;
         return data as EventRow[];
       }
@@ -96,20 +103,16 @@ function useEvents(userId: string | undefined, isOwner: boolean) {
         .eq('profile_id', userId);
       const participantIds = participations?.map(p => p.event_id) || [];
 
-      const { data: createdEvents, error: e1 } = await supabase
-        .from('events')
-        .select('*')
-        .eq('created_by', userId)
-        .order('start_date', { ascending: true });
+      const { data: createdEvents, error: e1 } = await inRange(
+        supabase.from('events').select('*').eq('created_by', userId)
+      ).order('start_date', { ascending: true });
       if (e1) throw e1;
 
       let participantEvents: EventRow[] = [];
       if (participantIds.length > 0) {
-        const { data, error: e2 } = await supabase
-          .from('events')
-          .select('*')
-          .in('id', participantIds)
-          .order('start_date', { ascending: true });
+        const { data, error: e2 } = await inRange(
+          supabase.from('events').select('*').in('id', participantIds)
+        ).order('start_date', { ascending: true });
         if (e2) throw e2;
         participantEvents = (data as EventRow[]) || [];
       }
