@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
-import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { formatEuro } from '@/lib/formatting';
 const PAYMENT_LABELS: Record<string, string> = {
   mbway: 'MB WAY',
@@ -76,10 +75,12 @@ export function FinSetupFinanceiro({ fin }: Props) {
       const expenseMonth = parseInt(expenseDate.slice(5, 7));
       const expenseYear = parseInt(expenseDate.slice(0, 4));
       const expenseQuarter = Math.ceil(expenseMonth / 3);
-      const status = normalizeUnpaidExpenseStatus(exp.status, expenseDate);
 
-      const { error } = await supabase.from('financial_expenses').update({
-        status,
+      // Delegate write to the shared hook so cache invalidation and status
+      // normalisation stay consistent across the module.
+      await fin.upsertExpense.mutateAsync({
+        id: exp.id,
+        status: exp.status,
         expense_date: expenseDate,
         base_value: base,
         vat_rate: vat,
@@ -89,12 +90,10 @@ export function FinSetupFinanceiro({ fin }: Props) {
         expense_month: expenseMonth,
         expense_quarter: expenseQuarter,
         expense_year: expenseYear,
-      }).eq('id', exp.id);
-      if (error) throw error;
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['supplier-expenses-setup'] });
-      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
       setEditingExpenseId(null);
       toast.success('Despesa atualizada');
     },

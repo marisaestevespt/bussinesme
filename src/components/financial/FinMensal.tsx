@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, RecurringExpense, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
+import { useCommercialData } from '@/hooks/useCommercialData';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { EntryDetailSheet } from './EntryDetailSheet';
 import { ExpenseDetailSheet } from './ExpenseDetailSheet';
@@ -183,27 +184,26 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
   const ssExpense = useMemo(() => monthExpenses.find(e => e.category === 'seguranca_social'), [monthExpenses]);
 
+  const { upsertSale } = useCommercialData(currentYear);
+
   const saveSale = async (saleData: Record<string, unknown>) => {
-    const q = Math.ceil(m / 3);
-    const { error } = await supabase.from('commercial_sales').insert({
-      sale_id: (saleData.sale_id as string) || `V${currentYear}-${String(Date.now()).slice(-4)}`,
-      description: (saleData.description as string) || null,
-      product: (saleData.product as string) || null,
-      client: (saleData.client as string) || null,
-      source: (saleData.source as string) || null,
-      base_value: Number(saleData.base_value) || 0,
-      invoice_total: Number(saleData.invoice_total) || 0,
-      payment_date: (saleData.payment_date as string) || null,
-      status: (saleData.status as string) || 'aguarda_pagamento',
-      documents: (saleData.documents as never) || [],
-      sale_month: m,
-      sale_quarter: q,
-      sale_year: currentYear,
-    });
-    if (error) { toast.error('Erro ao guardar entrada'); return; }
-    toast.success('Entrada adicionada');
-    setSaleOpen(false);
-    qc.invalidateQueries({ queryKey: ['commercial'] });
+    try {
+      await upsertSale.mutateAsync({
+        description: (saleData.description as string) || null,
+        product: (saleData.product as string) || null,
+        client: (saleData.client as string) || null,
+        source: (saleData.source as string) || null,
+        base_value: Number(saleData.base_value) || 0,
+        invoice_total: Number(saleData.invoice_total) || 0,
+        payment_date: (saleData.payment_date as string) || `${currentYear}-${String(m).padStart(2, '0')}-01`,
+        status: (saleData.status as string) || 'aguarda_pagamento',
+        documents: (saleData.documents as never) || [],
+      });
+      toast.success('Entrada adicionada');
+      setSaleOpen(false);
+    } catch {
+      toast.error('Erro ao guardar entrada');
+    }
   };
 
   // Bank statements & Meta Ads reports for this month

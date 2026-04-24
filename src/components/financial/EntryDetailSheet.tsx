@@ -9,7 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { InvoiceUpload, DocEntry } from './InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCommercialData } from '@/hooks/useCommercialData';
 import { FileText, Copy, Trash2 } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
 import {
@@ -54,7 +55,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
-  const qc = useQueryClient();
+  const { upsertSale, deleteSale } = useCommercialData();
 
   // Fetch client fiscal data for invoice emission
   const { data: clientData } = useQuery({
@@ -94,27 +95,22 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase.from('commercial_sales').update({
-      status,
-      documents: docs as any,
-    }).eq('id', sale.id);
-    if (error) {
-      toast.error('Não consegui guardar a entrada. Tenta novamente.');
-    } else {
+    try {
+      await upsertSale.mutateAsync({ id: sale.id, status, documents: docs as any });
       toast.success('Entrada atualizada');
-      qc.invalidateQueries({ queryKey: ['commercial'] });
+    } catch {
+      toast.error('Não consegui guardar a entrada. Tenta novamente.');
     }
     setSaving(false);
   };
 
   const handleDelete = async () => {
-    const { error } = await supabase.from('commercial_sales').delete().eq('id', sale.id);
-    if (error) {
-      toast.error('Não consegui eliminar a entrada. Tenta novamente.');
-    } else {
+    try {
+      await deleteSale.mutateAsync(sale.id);
       toast.success('Entrada eliminada');
-      qc.invalidateQueries({ queryKey: ['commercial'] });
       onOpenChange(false);
+    } catch {
+      toast.error('Não consegui eliminar a entrada. Tenta novamente.');
     }
   };
 
