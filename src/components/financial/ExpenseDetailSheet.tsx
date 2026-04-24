@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { SupplierSelect } from './SupplierSelect';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 
@@ -370,12 +371,20 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             <Button className="flex-1" onClick={handleSave} disabled={saving}>
               {saving ? 'A guardar...' : 'Guardar alterações'}
             </Button>
-            <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={handleDelete}>
+            <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => setConfirmDelete(true)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </SheetContent>
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Eliminar despesa?"
+        description={form.is_recurring ? 'Esta despesa é recorrente — eliminar também remove todas as ocorrências geradas. Esta ação não pode ser desfeita.' : 'Esta ação não pode ser desfeita.'}
+        confirmLabel="Eliminar"
+        onConfirm={handleDelete}
+      />
     </Sheet>
   );
 }
