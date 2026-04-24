@@ -636,9 +636,8 @@ Deno.serve(async (req) => {
     if (!toRevoke || toRevoke.length === 0) return null;
     for (const member of toRevoke) {
       await supabase.from("team_members").update({ access_revoked: true }).eq("id", member.id);
-      if (member.profile_id) {
-        await supabase.from("members").delete().eq("user_id", member.profile_id);
-      }
+      // Note: profile cleanup happens via auth.users cascade when account is deleted.
+      // We intentionally keep the profile row so historical references (tasks, sales, etc.) remain readable.
       if (ownerId) {
         const dedupKey = `access-revoked-${member.id}`;
         const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("message", dedupKey).maybeSingle();

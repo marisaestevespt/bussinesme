@@ -290,7 +290,7 @@ export default function ProjetoDetailPage() {
       const now = new Date();
       const monthLabel = format(now, 'MMMM yyyy', { locale: pt });
       // Get product deliverable templates
-      const { data: templates } = await (supabase as any).from('product_deliverables').select('name, description, sort_order').eq('product_id', local.product_id).order('sort_order');
+      const { data: templates } = await supabase.from('product_deliverable_templates').select('name, description, sort_order').eq('product_id', local.product_id).order('sort_order');
       if (!templates || templates.length === 0) { toast.error('Sem entregáveis configurados no produto.'); throw new Error('no templates'); }
       // Check if already generated this month
       const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
