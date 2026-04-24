@@ -48,7 +48,20 @@ const DEFAULT_MEMBER_FORM = {
   works_holidays: false, // kept for DB compatibility
   custom_holidays: [] as string[],
   work_areas: [] as string[],
+  system_role: 'team_member' as string, // função no sistema (RBAC)
 };
+
+// Funções do sistema disponíveis para atribuir a um membro de equipa.
+// "owner" não está aqui — é único e gere-se à parte.
+const SYSTEM_ROLE_OPTIONS = [
+  { value: 'admin',       label: 'Administradora',   hint: 'Vê e gere quase tudo (exceto trocar a Dona).' },
+  { value: 'accountant',  label: 'Contabilista',     hint: 'Acesso só à parte financeira/fiscal.' },
+  { value: 'hr',          label: 'Recursos Humanos', hint: 'Gere pessoas, salários, contratos.' },
+  { value: 'admin_staff', label: 'Administrativa',   hint: 'Apoio administrativo geral.' },
+  { value: 'sales',       label: 'Comercial',        hint: 'Vê CRM, leads, vendas.' },
+  { value: 'team_member', label: 'Membro de equipa', hint: 'Acesso ao próprio trabalho e clientes atribuídos.' },
+  { value: 'viewer',      label: 'Visualizador',     hint: 'Só pode ver, não pode editar nada.' },
+];
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'transferencia', label: 'Transferência' },
