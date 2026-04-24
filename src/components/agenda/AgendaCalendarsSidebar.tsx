@@ -83,19 +83,19 @@ function CalendarSection({
   const allHidden = items.every(i => hidden.has(i.id));
   return (
     <div className="border-b border-border/50 last:border-b-0">
-      <div className="flex items-center justify-between px-3 py-2">
+      <div className="flex items-center justify-between gap-2 px-3 py-2">
         <button
           type="button"
-          className="flex items-center gap-1 text-[11px] uppercase tracking-wider text-muted-foreground font-medium hover:text-foreground transition-colors"
+          className="flex items-center gap-1 text-[11px] uppercase tracking-wider text-muted-foreground font-medium hover:text-foreground transition-colors min-w-0"
           onClick={() => setOpen(o => !o)}
         >
           {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-          {title}
+          <span className="truncate">{title}</span>
         </button>
         <button
           type="button"
           onClick={() => (allHidden ? onShowAll() : onHideAll())}
-          className="text-[10px] text-muted-foreground hover:text-primary transition-colors"
+          className="text-[10px] text-muted-foreground hover:text-primary transition-colors whitespace-nowrap shrink-0"
         >
           {allHidden ? 'Mostrar' : 'Ocultar'}
         </button>
