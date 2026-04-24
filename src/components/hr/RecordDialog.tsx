@@ -20,8 +20,8 @@ export function RecordDialog({ open, onClose, title, fields, initial, onSave }: 
               return (
                 <div key={field.key}>
                   <label className="text-xs text-muted-foreground">{field.label}</label>
-                  <Select value={f[field.key] || field.options[0]?.value || ''} onValueChange={v => set(field.key, v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select value={f[field.key] || ''} onValueChange={v => set(field.key, v)}>
+                    <SelectTrigger><SelectValue placeholder={field.placeholder || `Selecionar ${field.label.toLowerCase()}`} /></SelectTrigger>
                     <SelectContent>{field.options.map((o: any) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>

@@ -22,6 +22,7 @@ import {
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DeptBadge, currentYear, currentMonth, scheduleToLines } from './team-helpers';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
+import { deriveContractStatus } from '@/lib/contractStatus';
 
 export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [newTask, setNewTask] = useState('');
@@ -282,8 +283,14 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 <Card key={c.id}>
                   <CardContent className="p-3 space-y-2 text-sm">
                     <div className="flex justify-between items-center">
-                      <Badge variant={c.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px]">{labelFor(CONTRACT_STATUSES, c.status)}</Badge>
-                      <span className="text-xs text-muted-foreground">{labelFor(CONTRACT_TYPES, c.contract_type)}</span>
+                      {(() => {
+                        const eff = deriveContractStatus(c);
+                        return <Badge variant={eff === 'ativo' ? 'default' : eff === 'terminado' ? 'secondary' : 'outline'} className="text-[10px]">{labelFor(CONTRACT_STATUSES, eff)}</Badge>;
+                      })()}
+                      <span className="text-xs text-muted-foreground">
+                        {labelFor(CONTRACT_TYPES, c.contract_type)}
+                        {c.previous_contract_id && <Badge variant="outline" className="ml-2 text-[9px]">Renovação</Badge>}
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div><span className="text-muted-foreground">Início:</span> {c.start_date || '—'}</div>

@@ -12,6 +12,8 @@ import {
 import { MemberSelect, currentYear, currentMonth } from '@/components/hr/team-helpers';
 import { RecordDialog } from '@/components/hr/RecordDialog';
 import { RenewContractDialog } from '@/components/hr/RenewContractDialog';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { deriveContractStatus } from '@/lib/contractStatus';
 
 export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
@@ -19,6 +21,7 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
   const [contractDialog, setContractDialog] = useState<any>(null);
   const [paymentDialog, setPaymentDialog] = useState<any>(null);
   const [renewContract, setRenewContract] = useState<any>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ kind: 'contract' | 'payment'; id: string; label: string } | null>(null);
 
   const memberName = (id: string) => allMembers.find(m => m.id === id)?.full_name || '—';
 
@@ -84,14 +87,17 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
                     </TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell className="text-xs">{c.end_date || '—'}</TableCell>
-                    <TableCell><Badge variant={c.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px]">{labelFor(CONTRACT_STATUSES, c.status)}</Badge></TableCell>
+                    <TableCell>{(() => {
+                      const eff = deriveContractStatus(c);
+                      return <Badge variant={eff === 'ativo' ? 'default' : eff === 'terminado' ? 'secondary' : 'outline'} className="text-[10px]">{labelFor(CONTRACT_STATUSES, eff)}</Badge>;
+                    })()}</TableCell>
                     <TableCell>{c.document_url ? <a href={c.document_url} target="_blank" rel="noopener" className="text-xs text-primary underline">Ver</a> : '—'}</TableCell>
                     <TableCell><div className="flex gap-1">
-                      {c.status === 'ativo' && (
+                      {deriveContractStatus(c) === 'ativo' && (
                         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setRenewContract(c)}>Renovar</Button>
                       )}
                       <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setContractDialog(c)}>Editar</Button>
-                      <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deleteContract.mutate(c.id)}><Trash2 className="h-3 w-3" /></Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => setConfirmDelete({ kind: 'contract', id: c.id, label: `o contrato de ${memberName(c.member_id)}` })}><Trash2 className="h-3 w-3" /></Button>
                     </div></TableCell>
                   </TableRow>
                 ))
@@ -135,7 +141,7 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
                       <TableCell><Badge variant={p.status === 'pago' ? 'default' : isOverdue ? 'destructive' : 'secondary'} className="text-[10px]">{isOverdue ? 'Em atraso' : labelFor(PAYMENT_STATUSES, p.status)}</Badge></TableCell>
                       <TableCell><div className="flex gap-1">
                         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPaymentDialog(p)}>Editar</Button>
-                        <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deletePayment.mutate(p.id)}><Trash2 className="h-3 w-3" /></Button>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => setConfirmDelete({ kind: 'payment', id: p.id, label: `o pagamento de ${memberName(p.member_id)} (${p.month}/${p.year})` })}><Trash2 className="h-3 w-3" /></Button>
                       </div></TableCell>
                     </TableRow>
                   );
@@ -146,6 +152,20 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
         </div></Card>
         {paymentDialog !== null && <RecordDialog open onClose={() => setPaymentDialog(null)} title={paymentDialog.id ? 'Editar Pagamento' : 'Novo Pagamento'} fields={paymentFields} initial={paymentDialog} onSave={(r: any) => team.upsertPayment.mutate(r)} />}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null); }}
+        title="Apagar registo?"
+        description={confirmDelete ? `Vais apagar ${confirmDelete.label}. Esta ação é irreversível.` : ''}
+        confirmLabel="Apagar"
+        onConfirm={() => {
+          if (!confirmDelete) return;
+          if (confirmDelete.kind === 'contract') team.deleteContract.mutate(confirmDelete.id);
+          else team.deletePayment.mutate(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
     </div>
   );
 }

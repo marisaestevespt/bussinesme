@@ -80,13 +80,41 @@ function cleanRecord<T extends Record<string, unknown>>(m: T): T {
   return cleaned as T;
 }
 
-export function useTeamData() {
+/**
+ * Options to control which datasets are loaded.
+ * Defaults to true for everything (back-compat), but pages that only need
+ * a subset (e.g. just members) should pass `{ members: true }` etc.
+ */
+export interface UseTeamDataOptions {
+  members?: boolean;
+  onboarding?: boolean;
+  perfWeekly?: boolean;
+  perfMonthly?: boolean;
+  feedback?: boolean;
+  contracts?: boolean;
+  payments?: boolean;
+  /** Limit window for time-bounded datasets (feedback/payments). Defaults to current + last year. */
+  yearFrom?: number;
+}
+
+export function useTeamData(options: UseTeamDataOptions = {}) {
+  const opts = {
+    members: options.members ?? true,
+    onboarding: options.onboarding ?? true,
+    perfWeekly: options.perfWeekly ?? true,
+    perfMonthly: options.perfMonthly ?? true,
+    feedback: options.feedback ?? true,
+    contracts: options.contracts ?? true,
+    payments: options.payments ?? true,
+    yearFrom: options.yearFrom ?? (new Date().getFullYear() - 1),
+  };
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: KEY });
 
   // Members
   const members = useQuery({
     queryKey: [...KEY, 'members'],
+    enabled: opts.members,
     queryFn: async () => {
       const { data } = await supabase.from('team_members').select('*').order('full_name');
       return data || [];
@@ -121,6 +149,7 @@ export function useTeamData() {
   // Onboarding
   const onboarding = useQuery({
     queryKey: [...KEY, 'onboarding'],
+    enabled: opts.onboarding,
     queryFn: async () => {
       const { data } = await supabase.from('member_onboarding').select('*').order('sort_order');
       return data || [];
@@ -155,6 +184,7 @@ export function useTeamData() {
   // Performance Weekly
   const perfWeekly = useQuery({
     queryKey: [...KEY, 'perf_weekly'],
+    enabled: opts.perfWeekly,
     queryFn: async () => {
       const { data } = await supabase.from('performance_weekly').select('*').order('week_start', { ascending: false }).limit(200);
       return data || [];
@@ -188,6 +218,7 @@ export function useTeamData() {
   // Performance Monthly
   const perfMonthly = useQuery({
     queryKey: [...KEY, 'perf_monthly'],
+    enabled: opts.perfMonthly,
     queryFn: async () => {
       const { data } = await supabase.from('performance_monthly').select('*').order('year', { ascending: false }).limit(200);
       return data || [];
@@ -218,11 +249,16 @@ export function useTeamData() {
     onSuccess: invalidate,
   });
 
-  // Feedback
+  // Feedback (limited to recent years to avoid hitting row limits)
   const feedback = useQuery({
-    queryKey: [...KEY, 'feedback'],
+    queryKey: [...KEY, 'feedback', opts.yearFrom],
+    enabled: opts.feedback,
     queryFn: async () => {
-      const { data } = await supabase.from('feedback_sessions').select('*').order('session_date', { ascending: false }).limit(200);
+      const fromDate = `${opts.yearFrom}-01-01`;
+      const { data } = await supabase.from('feedback_sessions')
+        .select('*')
+        .gte('session_date', fromDate)
+        .order('session_date', { ascending: false });
       return data || [];
     },
     staleTime: 2 * 60 * 1000,
@@ -254,6 +290,7 @@ export function useTeamData() {
   // Contracts
   const contracts = useQuery({
     queryKey: [...KEY, 'contracts'],
+    enabled: opts.contracts,
     queryFn: async () => {
       const { data } = await supabase.from('member_contracts').select('*').order('start_date', { ascending: false });
       return data || [];
@@ -376,11 +413,16 @@ export function useTeamData() {
     onSuccess: invalidate,
   });
 
-  // Payments
+  // Payments (limited to recent years to avoid hitting row limits)
   const payments = useQuery({
-    queryKey: [...KEY, 'payments'],
+    queryKey: [...KEY, 'payments', opts.yearFrom],
+    enabled: opts.payments,
     queryFn: async () => {
-      const { data } = await supabase.from('member_payments').select('*').order('year', { ascending: false }).limit(500);
+      const { data } = await supabase.from('member_payments')
+        .select('*')
+        .gte('year', opts.yearFrom)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false });
       return data || [];
     },
     staleTime: 2 * 60 * 1000,
