@@ -13,6 +13,9 @@ import {
   type AgendaEvent, type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
 import { AgendaLegend } from '@/components/agenda/AgendaLegend';
+import { useProductColors } from '@/hooks/useProductColors';
+import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
+import { parseISO as parseIsoDate, isWithinInterval } from 'date-fns';
 
 const VIEW_STORAGE_KEY = 'secretaria-agenda:viewMode';
 
@@ -26,6 +29,8 @@ export default function SecretariaAgenda() {
   });
   const [current, setCurrent] = useState<Date>(new Date());
   const routineTasks = useMonthRoutineTasks();
+  const { data: productColors } = useProductColors();
+  const { data: globalContext = [] } = useGlobalAgendaContext();
 
   useEffect(() => {
     try { window.localStorage.setItem(VIEW_STORAGE_KEY, mode); } catch {}
@@ -124,10 +129,11 @@ export default function SecretariaAgenda() {
 
   // Map fetched events + meetings + tasks to AgendaEvent shape
   const agendaEvents: AgendaEvent[] = useMemo(() => {
-    const TASK_COLOR = 'hsl(var(--primary))';
-    const EVENT_COLOR = '#0EA5E9';   // sky
+    const productColorFor = (pid?: string | null) => (pid && productColors?.get(pid)) || undefined;
     const events = (myEvents.data || []).map((e: any) => {
       const isMeeting = !!e._isMeeting;
+      const pid = e.product_id || null;
+      const colorOverride = productColorFor(pid);
       return {
         id: e.id,
         title: e.title,
@@ -139,6 +145,7 @@ export default function SecretariaAgenda() {
         ...(isMeeting ? { _isMeeting: true } : {}),
         _source: isMeeting ? 'reuniao' : 'event',
         _originalId: e._meetingId || e.id,
+        ...(colorOverride ? { _color: colorOverride } : {}),
       } as any;
     });
     const tasks = (myAgendaTasks.data || []).map((t: any) => {
@@ -146,6 +153,7 @@ export default function SecretariaAgenda() {
       if (start && start.length === 10) start = `${start}T09:00:00`;
       const startD = new Date(start);
       const endD = new Date(startD.getTime() + 30 * 60000);
+      const colorOverride = productColorFor(t.product_id);
       return {
         id: `task-${t.id}`,
         title: t.name,
@@ -156,10 +164,23 @@ export default function SecretariaAgenda() {
         created_by: null, recurrence_type: null, recurrence_end: null, meeting_url: null,
         _source: 'tarefa',
         _originalId: t.id,
+        ...(colorOverride ? { _color: colorOverride } : {}),
       } as any;
     });
-    return [...events, ...tasks];
-  }, [myEvents.data, myAgendaTasks.data]);
+    // Filter global context to currently visible window
+    const startWin = parseIsoDate(fetchStart + 'T00:00:00');
+    const endWin = parseIsoDate(fetchEnd + 'T23:59:59');
+    const ctx = (globalContext || []).filter(ev => {
+      try {
+        const s = parseIsoDate(ev.start_date);
+        const e = parseIsoDate(ev.end_date || ev.start_date);
+        return isWithinInterval(s, { start: startWin, end: endWin })
+            || isWithinInterval(e, { start: startWin, end: endWin })
+            || (s <= startWin && e >= endWin);
+      } catch { return false; }
+    });
+    return [...ctx, ...events, ...tasks];
+  }, [myEvents.data, myAgendaTasks.data, productColors, globalContext, fetchStart, fetchEnd]);
 
   const types = useMemo(() => ([
     { id: '__src_event',   name: 'Evento',  color: '#0EA5E9', slug: 'event' },

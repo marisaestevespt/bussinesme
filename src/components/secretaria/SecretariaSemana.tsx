@@ -8,6 +8,8 @@ import { format, parseISO, isWithinInterval, startOfWeek, endOfWeek, startOfDay 
 import { useNavigate } from 'react-router-dom';
 import { WeekView } from '@/components/agenda/AppleCalendarViews';
 import { unifiedItemToAgendaEvent, buildSourceTypes } from './secretaria-agenda-mappers';
+import { useProductColors } from '@/hooks/useProductColors';
+import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 
 const today = startOfDay(new Date());
 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -19,6 +21,8 @@ export default function SecretariaSemana() {
   const timeEntries = useMyTimeEntries();
   const routineTasks = useMonthRoutineTasks();
   const unified = useUnifiedResponsibilities();
+  const { data: productColors } = useProductColors();
+  const { data: globalContext = [] } = useGlobalAgendaContext();
 
   const weekMeetings = useMemo(() => (meetings.data || []).filter((m: any) => isWithinInterval(parseISO(m.date_time), { start: weekStart, end: weekEnd })), [meetings.data]);
   const weekTime = useMemo(() => (timeEntries.data || []).filter((e: any) => {
@@ -29,8 +33,22 @@ export default function SecretariaSemana() {
   const weekHours = useMemo(() => weekTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [weekTime]);
 
   const weekAgendaEvents = useMemo(
-    () => unified.weekItems.map(unifiedItemToAgendaEvent).filter((e): e is NonNullable<typeof e> => !!e),
-    [unified.weekItems]
+    () => {
+      const own = unified.weekItems
+        .map(i => unifiedItemToAgendaEvent(i, productColors))
+        .filter((e): e is NonNullable<typeof e> => !!e);
+      const ctx = globalContext.filter(ev => {
+        try {
+          const s = parseISO(ev.start_date);
+          const e = parseISO(ev.end_date || ev.start_date);
+          return isWithinInterval(s, { start: weekStart, end: weekEnd })
+              || isWithinInterval(e, { start: weekStart, end: weekEnd })
+              || (s <= weekStart && e >= weekEnd);
+        } catch { return false; }
+      });
+      return [...ctx, ...own];
+    },
+    [unified.weekItems, productColors, globalContext]
   );
   const sourceTypes = useMemo(buildSourceTypes, []);
 

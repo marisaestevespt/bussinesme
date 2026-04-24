@@ -12,6 +12,7 @@ const SOURCE_COLOR: Record<string, string> = {
   nps: '#14B8A6',         // teal
   marco: '#6366F1',       // indigo
   acao_venda: '#EF4444',  // red
+  global: '#94A3B8',      // slate (for Off / Datas Especiais context)
 };
 
 function makeBase(): Omit<AgendaEvent, 'id' | 'title' | 'start_date' | 'end_date'> {
@@ -29,7 +30,10 @@ function makeBase(): Omit<AgendaEvent, 'id' | 'title' | 'start_date' | 'end_date
 }
 
 /** Map a UnifiedItem (responsibilities/tasks/meetings/etc) into AgendaEvent shape. */
-export function unifiedItemToAgendaEvent(i: UnifiedItem): AgendaEvent | null {
+export function unifiedItemToAgendaEvent(
+  i: UnifiedItem,
+  productColors?: Map<string, string>,
+): AgendaEvent | null {
   if (!i.date) return null;
   // Default to 30 min slot when only a date is provided
   let start = i.date;
@@ -37,7 +41,10 @@ export function unifiedItemToAgendaEvent(i: UnifiedItem): AgendaEvent | null {
   const startD = new Date(start);
   if (isNaN(startD.getTime())) return null;
   const endD = new Date(startD.getTime() + 30 * 60000);
-  const color = SOURCE_COLOR[i.source as string] ?? 'hsl(var(--primary))';
+  // Prefer product brand colour if the item is linked to a product
+  const productId = (i as any).productId ?? (i as any).product_id;
+  const productColor = productId ? productColors?.get(productId) : undefined;
+  const color = productColor ?? SOURCE_COLOR[i.source as string] ?? 'hsl(var(--primary))';
   return {
     ...makeBase(),
     id: `${i.source}-${i.id}`,
