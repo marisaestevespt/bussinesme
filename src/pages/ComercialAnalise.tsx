@@ -4,6 +4,7 @@ import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
+import { MonthCardsGallery } from '@/components/analysis/MonthCardsGallery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -653,37 +654,24 @@ export default function ComercialAnalisePage() {
         <Separator />
 
         {/* Month gallery */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {monthSummaries.map((m, idx) => {
-            const isCurrent = now.getMonth() === idx && now.getFullYear() === year;
-            return (
-              <Card
-                key={idx}
-                className={cn(
-                  'cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group',
-                  isCurrent && 'ring-2 ring-primary'
-                )}
-                onClick={() => setSelectedMonth(idx)}
-              >
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">{m.name}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <p className="text-lg font-bold">{formatInt(m.revenue)} €</p>
-                  {m.goalAmount > 0 ? (
-                    <div className="space-y-1">
-                      <Progress value={m.pct} className="h-1.5" />
-                      <p className="text-[10px] text-muted-foreground">{m.pct}% da meta • {m.salesCount} vendas</p>
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-muted-foreground">{m.salesCount} vendas</p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <MonthCardsGallery
+          months={monthSummaries}
+          year={year}
+          onSelectMonth={setSelectedMonth}
+          renderBody={(m) => (
+            <>
+              <p className="text-lg font-bold">{formatInt(m.revenue)} €</p>
+              {m.goalAmount > 0 ? (
+                <div className="space-y-1">
+                  <Progress value={m.pct} className="h-1.5" />
+                  <p className="text-[10px] text-muted-foreground">{m.pct}% da meta • {m.salesCount} vendas</p>
+                </div>
+              ) : (
+                <p className="text-[10px] text-muted-foreground">{m.salesCount} vendas</p>
+              )}
+            </>
+          )}
+        />
       </div>
     </AppLayout>
   );
