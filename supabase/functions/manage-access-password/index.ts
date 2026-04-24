@@ -83,7 +83,7 @@ function getClientMeta(req: Request) {
 }
 
 async function logAudit(
-  admin: ReturnType<typeof createClient>,
+  admin: any,
   params: {
     user_id: string;
     action: "read" | "write" | "rotate" | "denied";
