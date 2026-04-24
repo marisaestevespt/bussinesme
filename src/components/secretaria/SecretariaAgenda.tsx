@@ -12,7 +12,6 @@ import {
   navigatePrev, navigateNext, formatLabel,
   type AgendaEvent, type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
-import { AgendaLegend } from '@/components/agenda/AgendaLegend';
 import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import { parseISO as parseIsoDate, isWithinInterval } from 'date-fns';
