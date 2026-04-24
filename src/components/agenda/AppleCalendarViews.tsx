@@ -91,8 +91,8 @@ export function AgendaToolbar({
         {mode === 'week' && (() => {
           const wn = getISOWeek(current);
           return (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-medium text-muted-foreground/80 normal-case">
-              S{wn}
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-medium text-muted-foreground/80 lowercase">
+              semana {wn}
             </span>
           );
         })()}
