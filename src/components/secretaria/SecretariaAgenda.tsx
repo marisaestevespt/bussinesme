@@ -209,8 +209,8 @@ export default function SecretariaAgenda() {
             || (s <= startWin && e >= endWin);
       } catch { return false; }
     });
-    return [...ctx, ...events, ...tasks];
-  }, [myEvents.data, myAgendaTasks.data, productColors, globalContext, fetchStart, fetchEnd]);
+    return [...ctx, ...events, ...tasks].filter(isEventVisible);
+  }, [myEvents.data, myAgendaTasks.data, productColors, globalContext, fetchStart, fetchEnd, calendarFilters.hidden]);
 
   const types = useMemo(() => ([
     { id: '__src_event',   name: 'Evento',  color: '#0EA5E9', slug: 'event' },
