@@ -43,6 +43,7 @@ import {
   formatLabel,
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
+import { AgendaLegend, type LegendItem } from '@/components/agenda/AgendaLegend';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1102,6 +1103,13 @@ export default function AgendaPage() {
               onNext={() => setCursor(d => navigateNext(mode, d))}
               onToday={() => setCursor(new Date())}
               label={formatLabel(mode, cursor)}
+            />
+            <AgendaLegend
+              items={[
+                ...types.map<LegendItem>(t => ({ label: t.name, color: t.color })),
+                { label: 'Reunião', color: '#8B5CF6' },
+                { label: 'Feriado', color: 'hsl(var(--destructive))' },
+              ]}
             />
             {mode === 'day' && (
               <DayView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />

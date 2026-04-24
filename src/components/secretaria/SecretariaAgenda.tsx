@@ -12,6 +12,7 @@ import {
   navigatePrev, navigateNext, formatLabel,
   type AgendaEvent, type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
+import { AgendaLegend } from '@/components/agenda/AgendaLegend';
 
 const VIEW_STORAGE_KEY = 'secretaria-agenda:viewMode';
 
@@ -192,6 +193,13 @@ export default function SecretariaAgenda() {
             onNext={goNext}
             onToday={goToday}
             label={formatLabel(mode, current)}
+          />
+          <AgendaLegend
+            items={[
+              { label: 'Evento', color: '#0EA5E9' },
+              { label: 'Reunião', color: '#3B82F6' },
+              { label: 'Tarefa', color: 'hsl(var(--primary))' },
+            ]}
           />
 
           {mode === 'day' && (
