@@ -24,6 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SubRow, ContractRow } from './SubRows';
 import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth, getSubscriptionDueDate } from './helpers';
 import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './expenseBuilders';
+import { VatPreview } from '../VatPreview';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
@@ -402,14 +403,11 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
               </Select>
             </div>
           </div>
-          {expForm.base_value && parseFloat(expForm.base_value) > 0 && parseInt(expForm.vat_rate) > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {expForm.includes_vat
-                ? `Base: ${(parseFloat(expForm.base_value) / (1 + parseInt(expForm.vat_rate) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) - parseFloat(expForm.base_value) / (1 + parseInt(expForm.vat_rate) / 100)).toFixed(2)} €`
-                : `Total c/ IVA: ${(parseFloat(expForm.base_value) * (1 + parseInt(expForm.vat_rate) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) * parseInt(expForm.vat_rate) / 100).toFixed(2)} €`
-              }
-            </p>
-          )}
+          <VatPreview
+            value={expForm.base_value}
+            vatRate={expForm.vat_rate}
+            includesVat={!!expForm.includes_vat}
+          />
           <div><Label>Localização</Label>
             <Select value={expForm.location} onValueChange={v => setExpForm(f => ({ ...f, location: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
