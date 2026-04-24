@@ -1,73 +1,46 @@
 import { useMemo, useState } from 'react';
-import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { excludeCancelled } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Separator } from '@/components/ui/separator';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
-import { useNavigate } from 'react-router-dom';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, TrendingUp, TrendingDown, Package, UserCheck, Download, BarChart3, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 import { exportPdf } from '@/lib/exportPdf';
-import { sumRevenue } from '@/lib/salesCalculations';
-import { formatEuro } from '@/lib/formatting';
-import { expenseLabel, EXPENSE_INSIGHT_EXCLUDED } from '@/lib/financialCategories';
-const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
-
-const ALL_SECTIONS_ROW1 = [
-  { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-info', color: 'from-blue-500/20 to-blue-600/10 border-info/30/60 hover:from-blue-500/30 hover:to-blue-600/15 hover:border-info/30/80', key: 'mensal' },
-  { path: '/hub/financeiro/trimestral', label: 'Trimestral', icon: CalendarRange, iconColor: 'text-violet-600', color: 'from-violet-500/20 to-violet-600/10 border-violet-200/60 hover:from-violet-500/30 hover:to-violet-600/15 hover:border-violet-300/80', key: 'trimestral' },
-  { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-warning', color: 'from-orange-500/20 to-orange-600/10 border-warning/30/60 hover:from-orange-500/30 hover:to-orange-600/15 hover:border-warning/30/80', key: 'documentos' },
-  { path: '/hub/financeiro/entradas', label: 'Entradas', icon: ArrowDownLeft, iconColor: 'text-success', color: 'from-emerald-500/20 to-emerald-600/10 border-success/30/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-success/30/80', key: 'entradas' },
-  { path: '/hub/financeiro/saidas', label: 'Saídas', icon: ArrowUpRight, iconColor: 'text-destructive', color: 'from-red-500/20 to-red-600/10 border-destructive/30/60 hover:from-red-500/30 hover:to-red-600/15 hover:border-destructive/30/80', key: 'saidas' },
-];
-
-const ALL_SECTIONS_ROW2 = [
-  { path: '/hub/financeiro/iva', label: 'IVA', icon: Receipt, iconColor: 'text-warning', color: 'from-amber-500/20 to-amber-600/10 border-warning/30/60 hover:from-amber-500/30 hover:to-amber-600/15 hover:border-warning/30/80', key: 'iva' },
-  { path: '/hub/financeiro/seguranca-social', label: 'Segurança Social', icon: Shield, iconColor: 'text-cyan-600', color: 'from-cyan-500/20 to-cyan-600/10 border-cyan-200/60 hover:from-cyan-500/30 hover:to-cyan-600/15 hover:border-cyan-300/80', key: 'ss' },
-  { path: '/hub/financeiro/contabilidade', label: 'Prazos Fiscais', icon: CalendarCheck, iconColor: 'text-success', color: 'from-emerald-500/20 to-emerald-600/10 border-success/30/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-success/30/80', key: 'contabilidade' },
-  { path: '/hub/financeiro/setup-financeiro', label: 'Lista de Fornecedores', icon: Truck, iconColor: 'text-slate-600', color: 'from-slate-500/20 to-slate-600/10 border-slate-200/60 hover:from-slate-500/30 hover:to-slate-600/15 hover:border-slate-300/80', key: 'fornecedores' },
-  { path: '/hub/financeiro/lista-produtos', label: 'Lista de Produtos', icon: Package, iconColor: 'text-indigo-600', color: 'from-indigo-500/20 to-indigo-600/10 border-indigo-200/60 hover:from-indigo-500/30 hover:to-indigo-600/15 hover:border-indigo-300/80', key: 'produtos' },
-];
+import { ALL_SECTIONS_ROW1, ALL_SECTIONS_ROW2 } from '@/components/financial/finOverview/sections';
+import { NavRow } from '@/components/financial/finOverview/NavSections';
+import { useOverviewData } from '@/components/financial/finOverview/useOverviewData';
+import { SummaryCards, BestWorstMonth } from '@/components/financial/finOverview/SummaryCards';
+import { MonthlyCharts } from '@/components/financial/finOverview/MonthlyCharts';
+import { PieDistributions } from '@/components/financial/finOverview/PieDistributions';
+import { InsightsRow } from '@/components/financial/finOverview/InsightsRow';
+import type { BusinessSettingsLike } from '@/components/financial/types';
 
 export default function FinanceiroPage() {
   const { settings } = useBusinessSettings();
-  // Overview only needs expenses for the totals — skip payroll/contractors/recurring/documents
   const fin = useFinancialData({ expenses: true, recurring: false, documents: false, payroll: false, contractors: false });
   const [year, setYear] = useState(new Date().getFullYear());
   const com = useCommercialData(year);
-  const navigate = useNavigate();
 
-  // Filter IVA / SS / Ordenados sections based on fiscal settings
-  const s = settings as any;
-  const ivaExempt = s?.iva_exempt ?? false;
-  const ssExempt = s?.ss_exempt ?? false;
-  const isContabOrganizada = (s?.tax_irs_regime || '') === 'contabilidade_organizada';
+  const s = (settings as (BusinessSettingsLike & { ss_exempt?: boolean; tax_irs_regime?: string }) | null) || {};
+  const ivaExempt = s.iva_exempt ?? false;
+  const ssExempt = s.ss_exempt ?? false;
+  const isContabOrganizada = (s.tax_irs_regime || '') === 'contabilidade_organizada';
 
-  const SECTIONS_ROW1 = useMemo(() => {
-    return ALL_SECTIONS_ROW1.filter(sec => {
-      if (sec.key === 'iva' && ivaExempt && !isContabOrganizada) return false;
-      if (sec.key === 'ss' && ssExempt && !isContabOrganizada) return false;
-      return true;
-    });
-  }, [ivaExempt, ssExempt, isContabOrganizada]);
-
-  const SECTIONS_ROW2 = ALL_SECTIONS_ROW2;
+  const SECTIONS_ROW1 = useMemo(() => ALL_SECTIONS_ROW1.filter(sec => {
+    if (sec.key === 'iva' && ivaExempt && !isContabOrganizada) return false;
+    if (sec.key === 'ss' && ssExempt && !isContabOrganizada) return false;
+    return true;
+  }), [ivaExempt, ssExempt, isContabOrganizada]);
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
 
-  // Fetch clients for counting
-  const { data: clients = [] } = useQuery({
+  useQuery({
     queryKey: ['clients-fin-overview'],
     queryFn: async () => {
       const { data } = await supabase.from('clients').select('id, status, start_date, current_product');
@@ -75,181 +48,17 @@ export default function FinanceiroPage() {
     },
   });
 
-  // Filter by year
-  const yearSales = useMemo(() => sales.filter(s => s.sale_year === year), [sales, year]);
-  const yearExpenses = useMemo(() => expenses.filter(e => e.expense_year === year), [expenses, year]);
-
-  // Summary
-  const totalEntradas = sumRevenue(yearSales);
-  const totalBaseEntradas = yearSales.reduce((s, v) => s + v.base_value, 0);
-  const totalSaidas = yearExpenses.reduce((s, v) => s + v.total_with_vat, 0);
-  const totalBaseSaidas = yearExpenses.reduce((s, v) => s + v.base_value, 0);
-  const resultado = totalEntradas - totalSaidas;
-  const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
-
-  // IVA
-  const ivaCobrado = totalEntradas - totalBaseEntradas;
-  const ivaPago = totalSaidas - totalBaseSaidas;
-  const ivaBalanco = Math.round((ivaCobrado - ivaPago) * 100) / 100;
-
-  // SS balance
-  const ssTotal = useMemo(() => {
-    return yearExpenses
-      .filter(e => e.category === 'seguranca_social')
-      .reduce((s, v) => s + v.total_with_vat, 0);
-  }, [yearExpenses]);
-
-  // Product insights (from sales)
-  const productInsights = useMemo(() => {
-    const byProduct = new Map<string, number>();
-    yearSales.forEach(s => {
-      const name = s.product || 'Sem produto';
-      byProduct.set(name, (byProduct.get(name) || 0) + s.invoice_total);
-    });
-    const sorted = [...byProduct.entries()].sort((a, b) => b[1] - a[1]);
-    return {
-      best: sorted.length > 0 ? { name: sorted[0][0], value: sorted[0][1] } : null,
-      worst: sorted.length > 1 ? { name: sorted[sorted.length - 1][0], value: sorted[sorted.length - 1][1] } : null,
-    };
-  }, [yearSales]);
-
-  // Clients active in the year
-  const clientsInYear = useMemo(() => {
-    const clientSet = new Set<string>();
-    yearSales.forEach(s => { if (s.client) clientSet.add(s.client); });
-    return clientSet.size;
-  }, [yearSales]);
-
-  // Expense category insights
-  const categoryInsights = useMemo(() => {
-    const byCat = new Map<string, number>();
-    yearExpenses.forEach(e => {
-      const cat = e.category;
-      if (!cat || EXPENSE_INSIGHT_EXCLUDED.has(cat)) return;
-      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
-    });
-    const sorted = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
-    return {
-      biggest: sorted.length > 0 ? { name: sorted[0][0], value: sorted[0][1] } : null,
-      smallest: sorted.length > 1 ? { name: sorted[sorted.length - 1][0], value: sorted[sorted.length - 1][1] } : null,
-    };
-  }, [yearExpenses]);
-
-  const catLabel = expenseLabel;
-
-  // Monthly chart data
-  const monthlyData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const m = i + 1;
-      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
-      const entBase = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.base_value, 0);
-      const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
-      const saiBase = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.base_value, 0);
-      return { mes: ML[i], entradas: ent, saidas: sai, resultado: ent - sai, ivaCobrado: ent - entBase, ivaPago: sai - saiBase };
-    });
-  }, [yearSales, yearExpenses]);
-
-  // Product distribution for pie chart
-  const productPieData = useMemo(() => {
-    const byProduct = new Map<string, number>();
-    yearSales.forEach(s => {
-      const name = s.product || 'Sem produto';
-      byProduct.set(name, (byProduct.get(name) || 0) + s.invoice_total);
-    });
-    return [...byProduct.entries()]
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [yearSales]);
-
-  // Category distribution for pie chart
-  const categoryPieData = useMemo(() => {
-    const byCat = new Map<string, number>();
-    yearExpenses.forEach(e => {
-      const cat = catLabel(e.category || 'outro');
-      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
-    });
-    return [...byCat.entries()]
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [yearExpenses]);
-
-  // Quarterly data
-  const QUARTERS = [
-    { label: 'T1', months: [1, 2, 3] },
-    { label: 'T2', months: [4, 5, 6] },
-    { label: 'T3', months: [7, 8, 9] },
-    { label: 'T4', months: [10, 11, 12] },
-  ];
-
-  const quarterlyData = useMemo(() => {
-    return QUARTERS.map(q => {
-      const ent = sumRevenue(yearSales.filter(s => q.months.includes(s.sale_month || 0)));
-      const sai = yearExpenses.filter(e => q.months.includes(e.expense_month || 0)).reduce((s, v) => s + v.total_with_vat, 0);
-      const res = ent - sai;
-      return { label: q.label, entradas: ent, saidas: sai, resultado: res, margem: ent > 0 ? Math.round(res / ent * 10000) / 100 : 0 };
-    });
-  }, [yearSales, yearExpenses]);
-
-  // Best/worst month
-  const bestMonth = useMemo(() => {
-    let best = monthlyData[0];
-    monthlyData.forEach(d => { if (d.resultado > best.resultado) best = d; });
-    return best;
-  }, [monthlyData]);
-
-  const worstMonth = useMemo(() => {
-    let worst = monthlyData[0];
-    monthlyData.forEach(d => { if (d.resultado < worst.resultado) worst = d; });
-    return worst;
-  }, [monthlyData]);
-
-  // Average monthly
-  const avgEntradas = totalEntradas / 12;
-  const avgSaidas = totalSaidas / 12;
+  const data = useOverviewData(sales, expenses, year);
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." department="financeiro" />
 
-        {/* Navigation cards */}
         <div className="space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {SECTIONS_ROW1.map(s => (
-              <Card
-                key={s.path}
-                className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
-                onClick={() => navigate(s.path)}
-              >
-                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
-                    <s.icon className="h-4 w-4" />
-                  </div>
-                  <span className="font-medium text-xs sm:text-sm text-foreground leading-tight">{s.label}</span>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {SECTIONS_ROW2.map(s => (
-              <Card
-                key={s.path}
-                className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
-                onClick={() => navigate(s.path)}
-              >
-                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
-                    <s.icon className="h-4 w-4" />
-                  </div>
-                  <span className="font-medium text-xs sm:text-sm text-foreground leading-tight">{s.label}</span>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <NavRow sections={SECTIONS_ROW1} />
+          <NavRow sections={ALL_SECTIONS_ROW2} />
         </div>
-
-
-
 
         <div className="flex items-center justify-between">
           <YearSelector year={year} onChange={setYear} />
@@ -258,167 +67,25 @@ export default function FinanceiroPage() {
           </Button>
         </div>
 
-        {/* Summary Cards */}
         <div id="fin-annual-report" className="space-y-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas</p><p className="text-lg sm:text-xl font-bold text-success">{formatEuro(totalEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas</p><p className="text-lg sm:text-xl font-bold text-destructive">{formatEuro(totalSaidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(resultado)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Margem</p><p className={`text-lg sm:text-xl font-bold ${margem >= 0 ? 'text-success' : 'text-destructive'}`}>{margem}%</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-lg sm:text-xl font-bold">{formatEuro(avgEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-lg sm:text-xl font-bold">{formatEuro(avgSaidas)}</p></CardContent></Card>
-        </div>
-
-        {/* Best/Worst month */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-success/30 bg-success/15/50 dark:bg-emerald-950/20 dark:border-emerald-800">
-            <CardContent className="pt-4 flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-success shrink-0" />
-              <div><p className="text-xs text-muted-foreground">Melhor mês</p><p className="font-semibold">{bestMonth.mes}</p><p className="text-sm text-success">{formatEuro(bestMonth.resultado)}</p></div>
-            </CardContent>
-          </Card>
-          <Card className="border-destructive/30 bg-destructive/15/50 dark:bg-red-950/20 dark:border-red-800">
-            <CardContent className="pt-4 flex items-center gap-3">
-              <TrendingDown className="h-5 w-5 text-destructive shrink-0" />
-              <div><p className="text-xs text-muted-foreground">Pior mês</p><p className="font-semibold">{worstMonth.mes}</p><p className="text-sm text-destructive">{formatEuro(worstMonth.resultado)}</p></div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Entradas vs Saídas chart */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Entradas vs Saídas — Evolução Mensal</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip formatter={(v: number) => formatEuro(v)} />
-                <Legend />
-                <Bar dataKey="entradas" name="Entradas" fill="#10b981" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="saidas" name="Saídas" fill="#ef4444" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Resultado mensal chart */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Resultado Mensal (Lucro / Prejuízo)</CardTitle></CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip formatter={(v: number) => formatEuro(v)} />
-                <Bar dataKey="resultado" name="Resultado" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Pie charts: Products & Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Receita por Produto</CardTitle></CardHeader>
-            <CardContent>
-              {productPieData.length > 0 ? (
-                <div className="flex items-center gap-4">
-                  <div className="h-48 w-48 shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart><Pie data={productPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{productPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-1.5 text-sm flex-1 min-w-0">
-                    {productPieData.map((p, i) => (
-                      <div key={p.name} className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                        <span className="truncate flex-1">{p.name}</span>
-                        <span className="text-muted-foreground text-xs shrink-0">{formatEuro(p.value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-1.5"><ArrowUpRight className="h-3.5 w-3.5" /> Despesas por Categoria</CardTitle></CardHeader>
-            <CardContent>
-              {categoryPieData.length > 0 ? (
-                <div className="flex items-center gap-4">
-                  <div className="h-48 w-48 shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart><Pie data={categoryPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{categoryPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => formatEuro(v)} /></PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-1.5 text-sm flex-1 min-w-0">
-                    {categoryPieData.map((c, i) => (
-                      <div key={c.name} className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                        <span className="truncate flex-1">{c.name}</span>
-                        <span className="text-muted-foreground text-xs shrink-0">{formatEuro(c.value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Insights row */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto + vendido</p></div>
-              {productInsights.best ? (<><p className="text-sm font-semibold truncate">{productInsights.best.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.best.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto - vendido</p></div>
-              {productInsights.worst ? (<><p className="text-sm font-semibold truncate">{productInsights.worst.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.worst.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Maior despesa</p></div>
-              {categoryInsights.biggest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.biggest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Menor despesa</p></div>
-              {categoryInsights.smallest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.smallest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1"><UserCheck className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Clientes no ano</p></div>
-              <p className="text-xl font-bold">{clientsInYear}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Nº vendas & despesas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1"><BarChart3 className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Total de vendas registadas</p></div>
-              <p className="text-xl font-bold">{yearSales.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1"><BarChart3 className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Total de despesas registadas</p></div>
-              <p className="text-xl font-bold">{yearExpenses.length}</p>
-            </CardContent>
-          </Card>
-        </div>
+          <SummaryCards
+            totalEntradas={data.totalEntradas}
+            totalSaidas={data.totalSaidas}
+            resultado={data.resultado}
+            margem={data.margem}
+            avgEntradas={data.avgEntradas}
+            avgSaidas={data.avgSaidas}
+          />
+          <BestWorstMonth best={data.bestMonth} worst={data.worstMonth} />
+          <MonthlyCharts data={data.monthlyData} />
+          <PieDistributions products={data.productPieData} categories={data.categoryPieData} />
+          <InsightsRow
+            productInsights={data.productInsights}
+            categoryInsights={data.categoryInsights}
+            clientsInYear={data.clientsInYear}
+            yearSalesCount={data.yearSales.length}
+            yearExpensesCount={data.yearExpenses.length}
+          />
         </div>
       </div>
     </AppLayout>
