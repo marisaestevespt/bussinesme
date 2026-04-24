@@ -153,7 +153,7 @@ export function AgendaCalendarsSidebar({
   const productIds = useMemo(() => productItems.map(i => i.id), [productItems]);
 
   return (
-    <aside className={cn('w-[200px] shrink-0 border-r border-border/60 bg-card/40', className)}>
+    <aside className={cn('w-[220px] shrink-0 border-r border-border/60 bg-card/40', className)}>
       <ScrollArea className="h-full">
         <div className="py-2">
           <CalendarSection
