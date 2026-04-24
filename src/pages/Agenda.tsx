@@ -154,6 +154,44 @@ function useEvents(userId: string | undefined, isOwner: boolean, range: { from: 
 }
 
 const MEETING_PSEUDO_COLOR = '#8B5CF6'; // violet for meetings on calendar
+const SALES_ACTION_PSEUDO_COLOR = '#F59E0B'; // amber for sales campaigns
+
+/**
+ * Surfaces commercial sales actions on the agenda as virtual events so the
+ * user sees them alongside meetings & explicit events. Read-only.
+ */
+function useSalesActionsAsEvents(range: { from: string; to: string }) {
+  return useQuery({
+    queryKey: ['sales-actions-as-events', range.from, range.to],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('commercial_sales_actions')
+        .select('id,action_name,start_date,end_date,product_id,product,status')
+        .or(`and(start_date.gte.${range.from},start_date.lte.${range.to}),and(end_date.gte.${range.from},end_date.lte.${range.to})`)
+        .order('start_date');
+      if (error) throw error;
+      return (data || []).map((a: any): EventRow & { _isSalesAction: true; _salesActionId: string } => ({
+        id: `sales_${a.id}`,
+        _isSalesAction: true as const,
+        _salesActionId: a.id,
+        title: `📣 ${a.action_name}`,
+        event_type_id: null,
+        start_date: a.start_date ? `${a.start_date}T09:00:00` : new Date().toISOString(),
+        end_date: a.end_date ? `${a.end_date}T18:00:00` : null,
+        product_name: a.product || null,
+        product_id: a.product_id || null,
+        department: 'comercial',
+        client_name: null,
+        notes: null,
+        created_by: null,
+        recurrence_type: null,
+        recurrence_end: null,
+        meeting_url: null,
+      }));
+    },
+  });
+}
 
 function useMeetingsAsEvents(range: { from: string; to: string }) {
   return useQuery({
@@ -778,6 +816,22 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
 
   const expandedEvents = expandRecurringEvents(events, monthStart, monthEnd);
 
+  // Off days (negócio fechado) — set of yyyy-MM-dd strings to highlight in grey
+  const offTypeId = types.find(t => t.slug === 'off')?.id;
+  const offDayStrs = new Set<string>();
+  if (offTypeId) {
+    expandedEvents.forEach(ev => {
+      if (ev.event_type_id !== offTypeId) return;
+      const s = parseISO(ev.start_date);
+      const e = ev.end_date ? parseISO(ev.end_date) : s;
+      let cur = new Date(s);
+      while (cur <= e) {
+        offDayStrs.add(format(cur, 'yyyy-MM-dd'));
+        cur = addDays(cur, 1);
+      }
+    });
+  }
+
   // Portuguese holidays for displayed year(s)
   const holidayMap = new Map<string, string>();
   const yearsToCheck = new Set([monthStart.getFullYear(), monthEnd.getFullYear()]);
@@ -850,13 +904,23 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
               {week.map((day, di) => {
                 const dayStr = day ? format(day, 'yyyy-MM-dd') : '';
                 const holidayName = day ? holidayMap.get(dayStr) : undefined;
+                const isOffDay = day ? offDayStrs.has(dayStr) : false;
                 return (
-                  <div key={di} className={cn('bg-card min-h-[110px] p-1.5', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30', holidayName && 'bg-destructive/5')}>
+                  <div key={di} className={cn(
+                    'bg-card min-h-[110px] p-1.5',
+                    day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30',
+                    !day && 'bg-muted/30',
+                    holidayName && 'bg-destructive/5',
+                    isOffDay && 'bg-muted/60',
+                  )}>
                     {day && (
                       <div className="flex items-center gap-1">
                         <span className={cn('text-xs font-medium', isSameDay(day, new Date()) ? 'text-primary font-bold' : 'text-foreground/70')}>{format(day, 'd')}</span>
                         {holidayName && (
                           <span className="text-[10px] text-destructive font-medium truncate">{holidayName}</span>
+                        )}
+                        {isOffDay && !holidayName && (
+                          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Off</span>
                         )}
                       </div>
                     )}
@@ -1066,19 +1130,22 @@ export default function AgendaPage() {
   }), [cursor.getFullYear(), cursor.getMonth()]);
   const { data: events = [], isLoading } = useEvents(user?.id, isOwner, fetchRange);
   const { data: meetingEvents = [] } = useMeetingsAsEvents(fetchRange);
+  const { data: salesActionEvents = [] } = useSalesActionsAsEvents(fetchRange);
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
   const { data: productColors } = useProductColors();
 
   // Merge events + meetings into a single sorted list
-  const allEventsRaw = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
   // Override colour with the linked product's brand colour, when present.
   const allEvents = useMemo(() => {
-    if (!productColors || productColors.size === 0) return allEventsRaw;
     return allEventsRaw.map(ev => {
       const pid = (ev as any).product_id as string | null | undefined;
-      if (!pid) return ev;
-      const c = productColors.get(pid);
+      const productC = pid ? productColors?.get(pid) : undefined;
+      // Sales actions get the amber pseudo-colour by default; product colour overrides if present.
+      const isSales = (ev as any)._isSalesAction;
+      const fallbackC = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
+      const c = productC ?? fallbackC;
       if (!c) return ev;
       return { ...ev, _color: c } as EventRow;
     });

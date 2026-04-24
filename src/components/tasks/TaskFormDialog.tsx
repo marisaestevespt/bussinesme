@@ -25,6 +25,7 @@ import { format, parseISO, isBefore, startOfDay, startOfWeek, endOfWeek } from '
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOverdue } from '@/lib/taskStatus';
+import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'mensal_ultimo' | 'diario' | 'personalizado';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -249,6 +250,10 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
   const today = startOfDay(new Date());
   const isOverdue = (task: any) => isTaskOverdue(task, today);
+
+  // Soft warning if the task deadline lands on a global "Off" day
+  const { data: offRanges } = useOffDates();
+  const offWarning = useMemo(() => findOffRange(offRanges, deadline), [offRanges, deadline]);
   const isDoneAfterDeadline = (task: any) => {
     if (!isTaskDone(task) || !task?.deadline) return false;
     const completedAt = task.updated_at ? parseISO(task.updated_at) : null;
@@ -665,6 +670,15 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 <p className={cn("text-sm flex items-center gap-1.5", capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-warning")}>
                   <AlertTriangle className="h-4 w-4" />
                   <strong>{capacityWarning.memberName}</strong> ficará com {capacityWarning.occupancy}% de ocupação esta semana.
+                </p>
+              </div>
+            )}
+
+            {offWarning && (
+              <div className="rounded-md border border-warning/30 bg-warning/15 p-3">
+                <p className="text-sm flex items-center gap-1.5 text-warning">
+                  <AlertTriangle className="h-4 w-4" />
+                  Aviso: este prazo cai num período <strong>Off ({offWarning.title})</strong>. A tarefa pode ser criada à mesma.
                 </p>
               </div>
             )}
