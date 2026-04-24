@@ -249,6 +249,24 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           setF((prev: any) => ({ ...prev, sensitiveAccess: sa }));
         }
       });
+      // Load existing system role from user_roles (via profile_id → user_id)
+      if (initial.profile_id) {
+        supabase.from('profiles').select('user_id').eq('id', initial.profile_id).maybeSingle().then(({ data: prof }) => {
+          if (!prof?.user_id) return;
+          supabase.from('user_roles').select('role').eq('user_id', prof.user_id).then(({ data: rolesData }) => {
+            const nonOwner = (rolesData || []).map((r: any) => r.role).filter((r: string) => r !== 'owner');
+            // Se é owner, não mostramos seletor — caso contrário pega no primeiro role atribuído
+            const isOwner = (rolesData || []).some((r: any) => r.role === 'owner');
+            if (!isOwner) {
+              const order = ['admin','accountant','hr','admin_staff','sales','team_member','viewer','member'];
+              const sorted = nonOwner.sort((a: string, b: string) => order.indexOf(a) - order.indexOf(b));
+              if (sorted.length > 0) {
+                setF((prev: any) => ({ ...prev, system_role: sorted[0] === 'member' ? 'team_member' : sorted[0] }));
+              }
+            }
+          });
+        });
+      }
       // Load existing contract
       supabase.from('member_contracts').select('*').eq('member_id', initial.id).order('created_at', { ascending: false }).limit(1).then(({ data }) => {
         if (data && data.length > 0) {
