@@ -10,5 +10,3 @@ project_id = "rfzzrhldukoeuutxsixw"
     verify_jwt = true
   [functions.process-email-queue]
     verify_jwt = true
-  [functions.google-oauth-callback]
-    verify_jwt = false

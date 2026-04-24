@@ -4329,66 +4329,6 @@ export type Database = {
         }
         Relationships: []
       }
-      google_calendar_accounts: {
-        Row: {
-          access_token: string | null
-          connected_by: string | null
-          created_at: string
-          display_name: string | null
-          domain: string
-          email: string
-          id: string
-          is_active: boolean
-          last_sync_at: string | null
-          last_sync_error: string | null
-          refresh_token: string | null
-          scope: string | null
-          token_expires_at: string | null
-          updated_at: string
-          watch_channel_id: string | null
-          watch_expiration: string | null
-          watch_resource_id: string | null
-        }
-        Insert: {
-          access_token?: string | null
-          connected_by?: string | null
-          created_at?: string
-          display_name?: string | null
-          domain: string
-          email: string
-          id?: string
-          is_active?: boolean
-          last_sync_at?: string | null
-          last_sync_error?: string | null
-          refresh_token?: string | null
-          scope?: string | null
-          token_expires_at?: string | null
-          updated_at?: string
-          watch_channel_id?: string | null
-          watch_expiration?: string | null
-          watch_resource_id?: string | null
-        }
-        Update: {
-          access_token?: string | null
-          connected_by?: string | null
-          created_at?: string
-          display_name?: string | null
-          domain?: string
-          email?: string
-          id?: string
-          is_active?: boolean
-          last_sync_at?: string | null
-          last_sync_error?: string | null
-          refresh_token?: string | null
-          scope?: string | null
-          token_expires_at?: string | null
-          updated_at?: string
-          watch_channel_id?: string | null
-          watch_expiration?: string | null
-          watch_resource_id?: string | null
-        }
-        Relationships: []
-      }
       google_calendar_event_sync: {
         Row: {
           created_at: string
@@ -4456,33 +4396,6 @@ export type Database = {
           },
         ]
       }
-      google_calendar_settings: {
-        Row: {
-          allowed_domains: string[]
-          created_at: string
-          id: string
-          last_global_sync_at: string | null
-          sync_enabled: boolean
-          updated_at: string
-        }
-        Insert: {
-          allowed_domains?: string[]
-          created_at?: string
-          id?: string
-          last_global_sync_at?: string | null
-          sync_enabled?: boolean
-          updated_at?: string
-        }
-        Update: {
-          allowed_domains?: string[]
-          created_at?: string
-          id?: string
-          last_global_sync_at?: string | null
-          sync_enabled?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
       google_calendars: {
         Row: {
           access_role: string | null
@@ -4545,13 +4458,6 @@ export type Database = {
           visible?: boolean
         }
         Relationships: [
-          {
-            foreignKeyName: "google_calendars_account_id_fkey"
-            columns: ["account_id"]
-            isOneToOne: false
-            referencedRelation: "google_calendar_accounts"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "google_calendars_mapped_client_id_fkey"
             columns: ["mapped_client_id"]
