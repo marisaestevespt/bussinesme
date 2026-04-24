@@ -1067,7 +1067,18 @@ export default function AgendaPage() {
   const { data: profiles = [] } = useProfiles();
 
   // Merge events + meetings into a single sorted list
-  const allEvents = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const allEventsRaw = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  // Override colour with the linked product's brand colour, when present.
+  const allEvents = useMemo(() => {
+    if (!productColors || productColors.size === 0) return allEventsRaw;
+    return allEventsRaw.map(ev => {
+      const pid = (ev as any).product_id as string | null | undefined;
+      if (!pid) return ev;
+      const c = productColors.get(pid);
+      if (!c) return ev;
+      return { ...ev, _color: c } as EventRow;
+    });
+  }, [allEventsRaw, productColors]);
 
   // Apple-calendar mode (Day/Week/Month/Year), persisted locally
   const [mode, setMode] = useState<AgendaViewMode>(() => {
