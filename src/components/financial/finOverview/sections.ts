@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, Package, CalendarCheck, type LucideIcon } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, Package, CalendarCheck, Repeat, type LucideIcon } from 'lucide-react';
 
 export interface SectionDef {
   path: string;
@@ -23,6 +23,7 @@ export const ALL_SECTIONS_ROW2: SectionDef[] = [
   { path: '/hub/financeiro/contabilidade', label: 'Prazos Fiscais', icon: CalendarCheck, iconColor: 'text-success', color: 'from-emerald-500/20 to-emerald-600/10 border-success/30/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-success/30/80', key: 'contabilidade' },
   { path: '/hub/financeiro/setup-financeiro', label: 'Lista de Fornecedores', icon: Truck, iconColor: 'text-slate-600', color: 'from-slate-500/20 to-slate-600/10 border-slate-200/60 hover:from-slate-500/30 hover:to-slate-600/15 hover:border-slate-300/80', key: 'fornecedores' },
   { path: '/hub/financeiro/lista-produtos', label: 'Lista de Produtos', icon: Package, iconColor: 'text-indigo-600', color: 'from-indigo-500/20 to-indigo-600/10 border-indigo-200/60 hover:from-indigo-500/30 hover:to-indigo-600/15 hover:border-indigo-300/80', key: 'produtos' },
+  { path: '/hub/financeiro/subscricoes', label: 'Subscrições', icon: Repeat, iconColor: 'text-pink-600', color: 'from-pink-500/20 to-pink-600/10 border-pink-200/60 hover:from-pink-500/30 hover:to-pink-600/15 hover:border-pink-300/80', key: 'subscricoes' },
 ];
 
 export const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
