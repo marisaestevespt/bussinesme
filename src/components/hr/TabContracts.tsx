@@ -11,12 +11,14 @@ import {
 } from '@/hooks/useTeamData';
 import { MemberSelect, currentYear, currentMonth } from '@/components/hr/team-helpers';
 import { RecordDialog } from '@/components/hr/RecordDialog';
+import { RenewContractDialog } from '@/components/hr/RenewContractDialog';
 
 export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
   const [contractDialog, setContractDialog] = useState<any>(null);
   const [paymentDialog, setPaymentDialog] = useState<any>(null);
+  const [renewContract, setRenewContract] = useState<any>(null);
 
   const memberName = (id: string) => allMembers.find(m => m.id === id)?.full_name || '—';
 
@@ -75,12 +77,18 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
                 contractsData.map(c => (
                   <TableRow key={c.id}>
                     <TableCell className="text-sm">{memberName(c.member_id)}</TableCell>
-                    <TableCell className="text-xs">{labelFor(CONTRACT_TYPES, c.contract_type)}</TableCell>
+                    <TableCell className="text-xs">
+                      {labelFor(CONTRACT_TYPES, c.contract_type)}
+                      {c.previous_contract_id && <Badge variant="outline" className="ml-2 text-[9px]">Renovação</Badge>}
+                    </TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell className="text-xs">{c.end_date || '—'}</TableCell>
                     <TableCell><Badge variant={c.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px]">{labelFor(CONTRACT_STATUSES, c.status)}</Badge></TableCell>
                     <TableCell>{c.document_url ? <a href={c.document_url} target="_blank" rel="noopener" className="text-xs text-primary underline">Ver</a> : '—'}</TableCell>
                     <TableCell><div className="flex gap-1">
+                      {c.status === 'ativo' && (
+                        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setRenewContract(c)}>Renovar</Button>
+                      )}
                       <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setContractDialog(c)}>Editar</Button>
                       <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deleteContract.mutate(c.id)}><Trash2 className="h-3 w-3" /></Button>
                     </div></TableCell>
@@ -91,6 +99,15 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
           </Table>
         </div></Card>
         {contractDialog !== null && <RecordDialog open onClose={() => setContractDialog(null)} title={contractDialog.id ? 'Editar Contrato' : 'Novo Contrato'} fields={contractFields} initial={contractDialog} onSave={(r: any) => team.upsertContract.mutate(r)} />}
+        {renewContract && (
+          <RenewContractDialog
+            open
+            onClose={() => setRenewContract(null)}
+            previousContract={renewContract}
+            memberName={memberName(renewContract.member_id)}
+            onRenew={async (newContract) => { await team.upsertContract.mutateAsync(newContract); }}
+          />
+        )}
       </div>
 
       <div className="space-y-3">
