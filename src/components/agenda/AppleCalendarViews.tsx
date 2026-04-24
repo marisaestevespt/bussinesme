@@ -164,6 +164,32 @@ const HOUR_HEIGHT = 48; // px per hour
 const START_HOUR = 0;
 const END_HOUR = 24;
 const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
+const AGENDA_TIME_ZONE = 'Europe/Lisbon';
+
+const agendaDateTimeFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: AGENDA_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+function getAgendaDateParts(date: Date) {
+  const parts = Object.fromEntries(
+    agendaDateTimeFormatter.formatToParts(date).map(part => [part.type, part.value])
+  );
+  return {
+    key: `${parts.year}-${parts.month}-${parts.day}`,
+    minutes: Number(parts.hour) * 60 + Number(parts.minute),
+    time: `${parts.hour}:${parts.minute}`,
+  };
+}
+
+function getCalendarDayKey(day: Date): string {
+  return format(day, 'yyyy-MM-dd');
+}
 
 interface PositionedEvent {
   ev: AgendaEvent;
@@ -175,23 +201,23 @@ interface PositionedEvent {
 }
 
 function positionEventsForDay(events: AgendaEvent[], day: Date, types: AgendaEventType[]): PositionedEvent[] {
+  const dayKey = getCalendarDayKey(day);
   // Filter events that touch this day
   const dayEvents = events
     .filter(ev => {
       const s = parseISO(ev.start_date);
       const e = ev.end_date ? parseISO(ev.end_date) : new Date(s.getTime() + 30 * 60000);
-      return (s <= endOfDay(day) && e >= startOfDay(day));
+      const startKey = getAgendaDateParts(s).key;
+      const endKey = getAgendaDateParts(e).key;
+      return startKey <= dayKey && endKey >= dayKey;
     })
     .map(ev => {
       const s = parseISO(ev.start_date);
       const eRaw = ev.end_date ? parseISO(ev.end_date) : new Date(s.getTime() + 30 * 60000);
-      // Clamp to current day for layout
-      const dayStart = startOfDay(day);
-      const dayEnd = endOfDay(day);
-      const clampedStart = s < dayStart ? dayStart : s;
-      const clampedEnd = eRaw > dayEnd ? dayEnd : eRaw;
-      const startMin = differenceInMinutes(clampedStart, dayStart);
-      const endMin = Math.max(differenceInMinutes(clampedEnd, dayStart), startMin + 15);
+      const startParts = getAgendaDateParts(s);
+      const endParts = getAgendaDateParts(eRaw);
+      const startMin = startParts.key < dayKey ? 0 : startParts.minutes;
+      const endMin = Math.max(endParts.key > dayKey ? 24 * 60 : endParts.minutes, startMin + 15);
       const topPx = (startMin / 60) * HOUR_HEIGHT;
       // Garante que cada bloco ocupa pelo menos 1 hora visualmente
       const rawHeight = ((endMin - startMin) / 60) * HOUR_HEIGHT;
@@ -241,8 +267,8 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
   const isMeeting = (p.ev as any)._isMeeting;
   const widthPct = 100 / p.laneCount;
   const leftPct = widthPct * p.laneIdx;
-  const startTime = format(parseISO(p.ev.start_date), 'HH:mm');
-  const endTime = p.ev.end_date ? format(parseISO(p.ev.end_date), 'HH:mm') : null;
+  const startTime = getAgendaDateParts(parseISO(p.ev.start_date)).time;
+  const endTime = p.ev.end_date ? getAgendaDateParts(parseISO(p.ev.end_date)).time : null;
   const url = extractUrl(p.ev);
   const location = extractLocation(p.ev);
   const context = buildContextLine(p.ev);
