@@ -22,22 +22,24 @@ export const MagicLinkEmail = ({
   siteName,
   confirmationUrl,
 }: MagicLinkEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="pt" dir="ltr">
     <Head />
-    <Preview>Your login link for {siteName}</Preview>
+    <Preview>O teu link de acesso ao {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your login link</Heading>
+        <Heading style={brand}>Lyrata</Heading>
+        <Heading style={h1}>O teu link de acesso</Heading>
         <Text style={text}>
-          Click the button below to log in to {siteName}. This link will expire
-          shortly.
+          Carrega no botão abaixo para entrar no {siteName}. Este link expira
+          em breve.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Log In
+          Entrar
         </Button>
         <Text style={footer}>
-          If you didn't request this link, you can safely ignore this email.
+          Se não pediste este link, podes ignorar este email em segurança.
         </Text>
+        <Text style={signature}>by Lyrata®</Text>
       </Container>
     </Body>
   </Html>
@@ -45,26 +47,29 @@ export const MagicLinkEmail = ({
 
 export default MagicLinkEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: '"Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif' }
+const container = { padding: '32px 28px', maxWidth: '560px' }
+const brand = { fontSize: '14px', fontWeight: 600 as const, color: 'hsl(351, 56%, 28%)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, margin: '0 0 24px' }
 const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
+  fontSize: '24px',
+  fontWeight: 700 as const,
+  color: 'hsl(0, 0%, 16%)',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
+  fontSize: '15px',
+  color: 'hsl(0, 0%, 32%)',
   lineHeight: '1.5',
-  margin: '0 0 25px',
+  margin: '0 0 20px',
 }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: 'hsl(351, 56%, 28%)',
   color: '#ffffff',
-  fontSize: '14px',
+  fontSize: '15px',
+  fontWeight: 600 as const,
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 24px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '13px', color: 'hsl(0, 0%, 55%)', margin: '32px 0 0', lineHeight: '1.5' }
+const signature = { fontSize: '12px', color: 'hsl(351, 56%, 28%)', margin: '24px 0 0', fontWeight: 500 as const }
