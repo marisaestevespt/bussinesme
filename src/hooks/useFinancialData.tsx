@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
+import { computeSalary } from '@/lib/payrollCalculations';
 
 export type Expense = Tables<'financial_expenses'>;
 export type FinancialDocument = Tables<'financial_documents'>;
@@ -248,14 +249,15 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
   const upsertPayroll = useMutation({
     mutationFn: async (entry: Partial<PayrollEntry> & { collaborator_name: string; month: number; year: number }) => {
-      const gross = entry.gross_salary || 0;
-      const whRate = entry.withholding_rate || 0;
-      const whValue = Math.round(gross * whRate / 100 * 100) / 100;
-      const ssEmp = Math.round(gross * 0.11 * 100) / 100;
-      const ssEr = Math.round(gross * 0.2375 * 100) / 100;
-      const net = Math.round((gross - whValue - ssEmp) * 100) / 100;
-      const totalCost = Math.round((gross + ssEr) * 100) / 100;
-      const record = { ...entry, withholding_value: whValue, ss_employee: ssEmp, ss_employer: ssEr, net_salary: net, total_cost: totalCost };
+      const breakdown = computeSalary(entry.gross_salary || 0, entry.withholding_rate || 0);
+      const record = {
+        ...entry,
+        withholding_value: breakdown.withholdingValue,
+        ss_employee: breakdown.ssEmployee,
+        ss_employer: breakdown.ssEmployer,
+        net_salary: breakdown.netSalary,
+        total_cost: breakdown.totalCost,
+      };
       
       if (entry.id) {
         const { error } = await supabase.from('financial_payroll').update(record as TablesUpdate<'financial_payroll'>).eq('id', entry.id);
