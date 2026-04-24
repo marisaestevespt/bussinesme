@@ -1027,7 +1027,13 @@ export default function AgendaPage() {
   const [typesManagerOpen, setTypesManagerOpen] = useState(false);
 
   const { isOwner, user } = useAuth();
-  const { data: events = [], isLoading } = useEvents(user?.id, isOwner);
+  // Fetch range: -6 / +18 months around cursor (covers Year view + recurring base)
+  const [cursor, setCursor] = useState<Date>(new Date());
+  const fetchRange = useMemo(() => ({
+    from: format(subMonths(cursor, 6), 'yyyy-MM-dd'),
+    to: format(addMonths(cursor, 18), 'yyyy-MM-dd'),
+  }), [cursor.getFullYear(), cursor.getMonth()]);
+  const { data: events = [], isLoading } = useEvents(user?.id, isOwner, fetchRange);
   const { data: meetingEvents = [] } = useMeetingsAsEvents();
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
@@ -1041,7 +1047,6 @@ export default function AgendaPage() {
     const saved = window.localStorage.getItem(AGENDA_MODE_KEY) as AgendaViewMode | null;
     return saved && ['day', 'week', 'month', 'year'].includes(saved) ? saved : 'week';
   });
-  const [cursor, setCursor] = useState<Date>(new Date());
   const handleModeChange = (m: AgendaViewMode) => {
     setMode(m);
     if (typeof window !== 'undefined') window.localStorage.setItem(AGENDA_MODE_KEY, m);
