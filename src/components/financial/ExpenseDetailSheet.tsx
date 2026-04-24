@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, RefreshCw } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Expense, useFinancialData } from '@/hooks/useFinancialData';
-import type { PaymentMethodEntry } from './types';
+import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { EXP_STATUS } from './expenseDetail/constants';
 import { useExpenseForm } from './expenseDetail/useExpenseForm';
 import { ExpenseFormFields } from './expenseDetail/ExpenseFormFields';
@@ -24,14 +22,7 @@ interface Props {
 export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const { data: setupPM } = useQuery({
-    queryKey: ['business-setup-payment-methods'],
-    queryFn: async () => {
-      const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
-      const list = (data?.payment_methods as PaymentMethodEntry[] | null) || [];
-      return list.filter(m => m.label?.trim());
-    },
-  });
+  const { data: setupPM } = useBusinessSetupPaymentMethods();
   const paymentMethods = buildPaymentMethodOptions(setupPM);
 
   const { form, setForm, saving, handleSave, handleDelete } = useExpenseForm({
