@@ -28,6 +28,7 @@ import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResu
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { DEPARTMENTS } from '@/lib/departments';
+import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { logAudit } from '@/lib/auditLog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 
