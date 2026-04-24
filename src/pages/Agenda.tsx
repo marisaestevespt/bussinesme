@@ -1011,6 +1011,9 @@ function EventDetailDialog({
 
   if (!event) return null;
 
+  const isMeeting = (event as any)._isMeeting === true;
+  const meetingId = (event as any)._meetingId as string | undefined;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -1079,7 +1082,20 @@ function EventDetailDialog({
           {/* Add to Calendar */}
           <AddToCalendarButtons event={{ title: event.title, startDate: event.start_date, endDate: event.end_date, notes: event.notes, meetingUrl: event.meeting_url }} />
 
-          {isOwner && (
+          {isMeeting && meetingId && (
+            <div className="pt-2">
+              <Button
+                variant="default"
+                className="w-full"
+                onClick={() => { onOpenChange(false); window.open(`/hub/reunioes/${meetingId}`, '_self'); }}
+              >
+                <ExternalLink className="h-4 w-4 mr-1.5" />
+                Abrir página da reunião
+              </Button>
+            </div>
+          )}
+
+          {isOwner && !isMeeting && (
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" onClick={onEdit}>Editar</Button>
               <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
@@ -1192,11 +1208,8 @@ export default function AgendaPage() {
   }, [allEvents, cursor.getFullYear(), cursor.getMonth(), calendarFilters.hidden]);
 
   const handleEventClick = (ev: EventRow) => {
-    // If it's a meeting, navigate to meeting detail page
-    if ((ev as any)._isMeeting) {
-      window.open(`/hub/reunioes/${(ev as any)._meetingId}`, '_self');
-      return;
-    }
+    // Meetings and regular events both open the preview dialog.
+    // The dialog has an "Abrir página" button to navigate to the full meeting page when applicable.
     setDetailEvent(ev);
     setDetailOpen(true);
   };
