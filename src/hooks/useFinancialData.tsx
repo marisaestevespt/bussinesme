@@ -264,7 +264,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
         if (error) throw error;
         if (entry.expense_id) {
           await supabase.from('financial_expenses').update({
-            base_value: totalCost, total_with_vat: totalCost, status: entry.status === 'pago' ? 'pago' : 'por_pagar',
+            base_value: breakdown.totalCost, total_with_vat: breakdown.totalCost, status: entry.status === 'pago' ? 'pago' : 'por_pagar',
           }).eq('id', entry.expense_id);
         }
       } else {
@@ -275,9 +275,9 @@ export function useFinancialData(options?: FinancialDataOptions) {
           expense_date: `${entry.year}-${String(entry.month).padStart(2, '0')}-01`,
           description: `Salário — ${entry.collaborator_name} — ${MONTH_LABELS[entry.month - 1]} ${entry.year}`,
           category: 'pessoal',
-          base_value: totalCost,
+          base_value: breakdown.totalCost,
           vat_rate: 0,
-          total_with_vat: totalCost,
+          total_with_vat: breakdown.totalCost,
           location: 'portugal',
           expense_month: expMonth,
           expense_quarter: expQuarter,
