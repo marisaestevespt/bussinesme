@@ -351,16 +351,16 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={expForm.expense_date instanceof Date ? expForm.expense_date : expForm.expense_date ? new Date(expForm.expense_date) : undefined} onSelect={d => setExpForm((f: any) => ({ ...f, expense_date: d }))} className="p-3 pointer-events-auto" />
+                  <Calendar mode="single" selected={expForm.expense_date instanceof Date ? expForm.expense_date : expForm.expense_date ? new Date(expForm.expense_date) : undefined} onSelect={d => setExpForm(f => ({ ...f, expense_date: d }))} className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
             </div>
-            <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
+            <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))} /></div>
             <div><Label>Fornecedor</Label>
               <SupplierSelect value={expForm.supplier_id || null} onValueChange={handleSupplierChange} />
             </div>
             <div><Label>Categoria</Label>
-              <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
+              <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm(f => ({ ...f, category: v }))} />
             </div>
             {ivaExempt ? (
               <div>
@@ -369,7 +369,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   type="number"
                   step="0.01"
                   value={expForm.base_value || ''}
-                  onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))}
+                  onChange={e => setExpForm(f => ({ ...f, base_value: e.target.value }))}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Estás isenta de IVA — não consegues deduzir, por isso indica o valor total pago (IVA incluído).
@@ -378,13 +378,13 @@ export function FinSaidas({ fin, currentYear }: Props) {
             ) : (
               <>
                 <div className="flex items-center gap-2 py-1">
-                  <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+                  <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm(f => ({ ...f, includes_vat: v }))} />
                   <Label className="text-sm font-normal">Valor inclui IVA</Label>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+                  <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm(f => ({ ...f, base_value: e.target.value }))} /></div>
                   <div><Label>IVA (%)</Label>
-                    <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
+                    <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm(f => ({ ...f, vat_rate: parseInt(v) }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{VAT_OPTIONS.map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}</SelectContent>
                     </Select>
@@ -399,13 +399,13 @@ export function FinSaidas({ fin, currentYear }: Props) {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Localização</Label>
-                <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v, ...(v !== 'portugal' ? { vat_rate: 0 } : {}) }))}>
+                <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm(f => ({ ...f, location: v, ...(v !== 'portugal' ? { vat_rate: 0 } : {}) }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div><Label>Método Pagamento</Label>
-                <Select value={expForm.payment_method || '__none__'} onValueChange={v => setExpForm((f: any) => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
+                <Select value={expForm.payment_method || '__none__'} onValueChange={v => setExpForm(f => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">—</SelectItem>
@@ -421,21 +421,21 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   <RefreshCw className="h-4 w-4 text-muted-foreground" />
                   <Label className="text-sm font-normal">Despesa recorrente</Label>
                 </div>
-                <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, is_recurring: v }))} />
+                <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm(f => ({ ...f, is_recurring: v }))} />
               </div>
               {expForm.is_recurring && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs">Periodicidade</Label>
-                      <Select value={expForm.periodicity || 'mensal'} onValueChange={v => setExpForm((f: any) => ({ ...f, periodicity: v }))}>
+                      <Select value={expForm.periodicity || 'mensal'} onValueChange={v => setExpForm(f => ({ ...f, periodicity: v }))}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{PERIODICITIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div>
                       <Label className="text-xs">Dia de pagamento</Label>
-                      <Select value={String(expForm.recurrence_day || '')} onValueChange={v => setExpForm((f: any) => ({ ...f, recurrence_day: v ? parseInt(v) : null }))}>
+                      <Select value={String(expForm.recurrence_day || '')} onValueChange={v => setExpForm(f => ({ ...f, recurrence_day: v ? parseInt(v) : null }))}>
                         <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
@@ -445,9 +445,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
                       </Select>
                     </div>
                   </div>
-                  {expForm.base_value && parseFloat(expForm.base_value) > 0 && expForm.periodicity !== 'mensal' && (
+                  {expForm.base_value && parseFloat(String(expForm.base_value)) > 0 && expForm.periodicity !== 'mensal' && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Equivalente mensal: {formatEuro(calcMonthlyEquivalent(parseFloat(expForm.base_value) || 0, expForm.periodicity || 'mensal'))}
+                      Equivalente mensal: {formatEuro(calcMonthlyEquivalent(parseFloat(String(expForm.base_value)) || 0, expForm.periodicity || 'mensal'))}
                     </p>
                   )}
                 </div>
@@ -455,7 +455,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
             </div>
             <InvoiceUpload
               documents={Array.isArray(expForm.documents) ? expForm.documents : []}
-              onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+              onChange={docs => setExpForm(f => ({ ...f, documents: docs }))}
             />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveExpense}>Guardar</Button>
