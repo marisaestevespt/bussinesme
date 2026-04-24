@@ -639,6 +639,14 @@ function EventFormDialog({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!title.trim() || !startDate) throw new Error('Campos obrigatórios em falta');
+      // Soft warn if start date falls in an Off period (and the event itself is not the Off marker)
+      const currentTypeSlug = types.find(t => t.id === eventTypeId)?.slug;
+      if (currentTypeSlug !== 'off' && currentTypeSlug !== 'feriado' && !editEvent) {
+        const offRange = findOffRange(offRanges, startDate);
+        if (offRange) {
+          toast.warning(`Atenção: este evento cai num período Off (${offRange.title}).`, { duration: 6000 });
+        }
+      }
       const payload = {
         title: title.trim(),
         event_type_id: eventTypeId || null,
