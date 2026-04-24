@@ -44,6 +44,7 @@ import {
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
 import { AgendaLegend, type LegendItem } from '@/components/agenda/AgendaLegend';
+import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 
 // ─── Types ──────────────────────────────────────────────────────
 
