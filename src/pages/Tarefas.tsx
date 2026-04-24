@@ -26,6 +26,7 @@ import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResu
 import { supabase } from '@/integrations/supabase/client';
 import { sendNotification } from '@/hooks/useNotifications';
 import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbsenceCoverage';
+import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
