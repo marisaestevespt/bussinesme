@@ -33,6 +33,12 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
 import { VatPreview } from './VatPreview';
+import type {
+  ExpenseFormState,
+  SupplierSelectOption,
+  PaymentMethodEntry,
+  BusinessSettingsLike,
+} from './types';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -64,7 +70,7 @@ type Filter = 'all' | 'month' | 'quarter' | 'year' | 'recurring';
 
 export function FinSaidas({ fin, currentYear }: Props) {
   const { settings } = useBusinessSettings();
-  const ivaExempt = (settings as any)?.iva_exempt === true;
+  const ivaExempt = (settings as BusinessSettingsLike | null)?.iva_exempt === true;
   const { getCategoryLabel } = useFinancialCategories();
   const allExpenses = fin.expenses.data || [];
   const [filter, setFilter] = useState<Filter>('year');
@@ -73,25 +79,26 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const currentQuarter = Math.ceil(currentMonth / 3);
 
   // Suppliers for auto-VAT
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<SupplierSelectOption[]>({
     queryKey: ['suppliers-list-vat'],
     queryFn: async () => {
-      const { data } = await supabase.from('suppliers').select('id, name, default_vat_rate').eq('is_active', true);
-      return data || [];
+      const { data } = await supabase.from('suppliers').select('id, name, default_vat_rate, payment_method, category').eq('is_active', true);
+      return (data || []) as SupplierSelectOption[];
     },
   });
   const { data: setupPM } = useQuery({
     queryKey: ['business-setup-payment-methods'],
     queryFn: async () => {
       const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
-      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
+      const list = (data?.payment_methods as PaymentMethodEntry[] | null) || [];
+      return list.filter(m => m.label?.trim());
     },
   });
   const paymentMethods = buildPaymentMethodOptions(setupPM);
 
   const expenses = allExpenses.filter(e => {
     if (filter === 'all') return true;
-    if (filter === 'recurring') return (e as any).is_recurring === true;
+    if (filter === 'recurring') return e.is_recurring === true;
     if (filter === 'year') return e.expense_year === currentYear;
     if (filter === 'quarter') return e.expense_year === currentYear && e.expense_quarter === currentQuarter;
     if (filter === 'month') return e.expense_year === currentYear && e.expense_month === currentMonth;
@@ -103,12 +110,12 @@ export function FinSaidas({ fin, currentYear }: Props) {
   });
 
   // Summary for recurring
-  const recurringExpenses = allExpenses.filter(e => (e as any).is_recurring === true && e.status !== 'cancelado');
-  const totalMonthlyRecurring = recurringExpenses.reduce((s, e) => s + ((e as any).monthly_equivalent || 0), 0);
+  const recurringExpenses = allExpenses.filter(e => e.is_recurring === true && e.status !== 'cancelado');
+  const totalMonthlyRecurring = recurringExpenses.reduce((s, e) => s + (e.monthly_equivalent || 0), 0);
 
   // --- Expense Dialog ---
   const [expOpen, setExpOpen] = useState(false);
-  const [expForm, setExpForm] = useState<any>({});
+  const [expForm, setExpForm] = useState<ExpenseFormState>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const openNewExpense = () => {
@@ -117,10 +124,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
   };
 
   // Auto-fill VAT + payment method from supplier
-  const handleSupplierChange = (supplierId: string | null, supplier?: any) => {
-    setExpForm((f: any) => {
-      const updates: any = { ...f, supplier_id: supplierId };
-      const s = supplier || (supplierId ? suppliers.find((s: any) => s.id === supplierId) : null);
+  const handleSupplierChange = (supplierId: string | null, supplier?: SupplierSelectOption) => {
+    setExpForm(f => {
+      const updates: ExpenseFormState = { ...f, supplier_id: supplierId };
+      const s = supplier || (supplierId ? suppliers.find(s => s.id === supplierId) : null);
       if (s) {
         if (s.default_vat_rate != null) updates.vat_rate = s.default_vat_rate;
         if (s.payment_method) updates.payment_method = s.payment_method;
@@ -131,9 +138,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
   };
 
   const saveExpense = async () => {
-    const inputValue = parseFloat(expForm.base_value) || 0;
+    const inputValue = parseFloat(String(expForm.base_value ?? '')) || 0;
     // When IVA-exempt, the user pays the gross amount and cannot deduct IVA → store base = total
-    const vat = ivaExempt ? 0 : (parseFloat(expForm.vat_rate) || 0);
+    const vat = ivaExempt ? 0 : (parseFloat(String(expForm.vat_rate ?? '')) || 0);
     let base: number, total: number;
     if (ivaExempt) {
       // Treat the entered value as the real cost (with IVA included as cost)
@@ -189,7 +196,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       recurrence_day: isRecurring ? (expForm.recurrence_day || null) : null,
       source_type: isRecurring ? 'rule' : 'manual',
       source_id: isRecurring ? (expForm.id || null) : null,
-    } as any);
+    });
     if (isRecurring) {
       fin.recurringExpenses.refetch();
     }
