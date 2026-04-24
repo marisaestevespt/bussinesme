@@ -1,11 +1,12 @@
 project_id = "rfzzrhldukoeuutxsixw"
 
 [auth]
-# OTP / magic-link expiry: 24 hours (in seconds)
-otp_expiry = 86400
+  otp_expiry = 86400
 
-[functions.manage-access-password]
-verify_jwt = true
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.manage-access-password]
+    verify_jwt = true
+  [functions.process-email-queue]
+    verify_jwt = true
