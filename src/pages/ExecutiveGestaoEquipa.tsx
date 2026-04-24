@@ -323,7 +323,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const allMembers = team.members.data || [];
-  const activeMembers = allMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+  const activeMembers = allMembers.filter((m: any) => m.status === 'ativo');
   const exMembers = allMembers.filter((m: any) => m.status === 'inativo');
 
   // Fetch pending tasks & projects for offboarding member

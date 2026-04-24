@@ -177,7 +177,7 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
   const { clients: clientsHook } = useClients();
   const allClients = clientsHook.data || [];
 
-  const members = teamMembers.filter(m => m.status === 'ativo' || m.status === 'prestador');
+  const members = teamMembers.filter(m => m.status === 'ativo');
 
   const scenario = useQuery({
     queryKey: ['capacity-scenario'],

@@ -802,7 +802,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
 
 /* ─── MAIN COMPONENT ─── */
 export function CapacitySimulator({ members, entries, clients, products }: Props) {
-  const activeMembers = members.filter(m => m.status === 'ativo' || m.status === 'prestador');
+  const activeMembers = members.filter(m => m.status === 'ativo');
 
   return (
     <div className="space-y-4">
