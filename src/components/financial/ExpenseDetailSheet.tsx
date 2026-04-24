@@ -48,6 +48,7 @@ interface Props {
 export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) {
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { data: setupPM } = useQuery({
     queryKey: ['business-setup-payment-methods'],
     queryFn: async () => {
