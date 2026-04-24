@@ -5278,6 +5278,7 @@ export type Database = {
           notes: string | null
           payment_day: number | null
           payment_start_date: string | null
+          previous_contract_id: string | null
           start_date: string | null
           status: string
           updated_at: string
@@ -5296,6 +5297,7 @@ export type Database = {
           notes?: string | null
           payment_day?: number | null
           payment_start_date?: string | null
+          previous_contract_id?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -5314,6 +5316,7 @@ export type Database = {
           notes?: string | null
           payment_day?: number | null
           payment_start_date?: string | null
+          previous_contract_id?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -5333,6 +5336,13 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_contracts_previous_contract_id_fkey"
+            columns: ["previous_contract_id"]
+            isOneToOne: false
+            referencedRelation: "member_contracts"
             referencedColumns: ["id"]
           },
         ]
