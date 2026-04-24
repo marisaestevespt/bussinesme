@@ -3460,6 +3460,7 @@ export type Database = {
           department: string | null
           end_date: string | null
           event_type_id: string | null
+          google_calendar_db_id: string | null
           id: string
           meeting_url: string | null
           notes: string | null
@@ -3470,6 +3471,7 @@ export type Database = {
           start_date: string
           title: string
           updated_at: string
+          with_meet: boolean
         }
         Insert: {
           client_name?: string | null
@@ -3478,6 +3480,7 @@ export type Database = {
           department?: string | null
           end_date?: string | null
           event_type_id?: string | null
+          google_calendar_db_id?: string | null
           id?: string
           meeting_url?: string | null
           notes?: string | null
@@ -3488,6 +3491,7 @@ export type Database = {
           start_date: string
           title: string
           updated_at?: string
+          with_meet?: boolean
         }
         Update: {
           client_name?: string | null
@@ -3496,6 +3500,7 @@ export type Database = {
           department?: string | null
           end_date?: string | null
           event_type_id?: string | null
+          google_calendar_db_id?: string | null
           id?: string
           meeting_url?: string | null
           notes?: string | null
@@ -3506,6 +3511,7 @@ export type Database = {
           start_date?: string
           title?: string
           updated_at?: string
+          with_meet?: boolean
         }
         Relationships: [
           {
@@ -3513,6 +3519,13 @@ export type Database = {
             columns: ["event_type_id"]
             isOneToOne: false
             referencedRelation: "event_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_google_calendar_db_id_fkey"
+            columns: ["google_calendar_db_id"]
+            isOneToOne: false
+            referencedRelation: "google_calendars"
             referencedColumns: ["id"]
           },
           {
@@ -4316,6 +4329,252 @@ export type Database = {
         }
         Relationships: []
       }
+      google_calendar_accounts: {
+        Row: {
+          access_token: string | null
+          connected_by: string | null
+          created_at: string
+          display_name: string | null
+          domain: string
+          email: string
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          last_sync_error: string | null
+          refresh_token: string | null
+          scope: string | null
+          token_expires_at: string | null
+          updated_at: string
+          watch_channel_id: string | null
+          watch_expiration: string | null
+          watch_resource_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          connected_by?: string | null
+          created_at?: string
+          display_name?: string | null
+          domain: string
+          email: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          watch_channel_id?: string | null
+          watch_expiration?: string | null
+          watch_resource_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          connected_by?: string | null
+          created_at?: string
+          display_name?: string | null
+          domain?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          refresh_token?: string | null
+          scope?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          watch_channel_id?: string | null
+          watch_expiration?: string | null
+          watch_resource_id?: string | null
+        }
+        Relationships: []
+      }
+      google_calendar_event_sync: {
+        Row: {
+          created_at: string
+          google_calendar_db_id: string
+          google_etag: string | null
+          google_event_id: string
+          google_html_link: string | null
+          id: string
+          last_synced_at: string
+          lyrata_event_id: string | null
+          lyrata_meeting_id: string | null
+          meet_link: string | null
+          sync_direction: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          google_calendar_db_id: string
+          google_etag?: string | null
+          google_event_id: string
+          google_html_link?: string | null
+          id?: string
+          last_synced_at?: string
+          lyrata_event_id?: string | null
+          lyrata_meeting_id?: string | null
+          meet_link?: string | null
+          sync_direction?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          google_calendar_db_id?: string
+          google_etag?: string | null
+          google_event_id?: string
+          google_html_link?: string | null
+          id?: string
+          last_synced_at?: string
+          lyrata_event_id?: string | null
+          lyrata_meeting_id?: string | null
+          meet_link?: string | null
+          sync_direction?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_calendar_event_sync_google_calendar_db_id_fkey"
+            columns: ["google_calendar_db_id"]
+            isOneToOne: false
+            referencedRelation: "google_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_calendar_event_sync_lyrata_event_id_fkey"
+            columns: ["lyrata_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_calendar_event_sync_lyrata_meeting_id_fkey"
+            columns: ["lyrata_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_calendar_settings: {
+        Row: {
+          allowed_domains: string[]
+          created_at: string
+          id: string
+          last_global_sync_at: string | null
+          sync_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          allowed_domains?: string[]
+          created_at?: string
+          id?: string
+          last_global_sync_at?: string | null
+          sync_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          allowed_domains?: string[]
+          created_at?: string
+          id?: string
+          last_global_sync_at?: string | null
+          sync_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      google_calendars: {
+        Row: {
+          access_role: string | null
+          account_id: string
+          background_color: string | null
+          color_id: string | null
+          created_at: string
+          description: string | null
+          foreground_color: string | null
+          google_calendar_id: string
+          id: string
+          is_primary: boolean
+          last_sync_at: string | null
+          mapped_client_id: string | null
+          mapped_product_id: string | null
+          scope: Database["public"]["Enums"]["google_calendar_scope"]
+          summary: string
+          sync_token: string | null
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          access_role?: string | null
+          account_id: string
+          background_color?: string | null
+          color_id?: string | null
+          created_at?: string
+          description?: string | null
+          foreground_color?: string | null
+          google_calendar_id: string
+          id?: string
+          is_primary?: boolean
+          last_sync_at?: string | null
+          mapped_client_id?: string | null
+          mapped_product_id?: string | null
+          scope?: Database["public"]["Enums"]["google_calendar_scope"]
+          summary: string
+          sync_token?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          access_role?: string | null
+          account_id?: string
+          background_color?: string | null
+          color_id?: string | null
+          created_at?: string
+          description?: string | null
+          foreground_color?: string | null
+          google_calendar_id?: string
+          id?: string
+          is_primary?: boolean
+          last_sync_at?: string | null
+          mapped_client_id?: string | null
+          mapped_product_id?: string | null
+          scope?: Database["public"]["Enums"]["google_calendar_scope"]
+          summary?: string
+          sync_token?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_calendars_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "google_calendar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_calendars_mapped_client_id_fkey"
+            columns: ["mapped_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_calendars_mapped_client_id_fkey"
+            columns: ["mapped_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_calendars_mapped_product_id_fkey"
+            columns: ["mapped_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hiring_simulations: {
         Row: {
           created_at: string
@@ -5082,6 +5341,7 @@ export type Database = {
           documents: Json | null
           duration_minutes: number | null
           final_notes: Json | null
+          google_calendar_db_id: string | null
           id: string
           is_recurring: boolean
           meeting_type: Database["public"]["Enums"]["meeting_type"]
@@ -5100,6 +5360,7 @@ export type Database = {
           title: string
           transcript_url: string | null
           updated_at: string
+          with_meet: boolean
         }
         Insert: {
           client_actions?: Json | null
@@ -5114,6 +5375,7 @@ export type Database = {
           documents?: Json | null
           duration_minutes?: number | null
           final_notes?: Json | null
+          google_calendar_db_id?: string | null
           id?: string
           is_recurring?: boolean
           meeting_type?: Database["public"]["Enums"]["meeting_type"]
@@ -5132,6 +5394,7 @@ export type Database = {
           title: string
           transcript_url?: string | null
           updated_at?: string
+          with_meet?: boolean
         }
         Update: {
           client_actions?: Json | null
@@ -5146,6 +5409,7 @@ export type Database = {
           documents?: Json | null
           duration_minutes?: number | null
           final_notes?: Json | null
+          google_calendar_db_id?: string | null
           id?: string
           is_recurring?: boolean
           meeting_type?: Database["public"]["Enums"]["meeting_type"]
@@ -5164,6 +5428,7 @@ export type Database = {
           title?: string
           transcript_url?: string | null
           updated_at?: string
+          with_meet?: boolean
         }
         Relationships: [
           {
@@ -5178,6 +5443,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_google_calendar_db_id_fkey"
+            columns: ["google_calendar_db_id"]
+            isOneToOne: false
+            referencedRelation: "google_calendars"
             referencedColumns: ["id"]
           },
           {
@@ -10560,6 +10832,12 @@ export type Database = {
         | "viewer"
       deliverable_type: "tarefa" | "reuniao" | "documento" | "aprovacao"
       digest_frequency: "diario" | "semanal" | "mensal"
+      google_calendar_scope:
+        | "produto"
+        | "cliente"
+        | "reunioes"
+        | "geral"
+        | "ignorar"
       launch_phase:
         | "estrategia"
         | "antecipacao"
@@ -10717,6 +10995,13 @@ export const Constants = {
       ],
       deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao"],
       digest_frequency: ["diario", "semanal", "mensal"],
+      google_calendar_scope: [
+        "produto",
+        "cliente",
+        "reunioes",
+        "geral",
+        "ignorar",
+      ],
       launch_phase: [
         "estrategia",
         "antecipacao",
