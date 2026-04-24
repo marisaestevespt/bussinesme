@@ -218,7 +218,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => {
               const headers = ['ID', 'Data', 'Descrição', 'Categoria', 'Valor Base', 'IVA %', 'Total c/ IVA', 'Localização', 'Recorrente', 'Periodicidade'];
-              const rows = expenses.map(e => [e.expense_id, e.expense_date || '', e.description || '', e.category, e.base_value, e.vat_rate, e.total_with_vat, e.location, (e as any).is_recurring ? 'Sim' : 'Não', (e as any).periodicity || '']);
+               const rows = expenses.map(e => [e.expense_id, e.expense_date || '', e.description || '', e.category, e.base_value, e.vat_rate, e.total_with_vat, e.location, e.is_recurring ? 'Sim' : 'Não', e.periodicity || '']);
               exportCsv(`saidas_${currentYear}.csv`, headers, rows);
               toast.success('CSV exportado');
             }}><Download className="h-3.5 w-3.5 mr-1" /> CSV</Button>
@@ -269,7 +269,13 @@ export function FinSaidas({ fin, currentYear }: Props) {
               <TableBody>
                 {expenses.map(e => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, periodicity: (e as any).periodicity || 'mensal' });
+                    setExpForm({
+                      ...(e as unknown as ExpenseFormState),
+                      expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined,
+                      base_value: e.total_with_vat.toString(),
+                      includes_vat: true,
+                      periodicity: e.periodicity || 'mensal',
+                    });
                     setExpOpen(true);
                   }}>
                     <TableCell><Badge variant="outline" className={EXP_STATUS.find(s => s.value === e.status)?.cls || 'bg-muted text-muted-foreground'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
@@ -277,7 +283,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell>{e.expense_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">
                       {e.description || '—'}
-                      {(e as any).is_recurring && <RefreshCw className="inline h-3 w-3 ml-1 text-muted-foreground" />}
+                      {e.is_recurring && <RefreshCw className="inline h-3 w-3 ml-1 text-muted-foreground" />}
                     </TableCell>
                     <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                     <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
@@ -285,20 +291,27 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell className="text-right font-medium">{formatEuro(e.total_with_vat)}</TableCell>
                     {!ivaExempt && (
                       <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
-                        <VatDeductibleCell expense={e as any} />
+                        <VatDeductibleCell expense={e} />
                       </TableCell>
                     )}
                     <TableCell>{LOCATIONS.find(l => l.value === e.location)?.label || e.location}</TableCell>
                     {filter === 'recurring'
-                      ? <TableCell>{PERIODICITIES.find(p => p.value === (e as any).periodicity)?.label || '—'}</TableCell>
+                      ? <TableCell>{PERIODICITIES.find(p => p.value === e.periodicity)?.label || '—'}</TableCell>
                       : <TableCell>{e.expense_month || '—'}</TableCell>
                     }
                     <TableCell onClick={ev => ev.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button variant="ghost" aria-label="Copiar" size="icon" className="h-7 w-7" onClick={() => {
-                            const { id, expense_id, created_at, updated_at, ...rest } = e as any;
-                            setExpForm({ ...rest, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, status: 'pendente', periodicity: (e as any).periodicity || 'mensal' });
+                            const { id: _id, expense_id: _eid, created_at: _ca, updated_at: _ua, ...rest } = e;
+                            setExpForm({
+                              ...(rest as unknown as ExpenseFormState),
+                              expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined,
+                              base_value: e.total_with_vat.toString(),
+                              includes_vat: true,
+                              status: 'pendente',
+                              periodicity: e.periodicity || 'mensal',
+                            });
                             setExpOpen(true);
                           }}>
                             <Copy className="h-3.5 w-3.5" />
@@ -324,7 +337,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
           <DialogHeader><DialogTitle>{expForm.id ? 'Editar Despesa' : 'Nova Despesa'}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Status</Label>
-              <Select value={expForm.status || 'por_pagar'} onValueChange={v => setExpForm((f: any) => ({ ...f, status: v }))}>
+              <Select value={expForm.status || 'por_pagar'} onValueChange={v => setExpForm(f => ({ ...f, status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{EXP_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
