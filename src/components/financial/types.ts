@@ -91,6 +91,8 @@ export interface SupplierFormState {
   iban?: string;
   payment_method?: string;
   default_vat_rate?: number;
+  is_active?: boolean;
+  category?: string;
   address?: string;
   website?: string;
   notes?: string;
