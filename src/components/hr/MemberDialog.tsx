@@ -43,10 +43,7 @@ const DEFAULT_MEMBER_FORM = {
   deptExtraPages: {} as Record<string, string[]>,
   sensitiveAccess: {} as Record<string, boolean>,
   start_date: '',
-  presentation: '',
   responsibilities: '',
-  works_holidays: false, // kept for DB compatibility
-  custom_holidays: [] as string[],
   work_areas: [] as string[],
   system_role: 'team_member' as string, // função no sistema (RBAC)
 };
