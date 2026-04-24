@@ -15,7 +15,7 @@ import type { TablesInsert } from '@/integrations/supabase/types';
 import type { useQueryClient } from '@tanstack/react-query';
 import { ExpenseStatusSelect } from '../InlineStatusSelect';
 import { CategorySelect } from '../CategorySelect';
-import { InvoiceUpload } from '../InvoiceUpload';
+import { InvoiceUpload, type DocEntry } from '../InvoiceUpload';
 import { VatDeductibleCell } from '../VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
 import { locationLabel, EXPENSE_LOCATIONS } from '@/lib/labelMaps';
@@ -340,7 +340,7 @@ interface NewExpenseFormState {
   base_value: string;
   vat_rate: string;
   location: string;
-  documents: unknown[];
+  documents: DocEntry[];
   includes_vat: boolean;
 }
 
