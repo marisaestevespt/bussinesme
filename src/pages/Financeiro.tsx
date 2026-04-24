@@ -41,7 +41,8 @@ const ALL_SECTIONS_ROW2 = [
 
 export default function FinanceiroPage() {
   const { settings } = useBusinessSettings();
-  const fin = useFinancialData();
+  // Overview only needs expenses for the totals — skip payroll/contractors/recurring/documents
+  const fin = useFinancialData({ expenses: true, recurring: false, documents: false, payroll: false, contractors: false });
   const [year, setYear] = useState(new Date().getFullYear());
   const com = useCommercialData(year);
   const navigate = useNavigate();

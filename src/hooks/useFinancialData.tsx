@@ -84,6 +84,8 @@ const EMPTY_CONTRACTORS: ContractorEntry[] = [];
 
 export function useFinancialData(options?: FinancialDataOptions) {
   const qc = useQueryClient();
+  // Force active queries to refetch immediately (not just mark stale)
+  const invalidate = (key: string) => qc.invalidateQueries({ queryKey: [key], refetchType: 'active' });
 
   const enableExpenses = options?.expenses !== false;
   const enableRecurring = options?.recurring !== false;
@@ -209,7 +211,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
         if (error) throw error;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-expenses'] }),
+    onSuccess: () => invalidate('financial-expenses'),
     onError: () => toast.error('Erro ao guardar despesa'),
   });
 
@@ -219,7 +221,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-expenses'] }),
+    onSuccess: () => invalidate('financial-expenses'),
   });
 
   const upsertDocument = useMutation({
@@ -232,7 +234,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
         if (error) throw error;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-documents'] }),
+    onSuccess: () => invalidate('financial-documents'),
     onError: () => toast.error('Erro ao guardar documento'),
   });
 
@@ -241,7 +243,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
       const { error } = await supabase.from('financial_documents').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-documents'] }),
+    onSuccess: () => invalidate('financial-documents'),
   });
 
   const upsertPayroll = useMutation({
@@ -286,8 +288,8 @@ export function useFinancialData(options?: FinancialDataOptions) {
       }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['financial-payroll'] });
-      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      invalidate('financial-payroll');
+      invalidate('financial-expenses');
     },
     onError: () => toast.error('Erro ao guardar registo'),
   });
@@ -299,8 +301,8 @@ export function useFinancialData(options?: FinancialDataOptions) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['financial-payroll'] });
-      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      invalidate('financial-payroll');
+      invalidate('financial-expenses');
     },
   });
 
@@ -338,8 +340,8 @@ export function useFinancialData(options?: FinancialDataOptions) {
       }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['financial-contractors'] });
-      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      invalidate('financial-contractors');
+      invalidate('financial-expenses');
     },
     onError: () => toast.error('Erro ao guardar prestador'),
   });
@@ -351,8 +353,8 @@ export function useFinancialData(options?: FinancialDataOptions) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['financial-contractors'] });
-      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      invalidate('financial-contractors');
+      invalidate('financial-expenses');
     },
   });
 
@@ -361,16 +363,16 @@ export function useFinancialData(options?: FinancialDataOptions) {
       const monthly = calcMonthlyEquivalent(rec.base_value, rec.periodicity);
       const record = { ...rec, is_recurring: true, monthly_equivalent: monthly };
       if (rec.id) {
-        const { error } = await supabase.from('financial_expenses').update(record as any).eq('id', rec.id);
+        const { error } = await supabase.from('financial_expenses').update(record as TablesUpdate<'financial_expenses'>).eq('id', rec.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('financial_expenses').insert(record as any);
+        const { error } = await supabase.from('financial_expenses').insert(record as TablesInsert<'financial_expenses'>);
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['recurring-expenses'] });
-      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      invalidate('recurring-expenses');
+      invalidate('financial-expenses');
     },
     onError: () => toast.error('Erro ao guardar despesa recorrente'),
   });
@@ -382,8 +384,8 @@ export function useFinancialData(options?: FinancialDataOptions) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['recurring-expenses'] });
-      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      invalidate('recurring-expenses');
+      invalidate('financial-expenses');
     },
   });
 
