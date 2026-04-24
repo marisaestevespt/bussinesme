@@ -674,6 +674,15 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
             )}
 
+            {offWarning && (
+              <div className="rounded-md border border-warning/30 bg-warning/15 p-3">
+                <p className="text-sm flex items-center gap-1.5 text-warning">
+                  <AlertTriangle className="h-4 w-4" />
+                  Aviso: este prazo cai num período <strong>Off ({offWarning.title})</strong>. A tarefa pode ser criada à mesma.
+                </p>
+              </div>
+            )}
+
             <div>
               <Label>Notas</Label>
               <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas..." rows={3}
