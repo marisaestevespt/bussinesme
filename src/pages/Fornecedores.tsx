@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getAutoExpenseStatus, isPaidExpenseStatus, normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
+import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { formatEuro } from '@/lib/formatting';
 
@@ -158,13 +159,7 @@ export default function FornecedoresPage() {
   const [cancelDialog, setCancelDialog] = useState<{ supplierId: string; adjustValue: string; showAdjust: boolean } | null>(null);
 
   // Dynamic payment methods from business setup
-  const { data: setupPaymentMethods } = useQuery({
-    queryKey: ['business-setup-payment-methods'],
-    queryFn: async () => {
-      const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
-      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
-    },
-  });
+  const { data: setupPaymentMethods } = useBusinessSetupPaymentMethods();
   const paymentMethods = buildPaymentMethodOptions(setupPaymentMethods);
   const getPaymentLabel = (val: string) => paymentMethods.find(m => m.value === val)?.label || val || '—';
 
