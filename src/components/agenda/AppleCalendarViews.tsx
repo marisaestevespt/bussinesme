@@ -19,6 +19,7 @@ export interface AgendaEvent {
   start_date: string;
   end_date: string | null;
   product_name: string | null;
+  product_id?: string | null;
   department: string | null;
   client_name: string | null;
   notes: string | null;
@@ -34,6 +35,9 @@ export type AgendaViewMode = 'day' | 'week' | 'month' | 'year';
 const MEETING_PSEUDO_COLOR = '#8B5CF6';
 
 function getColor(types: AgendaEventType[], ev: AgendaEvent): string {
+  // Allow events to override the colour (e.g. product-branded events)
+  const override = (ev as any)._color as string | undefined;
+  if (override) return override;
   if ((ev as any)._isMeeting) return MEETING_PSEUDO_COLOR;
   const t = types.find(x => x.id === ev.event_type_id);
   return t?.color ?? 'hsl(var(--primary))';

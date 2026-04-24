@@ -48,7 +48,7 @@ import { AgendaLegend, type LegendItem } from '@/components/agenda/AgendaLegend'
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; meeting_url: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; product_id: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; meeting_url: string | null; }
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -74,6 +74,31 @@ function useEventTypes() {
       const { data, error } = await supabase.from('event_types').select('*').order('name');
       if (error) throw error;
       return data as EventType[];
+    },
+  });
+}
+
+// Map of product_id → primary brand colour (hex or HSL string). Used to colour
+// product-linked events with the product's own branding instead of the
+// generic event-type colour.
+function useProductColors() {
+  return useQuery({
+    queryKey: ['product-brand-colors'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('products').select('id, branding');
+      if (error) throw error;
+      const map = new Map<string, string>();
+      for (const p of (data ?? []) as { id: string; branding: any }[]) {
+        const raw = p?.branding?.primary_color;
+        if (!raw || typeof raw !== 'string') continue;
+        const trimmed = raw.trim();
+        if (!trimmed) continue;
+        // HSL space-separated values → wrap in hsl(); hex stays as-is.
+        const isHslTriplet = /^\d+\s+\d+%\s+\d+%$/.test(trimmed);
+        map.set(p.id, isHslTriplet ? `hsl(${trimmed})` : trimmed);
+      }
+      return map;
     },
   });
 }
@@ -151,6 +176,7 @@ function useMeetingsAsEvents(range: { from: string; to: string }) {
         start_date: m.date_time,
         end_date: null,
         product_name: null,
+        product_id: null,
         department: m.department || null,
         client_name: m.client_name || null,
         notes: m.project_name ? `Projeto: ${m.project_name}` : null,
@@ -206,18 +232,20 @@ function getType(types: EventType[], id: string | null): EventType | undefined {
   return types.find(t => t.id === id);
 }
 
-function TypeBadge({ types, typeId, isMeeting }: { types: EventType[]; typeId: string | null; isMeeting?: boolean }) {
+function TypeBadge({ types, typeId, isMeeting, colorOverride }: { types: EventType[]; typeId: string | null; isMeeting?: boolean; colorOverride?: string }) {
   if (isMeeting) {
+    const c = colorOverride ?? MEETING_PSEUDO_COLOR;
     return (
-      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${MEETING_PSEUDO_COLOR}20`, color: MEETING_PSEUDO_COLOR }}>
+      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${c}20`, color: c }}>
         Reunião
       </span>
     );
   }
   const t = getType(types, typeId);
   if (!t) return <span className="text-xs text-muted-foreground">—</span>;
+  const c = colorOverride ?? t.color;
   return (
-    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${t.color}20`, color: t.color }}>
+    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${c}20`, color: c }}>
       {t.name}
     </span>
   );
@@ -779,7 +807,8 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
       if (firstCol !== -1) {
         const isMeeting = (ev as any)._isMeeting;
         const t = getType(types, ev.event_type_id);
-        const color = isMeeting ? MEETING_PSEUDO_COLOR : (t?.color ?? '#888');
+        const colorOverride = (ev as any)._color as string | undefined;
+        const color = colorOverride ?? (isMeeting ? MEETING_PSEUDO_COLOR : (t?.color ?? '#888'));
         bars.push({ ev, startCol: firstCol, span: lastCol - firstCol + 1, color });
       }
     });
@@ -883,7 +912,7 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
       {events.map(ev => (
         <button key={ev.id} onClick={() => onEventClick(ev)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
           <div className="col-span-3 font-medium text-foreground truncate">{ev.title}</div>
-          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} isMeeting={(ev as any)._isMeeting} /></div>
+          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} isMeeting={(ev as any)._isMeeting} colorOverride={(ev as any)._color} /></div>
           <div className="col-span-2 text-muted-foreground text-xs">
             {format(parseISO(ev.start_date), "dd MMM yyyy", { locale: pt })}
           </div>
@@ -1039,9 +1068,21 @@ export default function AgendaPage() {
   const { data: meetingEvents = [] } = useMeetingsAsEvents(fetchRange);
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
+  const { data: productColors } = useProductColors();
 
   // Merge events + meetings into a single sorted list
-  const allEvents = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const allEventsRaw = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  // Override colour with the linked product's brand colour, when present.
+  const allEvents = useMemo(() => {
+    if (!productColors || productColors.size === 0) return allEventsRaw;
+    return allEventsRaw.map(ev => {
+      const pid = (ev as any).product_id as string | null | undefined;
+      if (!pid) return ev;
+      const c = productColors.get(pid);
+      if (!c) return ev;
+      return { ...ev, _color: c } as EventRow;
+    });
+  }, [allEventsRaw, productColors]);
 
   // Apple-calendar mode (Day/Week/Month/Year), persisted locally
   const [mode, setMode] = useState<AgendaViewMode>(() => {
