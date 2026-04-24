@@ -302,7 +302,7 @@ export function IvaPagoDialog({ open, onOpenChange, monthExpenses, month, totalS
                     <TableCell className="text-right text-sm">{formatEuro(e.base_value)}</TableCell>
                     <TableCell className="text-right text-sm font-medium">{formatEuro(iva)}</TableCell>
                     <TableCell className="text-right text-sm" onClick={ev => ev.stopPropagation()}>
-                      <VatDeductibleCell expense={e as any} />
+                      <VatDeductibleCell expense={e} />
                     </TableCell>
                   </TableRow>
                 );
