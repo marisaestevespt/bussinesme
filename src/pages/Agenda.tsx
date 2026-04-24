@@ -50,7 +50,7 @@ import {
   type CalendarItem,
 } from '@/components/agenda/AgendaCalendarsSidebar';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
-import { useProductColors } from '@/hooks/useProductColors';
+import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1125,6 +1125,36 @@ export default function AgendaPage() {
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
   const { data: productColors } = useProductColors();
+  const { data: productBrands = [] } = useProductBrands();
+
+  // ─── Calendars sidebar (filters by type / product) ─────────────
+  const calendarFilters = useCalendarFilters('agenda-business');
+
+  const typeCalendarItems: CalendarItem[] = useMemo(() => {
+    const items: CalendarItem[] = types.map(t => ({ id: `type:${t.id}`, label: t.name, color: t.color }));
+    items.push({ id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR });
+    items.push({ id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR });
+    items.push({ id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' });
+    items.push({ id: 'meta:no-type',  label: 'Sem tipo',         color: 'hsl(var(--muted-foreground))' });
+    return items;
+  }, [types]);
+
+  const productCalendarItems: CalendarItem[] = useMemo(
+    () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),
+    [productBrands],
+  );
+
+  const isEventVisible = (ev: any) => {
+    let typeKey: string;
+    if (ev._isMeeting) typeKey = 'meta:meeting';
+    else if (ev._isSalesAction) typeKey = 'meta:sales';
+    else if (ev.event_type_id) typeKey = `type:${ev.event_type_id}`;
+    else typeKey = 'meta:no-type';
+    if (!calendarFilters.isVisible(typeKey)) return false;
+    const pid = ev.product_id as string | null | undefined;
+    if (pid && !calendarFilters.isVisible(`product:${pid}`)) return false;
+    return true;
+  };
 
   // Merge events + meetings into a single sorted list
   const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
