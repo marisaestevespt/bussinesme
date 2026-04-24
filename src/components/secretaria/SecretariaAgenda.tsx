@@ -235,36 +235,40 @@ export default function SecretariaAgenda() {
       <RoutineMonthCard tasks={routineTasks.data || []} />
 
       <Card>
-        <CardContent className="p-4">
-          <AgendaToolbar
-            mode={mode}
-            onModeChange={setMode}
-            current={current}
-            onPrev={goPrev}
-            onNext={goNext}
-            onToday={goToday}
-            label={formatLabel(mode, current)}
-          />
-          <AgendaLegend
-            items={[
-              { label: 'Evento', color: '#0EA5E9' },
-              { label: 'Reunião', color: '#3B82F6' },
-              { label: 'Tarefa', color: 'hsl(var(--primary))' },
-            ]}
-          />
-
-          {mode === 'day' && (
-            <DayView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-          )}
-          {mode === 'week' && (
-            <WeekView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-          )}
-          {mode === 'month' && (
-            <MonthView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-          )}
-          {mode === 'year' && (
-            <YearView current={current} events={agendaEvents} onMonthClick={handleMonthClick} />
-          )}
+        <CardContent className="p-0">
+          <div className="flex">
+            <AgendaCalendarsSidebar
+              typeItems={typeCalendarItems}
+              productItems={productCalendarItems}
+              hidden={calendarFilters.hidden}
+              onToggle={calendarFilters.toggle}
+              onShowAll={calendarFilters.showAll}
+              onHideAll={calendarFilters.hideAll}
+            />
+            <div className="flex-1 min-w-0 p-4">
+              <AgendaToolbar
+                mode={mode}
+                onModeChange={setMode}
+                current={current}
+                onPrev={goPrev}
+                onNext={goNext}
+                onToday={goToday}
+                label={formatLabel(mode, current)}
+              />
+              {mode === 'day' && (
+                <DayView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'week' && (
+                <WeekView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'month' && (
+                <MonthView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'year' && (
+                <YearView current={current} events={agendaEvents} onMonthClick={handleMonthClick} />
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
