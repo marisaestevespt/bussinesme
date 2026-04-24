@@ -904,13 +904,23 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
               {week.map((day, di) => {
                 const dayStr = day ? format(day, 'yyyy-MM-dd') : '';
                 const holidayName = day ? holidayMap.get(dayStr) : undefined;
+                const isOffDay = day ? offDayStrs.has(dayStr) : false;
                 return (
-                  <div key={di} className={cn('bg-card min-h-[110px] p-1.5', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30', holidayName && 'bg-destructive/5')}>
+                  <div key={di} className={cn(
+                    'bg-card min-h-[110px] p-1.5',
+                    day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30',
+                    !day && 'bg-muted/30',
+                    holidayName && 'bg-destructive/5',
+                    isOffDay && 'bg-muted/60',
+                  )}>
                     {day && (
                       <div className="flex items-center gap-1">
                         <span className={cn('text-xs font-medium', isSameDay(day, new Date()) ? 'text-primary font-bold' : 'text-foreground/70')}>{format(day, 'd')}</span>
                         {holidayName && (
                           <span className="text-[10px] text-destructive font-medium truncate">{holidayName}</span>
+                        )}
+                        {isOffDay && !holidayName && (
+                          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Off</span>
                         )}
                       </div>
                     )}
