@@ -130,14 +130,16 @@ function useEvents(userId: string | undefined, isOwner: boolean, range: { from: 
 
 const MEETING_PSEUDO_COLOR = '#8B5CF6'; // violet for meetings on calendar
 
-function useMeetingsAsEvents() {
+function useMeetingsAsEvents(range: { from: string; to: string }) {
   return useQuery({
-    queryKey: ['meetings-as-events'],
+    queryKey: ['meetings-as-events', range.from, range.to],
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('meetings')
         .select('id,title,date_time,status,meeting_url,client_name,department,project_name,is_recurring,recurrence_frequency,recurrence_end_date')
+        .gte('date_time', range.from + 'T00:00:00')
+        .lte('date_time', range.to + 'T23:59:59')
         .order('date_time');
       if (error) throw error;
       return (data || []).map((m: any): EventRow & { _isMeeting: true; _meetingId: string } => ({
