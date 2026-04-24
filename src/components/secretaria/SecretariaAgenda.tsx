@@ -13,9 +13,14 @@ import {
   type AgendaEvent, type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
 import { AgendaLegend } from '@/components/agenda/AgendaLegend';
-import { useProductColors } from '@/hooks/useProductColors';
+import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import { parseISO as parseIsoDate, isWithinInterval } from 'date-fns';
+import {
+  AgendaCalendarsSidebar,
+  useCalendarFilters,
+  type CalendarItem,
+} from '@/components/agenda/AgendaCalendarsSidebar';
 
 const VIEW_STORAGE_KEY = 'secretaria-agenda:viewMode';
 
@@ -30,7 +35,32 @@ export default function SecretariaAgenda() {
   const [current, setCurrent] = useState<Date>(new Date());
   const routineTasks = useMonthRoutineTasks();
   const { data: productColors } = useProductColors();
+  const { data: productBrands = [] } = useProductBrands();
   const { data: globalContext = [] } = useGlobalAgendaContext();
+
+  // ─── Calendars sidebar (filters by source / product) ───────────
+  const calendarFilters = useCalendarFilters('agenda-secretaria');
+
+  const typeCalendarItems: CalendarItem[] = useMemo(() => ([
+    { id: 'src:event',    label: 'Eventos',    color: '#0EA5E9' },
+    { id: 'src:reuniao',  label: 'Reuniões',   color: '#3B82F6' },
+    { id: 'src:tarefa',   label: 'Tarefas',    color: 'hsl(var(--primary))' },
+    { id: 'src:global',   label: 'Off / Datas Especiais', color: '#94A3B8' },
+    { id: 'meta:feriado', label: 'Feriados PT', color: 'hsl(var(--destructive))' },
+  ]), []);
+
+  const productCalendarItems: CalendarItem[] = useMemo(
+    () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),
+    [productBrands],
+  );
+
+  const isEventVisible = (ev: any) => {
+    const src = ev._source ?? 'event';
+    if (!calendarFilters.isVisible(`src:${src}`)) return false;
+    const pid = ev._productId ?? null;
+    if (pid && !calendarFilters.isVisible(`product:${pid}`)) return false;
+    return true;
+  };
 
   useEffect(() => {
     try { window.localStorage.setItem(VIEW_STORAGE_KEY, mode); } catch {}
