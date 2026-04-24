@@ -39,6 +39,7 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
     { key: 'contract_type', label: 'Tipo de contrato', type: 'select', options: CONTRACT_TYPES },
     { key: 'start_date', label: 'Data de início', type: 'date' },
     { key: 'end_date', label: 'Data de fim', type: 'date' },
+    { key: 'monthly_value', label: 'Valor mensal (€)', type: 'number' },
     { key: 'status', label: 'Status', type: 'select', options: CONTRACT_STATUSES },
     { key: 'document_url', label: 'Documento (URL)', type: 'text' },
     { key: 'notes', label: 'Notas', type: 'textarea' },
