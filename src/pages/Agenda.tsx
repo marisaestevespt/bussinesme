@@ -1031,6 +1031,26 @@ export default function AgendaPage() {
   // Merge events + meetings into a single sorted list
   const allEvents = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
 
+  // Apple-calendar mode (Day/Week/Month/Year), persisted locally
+  const [mode, setMode] = useState<AgendaViewMode>(() => {
+    if (typeof window === 'undefined') return 'week';
+    const saved = window.localStorage.getItem(AGENDA_MODE_KEY) as AgendaViewMode | null;
+    return saved && ['day', 'week', 'month', 'year'].includes(saved) ? saved : 'week';
+  });
+  const [cursor, setCursor] = useState<Date>(new Date());
+  const handleModeChange = (m: AgendaViewMode) => {
+    setMode(m);
+    if (typeof window !== 'undefined') window.localStorage.setItem(AGENDA_MODE_KEY, m);
+  };
+
+  // Expand recurring events into a wide window so all views see occurrences
+  const expandedEvents = useMemo(() => {
+    const rangeStart = subMonths(cursor, 6);
+    const rangeEnd = addMonths(cursor, 18);
+    return expandRecurringEvents(allEvents, rangeStart, rangeEnd);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allEvents, cursor.getFullYear(), cursor.getMonth()]);
+
   const handleEventClick = (ev: EventRow) => {
     // If it's a meeting, navigate to meeting detail page
     if ((ev as any)._isMeeting) {
@@ -1073,7 +1093,29 @@ export default function AgendaPage() {
             <InlineLoader />
           </div>
         ) : view === 'calendar' ? (
-          <CalendarView events={allEvents} types={types} onEventClick={handleEventClick} />
+          <div>
+            <AgendaToolbar
+              mode={mode}
+              onModeChange={handleModeChange}
+              current={cursor}
+              onPrev={() => setCursor(d => navigatePrev(mode, d))}
+              onNext={() => setCursor(d => navigateNext(mode, d))}
+              onToday={() => setCursor(new Date())}
+              label={formatLabel(mode, cursor)}
+            />
+            {mode === 'day' && (
+              <DayView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+            )}
+            {mode === 'week' && (
+              <WeekView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+            )}
+            {mode === 'month' && (
+              <MonthView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+            )}
+            {mode === 'year' && (
+              <YearView current={cursor} events={expandedEvents} onMonthClick={(d) => { setCursor(d); handleModeChange('month'); }} />
+            )}
+          </div>
         ) : (
           <ListView events={allEvents} types={types} onEventClick={handleEventClick} />
         )}
