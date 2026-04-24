@@ -28,7 +28,7 @@ interface Props {
 export function ProductCustomerSuccess({ productId, productName, isOwner }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { members } = useTeamData();
+  const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
 
   // ---- NPS Config ----

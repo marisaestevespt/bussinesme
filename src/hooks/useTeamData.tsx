@@ -109,7 +109,8 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
     yearFrom: options.yearFrom ?? (new Date().getFullYear() - 1),
   };
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: KEY });
+  // Force active queries to refetch immediately (not just mark stale)
+  const invalidate = () => qc.invalidateQueries({ queryKey: KEY, refetchType: 'active' });
 
   // Members
   const members = useQuery({
