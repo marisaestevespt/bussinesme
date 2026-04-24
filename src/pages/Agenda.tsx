@@ -1036,7 +1036,7 @@ export default function AgendaPage() {
     to: format(addMonths(cursor, 18), 'yyyy-MM-dd'),
   }), [cursor.getFullYear(), cursor.getMonth()]);
   const { data: events = [], isLoading } = useEvents(user?.id, isOwner, fetchRange);
-  const { data: meetingEvents = [] } = useMeetingsAsEvents();
+  const { data: meetingEvents = [] } = useMeetingsAsEvents(fetchRange);
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
 
