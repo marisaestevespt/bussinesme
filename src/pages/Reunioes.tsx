@@ -447,6 +447,11 @@ export function MeetingFormDialog({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!title.trim() || !dateTime) throw new Error('Nome e data/hora são obrigatórios');
+      // Soft warning: warn the user if the meeting falls inside a global "Off" period.
+      const off = findOffRange(offRanges, dateTime);
+      if (off) {
+        toast.warning(`Esta reunião cai num período Off (${off.title}). Foi criada à mesma.`);
+      }
       const primaryProjectId = selectedProjectIds[0] || null;
       const primaryProject = primaryProjectId ? projects.find(p => p.id === primaryProjectId) : null;
       const selectedClient = clients.find((c: any) => c.id === clientId);
@@ -483,13 +488,10 @@ export function MeetingFormDialog({
         await supabase.from('meeting_participants').insert(rows);
       }
 
-      // Create calendar event
+      // Create calendar event. Reunião-specific event types were retired —
+      // the agenda detects meetings via the meetings table (purple pill).
       const isClientMeeting = meetingType === 'cliente';
-      const { data: eventTypes } = await supabase.from('event_types')
-        .select('id, slug')
-        .in('slug', ['reuniao_interna', 'reuniao_cliente']);
-      const typeSlug = isClientMeeting ? 'reuniao_cliente' : 'reuniao_interna';
-      const eventTypeId = eventTypes?.find(t => t.slug === typeSlug)?.id ?? null;
+      const eventTypeId: string | null = null;
       await supabase.from('events').insert({
         title: title.trim(),
         start_date: dateTime.toISOString(),
