@@ -1068,6 +1068,55 @@ export type Database = {
           },
         ]
       }
+      client_assignments: {
+        Row: {
+          assignment_type: string
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          assignment_type?: string
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          assignment_type?: string
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_assignments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_contacts: {
         Row: {
           client_id: string
@@ -1918,6 +1967,7 @@ export type Database = {
       }
       commercial_sales: {
         Row: {
+          assigned_to: string | null
           base_value: number
           client: string | null
           created_at: string
@@ -1942,6 +1992,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           base_value?: number
           client?: string | null
           created_at?: string
@@ -1966,6 +2017,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           base_value?: number
           client?: string | null
           created_at?: string
@@ -8310,6 +8362,39 @@ export type Database = {
         }
         Relationships: []
       }
+      role_activity_log: {
+        Row: {
+          action: string
+          actor_name: string | null
+          actor_user_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          target_member_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_member_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_member_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           can_view: boolean
@@ -9406,6 +9491,9 @@ export type Database = {
       team_members: {
         Row: {
           access_revoked: boolean | null
+          access_suspended: boolean
+          access_suspended_at: string | null
+          access_suspended_by: string | null
           birthday: string | null
           created_at: string
           custom_holidays: Json | null
@@ -9421,6 +9509,7 @@ export type Database = {
           id: string
           identification: string | null
           inactivated_at: string | null
+          is_external: boolean
           member_type: string
           payment_method: string | null
           photo_url: string | null
@@ -9442,6 +9531,9 @@ export type Database = {
         }
         Insert: {
           access_revoked?: boolean | null
+          access_suspended?: boolean
+          access_suspended_at?: string | null
+          access_suspended_by?: string | null
           birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
@@ -9457,6 +9549,7 @@ export type Database = {
           id?: string
           identification?: string | null
           inactivated_at?: string | null
+          is_external?: boolean
           member_type?: string
           payment_method?: string | null
           photo_url?: string | null
@@ -9478,6 +9571,9 @@ export type Database = {
         }
         Update: {
           access_revoked?: boolean | null
+          access_suspended?: boolean
+          access_suspended_at?: string | null
+          access_suspended_by?: string | null
           birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
@@ -9493,6 +9589,7 @@ export type Database = {
           id?: string
           identification?: string | null
           inactivated_at?: string | null
+          is_external?: boolean
           member_type?: string
           payment_method?: string | null
           photo_url?: string | null
@@ -10289,11 +10386,14 @@ export type Database = {
       }
     }
     Functions: {
+      accountant_access_enabled: { Args: never; Returns: boolean }
       apply_project_deliverable_tasks: {
         Args: { _project_id: string }
         Returns: number
       }
       backfill_deliverable_tasks: { Args: never; Returns: number }
+      current_team_member_id: { Args: never; Returns: string }
+      current_user_departments: { Args: never; Returns: string[] }
       current_user_has_sensitive_access: {
         Args: { _category: string }
         Returns: boolean
@@ -10547,6 +10647,10 @@ export type Database = {
         }
       }
       get_system_config_value: { Args: { _key: string }; Returns: string }
+      has_any_role: {
+        Args: { _roles: Database["public"]["Enums"]["app_role"][] }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -10554,6 +10658,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_or_owner: { Args: never; Returns: boolean }
+      is_owner: { Args: never; Returns: boolean }
       is_self_team_member: { Args: { _member_id: string }; Returns: boolean }
       log_audit_entry: {
         Args: {
@@ -10649,9 +10755,24 @@ export type Database = {
           table_name: string
         }[]
       }
+      user_can_access_client: { Args: { _client_id: string }; Returns: boolean }
+      user_can_access_project: {
+        Args: { _project_id: string }
+        Returns: boolean
+      }
+      user_in_department: { Args: { _dept: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "owner" | "admin" | "member"
+      app_role:
+        | "owner"
+        | "admin"
+        | "member"
+        | "accountant"
+        | "hr"
+        | "admin_staff"
+        | "sales"
+        | "team_member"
+        | "viewer"
       deliverable_type: "tarefa" | "reuniao" | "documento" | "aprovacao"
       digest_frequency: "diario" | "semanal" | "mensal"
       launch_phase:
@@ -10798,7 +10919,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["owner", "admin", "member"],
+      app_role: [
+        "owner",
+        "admin",
+        "member",
+        "accountant",
+        "hr",
+        "admin_staff",
+        "sales",
+        "team_member",
+        "viewer",
+      ],
       deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao"],
       digest_frequency: ["diario", "semanal", "mensal"],
       launch_phase: [
