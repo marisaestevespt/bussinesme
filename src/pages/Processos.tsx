@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { DEPARTMENTS, PROCESS_DEPARTMENTS, getDept, getDeptLabel } from '@/lib/departments';
 import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
 import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus';
+import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -467,111 +468,32 @@ export default function ProcessosPage() {
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Nova Rotina</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Título *</Label>
-                <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Revisão semanal de KPIs" />
-              </div>
-              <div>
-                <Label>Departamento</Label>
-                <Select value={prDepartment || '_none_'} onValueChange={v => setPrDepartment(v === '_none_' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none_">Nenhum</SelectItem>
-                    {PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Função responsável</Label>
-                <Popover open={prRoleOpen} onOpenChange={setPrRoleOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start font-normal">
-                      {prRoleFunction || <span className="text-muted-foreground">Selecionar ou criar...</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[280px] p-0" align="start">
-                    <Command>
-                      <CommandInput
-                        placeholder="Pesquisar ou criar função..."
-                        value={prRoleCustom}
-                        onValueChange={setPrRoleCustom}
-                      />
-                      <CommandList>
-                        <CommandEmpty>
-                          {prRoleCustom.trim() && (
-                            <button
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-accent rounded"
-                              onClick={() => { setPrRoleFunction(prRoleCustom.trim()); setPrRoleOpen(false); }}
-                            >
-                              Criar "<strong>{prRoleCustom.trim()}</strong>"
-                            </button>
-                          )}
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {existingRoles.map(role => (
-                            <CommandItem
-                              key={role}
-                              value={role}
-                              onSelect={() => { setPrRoleFunction(role); setPrRoleCustom(''); setPrRoleOpen(false); }}
-                            >
-                              {role}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>
-                <Label>Tipo de recorrência</Label>
-                <Select value={prRecurrence} onValueChange={v => setPrRecurrence(v as any)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="semanal">Semanal</SelectItem>
-                    <SelectItem value="mensal">Mensal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {prRecurrence === 'semanal' && (
+            <RoutineFormFields
+              layout="wide"
+              hourInputClassName="w-32"
+              title={prTitle} onTitleChange={setPrTitle}
+              roleFunction={prRoleFunction} onRoleFunctionChange={setPrRoleFunction}
+              roleCustom={prRoleCustom} onRoleCustomChange={setPrRoleCustom}
+              roleOpen={prRoleOpen} onRoleOpenChange={setPrRoleOpen}
+              existingRoles={existingRoles}
+              recurrence={prRecurrence} onRecurrenceChange={setPrRecurrence}
+              weekday={prWeekday} onWeekdayChange={setPrWeekday}
+              monthDay={prMonthDay} onMonthDayChange={setPrMonthDay}
+              hour={prHour} onHourChange={setPrHour}
+              adjustBiz={prAdjustBiz} onAdjustBizChange={setPrAdjustBiz}
+              extraTopField={
                 <div>
-                  <Label>Dia da semana</Label>
-                  <Select value={prWeekday} onValueChange={setPrWeekday}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Label>Departamento</Label>
+                  <Select value={prDepartment || '_none_'} onValueChange={v => setPrDepartment(v === '_none_' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">Segunda-feira</SelectItem>
-                      <SelectItem value="2">Terça-feira</SelectItem>
-                      <SelectItem value="3">Quarta-feira</SelectItem>
-                      <SelectItem value="4">Quinta-feira</SelectItem>
-                      <SelectItem value="5">Sexta-feira</SelectItem>
-                      <SelectItem value="6">Sábado</SelectItem>
-                      <SelectItem value="7">Domingo</SelectItem>
+                      <SelectItem value="_none_">Nenhum</SelectItem>
+                      {PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-              {prRecurrence === 'mensal' && (
-                <div>
-                  <Label>Dia do mês</Label>
-                  <Input type="number" min={1} max={31} value={prMonthDay} onChange={e => setPrMonthDay(e.target.value)} />
-                </div>
-              )}
-              <div>
-                <Label>Hora</Label>
-                <Input type="time" value={prHour} onChange={e => setPrHour(e.target.value)} className="w-32" />
-              </div>
-            </div>
-            {prRecurrence === 'mensal' && (
-              <div className="flex items-center gap-2">
-                <Switch checked={prAdjustBiz} onCheckedChange={setPrAdjustBiz} />
-                <Label className="text-sm">Ajustar para dia útil anterior (se cair em fim de semana)</Label>
-              </div>
-            )}
+              }
+            />
 
             <Separator />
 
