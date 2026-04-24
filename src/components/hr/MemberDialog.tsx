@@ -70,6 +70,21 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: 'outro', label: 'Outro' },
 ];
 
+// Vínculo unificado: controla simultaneamente member_type e contract_type
+const BOND_OPTIONS = [
+  { value: 'interno',    label: 'Equipa Interna',  hint: 'Contrato de trabalho',           member_type: 'colaborador_fixo',     contract_type: 'contrato_trabalho' },
+  { value: 'freelancer', label: 'Freelancer',      hint: 'Prestação de serviços',          member_type: 'prestador_servicos',   contract_type: 'contrato_prestacao' },
+  { value: 'socio',      label: 'Sócio',           hint: 'Acordo de sociedade',            member_type: 'socio',                contract_type: 'acordo' },
+  { value: 'outro',      label: 'Outro',           hint: 'Outro tipo de vínculo',          member_type: 'colaborador_fixo',     contract_type: 'outro' },
+];
+
+function bondFromTypes(memberType: string, contractType: string): string {
+  if (memberType === 'prestador_servicos' || contractType === 'contrato_prestacao') return 'freelancer';
+  if (memberType === 'socio') return 'socio';
+  if (contractType === 'outro' || contractType === 'acordo') return memberType === 'socio' ? 'socio' : 'outro';
+  return 'interno';
+}
+
 function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const schedule = parseSchedule(value);
 
