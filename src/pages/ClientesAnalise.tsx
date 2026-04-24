@@ -457,32 +457,17 @@ export default function ClientesAnalisePage() {
         <YearSelector year={year} onChange={setYear} />
 
         {/* Month cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {monthSummaries.map((m, idx) => {
-            const isCurrent = now.getMonth() === idx && now.getFullYear() === year;
-            return (
-              <Card
-                key={idx}
-                className={cn(
-                  'cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group',
-                  isCurrent && 'ring-2 ring-primary'
-                )}
-                onClick={() => setSelectedMonth(idx)}
-              >
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">{m.name}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <div className="flex gap-3 text-xs text-muted-foreground">
-                    <span className="text-success font-medium">+{m.newClients} novos</span>
-                    {m.churn > 0 && <span className="text-destructive font-medium">-{m.churn} churn</span>}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <MonthCardsGallery
+          months={monthSummaries}
+          year={year}
+          onSelectMonth={setSelectedMonth}
+          renderBody={(m) => (
+            <div className="flex gap-3 text-xs text-muted-foreground">
+              <span className="text-success font-medium">+{m.newClients} novos</span>
+              {m.churn > 0 && <span className="text-destructive font-medium">-{m.churn} churn</span>}
+            </div>
+          )}
+        />
 
         <Separator />
 
