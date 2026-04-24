@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import type { SupplierSelectOption, SupplierFormState } from './types';
 
 const PAYMENT_METHODS = [
   { value: 'transferencia', label: 'Transferência' },
@@ -21,15 +22,15 @@ const PAYMENT_METHODS = [
 
 interface Props {
   value: string | null;
-  onValueChange: (v: string | null, supplier?: any) => void;
+  onValueChange: (v: string | null, supplier?: SupplierSelectOption) => void;
 }
 
 export function SupplierSelect({ value, onValueChange }: Props) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<SupplierFormState>({});
 
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<SupplierSelectOption[]>({
     queryKey: ['suppliers-list'],
     queryFn: async () => {
       const { data } = await supabase
@@ -37,7 +38,7 @@ export function SupplierSelect({ value, onValueChange }: Props) {
         .select('id, name, nif, default_vat_rate, payment_method, iban, email, phone, address, website, notes, category')
         .eq('is_active', true)
         .order('name');
-      return data || [];
+      return (data || []) as SupplierSelectOption[];
     },
   });
 
@@ -73,7 +74,7 @@ export function SupplierSelect({ value, onValueChange }: Props) {
         qc.invalidateQueries({ queryKey: ['suppliers-list'] });
         qc.invalidateQueries({ queryKey: ['suppliers-all'] });
         qc.invalidateQueries({ queryKey: ['suppliers-list-vat'] });
-        onValueChange(data.id, data);
+        onValueChange(data.id, data as SupplierSelectOption);
         toast.success('Fornecedor criado');
         setOpen(false);
         resetForm();
@@ -88,7 +89,7 @@ export function SupplierSelect({ value, onValueChange }: Props) {
         if (v === '__none__') {
           onValueChange(null);
         } else {
-          const supplier = suppliers.find((s: any) => s.id === v);
+          const supplier = suppliers.find(s => s.id === v);
           onValueChange(v, supplier);
         }
       }}>
@@ -97,7 +98,7 @@ export function SupplierSelect({ value, onValueChange }: Props) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__none__">Sem fornecedor</SelectItem>
-          {suppliers.map((s: any) => (
+          {suppliers.map(s => (
             <SelectItem key={s.id} value={s.id}>
               {s.name}{s.nif ? ` (${s.nif})` : ''}
             </SelectItem>
