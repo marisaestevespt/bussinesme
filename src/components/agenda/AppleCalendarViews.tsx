@@ -81,18 +81,18 @@ export function AgendaToolbar({
   ];
 
   return (
-    <div className="flex items-center justify-between gap-3 mb-4">
-      <h3 className="text-2xl font-semibold capitalize text-foreground tracking-tight">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <h3 className="text-lg sm:text-2xl font-semibold capitalize text-foreground tracking-tight truncate">
         {label}
       </h3>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
         <div className="inline-flex items-center rounded-full bg-muted/60 p-0.5">
           {modes.map(m => (
             <button
               key={m.key}
               onClick={() => onModeChange(m.key)}
               className={cn(
-                'px-3 py-1 text-xs font-medium rounded-full transition-all',
+                'px-2 sm:px-3 py-1 text-xs font-medium rounded-full transition-all',
                 mode === m.key
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
