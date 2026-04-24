@@ -500,8 +500,12 @@ export function MonthView({
           const isToday = isSameDay(day, new Date());
           const dayStr = format(day, 'yyyy-MM-dd');
           const dayEvents = eventsByDay.get(dayStr) || [];
-          const visible = dayEvents.slice(0, 3);
-          const overflow = dayEvents.length - visible.length;
+          // "Off" days = days covered by an event whose source/slug marks business closure
+          const offEvent = dayEvents.find(e => (e as any)._globalSlug === 'off');
+          // Render Off events inline as a faint banner instead of stealing list slots
+          const restEvents = dayEvents.filter(e => (e as any)._globalSlug !== 'off');
+          const visible = restEvents.slice(0, 3);
+          const overflow = restEvents.length - visible.length;
           const holiday = holidayMap.get(dayStr);
 
           return (
@@ -511,6 +515,7 @@ export function MonthView({
                 'min-h-[110px] p-1.5 border-r border-b border-border/40 last:border-r-0',
                 !inMonth && 'bg-muted/10',
                 isToday && 'bg-primary/5',
+                offEvent && 'bg-muted/60',
               )}
             >
               <div className="flex items-center justify-between gap-1 mb-1">
@@ -524,6 +529,11 @@ export function MonthView({
                 </span>
                 {holiday && (
                   <span className="text-[9px] text-destructive font-medium truncate">{holiday}</span>
+                )}
+                {!holiday && offEvent && (
+                  <span className="text-[9px] uppercase tracking-wide text-muted-foreground font-medium truncate">
+                    Off
+                  </span>
                 )}
               </div>
               <div className="space-y-0.5">
