@@ -82,7 +82,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     return da.localeCompare(db);
   }), [expenses, currentYear, m]);
 
-  const recurringExps = fin.recurringExpenses.data || [];
+  const recurringExps = useMemo(() => fin.recurringExpenses.data || [], [fin.recurringExpenses.data]);
   const dueSubscriptions = useMemo(() => {
     return recurringExps.filter(sub => canRenderSubscriptionForMonth(sub, m, currentYear));
   }, [recurringExps, m, currentYear]);
