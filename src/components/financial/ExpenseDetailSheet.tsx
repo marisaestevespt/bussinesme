@@ -23,7 +23,6 @@ import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { VatPreview } from './VatPreview';
 import type { ExpenseFormState, PaymentMethodEntry, SupplierSelectOption } from './types';
-import type { DocEntry } from './InvoiceUpload';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },

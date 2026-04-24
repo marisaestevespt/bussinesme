@@ -45,6 +45,7 @@ export interface ExpenseFormState {
   documents?: DocEntry[];
   meta_ads_docs?: DocEntry[];
   source_type?: string | null;
+  source_id?: string | null;
 }
 
 /* ─── Business setup / Settings ──────────────────────────────── */
