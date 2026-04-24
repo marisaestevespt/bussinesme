@@ -87,8 +87,16 @@ export function AgendaToolbar({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-      <h3 className="text-sm sm:text-base font-medium lowercase text-foreground/80 tracking-tight truncate">
-        {label}
+      <h3 className="text-xs font-normal lowercase text-muted-foreground tracking-tight truncate flex items-center gap-2">
+        {mode === 'week' && (() => {
+          const wn = getISOWeek(current);
+          return (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-medium text-muted-foreground/80 normal-case">
+              S{wn}
+            </span>
+          );
+        })()}
+        <span className="truncate">{label}</span>
       </h3>
       <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
         <div className="inline-flex items-center rounded-full bg-muted/60 p-0.5">
@@ -645,11 +653,10 @@ export function formatLabel(mode: AgendaViewMode, d: Date): string {
     case 'week': {
       const ws = startOfWeek(d, { weekStartsOn: 1 });
       const we = endOfWeek(d, { weekStartsOn: 1 });
-      const wn = getISOWeek(d);
       if (ws.getMonth() === we.getMonth()) {
-        return `semana ${wn} · ${format(ws, 'd', { locale: pt })} – ${format(we, "d 'de' MMMM yyyy", { locale: pt })}`;
+        return `${format(ws, 'd', { locale: pt })} – ${format(we, "d 'de' MMMM yyyy", { locale: pt })}`;
       }
-      return `semana ${wn} · ${format(ws, "d 'de' MMM", { locale: pt })} – ${format(we, "d 'de' MMM yyyy", { locale: pt })}`;
+      return `${format(ws, "d 'de' MMM", { locale: pt })} – ${format(we, "d 'de' MMM yyyy", { locale: pt })}`;
     }
     case 'month': return format(d, 'MMMM yyyy', { locale: pt });
     case 'year': return format(d, 'yyyy', { locale: pt });
