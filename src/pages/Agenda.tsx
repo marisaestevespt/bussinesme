@@ -805,7 +805,8 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
       if (firstCol !== -1) {
         const isMeeting = (ev as any)._isMeeting;
         const t = getType(types, ev.event_type_id);
-        const color = isMeeting ? MEETING_PSEUDO_COLOR : (t?.color ?? '#888');
+        const colorOverride = (ev as any)._color as string | undefined;
+        const color = colorOverride ?? (isMeeting ? MEETING_PSEUDO_COLOR : (t?.color ?? '#888'));
         bars.push({ ev, startCol: firstCol, span: lastCol - firstCol + 1, color });
       }
     });
