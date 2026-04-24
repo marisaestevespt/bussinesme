@@ -7,8 +7,12 @@ import { UnifiedResponsibilitiesList } from '@/components/UnifiedResponsibilitie
 import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secretaria-shared';
 import { RoutineMonthCard } from './SecretariaRotinas';
 import { isToday, parseISO } from 'date-fns';
+import { DayView } from '@/components/agenda/AppleCalendarViews';
+import { unifiedItemToAgendaEvent, buildSourceTypes } from './secretaria-agenda-mappers';
+import { useNavigate } from 'react-router-dom';
 
 export default function SecretariaDia() {
+  const navigate = useNavigate();
   const meetings = useMyMeetings();
   const timeEntries = useMyTimeEntries();
   const routineTasks = useMonthRoutineTasks();
@@ -19,6 +23,21 @@ export default function SecretariaDia() {
   const todayTime = useMemo(() => (timeEntries.data || []).filter((e: any) => e.entry_date === todayStr), [timeEntries.data, todayStr]);
   const todayHours = useMemo(() => todayTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [todayTime]);
 
+  const dayAgendaEvents = useMemo(
+    () => unified.todayItems.map(unifiedItemToAgendaEvent).filter((e): e is NonNullable<typeof e> => !!e),
+    [unified.todayItems]
+  );
+  const sourceTypes = useMemo(buildSourceTypes, []);
+
+  const handleEventClick = (ev: any) => {
+    const src = ev._source;
+    if (src === 'reuniao') navigate('/hub/reunioes');
+    else if (src === 'projeto' || src === 'marco') navigate('/hub/projetos');
+    else if (src === 'crm' || src === 'acao_venda') navigate('/hub/comercial');
+    else if (src === 'conteudo') navigate('/hub/conteudos');
+    else navigate('/hub/tarefas');
+  };
+
   return (
     <div className="space-y-6">
       <RoutineMonthCard tasks={routineTasks.data || []} />
@@ -28,6 +47,13 @@ export default function SecretariaDia() {
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
       </div>
+
+      <DayView
+        current={new Date()}
+        events={dayAgendaEvents}
+        types={sourceTypes}
+        onEventClick={handleEventClick}
+      />
 
       <UnifiedResponsibilitiesList
         items={unified.todayItems}
