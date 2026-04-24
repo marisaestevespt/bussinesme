@@ -23,7 +23,8 @@ type UnifiedDoc = {
 };
 
 export function FinAllDocuments() {
-  const fin = useFinancialData();
+  // Only need expenses (entries come from useCommercialData)
+  const fin = useFinancialData({ expenses: true, recurring: false, documents: false, payroll: false, contractors: false });
   const com = useCommercialData();
 
   const [search, setSearch] = useState('');
