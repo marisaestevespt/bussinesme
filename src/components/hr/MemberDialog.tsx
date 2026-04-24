@@ -406,7 +406,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
 
             {/* Função */}
             <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground font-medium">Função</span>
+              <span className="text-xs text-muted-foreground font-medium">Cargo</span>
+              <p className="text-[10px] text-muted-foreground">Título descritivo (ex: Designer, Gestora). Não controla permissões — isso é a "Função no sistema" mais abaixo.</p>
               <div className="flex flex-wrap gap-1.5">
                 {PRESET_ROLES.map(r => {
                   const isSelected = f.role_title === r.label;
@@ -440,8 +441,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                 </div>
               ) : (
                 <button type="button" className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                  onClick={() => { set('role_title', 'Nova função'); set('role_color', '#6366f1'); }}>
-                  <Plus className="h-3 w-3" /> Adicionar outra função
+                  onClick={() => { set('role_title', 'Novo cargo'); set('role_color', '#6366f1'); }}>
+                  <Plus className="h-3 w-3" /> Adicionar outro cargo
                 </button>
               )}
               {f.role_title && <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>}
@@ -458,7 +459,15 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               </div>
               <div>
                 <label className="text-xs text-muted-foreground">Tipo</label>
-                <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
+                <Select value={f.member_type} onValueChange={v => {
+                  set('member_type', v);
+                  // Auto-link tipo do membro com tipo de contrato
+                  if (v === 'prestador_servicos') {
+                    setC('contract_type', 'contrato_prestacao');
+                  } else if (v === 'colaborador_fixo' && contract.contract_type === 'contrato_prestacao') {
+                    setC('contract_type', 'contrato_trabalho');
+                  }
+                }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
@@ -473,18 +482,22 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             <div className="grid grid-cols-3 gap-2">
               <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
               <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
-              <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
+              <div>
+                <Input type="date" placeholder="Nascimento" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Input placeholder="IBAN" value={f.iban || ''} onChange={e => set('iban', e.target.value)} />
-              <Input placeholder="Morada fiscal" value={f.fiscal_address || ''} onChange={e => set('fiscal_address', e.target.value)} />
-            </div>
+          </div>
 
-            {/* Nascimento */}
-            <div>
-              <label className="text-xs text-muted-foreground">Data de nascimento</label>
-              <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+          <Separator />
+
+          {/* ═══ DADOS FISCAIS ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🧾 Dados Fiscais</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
+              <Input placeholder="IBAN" value={f.iban || ''} onChange={e => set('iban', e.target.value)} />
             </div>
+            <Input placeholder="Morada fiscal" value={f.fiscal_address || ''} onChange={e => set('fiscal_address', e.target.value)} />
           </div>
 
           <Separator />
