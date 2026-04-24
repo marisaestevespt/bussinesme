@@ -43,9 +43,13 @@ import {
   formatLabel,
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
-import { AgendaLegend, type LegendItem } from '@/components/agenda/AgendaLegend';
+import {
+  AgendaCalendarsSidebar,
+  useCalendarFilters,
+  type CalendarItem,
+} from '@/components/agenda/AgendaCalendarsSidebar';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
-import { useProductColors } from '@/hooks/useProductColors';
+import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1120,6 +1124,36 @@ export default function AgendaPage() {
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
   const { data: productColors } = useProductColors();
+  const { data: productBrands = [] } = useProductBrands();
+
+  // ─── Calendars sidebar (filters by type / product) ─────────────
+  const calendarFilters = useCalendarFilters('agenda-business');
+
+  const typeCalendarItems: CalendarItem[] = useMemo(() => {
+    const items: CalendarItem[] = types.map(t => ({ id: `type:${t.id}`, label: t.name, color: t.color }));
+    items.push({ id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR });
+    items.push({ id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR });
+    items.push({ id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' });
+    items.push({ id: 'meta:no-type',  label: 'Sem tipo',         color: 'hsl(var(--muted-foreground))' });
+    return items;
+  }, [types]);
+
+  const productCalendarItems: CalendarItem[] = useMemo(
+    () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),
+    [productBrands],
+  );
+
+  const isEventVisible = (ev: any) => {
+    let typeKey: string;
+    if (ev._isMeeting) typeKey = 'meta:meeting';
+    else if (ev._isSalesAction) typeKey = 'meta:sales';
+    else if (ev.event_type_id) typeKey = `type:${ev.event_type_id}`;
+    else typeKey = 'meta:no-type';
+    if (!calendarFilters.isVisible(typeKey)) return false;
+    const pid = ev.product_id as string | null | undefined;
+    if (pid && !calendarFilters.isVisible(`product:${pid}`)) return false;
+    return true;
+  };
 
   // Merge events + meetings into a single sorted list
   const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
@@ -1152,9 +1186,10 @@ export default function AgendaPage() {
   const expandedEvents = useMemo(() => {
     const rangeStart = subMonths(cursor, 6);
     const rangeEnd = addMonths(cursor, 18);
-    return expandRecurringEvents(allEvents, rangeStart, rangeEnd);
+    const expanded = expandRecurringEvents(allEvents, rangeStart, rangeEnd);
+    return expanded.filter(isEventVisible);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allEvents, cursor.getFullYear(), cursor.getMonth()]);
+  }, [allEvents, cursor.getFullYear(), cursor.getMonth(), calendarFilters.hidden]);
 
   const handleEventClick = (ev: EventRow) => {
     // If it's a meeting, navigate to meeting detail page
@@ -1198,35 +1233,38 @@ export default function AgendaPage() {
             <InlineLoader />
           </div>
         ) : view === 'calendar' ? (
-          <div>
-            <AgendaToolbar
-              mode={mode}
-              onModeChange={handleModeChange}
-              current={cursor}
-              onPrev={() => setCursor(d => navigatePrev(mode, d))}
-              onNext={() => setCursor(d => navigateNext(mode, d))}
-              onToday={() => setCursor(new Date())}
-              label={formatLabel(mode, cursor)}
+          <div className="flex gap-0 border border-border/60 rounded-lg overflow-hidden bg-card">
+            <AgendaCalendarsSidebar
+              typeItems={typeCalendarItems}
+              productItems={productCalendarItems}
+              hidden={calendarFilters.hidden}
+              onToggle={calendarFilters.toggle}
+              onShowAll={calendarFilters.showAll}
+              onHideAll={calendarFilters.hideAll}
             />
-            <AgendaLegend
-              items={[
-                ...types.map<LegendItem>(t => ({ label: t.name, color: t.color })),
-                { label: 'Reunião', color: '#8B5CF6' },
-                { label: 'Feriado', color: 'hsl(var(--destructive))' },
-              ]}
-            />
-            {mode === 'day' && (
-              <DayView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-            )}
-            {mode === 'week' && (
-              <WeekView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-            )}
-            {mode === 'month' && (
-              <MonthView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-            )}
-            {mode === 'year' && (
-              <YearView current={cursor} events={expandedEvents} onMonthClick={(d) => { setCursor(d); handleModeChange('month'); }} />
-            )}
+            <div className="flex-1 min-w-0 p-3">
+              <AgendaToolbar
+                mode={mode}
+                onModeChange={handleModeChange}
+                current={cursor}
+                onPrev={() => setCursor(d => navigatePrev(mode, d))}
+                onNext={() => setCursor(d => navigateNext(mode, d))}
+                onToday={() => setCursor(new Date())}
+                label={formatLabel(mode, cursor)}
+              />
+              {mode === 'day' && (
+                <DayView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'week' && (
+                <WeekView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'month' && (
+                <MonthView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'year' && (
+                <YearView current={cursor} events={expandedEvents} onMonthClick={(d) => { setCursor(d); handleModeChange('month'); }} />
+              )}
+            </div>
           </div>
         ) : (
           <ListView events={allEvents} types={types} onEventClick={handleEventClick} />

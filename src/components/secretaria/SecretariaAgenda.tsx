@@ -12,10 +12,14 @@ import {
   navigatePrev, navigateNext, formatLabel,
   type AgendaEvent, type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
-import { AgendaLegend } from '@/components/agenda/AgendaLegend';
-import { useProductColors } from '@/hooks/useProductColors';
+import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import { parseISO as parseIsoDate, isWithinInterval } from 'date-fns';
+import {
+  AgendaCalendarsSidebar,
+  useCalendarFilters,
+  type CalendarItem,
+} from '@/components/agenda/AgendaCalendarsSidebar';
 
 const VIEW_STORAGE_KEY = 'secretaria-agenda:viewMode';
 
@@ -30,7 +34,32 @@ export default function SecretariaAgenda() {
   const [current, setCurrent] = useState<Date>(new Date());
   const routineTasks = useMonthRoutineTasks();
   const { data: productColors } = useProductColors();
+  const { data: productBrands = [] } = useProductBrands();
   const { data: globalContext = [] } = useGlobalAgendaContext();
+
+  // ─── Calendars sidebar (filters by source / product) ───────────
+  const calendarFilters = useCalendarFilters('agenda-secretaria');
+
+  const typeCalendarItems: CalendarItem[] = useMemo(() => ([
+    { id: 'src:event',    label: 'Eventos',    color: '#0EA5E9' },
+    { id: 'src:reuniao',  label: 'Reuniões',   color: '#3B82F6' },
+    { id: 'src:tarefa',   label: 'Tarefas',    color: 'hsl(var(--primary))' },
+    { id: 'src:global',   label: 'Off / Datas Especiais', color: '#94A3B8' },
+    { id: 'meta:feriado', label: 'Feriados PT', color: 'hsl(var(--destructive))' },
+  ]), []);
+
+  const productCalendarItems: CalendarItem[] = useMemo(
+    () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),
+    [productBrands],
+  );
+
+  const isEventVisible = (ev: any) => {
+    const src = ev._source ?? 'event';
+    if (!calendarFilters.isVisible(`src:${src}`)) return false;
+    const pid = ev._productId ?? null;
+    if (pid && !calendarFilters.isVisible(`product:${pid}`)) return false;
+    return true;
+  };
 
   useEffect(() => {
     try { window.localStorage.setItem(VIEW_STORAGE_KEY, mode); } catch {}
@@ -179,8 +208,8 @@ export default function SecretariaAgenda() {
             || (s <= startWin && e >= endWin);
       } catch { return false; }
     });
-    return [...ctx, ...events, ...tasks];
-  }, [myEvents.data, myAgendaTasks.data, productColors, globalContext, fetchStart, fetchEnd]);
+    return [...ctx, ...events, ...tasks].filter(isEventVisible);
+  }, [myEvents.data, myAgendaTasks.data, productColors, globalContext, fetchStart, fetchEnd, calendarFilters.hidden]);
 
   const types = useMemo(() => ([
     { id: '__src_event',   name: 'Evento',  color: '#0EA5E9', slug: 'event' },
@@ -205,36 +234,40 @@ export default function SecretariaAgenda() {
       <RoutineMonthCard tasks={routineTasks.data || []} />
 
       <Card>
-        <CardContent className="p-4">
-          <AgendaToolbar
-            mode={mode}
-            onModeChange={setMode}
-            current={current}
-            onPrev={goPrev}
-            onNext={goNext}
-            onToday={goToday}
-            label={formatLabel(mode, current)}
-          />
-          <AgendaLegend
-            items={[
-              { label: 'Evento', color: '#0EA5E9' },
-              { label: 'Reunião', color: '#3B82F6' },
-              { label: 'Tarefa', color: 'hsl(var(--primary))' },
-            ]}
-          />
-
-          {mode === 'day' && (
-            <DayView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-          )}
-          {mode === 'week' && (
-            <WeekView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-          )}
-          {mode === 'month' && (
-            <MonthView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-          )}
-          {mode === 'year' && (
-            <YearView current={current} events={agendaEvents} onMonthClick={handleMonthClick} />
-          )}
+        <CardContent className="p-0">
+          <div className="flex">
+            <AgendaCalendarsSidebar
+              typeItems={typeCalendarItems}
+              productItems={productCalendarItems}
+              hidden={calendarFilters.hidden}
+              onToggle={calendarFilters.toggle}
+              onShowAll={calendarFilters.showAll}
+              onHideAll={calendarFilters.hideAll}
+            />
+            <div className="flex-1 min-w-0 p-4">
+              <AgendaToolbar
+                mode={mode}
+                onModeChange={setMode}
+                current={current}
+                onPrev={goPrev}
+                onNext={goNext}
+                onToday={goToday}
+                label={formatLabel(mode, current)}
+              />
+              {mode === 'day' && (
+                <DayView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'week' && (
+                <WeekView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'month' && (
+                <MonthView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'year' && (
+                <YearView current={current} events={agendaEvents} onMonthClick={handleMonthClick} />
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
