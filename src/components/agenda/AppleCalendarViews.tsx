@@ -19,6 +19,7 @@ export interface AgendaEvent {
   start_date: string;
   end_date: string | null;
   product_name: string | null;
+  product_id?: string | null;
   department: string | null;
   client_name: string | null;
   notes: string | null;
