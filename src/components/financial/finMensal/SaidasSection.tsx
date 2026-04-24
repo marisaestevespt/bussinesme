@@ -22,7 +22,7 @@ import { locationLabel, EXPENSE_LOCATIONS } from '@/lib/labelMaps';
 import { getAutoExpenseStatus } from '@/lib/expenseStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { SubRow, ContractRow } from './SubRows';
-import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth } from './helpers';
+import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth, getSubscriptionDueDate } from './helpers';
 import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './expenseBuilders';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
@@ -146,8 +146,8 @@ export function SaidasTable({
       toast.error('Esse pagamento já está fora do período do contrato.');
       return;
     }
-    const payload = buildSubscriptionExpense(sub, month, currentYear, getAutoExpenseStatus(payloadDateOf(sub, month, currentYear)));
-    await fin.upsertExpense.mutateAsync(payload);
+    const status = getAutoExpenseStatus(getSubscriptionDueDate(sub, month, currentYear));
+    await fin.upsertExpense.mutateAsync(buildSubscriptionExpense(sub, month, currentYear, status));
     await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     const { data: createdExpense } = await supabase
       .from('financial_expenses')
