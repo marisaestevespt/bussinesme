@@ -1192,11 +1192,8 @@ export default function AgendaPage() {
   }, [allEvents, cursor.getFullYear(), cursor.getMonth(), calendarFilters.hidden]);
 
   const handleEventClick = (ev: EventRow) => {
-    // If it's a meeting, navigate to meeting detail page
-    if ((ev as any)._isMeeting) {
-      window.open(`/hub/reunioes/${(ev as any)._meetingId}`, '_self');
-      return;
-    }
+    // Meetings and regular events both open the preview dialog.
+    // The dialog has an "Abrir página" button to navigate to the full meeting page when applicable.
     setDetailEvent(ev);
     setDetailOpen(true);
   };
