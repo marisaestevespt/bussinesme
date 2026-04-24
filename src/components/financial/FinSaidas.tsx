@@ -10,6 +10,7 @@ import type { useFinancialData } from '@/hooks/useFinancialData';
 import { calcMonthlyEquivalent } from '@/hooks/useFinancialData';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
@@ -18,7 +19,6 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type {
   ExpenseFormState,
   SupplierSelectOption,
-  PaymentMethodEntry,
   BusinessSettingsLike,
 } from './types';
 import { ExpensesTable } from './finSaidas/ExpensesTable';
@@ -44,14 +44,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       return (data || []) as SupplierSelectOption[];
     },
   });
-  const { data: setupPM } = useQuery({
-    queryKey: ['business-setup-payment-methods'],
-    queryFn: async () => {
-      const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
-      const list = (data?.payment_methods as PaymentMethodEntry[] | null) || [];
-      return list.filter(m => m.label?.trim());
-    },
-  });
+  const { data: setupPM } = useBusinessSetupPaymentMethods();
   const paymentMethods = buildPaymentMethodOptions(setupPM);
 
   const expenses = allExpenses.filter(e => {
