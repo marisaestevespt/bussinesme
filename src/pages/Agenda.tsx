@@ -78,6 +78,31 @@ function useEventTypes() {
   });
 }
 
+// Map of product_id → primary brand colour (hex or HSL string). Used to colour
+// product-linked events with the product's own branding instead of the
+// generic event-type colour.
+function useProductColors() {
+  return useQuery({
+    queryKey: ['product-brand-colors'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('products').select('id, branding');
+      if (error) throw error;
+      const map = new Map<string, string>();
+      for (const p of (data ?? []) as { id: string; branding: any }[]) {
+        const raw = p?.branding?.primary_color;
+        if (!raw || typeof raw !== 'string') continue;
+        const trimmed = raw.trim();
+        if (!trimmed) continue;
+        // HSL space-separated values → wrap in hsl(); hex stays as-is.
+        const isHslTriplet = /^\d+\s+\d+%\s+\d+%$/.test(trimmed);
+        map.set(p.id, isHslTriplet ? `hsl(${trimmed})` : trimmed);
+      }
+      return map;
+    },
+  });
+}
+
 function useEvents(userId: string | undefined, isOwner: boolean, range: { from: string; to: string }) {
   return useQuery({
     queryKey: ['events', userId, isOwner, range.from, range.to],
