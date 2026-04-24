@@ -22,6 +22,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { VatPreview } from './VatPreview';
+import type { ExpenseFormState, PaymentMethodEntry, SupplierSelectOption } from './types';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -47,14 +48,15 @@ interface Props {
 }
 
 export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) {
-  const [form, setForm] = useState<any>({});
+  const [form, setForm] = useState<ExpenseFormState>({});
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { data: setupPM } = useQuery({
     queryKey: ['business-setup-payment-methods'],
     queryFn: async () => {
       const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
-      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
+      const list = (data?.payment_methods as PaymentMethodEntry[] | null) || [];
+      return list.filter(m => m.label?.trim());
     },
   });
   const paymentMethods = buildPaymentMethodOptions(setupPM);
@@ -62,9 +64,9 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
   useEffect(() => {
     if (!expense || !open) return;
 
-    const allDocs = Array.isArray(expense.documents) ? expense.documents : [];
-    const regularDocs = (allDocs as any[]).filter((d: any) => d.type !== 'meta_ads');
-    const metaDocs = (allDocs as any[]).filter((d: any) => d.type === 'meta_ads');
+    const allDocs = (Array.isArray(expense.documents) ? expense.documents : []) as DocEntry[];
+    const regularDocs = allDocs.filter(d => (d as DocEntry & { type?: string }).type !== 'meta_ads');
+    const metaDocs = allDocs.filter(d => (d as DocEntry & { type?: string }).type === 'meta_ads');
 
     setForm({
       id: expense.id,
@@ -74,20 +76,18 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       category: expense.category || 'outro',
       base_value: String(expense.base_value),
       vat_rate: expense.vat_rate ?? 23,
-      total_with_vat: expense.total_with_vat,
       location: expense.location || 'portugal',
       documents: regularDocs,
-      meta_ads_docs: metaDocs.map((d: any) => ({ name: d.name, url: d.url })),
+      meta_ads_docs: metaDocs.map(d => ({ name: d.name, url: d.url })),
       includes_vat: false,
-      source_type: expense.source_type,
-      source_id: expense.source_id,
+      source_type: expense.source_type ?? null,
       department: expense.department || '',
       supplier_id: expense.supplier_id || null,
-      is_recurring: (expense as any).is_recurring || false,
-      periodicity: (expense as any).periodicity || 'mensal',
-      monthly_equivalent: (expense as any).monthly_equivalent || 0,
-      payment_method: (expense as any).payment_method || '',
-      expense_name: (expense as any).expense_name || '',
+      is_recurring: expense.is_recurring || false,
+      periodicity: expense.periodicity || 'mensal',
+      monthly_equivalent: expense.monthly_equivalent || 0,
+      payment_method: expense.payment_method || '',
+      expense_name: expense.expense_name || '',
     });
   }, [expense, open]);
 
@@ -97,8 +97,8 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
 
   const handleSave = async () => {
     setSaving(true);
-    const inputValue = parseFloat(form.base_value) || 0;
-    const vat = form.vat_rate ?? 23;
+    const inputValue = parseFloat(String(form.base_value ?? '')) || 0;
+    const vat = Number(form.vat_rate ?? 23);
     let base: number, total: number;
     if (form.includes_vat) {
       total = inputValue;
@@ -115,7 +115,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
 
     // Merge regular docs + meta ads docs (tagged)
     const regularDocs = form.documents || [];
-    const metaDocs = (form.meta_ads_docs || []).map((d: any) => ({ ...d, type: 'meta_ads' }));
+    const metaDocs = (form.meta_ads_docs || []).map(d => ({ ...d, type: 'meta_ads' }));
     const allDocs = [...regularDocs, ...metaDocs];
 
     const isRecurring = form.is_recurring || false;
@@ -148,7 +148,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       payment_method: form.payment_method || null,
       expense_name: form.expense_name || null,
       source_type: isRecurring ? 'rule' : (form.source_type || 'manual'),
-    } as any);
+    });
 
     // Sync document to member_payments when expense is linked to a contract
     if (form.source_type === 'contract' && form.source_id) {
@@ -298,13 +298,13 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             <SupplierSelect
               value={form.supplier_id || null}
               onValueChange={(v, supplier) => {
-                const updates: any = { supplier_id: v };
+                const updates: Partial<ExpenseFormState> = { supplier_id: v };
                 if (supplier) {
                   if (supplier.default_vat_rate != null) updates.vat_rate = supplier.default_vat_rate;
                   if (supplier.payment_method) updates.payment_method = supplier.payment_method;
                   if (supplier.category) updates.category = supplier.category;
                 }
-                setForm((f: any) => ({ ...f, ...updates }));
+                setForm(f => ({ ...f, ...updates }));
               }}
             />
           </div>

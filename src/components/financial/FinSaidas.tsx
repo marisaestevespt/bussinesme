@@ -33,6 +33,12 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
 import { VatPreview } from './VatPreview';
+import type {
+  ExpenseFormState,
+  SupplierSelectOption,
+  PaymentMethodEntry,
+  BusinessSettingsLike,
+} from './types';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -64,7 +70,7 @@ type Filter = 'all' | 'month' | 'quarter' | 'year' | 'recurring';
 
 export function FinSaidas({ fin, currentYear }: Props) {
   const { settings } = useBusinessSettings();
-  const ivaExempt = (settings as any)?.iva_exempt === true;
+  const ivaExempt = (settings as BusinessSettingsLike | null)?.iva_exempt === true;
   const { getCategoryLabel } = useFinancialCategories();
   const allExpenses = fin.expenses.data || [];
   const [filter, setFilter] = useState<Filter>('year');
@@ -73,25 +79,26 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const currentQuarter = Math.ceil(currentMonth / 3);
 
   // Suppliers for auto-VAT
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<SupplierSelectOption[]>({
     queryKey: ['suppliers-list-vat'],
     queryFn: async () => {
-      const { data } = await supabase.from('suppliers').select('id, name, default_vat_rate').eq('is_active', true);
-      return data || [];
+      const { data } = await supabase.from('suppliers').select('id, name, default_vat_rate, payment_method, category').eq('is_active', true);
+      return (data || []) as SupplierSelectOption[];
     },
   });
   const { data: setupPM } = useQuery({
     queryKey: ['business-setup-payment-methods'],
     queryFn: async () => {
       const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
-      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
+      const list = (data?.payment_methods as PaymentMethodEntry[] | null) || [];
+      return list.filter(m => m.label?.trim());
     },
   });
   const paymentMethods = buildPaymentMethodOptions(setupPM);
 
   const expenses = allExpenses.filter(e => {
     if (filter === 'all') return true;
-    if (filter === 'recurring') return (e as any).is_recurring === true;
+    if (filter === 'recurring') return e.is_recurring === true;
     if (filter === 'year') return e.expense_year === currentYear;
     if (filter === 'quarter') return e.expense_year === currentYear && e.expense_quarter === currentQuarter;
     if (filter === 'month') return e.expense_year === currentYear && e.expense_month === currentMonth;
@@ -103,12 +110,12 @@ export function FinSaidas({ fin, currentYear }: Props) {
   });
 
   // Summary for recurring
-  const recurringExpenses = allExpenses.filter(e => (e as any).is_recurring === true && e.status !== 'cancelado');
-  const totalMonthlyRecurring = recurringExpenses.reduce((s, e) => s + ((e as any).monthly_equivalent || 0), 0);
+  const recurringExpenses = allExpenses.filter(e => e.is_recurring === true && e.status !== 'cancelado');
+  const totalMonthlyRecurring = recurringExpenses.reduce((s, e) => s + (e.monthly_equivalent || 0), 0);
 
   // --- Expense Dialog ---
   const [expOpen, setExpOpen] = useState(false);
-  const [expForm, setExpForm] = useState<any>({});
+  const [expForm, setExpForm] = useState<ExpenseFormState>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const openNewExpense = () => {
@@ -117,10 +124,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
   };
 
   // Auto-fill VAT + payment method from supplier
-  const handleSupplierChange = (supplierId: string | null, supplier?: any) => {
-    setExpForm((f: any) => {
-      const updates: any = { ...f, supplier_id: supplierId };
-      const s = supplier || (supplierId ? suppliers.find((s: any) => s.id === supplierId) : null);
+  const handleSupplierChange = (supplierId: string | null, supplier?: SupplierSelectOption) => {
+    setExpForm(f => {
+      const updates: ExpenseFormState = { ...f, supplier_id: supplierId };
+      const s = supplier || (supplierId ? suppliers.find(s => s.id === supplierId) : null);
       if (s) {
         if (s.default_vat_rate != null) updates.vat_rate = s.default_vat_rate;
         if (s.payment_method) updates.payment_method = s.payment_method;
@@ -131,9 +138,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
   };
 
   const saveExpense = async () => {
-    const inputValue = parseFloat(expForm.base_value) || 0;
+    const inputValue = parseFloat(String(expForm.base_value ?? '')) || 0;
     // When IVA-exempt, the user pays the gross amount and cannot deduct IVA → store base = total
-    const vat = ivaExempt ? 0 : (parseFloat(expForm.vat_rate) || 0);
+    const vat = ivaExempt ? 0 : (parseFloat(String(expForm.vat_rate ?? '')) || 0);
     let base: number, total: number;
     if (ivaExempt) {
       // Treat the entered value as the real cost (with IVA included as cost)
@@ -189,7 +196,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       recurrence_day: isRecurring ? (expForm.recurrence_day || null) : null,
       source_type: isRecurring ? 'rule' : 'manual',
       source_id: isRecurring ? (expForm.id || null) : null,
-    } as any);
+    });
     if (isRecurring) {
       fin.recurringExpenses.refetch();
     }
@@ -211,7 +218,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => {
               const headers = ['ID', 'Data', 'Descrição', 'Categoria', 'Valor Base', 'IVA %', 'Total c/ IVA', 'Localização', 'Recorrente', 'Periodicidade'];
-              const rows = expenses.map(e => [e.expense_id, e.expense_date || '', e.description || '', e.category, e.base_value, e.vat_rate, e.total_with_vat, e.location, (e as any).is_recurring ? 'Sim' : 'Não', (e as any).periodicity || '']);
+               const rows = expenses.map(e => [e.expense_id, e.expense_date || '', e.description || '', e.category, e.base_value, e.vat_rate, e.total_with_vat, e.location, e.is_recurring ? 'Sim' : 'Não', e.periodicity || '']);
               exportCsv(`saidas_${currentYear}.csv`, headers, rows);
               toast.success('CSV exportado');
             }}><Download className="h-3.5 w-3.5 mr-1" /> CSV</Button>
@@ -262,7 +269,13 @@ export function FinSaidas({ fin, currentYear }: Props) {
               <TableBody>
                 {expenses.map(e => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, periodicity: (e as any).periodicity || 'mensal' });
+                    setExpForm({
+                      ...(e as unknown as ExpenseFormState),
+                      expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined,
+                      base_value: e.total_with_vat.toString(),
+                      includes_vat: true,
+                      periodicity: e.periodicity || 'mensal',
+                    });
                     setExpOpen(true);
                   }}>
                     <TableCell><Badge variant="outline" className={EXP_STATUS.find(s => s.value === e.status)?.cls || 'bg-muted text-muted-foreground'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
@@ -270,7 +283,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell>{e.expense_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">
                       {e.description || '—'}
-                      {(e as any).is_recurring && <RefreshCw className="inline h-3 w-3 ml-1 text-muted-foreground" />}
+                      {e.is_recurring && <RefreshCw className="inline h-3 w-3 ml-1 text-muted-foreground" />}
                     </TableCell>
                     <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                     <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
@@ -278,20 +291,27 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell className="text-right font-medium">{formatEuro(e.total_with_vat)}</TableCell>
                     {!ivaExempt && (
                       <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
-                        <VatDeductibleCell expense={e as any} />
+                        <VatDeductibleCell expense={e} />
                       </TableCell>
                     )}
                     <TableCell>{LOCATIONS.find(l => l.value === e.location)?.label || e.location}</TableCell>
                     {filter === 'recurring'
-                      ? <TableCell>{PERIODICITIES.find(p => p.value === (e as any).periodicity)?.label || '—'}</TableCell>
+                      ? <TableCell>{PERIODICITIES.find(p => p.value === e.periodicity)?.label || '—'}</TableCell>
                       : <TableCell>{e.expense_month || '—'}</TableCell>
                     }
                     <TableCell onClick={ev => ev.stopPropagation()}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button variant="ghost" aria-label="Copiar" size="icon" className="h-7 w-7" onClick={() => {
-                            const { id, expense_id, created_at, updated_at, ...rest } = e as any;
-                            setExpForm({ ...rest, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, status: 'pendente', periodicity: (e as any).periodicity || 'mensal' });
+                            const { id: _id, expense_id: _eid, created_at: _ca, updated_at: _ua, ...rest } = e;
+                            setExpForm({
+                              ...(rest as unknown as ExpenseFormState),
+                              expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined,
+                              base_value: e.total_with_vat.toString(),
+                              includes_vat: true,
+                              status: 'pendente',
+                              periodicity: e.periodicity || 'mensal',
+                            });
                             setExpOpen(true);
                           }}>
                             <Copy className="h-3.5 w-3.5" />
@@ -317,7 +337,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
           <DialogHeader><DialogTitle>{expForm.id ? 'Editar Despesa' : 'Nova Despesa'}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Status</Label>
-              <Select value={expForm.status || 'por_pagar'} onValueChange={v => setExpForm((f: any) => ({ ...f, status: v }))}>
+              <Select value={expForm.status || 'por_pagar'} onValueChange={v => setExpForm(f => ({ ...f, status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{EXP_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
@@ -331,16 +351,16 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={expForm.expense_date instanceof Date ? expForm.expense_date : expForm.expense_date ? new Date(expForm.expense_date) : undefined} onSelect={d => setExpForm((f: any) => ({ ...f, expense_date: d }))} className="p-3 pointer-events-auto" />
+                  <Calendar mode="single" selected={expForm.expense_date instanceof Date ? expForm.expense_date : expForm.expense_date ? new Date(expForm.expense_date) : undefined} onSelect={d => setExpForm(f => ({ ...f, expense_date: d }))} className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
             </div>
-            <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
+            <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))} /></div>
             <div><Label>Fornecedor</Label>
               <SupplierSelect value={expForm.supplier_id || null} onValueChange={handleSupplierChange} />
             </div>
             <div><Label>Categoria</Label>
-              <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
+              <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm(f => ({ ...f, category: v }))} />
             </div>
             {ivaExempt ? (
               <div>
@@ -349,7 +369,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   type="number"
                   step="0.01"
                   value={expForm.base_value || ''}
-                  onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))}
+                  onChange={e => setExpForm(f => ({ ...f, base_value: e.target.value }))}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Estás isenta de IVA — não consegues deduzir, por isso indica o valor total pago (IVA incluído).
@@ -358,13 +378,13 @@ export function FinSaidas({ fin, currentYear }: Props) {
             ) : (
               <>
                 <div className="flex items-center gap-2 py-1">
-                  <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+                  <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm(f => ({ ...f, includes_vat: v }))} />
                   <Label className="text-sm font-normal">Valor inclui IVA</Label>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+                  <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm(f => ({ ...f, base_value: e.target.value }))} /></div>
                   <div><Label>IVA (%)</Label>
-                    <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
+                    <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm(f => ({ ...f, vat_rate: parseInt(v) }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{VAT_OPTIONS.map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}</SelectContent>
                     </Select>
@@ -379,13 +399,13 @@ export function FinSaidas({ fin, currentYear }: Props) {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Localização</Label>
-                <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v, ...(v !== 'portugal' ? { vat_rate: 0 } : {}) }))}>
+                <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm(f => ({ ...f, location: v, ...(v !== 'portugal' ? { vat_rate: 0 } : {}) }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div><Label>Método Pagamento</Label>
-                <Select value={expForm.payment_method || '__none__'} onValueChange={v => setExpForm((f: any) => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
+                <Select value={expForm.payment_method || '__none__'} onValueChange={v => setExpForm(f => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">—</SelectItem>
@@ -401,21 +421,21 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   <RefreshCw className="h-4 w-4 text-muted-foreground" />
                   <Label className="text-sm font-normal">Despesa recorrente</Label>
                 </div>
-                <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, is_recurring: v }))} />
+                <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm(f => ({ ...f, is_recurring: v }))} />
               </div>
               {expForm.is_recurring && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs">Periodicidade</Label>
-                      <Select value={expForm.periodicity || 'mensal'} onValueChange={v => setExpForm((f: any) => ({ ...f, periodicity: v }))}>
+                      <Select value={expForm.periodicity || 'mensal'} onValueChange={v => setExpForm(f => ({ ...f, periodicity: v }))}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{PERIODICITIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div>
                       <Label className="text-xs">Dia de pagamento</Label>
-                      <Select value={String(expForm.recurrence_day || '')} onValueChange={v => setExpForm((f: any) => ({ ...f, recurrence_day: v ? parseInt(v) : null }))}>
+                      <Select value={String(expForm.recurrence_day || '')} onValueChange={v => setExpForm(f => ({ ...f, recurrence_day: v ? parseInt(v) : null }))}>
                         <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
                           {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
@@ -425,9 +445,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
                       </Select>
                     </div>
                   </div>
-                  {expForm.base_value && parseFloat(expForm.base_value) > 0 && expForm.periodicity !== 'mensal' && (
+                  {expForm.base_value && parseFloat(String(expForm.base_value)) > 0 && expForm.periodicity !== 'mensal' && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Equivalente mensal: {formatEuro(calcMonthlyEquivalent(parseFloat(expForm.base_value) || 0, expForm.periodicity || 'mensal'))}
+                      Equivalente mensal: {formatEuro(calcMonthlyEquivalent(parseFloat(String(expForm.base_value)) || 0, expForm.periodicity || 'mensal'))}
                     </p>
                   )}
                 </div>
@@ -435,7 +455,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
             </div>
             <InvoiceUpload
               documents={Array.isArray(expForm.documents) ? expForm.documents : []}
-              onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+              onChange={docs => setExpForm(f => ({ ...f, documents: docs }))}
             />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveExpense}>Guardar</Button>
@@ -452,7 +472,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
         description={expForm.is_recurring ? 'Esta despesa é recorrente — eliminar também remove todas as ocorrências geradas. Esta ação não pode ser desfeita.' : 'Esta ação não pode ser desfeita.'}
         confirmLabel="Eliminar"
         onConfirm={async () => {
-          await fin.deleteExpense.mutateAsync(expForm.id);
+          if (expForm.id) await fin.deleteExpense.mutateAsync(expForm.id);
           setConfirmDelete(false);
           setExpOpen(false);
           toast.success('Eliminada');
