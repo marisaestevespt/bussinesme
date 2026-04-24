@@ -406,13 +406,29 @@ function EventTypeManager({ types }: { types: EventType[] }) {
     onError: () => toast.error('Erro ao eliminar (pode estar em uso)'),
   });
 
+  const updateColorMutation = useMutation({
+    mutationFn: async ({ id, color }: { id: string; color: string }) => {
+      const { error } = await supabase.from('event_types').update({ color }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['event_types'] }); toast.success('Cor atualizada'); },
+    onError: () => toast.error('Não consegui atualizar a cor. Tenta novamente.'),
+  });
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-foreground">Tipos de evento</h3>
       <div className="space-y-2">
         {types.map(t => (
           <div key={t.id} className="flex items-center gap-2 text-sm">
-            <span className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
+            <label className="relative h-4 w-4 rounded-full flex-shrink-0 cursor-pointer ring-1 ring-border hover:ring-2 hover:ring-primary transition" style={{ backgroundColor: t.color }} title="Alterar cor">
+              <input
+                type="color"
+                value={t.color}
+                onChange={e => updateColorMutation.mutate({ id: t.id, color: e.target.value })}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </label>
             <span className="flex-1 text-foreground">{t.name}</span>
             <button onClick={() => deleteMutation.mutate(t.id)} className="text-muted-foreground hover:text-destructive transition-colors">
               <X className="h-3.5 w-3.5" />
