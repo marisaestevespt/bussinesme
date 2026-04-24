@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTeamData, FEEDBACK_TYPES, labelFor } from '@/hooks/useTeamData';
 import { MemberSelect } from '@/components/hr/team-helpers';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 function FeedbackDialog({ open, onClose, initial, members, onSave }: any) {
   const isEdit = !!initial?.id;
@@ -63,6 +64,7 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
   const [dialog, setDialog] = useState<any>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; label: string } | null>(null);
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -151,7 +153,7 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
                   <TableCell className="text-xs">{r.next_session || '—'}</TableCell>
                   <TableCell><div className="flex gap-1">
                     <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDialog(r)}>Editar</Button>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deleteFeedback.mutate(r.id)}><Trash2 className="h-3 w-3" /></Button>
+                    <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => setConfirmDelete({ id: r.id, label: `a sessão de ${memberName(r.member_id)} de ${r.session_date}` })}><Trash2 className="h-3 w-3" /></Button>
                   </div></TableCell>
                 </TableRow>
               ))
@@ -160,6 +162,18 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
         </Table>
       </div></Card>
       {dialog !== null && <FeedbackDialog open onClose={() => setDialog(null)} initial={dialog} members={allMembers} onSave={saveFeedback} />}
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null); }}
+        title="Apagar sessão de feedback?"
+        description={confirmDelete ? `Vais apagar ${confirmDelete.label}. Esta ação é irreversível.` : ''}
+        confirmLabel="Apagar"
+        onConfirm={() => {
+          if (!confirmDelete) return;
+          team.deleteFeedback.mutate(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
     </div>
   );
 }
