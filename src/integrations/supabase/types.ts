@@ -8385,68 +8385,6 @@ export type Database = {
         }
         Relationships: []
       }
-      sop_offboarding_items: {
-        Row: {
-          created_at: string
-          deadline_days: number | null
-          id: string
-          sort_order: number | null
-          task: string
-          template_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          deadline_days?: number | null
-          id?: string
-          sort_order?: number | null
-          task: string
-          template_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          deadline_days?: number | null
-          id?: string
-          sort_order?: number | null
-          task?: string
-          template_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sop_offboarding_items_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "sop_offboarding_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sop_offboarding_templates: {
-        Row: {
-          created_at: string
-          id: string
-          name: string | null
-          role_title: string | null
-          sop_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name?: string | null
-          role_title?: string | null
-          sop_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string | null
-          role_title?: string | null
-          sop_id?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       sop_onboarding_items: {
         Row: {
           created_at: string
