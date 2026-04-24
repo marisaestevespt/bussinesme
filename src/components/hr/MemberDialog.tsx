@@ -286,7 +286,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           setContract({
             id: c.id,
             contract_type: c.contract_type || 'contrato_trabalho',
-            duration: 'indefinido',
+            duration: (c as any).duration || 'indefinido',
             monthly_value: c.monthly_value?.toString() || '',
             contracted_hours: c.contracted_hours || '',
             payment_day: c.payment_day?.toString() || '1',
