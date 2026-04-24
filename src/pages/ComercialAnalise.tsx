@@ -4,6 +4,7 @@ import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
+import { MonthCardsGallery } from '@/components/analysis/MonthCardsGallery';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
