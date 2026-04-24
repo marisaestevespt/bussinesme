@@ -108,6 +108,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
   // --- Expense Dialog ---
   const [expOpen, setExpOpen] = useState(false);
   const [expForm, setExpForm] = useState<any>({});
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const openNewExpense = () => {
     setExpForm({ status: 'pendente', category: 'outro', vat_rate: ivaExempt ? 0 : 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
@@ -440,12 +441,25 @@ export function FinSaidas({ fin, currentYear }: Props) {
             />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveExpense}>Guardar</Button>
-              {expForm.id && <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={async () => { await fin.deleteExpense.mutateAsync(expForm.id); setExpOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
+              {expForm.id && <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => setConfirmDelete(true)}><Trash2 className="h-4 w-4" /></Button>}
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Eliminar despesa?"
+        description={expForm.is_recurring ? 'Esta despesa é recorrente — eliminar também remove todas as ocorrências geradas. Esta ação não pode ser desfeita.' : 'Esta ação não pode ser desfeita.'}
+        confirmLabel="Eliminar"
+        onConfirm={async () => {
+          await fin.deleteExpense.mutateAsync(expForm.id);
+          setConfirmDelete(false);
+          setExpOpen(false);
+          toast.success('Eliminada');
+        }}
+      />
     </div>
   );
 }
