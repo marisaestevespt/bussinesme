@@ -78,13 +78,20 @@ function useEventTypes() {
   });
 }
 
-function useEvents(userId: string | undefined, isOwner: boolean) {
+function useEvents(userId: string | undefined, isOwner: boolean, range: { from: string; to: string }) {
   return useQuery({
-    queryKey: ['events', userId, isOwner],
+    queryKey: ['events', userId, isOwner, range.from, range.to],
     queryFn: async () => {
+      // Limit fetch to a reasonable window around the cursor (covers Year view).
+      // Recurring events expansion is performed client-side in expandRecurringEvents.
+      const inRange = (q: any) => q
+        .or(`and(start_date.gte.${range.from},start_date.lte.${range.to}),and(end_date.gte.${range.from},end_date.lte.${range.to}),and(start_date.lte.${range.from},end_date.gte.${range.to}),and(recurrence_type.not.is.null,start_date.lte.${range.to})`);
+
       if (isOwner || !userId) {
-        // Owners see everything
-        const { data, error } = await supabase.from('events').select('*').order('start_date', { ascending: true });
+        // Owners see everything within the visible range (+ recurring that started before)
+        const { data, error } = await inRange(
+          supabase.from('events').select('*')
+        ).order('start_date', { ascending: true });
         if (error) throw error;
         return data as EventRow[];
       }
@@ -96,20 +103,16 @@ function useEvents(userId: string | undefined, isOwner: boolean) {
         .eq('profile_id', userId);
       const participantIds = participations?.map(p => p.event_id) || [];
 
-      const { data: createdEvents, error: e1 } = await supabase
-        .from('events')
-        .select('*')
-        .eq('created_by', userId)
-        .order('start_date', { ascending: true });
+      const { data: createdEvents, error: e1 } = await inRange(
+        supabase.from('events').select('*').eq('created_by', userId)
+      ).order('start_date', { ascending: true });
       if (e1) throw e1;
 
       let participantEvents: EventRow[] = [];
       if (participantIds.length > 0) {
-        const { data, error: e2 } = await supabase
-          .from('events')
-          .select('*')
-          .in('id', participantIds)
-          .order('start_date', { ascending: true });
+        const { data, error: e2 } = await inRange(
+          supabase.from('events').select('*').in('id', participantIds)
+        ).order('start_date', { ascending: true });
         if (e2) throw e2;
         participantEvents = (data as EventRow[]) || [];
       }
@@ -127,14 +130,16 @@ function useEvents(userId: string | undefined, isOwner: boolean) {
 
 const MEETING_PSEUDO_COLOR = '#8B5CF6'; // violet for meetings on calendar
 
-function useMeetingsAsEvents() {
+function useMeetingsAsEvents(range: { from: string; to: string }) {
   return useQuery({
-    queryKey: ['meetings-as-events'],
+    queryKey: ['meetings-as-events', range.from, range.to],
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('meetings')
         .select('id,title,date_time,status,meeting_url,client_name,department,project_name,is_recurring,recurrence_frequency,recurrence_end_date')
+        .gte('date_time', range.from + 'T00:00:00')
+        .lte('date_time', range.to + 'T23:59:59')
         .order('date_time');
       if (error) throw error;
       return (data || []).map((m: any): EventRow & { _isMeeting: true; _meetingId: string } => ({
@@ -1024,8 +1029,14 @@ export default function AgendaPage() {
   const [typesManagerOpen, setTypesManagerOpen] = useState(false);
 
   const { isOwner, user } = useAuth();
-  const { data: events = [], isLoading } = useEvents(user?.id, isOwner);
-  const { data: meetingEvents = [] } = useMeetingsAsEvents();
+  // Fetch range: -6 / +18 months around cursor (covers Year view + recurring base)
+  const [cursor, setCursor] = useState<Date>(new Date());
+  const fetchRange = useMemo(() => ({
+    from: format(subMonths(cursor, 6), 'yyyy-MM-dd'),
+    to: format(addMonths(cursor, 18), 'yyyy-MM-dd'),
+  }), [cursor.getFullYear(), cursor.getMonth()]);
+  const { data: events = [], isLoading } = useEvents(user?.id, isOwner, fetchRange);
+  const { data: meetingEvents = [] } = useMeetingsAsEvents(fetchRange);
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
 
@@ -1038,7 +1049,6 @@ export default function AgendaPage() {
     const saved = window.localStorage.getItem(AGENDA_MODE_KEY) as AgendaViewMode | null;
     return saved && ['day', 'week', 'month', 'year'].includes(saved) ? saved : 'week';
   });
-  const [cursor, setCursor] = useState<Date>(new Date());
   const handleModeChange = (m: AgendaViewMode) => {
     setMode(m);
     if (typeof window !== 'undefined') window.localStorage.setItem(AGENDA_MODE_KEY, m);
