@@ -371,7 +371,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
       <NewExpenseDialog open={expOpen} onOpenChange={setExpOpen} month={m} currentYear={currentYear} fin={fin} />
 
-      <EntryDetailSheet sale={selectedSale} open={saleSheetOpen} onOpenChange={setSaleSheetOpen} />
+      <EntryDetailSheet sale={selectedSale as Parameters<typeof EntryDetailSheet>[0]['sale']} open={saleSheetOpen} onOpenChange={setSaleSheetOpen} />
       <ExpenseDetailSheet expense={selectedExpense} open={expenseSheetOpen} onOpenChange={setExpenseSheetOpen} fin={fin} />
     </div>
   );
