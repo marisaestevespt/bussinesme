@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, RecurringExpense, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
+import { useCommercialData } from '@/hooks/useCommercialData';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { EntryDetailSheet } from './EntryDetailSheet';
 import { ExpenseDetailSheet } from './ExpenseDetailSheet';
