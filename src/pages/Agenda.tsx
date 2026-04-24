@@ -1065,6 +1065,7 @@ export default function AgendaPage() {
   const { data: meetingEvents = [] } = useMeetingsAsEvents(fetchRange);
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
+  const { data: productColors } = useProductColors();
 
   // Merge events + meetings into a single sorted list
   const allEventsRaw = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
