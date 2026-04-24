@@ -14,13 +14,11 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Plus, Trash2, FileText, RotateCw, MessageSquare, ExternalLink, Pencil, Check, X } from 'lucide-react';
 import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus';
+import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
 
 interface DepartmentProcessosProps {
   department: string;
