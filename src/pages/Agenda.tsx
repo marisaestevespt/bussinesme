@@ -45,6 +45,7 @@ import {
 } from '@/components/agenda/AppleCalendarViews';
 import { AgendaLegend, type LegendItem } from '@/components/agenda/AgendaLegend';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
+import { useProductColors } from '@/hooks/useProductColors';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -75,31 +76,6 @@ function useEventTypes() {
       const { data, error } = await supabase.from('event_types').select('*').order('name');
       if (error) throw error;
       return data as EventType[];
-    },
-  });
-}
-
-// Map of product_id → primary brand colour (hex or HSL string). Used to colour
-// product-linked events with the product's own branding instead of the
-// generic event-type colour.
-function useProductColors() {
-  return useQuery({
-    queryKey: ['product-brand-colors'],
-    staleTime: 10 * 60 * 1000,
-    queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('id, branding');
-      if (error) throw error;
-      const map = new Map<string, string>();
-      for (const p of (data ?? []) as { id: string; branding: any }[]) {
-        const raw = p?.branding?.primary_color;
-        if (!raw || typeof raw !== 'string') continue;
-        const trimmed = raw.trim();
-        if (!trimmed) continue;
-        // HSL space-separated values → wrap in hsl(); hex stays as-is.
-        const isHslTriplet = /^\d+\s+\d+%\s+\d+%$/.test(trimmed);
-        map.set(p.id, isHslTriplet ? `hsl(${trimmed})` : trimmed);
-      }
-      return map;
     },
   });
 }
