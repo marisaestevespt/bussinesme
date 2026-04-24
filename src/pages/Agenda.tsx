@@ -1234,35 +1234,38 @@ export default function AgendaPage() {
             <InlineLoader />
           </div>
         ) : view === 'calendar' ? (
-          <div>
-            <AgendaToolbar
-              mode={mode}
-              onModeChange={handleModeChange}
-              current={cursor}
-              onPrev={() => setCursor(d => navigatePrev(mode, d))}
-              onNext={() => setCursor(d => navigateNext(mode, d))}
-              onToday={() => setCursor(new Date())}
-              label={formatLabel(mode, cursor)}
+          <div className="flex gap-0 border border-border/60 rounded-lg overflow-hidden bg-card">
+            <AgendaCalendarsSidebar
+              typeItems={typeCalendarItems}
+              productItems={productCalendarItems}
+              hidden={calendarFilters.hidden}
+              onToggle={calendarFilters.toggle}
+              onShowAll={calendarFilters.showAll}
+              onHideAll={calendarFilters.hideAll}
             />
-            <AgendaLegend
-              items={[
-                ...types.map<LegendItem>(t => ({ label: t.name, color: t.color })),
-                { label: 'Reunião', color: '#8B5CF6' },
-                { label: 'Feriado', color: 'hsl(var(--destructive))' },
-              ]}
-            />
-            {mode === 'day' && (
-              <DayView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-            )}
-            {mode === 'week' && (
-              <WeekView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-            )}
-            {mode === 'month' && (
-              <MonthView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-            )}
-            {mode === 'year' && (
-              <YearView current={cursor} events={expandedEvents} onMonthClick={(d) => { setCursor(d); handleModeChange('month'); }} />
-            )}
+            <div className="flex-1 min-w-0 p-3">
+              <AgendaToolbar
+                mode={mode}
+                onModeChange={handleModeChange}
+                current={cursor}
+                onPrev={() => setCursor(d => navigatePrev(mode, d))}
+                onNext={() => setCursor(d => navigateNext(mode, d))}
+                onToday={() => setCursor(new Date())}
+                label={formatLabel(mode, cursor)}
+              />
+              {mode === 'day' && (
+                <DayView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'week' && (
+                <WeekView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'month' && (
+                <MonthView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
+              )}
+              {mode === 'year' && (
+                <YearView current={cursor} events={expandedEvents} onMonthClick={(d) => { setCursor(d); handleModeChange('month'); }} />
+              )}
+            </div>
           </div>
         ) : (
           <ListView events={allEvents} types={types} onEventClick={handleEventClick} />
