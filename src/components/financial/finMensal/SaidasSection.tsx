@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { useFinancialData, Expense, RecurringExpense } from '@/hooks/useFinancialData';
+import type { TablesInsert } from '@/integrations/supabase/types';
 import type { useQueryClient } from '@tanstack/react-query';
 import { ExpenseStatusSelect } from '../InlineStatusSelect';
 import { CategorySelect } from '../CategorySelect';
@@ -21,7 +22,8 @@ import { locationLabel, EXPENSE_LOCATIONS } from '@/lib/labelMaps';
 import { getAutoExpenseStatus } from '@/lib/expenseStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { SubRow, ContractRow } from './SubRows';
-import { MONTHS, VAT_RATES, getSubscriptionDueDate, canRenderSubscriptionForMonth } from './helpers';
+import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth } from './helpers';
+import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './expenseBuilders';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
@@ -76,7 +78,7 @@ export function SegurancaSocialCard({ ssExpense, month, currentYear, fin }: {
                   if (val <= 0 && !ssExpense) return;
                   const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
                   if (ssExpense) {
-                    await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}` } as any);
+                    await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}` });
                   } else {
                     await fin.upsertExpense.mutateAsync({
                       description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}`,
@@ -90,7 +92,7 @@ export function SegurancaSocialCard({ ssExpense, month, currentYear, fin }: {
                       expense_quarter: Math.ceil(month / 3),
                       expense_year: currentYear,
                       status: 'pago_falta_fatura',
-                    } as any);
+                    });
                   }
                   setSsEditing(false);
                   toast.success('Segurança Social guardada');
@@ -115,7 +117,7 @@ interface SaidasTableProps {
   monthExpenses: Expense[];
   dueSubscriptions: RecurringExpense[];
   subExpenseMap: Map<string, Expense>;
-  activeContracts: any[];
+  activeContracts: ContractLike[];
   contractExpenseMap: Map<string, Expense>;
   month: number;
   currentYear: number;
@@ -126,12 +128,13 @@ interface SaidasTableProps {
   onAddExpense: () => void;
   onSelectExpense: (e: Expense) => void;
   getCategoryLabel: (type: string, value: string) => string;
+  onShowIvaPago?: () => void;
 }
 
 export function SaidasTable({
   monthExpenses, dueSubscriptions, subExpenseMap, activeContracts, contractExpenseMap,
   month, currentYear, fin, qc, totalBaseSaidas, totalSaidas,
-  onAddExpense, onSelectExpense, getCategoryLabel,
+  onAddExpense, onSelectExpense, getCategoryLabel, onShowIvaPago,
 }: SaidasTableProps) {
   const handleSubClick = async (sub: RecurringExpense) => {
     const linkedExp = subExpenseMap.get(sub.id);
@@ -143,27 +146,8 @@ export function SaidasTable({
       toast.error('Esse pagamento já está fora do período do contrato.');
       return;
     }
-    const subName = sub.expense_name || sub.description || '';
-    const dateStr = getSubscriptionDueDate(sub, month, currentYear);
-    const status = getAutoExpenseStatus(dateStr);
-    await fin.upsertExpense.mutateAsync({
-      description: `${subName} — ${MONTHS[month - 1]} ${currentYear}`,
-      category: sub.category || 'outro',
-      base_value: sub.base_value,
-      vat_rate: sub.vat_rate || 0,
-      total_with_vat: sub.total_with_vat,
-      location: sub.location,
-      expense_date: dateStr,
-      expense_month: month,
-      expense_quarter: Math.ceil(month / 3),
-      expense_year: currentYear,
-      status,
-      source_type: 'subscription',
-      source_id: sub.id,
-      parent_expense_id: sub.id,
-      supplier_id: sub.supplier_id,
-      payment_method: sub.payment_method,
-    } as any);
+    const payload = buildSubscriptionExpense(sub, month, currentYear, getAutoExpenseStatus(payloadDateOf(sub, month, currentYear)));
+    await fin.upsertExpense.mutateAsync(payload);
     await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     const { data: createdExpense } = await supabase
       .from('financial_expenses')
@@ -178,23 +162,15 @@ export function SaidasTable({
     if (createdExpense) onSelectExpense(createdExpense as Expense);
   };
 
-  const handleContractClick = async (contract: any) => {
+  const handleContractClick = async (contract: ContractLike) => {
     const linkedExp = contractExpenseMap.get(contract.id);
     if (linkedExp) {
       onSelectExpense(linkedExp);
       return;
     }
-    const memberName = contract.team_members?.full_name || '—';
-    const value = contract.monthly_value || 0;
     const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
     const status = getAutoExpenseStatus(dateStr);
-    await fin.upsertExpense.mutateAsync({
-      description: `Pagamento — ${memberName} — ${String(month).padStart(2, '0')}/${currentYear}`,
-      category: 'ordenados',
-      base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
-      expense_date: dateStr, expense_month: month, expense_quarter: Math.ceil(month / 3),
-      expense_year: currentYear, status, source_type: 'contract', source_id: contract.id,
-    } as any);
+    await fin.upsertExpense.mutateAsync(buildContractExpense(contract, month, currentYear, status));
     await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     const { data: createdExpense } = await supabase
       .from('financial_expenses')
@@ -217,6 +193,9 @@ export function SaidasTable({
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-sm">Saídas</CardTitle>
         <div className="flex items-center gap-2">
+          {onShowIvaPago && (
+            <Button size="sm" variant="outline" onClick={onShowIvaPago}><Receipt className="h-3.5 w-3.5 mr-1" /> Ver IVA</Button>
+          )}
           <Button size="sm" variant="outline" onClick={onAddExpense}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Saída</Button>
         </div>
       </CardHeader>
@@ -232,20 +211,20 @@ export function SaidasTable({
                     currentStatus={e.status}
                     hasDocuments={Array.isArray(e.documents) ? e.documents.length > 0 : !!e.documents}
                     onUpdate={async (id, status) => {
-                      await fin.upsertExpense.mutateAsync({ id, status } as any);
+                      await fin.upsertExpense.mutateAsync({ id, status });
                     }}
                   />
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{(e as any).expense_id || '—'}</TableCell>
-                <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{e.expense_id || '—'}</TableCell>
+                <TableCell className="whitespace-nowrap">{e.expense_date || '—'}</TableCell>
                 <TableCell>{e.description || '—'}</TableCell>
                 <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
-                <TableCell>{locationLabel((e as any).location)}</TableCell>
+                <TableCell>{locationLabel(e.location)}</TableCell>
                 <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>
-                <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
+                <TableCell className="text-right">{e.vat_rate ?? 0}%</TableCell>
                 <TableCell className="text-right">{formatEuro(e.total_with_vat)}</TableCell>
                 <TableCell className="text-right" onClick={ev => ev.stopPropagation()}>
-                  <VatDeductibleCell expense={e as any} />
+                  <VatDeductibleCell expense={e} />
                 </TableCell>
               </TableRow>
             ))}
@@ -261,7 +240,7 @@ export function SaidasTable({
                 getCategoryLabel={getCategoryLabel}
               />
             ))}
-            {activeContracts.map((contract: any) => (
+            {activeContracts.map((contract) => (
               <ContractRow
                 key={`contract-${contract.id}`}
                 contract={contract}
