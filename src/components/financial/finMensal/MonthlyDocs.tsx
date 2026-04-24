@@ -168,10 +168,11 @@ export function FiscalChecklistCard({ month, year }: { month: number; year: numb
     queryFn: async () => {
       const { data } = await supabase
         // Table not yet in generated Supabase types — typing the response shape locally
-        .from('fiscal_deadline_completions' as never)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .from('fiscal_deadline_completions' as any)
         .select('*')
         .eq('year', year);
-      return (data || []) as unknown as DeadlineCompletionRow[];
+      return (data || []) as DeadlineCompletionRow[];
     },
   });
   const completedDeadlineKeys = useMemo(
@@ -196,11 +197,12 @@ export function FiscalChecklistCard({ month, year }: { month: number; year: numb
       if (deadlineKey) {
         const existing = deadlineCompletions.find((c) => c.deadline_key === deadlineKey);
         if (checked && !existing) {
-          await supabase
-            .from('fiscal_deadline_completions' as never)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase.from as any)('fiscal_deadline_completions')
             .insert({ deadline_key: deadlineKey, year, completed_by: (await supabase.auth.getUser()).data.user?.id });
         } else if (!checked && existing) {
-          await supabase.from('fiscal_deadline_completions' as never).delete().eq('id', existing.id);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase.from as any)('fiscal_deadline_completions').delete().eq('id', existing.id);
         }
         return;
       }
