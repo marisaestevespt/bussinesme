@@ -483,7 +483,7 @@ export function DayView({
           {/* Hour labels */}
           <div className="border-r">
             {HOURS.map(h => (
-              <div key={h} className="text-[10px] text-muted-foreground/70 text-right pr-2 -mt-1.5" style={{ height: HOUR_HEIGHT }}>
+              <div key={h} className="text-[10px] text-muted-foreground/70 text-right pr-2" style={{ height: HOUR_HEIGHT }}>
                 {h === 0 ? '' : `${String(h).padStart(2, '0')}:00`}
               </div>
             ))}
@@ -585,7 +585,7 @@ export function WeekView({
           {/* Hour labels */}
           <div className="border-r">
             {HOURS.map(h => (
-              <div key={h} className="text-[10px] text-muted-foreground/70 text-right pr-2 -mt-1.5" style={{ height: HOUR_HEIGHT }}>
+              <div key={h} className="text-[10px] text-muted-foreground/70 text-right pr-2" style={{ height: HOUR_HEIGHT }}>
                 {h === 0 ? '' : `${String(h).padStart(2, '0')}:00`}
               </div>
             ))}
