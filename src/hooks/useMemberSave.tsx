@@ -60,7 +60,8 @@ export function useMemberSave() {
       let memberId = member.id;
 
       // Strip transient UI-only fields before DB operations
-      const { deptExtraPages: _dep, sensitiveAccess: _sa, ...dbFields } = member;
+      const { deptExtraPages: _dep, sensitiveAccess: _sa, system_role: _sr, ...dbFields } = member;
+      const systemRole: string | undefined = member.system_role;
 
       if (isNew) {
         const payload = cleanPayload({ ...dbFields });
@@ -336,6 +337,28 @@ export function useMemberSave() {
       }));
       if (sensitiveRows.length > 0) {
         await supabase.from('member_sensitive_access').upsert(sensitiveRows, { onConflict: 'member_id,category' });
+      }
+
+      // Save system role (RBAC) — só se conseguirmos descobrir o user_id ligado a este membro
+      if (systemRole) {
+        let profileId: string | null = (member as any).profile_id || null;
+        if (!profileId && memberId) {
+          const { data: tm } = await supabase.from('team_members').select('profile_id').eq('id', memberId).maybeSingle();
+          profileId = (tm as any)?.profile_id || null;
+        }
+        if (profileId) {
+          const { data: prof } = await supabase.from('profiles').select('user_id').eq('id', profileId).maybeSingle();
+          const userId = (prof as any)?.user_id;
+          if (userId) {
+            // Não tocar em owners — só substituir roles não-owner
+            const { data: existing } = await supabase.from('user_roles').select('role').eq('user_id', userId);
+            const isOwner = (existing || []).some((r: any) => r.role === 'owner');
+            if (!isOwner) {
+              await supabase.from('user_roles').delete().eq('user_id', userId).neq('role', 'owner');
+              await supabase.from('user_roles').insert({ user_id: userId, role: systemRole as any });
+            }
+          }
+        }
       }
 
       qc.invalidateQueries({ queryKey: ['team'] });
