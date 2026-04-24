@@ -323,7 +323,7 @@ export function DayView({
       </div>
 
       {/* Time grid */}
-      <div ref={scrollRef} className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+      <div ref={scrollRef} className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
         <div className="grid grid-cols-[60px_1fr] relative">
           {/* Hour labels */}
           <div className="border-r">
@@ -425,7 +425,7 @@ export function WeekView({
       </div>
 
       {/* Time grid */}
-      <div ref={scrollRef} className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)' }}>
+      <div ref={scrollRef} className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 240px)' }}>
         <div className="grid grid-cols-[60px_repeat(7,1fr)] relative">
           {/* Hour labels */}
           <div className="border-r">
