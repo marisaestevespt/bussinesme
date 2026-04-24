@@ -165,6 +165,8 @@ const START_HOUR = 0;
 const END_HOUR = 24;
 const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR);
 const AGENDA_TIME_ZONE = 'Europe/Lisbon';
+const AGENDA_LAYOUT_VERSION = 'lisbon-clock-v3';
+const EXPLICIT_TZ_RE = /(Z|[+-]\d{2}:?\d{2})$/i;
 
 const agendaDateTimeFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: AGENDA_TIME_ZONE,
@@ -187,6 +189,15 @@ function getAgendaDateParts(date: Date) {
   };
 }
 
+function getEventDateParts(value: string) {
+  const local = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+  if (local && !EXPLICIT_TZ_RE.test(value)) {
+    const [, year, month, day, hour = '00', minute = '00'] = local;
+    return { key: `${year}-${month}-${day}`, minutes: Number(hour) * 60 + Number(minute), time: `${hour}:${minute}` };
+  }
+  return getAgendaDateParts(parseISO(value));
+}
+
 function getCalendarDayKey(day: Date): string {
   return format(day, 'yyyy-MM-dd');
 }
@@ -205,17 +216,18 @@ function positionEventsForDay(events: AgendaEvent[], day: Date, types: AgendaEve
   // Filter events that touch this day
   const dayEvents = events
     .filter(ev => {
-      const s = parseISO(ev.start_date);
-      const e = ev.end_date ? parseISO(ev.end_date) : new Date(s.getTime() + 30 * 60000);
-      const startKey = getAgendaDateParts(s).key;
-      const endKey = getAgendaDateParts(e).key;
+      const startKey = getEventDateParts(ev.start_date).key;
+      const endKey = ev.end_date
+        ? getEventDateParts(ev.end_date).key
+        : getAgendaDateParts(new Date(parseISO(ev.start_date).getTime() + 30 * 60000)).key;
       return startKey <= dayKey && endKey >= dayKey;
     })
     .map(ev => {
       const s = parseISO(ev.start_date);
-      const eRaw = ev.end_date ? parseISO(ev.end_date) : new Date(s.getTime() + 30 * 60000);
-      const startParts = getAgendaDateParts(s);
-      const endParts = getAgendaDateParts(eRaw);
+      const startParts = getEventDateParts(ev.start_date);
+      const endParts = ev.end_date
+        ? getEventDateParts(ev.end_date)
+        : getAgendaDateParts(new Date(s.getTime() + 30 * 60000));
       const startMin = startParts.key < dayKey ? 0 : startParts.minutes;
       const endMin = Math.max(endParts.key > dayKey ? 24 * 60 : endParts.minutes, startMin + 15);
       const topPx = (startMin / 60) * HOUR_HEIGHT;
@@ -267,8 +279,8 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
   const isMeeting = (p.ev as any)._isMeeting;
   const widthPct = 100 / p.laneCount;
   const leftPct = widthPct * p.laneIdx;
-  const startTime = getAgendaDateParts(parseISO(p.ev.start_date)).time;
-  const endTime = p.ev.end_date ? getAgendaDateParts(parseISO(p.ev.end_date)).time : null;
+  const startTime = getEventDateParts(p.ev.start_date).time;
+  const endTime = p.ev.end_date ? getEventDateParts(p.ev.end_date).time : null;
   const url = extractUrl(p.ev);
   const location = extractLocation(p.ev);
   const context = buildContextLine(p.ev);
@@ -295,6 +307,9 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
         borderLeftColor: p.color,
         color: p.color,
       }}
+      data-agenda-layout={AGENDA_LAYOUT_VERSION}
+      data-start-time={startTime}
+      data-top-px={Math.round(p.topPx)}
       title={[p.ev.title, context, location, url].filter(Boolean).join(' — ')}
     >
       <div className="flex items-center gap-1 min-w-0">
