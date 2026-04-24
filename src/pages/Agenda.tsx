@@ -44,6 +44,11 @@ import {
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
 import { AgendaLegend, type LegendItem } from '@/components/agenda/AgendaLegend';
+import {
+  AgendaCalendarsSidebar,
+  useCalendarFilters,
+  type CalendarItem,
+} from '@/components/agenda/AgendaCalendarsSidebar';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { useProductColors } from '@/hooks/useProductColors';
 
