@@ -334,8 +334,19 @@ export interface NewExpenseDialogProps {
   fin: ReturnType<typeof useFinancialData>;
 }
 
+interface NewExpenseFormState {
+  description: string;
+  category: string;
+  base_value: string;
+  vat_rate: string;
+  location: string;
+  documents: unknown[];
+  includes_vat: boolean;
+}
+
 export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }: NewExpenseDialogProps) {
-  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
+  const initial: NewExpenseFormState = { description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false };
+  const [expForm, setExpForm] = useState<NewExpenseFormState>(initial);
 
   const saveExpense = async () => {
     if (!expForm.base_value) { toast.error('Valor é obrigatório'); return; }
@@ -363,10 +374,10 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
       expense_quarter: Math.ceil(month / 3),
       expense_year: currentYear,
       status: 'por_pagar',
-    } as any);
+    });
     toast.success('Saída adicionada');
     onOpenChange(false);
-    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
+    setExpForm(initial);
   };
 
   return (
@@ -374,18 +385,18 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Nova Saída — {MONTHS[month - 1]} {currentYear}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div><Label>Descrição</Label><Input value={expForm.description} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
+          <div><Label>Descrição</Label><Input value={expForm.description} onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))} /></div>
           <div><Label>Categoria</Label>
-            <CategorySelect type="expense" value={expForm.category} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
+            <CategorySelect type="expense" value={expForm.category} onValueChange={v => setExpForm(f => ({ ...f, category: v }))} />
           </div>
           <div className="flex items-center gap-2 py-1">
-            <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+            <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm(f => ({ ...f, includes_vat: v }))} />
             <Label className="text-sm font-normal">Valor inclui IVA</Label>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+            <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm(f => ({ ...f, base_value: e.target.value }))} /></div>
             <div><Label>IVA (%)</Label>
-              <Select value={expForm.vat_rate} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: v }))}>
+              <Select value={expForm.vat_rate} onValueChange={v => setExpForm(f => ({ ...f, vat_rate: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{VAT_RATES.map(r => <SelectItem key={r} value={String(r)}>{r}%</SelectItem>)}</SelectContent>
               </Select>
@@ -400,14 +411,14 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
             </p>
           )}
           <div><Label>Localização</Label>
-            <Select value={expForm.location} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
+            <Select value={expForm.location} onValueChange={v => setExpForm(f => ({ ...f, location: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{locationLabel(l)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <InvoiceUpload
             documents={Array.isArray(expForm.documents) ? expForm.documents : []}
-            onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+            onChange={docs => setExpForm(f => ({ ...f, documents: docs }))}
           />
           <Button className="w-full" onClick={saveExpense}>Guardar</Button>
         </div>
