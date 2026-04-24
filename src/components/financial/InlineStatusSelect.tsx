@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useCommercialData } from '@/hooks/useCommercialData';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from './EntryDetailSheet';
 
 const EXPENSE_STATUSES = [
@@ -28,16 +27,18 @@ interface EntryStatusSelectProps {
 }
 
 export function EntryStatusSelect({ saleId, currentStatus, paymentDate, hasDocuments = false }: EntryStatusSelectProps) {
-  const qc = useQueryClient();
+  const { upsertSale } = useCommercialData();
   const effectiveStatus = getEffectiveEntryStatus(currentStatus, paymentDate ?? null);
   const sb = getEntryStatusBadge(effectiveStatus);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const doUpdate = async (value: string) => {
-    const { error } = await supabase.from('commercial_sales').update({ status: value }).eq('id', saleId);
-    if (error) { toast.error('Erro ao atualizar status'); return; }
-    qc.invalidateQueries({ queryKey: ['commercial'] });
-    toast.success('Status atualizado');
+    try {
+      await upsertSale.mutateAsync({ id: saleId, status: value });
+      toast.success('Status atualizado');
+    } catch {
+      toast.error('Erro ao atualizar status');
+    }
   };
 
   const handleChange = (value: string) => {
