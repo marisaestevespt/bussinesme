@@ -3,6 +3,7 @@ import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths,
   isSameDay, parseISO, addDays, subDays, startOfWeek, endOfWeek, addWeeks, subWeeks,
   startOfYear, endOfYear, eachMonthOfInterval, isSameMonth, differenceInMinutes,
+  getISOWeek,
 } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Repeat } from 'lucide-react';
@@ -86,7 +87,7 @@ export function AgendaToolbar({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-      <h3 className="text-lg sm:text-2xl font-semibold capitalize text-foreground tracking-tight truncate">
+      <h3 className="text-sm sm:text-base font-medium lowercase text-foreground/80 tracking-tight truncate">
         {label}
       </h3>
       <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
@@ -644,10 +645,11 @@ export function formatLabel(mode: AgendaViewMode, d: Date): string {
     case 'week': {
       const ws = startOfWeek(d, { weekStartsOn: 1 });
       const we = endOfWeek(d, { weekStartsOn: 1 });
+      const wn = getISOWeek(d);
       if (ws.getMonth() === we.getMonth()) {
-        return `${format(ws, 'd', { locale: pt })} – ${format(we, "d 'de' MMMM yyyy", { locale: pt })}`;
+        return `semana ${wn} · ${format(ws, 'd', { locale: pt })} – ${format(we, "d 'de' MMMM yyyy", { locale: pt })}`;
       }
-      return `${format(ws, "d 'de' MMM", { locale: pt })} – ${format(we, "d 'de' MMM yyyy", { locale: pt })}`;
+      return `semana ${wn} · ${format(ws, "d 'de' MMM", { locale: pt })} – ${format(we, "d 'de' MMM yyyy", { locale: pt })}`;
     }
     case 'month': return format(d, 'MMMM yyyy', { locale: pt });
     case 'year': return format(d, 'yyyy', { locale: pt });
