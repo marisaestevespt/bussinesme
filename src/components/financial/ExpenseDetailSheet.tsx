@@ -298,13 +298,13 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             <SupplierSelect
               value={form.supplier_id || null}
               onValueChange={(v, supplier) => {
-                const updates: any = { supplier_id: v };
+                const updates: Partial<ExpenseFormState> = { supplier_id: v };
                 if (supplier) {
                   if (supplier.default_vat_rate != null) updates.vat_rate = supplier.default_vat_rate;
                   if (supplier.payment_method) updates.payment_method = supplier.payment_method;
                   if (supplier.category) updates.category = supplier.category;
                 }
-                setForm((f: any) => ({ ...f, ...updates }));
+                setForm(f => ({ ...f, ...updates }));
               }}
             />
           </div>
