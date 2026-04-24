@@ -250,6 +250,10 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
   const today = startOfDay(new Date());
   const isOverdue = (task: any) => isTaskOverdue(task, today);
+
+  // Soft warning if the task deadline lands on a global "Off" day
+  const { data: offRanges } = useOffDates();
+  const offWarning = useMemo(() => findOffRange(offRanges, deadline), [offRanges, deadline]);
   const isDoneAfterDeadline = (task: any) => {
     if (!isTaskDone(task) || !task?.deadline) return false;
     const completedAt = task.updated_at ? parseISO(task.updated_at) : null;
