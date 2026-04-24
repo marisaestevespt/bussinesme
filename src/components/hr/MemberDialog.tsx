@@ -676,24 +676,18 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             <>
               <Separator />
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📄 Contrato & Pagamento</h3>
-              <div className="grid grid-cols-2 gap-2">
+              <p className="text-[10px] text-muted-foreground -mt-2">
+                Tipo de contrato definido pelo Vínculo: <span className="font-medium">{CONTRACT_TYPES.find(t => t.value === contract.contract_type)?.label || contract.contract_type}</span>
+              </p>
+              {!isEdit && (
                 <div>
-                  <label className="text-xs text-muted-foreground">Tipo de contrato</label>
-                  <Select value={contract.contract_type} onValueChange={v => setC('contract_type', v)}>
+                  <label className="text-xs text-muted-foreground">Duração do contrato</label>
+                  <Select value={contract.duration} onValueChange={handleDurationChange}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{CONTRACT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                    <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                {!isEdit && (
-                  <div>
-                    <label className="text-xs text-muted-foreground">Duração do contrato</label>
-                    <Select value={contract.duration} onValueChange={handleDurationChange}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs text-muted-foreground">Valor mensal (€)</label>
@@ -751,10 +745,16 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               )}
               <div>
                 <label className="text-xs text-muted-foreground">Status do contrato</label>
-                <Select value={contract.status} onValueChange={v => setC('status', v)}>
+                <Select value={contract.status} onValueChange={v => {
+                  setC('status', v);
+                  // Status do membro deriva do contrato: contrato ativo → membro ativo, terminado → inativo
+                  if (v === 'ativo' || v === 'em_renovacao') set('status', 'ativo');
+                  else if (v === 'terminado') set('status', 'inativo');
+                }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
+                <p className="text-[10px] text-muted-foreground mt-1">O status do membro segue automaticamente o do contrato.</p>
               </div>
               {/* Document upload */}
               <ContractDocUpload contract={contract} setC={setC} uploading={uploadingContract} setUploading={setUploadingContract} memberId={initial?.id} />
@@ -765,7 +765,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             </>
           )}
 
-          <input type="hidden" value={f.presentation || ''} />
           <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
         </div>
       </DialogContent>
