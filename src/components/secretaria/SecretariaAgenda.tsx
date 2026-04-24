@@ -13,6 +13,9 @@ import {
   type AgendaEvent, type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
 import { AgendaLegend } from '@/components/agenda/AgendaLegend';
+import { useProductColors } from '@/hooks/useProductColors';
+import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
+import { parseISO as parseIsoDate, isWithinInterval } from 'date-fns';
 
 const VIEW_STORAGE_KEY = 'secretaria-agenda:viewMode';
 
@@ -26,6 +29,8 @@ export default function SecretariaAgenda() {
   });
   const [current, setCurrent] = useState<Date>(new Date());
   const routineTasks = useMonthRoutineTasks();
+  const { data: productColors } = useProductColors();
+  const { data: globalContext = [] } = useGlobalAgendaContext();
 
   useEffect(() => {
     try { window.localStorage.setItem(VIEW_STORAGE_KEY, mode); } catch {}
