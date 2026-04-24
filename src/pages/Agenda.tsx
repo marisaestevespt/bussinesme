@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
@@ -32,6 +32,17 @@ import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import { resolveProductId } from '@/lib/productResolver';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {
+  AgendaToolbar,
+  DayView,
+  WeekView,
+  MonthView,
+  YearView,
+  navigatePrev,
+  navigateNext,
+  formatLabel,
+  type AgendaViewMode,
+} from '@/components/agenda/AppleCalendarViews';
 
 // ─── Types ──────────────────────────────────────────────────────
 
