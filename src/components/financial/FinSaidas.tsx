@@ -472,7 +472,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
         description={expForm.is_recurring ? 'Esta despesa é recorrente — eliminar também remove todas as ocorrências geradas. Esta ação não pode ser desfeita.' : 'Esta ação não pode ser desfeita.'}
         confirmLabel="Eliminar"
         onConfirm={async () => {
-          await fin.deleteExpense.mutateAsync(expForm.id);
+          if (expForm.id) await fin.deleteExpense.mutateAsync(expForm.id);
           setConfirmDelete(false);
           setExpOpen(false);
           toast.success('Eliminada');
