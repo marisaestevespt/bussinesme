@@ -172,7 +172,7 @@ export function FiscalChecklistCard({ month, year }: { month: number; year: numb
         .from('fiscal_deadline_completions' as any)
         .select('*')
         .eq('year', year);
-      return (data || []) as DeadlineCompletionRow[];
+      return (data || []) as unknown as DeadlineCompletionRow[];
     },
   });
   const completedDeadlineKeys = useMemo(
