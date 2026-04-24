@@ -912,7 +912,7 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
       {events.map(ev => (
         <button key={ev.id} onClick={() => onEventClick(ev)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
           <div className="col-span-3 font-medium text-foreground truncate">{ev.title}</div>
-          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} isMeeting={(ev as any)._isMeeting} /></div>
+          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} isMeeting={(ev as any)._isMeeting} colorOverride={(ev as any)._color} /></div>
           <div className="col-span-2 text-muted-foreground text-xs">
             {format(parseISO(ev.start_date), "dd MMM yyyy", { locale: pt })}
           </div>
