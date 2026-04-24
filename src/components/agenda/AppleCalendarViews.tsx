@@ -34,6 +34,9 @@ export type AgendaViewMode = 'day' | 'week' | 'month' | 'year';
 const MEETING_PSEUDO_COLOR = '#8B5CF6';
 
 function getColor(types: AgendaEventType[], ev: AgendaEvent): string {
+  // Allow events to override the colour (e.g. product-branded events)
+  const override = (ev as any)._color as string | undefined;
+  if (override) return override;
   if ((ev as any)._isMeeting) return MEETING_PSEUDO_COLOR;
   const t = types.find(x => x.id === ev.event_type_id);
   return t?.color ?? 'hsl(var(--primary))';
