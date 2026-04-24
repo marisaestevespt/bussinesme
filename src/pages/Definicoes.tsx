@@ -12,6 +12,7 @@ import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
+import { SettingsGoogleCalendar } from '@/components/settings/SettingsGoogleCalendar';
 import { useAuth } from '@/hooks/useAuth';
 
 const BASE_TABS = [
@@ -20,6 +21,7 @@ const BASE_TABS = [
   { key: 'marketing', label: 'Marketing' },
   { key: 'resumo', label: 'Resumo Diário' },
   { key: 'emails', label: 'Emails' },
+  { key: 'integracoes', label: 'Integrações' },
   { key: 'preferencias', label: 'Preferências' },
 ] as const;
 
@@ -66,6 +68,7 @@ export default function DefinicoesPage() {
           {tab === 'marketing' && <ChannelSettings />}
           {tab === 'resumo' && <SettingsDigest />}
           {tab === 'emails' && <SettingsEmails />}
+          {tab === 'integracoes' && <SettingsGoogleCalendar />}
           {tab === 'preferencias' && (
             <div className="space-y-10">
               <SettingsKpis />
