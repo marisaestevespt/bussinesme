@@ -43,6 +43,7 @@ import {
   formatLabel,
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
+import { AgendaLegend, type LegendItem } from '@/components/agenda/AgendaLegend';
 
 // ─── Types ──────────────────────────────────────────────────────
 
