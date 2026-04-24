@@ -463,43 +463,37 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               {f.role_title && <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>}
             </div>
 
-            {/* Status + Tipo */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground">Status</label>
-                <Select value={f.status} onValueChange={v => set('status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground">Tipo</label>
-                <Select value={f.member_type} onValueChange={v => {
-                  set('member_type', v);
-                  // Auto-link tipo do membro com tipo de contrato
-                  if (v === 'prestador_servicos') {
-                    setC('contract_type', 'contrato_prestacao');
-                  } else if (v === 'colaborador_fixo' && contract.contract_type === 'contrato_prestacao') {
-                    setC('contract_type', 'contrato_trabalho');
-                  }
-                }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
-                    <SelectItem value="prestador_servicos">Freelancer</SelectItem>
-                    <SelectItem value="socio">Sócio</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Vínculo (fusão Tipo + Tipo de Contrato) */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Vínculo</span>
+              <p className="text-[10px] text-muted-foreground">Define o tipo de relação e o contrato associado.</p>
+              <Select
+                value={bondFromTypes(f.member_type, contract.contract_type)}
+                onValueChange={(v) => {
+                  const opt = BOND_OPTIONS.find(o => o.value === v);
+                  if (!opt) return;
+                  set('member_type', opt.member_type);
+                  setC('contract_type', opt.contract_type);
+                }}
+              >
+                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {BOND_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value} className="text-xs py-2">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{o.label}</span>
+                        <span className="text-[10px] text-muted-foreground">{o.hint}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Contactos */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
               <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
-              <div>
-                <Input type="date" placeholder="Nascimento" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
-              </div>
             </div>
           </div>
 
@@ -508,6 +502,13 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           {/* ═══ DADOS FISCAIS ═══ */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🧾 Dados Fiscais</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Data de nascimento</label>
+                <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+              </div>
+              <div></div>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
               <Input placeholder="IBAN" value={f.iban || ''} onChange={e => set('iban', e.target.value)} />
