@@ -330,13 +330,9 @@ Deno.serve(async (req) => {
       // Automation settings
       "automation_settings",
 
-      // Routines definitions
-      "routines",
-
       // Permissions & roles (children first) — preserve user_roles (owner stays)
       "role_permissions",
       "member_sensitive_access",
-      "members",
       "custom_roles",
 
       // Team members (after member dependencies)

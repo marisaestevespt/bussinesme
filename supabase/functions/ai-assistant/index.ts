@@ -792,10 +792,10 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       return {
         tables: {
           clientes: ["clients", "client_contacts", "client_feedback", "client_history", "client_milestones", "client_nps_records", "client_onboarding", "client_offboarding", "client_portals"],
-          equipa: ["team_members", "members", "member_contracts", "member_payments", "member_onboarding", "absence_coverage", "hiring_simulations"],
+          equipa: ["team_members", "member_contracts", "member_payments", "member_onboarding", "absence_coverage", "hiring_simulations"],
           tarefas: ["tasks", "task_time_entries", "time_entries"],
           projetos: ["projects", "project_deliverables", "project_payments", "project_members"],
-          financeiro: ["financial_entries", "financial_expenses", "financial_categories", "financial_goals", "financial_payroll", "financial_subscriptions", "financial_contractors", "financial_documents"],
+          financeiro: ["commercial_sales", "financial_expenses", "financial_categories", "financial_goals", "financial_payroll", "financial_contractors", "financial_documents"],
           comercial: ["commercial_sales", "commercial_monthly_goals", "commercial_annual_goals", "commercial_product_goals", "commercial_library_entries", "commercial_strategy"],
           crm: ["crm_leads", "crm_pipelines", "crm_pipeline_stages", "crm_pipeline_leads", "crm_interactions", "crm_lead_actions"],
           marketing: ["marketing_channels", "channel_monthly_metrics", "content_items", "content_channels", "marketing_funnels", "marketing_automations", "marketing_ideas"],
@@ -929,9 +929,9 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         // Member contracts uploaded
         supabaseAdmin.from("member_contracts").select("member_id, contract_type, file_name, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
-        // Financial entries (income)
-        supabaseAdmin.from("financial_entries").select("entry_id, description, total_with_vat, base_value, category, status, entry_date")
-          .gte("entry_date", startDate).lt("entry_date", endExcl).limit(50),
+        // Financial entries (income) — sales are the source of truth
+        supabaseAdmin.from("commercial_sales").select("sale_id, product, client, invoice_total, base_value, status, payment_date")
+          .gte("payment_date", startDate).lt("payment_date", endExcl).limit(50),
         // Financial documents uploaded
         supabaseAdmin.from("financial_documents").select("file_name, document_type, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
