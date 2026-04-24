@@ -595,6 +595,7 @@ function EventFormDialog({
   const { user } = useAuth();
 
   const { data: existingMembers = [] } = useEventMembers(editEvent?.id);
+  const { data: offRanges } = useOffDates();
 
   const { data: productsList = [] } = useQuery({
     queryKey: ['products-list-agenda'],
