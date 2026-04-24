@@ -279,8 +279,8 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
   const isMeeting = (p.ev as any)._isMeeting;
   const widthPct = 100 / p.laneCount;
   const leftPct = widthPct * p.laneIdx;
-  const startTime = getAgendaDateParts(parseISO(p.ev.start_date)).time;
-  const endTime = p.ev.end_date ? getAgendaDateParts(parseISO(p.ev.end_date)).time : null;
+  const startTime = getEventDateParts(p.ev.start_date).time;
+  const endTime = p.ev.end_date ? getEventDateParts(p.ev.end_date).time : null;
   const url = extractUrl(p.ev);
   const location = extractLocation(p.ev);
   const context = buildContextLine(p.ev);
@@ -307,6 +307,9 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
         borderLeftColor: p.color,
         color: p.color,
       }}
+      data-agenda-layout={AGENDA_LAYOUT_VERSION}
+      data-start-time={startTime}
+      data-top-px={Math.round(p.topPx)}
       title={[p.ev.title, context, location, url].filter(Boolean).join(' — ')}
     >
       <div className="flex items-center gap-1 min-w-0">
