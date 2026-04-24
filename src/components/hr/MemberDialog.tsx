@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES, WORK_AREAS,
+  CONTRACT_TYPES, CONTRACT_STATUSES, WORK_AREAS,
 } from '@/hooks/useTeamData';
 import { DEPARTMENTS } from '@/lib/departments';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
