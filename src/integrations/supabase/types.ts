@@ -1974,10 +1974,12 @@ export type Database = {
           assigned_to: string | null
           base_value: number
           client: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           description: string | null
           documents: Json | null
+          icon: Json | null
           id: string
           invoice_total: number
           is_special_offer: boolean
@@ -1999,10 +2001,12 @@ export type Database = {
           assigned_to?: string | null
           base_value?: number
           client?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           documents?: Json | null
+          icon?: Json | null
           id?: string
           invoice_total?: number
           is_special_offer?: boolean
@@ -2024,10 +2028,12 @@ export type Database = {
           assigned_to?: string | null
           base_value?: number
           client?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           documents?: Json | null
+          icon?: Json | null
           id?: string
           invoice_total?: number
           is_special_offer?: boolean
@@ -2286,6 +2292,7 @@ export type Database = {
           created_by: string | null
           format: string | null
           funnel_stage: string | null
+          icon: Json | null
           id: string
           launch_id: string | null
           objective: string | null
@@ -2308,6 +2315,7 @@ export type Database = {
           created_by?: string | null
           format?: string | null
           funnel_stage?: string | null
+          icon?: Json | null
           id?: string
           launch_id?: string | null
           objective?: string | null
@@ -2330,6 +2338,7 @@ export type Database = {
           created_by?: string | null
           format?: string | null
           funnel_stage?: string | null
+          icon?: Json | null
           id?: string
           launch_id?: string | null
           objective?: string | null
@@ -2647,12 +2656,14 @@ export type Database = {
           added_at: string
           closed_product: string | null
           context: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           documents: string | null
           email: string | null
           estimated_value: number | null
           followup_notes: string | null
+          icon: Json | null
           id: string
           lost_reason: string | null
           name: string
@@ -2669,12 +2680,14 @@ export type Database = {
           added_at?: string
           closed_product?: string | null
           context?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           documents?: string | null
           email?: string | null
           estimated_value?: number | null
           followup_notes?: string | null
+          icon?: Json | null
           id?: string
           lost_reason?: string | null
           name: string
@@ -2691,12 +2704,14 @@ export type Database = {
           added_at?: string
           closed_product?: string | null
           context?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           documents?: string | null
           email?: string | null
           estimated_value?: number | null
           followup_notes?: string | null
+          icon?: Json | null
           id?: string
           lost_reason?: string | null
           name?: string
@@ -2836,9 +2851,11 @@ export type Database = {
       }
       crm_pipelines: {
         Row: {
+          cover_url: string | null
           created_at: string
           description: string | null
           end_date: string | null
+          icon: Json | null
           id: string
           name: string
           product: string | null
@@ -2850,9 +2867,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
+          icon?: Json | null
           id?: string
           name: string
           product?: string | null
@@ -2864,9 +2883,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
+          icon?: Json | null
           id?: string
           name?: string
           product?: string | null
@@ -3464,12 +3485,14 @@ export type Database = {
       events: {
         Row: {
           client_name: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           department: string | null
           end_date: string | null
           event_type_id: string | null
           google_calendar_db_id: string | null
+          icon: Json | null
           id: string
           meeting_url: string | null
           notes: string | null
@@ -3484,12 +3507,14 @@ export type Database = {
         }
         Insert: {
           client_name?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
           end_date?: string | null
           event_type_id?: string | null
           google_calendar_db_id?: string | null
+          icon?: Json | null
           id?: string
           meeting_url?: string | null
           notes?: string | null
@@ -3504,12 +3529,14 @@ export type Database = {
         }
         Update: {
           client_name?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
           end_date?: string | null
           event_type_id?: string | null
           google_calendar_db_id?: string | null
+          icon?: Json | null
           id?: string
           meeting_url?: string | null
           notes?: string | null
@@ -4810,10 +4837,12 @@ export type Database = {
       marketing_automations: {
         Row: {
           condicoes: Json | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           fluxo: Json | null
           gatilho: string | null
+          icon: Json | null
           id: string
           links: Json | null
           name: string
@@ -4829,10 +4858,12 @@ export type Database = {
         }
         Insert: {
           condicoes?: Json | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           fluxo?: Json | null
           gatilho?: string | null
+          icon?: Json | null
           id?: string
           links?: Json | null
           name: string
@@ -4848,10 +4879,12 @@ export type Database = {
         }
         Update: {
           condicoes?: Json | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           fluxo?: Json | null
           gatilho?: string | null
+          icon?: Json | null
           id?: string
           links?: Json | null
           name?: string
@@ -4940,11 +4973,13 @@ export type Database = {
       }
       marketing_funnels: {
         Row: {
+          cover_url: string | null
           created_at: string
           created_by: string | null
           entry_points: Json | null
           etapas: Json | null
           fluxo_resumido: string | null
+          icon: Json | null
           id: string
           name: string
           notas: string | null
@@ -4958,11 +4993,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           entry_points?: Json | null
           etapas?: Json | null
           fluxo_resumido?: string | null
+          icon?: Json | null
           id?: string
           name: string
           notas?: string | null
@@ -4976,11 +5013,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           entry_points?: Json | null
           etapas?: Json | null
           fluxo_resumido?: string | null
+          icon?: Json | null
           id?: string
           name?: string
           notas?: string | null
@@ -9744,10 +9783,12 @@ export type Database = {
       }
       traffic_creatives: {
         Row: {
+          cover_url: string | null
           created_at: string
           created_by: string | null
           formato: string | null
           headline: string | null
+          icon: Json | null
           id: string
           legenda: string | null
           link: string | null
@@ -9762,10 +9803,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           formato?: string | null
           headline?: string | null
+          icon?: Json | null
           id?: string
           legenda?: string | null
           link?: string | null
@@ -9780,10 +9823,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           formato?: string | null
           headline?: string | null
+          icon?: Json | null
           id?: string
           legenda?: string | null
           link?: string | null

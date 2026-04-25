@@ -25,6 +25,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
@@ -287,6 +288,21 @@ export default function ConteudoDetailPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <EntityHeroHeader
+          icon={parseIcon((item as any)?.icon)}
+          onIconChange={async (next) => {
+            await supabase.from('content_items').update({ icon: next as any } as any).eq('id', id!);
+            queryClient.invalidateQueries({ queryKey: ['content-item', id] });
+          }}
+          coverUrl={(item as any)?.cover_url || null}
+          onCoverChange={async (url) => {
+            await supabase.from('content_items').update({ cover_url: url } as any).eq('id', id!);
+            queryClient.invalidateQueries({ queryKey: ['content-item', id] });
+          }}
+          bucket="entity-icons"
+          pathPrefix={`content/${id}`}
+          disabled={!isOwner}
+        />
         <div className="w-full py-8 px-6 flex flex-col items-center gap-1" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Conteúdo</p>
           {statusOpt && <Badge className={cn("text-xs", statusOpt.color)}>{statusOpt.label}</Badge>}

@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, Eye, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { resolveProductId } from '@/lib/productResolver';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
@@ -187,6 +188,21 @@ export default function MarketingFunilDetail() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <EntityHeroHeader
+          icon={parseIcon((item as any)?.icon)}
+          onIconChange={async (next) => {
+            await supabase.from('marketing_funnels').update({ icon: next as any } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['marketing-funnel', id] });
+          }}
+          coverUrl={(item as any)?.cover_url || null}
+          onCoverChange={async (url) => {
+            await supabase.from('marketing_funnels').update({ cover_url: url } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['marketing-funnel', id] });
+          }}
+          bucket="entity-icons"
+          pathPrefix={`funnels/${id}`}
+          disabled={!isOwner}
+        />
         {/* Banner */}
         <div className="w-full rounded-xl py-10 px-8 flex flex-col items-start gap-2 relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))' }}>

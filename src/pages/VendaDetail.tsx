@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -230,6 +231,21 @@ export default function VendaDetailPage() {
   return (
     <AppLayout>
       <div className="space-y-6 w-full">
+        <EntityHeroHeader
+          icon={parseIcon((sale as any)?.icon)}
+          onIconChange={async (next) => {
+            await supabase.from('commercial_sales').update({ icon: next as any } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['sale-detail', id] });
+          }}
+          coverUrl={(sale as any)?.cover_url || null}
+          onCoverChange={async (url) => {
+            await supabase.from('commercial_sales').update({ cover_url: url } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['sale-detail', id] });
+          }}
+          bucket="entity-icons"
+          pathPrefix={`sales/${id}`}
+          disabled={!isOwner}
+        />
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <BackNavigation parentRoute="/hub/comercial/vendas" parentLabel="Vendas" />

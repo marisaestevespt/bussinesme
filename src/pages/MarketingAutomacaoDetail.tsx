@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, Check, Pencil, X, FileText, Upload, ExternalLink, Paperclip, ChevronDown } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
@@ -256,6 +257,21 @@ export default function MarketingAutomacaoDetail() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <EntityHeroHeader
+          icon={parseIcon((item as any)?.icon)}
+          onIconChange={async (next) => {
+            await supabase.from('marketing_automations').update({ icon: next as any } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['marketing-automation', id] });
+          }}
+          coverUrl={(item as any)?.cover_url || null}
+          onCoverChange={async (url) => {
+            await supabase.from('marketing_automations').update({ cover_url: url } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['marketing-automation', id] });
+          }}
+          bucket="entity-icons"
+          pathPrefix={`automations/${id}`}
+          disabled={!isOwner}
+        />
         {/* Hero banner */}
         <div className="w-full rounded-xl py-10 px-8 flex flex-col items-start gap-2 relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))' }}>
