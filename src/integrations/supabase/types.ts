@@ -10696,6 +10696,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_profiles_basic: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+          user_id: string
+        }[]
+      }
       get_system_config_value: { Args: { _key: string }; Returns: string }
       has_any_role: {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
