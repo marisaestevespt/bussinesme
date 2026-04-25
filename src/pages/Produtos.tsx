@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS } from '@/hooks/useProducts';
+import { EntityIconDisplay } from '@/components/entity-icon';
 import {
   CollectionPage,
   CollectionHeader,
@@ -206,8 +207,14 @@ export default function ProdutosPage() {
                   cover={
                     p.cover_url ? (
                       <img src={p.cover_url} alt={p.name} className="h-full w-full object-cover" />
-                    ) : p.logo_url ? (
-                      <div className="flex h-full w-full items-center justify-center"><img src={p.logo_url} alt={p.name} className="h-16 w-16 object-contain" /></div>
+                    ) : (p as any).icon || p.logo_url ? (
+                      <div className="flex h-full w-full items-center justify-center bg-muted/20">
+                        <EntityIconDisplay
+                          icon={(p as any).icon ?? (p.logo_url ? { type: 'image', value: p.logo_url } : null)}
+                          className="h-20 w-20"
+                          emojiClassName="text-5xl"
+                        />
+                      </div>
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-muted-foreground/20">{p.name?.charAt(0)}</div>
                     )
@@ -261,7 +268,16 @@ export default function ProdutosPage() {
                 )}
                 {filtered.map(p => (
                   <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/hub/produtos/${p.id}`)}>
-                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <EntityIconDisplay
+                          icon={(p as any).icon ?? (p.logo_url ? { type: 'image', value: p.logo_url } : null)}
+                          className="h-7 w-7"
+                          emojiClassName="text-base"
+                        />
+                        <span>{p.name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{getStatusBadge(p.status)}</TableCell>
                     <TableCell className="text-sm">{p.product_type || '—'}</TableCell>
                     <TableCell className="text-sm">{p.sales_type || '—'}</TableCell>
