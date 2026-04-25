@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { EntitySection, EntityTopBar, EntityTitle, EntityProperties, EntityProperty, inlineInputClass, inlineTriggerClass } from '@/components/layout/entity';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
@@ -466,6 +467,22 @@ export default function SopDetailPage() {
             { label: `v${sopVersion + 1}`, icon: History, onClick: () => bumpVersion.mutate(), disabled: bumpVersion.isPending, loading: bumpVersion.isPending, hideLabelOnMobile: true },
           ]}
           primaryAction={{ label: 'Guardar', icon: Save, onClick: () => saveMutation.mutate(), disabled: saveMutation.isPending, loading: saveMutation.isPending }}
+        />
+
+        {/* Hero: cover + icon */}
+        <EntityHeroHeader
+          icon={parseIcon((sop as any)?.icon)}
+          onIconChange={(next) => {
+            if (!id) return;
+            supabase.from('sops').update({ icon: next as any }).eq('id', id).then(() => queryClient.invalidateQueries({ queryKey: ['sop', id] }));
+          }}
+          coverUrl={(sop as any)?.cover_url}
+          onCoverChange={(url) => {
+            if (!id) return;
+            supabase.from('sops').update({ cover_url: url }).eq('id', id).then(() => queryClient.invalidateQueries({ queryKey: ['sop', id] }));
+          }}
+          bucket="entity-icons"
+          pathPrefix={`sops/${id || 'new'}`}
         />
 
         {/* Title + meta badges */}

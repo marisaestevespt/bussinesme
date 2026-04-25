@@ -1602,6 +1602,7 @@ export type Database = {
           client_files: Json | null
           client_id: string
           conversion_date: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           current_product: string | null
@@ -1616,6 +1617,7 @@ export type Database = {
           final_settlement_status: string | null
           fiscal_address: string | null
           full_name: string
+          icon: Json | null
           id: string
           nif: string | null
           observations: string | null
@@ -1632,6 +1634,7 @@ export type Database = {
           client_files?: Json | null
           client_id?: string
           conversion_date?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
@@ -1646,6 +1649,7 @@ export type Database = {
           final_settlement_status?: string | null
           fiscal_address?: string | null
           full_name: string
+          icon?: Json | null
           id?: string
           nif?: string | null
           observations?: string | null
@@ -1662,6 +1666,7 @@ export type Database = {
           client_files?: Json | null
           client_id?: string
           conversion_date?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
@@ -1676,6 +1681,7 @@ export type Database = {
           final_settlement_status?: string | null
           fiscal_address?: string | null
           full_name?: string
+          icon?: Json | null
           id?: string
           nif?: string | null
           observations?: string | null
@@ -5241,6 +5247,7 @@ export type Database = {
           client_actions: Json | null
           client_id: string | null
           client_name: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           date_time: string
@@ -5251,6 +5258,7 @@ export type Database = {
           duration_minutes: number | null
           final_notes: Json | null
           google_calendar_db_id: string | null
+          icon: Json | null
           id: string
           is_recurring: boolean
           meeting_type: Database["public"]["Enums"]["meeting_type"]
@@ -5275,6 +5283,7 @@ export type Database = {
           client_actions?: Json | null
           client_id?: string | null
           client_name?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           date_time: string
@@ -5285,6 +5294,7 @@ export type Database = {
           duration_minutes?: number | null
           final_notes?: Json | null
           google_calendar_db_id?: string | null
+          icon?: Json | null
           id?: string
           is_recurring?: boolean
           meeting_type?: Database["public"]["Enums"]["meeting_type"]
@@ -5309,6 +5319,7 @@ export type Database = {
           client_actions?: Json | null
           client_id?: string | null
           client_name?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           date_time?: string
@@ -5319,6 +5330,7 @@ export type Database = {
           duration_minutes?: number | null
           final_notes?: Json | null
           google_calendar_db_id?: string | null
+          icon?: Json | null
           id?: string
           is_recurring?: boolean
           meeting_type?: Database["public"]["Enums"]["meeting_type"]
@@ -7964,6 +7976,7 @@ export type Database = {
           bio: string | null
           created_at: string
           full_name: string | null
+          icon: Json | null
           id: string
           onboarding_completed: boolean
           phone: string | null
@@ -7977,6 +7990,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string | null
+          icon?: Json | null
           id?: string
           onboarding_completed?: boolean
           phone?: string | null
@@ -7990,6 +8004,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           full_name?: string | null
+          icon?: Json | null
           id?: string
           onboarding_completed?: boolean
           phone?: string | null
@@ -8284,6 +8299,7 @@ export type Database = {
           dependencias: string | null
           diretrizes: string | null
           entregaveis: string | null
+          icon: Json | null
           id: string
           name: string
           notes: string | null
@@ -8321,6 +8337,7 @@ export type Database = {
           dependencias?: string | null
           diretrizes?: string | null
           entregaveis?: string | null
+          icon?: Json | null
           id?: string
           name: string
           notes?: string | null
@@ -8358,6 +8375,7 @@ export type Database = {
           dependencias?: string | null
           diretrizes?: string | null
           entregaveis?: string | null
+          icon?: Json | null
           id?: string
           name?: string
           notes?: string | null
@@ -8782,6 +8800,7 @@ export type Database = {
       sops: {
         Row: {
           apply_to_all_active_clients: boolean
+          cover_url: string | null
           created_at: string
           created_by: string | null
           custom_role_id: string | null
@@ -8789,6 +8808,7 @@ export type Database = {
           department: string
           departments: string[] | null
           estimated_time: number | null
+          icon: Json | null
           id: string
           inputs: Json | null
           linked_entity_id: string | null
@@ -8814,6 +8834,7 @@ export type Database = {
         }
         Insert: {
           apply_to_all_active_clients?: boolean
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           custom_role_id?: string | null
@@ -8821,6 +8842,7 @@ export type Database = {
           department?: string
           departments?: string[] | null
           estimated_time?: number | null
+          icon?: Json | null
           id?: string
           inputs?: Json | null
           linked_entity_id?: string | null
@@ -8846,6 +8868,7 @@ export type Database = {
         }
         Update: {
           apply_to_all_active_clients?: boolean
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           custom_role_id?: string | null
@@ -8853,6 +8876,7 @@ export type Database = {
           department?: string
           departments?: string[] | null
           estimated_time?: number | null
+          icon?: Json | null
           id?: string
           inputs?: Json | null
           linked_entity_id?: string | null
@@ -9509,6 +9533,7 @@ export type Database = {
           access_suspended_at: string | null
           access_suspended_by: string | null
           birthday: string | null
+          cover_url: string | null
           created_at: string
           custom_holidays: Json | null
           custom_role_id: string | null
@@ -9520,6 +9545,7 @@ export type Database = {
           full_name: string
           hourly_cost: number | null
           iban: string | null
+          icon: Json | null
           id: string
           identification: string | null
           inactivated_at: string | null
@@ -9549,6 +9575,7 @@ export type Database = {
           access_suspended_at?: string | null
           access_suspended_by?: string | null
           birthday?: string | null
+          cover_url?: string | null
           created_at?: string
           custom_holidays?: Json | null
           custom_role_id?: string | null
@@ -9560,6 +9587,7 @@ export type Database = {
           full_name: string
           hourly_cost?: number | null
           iban?: string | null
+          icon?: Json | null
           id?: string
           identification?: string | null
           inactivated_at?: string | null
@@ -9589,6 +9617,7 @@ export type Database = {
           access_suspended_at?: string | null
           access_suspended_by?: string | null
           birthday?: string | null
+          cover_url?: string | null
           created_at?: string
           custom_holidays?: Json | null
           custom_role_id?: string | null
@@ -9600,6 +9629,7 @@ export type Database = {
           full_name?: string
           hourly_cost?: number | null
           iban?: string | null
+          icon?: Json | null
           id?: string
           identification?: string | null
           inactivated_at?: string | null

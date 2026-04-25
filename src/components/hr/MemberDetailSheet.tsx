@@ -24,6 +24,29 @@ import { DeptBadge, currentYear, currentMonth, scheduleToLines } from './team-he
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { deriveContractStatus } from '@/lib/contractStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
+
+function MemberIconBlock({ member }: { member: any }) {
+  const qc = useQueryClient();
+  const fallback = member?.photo_url ? { type: 'image' as const, value: member.photo_url } : null;
+  const icon = parseIcon(member?.icon) ?? fallback;
+  return (
+    <div className="-mb-1">
+      <EntityIconPicker
+        icon={icon}
+        onChange={async (next) => {
+          await supabase.from('team_members').update({ icon: next as any, photo_url: next?.type === 'image' ? next.value : member?.photo_url || null }).eq('id', member.id);
+          qc.invalidateQueries({ queryKey: ['team_members'] });
+        }}
+        bucket="entity-icons"
+        pathPrefix={`team-members/${member.id}`}
+        className="h-16 w-16"
+        emojiClassName="text-3xl"
+        variant="circle"
+      />
+    </div>
+  );
+}
 
 export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [newTask, setNewTask] = useState('');
@@ -165,10 +188,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
       <DialogContent className="max-w-6xl w-[95vw] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary/20">
-              <AvatarImage src={member?.photo_url || undefined} />
-              <AvatarFallback className="text-lg">{member.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
+            <MemberIconBlock member={member} />
             <div className="flex items-center gap-2">
               <DialogTitle className="text-xl">{member.full_name}</DialogTitle>
               {member.email && (
