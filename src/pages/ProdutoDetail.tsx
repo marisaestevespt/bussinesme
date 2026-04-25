@@ -328,14 +328,22 @@ export default function ProdutoDetailPage() {
           const typeLabel = PRODUCT_TYPE_OPTIONS.find(t => t.value === form.product_type)?.label;
 
           return (
-            <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-primary/[0.04] via-background to-accent/[0.05] shadow-sm">
+            <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-primary/[0.07] via-background to-accent/[0.08] shadow-md">
               {/* status bar (left) */}
-              <div className={cn('absolute left-0 top-0 bottom-0 w-1', st.bar)} />
-              {/* decorative blob */}
-              <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/[0.06] blur-2xl" />
-              <div className="pointer-events-none absolute bottom-0 right-12 h-24 w-24 rounded-full bg-accent/[0.08] blur-xl" />
+              <div className={cn('absolute left-0 top-0 bottom-0 w-1.5', st.bar)} />
+              {/* decorative blobs */}
+              <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-primary/[0.10] blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-10 right-20 h-32 w-32 rounded-full bg-accent/[0.12] blur-2xl" />
+              {/* subtle grid pattern */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.025]"
+                style={{
+                  backgroundImage: 'radial-gradient(currentColor 1px, transparent 1px)',
+                  backgroundSize: '16px 16px',
+                }}
+              />
 
-              <CardContent className="relative p-5 pl-6">
+              <CardContent className="relative p-5 pl-7">
                 <div className="flex gap-4 items-start">
                   <div className="relative shrink-0 group">
                     <div className="h-16 w-16 rounded-xl border bg-background overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-border/50">
