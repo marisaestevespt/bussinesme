@@ -12,6 +12,7 @@ import { Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 export default function MarketingPublicoAlvo() {
   const { data: sections, isLoading } = usePublicoAlvoSections();
@@ -96,9 +97,7 @@ export default function MarketingPublicoAlvo() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-sm text-muted-foreground">A carregar...</p>
-        </div>
+        <InlineLoader />
       </AppLayout>
     );
   }

@@ -13,6 +13,7 @@ import { Users, ShieldOff, Mail } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -153,7 +154,7 @@ export function SettingsUsers() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-            <p className="text-sm text-muted-foreground text-center py-8">A carregar...</p>
+            <InlineLoader />
           ) : profiles.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">Sem utilizadores registados</p>
           ) : (
