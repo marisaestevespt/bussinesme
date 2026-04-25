@@ -696,15 +696,15 @@ export default function ProjetoDetailPage() {
 
           {/* ─── 3 Tabs ──────────────────────────────────────── */}
           <div className="mt-6">
-          <Tabs defaultValue="projeto" className="w-full">
-            <TabsList className="bg-transparent w-full gap-2 border-b rounded-none pb-0 h-auto">
-              <TabsTrigger value="projeto" className="flex-1 rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Projeto</TabsTrigger>
-              <TabsTrigger value="processos" className="flex-1 rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Processos</TabsTrigger>
-              <TabsTrigger value="gestao" className="flex-1 rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Gestão</TabsTrigger>
-            </TabsList>
+          <EntityTabs defaultValue="projeto" className="w-full">
+            <EntityTabsList>
+              <EntityTabsTrigger value="projeto">Projeto</EntityTabsTrigger>
+              <EntityTabsTrigger value="processos">Processos</EntityTabsTrigger>
+              <EntityTabsTrigger value="gestao">Gestão</EntityTabsTrigger>
+            </EntityTabsList>
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
-            <TabsContent value="projeto" className="space-y-8 mt-6">
+            <EntityTabsContent value="projeto" className="space-y-8 mt-6">
               {/* Deliverables (only for fases recorrente) */}
               {isRecorrente && taskMode === 'fases' && <ProjectDeliverables projectId={id!} profiles={profiles} />}
 
@@ -856,10 +856,10 @@ export default function ProjetoDetailPage() {
                   ))}
                 </div>
               </div>
-            </TabsContent>
+            </EntityTabsContent>
 
             {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
-            <TabsContent value="processos" className="mt-4 space-y-6">
+            <EntityTabsContent value="processos" className="mt-4 space-y-6">
               {taskMode === 'fases' && <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />}
               <ProjectProcessosTab
                 projectId={id!}
@@ -867,10 +867,10 @@ export default function ProjetoDetailPage() {
                 productId={local.product_id}
                 projectStartDate={local.start_date}
               />
-            </TabsContent>
+            </EntityTabsContent>
 
             {/* ─── TAB 3: GESTÃO ───────────────────────────── */}
-            <TabsContent value="gestao" className="mt-4">
+            <EntityTabsContent value="gestao" className="mt-4">
               <ProjectGestaoTab
                 projectId={id!}
                 projectName={local.name}
@@ -884,8 +884,8 @@ export default function ProjetoDetailPage() {
                 onNewMeeting={() => setMeetingDialogOpen(true)}
                 onUpdateProject={(field, value) => updateField(field as keyof ProjectFull, value)}
               />
-            </TabsContent>
-          </Tabs>
+            </EntityTabsContent>
+          </EntityTabs>
           </div>
 
           {dirty && <div className="sticky bottom-4"><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2 shadow-lg"><Save className="h-4 w-4" /> Guardar</Button></div>}
