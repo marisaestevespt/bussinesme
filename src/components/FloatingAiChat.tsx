@@ -42,7 +42,7 @@ const ACTION_LABELS: Record<string, { label: string; icon: string; color: string
   create: { label: "Criar", icon: "➕", color: "text-success" },
   update: { label: "Editar", icon: "✏️", color: "text-info" },
   delete: { label: "Eliminar", icon: "🗑️", color: "text-destructive" },
-  send_email: { label: "Enviar email", icon: "📧", color: "text-purple-600" },
+  send_email: { label: "Enviar email", icon: "📧", color: "text-accent-violet" },
   workflow: { label: "Workflow", icon: "⚡", color: "text-warning" },
 };
 

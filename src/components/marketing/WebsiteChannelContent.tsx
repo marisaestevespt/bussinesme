@@ -20,9 +20,9 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const PAGE_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
-  { value: 'a_escrever', label: 'A escrever', color: 'bg-warning/15 text-warning dark:bg-amber-900/30 dark:text-amber-300' },
-  { value: 'em_design', label: 'Em design', color: 'bg-info/15 text-info dark:bg-blue-900/30 dark:text-blue-300' },
-  { value: 'pronto', label: 'Pronto', color: 'bg-success/15 text-success dark:bg-emerald-900/30 dark:text-emerald-300' },
+  { value: 'a_escrever', label: 'A escrever', color: 'bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning' },
+  { value: 'em_design', label: 'Em design', color: 'bg-info/15 text-info dark:bg-info/30 dark:text-info' },
+  { value: 'pronto', label: 'Pronto', color: 'bg-success/15 text-success dark:bg-success/30 dark:text-success' },
 ];
 
 interface WebsiteChannelContentProps {

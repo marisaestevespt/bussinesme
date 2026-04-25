@@ -76,7 +76,7 @@ export function ExecutiveKpiAlerts() {
     { label: 'Clientes ativos', value: activeClients, icon: Users, color: 'text-primary' },
     { label: 'Faturação mês', value: `${monthRevenue.toLocaleString('pt-PT')}€`, icon: CreditCard, color: 'text-success' },
     { label: 'Faturação anual', value: `${yearRevenue.toLocaleString('pt-PT')}€`, sub: annualGoal > 0 ? `${goalProgress}% da meta` : undefined, icon: TrendingUp, color: 'text-info' },
-    { label: 'Vendas mês', value: monthSales.length, icon: TrendingUp, color: 'text-violet-600' },
+    { label: 'Vendas mês', value: monthSales.length, icon: TrendingUp, color: 'text-accent-violet' },
   ];
 
   const alerts: { label: string; count: number; variant: 'destructive' | 'default' | 'secondary'; link: string; icon: React.ElementType }[] = [];

@@ -64,7 +64,7 @@ export default function ProdutosPage() {
     { key: 'vendas_ativas', label: 'Vendas Ativas', icon: TrendingUp, color: 'text-success' },
     { key: 'a_criar', label: 'A Criar', icon: Package, color: 'text-warning' },
     { key: 'em_ideia', label: 'Em Ideia', icon: Lightbulb, color: 'text-muted-foreground' },
-    { key: 'off', label: 'Off', icon: XCircle, color: 'text-red-500' },
+    { key: 'off', label: 'Off', icon: XCircle, color: 'text-destructive' },
   ];
 
   return (

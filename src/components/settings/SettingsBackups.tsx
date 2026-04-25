@@ -88,7 +88,7 @@ export function SettingsBackups() {
   const statusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge variant="default" className="bg-green-600">Concluído</Badge>;
+        return <Badge variant="default" className="bg-success">Concluído</Badge>;
       case 'running':
         return <Badge variant="secondary">A executar...</Badge>;
       case 'failed':

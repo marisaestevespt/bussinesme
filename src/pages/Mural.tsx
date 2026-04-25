@@ -29,7 +29,7 @@ const CATEGORIES = [
   { value: 'novidade', label: 'Novidade', color: 'bg-success/15 text-success' },
   { value: 'atualizacao', label: 'Atualização', color: 'bg-info/15 text-info' },
   { value: 'lembrete', label: 'Lembrete', color: 'bg-warning/15 text-warning' },
-  { value: 'outro', label: 'Outro', color: 'bg-gray-100 text-gray-800' },
+  { value: 'outro', label: 'Outro', color: 'bg-muted text-muted-foreground' },
 ] as const;
 
 const REACTION_EMOJIS = ['👍', '❤️', '🎉', '🙌'] as const;

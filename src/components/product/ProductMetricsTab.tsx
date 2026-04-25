@@ -58,9 +58,9 @@ function goalColor(value: number | null, goal: number | null): string {
   if (goal == null || goal <= 0) return 'bg-muted text-muted-foreground';
   if (value == null) return 'bg-muted text-muted-foreground';
   const pct = (value / goal) * 100;
-  if (pct >= 100) return 'bg-success/15 text-success dark:bg-emerald-950 dark:text-emerald-400';
-  if (pct >= 70) return 'bg-warning/15 text-warning dark:bg-amber-950 dark:text-amber-400';
-  return 'bg-destructive/15 text-destructive dark:bg-red-950 dark:text-red-400';
+  if (pct >= 100) return 'bg-success/15 text-success dark:bg-success/20 dark:text-success';
+  if (pct >= 70) return 'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning';
+  return 'bg-destructive/15 text-destructive dark:bg-destructive/20 dark:text-destructive';
 }
 
 type HealthColor = 'green' | 'yellow' | 'red';
@@ -307,9 +307,9 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
   }, [activeClients, latestNpsByClient, npsRecords, milestones, today]);
 
   const HEALTH_STYLES: Record<HealthColor, string> = {
-    green: 'bg-emerald-500',
-    yellow: 'bg-amber-500',
-    red: 'bg-red-500',
+    green: 'bg-success',
+    yellow: 'bg-warning',
+    red: 'bg-destructive',
   };
   return (
     <div className="space-y-6">

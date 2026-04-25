@@ -34,12 +34,12 @@ import { cn } from '@/lib/utils';
 // ─── Constants ──────────────────────────────────────────────────
 
 const PHASES = [
-  { value: 'estrategia', label: 'Estratégia', color: 'bg-violet-100 text-violet-800', dot: 'bg-violet-500' },
-  { value: 'antecipacao', label: 'Antecipação', color: 'bg-warning/15 text-warning', dot: 'bg-amber-500' },
-  { value: 'captacao', label: 'Captação', color: 'bg-info/15 text-info', dot: 'bg-blue-500' },
-  { value: 'produto_servico', label: 'Produto', color: 'bg-success/15 text-success', dot: 'bg-emerald-500' },
-  { value: 'venda', label: 'Venda', color: 'bg-destructive/15 text-destructive', dot: 'bg-rose-500' },
-  { value: 'debriefing_pos_fecho', label: 'Debriefing & Pós Fecho', color: 'bg-slate-100 text-slate-800', dot: 'bg-slate-500' },
+  { value: 'estrategia', label: 'Estratégia', color: 'bg-accent-violet/15 text-accent-violet', dot: 'bg-accent-violet' },
+  { value: 'antecipacao', label: 'Antecipação', color: 'bg-warning/15 text-warning', dot: 'bg-warning' },
+  { value: 'captacao', label: 'Captação', color: 'bg-info/15 text-info', dot: 'bg-info' },
+  { value: 'produto_servico', label: 'Produto', color: 'bg-success/15 text-success', dot: 'bg-success' },
+  { value: 'venda', label: 'Venda', color: 'bg-destructive/15 text-destructive', dot: 'bg-destructive' },
+  { value: 'debriefing_pos_fecho', label: 'Debriefing & Pós Fecho', color: 'bg-muted text-muted-foreground', dot: 'bg-muted' },
 ];
 
 // NOTE: launch_tasks has its OWN status enum, distinct from the global tasks table.

@@ -56,7 +56,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'dependencias' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
 
 const TASK_PRIORITIES = [
-  { value: 'baixa', label: 'Baixa', color: 'bg-gray-100 text-gray-600' },
+  { value: 'baixa', label: 'Baixa', color: 'bg-muted text-muted-foreground' },
   { value: 'media', label: 'Média', color: 'bg-warning/15 text-warning' },
   { value: 'alta', label: 'Alta', color: 'bg-warning/15 text-warning' },
   { value: 'urgente', label: 'Urgente', color: 'bg-destructive/15 text-destructive' },

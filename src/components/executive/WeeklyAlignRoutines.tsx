@@ -50,7 +50,7 @@ export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: Routines
                   >
                     <TableCell>
                       {isDone ? (
-                        <Badge variant="outline" className="text-[10px] bg-success/15 text-success border-success/30 dark:bg-emerald-900/20 dark:text-emerald-300">Feita</Badge>
+                        <Badge variant="outline" className="text-[10px] bg-success/15 text-success border-success/30 dark:bg-success/20 dark:text-success">Feita</Badge>
                       ) : isLate ? (
                         <Badge variant="outline" className="text-[10px] bg-destructive/10 text-destructive border-destructive/30">Em falta</Badge>
                       ) : (

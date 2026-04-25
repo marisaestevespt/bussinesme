@@ -22,11 +22,11 @@ import { excludeCancelled } from '@/lib/utils';
 type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | 'previsibilidade' | null;
 
 const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; desc: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
-  { key: 'mensal', label: 'Mensal', desc: '12 meses', icon: Calendar, iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
-  { key: 'trimestral', label: 'Trimestral', desc: '4 trimestres', icon: BarChart3, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
-  { key: 'semestral', label: 'Semestral', desc: '2 semestres', icon: PieChart, iconColor: 'text-warning', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-  { key: 'metas', label: 'Metas', desc: 'Todas as metas', icon: Target, iconColor: 'text-destructive', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
-  { key: 'previsibilidade', label: 'Previsibilidade', desc: 'Cashflow anual', icon: LineChart, iconColor: 'text-primary', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+  { key: 'mensal', label: 'Mensal', desc: '12 meses', icon: Calendar, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
+  { key: 'trimestral', label: 'Trimestral', desc: '4 trimestres', icon: BarChart3, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
+  { key: 'semestral', label: 'Semestral', desc: '2 semestres', icon: PieChart, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
+  { key: 'metas', label: 'Metas', desc: 'Todas as metas', icon: Target, iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
+  { key: 'previsibilidade', label: 'Previsibilidade', desc: 'Cashflow anual', icon: LineChart, iconColor: 'text-primary', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
 ];
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -77,7 +77,7 @@ export default function ExecutivePlaneamento() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-start gap-3">
-              <div className="rounded-lg bg-emerald-500/10 p-2 text-success">
+              <div className="rounded-lg bg-success/10 p-2 text-success">
                 <TrendingUp className="h-4 w-4" />
               </div>
               <div>
@@ -89,7 +89,7 @@ export default function ExecutivePlaneamento() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-start gap-3">
-              <div className="rounded-lg bg-violet-500/10 p-2 text-violet-600">
+              <div className="rounded-lg bg-accent-violet/10 p-2 text-accent-violet">
                 <CheckCircle2 className="h-4 w-4" />
               </div>
               <div>
@@ -101,7 +101,7 @@ export default function ExecutivePlaneamento() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-start gap-3">
-              <div className="rounded-lg bg-amber-500/10 p-2 text-warning">
+              <div className="rounded-lg bg-warning/10 p-2 text-warning">
                 <Clock className="h-4 w-4" />
               </div>
               <div>

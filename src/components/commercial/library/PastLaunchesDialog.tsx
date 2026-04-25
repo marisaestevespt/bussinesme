@@ -29,9 +29,9 @@ interface Props {
 }
 
 const RESULT_COLOR: Record<string, string> = {
-  funcionou: 'bg-success/15 text-success dark:bg-green-950 dark:text-green-300',
-  'não funcionou': 'bg-destructive/15 text-destructive dark:bg-red-950 dark:text-red-300',
-  parcialmente: 'bg-warning/15 text-warning dark:bg-amber-950 dark:text-amber-300',
+  funcionou: 'bg-success/15 text-success dark:bg-success/20 dark:text-success',
+  'não funcionou': 'bg-destructive/15 text-destructive dark:bg-destructive/20 dark:text-destructive',
+  parcialmente: 'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning',
 };
 
 export function PastLaunchesDialog({ open, onOpenChange, productName, launches }: Props) {

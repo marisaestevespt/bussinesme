@@ -135,7 +135,7 @@ export function FinContabilidade({ currentYear }: Props) {
         </div>
 
         {isContabOrganizada ? (
-          <Card className="border-warning/30 bg-warning/15/50 dark:bg-amber-950/20 dark:border-amber-800">
+          <Card className="border-warning/30 bg-warning/15/50 dark:bg-warning/20 dark:border-warning">
             <CardContent className="pt-4 flex gap-2">
               <Info className="h-4 w-4 text-warning shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">Em contabilidade organizada, os prazos fiscais são geridos pelo teu contabilista.</p>
@@ -185,7 +185,7 @@ export function FinContabilidade({ currentYear }: Props) {
                             />
                             {status === 'done' && <Badge className="bg-success/10 text-success gap-1"><CheckSquare className="h-3 w-3" /> Concluído</Badge>}
                             {status === 'overdue' && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Em atraso</Badge>}
-                            {status === 'soon' && <Badge className="bg-warning/15 text-warning dark:bg-amber-900/30 dark:text-amber-400 gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
+                            {status === 'soon' && <Badge className="bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
                             {status === 'upcoming' && <Badge variant="secondary" className="gap-1">Por vir</Badge>}
                           </div>
                         </TableCell>

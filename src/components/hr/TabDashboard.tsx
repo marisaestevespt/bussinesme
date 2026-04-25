@@ -113,17 +113,17 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
   };
 
   const availColors: Record<string, string> = {
-    available: 'bg-success/15 dark:bg-emerald-900/30',
+    available: 'bg-success/15 dark:bg-success/30',
     off: 'bg-muted',
-    vacation: 'bg-warning/15 dark:bg-amber-900/30',
-    absence: 'bg-warning/15 dark:bg-orange-900/30',
-    holiday: 'bg-info/15 dark:bg-blue-900/30',
+    vacation: 'bg-warning/15 dark:bg-warning/30',
+    absence: 'bg-warning/15 dark:bg-warning/30',
+    holiday: 'bg-info/15 dark:bg-info/30',
   };
   const availDots: Record<string, string> = {
-    available: 'bg-emerald-500',
+    available: 'bg-success',
     off: 'bg-muted-foreground/30',
-    vacation: 'bg-amber-500',
-    holiday: 'bg-blue-500',
+    vacation: 'bg-warning',
+    holiday: 'bg-info',
   };
 
   return (
@@ -137,7 +137,7 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
         </Card>
         <Card className={cn("border-l-4", expiringContracts.length > 0 ? "border-l-amber-500" : "border-l-emerald-500")}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-warning/15 dark:bg-amber-900/30' : 'bg-success/15 dark:bg-emerald-900/30'}`}>
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-warning/15 dark:bg-warning/30' : 'bg-success/15 dark:bg-success/30'}`}>
               <FileText className={`h-5 w-5 ${expiringContracts.length > 0 ? 'text-warning' : 'text-success'}`} />
             </div>
             <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Contratos (30d)</p><p className="text-xl font-bold">{expiringContracts.length > 0 ? expiringContracts.length : '✓'}</p></div>
@@ -145,7 +145,7 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
         </Card>
         <Card className={cn("border-l-4", overduePayments.length > 0 ? "border-l-destructive" : "border-l-emerald-500")}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${overduePayments.length > 0 ? 'bg-destructive/10' : 'bg-success/15 dark:bg-emerald-900/30'}`}>
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${overduePayments.length > 0 ? 'bg-destructive/10' : 'bg-success/15 dark:bg-success/30'}`}>
               <AlertTriangle className={`h-5 w-5 ${overduePayments.length > 0 ? 'text-destructive' : 'text-success'}`} />
             </div>
             <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Pagamentos</p><p className="text-xl font-bold">{overduePayments.length > 0 ? `${overduePayments.length} atraso` : '✓'}</p></div>
@@ -153,8 +153,8 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
         </Card>
         <Card className="border-l-4 border-l-violet-500">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-              <MessageSquare className="h-5 w-5 text-violet-600" />
+            <div className="h-10 w-10 rounded-lg bg-accent-violet/15 dark:bg-accent-violet/30 flex items-center justify-center">
+              <MessageSquare className="h-5 w-5 text-accent-violet" />
             </div>
             <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Feedback (30d)</p><p className="text-xl font-bold">{recentFeedback.length}</p></div>
           </CardContent>
@@ -171,10 +171,10 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
                 <Button variant="ghost" aria-label="Seguinte" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
               </div>
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" /> Disponível</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-500 inline-block" /> Ausência</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500 inline-block" /> Feriado</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-success inline-block" /> Disponível</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-warning inline-block" /> Férias</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-warning inline-block" /> Ausência</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-info inline-block" /> Feriado</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/30 inline-block" /> Folga</span>
               </div>
             </div>
@@ -191,7 +191,7 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
                           "text-center font-medium py-1 px-1 min-w-[32px]",
                           isSameDay(d, new Date()) && "text-primary",
                           isWeekend && "bg-muted/50 text-muted-foreground/60",
-                          isHoliday && "bg-warning/15 dark:bg-amber-950/20",
+                          isHoliday && "bg-warning/15 dark:bg-warning/20",
                         )}>
                           <div className="text-[9px]">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]}</div>
                           <div className="text-[10px]">{format(d, 'd')}</div>

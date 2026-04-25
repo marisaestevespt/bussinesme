@@ -25,12 +25,12 @@ import { isTaskOpen } from '@/lib/taskStatus';
 // ─── Constants ──────────────────────────────────────────────────
 
 const TRANSVERSAIS_CARDS = [
-  { label: 'Agenda de Negócio', icon: Calendar, path: '/hub/agenda', iconColor: 'text-info', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
-  { label: 'Reuniões', icon: Video, path: '/hub/reunioes', iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
-  { label: 'Acessos', icon: Key, path: '/hub/acessos', iconColor: 'text-warning', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-  { label: 'Projetos', icon: FolderKanban, path: '/hub/projetos', iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
-  { label: 'Processos', icon: GitBranch, path: '/hub/processos', iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10' },
-  { label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas', iconColor: 'text-destructive', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
+  { label: 'Agenda de Negócio', icon: Calendar, path: '/hub/agenda', iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
+  { label: 'Reuniões', icon: Video, path: '/hub/reunioes', iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
+  { label: 'Acessos', icon: Key, path: '/hub/acessos', iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
+  { label: 'Projetos', icon: FolderKanban, path: '/hub/projetos', iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
+  { label: 'Processos', icon: GitBranch, path: '/hub/processos', iconColor: 'text-muted-foreground', color: 'from-border/10 to-border/5 hover:from-border/20 hover:to-border/10' },
+  { label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas', iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
 ];
 
 const DEPARTMENT_CARDS = [
@@ -430,7 +430,7 @@ function WeeklySummary() {
       <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/tarefas')}>
         <CardContent className="p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <ListTodo className="h-4 w-4 text-rose-500" />
+            <ListTodo className="h-4 w-4 text-destructive" />
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tarefas esta semana</span>
           </div>
           <p className="text-2xl font-bold">{pendingTasks.length}</p>
@@ -447,7 +447,7 @@ function WeeklySummary() {
       <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/projetos')}>
         <CardContent className="p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <FolderKanban className="h-4 w-4 text-emerald-500" />
+            <FolderKanban className="h-4 w-4 text-success" />
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Projetos ativos</span>
           </div>
           <p className="text-2xl font-bold">{projects.length}</p>
@@ -464,7 +464,7 @@ function WeeklySummary() {
       <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/agenda')}>
         <CardContent className="p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-blue-500" />
+            <CalendarDays className="h-4 w-4 text-info" />
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Eventos esta semana</span>
           </div>
           <p className="text-2xl font-bold">{events.length}</p>

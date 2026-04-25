@@ -1,14 +1,14 @@
 // Shared department constants used across sidebar, processos, and other pages
 
 export const DEPARTMENTS = [
-  { value: 'admin', label: 'Administração', gradient: 'from-yellow-500 to-amber-700', icon: '👑', lucideIcon: 'Crown' },
-  { value: 'marketing', label: 'Marketing', gradient: 'from-pink-500 to-rose-700', icon: '📣', lucideIcon: 'Megaphone' },
-  { value: 'comercial', label: 'Comercial', gradient: 'from-amber-500 to-orange-700', icon: '🤝', lucideIcon: 'ShoppingCart' },
-  { value: 'clientes', label: 'Clientes', gradient: 'from-cyan-500 to-teal-700', icon: '⭐', lucideIcon: 'UserCheck' },
-  { value: 'financeiro', label: 'Contabilidade', gradient: 'from-emerald-500 to-green-800', icon: '💰', lucideIcon: 'DollarSign' },
-  { value: 'operacao', label: 'Operação', gradient: 'from-violet-500 to-purple-800', icon: '⚙️', lucideIcon: 'Headphones' },
-  { value: 'produtos', label: 'Produtos', gradient: 'from-indigo-500 to-blue-800', icon: '📦', lucideIcon: 'Package' },
-  { value: 'recursos-humanos', label: 'Recursos Humanos', gradient: 'from-rose-500 to-pink-800', icon: '👥', lucideIcon: 'UsersRound' },
+  { value: 'admin', label: 'Administração', gradient: 'from-warning to-warning', icon: '👑', lucideIcon: 'Crown' },
+  { value: 'marketing', label: 'Marketing', gradient: 'from-accent-violet to-destructive', icon: '📣', lucideIcon: 'Megaphone' },
+  { value: 'comercial', label: 'Comercial', gradient: 'from-warning to-warning', icon: '🤝', lucideIcon: 'ShoppingCart' },
+  { value: 'clientes', label: 'Clientes', gradient: 'from-info to-success', icon: '⭐', lucideIcon: 'UserCheck' },
+  { value: 'financeiro', label: 'Contabilidade', gradient: 'from-success to-success', icon: '💰', lucideIcon: 'DollarSign' },
+  { value: 'operacao', label: 'Operação', gradient: 'from-accent-violet to-accent-violet', icon: '⚙️', lucideIcon: 'Headphones' },
+  { value: 'produtos', label: 'Produtos', gradient: 'from-info to-info', icon: '📦', lucideIcon: 'Package' },
+  { value: 'recursos-humanos', label: 'Recursos Humanos', gradient: 'from-destructive to-accent-violet', icon: '👥', lucideIcon: 'UsersRound' },
 ] as const;
 
 /** Departments available for processes, routines, SOPs */

@@ -208,9 +208,9 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   }, [activeClients, latestNpsByClient, allNps, allMilestones, today]);
 
   const HEALTH_STYLES: Record<HealthColor, string> = {
-    green: 'bg-emerald-500',
-    yellow: 'bg-amber-500',
-    red: 'bg-red-500',
+    green: 'bg-success',
+    yellow: 'bg-warning',
+    red: 'bg-destructive',
   };
 
   const STATUS_LABEL: Record<string, string> = {
@@ -503,9 +503,9 @@ export default function ClientesAnalisePage() {
             <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Saúde da Relação com Clientes</CardTitle></CardHeader>
             <CardContent className="px-4 pb-4">
               <div className="flex gap-6 text-sm">
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-emerald-500" /><span className="font-medium">{annualSummary.green} Verde</span></div>
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-amber-500" /><span className="font-medium">{annualSummary.yellow} Amarelo</span></div>
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-red-500" /><span className="font-medium">{annualSummary.red} Vermelho</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-success" /><span className="font-medium">{annualSummary.green} Verde</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-warning" /><span className="font-medium">{annualSummary.yellow} Amarelo</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-destructive" /><span className="font-medium">{annualSummary.red} Vermelho</span></div>
               </div>
             </CardContent>
           </Card>

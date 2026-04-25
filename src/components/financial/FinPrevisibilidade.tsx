@@ -180,7 +180,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       </div>
 
       {isContabOrganizada && (
-        <Card className="border-warning/30 bg-warning/15/50 dark:bg-amber-950/20 dark:border-amber-800">
+        <Card className="border-warning/30 bg-warning/15/50 dark:bg-warning/20 dark:border-warning">
           <CardContent className="pt-4">
             <p className="text-sm text-muted-foreground">Em contabilidade organizada, os valores de impostos são estimativas. Os valores reais são geridos pelo teu contabilista.</p>
           </CardContent>
@@ -221,7 +221,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
                   <TableCell className="text-right font-medium text-destructive">{formatEuro(p.totalSaidas)}</TableCell>
                   <TableCell className={`text-right font-bold ${p.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(p.balanco)}</TableCell>
                   <TableCell>
-                    {p.renewals.length > 0 && <Badge variant="outline" className="bg-warning/15 text-warning dark:bg-amber-900/30 dark:text-amber-400 text-xs">{p.renewals.length} renovação(ões)</Badge>}
+                    {p.renewals.length > 0 && <Badge variant="outline" className="bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning text-xs">{p.renewals.length} renovação(ões)</Badge>}
                   </TableCell>
                 </TableRow>
               ))}

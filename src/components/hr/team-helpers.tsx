@@ -7,15 +7,15 @@ export const currentMonth = new Date().getMonth() + 1;
 
 // Department color mapping
 const DEPT_COLORS: Record<string, string> = {
-  administrativo: 'bg-slate-600 text-white',
-  marketing: 'bg-pink-600 text-white',
-  comercial: 'bg-amber-600 text-white',
-  clientes: 'bg-cyan-600 text-white',
-  financeiro: 'bg-emerald-600 text-white',
-  operacao: 'bg-violet-600 text-white',
-  produtos: 'bg-indigo-600 text-white',
-  'customer-success': 'bg-teal-600 text-white',
-  'recursos-humanos': 'bg-rose-600 text-white',
+  administrativo: 'bg-muted text-white',
+  marketing: 'bg-accent-violet text-white',
+  comercial: 'bg-warning text-white',
+  clientes: 'bg-info text-white',
+  financeiro: 'bg-success text-white',
+  operacao: 'bg-accent-violet text-white',
+  produtos: 'bg-info text-white',
+  'customer-success': 'bg-success text-white',
+  'recursos-humanos': 'bg-destructive text-white',
 };
 
 export function DeptBadge({ dept }: { dept: string | string[] | null }) {

@@ -57,7 +57,7 @@ export function DashboardPersonalWidgets({ userId }: { userId?: string }) {
 
   return (
     <div className="grid md:grid-cols-2 gap-4">
-      <Card className="bg-warning/15/50 dark:bg-amber-950/10 border-warning/30/50">
+      <Card className="bg-warning/15/50 dark:bg-warning/10 border-warning/30/50">
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><FileText className="h-4 w-4" /> Notas</CardTitle></CardHeader>
         <CardContent>
           <RichTextEditor content={personalNotes.data?.content || ''} onChange={handleNotesChange} />

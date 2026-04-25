@@ -207,12 +207,12 @@ export function VendasSection({ salesWeek, salesActions, salesWeekTotal, prevSal
         </div>
         {billingGoal > 0 && totalBilled < billingGoal && (
           <div className="flex items-center gap-2 p-2 rounded-md bg-accent/50 border border-accent">
-            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+            <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
             <span className="text-sm font-medium">Falta faturar €{(billingGoal - totalBilled).toLocaleString()} para atingir a meta deste mês</span>
           </div>
         )}
         {billingGoal > 0 && totalBilled >= billingGoal && (
-          <div className="flex items-center gap-2 p-2 rounded-md bg-emerald-500/10 border border-emerald-500/30">
+          <div className="flex items-center gap-2 p-2 rounded-md bg-success/10 border border-success/30">
             <span className="text-sm font-medium text-success">Meta atingida! 🎉 Faturaste +€{(totalBilled - billingGoal).toLocaleString()} acima da meta</span>
           </div>
         )}
@@ -581,7 +581,7 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
           {tasks.length === 0 ? <p className="text-xs text-muted-foreground">Sem tarefas</p> :
             tasks.map(t => (
               <div key={t.id} className={cn("flex items-center gap-2 py-1 px-1 rounded", clickableRow)} onClick={() => openTaskDetail(t)}>
-                <div className={`h-2 w-2 rounded-full shrink-0 ${isTaskDone(t) ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                <div className={`h-2 w-2 rounded-full shrink-0 ${isTaskDone(t) ? 'bg-success' : 'bg-warning'}`} />
                 <span className="text-xs">{t.name}</span>
               </div>
             ))
@@ -676,7 +676,7 @@ export function MarketingGoalsSection({ currentMonth, currentYear }: MarketingGo
                   <TableCell className="text-xs text-right">{g.target_value}</TableCell>
                   <TableCell className="text-xs text-right">{g.current_value}</TableCell>
                   <TableCell className="text-right">
-                    <Badge variant={achieved ? 'default' : 'secondary'} className={cn('text-[10px]', achieved && 'bg-emerald-500 hover:bg-emerald-600')}>
+                    <Badge variant={achieved ? 'default' : 'secondary'} className={cn('text-[10px]', achieved && 'bg-success hover:bg-success')}>
                       {pct}%
                     </Badge>
                   </TableCell>

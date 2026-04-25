@@ -29,13 +29,13 @@ interface BWMonth { mes: string; resultado: number; }
 export function BestWorstMonth({ best, worst }: { best: BWMonth; worst: BWMonth }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Card className="border-success/30 bg-success/15/50 dark:bg-emerald-950/20 dark:border-emerald-800">
+      <Card className="border-success/30 bg-success/15/50 dark:bg-success/20 dark:border-success">
         <CardContent className="pt-4 flex items-center gap-3">
           <TrendingUp className="h-5 w-5 text-success shrink-0" />
           <div><p className="text-xs text-muted-foreground">Melhor mês</p><p className="font-semibold">{best.mes}</p><p className="text-sm text-success">{formatEuro(best.resultado)}</p></div>
         </CardContent>
       </Card>
-      <Card className="border-destructive/30 bg-destructive/15/50 dark:bg-red-950/20 dark:border-red-800">
+      <Card className="border-destructive/30 bg-destructive/15/50 dark:bg-destructive/20 dark:border-destructive">
         <CardContent className="pt-4 flex items-center gap-3">
           <TrendingDown className="h-5 w-5 text-destructive shrink-0" />
           <div><p className="text-xs text-muted-foreground">Pior mês</p><p className="font-semibold">{worst.mes}</p><p className="text-sm text-destructive">{formatEuro(worst.resultado)}</p></div>

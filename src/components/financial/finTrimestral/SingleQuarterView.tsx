@@ -79,7 +79,7 @@ export function SingleQuarterView({ selectedData, selectedMonthlyData, filteredP
         </Card>
         <Card>
           <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-1.5 mb-2"><Shield className="h-3.5 w-3.5 text-cyan-600" /><p className="text-xs text-muted-foreground">Segurança Social — {selectedData.label}</p></div>
+            <div className="flex items-center gap-1.5 mb-2"><Shield className="h-3.5 w-3.5 text-info" /><p className="text-xs text-muted-foreground">Segurança Social — {selectedData.label}</p></div>
             <p className="text-xl font-bold">{formatEuro(dv.ss)}</p>
           </CardContent>
         </Card>

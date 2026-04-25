@@ -180,7 +180,7 @@ function TaskBadge({ deadline, status }: { deadline: string | null; status: stri
 }
 
 function PriorityDot({ priority }: { priority: string }) {
-  const colors: Record<string, string> = { alta: 'bg-red-500', media: 'bg-yellow-500', baixa: 'bg-green-500' };
+  const colors: Record<string, string> = { alta: 'bg-destructive', media: 'bg-warning', baixa: 'bg-success' };
   return <span className={`inline-block h-2 w-2 rounded-full ${colors[priority] || 'bg-muted'}`} />;
 }
 
@@ -679,11 +679,11 @@ export default function OperacaoPage() {
 
         {/* Clients near end of cycle — kept as small alert */}
         {clientsNearEndOfCycle.length > 0 && (
-          <Card className="border border-warning/30 dark:border-amber-700 bg-warning/15/50 dark:bg-amber-950/20">
+          <Card className="border border-warning/30 dark:border-warning bg-warning/15/50 dark:bg-warning/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <CalendarClock className="h-4 w-4 text-warning" />
-                <h3 className="text-sm font-semibold text-warning dark:text-amber-400">Clientes perto do fim de ciclo</h3>
+                <h3 className="text-sm font-semibold text-warning dark:text-warning">Clientes perto do fim de ciclo</h3>
                 <Badge variant="outline" className="bg-warning/15 text-warning border-warning/30 text-[10px]">{clientsNearEndOfCycle.length}</Badge>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -691,7 +691,7 @@ export default function OperacaoPage() {
                   const daysLeft = differenceInDays(new Date(c.end_of_cycle!), today);
                   return (
                     <Link key={c.id} to={`/hub/clientes/${c.id}`} className="flex items-center gap-2 text-sm hover:underline">
-                      <span className="font-medium text-warning dark:text-amber-300">{c.full_name}</span>
+                      <span className="font-medium text-warning dark:text-warning">{c.full_name}</span>
                       <Badge variant={daysLeft <= 7 ? 'destructive' : 'outline'} className="text-[10px]">{daysLeft}d</Badge>
                     </Link>
                   );
@@ -737,7 +737,7 @@ export default function OperacaoPage() {
 
                   {!hasIssues && (
                     <div className="py-6 text-center">
-                      <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+                      <CheckCircle2 className="h-8 w-8 text-success mx-auto mb-2" />
                       <p className="text-sm font-medium text-success">Tudo em dia!</p>
                       <p className="text-xs text-muted-foreground mt-1">Este projeto não tem alertas pendentes.</p>
                     </div>
@@ -868,7 +868,7 @@ export default function OperacaoPage() {
                                     ? `/hub/reunioes/${item.id}`
                                     : item.type === 'project' && item.projectId ? `/hub/projetos/${item.projectId}` : null;
                                   const className = `text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
-                                    item.type === 'meeting' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300 font-medium ring-1 ring-blue-500/30' :
+                                    item.type === 'meeting' ? 'bg-info/15 text-info dark:text-info font-medium ring-1 ring-info/30' :
                                     item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
                                     'bg-accent/20 text-accent-foreground'
                                   } ${href || item.type === 'task' ? 'hover:opacity-80 cursor-pointer transition-opacity' : ''}`;
@@ -929,9 +929,9 @@ export default function OperacaoPage() {
             <CardTitle className="text-sm flex items-center gap-2">
               <Target className="h-4 w-4" /> Saúde dos Projetos
               <div className="flex items-center gap-3 ml-auto text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-emerald-500" /> Em dia</span>
-                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-amber-500" /> Atenção</span>
-                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-red-500" /> Em risco</span>
+                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-success" /> Em dia</span>
+                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-warning" /> Atenção</span>
+                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-destructive" /> Em risco</span>
               </div>
             </CardTitle>
           </CardHeader>
@@ -939,9 +939,9 @@ export default function OperacaoPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {projectHealth.map(p => {
                 const healthColor = {
-                  green: { bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/30', text: 'text-success dark:text-emerald-400', dot: 'bg-emerald-500' },
-                  yellow: { bg: 'bg-amber-500/10', ring: 'ring-amber-500/30', text: 'text-warning dark:text-amber-400', dot: 'bg-amber-500' },
-                  red: { bg: 'bg-red-500/10', ring: 'ring-red-500/30', text: 'text-destructive dark:text-red-400', dot: 'bg-red-500 animate-pulse' },
+                  green: { bg: 'bg-success/10', ring: 'ring-success/30', text: 'text-success dark:text-success', dot: 'bg-success' },
+                  yellow: { bg: 'bg-warning/10', ring: 'ring-warning/30', text: 'text-warning dark:text-warning', dot: 'bg-warning' },
+                  red: { bg: 'bg-destructive/10', ring: 'ring-destructive/30', text: 'text-destructive dark:text-destructive', dot: 'bg-destructive animate-pulse' },
                 }[p.health];
                 return (
                   <div
@@ -999,7 +999,7 @@ export default function OperacaoPage() {
                     { value: 'em_onboarding', label: 'Em onboarding', className: 'bg-info/15 text-info' },
                     { value: 'ativo', label: 'Ativos', className: 'bg-success/15 text-success' },
                     { value: 'pausado', label: 'Pausados', className: 'bg-warning/15 text-warning' },
-                    { value: 'altura_renovacao', label: 'Renovação', className: 'bg-purple-100 text-purple-800' },
+                    { value: 'altura_renovacao', label: 'Renovação', className: 'bg-accent-violet/15 text-accent-violet' },
                     { value: 'em_offboarding', label: 'Em offboarding', className: 'bg-warning/15 text-warning' },
                   ].map(s => {
                     const count = clients.filter(c => c.status === s.value).length;

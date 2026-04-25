@@ -567,7 +567,7 @@ export default function SopDetailPage() {
         {/* Routine info */}
         {linkedRoutine && (
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className="bg-violet-100 text-violet-800 border-violet-200 border text-xs px-3 py-1">
+            <Badge className="bg-accent-violet/15 text-accent-violet border-accent-violet border text-xs px-3 py-1">
               🔄 Rotina {linkedRoutine.recurrence_type === 'semanal'
                 ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][linkedRoutine.weekday || 0]} feira`
                 : `Mensal — dia ${linkedRoutine.month_day}`}

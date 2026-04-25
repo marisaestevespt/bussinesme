@@ -189,11 +189,11 @@ function getAvailability(
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  available: 'bg-green-500',
+  available: 'bg-success',
   off: 'bg-muted',
-  vacation: 'bg-blue-400',
-  absence: 'bg-orange-400',
-  holiday: 'bg-amber-400',
+  vacation: 'bg-info',
+  absence: 'bg-warning',
+  holiday: 'bg-warning',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -308,7 +308,7 @@ function VacationPopoverContent({ member, vacations, onOpenDialog }: { member: T
         <div className="space-y-1 max-h-[160px] overflow-y-auto">
           {memberVacations.map(v => (
             <div key={v.id} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1.5">
-              <Palmtree className="h-3 w-3 text-blue-500 shrink-0" />
+              <Palmtree className="h-3 w-3 text-info shrink-0" />
               <span>{format(parseISO(v.start_date), 'dd/MM/yyyy')} → {format(parseISO(v.end_date), 'dd/MM/yyyy')}</span>
             </div>
           ))}
@@ -378,7 +378,7 @@ export function TabEscala() {
                       className={cn(
                         'text-center text-[10px] px-1 min-w-[32px]',
                         isWeekend && 'bg-muted/50',
-                        isHoliday && 'bg-warning/15 dark:bg-amber-950/20'
+                        isHoliday && 'bg-warning/15 dark:bg-warning/20'
                       )}
                     >
                       <div>{DAY_LABELS[d.getDay()]}</div>

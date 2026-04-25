@@ -94,7 +94,7 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
                   : <p className="text-[11px] text-success mt-0.5">Tudo em dia 🎉</p>
                 }
               </div>
-              <div className={cn("p-2 rounded-lg", overdueTasks.length > 0 ? 'bg-destructive/10' : 'bg-emerald-500/10')}>
+              <div className={cn("p-2 rounded-lg", overdueTasks.length > 0 ? 'bg-destructive/10' : 'bg-success/10')}>
                 <AlertTriangle className={cn("h-4 w-4", overdueTasks.length > 0 ? 'text-destructive' : 'text-success')} />
               </div>
             </div>
@@ -111,10 +111,10 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
                   <span className="text-sm text-muted-foreground">/ {weeklyTasksPlanned}</span>
                 </div>
               </div>
-              <div className="p-2 rounded-lg bg-blue-500/10"><CheckSquare className="h-4 w-4 text-info" /></div>
+              <div className="p-2 rounded-lg bg-info/10"><CheckSquare className="h-4 w-4 text-info" /></div>
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${Math.min(taskRatio, 100)}%` }} />
+              <div className="h-full rounded-full bg-info transition-all" style={{ width: `${Math.min(taskRatio, 100)}%` }} />
             </div>
           </CardContent>
         </Card>
@@ -132,7 +132,7 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
                   : <p className="text-[11px] text-success mt-0.5">Equipa equilibrada ✓</p>
                 }
               </div>
-              <div className={cn("p-2 rounded-lg", overloadedCount > 0 ? 'bg-amber-500/10' : 'bg-emerald-500/10')}>
+              <div className={cn("p-2 rounded-lg", overloadedCount > 0 ? 'bg-warning/10' : 'bg-success/10')}>
                 <Flame className={cn("h-4 w-4", overloadedCount > 0 ? 'text-warning' : 'text-success')} />
               </div>
             </div>

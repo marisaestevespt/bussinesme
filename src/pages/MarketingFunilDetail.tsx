@@ -22,7 +22,7 @@ import { resolveProductId } from '@/lib/productResolver';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
-  { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
+  { value: 'em_ideia', label: 'Em ideia', color: 'bg-accent-violet/15 text-accent-violet' },
   { value: 'em_construcao', label: 'Em construção', color: 'bg-warning/15 text-warning' },
   { value: 'ativo', label: 'Ativo', color: 'bg-success/15 text-success' },
   { value: 'pausado', label: 'Pausado', color: 'bg-info/15 text-info' },

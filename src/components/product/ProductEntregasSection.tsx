@@ -212,7 +212,7 @@ function PhaseCard({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant={phase.is_onboarding ? "secondary" : "ghost"} size="sm"
-                  className={`h-7 text-xs ${phase.is_onboarding ? 'bg-warning/15 text-warning hover:bg-amber-200' : ''}`}
+                  className={`h-7 text-xs ${phase.is_onboarding ? 'bg-warning/15 text-warning hover:bg-warning/15' : ''}`}
                   onClick={() => onUpdatePhase(phase.id, { is_onboarding: !phase.is_onboarding })}>
                   <CheckSquare className="h-3 w-3 mr-1" /> Onboarding
                 </Button>
