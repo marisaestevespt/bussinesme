@@ -29,6 +29,11 @@ interface SavedFilters {
   priorities?: string[];
   hideCompleted?: boolean;
   search?: string;
+  /** Estado de conclusão. 'all' = tudo. */
+  completion?: 'all' | 'pending' | 'done';
+  /** Filtro por janela de prazo. */
+  deadlineWindow?: 'overdue' | 'today' | 'week' | 'no_deadline';
+  /** Apenas itens em que sou responsável (placeholder, ainda não usado). */
 }
 
 interface SavedView {
@@ -75,11 +80,29 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 function applyFilters(items: UnifiedItem[], f: SavedFilters): UnifiedItem[] {
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const inSevenDays = format(new Date(Date.now() + 7 * 24 * 3600 * 1000), 'yyyy-MM-dd');
   return items.filter(i => {
     if (f.hideCompleted && i.completed) return false;
+    if (f.completion === 'pending' && i.completed) return false;
+    if (f.completion === 'done' && !i.completed) return false;
     if (f.sources?.length && !f.sources.includes(i.source)) return false;
     if (f.priorities?.length && !f.priorities.includes(i.priority || '__none__')) return false;
     if (f.search && !i.title.toLowerCase().includes(f.search.toLowerCase())) return false;
+    if (f.deadlineWindow) {
+      const d = i.deadline;
+      if (f.deadlineWindow === 'no_deadline') {
+        if (d) return false;
+      } else if (!d) {
+        return false;
+      } else if (f.deadlineWindow === 'overdue') {
+        if (!(d < todayStr)) return false;
+      } else if (f.deadlineWindow === 'today') {
+        if (d !== todayStr) return false;
+      } else if (f.deadlineWindow === 'week') {
+        if (!(d >= todayStr && d <= inSevenDays)) return false;
+      }
+    }
     return true;
   });
 }
