@@ -451,6 +451,7 @@ export function TaskCustomViews({ scope, items, defaultTitle, defaultDeadline }:
   const qc = useQueryClient();
   const confirm = useConfirm();
   const askText = usePrompt();
+  const { openItem, dialogs } = useItemActions();
 
   const [activeView, setActiveView] = useState<string>('default');
   const [defaultViewType, setDefaultViewType] = useState<ViewType>('list');
