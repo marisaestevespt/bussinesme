@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon } from 'lucide-react';
+import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
 import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
@@ -49,6 +49,8 @@ export default function ProdutoDetailPage() {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', start_date: '', end_date: '' });
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
 
   if (product && !initialized) {
     setForm(product);
