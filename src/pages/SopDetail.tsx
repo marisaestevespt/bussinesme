@@ -39,6 +39,12 @@ import {
   EditableTextList, EditableBulletList, EditableCheckList, UtilizacaoTable,
 } from '@/components/sop/SopEditableLists';
 
+import { RenewalSection } from '@/components/sop-detail/RenewalSection';
+import { PaymentMethodsSection } from '@/components/sop-detail/PaymentMethodsSection';
+import { NpsConfigSection } from '@/components/sop-detail/NpsConfigSection';
+import { MilestonesSection } from '@/components/sop-detail/MilestonesSection';
+import { KpisSection } from '@/components/sop-detail/KpisSection';
+
 // ─── Main Page ──────────────────────────────────────────────────
 
 export default function SopDetailPage() {
