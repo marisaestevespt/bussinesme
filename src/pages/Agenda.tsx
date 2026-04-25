@@ -33,21 +33,12 @@ import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import { resolveProductId } from '@/lib/productResolver';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import {
-  AgendaToolbar,
-  DayView,
-  WeekView,
-  MonthView,
-  YearView,
-  navigatePrev,
-  navigateNext,
-  formatLabel,
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
 import {
-  AgendaCalendarsSidebar,
-  useCalendarFilters,
   type CalendarItem,
 } from '@/components/agenda/AgendaCalendarsSidebar';
+import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 
