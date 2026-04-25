@@ -2063,6 +2063,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           end_date: string | null
+          enrollment_open_date: string | null
           id: string
           notes: string | null
           objective: string | null
@@ -2080,6 +2081,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           end_date?: string | null
+          enrollment_open_date?: string | null
           id?: string
           notes?: string | null
           objective?: string | null
@@ -2097,6 +2099,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           end_date?: string | null
+          enrollment_open_date?: string | null
           id?: string
           notes?: string | null
           objective?: string | null

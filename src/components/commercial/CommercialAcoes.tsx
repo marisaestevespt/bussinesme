@@ -357,6 +357,13 @@ function ActionDetailSheet({ action, onClose, onEdit }: {
             </div>
           </div>
 
+          {action.enrollment_open_date && (
+            <div className="text-sm">
+              <span className="text-muted-foreground">🚪 Abertura de vagas/vendas:</span>{' '}
+              <span className="font-medium">{format(new Date(action.enrollment_open_date), 'dd/MM/yyyy')}</span>
+            </div>
+          )}
+
           {action.objective && (
             <div className="text-sm">
               <span className="text-muted-foreground">Objetivo:</span>{' '}
@@ -446,7 +453,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
   }, [existingTypes]);
 
   function empty() {
-    return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '', project_id: '' };
+    return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, enrollment_open_date: undefined as Date | undefined, product: '', objective: '', result: '', project_id: '' };
   }
 
   const hasProject = showProject || !!form.project_id;
@@ -469,6 +476,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
         action_type: initialData.action_type || 'outro',
         start_date: initialData.start_date ? new Date(initialData.start_date) : undefined,
         end_date: initialData.end_date ? new Date(initialData.end_date) : undefined,
+        enrollment_open_date: initialData.enrollment_open_date ? new Date(initialData.enrollment_open_date) : undefined,
         product: initialData.product || '',
         objective: initialData.objective || '',
         result: initialData.result || '',
@@ -490,6 +498,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
       action_type: form.action_type,
       start_date: form.start_date ? format(form.start_date, 'yyyy-MM-dd') : null,
       end_date: form.end_date ? format(form.end_date, 'yyyy-MM-dd') : null,
+      enrollment_open_date: form.enrollment_open_date ? format(form.enrollment_open_date, 'yyyy-MM-dd') : null,
       product: form.product || null,
       objective: form.objective || null,
       result: form.result || null,
@@ -569,6 +578,21 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
                 </PopoverContent>
               </Popover>
             </div>
+          </div>
+          <div>
+            <Label>🚪 Abertura de vagas/vendas <span className="text-xs text-muted-foreground font-normal">(opcional)</span></Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.enrollment_open_date && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {form.enrollment_open_date ? format(form.enrollment_open_date, 'dd/MM/yyyy') : 'Selecionar data de abertura'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={form.enrollment_open_date} onSelect={d => set({ enrollment_open_date: d })} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground mt-1">Aparece como evento próprio na agenda, com a cor do produto.</p>
           </div>
           <div>
             <Label>Produto</Label>
