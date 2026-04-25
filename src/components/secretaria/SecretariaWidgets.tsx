@@ -34,30 +34,6 @@ export function DashboardPersonalWidgets({ userId }: { userId?: string }) {
     notesTimeoutRef.current = setTimeout(() => saveNotes(content), 1000);
   };
 
-  const personalLinks = useQuery({
-    queryKey: ['personal-links', userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const { data } = await supabase.from('member_personal_links').select('*').eq('user_id', userId!).order('sort_order');
-      return data || [];
-    },
-  });
-
-  const [newLinkLabel, setNewLinkLabel] = useState('');
-  const [newLinkUrl, setNewLinkUrl] = useState('');
-
-  const addLink = async () => {
-    if (!newLinkLabel.trim() || !newLinkUrl.trim() || !userId) return;
-    await supabase.from('member_personal_links').insert({ user_id: userId, label: newLinkLabel.trim(), url: newLinkUrl.trim(), sort_order: (personalLinks.data?.length || 0) });
-    setNewLinkLabel(''); setNewLinkUrl('');
-    qc.invalidateQueries({ queryKey: ['personal-links'] });
-  };
-
-  const deleteLink = async (id: string) => {
-    await supabase.from('member_personal_links').delete().eq('id', id);
-    qc.invalidateQueries({ queryKey: ['personal-links'] });
-  };
-
   return (
     <div className="grid md:grid-cols-2 gap-4">
       <Card className="bg-warning/15/50 dark:bg-warning/10 border-warning/30/50">
