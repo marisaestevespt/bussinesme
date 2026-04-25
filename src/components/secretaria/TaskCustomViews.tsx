@@ -14,6 +14,7 @@ import { LayoutGrid, List, Table as TableIcon, Plus, Pencil, X, SlidersHorizonta
 import { UnifiedResponsibilitiesList } from '@/components/UnifiedResponsibilitiesList';
 import type { UnifiedItem, ResponsibilitySource } from '@/hooks/useUnifiedResponsibilities';
 import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
+import { useItemActions } from '@/hooks/useItemActions';
 import { toast } from 'sonner';
 import { useConfirm, usePrompt } from '@/components/ui/confirm-dialog';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,11 @@ interface SavedFilters {
   priorities?: string[];
   hideCompleted?: boolean;
   search?: string;
+  /** Estado de conclusão. 'all' = tudo. */
+  completion?: 'all' | 'pending' | 'done';
+  /** Filtro por janela de prazo. */
+  deadlineWindow?: 'overdue' | 'today' | 'week' | 'no_deadline';
+  /** Apenas itens em que sou responsável (placeholder, ainda não usado). */
 }
 
 interface SavedView {
@@ -74,11 +80,29 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 function applyFilters(items: UnifiedItem[], f: SavedFilters): UnifiedItem[] {
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const inSevenDays = format(new Date(Date.now() + 7 * 24 * 3600 * 1000), 'yyyy-MM-dd');
   return items.filter(i => {
     if (f.hideCompleted && i.completed) return false;
+    if (f.completion === 'pending' && i.completed) return false;
+    if (f.completion === 'done' && !i.completed) return false;
     if (f.sources?.length && !f.sources.includes(i.source)) return false;
     if (f.priorities?.length && !f.priorities.includes(i.priority || '__none__')) return false;
     if (f.search && !i.title.toLowerCase().includes(f.search.toLowerCase())) return false;
+    if (f.deadlineWindow) {
+      const d = i.deadline;
+      if (f.deadlineWindow === 'no_deadline') {
+        if (d) return false;
+      } else if (!d) {
+        return false;
+      } else if (f.deadlineWindow === 'overdue') {
+        if (!(d < todayStr)) return false;
+      } else if (f.deadlineWindow === 'today') {
+        if (d !== todayStr) return false;
+      } else if (f.deadlineWindow === 'week') {
+        if (!(d >= todayStr && d <= inSevenDays)) return false;
+      }
+    }
     return true;
   });
 }
@@ -127,7 +151,7 @@ function ItemRow({ item, compact }: { item: UnifiedItem; compact?: boolean }) {
   );
 }
 
-function TableView({ items }: { items: UnifiedItem[] }) {
+function TableView({ items, onItemClick }: { items: UnifiedItem[]; onItemClick: (i: UnifiedItem) => void }) {
   return (
     <div className="rounded-2xl border bg-card overflow-hidden shadow-card">
       <Table>
@@ -147,7 +171,11 @@ function TableView({ items }: { items: UnifiedItem[] }) {
             </TableRow>
           )}
           {items.map(i => (
-            <TableRow key={i.id} className="border-b-0 border-t border-border/40 hover:bg-muted/30 transition-colors">
+            <TableRow
+              key={i.id}
+              onClick={() => onItemClick(i)}
+              className="border-b-0 border-t border-border/40 hover:bg-muted/40 transition-colors cursor-pointer"
+            >
               <TableCell className="py-3">
                 <span className={cn('block w-2 h-2 rounded-full', PRIORITY_DOT[i.priority || '__none__'])} aria-hidden />
               </TableCell>
@@ -172,7 +200,7 @@ function TableView({ items }: { items: UnifiedItem[] }) {
   );
 }
 
-function BoardView({ items, groupBy }: { items: UnifiedItem[]; groupBy: GroupBy }) {
+function BoardView({ items, groupBy, onItemClick }: { items: UnifiedItem[]; groupBy: GroupBy; onItemClick: (i: UnifiedItem) => void }) {
   const effectiveGroup: GroupBy = groupBy === 'none' ? 'priority' : groupBy;
   const groups = useMemo(() => groupItems(items, effectiveGroup), [items, effectiveGroup]);
   return (
@@ -191,7 +219,11 @@ function BoardView({ items, groupBy }: { items: UnifiedItem[]; groupBy: GroupBy 
             <div className="flex-1 space-y-1.5 max-h-[60vh] overflow-y-auto">
               {g.items.length === 0 && <p className="text-xs text-muted-foreground/70 text-center py-4">—</p>}
               {g.items.map(i => (
-                <div key={i.id} className="rounded-xl bg-background p-2.5 shadow-card hover:shadow-elevated transition-shadow cursor-pointer">
+                <div
+                  key={i.id}
+                  onClick={() => onItemClick(i)}
+                  className="rounded-xl bg-background p-2.5 shadow-card hover:shadow-elevated transition-shadow cursor-pointer"
+                >
                   <ItemRow item={i} compact />
                   {i.deadline && (
                     <p className="text-[10px] text-muted-foreground/70 mt-1 ml-3.5">
@@ -251,6 +283,8 @@ function activeFiltersCount(f: SavedFilters): number {
   if (f.sources?.length) n++;
   if (f.priorities?.length) n++;
   if (f.hideCompleted) n++;
+  if (f.completion && f.completion !== 'all') n++;
+  if (f.deadlineWindow) n++;
   return n;
 }
 
@@ -331,6 +365,59 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
             })}
           </div>
         </div>
+        <div className="space-y-2">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Estado</label>
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              { v: 'all', l: 'Tudo' },
+              { v: 'pending', l: 'Pendentes' },
+              { v: 'done', l: 'Feitas' },
+            ] as const).map(opt => {
+              const cur = filters.completion || 'all';
+              const active = cur === opt.v;
+              return (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => onChange({ ...filters, completion: opt.v })}
+                  className={cn(
+                    'text-xs rounded-full px-3 py-1 border transition-colors',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground/80 border-border hover:border-foreground/40',
+                  )}
+                >{opt.l}</button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Prazo</label>
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              { v: undefined, l: 'Qualquer' },
+              { v: 'overdue', l: 'Atrasadas' },
+              { v: 'today', l: 'Hoje' },
+              { v: 'week', l: 'Próx. 7 dias' },
+              { v: 'no_deadline', l: 'Sem prazo' },
+            ] as const).map(opt => {
+              const active = (filters.deadlineWindow ?? undefined) === opt.v;
+              return (
+                <button
+                  key={String(opt.v)}
+                  type="button"
+                  onClick={() => onChange({ ...filters, deadlineWindow: opt.v as SavedFilters['deadlineWindow'] })}
+                  className={cn(
+                    'text-xs rounded-full px-3 py-1 border transition-colors',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground/80 border-border hover:border-foreground/40',
+                  )}
+                >{opt.l}</button>
+              );
+            })}
+          </div>
+        </div>
         <label className="flex items-center justify-between gap-2 cursor-pointer">
           <span className="text-sm">Esconder feitas</span>
           <button
@@ -364,6 +451,7 @@ export function TaskCustomViews({ scope, items, defaultTitle, defaultDeadline }:
   const qc = useQueryClient();
   const confirm = useConfirm();
   const askText = usePrompt();
+  const { openItem, dialogs } = useItemActions();
 
   const [activeView, setActiveView] = useState<string>('default');
   const [defaultViewType, setDefaultViewType] = useState<ViewType>('list');
@@ -583,8 +671,9 @@ export function TaskCustomViews({ scope, items, defaultTitle, defaultDeadline }:
           title={current ? current.name : defaultTitle}
         />
       )}
-      {viewType === 'table' && <TableView items={filteredItems} />}
-      {viewType === 'board' && <BoardView items={filteredItems} groupBy={groupBy} />}
+      {viewType === 'table' && <TableView items={filteredItems} onItemClick={openItem} />}
+      {viewType === 'board' && <BoardView items={filteredItems} groupBy={groupBy} onItemClick={openItem} />}
+      {dialogs}
     </div>
   );
 }
