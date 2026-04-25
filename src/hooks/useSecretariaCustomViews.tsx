@@ -66,19 +66,20 @@ export function useSecretariaCustomViews(scope: ViewScope) {
 
   const create = useMutation({
     mutationFn: async (v: Omit<CustomView, 'id' | 'user_id' | 'sort_order'> & { sort_order?: number }) => {
+      const payload = {
+        user_id: user!.id,
+        scope,
+        name: v.name,
+        layout: v.layout,
+        columns: v.columns as any,
+        filters: v.filters as any,
+        group_by: v.group_by,
+        sort_by: v.sort_by,
+        sort_order: v.sort_order ?? (list.data?.length ?? 0),
+      };
       const { data, error } = await supabase
         .from('secretaria_custom_views')
-        .insert({
-          user_id: user!.id,
-          scope,
-          name: v.name,
-          layout: v.layout,
-          columns: v.columns,
-          filters: v.filters,
-          group_by: v.group_by,
-          sort_by: v.sort_by,
-          sort_order: v.sort_order ?? (list.data?.length ?? 0),
-        })
+        .insert(payload as any)
         .select()
         .single();
       if (error) throw error;
