@@ -557,21 +557,25 @@ export default function ReuniaoDetailPage() {
         </AlertDialog>
 
         {/* Title */}
-        <div className="flex items-center gap-3">
-          <input
-            value={m.title}
-            onChange={e => update({ title: e.target.value })}
-            className="text-2xl font-bold text-foreground bg-transparent border-none outline-none flex-1"
-          />
-          <Badge className="text-[11px] font-semibold px-2.5 py-0.5" style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType], border: `1px solid ${typeColors[meetingType]}40` }}>
-            {typeLabels[meetingType]}
-          </Badge>
-          {(isSeriesParent || isSeriesChild) && (
-            <Badge variant="outline" className="text-[10px] gap-1">
-              <Repeat className="h-3 w-3" /> Série
-            </Badge>
-          )}
-        </div>
+        <EntityTitle
+          inlineMode
+          title={m.title}
+          onTitleChange={(next) => update({ title: next })}
+          isOwner={isOwner}
+          placeholder="Título da reunião"
+          meta={
+            <>
+              <Badge className="text-[11px] font-semibold px-2 py-0.5" style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType], border: `1px solid ${typeColors[meetingType]}40` }}>
+                {typeLabels[meetingType]}
+              </Badge>
+              {(isSeriesParent || isSeriesChild) && (
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Repeat className="h-3 w-3" /> Série
+                </Badge>
+              )}
+            </>
+          }
+        />
 
         {/* ═══ Notion-style metadata properties ═══ */}
         <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
