@@ -203,6 +203,18 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   // 9. Routine tasks — already included via tasksQ (tag='Rotina'), no separate query needed
 
+  // Project name lookup (for tasks linked to projects)
+  const projectsLookupQ = useQuery({
+    queryKey: ['unified-projects-lookup'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('id,name');
+      const map: Record<string, string> = {};
+      (data || []).forEach((p: any) => { map[p.id] = p.name; });
+      return map;
+    },
+  });
+
   // ─── Aggregate ─────────────────────────────────────────────
 
   const items: UnifiedItem[] = useMemo(() => {
@@ -224,6 +236,9 @@ export function useUnifiedResponsibilities(userId?: string) {
         isInfoOnly: false,
         completed: isTaskDone(t),
         estimatedHours: t.estimated_time ? Number(t.estimated_time) : 0,
+        status: t.status,
+        projectId: t.project_id,
+        projectName: t.project_id ? projectsLookupQ.data?.[t.project_id] : undefined,
       });
     });
 
@@ -244,6 +259,7 @@ export function useUnifiedResponsibilities(userId?: string) {
           isInfoOnly: false,
           completed: false,
           estimatedHours: 0,
+          status: l.status,
         });
       }
     });
@@ -263,6 +279,7 @@ export function useUnifiedResponsibilities(userId?: string) {
           isInfoOnly: false,
           completed: false,
           estimatedHours: 0,
+          status: c.status,
         });
       }
     });
@@ -279,6 +296,7 @@ export function useUnifiedResponsibilities(userId?: string) {
         isInfoOnly: true,
         completed: false,
         estimatedHours: DEFAULT_MEETING_HOURS,
+        status: m.status,
       });
     });
 
@@ -294,6 +312,9 @@ export function useUnifiedResponsibilities(userId?: string) {
         isInfoOnly: true,
         completed: false,
         estimatedHours: 0,
+        status: p.status,
+        projectId: p.id,
+        projectName: p.name,
       });
     });
 
@@ -310,6 +331,7 @@ export function useUnifiedResponsibilities(userId?: string) {
         isInfoOnly: false,
         completed: false,
         estimatedHours: 0,
+        status: n.status,
       });
     });
 
@@ -326,6 +348,7 @@ export function useUnifiedResponsibilities(userId?: string) {
         isInfoOnly: false,
         completed: false,
         estimatedHours: 0,
+        status: m.status,
       });
     });
 
@@ -341,6 +364,7 @@ export function useUnifiedResponsibilities(userId?: string) {
         isInfoOnly: false,
         completed: false,
         estimatedHours: 0,
+        status: a.status,
       });
     });
 
@@ -354,7 +378,7 @@ export function useUnifiedResponsibilities(userId?: string) {
     });
 
     return result;
-  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, uid, today]);
+  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, projectsLookupQ.data, uid, today]);
 
   // ─── Filtered views ────────────────────────────────────────
 
