@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import type { UnifiedItem } from '@/hooks/useUnifiedResponsibilities';
 import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
 import { TASK_STATUSES as CANON_TASK_STATUSES, getTaskPriorityInfo } from '@/lib/taskStatus';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 // Use the canonical task statuses so badges/dropdowns match the Tarefas page.
 const TASK_STATUSES = CANON_TASK_STATUSES;

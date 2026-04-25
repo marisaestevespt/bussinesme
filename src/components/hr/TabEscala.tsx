@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, CalendarIcon, Palmtree, Clock, AlertCircle } from 'lucide-react';
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWithinInterval, parseISO, isSameDay, startOfMonth, endOfMonth } from 'date-fns';
@@ -339,7 +340,7 @@ export function TabEscala() {
   const prevMonth = () => setViewMonth(new Date(year, month - 1, 1));
   const nextMonth = () => setViewMonth(new Date(year, month + 1, 1));
 
-  if (isLoading) return <div className="text-muted-foreground text-sm">A carregar...</div>;
+  if (isLoading) return <InlineLoader />;
 
   return (
     <div className="space-y-6">
