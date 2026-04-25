@@ -78,14 +78,54 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
     }
     setApplyingColors(true);
     try {
-      // Find all client portals linked to clients that use this product
-      const { data: clients, error: clientsErr } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('current_product_id', productId);
-      if (clientsErr) throw clientsErr;
+      // The portal expects HSL triplets like "351 56% 28%" (NOT "#xxxxxx").
+      // Convert hex / rgb inputs into a triplet so the portal renders correctly.
+      const toHslTriplet = (raw?: string): string | null => {
+        if (!raw) return null;
+        const trimmed = raw.trim();
+        if (!trimmed) return null;
+        // Already a triplet "H S% L%"
+        if (/^\d+(?:\.\d+)?\s+\d+(?:\.\d+)?%\s+\d+(?:\.\d+)?%$/.test(trimmed)) return trimmed;
+        // Hex #rgb / #rrggbb
+        const hex = trimmed.replace('#', '');
+        const m = hex.length === 3
+          ? hex.split('').map(c => c + c).join('')
+          : hex.length === 6 ? hex : null;
+        if (!m) return null;
+        const r = parseInt(m.slice(0, 2), 16) / 255;
+        const g = parseInt(m.slice(2, 4), 16) / 255;
+        const bl = parseInt(m.slice(4, 6), 16) / 255;
+        const max = Math.max(r, g, bl), min = Math.min(r, g, bl);
+        const l = (max + min) / 2;
+        let h = 0, s = 0;
+        if (max !== min) {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = ((g - bl) / d + (g < bl ? 6 : 0)); break;
+            case g: h = ((bl - r) / d + 2); break;
+            case bl: h = ((r - g) / d + 4); break;
+          }
+          h *= 60;
+        }
+        return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+      };
+      const primaryHsl = toHslTriplet(b.primary_color);
+      const secondaryHsl = toHslTriplet(b.secondary_color);
+      const accentHsl = toHslTriplet(b.accent_color);
 
-      const clientIds = (clients ?? []).map(c => c.id);
+      // Find all client portals linked to clients that use this product
+      // Either by clients.current_product_id or by an active project on that product.
+      const [clientsRes, projectsRes] = await Promise.all([
+        supabase.from('clients').select('id').eq('current_product_id', productId),
+        supabase.from('projects').select('client_id').eq('product_id', productId).not('client_id', 'is', null),
+      ]);
+      if (clientsRes.error) throw clientsRes.error;
+      if (projectsRes.error) throw projectsRes.error;
+      const clientIds = Array.from(new Set([
+        ...((clientsRes.data ?? []).map(c => c.id)),
+        ...((projectsRes.data ?? []).map(p => p.client_id as string).filter(Boolean)),
+      ]));
       let portalsUpdated = 0;
 
       if (clientIds.length > 0) {
@@ -100,9 +140,9 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           const current = portal.portal_branding ?? {};
           const merged = {
             ...current,
-            ...(b.primary_color ? { primary_color: b.primary_color } : {}),
-            ...(b.secondary_color ? { secondary_color: b.secondary_color } : {}),
-            ...(b.accent_color ? { accent_color: b.accent_color } : {}),
+            ...(primaryHsl ? { primary_color: primaryHsl } : {}),
+            ...(secondaryHsl ? { secondary_color: secondaryHsl } : {}),
+            ...(accentHsl ? { accent_color: accentHsl } : {}),
           };
           const { error: updErr } = await supabase
             .from('client_portals')
