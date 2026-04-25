@@ -457,7 +457,7 @@ export default function ProdutoDetailPage() {
 
             const SectionTitle = ({ children }: { children: React.ReactNode }) => (
               <div className="col-span-full pt-8 pb-2 first:pt-0">
-                <p className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider">{children}</p>
+                <p className="text-[11px] font-semibold text-primary/70 uppercase tracking-wider">{children}</p>
               </div>
             );
 
