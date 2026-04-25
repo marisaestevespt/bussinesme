@@ -357,6 +357,13 @@ function ActionDetailSheet({ action, onClose, onEdit }: {
             </div>
           </div>
 
+          {action.enrollment_open_date && (
+            <div className="text-sm">
+              <span className="text-muted-foreground">🚪 Abertura de vagas/vendas:</span>{' '}
+              <span className="font-medium">{format(new Date(action.enrollment_open_date), 'dd/MM/yyyy')}</span>
+            </div>
+          )}
+
           {action.objective && (
             <div className="text-sm">
               <span className="text-muted-foreground">Objetivo:</span>{' '}
