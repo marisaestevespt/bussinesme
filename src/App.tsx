@@ -19,6 +19,11 @@ import { useSuspensionCheck } from '@/hooks/useSuspensionCheck';
 import { SuspensionScreen } from '@/components/SuspensionScreen';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 
+function RedirectClienteId() {
+  const { id } = useParams();
+  return <Navigate to={`/hub/clientes/${id}`} replace />;
+}
+
 // Lazy-loaded pages (code-splitting per route)
 const SecretariaPage = lazy(() => import("./pages/Secretaria"));
 const ComecaAquiPage = lazy(() => import("./pages/ComecaAqui"));
