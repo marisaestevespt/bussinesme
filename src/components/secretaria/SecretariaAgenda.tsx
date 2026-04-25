@@ -56,7 +56,7 @@ export default function SecretariaAgenda() {
   const isEventVisible = (ev: any) => {
     const src = ev._source ?? 'event';
     if (!calendarFilters.isVisible(`src:${src}`)) return false;
-    const pid = ev._productId ?? null;
+    const pid = ev._productId ?? ev.product_id ?? null;
     if (pid && !calendarFilters.isVisible(`product:${pid}`)) return false;
     return true;
   };
@@ -174,6 +174,8 @@ export default function SecretariaAgenda() {
         ...(isMeeting ? { _isMeeting: true } : {}),
         _source: isMeeting ? 'reuniao' : 'event',
         _originalId: e._meetingId || e.id,
+        _productId: pid,
+        product_id: pid,
         ...(colorOverride ? { _color: colorOverride } : {}),
       } as any;
     });
@@ -193,6 +195,8 @@ export default function SecretariaAgenda() {
         created_by: null, recurrence_type: null, recurrence_end: null, meeting_url: null,
         _source: 'tarefa',
         _originalId: t.id,
+        _productId: t.product_id ?? null,
+        product_id: t.product_id ?? null,
         ...(colorOverride ? { _color: colorOverride } : {}),
       } as any;
     });
