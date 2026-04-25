@@ -3162,6 +3162,7 @@ export type Database = {
       }
       departments: {
         Row: {
+          cover_url: string | null
           created_at: string
           gradient: string
           icon: string
@@ -3172,6 +3173,7 @@ export type Database = {
           value: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           gradient?: string
           icon?: string
@@ -3182,6 +3184,7 @@ export type Database = {
           value: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           gradient?: string
           icon?: string
@@ -3971,12 +3974,14 @@ export type Database = {
       }
       financial_documents: {
         Row: {
+          cover_url: string | null
           created_at: string
           created_by: string | null
           doc_type: string
           document_name: string | null
           document_url: string | null
           due_date: string | null
+          icon: Json | null
           id: string
           notes: string | null
           period_end: string | null
@@ -3988,12 +3993,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           doc_type?: string
           document_name?: string | null
           document_url?: string | null
           due_date?: string | null
+          icon?: Json | null
           id?: string
           notes?: string | null
           period_end?: string | null
@@ -4005,12 +4012,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           doc_type?: string
           document_name?: string | null
           document_url?: string | null
           due_date?: string | null
+          icon?: Json | null
           id?: string
           notes?: string | null
           period_end?: string | null
@@ -4027,6 +4036,7 @@ export type Database = {
         Row: {
           base_value: number
           category: string
+          cover_url: string | null
           created_at: string
           created_by: string | null
           department: string | null
@@ -4038,6 +4048,7 @@ export type Database = {
           expense_name: string | null
           expense_quarter: number | null
           expense_year: number | null
+          icon: Json | null
           id: string
           is_recurring: boolean | null
           location: string
@@ -4060,6 +4071,7 @@ export type Database = {
         Insert: {
           base_value?: number
           category?: string
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
@@ -4071,6 +4083,7 @@ export type Database = {
           expense_name?: string | null
           expense_quarter?: number | null
           expense_year?: number | null
+          icon?: Json | null
           id?: string
           is_recurring?: boolean | null
           location?: string
@@ -4093,6 +4106,7 @@ export type Database = {
         Update: {
           base_value?: number
           category?: string
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
@@ -4104,6 +4118,7 @@ export type Database = {
           expense_name?: string | null
           expense_quarter?: number | null
           expense_year?: number | null
+          icon?: Json | null
           id?: string
           is_recurring?: boolean | null
           location?: string
@@ -4602,10 +4617,12 @@ export type Database = {
         Row: {
           category: string
           content: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           doc_type: string
           file_url: string | null
+          icon: Json | null
           id: string
           notes: string | null
           responsible_id: string | null
@@ -4617,10 +4634,12 @@ export type Database = {
         Insert: {
           category?: string
           content?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           doc_type?: string
           file_url?: string | null
+          icon?: Json | null
           id?: string
           notes?: string | null
           responsible_id?: string | null
@@ -4632,10 +4651,12 @@ export type Database = {
         Update: {
           category?: string
           content?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           doc_type?: string
           file_url?: string | null
+          icon?: Json | null
           id?: string
           notes?: string | null
           responsible_id?: string | null
@@ -6312,11 +6333,13 @@ export type Database = {
         Row: {
           active: boolean
           adjust_to_business_day: boolean
+          cover_url: string | null
           created_at: string
           created_by: string | null
           department: string | null
           estimated_time: number | null
           hour_time: string | null
+          icon: Json | null
           id: string
           month_day: number | null
           project_id: string | null
@@ -6330,11 +6353,13 @@ export type Database = {
         Insert: {
           active?: boolean
           adjust_to_business_day?: boolean
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
           estimated_time?: number | null
           hour_time?: string | null
+          icon?: Json | null
           id?: string
           month_day?: number | null
           project_id?: string | null
@@ -6348,11 +6373,13 @@ export type Database = {
         Update: {
           active?: boolean
           adjust_to_business_day?: boolean
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
           estimated_time?: number | null
           hour_time?: string | null
+          icon?: Json | null
           id?: string
           month_day?: number | null
           project_id?: string | null
@@ -8590,30 +8617,36 @@ export type Database = {
       routines: {
         Row: {
           assigned_to: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           department: string
           frequency: string
+          icon: Json | null
           id: string
           name: string
           updated_at: string
         }
         Insert: {
           assigned_to?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string
           frequency?: string
+          icon?: Json | null
           id?: string
           name: string
           updated_at?: string
         }
         Update: {
           assigned_to?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string
           frequency?: string
+          icon?: Json | null
           id?: string
           name?: string
           updated_at?: string
@@ -9384,12 +9417,14 @@ export type Database = {
           assigned_to: string | null
           client_id: string | null
           content_id: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           deadline: string | null
           deliverable_id: string | null
           department: string | null
           estimated_time: number | null
+          icon: Json | null
           id: string
           name: string
           notes: string | null
@@ -9412,12 +9447,14 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           content_id?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
           deliverable_id?: string | null
           department?: string | null
           estimated_time?: number | null
+          icon?: Json | null
           id?: string
           name: string
           notes?: string | null
@@ -9440,12 +9477,14 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           content_id?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
           deliverable_id?: string | null
           department?: string | null
           estimated_time?: number | null
+          icon?: Json | null
           id?: string
           name?: string
           notes?: string | null
