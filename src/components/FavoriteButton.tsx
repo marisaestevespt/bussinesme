@@ -31,7 +31,6 @@ const PAGE_META: Record<string, { title: string; icon: string }> = {
   '/executive/business-plan': { title: 'Plano de Negócio', icon: 'Rocket' },
   '/executive/innovation': { title: 'Inovação', icon: 'Lightbulb' },
   '/executive/recommendations': { title: 'Recomendações', icon: 'MessageSquareHeart' },
-  '/hub/recursos-humanos': { title: 'Gestão de Equipa', icon: 'UsersRound' },
   '/definicoes': { title: 'Definições', icon: 'Settings' },
   '/gestao-marca': { title: 'Gestão de Marca', icon: 'Heart' },
 };
