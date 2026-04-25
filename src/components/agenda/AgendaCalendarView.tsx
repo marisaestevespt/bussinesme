@@ -23,8 +23,11 @@ export interface AgendaCalendarViewProps {
   typeItems: CalendarItem[];
   /** Items shown in the "Produtos" section of the sidebar. */
   productItems: CalendarItem[];
-  /** Predicate to decide whether an event is currently visible (sidebar filters). */
-  isEventVisible: (ev: AgendaEvent) => boolean;
+  /**
+   * Predicate to decide whether an event is currently visible. Receives the
+   * sidebar's `isVisible(id)` helper so callers can map events → calendar ids.
+   */
+  isEventVisible: (ev: AgendaEvent, isVisible: (id: string) => boolean) => boolean;
   /** Called when the user clicks on an event. */
   onEventClick: (ev: AgendaEvent) => void;
   /** Initial view mode. */
@@ -84,7 +87,7 @@ export function AgendaCalendarView({
   };
 
   const visibleEvents = useMemo(
-    () => events.filter(isEventVisible),
+    () => events.filter(ev => isEventVisible(ev, filters.isVisible)),
     // The predicate depends on filters.hidden; recompute when that changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [events, filters.hidden],
