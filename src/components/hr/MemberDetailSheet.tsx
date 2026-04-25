@@ -25,6 +25,7 @@ import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { deriveContractStatus } from '@/lib/contractStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
+import { MemberQuickLinks } from './MemberQuickLinks';
 
 function MemberIconBlock({ member }: { member: any }) {
   const qc = useQueryClient();
@@ -236,6 +237,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               <TabsTrigger value="feedback" className="text-xs flex-1">Feedback</TabsTrigger>
               <TabsTrigger value="ferias" className="text-xs flex-1">Férias</TabsTrigger>
               <TabsTrigger value="onboarding" className="text-xs flex-1">Onboarding</TabsTrigger>
+              <TabsTrigger value="links" className="text-xs flex-1">Links</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="space-y-3 mt-3">
