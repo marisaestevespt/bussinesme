@@ -400,15 +400,46 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
 
             {/* Onboarding tab — uses only SOP-generated items, no hardcoded defaults */}
             <TabsContent value="onboarding" className="space-y-2 mt-3">
+              {items.length > 0 && (
+                <div className={`rounded-lg p-3 space-y-2 ${onbPct === 100 ? 'bg-primary/10 border border-primary/20' : 'bg-muted/40'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {onbPct === 100 ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Onboarding concluído</span>
+                        </>
+                      ) : (
+                        <span className="text-sm font-medium">Progresso: {onbDone} de {onbTotal} passos</span>
+                      )}
+                    </div>
+                    <Badge variant={onbPct === 100 ? 'default' : 'outline'} className="text-xs">{onbPct}%</Badge>
+                  </div>
+                  <Progress value={onbPct} className="h-2" />
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    {onbOverdue > 0 ? (
+                      <span className="text-destructive font-medium">{onbOverdue} em atraso</span>
+                    ) : <span>Sem passos em atraso</span>}
+                    {onbNextDue && onbPct < 100 && (
+                      <span>Próximo: <span className="text-foreground">{onbNextDue.task}</span> ({onbNextDue.deadline_date})</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {items.length === 0 ? (
                 <EmptyHint>Sem checklist de onboarding. Cria um template de onboarding nos Processos do departamento para que seja gerada automaticamente.</EmptyHint>
               ) : (
                 <div className="space-y-1">
                   {items.map((i: any) => (
-                    <div key={i.id} className="flex items-center gap-2 group">
+                    <div key={i.id} className="flex items-center gap-2 group py-1">
                       <Checkbox checked={i.completed} onCheckedChange={v => team.toggleOnboardingItem.mutate({ id: i.id, completed: !!v })} />
                       <span className={`text-sm flex-1 ${i.completed ? 'line-through text-muted-foreground' : ''}`}>{i.task}</span>
-                      {i.deadline_date && <span className="text-[10px] text-muted-foreground">{i.deadline_date}</span>}
+                      {i.deadline_date && (
+                        <span className={`text-[10px] ${!i.completed && parseISO(i.deadline_date) < startOfDay(new Date()) ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                          {i.deadline_date}
+                        </span>
+                      )}
                       <button onClick={() => team.deleteOnboardingItem.mutate(i.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
                     </div>
                   ))}
