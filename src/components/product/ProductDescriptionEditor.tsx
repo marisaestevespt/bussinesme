@@ -48,7 +48,7 @@ export function ProductDescriptionEditor({ value, onChange, persistedValue, isOw
 
   if (!editing) {
     return (
-      <div className="group relative">
+      <div className="group space-y-2">
         {persistedValue ? (
           <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
             {persistedValue}
@@ -59,14 +59,16 @@ export function ProductDescriptionEditor({ value, onChange, persistedValue, isOw
           </p>
         )}
         {isOwner && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => { setDraft(persistedValue); setEditing(true); }}
-            className="absolute -top-1 right-0 opacity-0 group-hover:opacity-100 transition-opacity gap-1 h-7"
-          >
-            <Pencil className="h-3 w-3" /> Editar
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setDraft(persistedValue); setEditing(true); }}
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity gap-1 h-7 text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3 w-3" /> Editar
+            </Button>
+          </div>
         )}
       </div>
     );
