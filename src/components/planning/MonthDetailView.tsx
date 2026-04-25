@@ -850,7 +850,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                                 {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-info font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
                               </TableCell>
                               <TableCell>
-                                {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-info/15 text-info">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
+                                {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge  variant="info" className="text-[9px]">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
                               </TableCell>
                             </TableRow>
                           );
