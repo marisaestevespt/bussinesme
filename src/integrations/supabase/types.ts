@@ -11031,6 +11031,15 @@ export type Database = {
         }
         Returns: string
       }
+      test_payment_sync_e2e: {
+        Args: never
+        Returns: {
+          actual: string
+          expected: string
+          passed: boolean
+          test_name: string
+        }[]
+      }
       test_product_rename_cascade: {
         Args: never
         Returns: {
