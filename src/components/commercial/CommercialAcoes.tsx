@@ -580,6 +580,21 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
             </div>
           </div>
           <div>
+            <Label>🚪 Abertura de vagas/vendas <span className="text-xs text-muted-foreground font-normal">(opcional)</span></Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.enrollment_open_date && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {form.enrollment_open_date ? format(form.enrollment_open_date, 'dd/MM/yyyy') : 'Selecionar data de abertura'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={form.enrollment_open_date} onSelect={d => set({ enrollment_open_date: d })} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground mt-1">Aparece como evento próprio na agenda, com a cor do produto.</p>
+          </div>
+          <div>
             <Label>Produto</Label>
             <Select value={form.product} onValueChange={v => set({ product: v })}>
               <SelectTrigger><SelectValue placeholder="Selecionar produto" /></SelectTrigger>
