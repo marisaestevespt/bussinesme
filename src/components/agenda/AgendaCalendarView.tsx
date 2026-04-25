@@ -56,6 +56,8 @@ export function AgendaCalendarView({
   defaultMode = 'week',
   toolbarRight,
   showSidebar = true,
+  cursor: cursorProp,
+  onCursorChange,
 }: AgendaCalendarViewProps) {
   const filters = useCalendarFilters(storageKey);
   const [collapsed, setCollapsed] = useSidebarCollapsed(storageKey);
@@ -73,12 +75,11 @@ export function AgendaCalendarView({
     }
   };
 
-  const [internalCursor, setInternalCursor] = useState<Date>(new Date());
-  const cursor = (arguments[0] as AgendaCalendarViewProps).cursor ?? internalCursor;
+  const [internalCursor, setInternalCursor] = useState<Date>(() => cursorProp ?? new Date());
+  const cursor = cursorProp ?? internalCursor;
   const setCursor = (next: Date | ((d: Date) => Date)) => {
-    const parent = (arguments[0] as AgendaCalendarViewProps).onCursorChange;
     const value = typeof next === 'function' ? (next as (d: Date) => Date)(cursor) : next;
-    if (parent) parent(value);
+    if (onCursorChange) onCursorChange(value);
     else setInternalCursor(value);
   };
 
