@@ -812,16 +812,8 @@ export default function ReuniaoDetailPage() {
         </div>
 
         {/* ═══ CARD: Documentos & Transcrição ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <FolderOpen className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Documentos</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5 space-y-4">
+        <EntitySection title="Documentos" icon={FolderOpen}>
+          <div className="space-y-4">
             {/* Transcript */}
             <div className="flex items-center gap-3">
               <Label className="text-xs text-muted-foreground min-w-[80px]">Transcrição</Label>
@@ -862,8 +854,8 @@ export default function ReuniaoDetailPage() {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </EntitySection>
 
         {/* Portal notes from client */}
         {(m as any).portal_notes && (
@@ -876,111 +868,76 @@ export default function ReuniaoDetailPage() {
           </div>
         )}
 
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <CheckSquare className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Pontos Discutidos</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <RichTextEditor
-              content={m.discussion_notes || ''}
-              onChange={html => update({ discussion_notes: html })}
-            />
-          </CardContent>
-        </Card>
+        <EntitySection title="Pontos Discutidos" icon={CheckSquare}>
+          <RichTextEditor
+            content={m.discussion_notes || ''}
+            onChange={html => update({ discussion_notes: html })}
+          />
+        </EntitySection>
 
         {/* ═══ CARD: Próximos Passos ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <ListTodo className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Próximos Passos</CardTitle>
-            </div>
+        <EntitySection
+          title="Próximos Passos"
+          icon={ListTodo}
+          action={
             <Button variant="outline" size="sm" className="h-7 text-xs gap-2" onClick={() => setCreateTasksOpen(true)}>
               <ListTodo className="h-3.5 w-3.5" /> Criar Tarefas
             </Button>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          }
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-lg border bg-card/50 p-4 space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">{ownerLabel}</h4>
+              <EditableChecklist
+                items={m.owner_actions}
+                onChange={items => update({ owner_actions: items })}
+                label=""
+              />
+            </div>
+            {showClientSection && (
               <div className="rounded-lg border bg-card/50 p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">{ownerLabel}</h4>
+                <h4 className="text-sm font-semibold text-foreground">{clientLabel}</h4>
                 <EditableChecklist
-                  items={m.owner_actions}
-                  onChange={items => update({ owner_actions: items })}
+                  items={m.client_actions}
+                  onChange={items => update({ client_actions: items })}
                   label=""
                 />
               </div>
-              {showClientSection && (
-                <div className="rounded-lg border bg-card/50 p-4 space-y-3">
-                  <h4 className="text-sm font-semibold text-foreground">{clientLabel}</h4>
-                  <EditableChecklist
-                    items={m.client_actions}
-                    onChange={items => update({ client_actions: items })}
-                    label=""
-                  />
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+        </EntitySection>
 
         {/* ═══ CARD: Decisões Tomadas ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Lightbulb className="h-4 w-4 text-primary" />
+        <EntitySection title="Decisões Tomadas" icon={Lightbulb}>
+          <div className="space-y-2">
+            {m.priorities.map((p, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-xs font-semibold text-primary bg-primary/15 rounded-full h-6 w-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                <textarea
+                  value={p}
+                  onChange={e => {
+                    const next = [...m.priorities];
+                    next[i] = e.target.value;
+                    update({ priorities: next });
+                  }}
+                  placeholder={`Decisão ${i + 1}`}
+                  rows={2}
+                  onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                  className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed rounded px-2 py-1.5 min-h-[44px] hover:bg-muted/30 focus:bg-muted/30 transition-colors"
+                />
               </div>
-              <CardTitle className="text-base">Decisões Tomadas</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <div className="space-y-2">
-              {m.priorities.map((p, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="text-xs font-semibold text-primary bg-primary/10 rounded-full h-6 w-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                  <textarea
-                    value={p}
-                    onChange={e => {
-                      const next = [...m.priorities];
-                      next[i] = e.target.value;
-                      update({ priorities: next });
-                    }}
-                    placeholder={`Decisão ${i + 1}`}
-                    rows={2}
-                    onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
-                    className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed rounded px-2 py-1.5 min-h-[44px] hover:bg-muted/30 focus:bg-muted/30 transition-colors"
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </EntitySection>
 
         {/* ═══ CARD: Notas finais ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <StickyNote className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Notas Finais</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <EditableBulletList
-              items={m.final_notes}
-              onChange={items => update({ final_notes: items })}
-              label=""
-            />
-          </CardContent>
-        </Card>
+        <EntitySection title="Notas Finais" icon={StickyNote}>
+          <EditableBulletList
+            items={m.final_notes}
+            onChange={items => update({ final_notes: items })}
+            label=""
+          />
+        </EntitySection>
 
         {/* Create tasks dialog */}
         <CreateTasksFromMeetingDialog
