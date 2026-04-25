@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { BackNavigation } from '@/components/BackNavigation';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
-import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -17,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake } from 'lucide-react';
+import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -31,6 +29,7 @@ import { DEPARTMENTS } from '@/lib/departments';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { logAudit } from '@/lib/auditLog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { CollectionPage, CollectionHeader, CollectionEmpty } from '@/components/layout/collection';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -737,9 +736,18 @@ export default function ReunioesPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <BackNavigation />
-        <PageHeader title="Reuniões" />
+      <CollectionPage>
+        <CollectionHeader
+          title="Reuniões"
+          icon={CalendarDays}
+          description="Reuniões recorrentes, com clientes, de projeto e diagnósticos."
+          count={meetingsTotal}
+          actions={
+            <Button size="sm" onClick={() => setFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-1.5" /> Nova Reunião
+            </Button>
+          }
+        />
         <div className="flex items-center justify-between">
           <div />
           <div className="flex items-center gap-3">
@@ -751,7 +759,6 @@ export default function ReunioesPage() {
               onRename={(id, label) => renameView({ id, label })}
               onDelete={(id) => { if (view.startsWith('custom_')) setView('proximas'); deleteView(id); }}
             />
-            <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> Nova Reunião</Button>
           </div>
         </div>
 
@@ -761,9 +768,16 @@ export default function ReunioesPage() {
             <InlineLoader />
           </div>
         ) : filteredMeetings.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">
-            {view === 'proximas' ? 'Nenhuma reunião futura.' : 'Nenhuma reunião registada.'}
-          </p>
+          <CollectionEmpty
+            icon={CalendarDays}
+            title={view === 'proximas' ? 'Sem reuniões futuras' : 'Sem reuniões'}
+            description={view === 'proximas' ? 'Agenda a próxima reunião para a veres aqui.' : 'Cria a primeira reunião para começar.'}
+            action={
+              <Button size="sm" onClick={() => setFormOpen(true)}>
+                <Plus className="h-4 w-4 mr-1.5" /> Nova Reunião
+              </Button>
+            }
+          />
         ) : (
           <InfiniteScrollList
             totalCount={meetingsTotal}
@@ -772,8 +786,8 @@ export default function ReunioesPage() {
             isFetchingNextPage={meetingsQuery.isFetchingNextPage}
             fetchNextPage={meetingsQuery.fetchNextPage}
           >
-            <div className="border rounded-lg overflow-hidden divide-y divide-border">
-              <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-primary text-xs font-medium text-primary-foreground rounded-t-lg">
+            <div className="rounded-xl border border-border/60 bg-card overflow-hidden divide-y divide-border">
+              <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-muted/40 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 <div className="col-span-4">Reunião</div>
                 <div className="col-span-3">Data / Hora</div>
                 <div className="col-span-2">Status</div>
@@ -801,7 +815,7 @@ export default function ReunioesPage() {
             </div>
           </InfiniteScrollList>
         )}
-      </div>
+      </CollectionPage>
 
       <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} clients={clients} />
     </AppLayout>
