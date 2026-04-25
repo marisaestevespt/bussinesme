@@ -479,7 +479,7 @@ export function TaskCustomViews({ scope, items, defaultTitle, defaultDeadline }:
             className={cn(
               'h-9 px-3.5 rounded-full text-sm font-medium transition-colors',
               activeView === 'default'
-                ? 'bg-foreground text-background'
+                ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted',
             )}
           >{defaultTitle}</button>
@@ -493,7 +493,7 @@ export function TaskCustomViews({ scope, items, defaultTitle, defaultDeadline }:
                   className={cn(
                     'h-9 pl-3 pr-3 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-1.5',
                     active
-                      ? 'bg-foreground text-background'
+                      ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted',
                   )}
                 >
