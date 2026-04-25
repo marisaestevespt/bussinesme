@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Plus, X, ExternalLink, Upload } from 'lucide-react';
+import { Plus, X, ExternalLink, Upload, Palette } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface BrandingData {
   // Identidade visual
@@ -41,6 +42,7 @@ interface Props {
   onUpdate: (next: BrandingData) => void;
   portalBranding?: PortalBrandingData;
   onUpdatePortalBranding?: (next: PortalBrandingData) => void;
+  productId?: string;
 }
 
 export interface PortalBrandingData {
@@ -59,12 +61,76 @@ export interface PortalBrandingData {
   hero_subtitle?: string;
 }
 
-export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBranding, onUpdatePortalBranding }: Props) {
+export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBranding, onUpdatePortalBranding, productId }: Props) {
   const b = branding || {};
   const set = (patch: Partial<BrandingData>) => onUpdate({ ...b, ...patch });
   const pb = portalBranding || {};
   const setPB = (patch: Partial<PortalBrandingData>) => onUpdatePortalBranding?.({ ...pb, ...patch });
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [applyingColors, setApplyingColors] = useState(false);
+  const qc = useQueryClient();
+
+  const applyProductColors = async () => {
+    if (!productId) return;
+    if (!b.primary_color && !b.secondary_color && !b.accent_color) {
+      toast.error('Define pelo menos uma cor primária antes de aplicar.');
+      return;
+    }
+    setApplyingColors(true);
+    try {
+      // Find all client portals linked to clients that use this product
+      const { data: clients, error: clientsErr } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('current_product_id', productId);
+      if (clientsErr) throw clientsErr;
+
+      const clientIds = (clients ?? []).map(c => c.id);
+      let portalsUpdated = 0;
+
+      if (clientIds.length > 0) {
+        const { data: portals, error: portalsErr } = await supabase
+          .from('client_portals')
+          .select('id, portal_branding' as any)
+          .in('client_id', clientIds);
+        if (portalsErr) throw portalsErr;
+
+        const portalRows = (portals ?? []) as unknown as Array<{ id: string; portal_branding: Record<string, unknown> | null }>;
+        for (const portal of portalRows) {
+          const current = portal.portal_branding ?? {};
+          const merged = {
+            ...current,
+            ...(b.primary_color ? { primary_color: b.primary_color } : {}),
+            ...(b.secondary_color ? { secondary_color: b.secondary_color } : {}),
+            ...(b.accent_color ? { accent_color: b.accent_color } : {}),
+          };
+          const { error: updErr } = await supabase
+            .from('client_portals')
+            .update({ portal_branding: merged } as any)
+            .eq('id', portal.id);
+          if (!updErr) portalsUpdated++;
+        }
+      }
+
+      // Refresh runtime caches everywhere
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['product-brand-colors'] }),
+        qc.invalidateQueries({ queryKey: ['product-brand-list'] }),
+        qc.invalidateQueries({ queryKey: ['portal-branding'] }),
+      ]);
+
+      toast.success(
+        portalsUpdated > 0
+          ? `Cores aplicadas (${portalsUpdated} portal${portalsUpdated > 1 ? 'is' : ''} atualizado${portalsUpdated > 1 ? 's' : ''}).`
+          : 'Cores aplicadas em toda a app.',
+      );
+    } catch (err) {
+      console.error('applyProductColors', err);
+      toast.error('Não consegui aplicar as cores. Tenta novamente.');
+    } finally {
+      setApplyingColors(false);
+    }
+  };
 
   const updateList = <K extends 'visual_assets' | 'folders'>(
     key: K,
@@ -249,6 +315,24 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               </div>
             </div>
           </div>
+
+          {isOwner && productId && (
+            <div className="flex items-center justify-between gap-3 rounded-md border border-dashed border-border bg-muted/40 px-3 py-2">
+              <p className="text-xs text-muted-foreground">
+                Aplica estas cores em toda a app: agenda, vendas, eventos e portais dos clientes deste produto.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={applyProductColors}
+                disabled={applyingColors}
+              >
+                <Palette className="h-3.5 w-3.5 mr-1.5" />
+                {applyingColors ? 'A aplicar…' : 'Aplicar cores do produto'}
+              </Button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1.5">

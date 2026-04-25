@@ -29,7 +29,8 @@ export function useProductColors() {
 
 export interface ProductBrand { id: string; name: string; color: string; }
 
-/** List products that have a brand colour (for the agenda calendar sidebar). */
+/** List ALL active products for the agenda calendar sidebar.
+ *  Products without a brand colour fall back to a neutral design-system colour. */
 export function useProductBrands() {
   return useQuery({
     queryKey: ['product-brand-list'],
@@ -41,17 +42,18 @@ export function useProductBrands() {
         .order('name');
       if (error) throw error;
       const items: ProductBrand[] = [];
+      const FALLBACK = 'hsl(var(--muted-foreground))';
       for (const p of (data ?? []) as { id: string; name: string; branding: any }[]) {
         const raw = p?.branding?.primary_color;
-        if (!raw || typeof raw !== 'string') continue;
-        const trimmed = raw.trim();
-        if (!trimmed) continue;
-        const isHslTriplet = /^\d+\s+\d+%\s+\d+%$/.test(trimmed);
-        items.push({
-          id: p.id,
-          name: p.name,
-          color: isHslTriplet ? `hsl(${trimmed})` : trimmed,
-        });
+        let color = FALLBACK;
+        if (raw && typeof raw === 'string') {
+          const trimmed = raw.trim();
+          if (trimmed) {
+            const isHslTriplet = /^\d+\s+\d+%\s+\d+%$/.test(trimmed);
+            color = isHslTriplet ? `hsl(${trimmed})` : trimmed;
+          }
+        }
+        items.push({ id: p.id, name: p.name, color });
       }
       return items;
     },
