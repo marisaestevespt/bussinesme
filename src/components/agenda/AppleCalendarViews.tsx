@@ -449,14 +449,16 @@ function useScrollToHour(hour: number) {
 
 // ─── DAY VIEW ──────────────────────────────────────────────────
 
-export function DayView({
-  current, events, types, onEventClick,
-}: {
+interface ViewProps {
   current: Date;
   events: AgendaEvent[];
   types: AgendaEventType[];
   onEventClick: (ev: AgendaEvent) => void;
-}) {
+}
+
+export const DayView = forwardRef<HTMLDivElement, ViewProps>(function DayView(
+  { current, events, types, onEventClick }, _ref,
+) {
   const positioned = useMemo(() => positionEventsForDay(events, current, types), [events, current, types]);
   const isToday = isSameDay(current, new Date());
   const nowMin = isToday ? differenceInMinutes(new Date(), startOfDay(current)) : -1;
@@ -513,18 +515,13 @@ export function DayView({
       </div>
     </div>
   );
-}
+});
 
 // ─── WEEK VIEW ─────────────────────────────────────────────────
 
-export function WeekView({
-  current, events, types, onEventClick,
-}: {
-  current: Date;
-  events: AgendaEvent[];
-  types: AgendaEventType[];
-  onEventClick: (ev: AgendaEvent) => void;
-}) {
+export const WeekView = forwardRef<HTMLDivElement, ViewProps>(function WeekView(
+  { current, events, types, onEventClick }, _ref,
+) {
   const weekStart = startOfWeek(current, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
@@ -617,20 +614,15 @@ export function WeekView({
       </div>
     </div>
   );
-}
+});
 
 // ─── MONTH VIEW (Apple-style) ──────────────────────────────────
 
 const WEEKDAYS_PT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-export function MonthView({
-  current, events, types, onEventClick,
-}: {
-  current: Date;
-  events: AgendaEvent[];
-  types: AgendaEventType[];
-  onEventClick: (ev: AgendaEvent) => void;
-}) {
+export const MonthView = forwardRef<HTMLDivElement, ViewProps>(function MonthView(
+  { current, events, types, onEventClick }, _ref,
+) {
   const monthStart = startOfMonth(current);
   const monthEnd = endOfMonth(current);
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -719,17 +711,12 @@ export function MonthView({
       </div>
     </div>
   );
-}
+});
 
 // ─── YEAR VIEW (Apple-style mini-months) ───────────────────────
 
-export function YearView({
-  current, events, onMonthClick,
-}: {
-  current: Date;
-  events: AgendaEvent[];
-  onMonthClick: (d: Date) => void;
-}) {
+export const YearView = forwardRef<HTMLDivElement, { current: Date; events: AgendaEvent[]; onMonthClick: (d: Date) => void }>(
+  function YearView({ current, events, onMonthClick }, _ref) {
   const yearStart = startOfYear(current);
   const yearEnd = endOfYear(current);
   const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
@@ -787,7 +774,7 @@ export function YearView({
       })}
     </div>
   );
-}
+});
 
 // ─── Navigation helpers ────────────────────────────────────────
 
