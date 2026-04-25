@@ -4052,6 +4052,7 @@ export type Database = {
           id: string
           is_recurring: boolean | null
           location: string
+          member_id: string | null
           monthly_equivalent: number | null
           parent_expense_id: string | null
           payment_method: string | null
@@ -4087,6 +4088,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           location?: string
+          member_id?: string | null
           monthly_equivalent?: number | null
           parent_expense_id?: string | null
           payment_method?: string | null
@@ -4122,6 +4124,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           location?: string
+          member_id?: string | null
           monthly_equivalent?: number | null
           parent_expense_id?: string | null
           payment_method?: string | null
@@ -4139,6 +4142,20 @@ export type Database = {
           vat_rate?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "financial_expenses_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_expenses_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "financial_expenses_parent_expense_id_fkey"
             columns: ["parent_expense_id"]
