@@ -50,11 +50,11 @@ export function ProductDescriptionEditor({ value, onChange, persistedValue, isOw
     return (
       <div className="group space-y-2">
         {persistedValue ? (
-          <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+          <p className="text-[15px] leading-relaxed text-foreground/80 whitespace-pre-wrap">
             {persistedValue}
           </p>
         ) : (
-          <p className="text-sm italic text-muted-foreground/60">
+          <p className="text-[15px] italic text-muted-foreground/60">
             {isOwner ? 'Sem descrição. Clica em "Editar" para adicionar.' : 'Sem descrição.'}
           </p>
         )}

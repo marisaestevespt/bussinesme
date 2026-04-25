@@ -313,48 +313,63 @@ export default function ProdutoDetailPage() {
           )}
         </div>
 
-        {/* Logo + Name */}
-        <div className="flex gap-4 items-start">
-          <div className="relative shrink-0 group">
-            <div className="h-20 w-20 rounded-xl border bg-background overflow-hidden flex items-center justify-center">
-              {form.logo_url ? (
-                <img src={form.logo_url} alt="Logo" className="h-full w-full object-contain p-1" />
-              ) : (
-                <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-              )}
+        {/* Logo + Name + Description (hero card) */}
+        <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 shadow-md">
+          <div className="absolute inset-0 pointer-events-none opacity-50 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.08),transparent_60%)]" />
+          <CardContent className="relative p-6 md:p-8">
+            <div className="flex gap-5 md:gap-6 items-start">
+              <div className="relative shrink-0 group">
+                <div className="h-24 w-24 md:h-28 md:w-28 rounded-2xl border-2 border-background bg-background overflow-hidden flex items-center justify-center shadow-lg ring-1 ring-border">
+                  {form.logo_url ? (
+                    <img src={form.logo_url} alt="Logo" className="h-full w-full object-contain p-2" />
+                  ) : (
+                    <ImageIcon className="h-10 w-10 text-muted-foreground/40" />
+                  )}
+                </div>
+                {isOwner && (
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <Upload className="h-5 w-5 text-white" />
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const path = `logos/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
+                      const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
+                      if (error) { toast.error('Erro ao enviar logo'); return; }
+                      const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
+                      update('logo_url', urlData.publicUrl);
+                    }} />
+                  </label>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 space-y-3">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase tracking-wider text-primary/70">Produto</p>
+                  <Input
+                    value={form.name || ''}
+                    onChange={e => update('name', e.target.value)}
+                    placeholder="Nome do produto"
+                    className="text-3xl md:text-4xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto leading-tight tracking-tight"
+                    readOnly={!isOwner}
+                  />
+                </div>
+                <div className="h-px w-16 bg-gradient-to-r from-primary/40 to-transparent" />
+                <ProductDescriptionEditor
+                  value={form.description || ''}
+                  onChange={(v) => update('description', v)}
+                  isOwner={isOwner}
+                  productId={product?.id}
+                  persistedValue={product?.description || ''}
+                  onSave={async (v) => {
+                    if (!product) return;
+                    await upsertProduct.mutateAsync({ id: product.id, name: form.name!, description: v ?? null } as Product);
+                    qc.invalidateQueries({ queryKey: ['products', product.id] });
+                  }}
+                  isSaving={upsertProduct.isPending}
+                />
+              </div>
             </div>
-            {isOwner && (
-              <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                <Upload className="h-4 w-4 text-white" />
-                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const path = `logos/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
-                  const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
-                  if (error) { toast.error('Erro ao enviar logo'); return; }
-                  const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
-                  update('logo_url', urlData.publicUrl);
-                }} />
-              </label>
-            )}
-          </div>
-          <div className="flex-1 space-y-2">
-            <Input value={form.name || ''} onChange={e => update('name', e.target.value)} placeholder="Nome do produto" className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto" readOnly={!isOwner} />
-            <ProductDescriptionEditor
-              value={form.description || ''}
-              onChange={(v) => update('description', v)}
-              isOwner={isOwner}
-              productId={product?.id}
-              persistedValue={product?.description || ''}
-              onSave={async (v) => {
-                if (!product) return;
-                await upsertProduct.mutateAsync({ id: product.id, name: form.name!, description: v ?? null } as Product);
-                qc.invalidateQueries({ queryKey: ['products', product.id] });
-              }}
-              isSaving={upsertProduct.isPending}
-            />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Properties Card */}
         <Card>
