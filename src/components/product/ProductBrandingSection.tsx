@@ -95,7 +95,8 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           .in('client_id', clientIds);
         if (portalsErr) throw portalsErr;
 
-        for (const portal of (portals ?? []) as Array<{ id: string; portal_branding: Record<string, unknown> | null }>) {
+        const portalRows = (portals ?? []) as unknown as Array<{ id: string; portal_branding: Record<string, unknown> | null }>;
+        for (const portal of portalRows) {
           const current = portal.portal_branding ?? {};
           const merged = {
             ...current,
