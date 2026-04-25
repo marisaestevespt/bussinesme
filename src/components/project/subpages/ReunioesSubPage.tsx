@@ -8,6 +8,7 @@ import { ArrowLeft, Plus } from 'lucide-react';
 import { getInitials } from '@/pages/Projetos';
 import type { Meeting, Profile } from '@/hooks/useProjectDetailData';
 import { MEETING_STATUSES, getMeetingStatusInfo as canonGetMeetingStatusInfo } from '@/lib/meetingStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const getMeetingStatusInfo = (s: string) => {
   const info = canonGetMeetingStatusInfo(s);
@@ -36,7 +37,7 @@ export function ReunioesSubPage({ meetings, projectMembers, profileMap, getPhoto
           <Button size="sm" onClick={onNewMeeting} className="gap-2"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>
         </div>
         {meetings.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">Nenhuma reunião ligada a este projeto.</p>
+          <EmptyHint>Nenhuma reunião ligada a este projeto.</EmptyHint>
         ) : (
           <div className="border rounded-lg overflow-hidden divide-y divide-border">
             <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">

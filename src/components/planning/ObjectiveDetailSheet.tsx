@@ -18,6 +18,7 @@ import { useTeamData } from '@/hooks/useTeamData';
 import { useProducts } from '@/hooks/useProducts';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any) {
   const [editing, setEditing] = useState(false);
@@ -262,7 +263,7 @@ function CriteriaSection({ objectiveId, criteria, planning }: any) {
           <button onClick={() => planning.deleteCriterion.mutate(c.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
         </div>
       ))}
-      {criteria.length === 0 && <p className="text-xs text-muted-foreground">Sem critérios definidos</p>}
+      {criteria.length === 0 && <EmptyHint>Sem critérios definidos</EmptyHint>}
     </div>
   );
 }
@@ -355,7 +356,7 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
         </div>
         <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
       </div>
-      {allRows.length === 0 ? <p className="text-xs text-muted-foreground">Sem metas associadas. Defina metas mensais e os trimestres serão calculados automaticamente.</p> : (
+      {allRows.length === 0 ? <EmptyHint>Sem metas associadas. Defina metas mensais e os trimestres serão calculados automaticamente.</EmptyHint> : (
         <Table>
           <TableHeader><TableRow>
             <TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
@@ -492,7 +493,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
         <h3 className="text-sm font-semibold">Métricas de Acompanhamento</h3>
         <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Métrica</Button>
       </div>
-      {metrics.length === 0 ? <p className="text-xs text-muted-foreground">Sem métricas definidas</p> : (
+      {metrics.length === 0 ? <EmptyHint>Sem métricas definidas</EmptyHint> : (
         <Table>
           <TableHeader><TableRow>
             <TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Valor atual</TableHead><TableHead>Objetivo</TableHead><TableHead>Estado</TableHead><TableHead>Última atualiz.</TableHead><TableHead></TableHead>
@@ -742,7 +743,7 @@ function ActionsSection({ objectiveId, actions, planning }: any) {
         <h3 className="text-sm font-semibold">Ações</h3>
         <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Ação</Button>
       </div>
-      {actions.length === 0 ? <p className="text-xs text-muted-foreground">Sem ações definidas</p> : (
+      {actions.length === 0 ? <EmptyHint>Sem ações definidas</EmptyHint> : (
         <Table>
           <TableHeader><TableRow>
             <TableHead>Descrição</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead><TableHead></TableHead>

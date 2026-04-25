@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { type FiscalConfig } from '@/lib/fiscalDeadlines';
 import { MONTHS } from './helpers';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 type DocRow = { id: string; document_url?: string | null; document_name?: string | null; title?: string | null };
 type FiscalCheckRow = { id: string; check_key: string; checked: boolean };
@@ -67,7 +68,7 @@ export function MonthlyDocUpload({ title, icon, docs, accept, onUpload, onDelete
             ))}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">Nenhum ficheiro carregado para este mês.</p>
+          <EmptyHint>Nenhum ficheiro carregado para este mês.</EmptyHint>
         )}
       </CardContent>
     </Card>

@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { WEEKS_PER_MONTH } from './productivity-constants';
 import { isTaskDone, isTaskInProgress } from '@/lib/taskStatus';
 import { formatEuro } from '@/lib/formatting';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   members: any[];
@@ -524,7 +525,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                               {p.department === '__none__' ? (
                                 <p className="text-xs text-muted-foreground py-2 pl-5">Seleciona um departamento para ver as tarefas.</p>
                               ) : deptTasks.length === 0 ? (
-                                <p className="text-xs text-muted-foreground py-2 pl-5">Sem tarefas neste departamento.</p>
+                                <EmptyHint className="pl-5">Sem tarefas neste departamento.</EmptyHint>
                               ) : (
                                 <div className="py-2 pl-5 space-y-1 max-h-56 overflow-y-auto">
                                   <p className="text-[10px] text-muted-foreground/60 mb-1">Ordenado por tempo estimado · Inclui tarefas concluídas para referência</p>

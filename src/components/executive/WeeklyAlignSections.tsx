@@ -14,6 +14,7 @@ import { planStatusLabel } from '@/hooks/usePlanningData';
 import { DeltaBadge } from './WeeklyAlignKpis';
 import type { DetailField } from './WeeklyAlignDetailSheet';
 import { isTaskDone } from '@/lib/taskStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const clickableRow = "cursor-pointer hover:bg-muted/70 transition-colors";
 
@@ -219,7 +220,7 @@ export function VendasSection({ salesWeek, salesActions, salesWeekTotal, prevSal
       </CardContent></Card>
       <Card><CardContent className="p-4">
         <h3 className="text-sm font-medium mb-2">Vendas esta semana</h3>
-        {salesWeek.length === 0 ? <p className="text-xs text-muted-foreground">Sem vendas esta semana</p> :
+        {salesWeek.length === 0 ? <EmptyHint>Sem vendas esta semana</EmptyHint> :
           <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
             <TableBody>{salesWeek.map(s => (
               <TableRow key={s.id} className={clickableRow} onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
@@ -231,7 +232,7 @@ export function VendasSection({ salesWeek, salesActions, salesWeekTotal, prevSal
       </CardContent></Card>
       <Card><CardContent className="p-4">
         <h3 className="text-sm font-medium mb-2">Ações de venda</h3>
-        {salesActions.length === 0 ? <p className="text-xs text-muted-foreground">Sem ações ativas</p> :
+        {salesActions.length === 0 ? <EmptyHint>Sem ações ativas</EmptyHint> :
           <Table><TableHeader><TableRow><TableHead>Ação</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Produto</TableHead></TableRow></TableHeader>
             <TableBody>{salesActions.map(a => (
               <TableRow key={a.id} className={clickableRow} onClick={() => openSaleActionDetail(a)}>
@@ -392,7 +393,7 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
 
       <Card><CardContent className="p-4">
         <h3 className="text-sm font-medium mb-2">Recolhas de NPS previstas esta semana</h3>
-        {npsWeek.length === 0 ? <p className="text-xs text-muted-foreground">Sem recolhas previstas esta semana</p> :
+        {npsWeek.length === 0 ? <EmptyHint>Sem recolhas previstas esta semana</EmptyHint> :
           <div className="overflow-x-auto">
             <Table><TableHeader><TableRow>
               <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Status</TableHead><TableHead>NPS</TableHead>
@@ -418,7 +419,7 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
           <h3 className="text-sm font-medium">Recolhas em atraso</h3>
           {overdueCount > 0 && <Badge variant="destructive" className="text-[10px]">{overdueCount}</Badge>}
         </div>
-        {overdueCount === 0 ? <p className="text-xs text-muted-foreground">Sem recolhas em atraso</p> :
+        {overdueCount === 0 ? <EmptyHint>Sem recolhas em atraso</EmptyHint> :
           <div className="overflow-x-auto">
             <Table><TableHeader><TableRow>
               <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Dias em atraso</TableHead>
@@ -437,7 +438,7 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
 
       <Card><CardContent className="p-4">
         <h3 className="text-sm font-medium mb-2">Marcos de acompanhamento desta semana</h3>
-        {milestonesWeek.length === 0 ? <p className="text-xs text-muted-foreground">Sem marcos previstos esta semana</p> :
+        {milestonesWeek.length === 0 ? <EmptyHint>Sem marcos previstos esta semana</EmptyHint> :
           <div className="overflow-x-auto">
             <Table><TableHeader><TableRow>
               <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Marco</TableHead><TableHead>Tipo</TableHead><TableHead>Data prevista</TableHead><TableHead>Responsável</TableHead><TableHead>Status</TableHead>
@@ -558,7 +559,7 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
 
       <Card><CardContent className="p-4">
         <h3 className="text-sm font-medium mb-2">Projetos a acontecer</h3>
-        {projects.length === 0 ? <p className="text-xs text-muted-foreground">Sem projetos ativos</p> :
+        {projects.length === 0 ? <EmptyHint>Sem projetos ativos</EmptyHint> :
           <div className="overflow-x-auto">
             <Table><TableHeader><TableRow>
               <TableHead>Status</TableHead><TableHead>Projeto</TableHead><TableHead>Departamento</TableHead><TableHead>Deadline</TableHead>
@@ -578,7 +579,7 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
       <div className="grid gap-4 md:grid-cols-3">
         <Card><CardContent className="p-4">
           <h3 className="text-sm font-medium mb-2">Tarefas planeadas</h3>
-          {tasks.length === 0 ? <p className="text-xs text-muted-foreground">Sem tarefas</p> :
+          {tasks.length === 0 ? <EmptyHint>Sem tarefas</EmptyHint> :
             tasks.map(t => (
               <div key={t.id} className={cn("flex items-center gap-2 py-1 px-1 rounded", clickableRow)} onClick={() => openTaskDetail(t)}>
                 <div className={`h-2 w-2 rounded-full shrink-0 ${isTaskDone(t) ? 'bg-success' : 'bg-warning'}`} />
@@ -590,7 +591,7 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
 
         <Card><CardContent className="p-4">
           <h3 className="text-sm font-medium mb-2">Reuniões marcadas</h3>
-          {meetings.length === 0 ? <p className="text-xs text-muted-foreground">Sem reuniões</p> :
+          {meetings.length === 0 ? <EmptyHint>Sem reuniões</EmptyHint> :
             meetings.map(m => (
               <div key={m.id} className={cn("text-xs py-1 px-1 flex justify-between rounded", clickableRow)} onClick={() => openMeetingDetail(m)}>
                 <span>{m.title}</span><span className="text-muted-foreground">{m.date_time?.slice(0, 10)}</span>
@@ -601,7 +602,7 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
 
         <Card><CardContent className="p-4">
           <h3 className="text-sm font-medium mb-2">Conteúdos desta semana</h3>
-          {contents.length === 0 ? <p className="text-xs text-muted-foreground">Sem conteúdos</p> :
+          {contents.length === 0 ? <EmptyHint>Sem conteúdos</EmptyHint> :
             contents.map(c => (
               <div key={c.id} className={cn("py-1 px-1 rounded", clickableRow)} onClick={() => openContentDetail(c)}>
                 <p className="text-xs font-medium">{c.title}</p>

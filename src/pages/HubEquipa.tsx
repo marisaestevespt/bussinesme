@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { format, subDays, startOfWeek, endOfWeek, parseISO, isPast, isToday } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { isTaskOpen } from '@/lib/taskStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -316,7 +317,7 @@ function NovidadesMes() {
       </div>
 
       {posts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Sem novidades nos últimos 30 dias.</p>
+        <EmptyHint>Sem novidades nos últimos 30 dias.</EmptyHint>
       ) : (
         <div className="space-y-2">
           {posts.map((p: any) => (

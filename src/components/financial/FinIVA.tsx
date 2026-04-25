@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { computeVatForExpenses, computeVatForSales } from '@/lib/vatCalculations';
 import { VatDeductibleCell } from './VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null; client?: string | null; product?: string | null; sale_id?: string };
@@ -249,7 +250,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
             <DialogTitle className="text-base">IVA Cobrado — {cobradoDetail?.mes}</DialogTitle>
           </DialogHeader>
           {cobradoDetail && cobradoDetail.sales.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">Sem vendas registadas neste mês.</p>
+            <EmptyHint>Sem vendas registadas neste mês.</EmptyHint>
           ) : (
             <Table>
               <TableHeader>
@@ -291,7 +292,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
             <DialogTitle className="text-base">IVA Pago — {pagoDetail?.mes}</DialogTitle>
           </DialogHeader>
           {pagoDetail && pagoDetail.expenses.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">Sem despesas registadas neste mês.</p>
+            <EmptyHint>Sem despesas registadas neste mês.</EmptyHint>
           ) : (
             <Table>
               <TableHeader>

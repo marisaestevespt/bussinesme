@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { FileText, Download, ExternalLink } from 'lucide-react';
 import { useMyTeamMember } from './secretaria-shared';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export default function SecretariaContrato() {
   const teamMember = useMyTeamMember();
@@ -94,7 +95,7 @@ export default function SecretariaContrato() {
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">O Meu Contrato</CardTitle></CardHeader>
         <CardContent>
           {!activeContract ? (
-            <p className="text-sm text-muted-foreground">Sem contrato registado.</p>
+            <EmptyHint>Sem contrato registado.</EmptyHint>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div><p className="text-xs text-muted-foreground">Tipo</p><p className="font-medium capitalize">{activeContract.contract_type?.replace('_', ' ')}</p></div>
@@ -175,7 +176,7 @@ export default function SecretariaContrato() {
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground pt-2">Nenhum documento associado a este pagamento.</p>
+                <EmptyHint className="pt-2">Nenhum documento associado a este pagamento.</EmptyHint>
               )}
             </div>
           )}

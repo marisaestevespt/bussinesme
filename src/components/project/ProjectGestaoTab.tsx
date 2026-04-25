@@ -52,6 +52,7 @@ const SUBSCRIPTION_PERIODICITIES = [
 ];
 
 import { getSaleStatusInfo } from '@/lib/saleStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, projectPaymentMethod, projectPaymentConfig, onNewMeeting, onUpdateProject }: Props) {
   const navigate = useNavigate();
@@ -715,7 +716,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <span>Produto</span>
           </div>
           {allSales.length === 0 ? (
-            <p className="text-center text-muted-foreground py-6 text-sm">Sem pagamentos associados</p>
+            <EmptyHint>Sem pagamentos associados</EmptyHint>
           ) : (
             allSales.map((s: any) => {
               const si = getSaleStatusInfo(s.status);
@@ -776,7 +777,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <span>Participantes</span>
           </div>
           {allMeetings.length === 0 ? (
-            <p className="text-center text-muted-foreground py-6 text-sm">Sem reuniões associadas</p>
+            <EmptyHint>Sem reuniões associadas</EmptyHint>
           ) : (
             allMeetings.map((m: any) => {
               const ms = MEETING_STATUSES[m.status] || { label: m.status, badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' };

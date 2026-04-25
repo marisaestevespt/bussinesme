@@ -23,6 +23,7 @@ import { getMonthName } from '@/hooks/useExecutiveData';
 import { DeptBadge, currentYear, currentMonth, scheduleToLines } from './team-helpers';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { deriveContractStatus } from '@/lib/contractStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [newTask, setNewTask] = useState('');
@@ -236,7 +237,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               {!member.profile_id ? (
                 <p className="text-xs text-muted-foreground">Este membro não está ligado a um perfil de utilizador.</p>
               ) : (memberTasks.data || []).length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem tarefas atribuídas.</p>
+                <EmptyHint>Sem tarefas atribuídas.</EmptyHint>
               ) : (
                 <div className="space-y-1">
                   {(memberTasks.data || []).map((t: any) => (
@@ -256,7 +257,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               <HolidayWeekendWorkCards memberId={member.id} />
 
               {(memberTime.data || []).length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem registos de tempo.</p>
+                <EmptyHint>Sem registos de tempo.</EmptyHint>
               ) : (
                 <Table>
                   <TableHeader><TableRow>
@@ -278,7 +279,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
 
             <TabsContent value="contrato" className="space-y-2 mt-3">
               {contracts.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem contratos.</p>
+                <EmptyHint>Sem contratos.</EmptyHint>
               ) : contracts.map((c: any) => (
                 <Card key={c.id}>
                   <CardContent className="p-3 space-y-2 text-sm">
@@ -308,7 +309,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
 
             <TabsContent value="pagamentos" className="space-y-2 mt-3">
               {payments.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem pagamentos.</p>
+                <EmptyHint>Sem pagamentos.</EmptyHint>
               ) : (
                 <Table>
                   <TableHeader><TableRow>
@@ -334,7 +335,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
 
             <TabsContent value="feedback" className="space-y-2 mt-3">
               {feedbackSessions.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem sessões de feedback.</p>
+                <EmptyHint>Sem sessões de feedback.</EmptyHint>
               ) : feedbackSessions.map((fb: any) => (
                 <Card key={fb.id}>
                   <CardContent className="p-3 space-y-2">
@@ -358,7 +359,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
             {/* Onboarding tab — uses only SOP-generated items, no hardcoded defaults */}
             <TabsContent value="onboarding" className="space-y-2 mt-3">
               {items.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem checklist de onboarding. Cria um template de onboarding nos Processos do departamento para que seja gerada automaticamente.</p>
+                <EmptyHint>Sem checklist de onboarding. Cria um template de onboarding nos Processos do departamento para que seja gerada automaticamente.</EmptyHint>
               ) : (
                 <div className="space-y-1">
                   {items.map((i: any) => (
@@ -391,7 +392,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               <div className="space-y-2">
                 <p className="text-sm font-medium">Períodos de férias</p>
                 {(memberVacations.data || []).length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Sem férias registadas.</p>
+                  <EmptyHint>Sem férias registadas.</EmptyHint>
                 ) : (memberVacations.data || []).map((v: any) => (
                   <div key={v.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
                     <div>

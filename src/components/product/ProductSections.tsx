@@ -233,7 +233,7 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
         </CardHeader>
         <CardContent>
           {improvements.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma melhoria registada.</p>
+            <EmptyHint>Nenhuma melhoria registada.</EmptyHint>
           ) : (
             <div className="space-y-2">
               {improvements.map((item) => (
@@ -271,7 +271,7 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
         </CardHeader>
         <CardContent>
           {productMeetings.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Sem reuniões associadas a este produto.</p>
+            <EmptyHint>Sem reuniões associadas a este produto.</EmptyHint>
           ) : (
             <Table>
               <TableHeader>
@@ -506,6 +506,7 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
 
 // Lazy import wrapper to avoid circular deps
 import { OfferCalculator } from '@/components/product/OfferCalculator';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 function OfferCalculatorWrapper(props: {
   vatRate: string;

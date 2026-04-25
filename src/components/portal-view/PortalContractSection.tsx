@@ -15,7 +15,7 @@ export function PortalContractSection({ contractDocs, pc, pcAlpha }: Props) {
       {contractDocs.length === 0 ? (
         <SectionCard className="p-8 text-center">
           <FileText className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-          <p className="text-sm text-muted-foreground">Sem documentos de contrato disponíveis.</p>
+          <EmptyHint>Sem documentos de contrato disponíveis.</EmptyHint>
         </SectionCard>
       ) : (
         <div className="space-y-3">

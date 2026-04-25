@@ -9,6 +9,7 @@ import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { StrategyDetail } from './StrategyDetail';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,7 +110,7 @@ export function StrategyGallery() {
       {strategies.length === 0 ? (
         <div className="text-center py-16 space-y-3">
           <FileText className="h-10 w-10 mx-auto text-muted-foreground/40" />
-          <p className="text-muted-foreground">Nenhuma estratégia criada.</p>
+          <EmptyHint>Nenhuma estratégia criada.</EmptyHint>
           {isOwner && (
             <Button variant="outline" size="sm" onClick={handleCreate} className="gap-2">
               <Plus className="h-3.5 w-3.5" />

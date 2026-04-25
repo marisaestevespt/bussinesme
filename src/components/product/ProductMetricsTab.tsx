@@ -14,6 +14,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { formatInt } from '@/lib/formatting';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -406,7 +407,7 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
               <span>Cliente</span><span>Status</span><span>Fim de Ciclo</span><span>Último NPS</span><span>Saúde</span>
             </div>
             {healthList.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">Nenhum cliente ativo com este produto.</p>
+              <EmptyHint>Nenhum cliente ativo com este produto.</EmptyHint>
             ) : healthList.map(({ client: c, color, lastNps }) => (
               <div
                 key={c.id}

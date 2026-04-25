@@ -24,6 +24,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isDeliverableDone } from '@/lib/projectProgress';
 import { formatInt } from '@/lib/formatting';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -288,7 +289,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
               <span>Cliente</span><span>Produto</span><span>Status</span><span>Saúde</span><span>Fim de Ciclo</span>
             </div>
             {healthList.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8 text-sm">Sem clientes ativos</p>
+              <EmptyHint>Sem clientes ativos</EmptyHint>
             ) : healthList.map(({ client: c, color }) => (
               <div
                 key={c.id}

@@ -32,6 +32,7 @@ import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { BackNavigation } from '@/components/BackNavigation';
 import { cn } from '@/lib/utils';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -602,7 +603,7 @@ export default function ProdutoDetailPage() {
             {isOwner && <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_feedbacks', data: { product_id: id, feedback: '', client_name: '' } })}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
           </CardHeader>
           <CardContent className="space-y-4">
-            {feedbacks.length === 0 && <p className="text-center text-muted-foreground py-4">Sem feedbacks</p>}
+            {feedbacks.length === 0 && <EmptyHint>Sem feedbacks</EmptyHint>}
             {feedbacks.map((f: Record<string, unknown>) => (
               <div key={f.id as string} className="border rounded-lg p-4 space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -636,7 +637,7 @@ export default function ProdutoDetailPage() {
                         updateRow.mutate({ table: 'product_feedbacks', id: f.id as string, data: { image_url: urlData.publicUrl } });
                       }} />
                     </label>
-                  ) : <p className="text-xs text-muted-foreground">Sem imagem</p>}
+                  ) : <EmptyHint>Sem imagem</EmptyHint>}
                 </div>
                 {isOwner && <div className="flex justify-end"><Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteRow.mutate({ table: 'product_feedbacks', id: f.id as string })}><Trash2 className="h-3 w-3 mr-1" /> Remover</Button></div>}
               </div>
@@ -652,7 +653,7 @@ export default function ProdutoDetailPage() {
           </CardHeader>
           <CardContent>
             {productEvents.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Sem datas importantes associadas a este produto na Agenda.</p>
+              <EmptyHint>Sem datas importantes associadas a este produto na Agenda.</EmptyHint>
             ) : (
               <Table>
                 <TableHeader><TableRow><TableHead>Evento</TableHead><TableHead>Data / Hora</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>

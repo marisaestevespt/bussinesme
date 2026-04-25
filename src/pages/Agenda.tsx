@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import { resolveProductId } from '@/lib/productResolver';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import {
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
@@ -602,7 +602,7 @@ function AttachmentsSection({ eventId }: { eventId: string }) {
         </div>
       )}
       {attachments.length === 0 && !showAddLink && (
-        <p className="text-xs text-muted-foreground">Sem anexos</p>
+        <EmptyHint>Sem anexos</EmptyHint>
       )}
     </div>
   );
@@ -995,7 +995,7 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
 // ─── List View ──────────────────────────────────────────────────
 
 function ListView({ events, types, onEventClick }: { events: EventRow[]; types: EventType[]; onEventClick: (e: EventRow) => void }) {
-  if (events.length === 0) return <p className="text-center text-muted-foreground py-12">Nenhum evento registado.</p>;
+  if (events.length === 0) return <EmptyHint>Nenhum evento registado.</EmptyHint>;
   return (
     <div className="border rounded-lg overflow-hidden divide-y divide-border">
       <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-primary text-xs font-medium text-primary-foreground rounded-t-lg">

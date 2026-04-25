@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useConfirm } from '@/components/ui/confirm-dialog';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 
 const CATEGORIES = [
   { value: 'anuncio', label: 'Anúncio', color: 'bg-destructive/15 text-destructive' },
@@ -344,7 +344,7 @@ export default function MuralPage() {
           </div>
         ) : posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-            <p className="text-muted-foreground">Nenhuma publicação no mural</p>
+            <EmptyHint>Nenhuma publicação no mural</EmptyHint>
           </div>
         ) : (
           <div className="space-y-4">

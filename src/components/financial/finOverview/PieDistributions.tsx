@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Package, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
 import { PIE_COLORS } from './sections';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface PieRow { name: string; value: number; }
 
@@ -33,7 +34,7 @@ function PieCard({ title, icon: Icon, data }: { title: string; icon: LucideIcon;
               ))}
             </div>
           </div>
-        ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
+        ) : <EmptyHint>Sem dados</EmptyHint>}
       </CardContent>
     </Card>
   );

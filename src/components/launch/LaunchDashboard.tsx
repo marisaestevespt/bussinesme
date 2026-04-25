@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { format, parseISO, startOfWeek, endOfWeek, addDays, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -476,7 +477,7 @@ function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) 
           </div>
         );
       })}
-      {tasks.length === 0 && <p className="text-sm text-muted-foreground py-8 text-center">Nenhuma tarefa de lançamento criada</p>}
+      {tasks.length === 0 && <EmptyHint>Nenhuma tarefa de lançamento criada</EmptyHint>}
     </div>
   );
 }
@@ -561,7 +562,7 @@ function TarefasPorDataView({ tasks, profileMap }: any) {
           })}
         </TableBody>
       </Table>
-      {tasks.length === 0 && <p className="text-sm text-muted-foreground py-8 text-center">Sem tarefas</p>}
+      {tasks.length === 0 && <EmptyHint>Sem tarefas</EmptyHint>}
     </div>
   );
 }
@@ -668,7 +669,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
           </div>
         );
       })}
-      {tasks.length === 0 && <p className="text-sm text-muted-foreground py-8 text-center w-full">Sem tarefas</p>}
+      {tasks.length === 0 && <EmptyHint className="w-full">Sem tarefas</EmptyHint>}
     </div>
   );
 }

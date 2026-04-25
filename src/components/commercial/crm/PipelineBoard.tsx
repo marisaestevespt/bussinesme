@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { statusLabel } from '@/hooks/useCrmData';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface PipelineBoardProps {
   pipeline: any;
@@ -244,7 +245,7 @@ function StagesDialog({
         <div className="space-y-3">
           {/* Existing stages */}
           {stages.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-2">Nenhuma etapa criada.</p>
+            <EmptyHint>Nenhuma etapa criada.</EmptyHint>
           )}
           <div className="space-y-2">
             {stages.map((stage, idx) => {

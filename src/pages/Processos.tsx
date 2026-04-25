@@ -34,6 +34,7 @@ import { DEPARTMENTS, PROCESS_DEPARTMENTS, getDept, getDeptLabel } from '@/lib/d
 import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
 import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus';
 import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -250,7 +251,7 @@ export default function ProcessosPage() {
                 </Button>
               </div>
               {routinesData.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Nenhuma rotina configurada.</p>
+                <EmptyHint>Nenhuma rotina configurada.</EmptyHint>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   {routinesData.map((pr: any) => {
@@ -329,7 +330,7 @@ export default function ProcessosPage() {
               filtered = filtered.filter(s => (s as any).role_title === filterRole);
             }
             return filtered.length === 0 ? (
-              <p className="text-muted-foreground text-sm">Nenhum SOP encontrado.</p>
+              <EmptyHint>Nenhum SOP encontrado.</EmptyHint>
             ) : (
               <div className="border rounded-lg overflow-hidden">
                 <Table>

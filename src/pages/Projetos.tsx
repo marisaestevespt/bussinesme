@@ -34,7 +34,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -405,7 +405,7 @@ export default function ProjetosPage() {
           <div className="flex justify-center py-12"><InlineLoader /></div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-            <p className="text-muted-foreground">Nenhum projeto registado</p>
+            <EmptyHint>Nenhum projeto registado</EmptyHint>
             <Button variant="outline" className="mt-4 gap-2" onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4" /> Criar primeiro projeto</Button>
           </div>
         ) : (

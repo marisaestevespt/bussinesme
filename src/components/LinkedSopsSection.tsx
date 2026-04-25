@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { parseISO, addDays } from 'date-fns';
 import { addBusinessDays } from '@/lib/holidays';
 import { getSopStatusInfo } from '@/lib/sopStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface LinkedSopsSectionProps {
   entityType: 'produto' | 'cliente' | 'projeto';
@@ -249,7 +250,7 @@ export function LinkedSopsSection({ entityType, entityId, productId, clientId, p
       </div>
 
       {sops.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum processo associado.</p>
+        <EmptyHint>Nenhum processo associado.</EmptyHint>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {sops.map((sop: any) => {

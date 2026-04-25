@@ -24,6 +24,7 @@ import { format, parseISO, startOfDay, isWithinInterval, startOfWeek, endOfWeek,
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { useMyTasks, useProjects } from './secretaria-shared';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 import {
   isTaskDone, isTaskOpen, isTaskOverdue, countOverdue,
   getTaskStatusInfo, getTaskPriorityInfo, TASK_STATUSES, TASK_PRIORITIES,
@@ -414,7 +415,7 @@ function ListLayout({ tasks, groupBy, projectName, onItemClick }: {
   onItemClick: (id: string) => void;
 }) {
   const groups = useMemo(() => groupTasks(tasks, groupBy, projectName), [tasks, groupBy, projectName]);
-  if (tasks.length === 0) return <p className="text-sm text-muted-foreground text-center py-8">Sem tarefas.</p>;
+  if (tasks.length === 0) return <EmptyHint>Sem tarefas.</EmptyHint>;
   return (
     <div className="space-y-3">
       {groups.map(g => (

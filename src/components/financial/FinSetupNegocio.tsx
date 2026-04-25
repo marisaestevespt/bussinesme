@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Plus, Trash2, Pencil, Check, CreditCard, Building2, Smartphone, Wallet, Hash, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface PaymentMethod {
   type: string;
@@ -207,7 +208,7 @@ export function FinSetupNegocio() {
             Estes dados ficam disponíveis no portal de cliente, na secção de pagamentos.
           </p>
           {(current.payment_methods || []).length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Nenhum método de pagamento adicionado.</p>
+            <EmptyHint>Nenhum método de pagamento adicionado.</EmptyHint>
           ) : (
             (current.payment_methods || []).map((pm, i) => {
               const isEditing = editingIndex === i;

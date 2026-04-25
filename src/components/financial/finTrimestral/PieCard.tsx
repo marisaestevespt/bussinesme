@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatEuro } from '@/lib/formatting';
 import { PIE_COLORS, type NamedValue } from './types';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   title: React.ReactNode;
@@ -35,7 +36,7 @@ export function PieCard({ title, data }: Props) {
               ))}
             </div>
           </div>
-        ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
+        ) : <EmptyHint>Sem dados</EmptyHint>}
       </CardContent>
     </Card>
   );

@@ -15,7 +15,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 
 const PLATFORM_TYPES = [
   { value: 'gestao', label: 'Gestão', color: 'bg-info/15 text-info' },
@@ -227,7 +227,7 @@ export default function AcessosPage() {
           </div>
         ) : accesses.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-            <p className="text-muted-foreground">Nenhum acesso registado</p>
+            <EmptyHint>Nenhum acesso registado</EmptyHint>
             <Button variant="outline" className="mt-4 gap-2" onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4" /> Adicionar primeiro acesso
             </Button>

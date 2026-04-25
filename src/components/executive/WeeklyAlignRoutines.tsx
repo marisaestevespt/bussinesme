@@ -24,7 +24,7 @@ export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: Routines
     <Card>
       <CardContent className="p-0">
         {tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">Sem rotinas</p>
+          <EmptyHint>Sem rotinas</EmptyHint>
         ) : (
           <Table>
             <TableHeader>
