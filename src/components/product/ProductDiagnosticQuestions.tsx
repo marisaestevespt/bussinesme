@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, ChevronDown, ChevronRight, Settings, ClipboardList } from 'lucide-react';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   productId: string;
@@ -85,7 +86,7 @@ function GroupCard({ group, questions, isCollapsed, isOwner, onToggle, onAdd, on
       {!isCollapsed && (
         <CardContent className="pt-0 px-4 pb-3 space-y-2">
           {questions.length === 0 && (
-            <p className="text-xs text-muted-foreground py-2">Sem perguntas neste grupo</p>
+            <EmptyHint>Sem perguntas neste grupo</EmptyHint>
           )}
           {questions.map((q, idx) => (
             <div key={q.id} className="flex gap-2 items-start group">

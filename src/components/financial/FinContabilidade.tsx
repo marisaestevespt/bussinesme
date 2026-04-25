@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { computeFiscalDeadlines, getDeadlineStatus, type FiscalConfig, type FiscalDeadline } from '@/lib/fiscalDeadlines';
 import { CalendarCheck, CheckSquare, Info, AlertTriangle, Clock, ListPlus } from 'lucide-react';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   currentYear: number;
@@ -144,7 +145,7 @@ export function FinContabilidade({ currentYear }: Props) {
         ) : deadlines.length === 0 ? (
           <Card>
             <CardContent className="pt-4">
-              <p className="text-sm text-muted-foreground">Sem prazos fiscais activos. Configura o regime fiscal nas Definições.</p>
+              <EmptyHint>Sem prazos fiscais activos. Configura o regime fiscal nas Definições.</EmptyHint>
             </CardContent>
           </Card>
         ) : (

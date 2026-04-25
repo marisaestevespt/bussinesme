@@ -46,6 +46,7 @@ const SOURCE_COLOR: Record<ResponsibilitySource, string> = {
 };
 
 import { PRIORITY_LABELS } from '@/components/secretaria/secretaria-shared';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export type SourceFilter = 'todos' | ResponsibilitySource;
 
@@ -202,7 +203,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
         <ScrollArea style={{ maxHeight }} className="overflow-auto pr-2">
           <div className="space-y-2">
             {filtered.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-6">Sem responsabilidades pendentes.</p>
+              <EmptyHint>Sem responsabilidades pendentes.</EmptyHint>
             )}
             {filtered.map(item => {
               const Icon = SOURCE_ICON[item.source];

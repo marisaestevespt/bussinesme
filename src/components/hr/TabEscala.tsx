@@ -13,7 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, CalendarIcon, Palmtree, Clock, AlertCircle } from 'lucide-react';
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWithinInterval, parseISO, isSameDay, startOfMonth, endOfMonth } from 'date-fns';
@@ -304,7 +304,7 @@ function VacationPopoverContent({ member, vacations, onOpenDialog }: { member: T
     <div className="space-y-2">
       <p className="text-xs font-medium text-foreground">Férias de {member.full_name}</p>
       {memberVacations.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-1">Sem férias registadas</p>
+        <EmptyHint>Sem férias registadas</EmptyHint>
       ) : (
         <div className="space-y-1 max-h-[160px] overflow-y-auto">
           {memberVacations.map(v => (

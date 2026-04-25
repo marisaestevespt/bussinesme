@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { getFollowUpState, statusLabel, getCrmStatusHex } from '@/hooks/useCrmData';
 import { useCrmStages } from '@/hooks/useCrmStages';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface CrmSummaryProps {
   activeCount: number;
@@ -109,7 +110,7 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
             <h3 className="font-semibold text-sm">A Contactar Hoje</h3>
           </div>
           {toContactToday.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem contactos para hoje.</p>
+            <EmptyHint>Sem contactos para hoje.</EmptyHint>
           ) : (
             <div className="space-y-2">
               {toContactToday.map(lead => {

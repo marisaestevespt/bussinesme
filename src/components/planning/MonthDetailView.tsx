@@ -30,6 +30,7 @@ import { useCrmData, CRM_STATUSES } from '@/hooks/useCrmData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { monthlyCapacity } from '@/lib/memberCapacity';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -388,7 +389,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               </Table>
             )
           ) : (
-            linkedObjectives.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Sem objetivos anuais ligados a este mês.</p> : (
+            linkedObjectives.length === 0 ? <EmptyHint>Sem objetivos anuais ligados a este mês.</EmptyHint> : (
               <Table>
                 <TableHeader><TableRow>
                   <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Objetivo</TableHead><TableHead>Tipo</TableHead><TableHead>Prazo</TableHead><TableHead>Progresso</TableHead>
@@ -811,7 +812,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2"><CardTitle className="text-sm">Revisão Operacional</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           {productReview.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Sem produtos com clientes ativos para análise.</p>
+            <EmptyHint>Sem produtos com clientes ativos para análise.</EmptyHint>
           ) : (
             <>
               {productReview.map((p) => (
@@ -900,7 +901,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         </CardHeader>
         <CardContent>
           {(routineTasksQ.data || []).length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Sem rotinas configuradas para este mês.</p>
+            <EmptyHint>Sem rotinas configuradas para este mês.</EmptyHint>
           ) : (
             <div className="space-y-2">
               {(routineTasksQ.data || []).map((t) => {
@@ -1068,7 +1069,7 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
             )}
 
             {!rd && !reportQ.isLoading && (
-              <p className="text-xs text-muted-foreground">Nenhum relatório gerado para este mês. Clica em "Gerar Relatório" para compilar os dados.</p>
+              <EmptyHint>Nenhum relatório gerado para este mês. Clica em "Gerar Relatório" para compilar os dados.</EmptyHint>
             )}
           </div>
         );
@@ -1105,7 +1106,7 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
                   </div>
                 </DialogHeader>
                 {clientEntries.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Sem registos de tempo para este cliente neste mês.</p>
+                  <EmptyHint>Sem registos de tempo para este cliente neste mês.</EmptyHint>
                 ) : (
                   <Table>
                     <TableHeader><TableRow>

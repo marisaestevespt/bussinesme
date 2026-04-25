@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   clientId: string | undefined;
@@ -115,7 +116,7 @@ export function ClientFeedbackSection({ clientId, clientName }: Props) {
 
         {/* List */}
         {allFeedback.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Sem feedback recebido</p>
+          <EmptyHint>Sem feedback recebido</EmptyHint>
         ) : (
           <div className="space-y-2">
             {allFeedback.map((f: any) => (

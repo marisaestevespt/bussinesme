@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const CONTEXTS = [
   { value: 'conteudos', label: 'Conteúdos' },
@@ -222,7 +223,7 @@ function CourseDetailSheet({ course, open, onClose }: { course: any; open: boole
           <div className="space-y-4">
             <h3 className="text-sm font-semibold">Dúvidas</h3>
             {sortedDates.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">Sem dúvidas registadas</p>
+              <EmptyHint>Sem dúvidas registadas</EmptyHint>
             ) : sortedDates.map(date => (
               <Card key={date}>
                 <CardContent className="p-4 space-y-2">

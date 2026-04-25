@@ -731,7 +731,7 @@ export default function SopDetailPage() {
             </p>
           )}
           {sopSteps.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">Sem passos definidos. Clica em "+ Passo" para começar.</p>
+            <EmptyHint>Sem passos definidos. Clica em "+ Passo" para começar.</EmptyHint>
           )}
           <div className="space-y-2">
             {sopSteps.map((step, idx) => {

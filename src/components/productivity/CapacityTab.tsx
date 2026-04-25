@@ -22,6 +22,7 @@ import { useProducts, Product } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
 import { WEEKS_PER_MONTH, getDateRange } from './productivity-constants';
 import { formatEuro } from '@/lib/formatting';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export function CapacityTab({ members, entries, clients, products, scenario, scenarioProducts }: {
   members: any[]; entries: any[]; clients: any[]; products: any[]; scenario: any; scenarioProducts: any[];
@@ -104,7 +105,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                 <Bar dataKey="registado" name="Registado" fill="hsl(var(--primary))" radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
+          ) : <EmptyHint className="pt-20">Sem dados</EmptyHint>}
         </CardContent>
       </Card>
 

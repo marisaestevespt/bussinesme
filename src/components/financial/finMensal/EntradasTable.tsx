@@ -7,6 +7,7 @@ import { Plus, Receipt } from 'lucide-react';
 import { EntryStatusSelect } from '../InlineStatusSelect';
 import { formatEuro } from '@/lib/formatting';
 import { MONTHS, type Sale } from './helpers';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface EntradasTableProps {
   monthSales: (Sale & { id?: string; sale_id?: string | null; payment_date?: string | null; documents?: unknown; })[];
@@ -81,7 +82,7 @@ export function IvaCobradoDialog({ open, onOpenChange, monthSales, month, totalE
       <DialogContent className="max-w-2xl">
         <DialogHeader><DialogTitle className="text-base">IVA Cobrado — {MONTHS[month - 1]}</DialogTitle></DialogHeader>
         {monthSales.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">Sem vendas registadas neste mês.</p>
+          <EmptyHint>Sem vendas registadas neste mês.</EmptyHint>
         ) : (
           <Table>
             <TableHeader><TableRow><TableHead>Venda</TableHead><TableHead className="text-right">Total Fatura</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">IVA</TableHead></TableRow></TableHeader>

@@ -17,6 +17,7 @@ import { format, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CATEGORIES, PERIOD_FILTERS, getDateRange, weeksInPeriod, catLabel } from './productivity-constants';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export function TimeTab({ entries, members, clients, projects, tasks, scenario, scenarioProducts }: {
   entries: any[]; members: any[]; clients: any[]; projects: any[]; tasks: any[]; scenario: any; scenarioProducts: any[];
@@ -149,7 +150,7 @@ function TimeSplitView({ entries, members, scenario }: { entries: any[]; members
                 <Bar dataKey="interno" name="Interno" fill="hsl(var(--accent))" stackId="a" radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
+          ) : <EmptyHint className="pt-20">Sem dados</EmptyHint>}
         </CardContent>
       </Card>
 
@@ -247,7 +248,7 @@ function ByClientView({ entries, clients }: { entries: any[]; clients: any[] }) 
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical"><XAxis type="number" fontSize={12} /><YAxis type="category" dataKey="name" fontSize={12} width={80} /><Tooltip /><Bar dataKey="horas" fill="hsl(var(--primary))" radius={[0,4,4,0]} /></BarChart>
               </ResponsiveContainer>
-            ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
+            ) : <EmptyHint className="pt-20">Sem dados</EmptyHint>}
           </CardContent>
         </Card>
       </div>

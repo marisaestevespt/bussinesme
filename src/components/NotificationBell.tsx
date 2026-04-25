@@ -7,6 +7,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const TYPE_ICONS: Record<string, string> = {
   mention: '💬',
@@ -59,7 +60,7 @@ export function NotificationBell() {
 
   const renderList = (items: any[]) =>
     items.length === 0 ? (
-      <p className="text-xs text-muted-foreground text-center py-8">Sem notificações</p>
+      <EmptyHint>Sem notificações</EmptyHint>
     ) : (
       <div className="divide-y">
         {items.map(n => (

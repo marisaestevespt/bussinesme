@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Pencil, Check, X, FileText, Clock, Users, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 function useTeamMembers() {
   return useQuery({
@@ -213,7 +214,7 @@ export default function ComecaAquiPage() {
               <h2 className="text-xl font-semibold text-foreground">Conhece a tua equipa</h2>
             </div>
             {(teamMembers.data || []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">Ainda não há membros na equipa.</p>
+              <EmptyHint>Ainda não há membros na equipa.</EmptyHint>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(teamMembers.data || []).map((m: any) => {
@@ -304,7 +305,7 @@ export default function ComecaAquiPage() {
                       </a>
                     )}
                     {!selectedMember.email && !selectedMember.whatsapp && (
-                      <p className="text-sm text-muted-foreground">Sem contactos registados.</p>
+                      <EmptyHint>Sem contactos registados.</EmptyHint>
                     )}
                   </div>
 

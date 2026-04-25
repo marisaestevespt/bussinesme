@@ -7,6 +7,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { isTaskDone, isTaskOverdue, countDone } from '@/lib/taskStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface RoutinesSectionProps {
   thisWeekRoutines: any[];
@@ -24,7 +25,7 @@ export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: Routines
     <Card>
       <CardContent className="p-0">
         {tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">Sem rotinas</p>
+          <EmptyHint>Sem rotinas</EmptyHint>
         ) : (
           <Table>
             <TableHeader>

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ExportInitialQuestionsButton } from '@/components/project/ExportInitialQuestionsButton';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   portalId: string | undefined;
@@ -91,7 +92,7 @@ export function QuestionsCollapsible({
         <CollapsibleContent>
           <CardContent className="pt-0">
             {questionsList.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem perguntas definidas</p>
+              <EmptyHint>Sem perguntas definidas</EmptyHint>
             ) : (
               <div className="space-y-6">
                 {grouped.map(({ group, items }, groupIdx) => (

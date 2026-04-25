@@ -16,6 +16,7 @@ import { useExecutiveData } from '@/hooks/useExecutiveData';
 import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { ExecutiveKpiAlerts } from '@/components/executive/ExecutiveKpiAlerts';
 import { StrategicMetricsSection } from '@/components/executive/StrategicMetricsSection';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
@@ -126,7 +127,7 @@ export default function ExecutiveDashboard() {
               {monthGoals.length === 0 ? (
                 <div className="text-center py-6 space-y-2">
                   <Target className="h-8 w-8 mx-auto text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">Sem metas para este mês</p>
+                  <EmptyHint>Sem metas para este mês</EmptyHint>
                   <Link to="/executive/planeamento" className="text-xs text-primary hover:underline">Definir metas →</Link>
                 </div>
               ) : monthGoals.map((g: any) => {
@@ -156,7 +157,7 @@ export default function ExecutiveDashboard() {
               <Card>
                 <CardContent className="py-6 text-center space-y-2">
                   <Zap className="h-8 w-8 mx-auto text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">Sem objetivos definidos</p>
+                  <EmptyHint>Sem objetivos definidos</EmptyHint>
                   <Link to="/executive/planeamento" className="text-xs text-primary hover:underline">Criar objetivos →</Link>
                 </CardContent>
               </Card>
@@ -233,7 +234,7 @@ export default function ExecutiveDashboard() {
                   );
                 })}
                 {brainDumpItems.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-3">Sem notas rápidas</p>
+                  <EmptyHint>Sem notas rápidas</EmptyHint>
                 )}
               </div>
             </CardContent>

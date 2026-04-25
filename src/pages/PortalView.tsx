@@ -17,7 +17,7 @@ import {
   FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Circle, Image as ImageIcon, Pencil, LogOut
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
@@ -1133,7 +1133,7 @@ export default function PortalViewPage() {
             {meetings.length === 0 ? (
               <SectionCard className="p-8 text-center">
                 <CalendarDays className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-sm text-muted-foreground">Sem reuniões registadas.</p>
+                <EmptyHint>Sem reuniões registadas.</EmptyHint>
               </SectionCard>
             ) : (
               <div className="space-y-3">
@@ -1303,7 +1303,7 @@ export default function PortalViewPage() {
             {payments.length === 0 ? (
               <SectionCard className="p-8 text-center">
                 <CreditCard className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-sm text-muted-foreground">Sem pagamentos registados.</p>
+                <EmptyHint>Sem pagamentos registados.</EmptyHint>
               </SectionCard>
             ) : (
               <div className="space-y-3">

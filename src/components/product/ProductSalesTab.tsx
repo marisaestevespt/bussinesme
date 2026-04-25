@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Gift, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { sumRevenue, saleRevenue } from '@/lib/salesCalculations';
 import { formatNumber } from '@/lib/formatting';
 interface Props {
@@ -143,7 +143,7 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
           {isLoading ? (
             <div className="flex justify-center py-8"><InlineLoader /></div>
           ) : sales.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Sem vendas registadas para este produto.</p>
+            <EmptyHint>Sem vendas registadas para este produto.</EmptyHint>
           ) : (
             <Table>
               <TableHeader>

@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { cn } from '@/lib/utils';
 import { getDateRange, catLabel, PIE_COLORS, DONE_STATUSES } from './productivity-constants';
 import { filterActiveMembers, isWeeklyOverloaded } from '@/lib/memberCapacity';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export function OverviewTab({ entries, members, tasks }: { entries: any[]; members: any[]; tasks: any[] }) {
   const { start, end } = getDateRange('week');
@@ -148,7 +149,7 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData}><XAxis dataKey="name" fontSize={12} /><YAxis fontSize={12} /><Tooltip /><Bar dataKey="horas" fill="hsl(var(--primary))" radius={[4,4,0,0]} /></BarChart>
               </ResponsiveContainer>
-            ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
+            ) : <EmptyHint className="pt-20">Sem dados</EmptyHint>}
           </CardContent>
         </Card>
         <Card>
@@ -160,7 +161,7 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
                   {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                 </Pie><Legend /></PieChart>
               </ResponsiveContainer>
-            ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
+            ) : <EmptyHint className="pt-20">Sem dados</EmptyHint>}
           </CardContent>
         </Card>
       </div>

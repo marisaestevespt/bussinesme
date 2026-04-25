@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BackNavigation } from '@/components/BackNavigation';
 import { format, parseISO } from 'date-fns';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export default function ClientesFeedbackPage() {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ export default function ClientesFeedbackPage() {
               <span>Origem</span>
             </div>
             {allFeedback.length === 0 ? (
-              <p className="text-center text-muted-foreground py-12 text-sm">Sem feedbacks registados</p>
+              <EmptyHint>Sem feedbacks registados</EmptyHint>
             ) : (
               allFeedback.map((f: any) => (
                 <div

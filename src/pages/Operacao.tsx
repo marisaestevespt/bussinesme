@@ -25,6 +25,7 @@ import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { isDeliverableDone } from '@/lib/projectProgress';
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -835,7 +836,7 @@ export default function OperacaoPage() {
             </CardHeader>
             <CardContent className="pt-0">
               {deliveryTimeline.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">Sem entregas nos próximos 7 dias 🎉</p>
+                <EmptyHint>Sem entregas nos próximos 7 dias 🎉</EmptyHint>
               ) : (
                 <div className="pb-2">
                   {/* Timeline horizontal: eixo de dias + items por dia (ocupa toda a largura do card) */}
@@ -1023,7 +1024,7 @@ export default function OperacaoPage() {
                 </CardHeader>
                 <CardContent className="pt-0 space-y-3 max-h-[400px] overflow-y-auto">
                   {activeClientProjects.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-3">Nenhum projeto ativo</p>
+                    <EmptyHint>Nenhum projeto ativo</EmptyHint>
                   ) : (
                     <>
                       {activeClientPontuais.length > 0 && (
@@ -1112,7 +1113,7 @@ export default function OperacaoPage() {
               </CardHeader>
               <CardContent className="pt-0 max-h-[400px] overflow-y-auto">
                 {filteredClientTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
+                  <EmptyHint>Nenhuma tarefa neste filtro</EmptyHint>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -1258,7 +1259,7 @@ export default function OperacaoPage() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   {activeInternoProjects.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-3">Nenhum projeto interno ativo</p>
+                    <EmptyHint>Nenhum projeto interno ativo</EmptyHint>
                   ) : (
                     <div className="h-[250px]">
                       <ResponsiveContainer width="100%" height="100%">
@@ -1287,7 +1288,7 @@ export default function OperacaoPage() {
                 </CardHeader>
                 <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
                   {internoMembers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-3">Sem membros associados</p>
+                    <EmptyHint>Sem membros associados</EmptyHint>
                   ) : internoMembers.map(m => (
                     <div key={m.profile!.id} className="flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-muted/40">
                       <Avatar className="h-7 w-7">
@@ -1318,7 +1319,7 @@ export default function OperacaoPage() {
               </CardHeader>
               <CardContent className="pt-0 space-y-0.5 max-h-[400px] overflow-y-auto">
                 {filteredInternoTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
+                  <EmptyHint>Nenhuma tarefa neste filtro</EmptyHint>
                 ) : filteredInternoTasks.map(t => renderTaskRow(t))}
               </CardContent>
             </Card>
@@ -1341,7 +1342,7 @@ export default function OperacaoPage() {
             </DialogHeader>
             <div className="max-h-[400px] overflow-y-auto">
               {clients.filter(c => c.status === expandedStatus).length === 0 ? (
-                <p className="text-sm text-muted-foreground py-3">Nenhum cliente neste status</p>
+                <EmptyHint>Nenhum cliente neste status</EmptyHint>
               ) : expandedStatus === 'altura_renovacao' ? (
                 <Table>
                   <TableHeader>

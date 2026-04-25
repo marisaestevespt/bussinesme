@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export type FinDocItem = { name: string; url: string; label?: string; uploaded_at?: string };
 
@@ -77,7 +78,7 @@ export function FinDocumentsUpload({ title = 'Documentos & Declarações', docum
           </div>
         )}
         {documents.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">Sem documentos carregados</p>
+          <EmptyHint>Sem documentos carregados</EmptyHint>
         )}
         <div className="flex items-end gap-2">
           <div className="flex-1">

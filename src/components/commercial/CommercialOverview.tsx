@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { saleRevenue } from '@/lib/salesCalculations';
 import { formatNumber } from '@/lib/formatting';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -77,7 +78,7 @@ export function CommercialOverview() {
             {topProduct && topProduct.total > 0 ? (
               <div><p className="text-2xl font-bold">{topProduct.name}</p><p className="text-sm text-muted-foreground">€{formatNumber(topProduct.total)}</p></div>
             ) : (
-              <p className="text-muted-foreground">Sem dados</p>
+              <EmptyHint>Sem dados</EmptyHint>
             )}
           </CardContent></Card>
         <Card

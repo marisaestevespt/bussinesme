@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2 } from 'lucide-react';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MILESTONE_TYPE_OPTIONS = [
   { value: 'check_in', label: 'Check-in' },
@@ -82,7 +83,7 @@ export function MilestonesSection({ productId, teamMembers }: Props) {
         </CardHeader>
         <CardContent>
           {milestones.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Sem marcos definidos.</p>
+            <EmptyHint>Sem marcos definidos.</EmptyHint>
           ) : (
             <Table>
               <TableHeader>

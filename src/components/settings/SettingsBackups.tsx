@@ -19,6 +19,7 @@ import { Download, Play, Shield, Clock, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -129,7 +130,7 @@ export function SettingsBackups() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">A carregar...</p>
       ) : backups.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum backup registado ainda.</p>
+        <EmptyHint>Nenhum backup registado ainda.</EmptyHint>
       ) : (
         <div className="space-y-2">
           {backups.map((b: any) => (

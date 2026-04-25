@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useMyTasks, useMyTimeEntries, useMyTeamMember, useMyMeetings, useProjects, TIME_CATEGORIES, formatTimer } from './secretaria-shared';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const today = startOfDay(new Date());
 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -294,7 +295,7 @@ export default function SecretariaProdutividade() {
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">🏆 Top 3 — Tarefas mais demoradas no período</CardTitle></CardHeader>
         <CardContent>
           {top3Tasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem registos de tempo associados a tarefas neste período.</p>
+            <EmptyHint>Sem registos de tempo associados a tarefas neste período.</EmptyHint>
           ) : (
             <div className="space-y-3">
               {top3Tasks.map((t, i) => (
@@ -368,7 +369,7 @@ export default function SecretariaProdutividade() {
         <Card>
           <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Concluídas esta semana ({weekCompletedTasks.length})</CardTitle></CardHeader>
           <CardContent className="space-y-1">
-            {weekCompletedTasks.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma.</p>}
+            {weekCompletedTasks.length === 0 && <EmptyHint>Nenhuma.</EmptyHint>}
             {weekCompletedTasks.map((t: any) => (
               <div key={t.id} className="flex items-center justify-between text-sm">
                 <span>{t.name}</span>
@@ -380,7 +381,7 @@ export default function SecretariaProdutividade() {
         <Card>
           <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Concluídas este mês ({monthCompletedTasks.length})</CardTitle></CardHeader>
           <CardContent className="space-y-1">
-            {monthCompletedTasks.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma.</p>}
+            {monthCompletedTasks.length === 0 && <EmptyHint>Nenhuma.</EmptyHint>}
             {monthCompletedTasks.slice(0, 15).map((t: any) => (
               <div key={t.id} className="flex items-center justify-between text-sm">
                 <span>{t.name}</span>

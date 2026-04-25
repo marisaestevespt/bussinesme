@@ -39,6 +39,7 @@ import { MeetingFormDialog } from '@/pages/Reunioes';
 import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog';
 import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
 import { sumRevenue } from '@/lib/salesCalculations';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 // ─── Client Financial Health Card ────────────────────────────────
 function ClientFinancialHealthCard({ clientName }: { clientName: string }) {
@@ -797,7 +798,7 @@ export default function ClienteDetailPage() {
                   <span>Projeto</span><span>Status</span><span>Data</span>
                 </div>
                 {clientProjects.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem projetos associados</p>
+                  <EmptyHint>Sem projetos associados</EmptyHint>
                 ) : clientProjects.map((p: any) => (
                   <div
                     key={p.id}
@@ -827,7 +828,7 @@ export default function ClienteDetailPage() {
                   <span>Data</span><span>Entrada</span><span>Observações</span><span></span>
                 </div>
                 {(history.data || []).length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
+                  <EmptyHint>Sem entradas</EmptyHint>
                 ) : (history.data || []).map(h => {
                   const isCrm = !!(h as any).lead_id;
                   return isCrm ? (
@@ -869,7 +870,7 @@ export default function ClienteDetailPage() {
                   <span>Status</span><span>Data & Hora</span><span>Reunião</span><span>Participantes</span><span>Link</span>
                 </div>
                 {clientMeetings.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem reuniões associadas</p>
+                  <EmptyHint>Sem reuniões associadas</EmptyHint>
                 ) : clientMeetings.map((m: any) => (
                   <div key={m.id} className="px-4 py-2 text-xs grid grid-cols-5 gap-2 border-b items-center">
                     <span><Badge variant="outline">{m.status}</Badge></span>
@@ -896,7 +897,7 @@ export default function ClienteDetailPage() {
                   <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span>
                 </div>
                 {clientSales.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
+                  <EmptyHint>Sem pagamentos associados</EmptyHint>
                 ) : clientSales.map(s => (
                   <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
                     <span>{s.status}</span>

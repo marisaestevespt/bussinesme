@@ -13,7 +13,7 @@ import { useAllPortals } from '@/hooks/usePortalData';
 import { useClients } from '@/hooks/useClients';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { BackNavigation } from '@/components/BackNavigation';
 
 const sb = (t: string) => supabase.from(t as any) as any;
@@ -88,7 +88,7 @@ export default function PortalClientesPage() {
             {isLoading ? (
               <InlineLoader />
             ) : portals.length === 0 ? (
-              <p className="text-center text-muted-foreground py-12 text-sm">Sem portais criados</p>
+              <EmptyHint>Sem portais criados</EmptyHint>
             ) : (
               portals.map(p => {
                 const client = getClient(p.client_id);

@@ -12,6 +12,7 @@ import {
   revenueConcentration,
 } from '@/lib/financialHealth';
 import { formatEuro } from '@/lib/formatting';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null; product?: string | null; client?: string | null; status?: string };
@@ -127,7 +128,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                 <p className="text-xs text-muted-foreground">Concentração de Receita</p>
               </div>
               {concentration.topClients.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem dados</p>
+                <EmptyHint>Sem dados</EmptyHint>
               ) : (
                 <div className="space-y-0.5">
                   {concentration.topClients.map((c, i) => (

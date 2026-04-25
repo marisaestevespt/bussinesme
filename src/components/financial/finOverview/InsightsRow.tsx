@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Package, ArrowUpRight, UserCheck, BarChart3 } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
 import { expenseLabel } from '@/lib/financialCategories';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Insight { name: string; value: number; }
 
@@ -20,25 +21,25 @@ export function InsightsRow({ productInsights, categoryInsights, clientsInYear, 
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto + vendido</p></div>
-            {productInsights.best ? (<><p className="text-sm font-semibold truncate">{productInsights.best.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.best.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            {productInsights.best ? (<><p className="text-sm font-semibold truncate">{productInsights.best.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.best.value)}</p></>) : <EmptyHint>Sem dados</EmptyHint>}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto - vendido</p></div>
-            {productInsights.worst ? (<><p className="text-sm font-semibold truncate">{productInsights.worst.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.worst.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            {productInsights.worst ? (<><p className="text-sm font-semibold truncate">{productInsights.worst.name}</p><p className="text-xs text-muted-foreground">{formatEuro(productInsights.worst.value)}</p></>) : <EmptyHint>Sem dados</EmptyHint>}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Maior despesa</p></div>
-            {categoryInsights.biggest ? (<><p className="text-sm font-semibold">{expenseLabel(categoryInsights.biggest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.biggest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            {categoryInsights.biggest ? (<><p className="text-sm font-semibold">{expenseLabel(categoryInsights.biggest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.biggest.value)}</p></>) : <EmptyHint>Sem dados</EmptyHint>}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-3">
             <div className="flex items-center gap-2 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Menor despesa</p></div>
-            {categoryInsights.smallest ? (<><p className="text-sm font-semibold">{expenseLabel(categoryInsights.smallest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.smallest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            {categoryInsights.smallest ? (<><p className="text-sm font-semibold">{expenseLabel(categoryInsights.smallest.name)}</p><p className="text-xs text-muted-foreground">{formatEuro(categoryInsights.smallest.value)}</p></>) : <EmptyHint>Sem dados</EmptyHint>}
           </CardContent>
         </Card>
         <Card>

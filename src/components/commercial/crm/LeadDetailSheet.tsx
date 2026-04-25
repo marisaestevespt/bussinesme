@@ -26,6 +26,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCommercialMembers } from '@/hooks/useTeamByWorkArea';
 import { resolveProductId } from '@/lib/productResolver';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface LeadDetailSheetProps {
   open: boolean;
@@ -501,7 +502,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                       <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
                     </div>
                     {(interactions.data || []).length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
+                      <EmptyHint>Sem interações registadas.</EmptyHint>
                     ) : (
                       <div className="space-y-1">
                         {(interactions.data || []).map((i: any) => (

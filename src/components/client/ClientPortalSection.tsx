@@ -19,6 +19,7 @@ import {
   getPortalTypeFromProduct, Portal
 } from '@/hooks/usePortalData';
 import { useProducts } from '@/hooks/useProducts';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   clientId: string;
@@ -294,7 +295,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
           {(feedback.data || []).length === 0 && (
             <div className="text-center py-6">
               <MessageCircle className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">Sem feedback recebido</p>
+              <EmptyHint>Sem feedback recebido</EmptyHint>
             </div>
           )}
         </CardContent>
@@ -363,7 +364,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
             {portalMaterials.length === 0 && (
               <div className="text-center py-6">
                 <FileText className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
-                <p className="text-sm text-muted-foreground">Sem entregáveis. Carrega ficheiros para partilhar com o cliente.</p>
+                <EmptyHint>Sem entregáveis. Carrega ficheiros para partilhar com o cliente.</EmptyHint>
               </div>
             )}
           </CardContent>

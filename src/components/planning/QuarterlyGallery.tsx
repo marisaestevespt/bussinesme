@@ -294,7 +294,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
         <CardContent>
           {metasView === 'metas' ? (
             quarterGoals.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Sem metas definidas para este trimestre.</p>
+              <EmptyHint>Sem metas definidas para este trimestre.</EmptyHint>
             ) : (
               <Table>
                 <TableHeader>
@@ -341,7 +341,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
             )
           ) : (
             linkedObjectives.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Sem objetivos anuais associados às metas deste trimestre.</p>
+              <EmptyHint>Sem objetivos anuais associados às metas deste trimestre.</EmptyHint>
             ) : (
               <Table>
                 <TableHeader>

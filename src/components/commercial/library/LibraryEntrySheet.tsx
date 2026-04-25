@@ -21,6 +21,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { resolveProductId } from '@/lib/productResolver';
 import { PastLaunchesDialog } from './PastLaunchesDialog';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const ENTRY_TYPES = ['Lançamento', 'Relançamento', 'Campanha', 'Sequência de Email', 'Promoção', 'Outro'];
 const RESULTS = ['Funcionou', 'Não Funcionou', 'Parcialmente'];
@@ -393,7 +394,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
                   </Button>
                 </div>
                 {linkedContent.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Nenhum conteúdo associado. Cria conteúdos para o calendário editorial.</p>
+                  <EmptyHint>Nenhum conteúdo associado. Cria conteúdos para o calendário editorial.</EmptyHint>
                 ) : (
                   <div className="space-y-2">
                     {linkedContent.map((c: any) => (

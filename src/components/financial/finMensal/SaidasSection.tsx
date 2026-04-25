@@ -25,6 +25,7 @@ import { SubRow, ContractRow } from './SubRows';
 import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth, getSubscriptionDueDate } from './helpers';
 import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './expenseBuilders';
 import { VatPreview } from '../VatPreview';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
@@ -289,7 +290,7 @@ export function IvaPagoDialog({ open, onOpenChange, monthExpenses, month, totalS
       <DialogContent className="max-w-2xl">
         <DialogHeader><DialogTitle className="text-base">IVA Pago / Dedutível — {MONTHS[month - 1]}</DialogTitle></DialogHeader>
         {monthExpenses.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">Sem despesas registadas neste mês.</p>
+          <EmptyHint>Sem despesas registadas neste mês.</EmptyHint>
         ) : (
           <Table>
             <TableHeader><TableRow><TableHead>Despesa</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">IVA Pago</TableHead><TableHead className="text-right">IVA a Deduzir</TableHead></TableRow></TableHeader>

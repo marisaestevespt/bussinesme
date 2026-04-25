@@ -474,7 +474,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
         <CardContent className="space-y-4">
           {metasView === 'metas' ? (
             semesterGoals.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Sem metas definidas para este semestre.</p>
+              <EmptyHint>Sem metas definidas para este semestre.</EmptyHint>
             ) : (
               <>
                 {/* Group by quarter */}
@@ -534,7 +534,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
             )
           ) : (
             linkedObjectives.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Sem objetivos anuais associados às metas deste semestre.</p>
+              <EmptyHint>Sem objetivos anuais associados às metas deste semestre.</EmptyHint>
             ) : (
               <Table>
                 <TableHeader>
@@ -767,7 +767,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-2">Sem dados do semestre anterior para comparar.</p>
+            <EmptyHint>Sem dados do semestre anterior para comparar.</EmptyHint>
           )}
         </CardContent>
       </Card>
