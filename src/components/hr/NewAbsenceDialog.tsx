@@ -131,7 +131,7 @@ export function NewAbsenceDialog({ open, onClose, members }: { open: boolean; on
                 userId: ownerUserId,
                 type: 'absence_conflict',
                 title: `${affectedTasks.length} tarefa(s) de ${absentMember?.full_name} reatribuída(s) a ${coverMember?.full_name} (${format(startDate!, 'dd/MM')} - ${format(endDate!, 'dd/MM')})`,
-                link: '/tarefas',
+                link: '/hub/tarefas',
               });
             }
           }

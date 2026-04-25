@@ -494,7 +494,7 @@ Deno.serve(async (req) => {
         const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("message", dedupKey);
         if ((existing || 0) > 0) continue;
         await supabase.from("notifications").insert({
-          user_id: uid, type: "task", title: `Tarefa em atraso: ${t.name}`, message: dedupKey, link: "/tarefas",
+          user_id: uid, type: "task", title: `Tarefa em atraso: ${t.name}`, message: dedupKey, link: "/hub/tarefas",
         });
         taskAlerts++;
       }
@@ -551,7 +551,7 @@ Deno.serve(async (req) => {
         if ((existing || 0) > 0) continue;
         const roleLabel = routine?.role_function ? ` (${routine.role_function})` : "";
         await supabase.from("notifications").insert({
-          user_id: uid, type: "task", title: `⚠️ Rotina não concluída: ${t.name}${roleLabel}`, message: dedupKey, link: "/tarefas",
+          user_id: uid, type: "task", title: `⚠️ Rotina não concluída: ${t.name}${roleLabel}`, message: dedupKey, link: "/hub/tarefas",
         });
         routineAlerts++;
       }
