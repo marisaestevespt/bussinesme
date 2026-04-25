@@ -54,7 +54,7 @@ async function autoAssignPermissions(memberId: string, departments: string[]) {
 export function useMemberSave() {
   const qc = useQueryClient();
 
-  const saveMember = async ({ member, contract: contractData }: { member: any; contract: any }) => {
+  const saveMember = async ({ member, contract: contractData, excluded_onboarding }: { member: any; contract: any; excluded_onboarding?: string[] }) => {
     try {
       const isNew = !member.id;
       let memberId = member.id;
@@ -278,6 +278,7 @@ export function useMemberSave() {
               work_schedule: member.work_schedule || null,
               team_member_id: memberId,
               department: member.department || null,
+              excluded_onboarding: excluded_onboarding || [],
             },
           });
           if (authError) {
