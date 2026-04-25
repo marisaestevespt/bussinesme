@@ -1,0 +1,2 @@
+DROP TRIGGER IF EXISTS sync_expense_to_member_payment_trg ON public.financial_expenses;
+DROP TRIGGER IF EXISTS sync_member_payment_to_expense_trg ON public.member_payments;
