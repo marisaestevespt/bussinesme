@@ -65,7 +65,7 @@ export function useSecretariaCustomViews(scope: ViewScope) {
   });
 
   const create = useMutation({
-    mutationFn: async (v: Omit<CustomView, 'id' | 'user_id' | 'sort_order'> & { sort_order?: number }) => {
+    mutationFn: async (v: Omit<CustomView, 'id' | 'user_id' | 'sort_order' | 'scope'> & { sort_order?: number }) => {
       const payload = {
         user_id: user!.id,
         scope,
