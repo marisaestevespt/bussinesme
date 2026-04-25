@@ -98,6 +98,7 @@ function useHolidayMap(years: number[]): Map<string, string> {
 
 export function AgendaToolbar({
   mode, onModeChange, current, onPrev, onNext, onToday, label,
+  leftSlot, rightSlot,
 }: {
   mode: AgendaViewMode;
   onModeChange: (m: AgendaViewMode) => void;
@@ -106,6 +107,10 @@ export function AgendaToolbar({
   onNext: () => void;
   onToday: () => void;
   label: string;
+  /** Optional content rendered before the date label (e.g. mobile sidebar trigger). */
+  leftSlot?: React.ReactNode;
+  /** Optional content rendered after the navigation cluster (e.g. action buttons). */
+  rightSlot?: React.ReactNode;
 }) {
   const modes: { key: AgendaViewMode; label: string }[] = [
     { key: 'day', label: 'Dia' },
@@ -117,6 +122,7 @@ export function AgendaToolbar({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h3 className="text-xs font-normal lowercase text-muted-foreground tracking-tight truncate flex items-center gap-2">
+        {leftSlot}
         {mode === 'week' && (() => {
           const wn = getISOWeek(current);
           return (
@@ -153,6 +159,7 @@ export function AgendaToolbar({
         <Button variant="ghost" size="icon" aria-label="Seguinte" onClick={onNext} className="rounded-full h-8 w-8">
           <ChevronRight className="h-4 w-4" />
         </Button>
+        {rightSlot}
       </div>
     </div>
   );
