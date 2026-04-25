@@ -275,6 +275,8 @@ function activeFiltersCount(f: SavedFilters): number {
   if (f.sources?.length) n++;
   if (f.priorities?.length) n++;
   if (f.hideCompleted) n++;
+  if (f.completion && f.completion !== 'all') n++;
+  if (f.deadlineWindow) n++;
   return n;
 }
 
