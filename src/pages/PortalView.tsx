@@ -32,7 +32,6 @@ import type {
   PortalMaterial, PortalContractDocument, PortalProjectHistoryEntry,
 } from '@/types/portal';
 
-const sb = (table: string) => supabase.from(table as any) as any;
 const isClientStep = (o: { responsible?: string | null }) =>
   o.responsible?.toLowerCase().trim() === 'cliente';
 
@@ -73,7 +72,7 @@ export default function PortalViewPage() {
 
   const init = async () => {
     if (!token) return;
-    const portalData = await resolvePublicPortal(token, (fn, args) => (supabase as any).rpc(fn, args));
+    const portalData = await resolvePublicPortal(token, (fn, args) => (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)(fn, args));
     if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
     const session = localStorage.getItem(`portal_session_${portalData.id}`);
     if (!session) { navigate(`/portal/${token}`, { replace: true }); return; }
@@ -87,57 +86,57 @@ export default function PortalViewPage() {
     setPortal(portalData);
     const realToken = portalData.token; // always use UUID token for RPCs
     const [clientCtxRes, settingsRes] = await Promise.all([
-      (supabase as any).rpc('get_portal_client_context', { _token: realToken }),
-      (supabase as any).rpc('get_portal_branding', { _token: realToken }),
+      supabase.rpc('get_portal_client_context', { _token: realToken }),
+      // get_portal_branding not yet in generated types
+      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: Record<string, unknown> | null; error: unknown }>)('get_portal_branding', { _token: realToken }),
     ]);
     const clientData = Array.isArray(clientCtxRes.data) ? clientCtxRes.data[0] : null;
     if (clientCtxRes.error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
     setClient(clientData);
     setSettings(settingsRes.data || {});
-    const pid = portalData.id;
-    const cid = portalData.client_id;
     const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
-      (supabase as any).rpc('get_portal_faqs', { _token: realToken }),
-      (supabase as any).rpc('get_portal_initial_questions', { _token: realToken }),
-      (supabase as any).rpc('get_portal_comments', { _token: realToken }),
-      (supabase as any).rpc('get_portal_feedback', { _token: realToken }),
-      (supabase as any).rpc('get_portal_meetings', { _token: realToken }),
-      (supabase as any).rpc('get_portal_payments', { _token: realToken }),
+      supabase.rpc('get_portal_faqs', { _token: realToken }),
+      supabase.rpc('get_portal_initial_questions', { _token: realToken }),
+      supabase.rpc('get_portal_comments', { _token: realToken }),
+      supabase.rpc('get_portal_feedback', { _token: realToken }),
+      supabase.rpc('get_portal_meetings', { _token: realToken }),
+      supabase.rpc('get_portal_payments', { _token: realToken }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
-      (supabase as any).rpc('get_portal_phases', { _token: realToken }),
-      (supabase as any).rpc('get_portal_project_history', { _token: realToken }),
-      (supabase as any).rpc('get_portal_materials', { _token: realToken }),
-      (supabase as any).rpc('get_portal_contract_documents', { _token: realToken }),
+      // get_portal_phases not yet in generated types
+      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_phases', { _token: realToken }),
+      supabase.rpc('get_portal_project_history', { _token: realToken }),
+      supabase.rpc('get_portal_materials', { _token: realToken }),
+      supabase.rpc('get_portal_contract_documents', { _token: realToken }),
     ]);
-    const faqsList = ((faqsR as any).data || []) as PortalFaq[];
+    const faqsList = (faqsR.data || []) as unknown as PortalFaq[];
     setFaqs(faqsList.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    const questionsList = ((questionsR as any).data || []) as Array<PortalQuestion & { group_sort_order?: number }>;
+    const questionsList = (questionsR.data || []) as unknown as Array<PortalQuestion & { group_sort_order?: number }>;
     setQuestions(questionsList.slice().sort((a, b) =>
       (a.group_sort_order ?? 0) - (b.group_sort_order ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    const commentsList = ((commentsR as any).data || []) as PortalComment[];
+    const commentsList = (commentsR.data || []) as unknown as PortalComment[];
     setComments(commentsList.slice().sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()));
-    const feedbackList = ((feedbackR as any).data || []) as PortalFeedback[];
+    const feedbackList = (feedbackR.data || []) as unknown as PortalFeedback[];
     setFeedback(feedbackList.slice().sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime()));
-    setMeetings(((meetingsR as any).data || []) as PortalMeeting[]);
-    setPayments(((paymentsR as any).data || []) as PortalPayment[]);
-    setTasks(((tasksR as any).data || []) as Array<Record<string, any>>);
+    setMeetings((meetingsR.data || []) as unknown as PortalMeeting[]);
+    setPayments((paymentsR.data || []) as unknown as PortalPayment[]);
+    setTasks((tasksR.data || []) as Array<Record<string, any>>);
     // get_portal_phases now returns jsonb with deliverables included
-    const phasesData = (projPhasesR as any).data || [];
+    const phasesData = projPhasesR.data || [];
     const parsedPhases = (Array.isArray(phasesData) ? phasesData : []) as PortalPhase[];
     const allPhases: PortalPhase[] = parsedPhases.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
     setPhases(allPhases);
     // Show all phases in the onboarding/timeline section
     setOnboarding(allPhases);
-    setProjectHistory(((historyR as any).data || []) as PortalProjectHistoryEntry[]);
-    const materialsList = ((materialsR as any).data || []) as PortalMaterial[];
+    setProjectHistory((historyR.data || []) as unknown as PortalProjectHistoryEntry[]);
+    const materialsList = (materialsR.data || []) as unknown as PortalMaterial[];
     setPortalMaterials(materialsList.slice().sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()));
-    setContractDocs(((contractR as any).data || []) as PortalContractDocument[]);
+    setContractDocs((contractR.data || []) as unknown as PortalContractDocument[]);
     setLoading(false);
   };
 
   const sendComment = async () => {
     if (!commentText.trim() || !portal) return;
-    await (supabase as any).rpc('portal_add_comment', {
+    await supabase.rpc('portal_add_comment', {
       _token: portal.token,
       _author: client?.full_name || 'Cliente',
       _content: commentText.trim(),
@@ -148,7 +147,7 @@ export default function PortalViewPage() {
 
   const sendFeedback = async () => {
     if (!feedbackText.trim() || !portal) return;
-    await (supabase as any).rpc('portal_submit_feedback', {
+    await supabase.rpc('portal_submit_feedback', {
       _token: portal.token,
       _payload: { content: feedbackText.trim() },
     });
@@ -159,7 +158,7 @@ export default function PortalViewPage() {
   const maybeNotifyQuestionsSubmitted = async () => {
     if (!portal?.token) return;
     try {
-      await (supabase as any).rpc('portal_submit_initial_questions', { _token: portal.token });
+      await supabase.rpc('portal_submit_initial_questions', { _token: portal.token });
     } catch (err) {
       console.error('Erro ao validar submissão das perguntas do portal:', err);
     }
@@ -167,7 +166,7 @@ export default function PortalViewPage() {
 
   const answerQuestion = async (qId: string, answer: string) => {
     const answeredAt = new Date().toISOString();
-    await (supabase as any).rpc('portal_answer_initial_question', {
+    await supabase.rpc('portal_answer_initial_question', {
       _token: portal!.token,
       _question_id: qId,
       _answer: answer,
@@ -198,7 +197,7 @@ export default function PortalViewPage() {
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
       const allUrls = [...existing, ...urls];
       const answeredAt = new Date().toISOString();
-      await (supabase as any).rpc('portal_answer_initial_question', {
+      await supabase.rpc('portal_answer_initial_question', {
         _token: portal!.token,
         _question_id: qId,
         _answer: question?.answer || '',
@@ -220,7 +219,7 @@ export default function PortalViewPage() {
       const question = questions.find(q => q.id === qId);
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
       const updated = existing.filter((_, i) => i !== fileIndex);
-      await (supabase as any).rpc('portal_answer_initial_question', {
+      await supabase.rpc('portal_answer_initial_question', {
         _token: portal!.token,
         _question_id: qId,
         _answer: question?.answer || '',
@@ -658,7 +657,7 @@ export default function PortalViewPage() {
                                               {isClient ? '👤 Tu' : '👥 Equipa'}
                                             </span>
                                           </div>
-                                          {d.description && <p className="text-xs text-muted-foreground mt-1">{d.description}</p>}
+                                          {d.description && <p className="text-xs text-muted-foreground mt-1">{String(d.description)}</p>}
                                         </div>
                                       </div>
                                     );

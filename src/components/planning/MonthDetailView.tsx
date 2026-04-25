@@ -99,7 +99,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd');
       const { data } = await supabase
         .from('tasks')
-        .select('*, planning_routines:routine_id(title, role_function, recurrence_type)')
+        .select('*, planning_routines:routine_id(title, role_function, recurrence_type), profiles:assigned_to(full_name)')
         .eq('tag', 'Rotina')
         .gte('deadline', mStart)
         .lte('deadline', mEnd)
@@ -906,7 +906,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               {(routineTasksQ.data || []).map((t) => {
                 const isDone = isTaskDone(t);
                 const deadlineDate = t.deadline ? parseISO(t.deadline) : null;
-                const completedAt = t.completed_at ? parseISO(t.completed_at) : null;
+                const completedAt = (t as any).completed_at ? parseISO((t as any).completed_at) : null;
                 const isLate = !isDone && deadlineDate && deadlineDate < new Date();
                 const completedLate = isDone && completedAt && deadlineDate && completedAt > deadlineDate;
                 const routineInfo = t.planning_routines as any;

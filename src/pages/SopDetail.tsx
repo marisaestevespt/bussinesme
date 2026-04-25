@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import type { Json } from '@/integrations/supabase/types';
 import { useTeamData } from '@/hooks/useTeamData';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -65,7 +66,7 @@ export default function SopDetailPage() {
   });
 
   // Fetch linked routine if exists
-  const routineId = (sop as any)?.routine_id;
+  const routineId = sop?.routine_id;
   const { data: linkedRoutine } = useQuery({
     queryKey: ['linked-routine', routineId],
     queryFn: async () => {
@@ -98,8 +99,8 @@ export default function SopDetailPage() {
   const { data: sopSteps = [] } = useQuery({
     queryKey: ['sop-steps', id],
     queryFn: async () => {
-      const { data } = await supabase.from('sop_steps' as any).select('*').eq('sop_id', id!).order('sort_order');
-      return (data || []) as any[];
+      const { data } = await (supabase.from as any)('sop_steps').select('*').eq('sop_id', id!).order('sort_order');
+      return (data || []) as Array<Record<string, any>>;
     },
     enabled: !!id,
   });
@@ -108,8 +109,8 @@ export default function SopDetailPage() {
   const { data: stepDocuments = [] } = useQuery({
     queryKey: ['sop-step-documents', id],
     queryFn: async () => {
-      const { data } = await supabase.from('sop_step_documents' as any).select('*').eq('sop_id', id!).order('sort_order');
-      return (data || []) as any[];
+      const { data } = await (supabase.from as any)('sop_step_documents').select('*').eq('sop_id', id!).order('sort_order');
+      return (data || []) as Array<Record<string, any>>;
     },
     enabled: !!id,
   });
@@ -141,7 +142,7 @@ export default function SopDetailPage() {
   const [showCreateTasks, setShowCreateTasks] = useState(false);
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [docExpandedSteps, setDocExpandedSteps] = useState<Set<string>>(new Set());
-  const [editingDoc, setEditingDoc] = useState<any>(null);
+  const [editingDoc, setEditingDoc] = useState<Record<string, any> | null>(null);
   const [sopEstimatedTime, setSopEstimatedTime] = useState('');
   const [editingSections, setEditingSections] = useState<Set<string>>(new Set());
   const toggleEdit = (section: string) => setEditingSections(prev => {
@@ -155,39 +156,39 @@ export default function SopDetailPage() {
   // Detect if this is an onboarding/offboarding SOP linked to a product
   const isOnboardingSop = useMemo(() => {
     if (!sop) return false;
-    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('onboarding') && !sop.name?.toLowerCase().includes('offboarding');
+    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && sop.name?.toLowerCase().includes('onboarding') && !sop.name?.toLowerCase().includes('offboarding');
   }, [sop]);
 
   const isOffboardingSop = useMemo(() => {
     if (!sop) return false;
-    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('offboarding');
+    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && sop.name?.toLowerCase().includes('offboarding');
   }, [sop]);
 
   const isPaymentSop = useMemo(() => {
     if (!sop) return false;
-    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
+    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
   }, [sop]);
 
   const isNpsSop = useMemo(() => {
     if (!sop) return false;
     const n = sop.name?.toLowerCase() || '';
-    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && (n.includes('nps') || n.includes('feedback'));
+    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && (n.includes('nps') || n.includes('feedback'));
   }, [sop]);
 
   const isAcompanhamentoSop = useMemo(() => {
     if (!sop) return false;
     const n = sop.name?.toLowerCase() || '';
-    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && n.includes('acompanhamento');
+    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && n.includes('acompanhamento');
   }, [sop]);
 
   const isKpisSop = useMemo(() => {
     if (!sop) return false;
     const n = sop.name?.toLowerCase() || '';
-    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && n.includes('kpis');
+    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && n.includes('kpis');
   }, [sop]);
 
   const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
-  const linkedProductId = (sop as any)?.linked_entity_id;
+  const linkedProductId = sop?.linked_entity_id;
 
   // Team members (used by NPS + Milestones sub-sections)
   const { members } = useTeamData({ members: true });
@@ -223,7 +224,7 @@ export default function SopDetailPage() {
     setSopId(sop.sop_id);
     setStatus(sop.status);
     setDepartment(sop.department);
-    setDepartments((sop as any).departments?.length ? (sop as any).departments : [sop.department]);
+    setDepartments(sop.departments?.length ? sop.departments : [sop.department]);
     setRoleId(sop.custom_role_id || '');
     setProductName(sop.product_name || '');
     setCreatedAt(sop.created_at ? format(new Date(sop.created_at), 'yyyy-MM-dd') : '');
@@ -235,15 +236,15 @@ export default function SopDetailPage() {
     setDecisoes(parseJsonList(sop.decisoes).length ? parseJsonList(sop.decisoes) : ['']);
     setOutputs(parseCheckList(sop.outputs).length ? parseCheckList(sop.outputs) : [{ text: '', checked: false }]);
     setNotas(parseJsonList(sop.notas).length ? parseJsonList(sop.notas) : ['']);
-    setLinkedEntityType((sop as any).linked_entity_type || 'geral');
-    setLinkedEntityId((sop as any).linked_entity_id || '');
-    setApplyToAllActiveClients((sop as any).apply_to_all_active_clients || false);
-    setSopType((sop as any).sop_type || 'operacional');
-    setSopRoleTitle((sop as any).role_title || '');
-    setSopProductId((sop as any).product_id || '');
-    setSopVersion((sop as any).version || 1);
-    setSopVersionNotes((sop as any).version_notes || '');
-    setSopEstimatedTime((sop as any).estimated_time != null ? String((sop as any).estimated_time) : '');
+    setLinkedEntityType(sop.linked_entity_type || 'geral');
+    setLinkedEntityId(sop.linked_entity_id || '');
+    setApplyToAllActiveClients(sop.apply_to_all_active_clients || false);
+    setSopType(sop.sop_type || 'operacional');
+    setSopRoleTitle(sop.role_title || '');
+    setSopProductId(sop.product_id || '');
+    setSopVersion(sop.version || 1);
+    setSopVersionNotes(sop.version_notes || '');
+    setSopEstimatedTime(sop.estimated_time != null ? String(sop.estimated_time) : '');
   }, [sop]);
 
   // ─── Save ───────────────────────────────────────────────────
@@ -258,13 +259,13 @@ export default function SopDetailPage() {
         custom_role_id: roleId || null,
         product_name: productName || null,
         objetivo: objetivo || null,
-        utilizacao_usado: usado as any,
-        utilizacao_nao_usado: naoUsado as any,
-        inputs: inputs as any,
-        passos: passos as any,
-        decisoes: decisoes as any,
-        outputs: outputs as any,
-        notas: notas as any,
+        utilizacao_usado: usado as unknown as Json,
+        utilizacao_nao_usado: naoUsado as unknown as Json,
+        inputs: inputs as unknown as Json,
+        passos: passos as unknown as Json,
+        decisoes: decisoes as unknown as Json,
+        outputs: outputs as unknown as Json,
+        notas: notas as unknown as Json,
         linked_entity_type: linkedEntityType,
         linked_entity_id: linkedEntityId || null,
         apply_to_all_active_clients: applyToAllActiveClients,
@@ -274,7 +275,7 @@ export default function SopDetailPage() {
         version: sopVersion,
         version_notes: sopVersionNotes || null,
         estimated_time: sopEstimatedTime ? parseFloat(sopEstimatedTime) : null,
-      } as any).eq('id', id!);
+      }).eq('id', id!);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -291,7 +292,7 @@ export default function SopDetailPage() {
       const { error } = await supabase.from('sops').update({
         version: newVersion,
         version_notes: `Atualizado para v${newVersion} em ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
-      } as any).eq('id', id!);
+      }).eq('id', id!);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -320,22 +321,22 @@ export default function SopDetailPage() {
       toast.success('Tarefas criadas a partir dos passos do SOP');
       setShowCreateTasks(false);
     },
-    onError: (e: any) => toast.error(e.message || 'Erro ao criar tarefas'),
+    onError: (e: Error) => toast.error(e.message || 'Erro ao criar tarefas'),
   });
 
   const addTemplateRow = useMutation({
     mutationFn: async () => {
       if (!templateTable || !linkedProductId) return;
       const nextOrder = templateRows.length;
-      await supabase.from(templateTable as any).insert({ product_id: linkedProductId, activity: '', sort_order: nextOrder } as any);
+      await (supabase.from as any)(templateTable).insert({ product_id: linkedProductId, activity: '', sort_order: nextOrder });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
 
   const updateTemplateRow = useMutation({
-    mutationFn: async ({ rowId, data }: { rowId: string; data: Record<string, any> }) => {
+    mutationFn: async ({ rowId, data }: { rowId: string; data: Record<string, unknown> }) => {
       if (!templateTable) return;
-      await supabase.from(templateTable as any).update(data).eq('id', rowId);
+      await (supabase.from as any)(templateTable).update(data).eq('id', rowId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
@@ -343,7 +344,7 @@ export default function SopDetailPage() {
   const deleteTemplateRow = useMutation({
     mutationFn: async (rowId: string) => {
       if (!templateTable) return;
-      await supabase.from(templateTable as any).delete().eq('id', rowId);
+      await (supabase.from as any)(templateTable).delete().eq('id', rowId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
@@ -351,7 +352,7 @@ export default function SopDetailPage() {
   // ─── Sop Steps CRUD ──────────────────────────────────────
   const addSopStep = useMutation({
     mutationFn: async () => {
-      await supabase.from('sop_steps' as any).insert({
+      await (supabase.from as any)('sop_steps').insert({
         sop_id: id,
         description: '',
         sort_order: sopSteps.length,
@@ -361,15 +362,15 @@ export default function SopDetailPage() {
   });
 
   const updateSopStep = useMutation({
-    mutationFn: async ({ stepId, data }: { stepId: string; data: Record<string, any> }) => {
-      await supabase.from('sop_steps' as any).update(data).eq('id', stepId);
+    mutationFn: async ({ stepId, data }: { stepId: string; data: Record<string, unknown> }) => {
+      await (supabase.from as any)('sop_steps').update(data).eq('id', stepId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
   });
 
   const deleteSopStep = useMutation({
     mutationFn: async (stepId: string) => {
-      await supabase.from('sop_steps' as any).delete().eq('id', stepId);
+      await (supabase.from as any)('sop_steps').delete().eq('id', stepId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
   });
@@ -380,8 +381,8 @@ export default function SopDetailPage() {
     const a = sopSteps[idx];
     const b = sopSteps[swapIdx];
     await Promise.all([
-      supabase.from('sop_steps' as any).update({ sort_order: b.sort_order }).eq('id', a.id),
-      supabase.from('sop_steps' as any).update({ sort_order: a.sort_order }).eq('id', b.id),
+      (supabase.from as any)('sop_steps').update({ sort_order: b.sort_order }).eq('id', a.id),
+      (supabase.from as any)('sop_steps').update({ sort_order: a.sort_order }).eq('id', b.id),
     ]);
     queryClient.invalidateQueries({ queryKey: ['sop-steps', id] });
   };
@@ -389,7 +390,7 @@ export default function SopDetailPage() {
   // ─── Step Documents CRUD ──────────────────────────────────────
   const addStepDoc = useMutation({
     mutationFn: async (stepId: string) => {
-      await supabase.from('sop_step_documents' as any).insert({
+      await (supabase.from as any)('sop_step_documents').insert({
         sop_id: id,
         step_id: stepId,
         step_index: 0,
@@ -403,15 +404,15 @@ export default function SopDetailPage() {
   });
 
   const updateStepDoc = useMutation({
-    mutationFn: async ({ docId, data }: { docId: string; data: Record<string, any> }) => {
-      await supabase.from('sop_step_documents' as any).update(data).eq('id', docId);
+    mutationFn: async ({ docId, data }: { docId: string; data: Record<string, unknown> }) => {
+      await (supabase.from as any)('sop_step_documents').update(data).eq('id', docId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
   });
 
   const deleteStepDoc = useMutation({
     mutationFn: async (docId: string) => {
-      await supabase.from('sop_step_documents' as any).delete().eq('id', docId);
+      await (supabase.from as any)('sop_step_documents').delete().eq('id', docId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
   });
@@ -568,9 +569,9 @@ export default function SopDetailPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className="bg-violet-100 text-violet-800 border-violet-200 border text-xs px-3 py-1">
               🔄 Rotina {linkedRoutine.recurrence_type === 'semanal'
-                ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][(linkedRoutine as any).weekday || 0]} feira`
-                : `Mensal — dia ${(linkedRoutine as any).month_day}`}
-              {(linkedRoutine as any).hour_time ? ` às ${String((linkedRoutine as any).hour_time).slice(0, 5)}` : ''}
+                ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][linkedRoutine.weekday || 0]} feira`
+                : `Mensal — dia ${linkedRoutine.month_day}`}
+              {linkedRoutine.hour_time ? ` às ${String(linkedRoutine.hour_time).slice(0, 5)}` : ''}
             </Badge>
             <Badge variant={linkedRoutine.active ? 'default' : 'secondary'} className="text-[10px]">
               {linkedRoutine.active ? 'Ativa' : 'Inativa'}
@@ -904,7 +905,7 @@ export default function SopDetailPage() {
                         </Button>
                         <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => {
                           (async () => {
-                            await supabase.from('sop_step_documents' as any).insert({
+                            await (supabase.from as any)('sop_step_documents').insert({
                               sop_id: id,
                               step_id: step.id,
                               step_index: 0,
@@ -1100,7 +1101,7 @@ export default function SopDetailPage() {
                 onBlur={e => {
                   if (editingDoc && e.target.value !== editingDoc.title) {
                     updateStepDoc.mutate({ docId: editingDoc.id, data: { title: e.target.value } });
-                    setEditingDoc((prev: any) => prev ? { ...prev, title: e.target.value } : null);
+                    setEditingDoc((prev) => prev ? { ...prev, title: e.target.value } : null);
                   }
                 }}
                 placeholder="Título do documento..."
@@ -1114,7 +1115,7 @@ export default function SopDetailPage() {
                 onBlur={e => {
                   if (editingDoc && e.target.value !== (editingDoc.content || '')) {
                     updateStepDoc.mutate({ docId: editingDoc.id, data: { content: e.target.value } });
-                    setEditingDoc((prev: any) => prev ? { ...prev, content: e.target.value } : null);
+                    setEditingDoc((prev) => prev ? { ...prev, content: e.target.value } : null);
                   }
                 }}
                 placeholder="Escreve o conteúdo do documento/template aqui..."

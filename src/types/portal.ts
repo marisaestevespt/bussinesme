@@ -42,7 +42,8 @@ export interface PortalFeedback {
 export interface PortalMeetingDoc {
   url?: string;
   title?: string;
-  [k: string]: unknown;
+  name?: string;
+  [k: string]: any;
 }
 
 export type PortalMeetingPoint = string | { text?: string; action?: string; [k: string]: unknown };
@@ -57,7 +58,12 @@ export interface PortalMeeting {
   priorities?: PortalMeetingPoint[] | null;
   documents?: PortalMeetingDoc[] | null;
   notes?: string | null;
-  [k: string]: unknown;
+  meeting_url?: string | null;
+  portal_notes?: string | null;
+  discussion_notes?: string | null;
+  client_actions?: PortalMeetingPoint[] | null;
+  final_notes?: PortalMeetingPoint[] | null;
+  [k: string]: any;
 }
 
 export interface PortalPayment {
@@ -69,7 +75,7 @@ export interface PortalPayment {
   invoice_total?: number | null;
   sale_month?: number | null;
   payment_method?: string | null;
-  [k: string]: unknown;
+  [k: string]: any;
 }
 
 export interface PortalDeliverable {
@@ -79,7 +85,10 @@ export interface PortalDeliverable {
   name?: string | null;
   phase_name?: string | null;
   planned_end?: string | null;
-  [k: string]: unknown;
+  description?: string | null;
+  responsible?: string | null;
+  responsible_type?: string | null;
+  [k: string]: any;
 }
 
 export interface PortalPhase {
@@ -91,7 +100,7 @@ export interface PortalPhase {
   description?: string | null;
   planned_start?: string | null;
   planned_end?: string | null;
-  [k: string]: unknown;
+  [k: string]: any;
 }
 
 export interface PortalMaterial {
@@ -99,7 +108,7 @@ export interface PortalMaterial {
   file_name?: string | null;
   file_url?: string | null;
   created_at?: string | null;
-  [k: string]: unknown;
+  [k: string]: any;
 }
 
 export interface PortalContractDocument {
@@ -107,7 +116,7 @@ export interface PortalContractDocument {
   title?: string | null;
   file_url?: string | null;
   created_at?: string | null;
-  [k: string]: unknown;
+  [k: string]: any;
 }
 
 export interface PortalProjectHistoryEntry {
@@ -117,5 +126,5 @@ export interface PortalProjectHistoryEntry {
   description?: string | null;
   date?: string | null;
   created_at?: string | null;
-  [k: string]: unknown;
+  [k: string]: any;
 }
