@@ -258,6 +258,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               <TabsTrigger value="feedback" className="text-xs flex-1">Feedback</TabsTrigger>
               <TabsTrigger value="ferias" className="text-xs flex-1">Férias</TabsTrigger>
               <TabsTrigger value="onboarding" className="text-xs flex-1">Onboarding</TabsTrigger>
+              <TabsTrigger value="links" className="text-xs flex-1">Links</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="space-y-3 mt-3">
