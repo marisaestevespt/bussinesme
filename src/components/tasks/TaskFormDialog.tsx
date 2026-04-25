@@ -26,6 +26,8 @@ import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOverdue } from '@/lib/taskStatus';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
+import { EntityIconPicker } from '@/components/entity-icon';
+import type { EntityIcon } from '@/components/entity-icon';
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'mensal_ultimo' | 'diario' | 'personalizado';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -78,6 +80,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const [estimatedTime, setEstimatedTime] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const [sopId, setSopId] = useState('');
+  const [icon, setIcon] = useState<EntityIcon>(null);
   // timerPromptTaskId removed — timer auto-starts on status change
 
   // Queries
@@ -169,13 +172,14 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setEstimatedTime(editingTask.estimated_time != null ? String(editingTask.estimated_time) : '');
         setSopId(editingTask.sop_id || '');
         setScheduledTime(editingTask.scheduled_time || '');
+        setIcon((editingTask.icon ?? null) as EntityIcon);
         const deps = taskDependencies.filter(d => d.task_id === editingTask.id).map(d => d.depends_on_task_id);
         setDependsOnIds(deps);
       } else {
         setName(''); setStatus('por_comecar'); setPriority('alta');
         setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(defaultProjectId || ''); setClientId(defaultClientId || ''); setNotes('');
         setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
-        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime(''); setSopId('');
+        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime(''); setSopId(''); setIcon(null);
       }
     }
   }, [open, editingTask]);
@@ -385,6 +389,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
       sop_id: sopId || null,
       scheduled_time: scheduledTime || null,
+      icon,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
@@ -397,7 +402,18 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-3">
+              <EntityIconPicker
+                icon={icon}
+                onChange={(next) => setIcon(next)}
+                bucket="entity-icons"
+                pathPrefix={`tasks/${editingTask?.id || 'new'}`}
+                className="h-10 w-10"
+                emojiClassName="text-2xl"
+                variant="rounded"
+              />
+              <span>{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</span>
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
