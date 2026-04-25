@@ -611,7 +611,10 @@ export default function ProjetoDetailPage() {
             {local.product_name && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
-                <Badge className="bg-accent text-accent-foreground border-0">{local.product_name}</Badge>
+                <span className="inline-flex items-center gap-2">
+                  <ProductIcon productId={local.product_id as any} className="h-5 w-5" emojiClassName="text-sm" />
+                  <Badge className="bg-accent text-accent-foreground border-0">{local.product_name}</Badge>
+                </span>
               </div>
             )}
             {/* Datas */}
