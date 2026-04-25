@@ -104,7 +104,7 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
             ))}
             {dueTodayMetrics.map((m: any) => (
               <div key={m.id} className="flex items-center gap-3 py-1 text-sm">
-                <Badge variant="outline" className="text-[10px] border-amber-500 text-warning">Vence hoje</Badge>
+                <Badge variant="outline" className="text-[10px] border-warning text-warning">Vence hoje</Badge>
                 <span className="font-medium">{m.name}</span>
                 <span className="text-xs text-muted-foreground">({getObjectiveName(m.objective_id)})</span>
               </div>

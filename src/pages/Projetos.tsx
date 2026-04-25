@@ -39,21 +39,21 @@ import { InlineLoader } from '@/components/ui/loading-skeletons';
 // ─── Constants ──────────────────────────────────────────────────
 
 const PROJECT_TYPES = [
-  { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+  { value: 'interno', label: 'Interno', color: 'bg-info/15 text-info border-info' },
   { value: 'lancamento', label: 'Interno - Lançamento', color: 'bg-destructive/15 text-destructive border-destructive/30' },
   { value: 'cliente_projeto_unico', label: 'Cliente - Projeto Único', color: 'bg-success/15 text-success border-success/30' },
-  { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
+  { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-success/15 text-success border-success' },
 ];
 
 import { PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
 
 const DEPARTMENTS = [
-  { value: 'administrativo', label: 'Administrativo', color: 'bg-stone-100 text-stone-700 border-stone-300' },
-  { value: 'marketing', label: 'Marketing e Branding', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { value: 'administrativo', label: 'Administrativo', color: 'bg-muted text-muted-foreground border-border' },
+  { value: 'marketing', label: 'Marketing e Branding', color: 'bg-accent-violet/15 text-accent-violet border-accent-violet' },
   { value: 'financeiro', label: 'Financeiro', color: 'bg-warning/15 text-warning border-warning/30' },
-  { value: 'comercial', label: 'Comercial e Vendas', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
-  { value: 'clientes', label: 'Clientes', color: 'bg-violet-100 text-violet-700 border-violet-300' },
-  { value: 'equipa', label: 'Equipa', color: 'bg-teal-100 text-teal-700 border-teal-300' },
+  { value: 'comercial', label: 'Comercial e Vendas', color: 'bg-info/15 text-info border-info' },
+  { value: 'clientes', label: 'Clientes', color: 'bg-accent-violet/15 text-accent-violet border-accent-violet' },
+  { value: 'equipa', label: 'Equipa', color: 'bg-success/15 text-success border-success' },
   { value: 'operacao', label: 'Operação', color: 'bg-warning/15 text-warning border-warning/30' },
 ];
 
@@ -367,7 +367,7 @@ export default function ProjetosPage() {
 
           const metrics = [
             { label: 'Projetos em curso', value: active.length, color: 'text-foreground' },
-            { label: 'Projetos em atraso', value: overdue.length, color: overdue.length > 0 ? 'text-red-500' : 'text-muted-foreground' },
+            { label: 'Projetos em atraso', value: overdue.length, color: overdue.length > 0 ? 'text-destructive' : 'text-muted-foreground' },
             { label: 'Concluídos este mês', value: completedThisMonth.length, color: 'text-foreground' },
             { label: 'Tempo médio de entrega', value: avgDays !== null ? `${avgDays}d` : '—', color: 'text-foreground' },
           ];

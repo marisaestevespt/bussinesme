@@ -114,7 +114,7 @@ export function RenewContractDialog({ open, onClose, previousContract, memberNam
             <Textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} />
           </div>
 
-          <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-muted-foreground">
+          <div className="rounded-md border border-warning/30 bg-warning/5 p-2 text-[11px] text-muted-foreground">
             ⚠️ O contrato anterior <strong>não</strong> é alterado automaticamente. Se quiseres marcá-lo como terminado, edita-o depois manualmente.
           </div>
 

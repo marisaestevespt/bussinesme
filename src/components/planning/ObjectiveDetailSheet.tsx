@@ -483,7 +483,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
   };
 
   const allHistory = planning.metricHistory.data || [];
-  const statusColors: Record<string, string> = { green: 'bg-emerald-500', yellow: 'bg-amber-400', red: 'bg-red-500', neutral: 'bg-muted' };
+  const statusColors: Record<string, string> = { green: 'bg-success', yellow: 'bg-warning', red: 'bg-destructive', neutral: 'bg-muted' };
   const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
 
   return (

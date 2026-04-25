@@ -230,7 +230,7 @@ export default function ComecaAquiPage() {
                           </Avatar>
                           <span
                             className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-background ${
-                              isWithinSchedule(m.work_schedule) ? 'bg-green-500' : 'bg-yellow-500'
+                              isWithinSchedule(m.work_schedule) ? 'bg-success' : 'bg-warning'
                             }`}
                           />
                         </div>
@@ -272,7 +272,7 @@ export default function ComecaAquiPage() {
                       </Avatar>
                       <span
                         className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-background ${
-                          isWithinSchedule(selectedMember.work_schedule) ? 'bg-green-500' : 'bg-yellow-500'
+                          isWithinSchedule(selectedMember.work_schedule) ? 'bg-success' : 'bg-warning'
                         }`}
                       />
                     </div>

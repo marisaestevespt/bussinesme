@@ -25,7 +25,7 @@ export function IndependenteSection({ data, currentYear, onSave, onToggle }: Pro
 
   return (
     <div className="space-y-4">
-      <Card className="border-info/30 bg-info/15/50 dark:bg-blue-950/20 dark:border-blue-800">
+      <Card className="border-info/30 bg-info/15/50 dark:bg-info/20 dark:border-info">
         <CardContent className="pt-4 flex gap-2">
           <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
           <div className="text-sm text-muted-foreground space-y-1">
@@ -67,7 +67,7 @@ export function IndependenteSection({ data, currentYear, onSave, onToggle }: Pro
                           <span className="text-muted-foreground">— Base: {groupData[0].srcLabel}</span>
                           <span className="text-muted-foreground">· Declaração: {groupData[0].declMonth} {groupData[0].declYear}</span>
                           {!groupData[0].hasData && (
-                            <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
+                            <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning/30 dark:bg-warning/20 dark:text-warning dark:border-warning">
                               Sem dados de faturação
                             </Badge>
                           )}

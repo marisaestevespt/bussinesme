@@ -217,7 +217,7 @@ export function CommercialVendas() {
                   <TableCell className="text-right">€{formatNumber(Number(s.invoice_total))}</TableCell>
                   <TableCell>{s.product || '—'}</TableCell>
                   <TableCell>{s.client || '—'}</TableCell>
-                  <TableCell>{s.source || '—'}{(s as any).is_special_offer && <Gift className="inline h-3.5 w-3.5 ml-1 text-amber-500" />}</TableCell>
+                  <TableCell>{s.source || '—'}{(s as any).is_special_offer && <Gift className="inline h-3.5 w-3.5 ml-1 text-warning" />}</TableCell>
                   <TableCell onClick={e => e.stopPropagation()}>{Array.isArray(s.documents) && s.documents.length > 0 ? <a href={(s.documents[0] as any)?.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a> : '—'}</TableCell>
                   <TableCell>{s.sale_month ? MONTH_NAMES_SHORT[s.sale_month - 1] : '—'}</TableCell>
                   <TableCell>{QUARTER_LABEL(s.sale_quarter)}</TableCell>

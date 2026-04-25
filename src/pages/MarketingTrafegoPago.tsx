@@ -25,11 +25,11 @@ import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, display
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const STATUSES = [
-  { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
+  { value: 'em_desenho', label: 'Em desenho', color: 'bg-accent-violet/15 text-accent-violet' },
   { value: 'escrita_copy', label: 'Escrita de copy', color: 'bg-warning/15 text-warning' },
   { value: 'gravacao', label: 'Gravação', color: 'bg-warning/15 text-warning' },
-  { value: 'edicao', label: 'Edição', color: 'bg-cyan-100 text-cyan-800' },
-  { value: 'design', label: 'Design', color: 'bg-pink-100 text-pink-800' },
+  { value: 'edicao', label: 'Edição', color: 'bg-info/15 text-info' },
+  { value: 'design', label: 'Design', color: 'bg-accent-violet/15 text-accent-violet' },
   { value: 'para_aprovacao', label: 'Para aprovação final', color: 'bg-warning/15 text-warning' },
   { value: 'em_campanha', label: 'Em campanha', color: 'bg-success/15 text-success' },
   { value: 'ajustes', label: 'Ajustes a fazer', color: 'bg-destructive/15 text-destructive' },

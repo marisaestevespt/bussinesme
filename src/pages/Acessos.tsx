@@ -19,16 +19,16 @@ import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 const PLATFORM_TYPES = [
   { value: 'gestao', label: 'Gestão', color: 'bg-info/15 text-info' },
-  { value: 'crm', label: 'CRM', color: 'bg-purple-100 text-purple-800' },
-  { value: 'redes_sociais', label: 'Redes Sociais', color: 'bg-pink-100 text-pink-800' },
+  { value: 'crm', label: 'CRM', color: 'bg-accent-violet/15 text-accent-violet' },
+  { value: 'redes_sociais', label: 'Redes Sociais', color: 'bg-accent-violet/15 text-accent-violet' },
   { value: 'email_marketing', label: 'Email Marketing', color: 'bg-warning/15 text-warning' },
   { value: 'checkout', label: 'Checkout', color: 'bg-success/15 text-success' },
-  { value: 'dominio', label: 'Domínio', color: 'bg-teal-100 text-teal-800' },
-  { value: 'alojamento', label: 'Alojamento', color: 'bg-cyan-100 text-cyan-800' },
+  { value: 'dominio', label: 'Domínio', color: 'bg-success/15 text-success' },
+  { value: 'alojamento', label: 'Alojamento', color: 'bg-info/15 text-info' },
   { value: 'automacoes', label: 'Automações', color: 'bg-warning/15 text-warning' },
-  { value: 'integracoes', label: 'Integrações', color: 'bg-indigo-100 text-indigo-800' },
-  { value: 'contabilidade', label: 'Contabilidade', color: 'bg-slate-100 text-slate-800' },
-  { value: 'outros', label: 'Outros', color: 'bg-gray-100 text-gray-800' },
+  { value: 'integracoes', label: 'Integrações', color: 'bg-info/15 text-info' },
+  { value: 'contabilidade', label: 'Contabilidade', color: 'bg-muted text-muted-foreground' },
+  { value: 'outros', label: 'Outros', color: 'bg-muted text-muted-foreground' },
 ] as const;
 
 function getTypeInfo(value: string) {

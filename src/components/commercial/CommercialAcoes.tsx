@@ -134,7 +134,7 @@ export function CommercialAcoes() {
             <span className="font-semibold">{countPorComecar}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <PlayCircle className="h-4 w-4 text-blue-500" />
+            <PlayCircle className="h-4 w-4 text-info" />
             <span className="text-muted-foreground">Em Curso:</span>
             <span className="font-semibold">{countEmCurso}</span>
           </div>

@@ -325,7 +325,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
                             />
                             {isGrowthField && numVal != null && (
                               <span className={cn("text-xs font-medium flex items-center gap-0.5",
-                                numVal >= 0 ? 'text-success' : 'text-red-500')}>
+                                numVal >= 0 ? 'text-success' : 'text-destructive')}>
                                 {numVal >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                                 {numVal >= 0 ? '+' : ''}{numVal}
                               </span>
@@ -384,7 +384,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, on
         <Card>
           <CardContent className="p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-amber-500" />
+              <Trophy className="h-4 w-4 text-warning" />
               <h3 className="text-sm font-semibold text-foreground">Top 3 Publicações</h3>
             </div>
             {top3.length === 0 ? (

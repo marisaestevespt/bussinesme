@@ -899,12 +899,12 @@ export default function ReuniaoDetailPage() {
 
         {/* Portal notes from client */}
         {(m as any).portal_notes && (
-          <div className="rounded-lg border border-warning/30 bg-warning/15 dark:bg-amber-950/20 dark:border-amber-800 p-4 space-y-1">
+          <div className="rounded-lg border border-warning/30 bg-warning/15 dark:bg-warning/20 dark:border-warning p-4 space-y-1">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-warning" />
-              <span className="text-sm font-semibold text-warning dark:text-amber-400">Nota do cliente sobre horário</span>
+              <span className="text-sm font-semibold text-warning dark:text-warning">Nota do cliente sobre horário</span>
             </div>
-            <p className="text-sm text-warning dark:text-amber-300">{(m as any).portal_notes}</p>
+            <p className="text-sm text-warning dark:text-warning">{(m as any).portal_notes}</p>
           </div>
         )}
 

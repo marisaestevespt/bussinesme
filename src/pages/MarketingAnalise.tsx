@@ -308,8 +308,8 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
               const target = obj.target_value || 0;
               const current = obj.current_value || 0;
               const pct = target > 0 ? (current / target) * 100 : 0;
-              const color = pct >= 100 ? 'text-success' : pct >= 70 ? 'text-warning' : 'text-red-500';
-              const bgColor = pct >= 100 ? 'bg-success/15 dark:bg-emerald-950' : pct >= 70 ? 'bg-warning/15 dark:bg-amber-950' : 'bg-destructive/15 dark:bg-red-950';
+              const color = pct >= 100 ? 'text-success' : pct >= 70 ? 'text-warning' : 'text-destructive';
+              const bgColor = pct >= 100 ? 'bg-success/15 dark:bg-success/20' : pct >= 70 ? 'bg-warning/15 dark:bg-warning/20' : 'bg-destructive/15 dark:bg-destructive/20';
               return (
                 <Card key={obj.id} className={bgColor}>
                   <CardContent className="p-4 space-y-1">
@@ -374,11 +374,11 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                         <span className="text-sm text-muted-foreground">/ {g.target_value}</span>
                       </div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden">
-                        <div className={cn('h-full rounded-full transition-all', achieved ? 'bg-emerald-500' : 'bg-primary')} style={{ width: `${Math.min(pct, 100)}%` }} />
+                        <div className={cn('h-full rounded-full transition-all', achieved ? 'bg-success' : 'bg-primary')} style={{ width: `${Math.min(pct, 100)}%` }} />
                       </div>
                       <div className="flex items-center justify-between">
                         <span className={cn('text-xs font-medium', achieved ? 'text-success' : pct >= 75 ? 'text-primary' : 'text-muted-foreground')}>{pct}%</span>
-                        {achieved && <Badge className="text-[10px] bg-emerald-500 hover:bg-emerald-600">Atingida ✓</Badge>}
+                        {achieved && <Badge className="text-[10px] bg-success hover:bg-success">Atingida ✓</Badge>}
                       </div>
                     </div>
                     {isOwner && (
@@ -451,7 +451,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
             <p className="text-xs text-muted-foreground">Planeados</p>
           </CardContent></Card>
           <Card><CardContent className="p-5 text-center">
-            <p className={cn("text-2xl font-bold", executionRate >= 80 ? 'text-success' : executionRate >= 50 ? 'text-warning' : 'text-red-500')}>{executionRate}%</p>
+            <p className={cn("text-2xl font-bold", executionRate >= 80 ? 'text-success' : executionRate >= 50 ? 'text-warning' : 'text-destructive')}>{executionRate}%</p>
             <p className="text-xs text-muted-foreground">Taxa de execução</p>
           </CardContent></Card>
         </div>
@@ -463,7 +463,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-5 space-y-3">
-            <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" /><h3 className="text-sm font-semibold">Top 3 Publicações</h3></div>
+            <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-warning" /><h3 className="text-sm font-semibold">Top 3 Publicações</h3></div>
             {top3.length === 0 ? (
               <EmptyHint>Sem dados suficientes.</EmptyHint>
             ) : top3.map((item, i) => (
@@ -898,7 +898,7 @@ export default function MarketingAnalisePage() {
             {/* Top 3 publications of the year */}
             <Card className="border-secondary bg-background">
               <CardContent className="p-5 space-y-3">
-                <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" /><h3 className="text-sm font-semibold">Top 3 Publicações do Ano</h3></div>
+                <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-warning" /><h3 className="text-sm font-semibold">Top 3 Publicações do Ano</h3></div>
                 {annualSummary.top3Year.length === 0 ? (
                   <EmptyHint>Sem dados de performance suficientes para este ano.</EmptyHint>
                 ) : annualSummary.top3Year.map((item: any, i: number) => (
@@ -974,7 +974,7 @@ export default function MarketingAnalisePage() {
                       <div className="flex items-center gap-2 mb-3">
                         <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-emerald-500 transition-all"
+                            className="h-full rounded-full bg-success transition-all"
                             style={{ width: `${annualSummary.objectivesTotal > 0 ? (annualSummary.objectivesAchieved / annualSummary.objectivesTotal) * 100 : 0}%` }}
                           />
                         </div>
@@ -985,9 +985,9 @@ export default function MarketingAnalisePage() {
                       <div className="space-y-2">
                         {annualSummary.objectivesClassified.map((o: any) => {
                           const badges: Record<string, { label: string; cls: string }> = {
-                            superado: { label: 'Superado', cls: 'bg-emerald-700 text-white' },
-                            atingido: { label: 'Atingido', cls: 'bg-emerald-500 text-white' },
-                            proximo: { label: 'Próximo', cls: 'bg-amber-500 text-white' },
+                            superado: { label: 'Superado', cls: 'bg-success/20 text-white' },
+                            atingido: { label: 'Atingido', cls: 'bg-success text-white' },
+                            proximo: { label: 'Próximo', cls: 'bg-warning text-white' },
                             nao_atingido: { label: 'Não atingido', cls: 'bg-destructive text-destructive-foreground' },
                             sem_dados: { label: 'Sem dados', cls: 'bg-muted text-muted-foreground' },
                           };

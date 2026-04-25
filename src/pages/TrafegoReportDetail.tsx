@@ -156,7 +156,7 @@ export default function TrafegoReportDetail() {
             <div className="space-y-2">
               {files.map(file => (
                 <div key={file.id} className="flex items-center gap-3 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors group">
-                  <FileText className="h-5 w-5 text-red-500 shrink-0" />
+                  <FileText className="h-5 w-5 text-destructive shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{file.file_name}</p>
                     <p className="text-xs text-muted-foreground">

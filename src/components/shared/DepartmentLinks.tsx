@@ -33,13 +33,13 @@ interface DepartmentLink {
 }
 
 const TYPE_META: Record<LinkType, { label: string; icon: any; color: string }> = {
-  whatsapp: { label: "WhatsApp", icon: MessageCircle, color: "text-green-600" },
-  drive:    { label: "Drive",    icon: FolderOpen,   color: "text-blue-600" },
+  whatsapp: { label: "WhatsApp", icon: MessageCircle, color: "text-success" },
+  drive:    { label: "Drive",    icon: FolderOpen,   color: "text-info" },
   notion:   { label: "Notion",   icon: FileText,     color: "text-foreground" },
-  figma:    { label: "Figma",    icon: Figma,        color: "text-pink-600" },
-  slack:    { label: "Slack",    icon: Slack,        color: "text-purple-600" },
-  trello:   { label: "Trello",   icon: Trello,       color: "text-sky-600" },
-  loom:     { label: "Loom",     icon: Video,        color: "text-indigo-600" },
+  figma:    { label: "Figma",    icon: Figma,        color: "text-accent-violet" },
+  slack:    { label: "Slack",    icon: Slack,        color: "text-accent-violet" },
+  trello:   { label: "Trello",   icon: Trello,       color: "text-info" },
+  loom:     { label: "Loom",     icon: Video,        color: "text-info" },
 };
 
 const TYPES: LinkType[] = ["whatsapp", "drive", "notion", "figma", "slack", "trello", "loom"];

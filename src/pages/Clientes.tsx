@@ -109,9 +109,9 @@ export default function ClientesPage() {
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
             {[
-              { path: '/hub/clientes/analise', label: 'Análise de Clientes', icon: BarChart3, iconColor: 'text-info', color: 'from-blue-500/20 to-blue-600/10 border-info/30/60 hover:from-blue-500/30 hover:to-blue-600/15 hover:border-info/30/80' },
-              { path: '/hub/clientes/portais', label: 'Portal de Clientes', icon: Globe, iconColor: 'text-violet-600', color: 'from-violet-500/20 to-violet-600/10 border-violet-200/60 hover:from-violet-500/30 hover:to-violet-600/15 hover:border-violet-300/80' },
-              { path: '/hub/clientes/feedback', label: 'Feedbacks', icon: MessageSquare, iconColor: 'text-warning', color: 'from-amber-500/20 to-amber-600/10 border-warning/30/60 hover:from-amber-500/30 hover:to-amber-600/15 hover:border-warning/30/80' },
+              { path: '/hub/clientes/analise', label: 'Análise de Clientes', icon: BarChart3, iconColor: 'text-info', color: 'from-info/20 to-info/10 border-info/30/60 hover:from-info/30 hover:to-info/15 hover:border-info/30/80' },
+              { path: '/hub/clientes/portais', label: 'Portal de Clientes', icon: Globe, iconColor: 'text-accent-violet', color: 'from-accent-violet/20 to-accent-violet/10 border-accent-violet/60 hover:from-accent-violet/30 hover:to-accent-violet/15 hover:border-accent-violet/80' },
+              { path: '/hub/clientes/feedback', label: 'Feedbacks', icon: MessageSquare, iconColor: 'text-warning', color: 'from-warning/20 to-warning/10 border-warning/30/60 hover:from-warning/30 hover:to-warning/15 hover:border-warning/30/80' },
             ].map(s => (
               <Card
                 key={s.path}

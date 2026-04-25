@@ -328,7 +328,7 @@ export default function PortalViewPage() {
       por_organizar: { text: 'Por organizar', cls: 'bg-info/15 text-info border-info/30' },
       confirmada: { text: 'Confirmada', cls: 'bg-success/15 text-success border-success/30' },
       marcada: { text: 'Confirmada', cls: 'bg-success/15 text-success border-success/30' },
-      terminada: { text: 'Terminada', cls: 'bg-slate-100 text-slate-700 border-slate-200' },
+      terminada: { text: 'Terminada', cls: 'bg-muted text-muted-foreground border-border' },
       realizada: { text: 'Realizada', cls: 'bg-info/15 text-info border-info/30' },
       cancelada: { text: 'Cancelada', cls: 'bg-destructive/15 text-destructive border-destructive/30' },
     };
@@ -578,7 +578,7 @@ export default function PortalViewPage() {
                               <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{dels.length} entregas</p>
                               <div className="mt-2 flex items-center gap-1.5">
                                 {done ? (
-                                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                  <CheckCircle2 className="h-4 w-4 text-success" />
                                 ) : (
                                   <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
                                     <div className="h-full rounded-full transition-all" style={{ width: `${dels.length ? (completedDels / dels.length) * 100 : 0}%`, backgroundColor: pc }} />
@@ -640,7 +640,7 @@ export default function PortalViewPage() {
                                         }}
                                       >
                                         {dDone
-                                          ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                          ? <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />
                                           : isClient
                                             ? <Circle className="h-4 w-4 text-primary/60 shrink-0 mt-0.5" />
                                             : <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-0.5" />}
@@ -811,7 +811,7 @@ export default function PortalViewPage() {
                                 {isOpen && (
                                   <div className="px-5 pb-4 pl-[4.5rem]">
                                     {Array.isArray(q.file_urls) && q.file_urls.length > 0 && (
-                                      <div className="rounded-xl bg-success/15/50 border border-emerald-100 p-3 mb-2">
+                                      <div className="rounded-xl bg-success/15/50 border border-success p-3 mb-2">
                                         <div className="flex flex-wrap gap-2">
                                           {(q.file_urls as string[]).map((url: string, fi: number) => {
                                             const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
@@ -844,7 +844,7 @@ export default function PortalViewPage() {
                                     {/* Text answer — always available */}
                                     {q.answer?.trim() && editingQuestionId !== q.id ? (
                                       <div className="space-y-2">
-                                        <div className="rounded-xl bg-success/15/50 border border-emerald-100 p-3">
+                                        <div className="rounded-xl bg-success/15/50 border border-success p-3">
                                           <p className="text-sm">{q.answer}</p>
                                           {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
                                         </div>
@@ -972,7 +972,7 @@ export default function PortalViewPage() {
                             }`} style={isActive ? { borderColor: pc, backgroundColor: pcAlpha(0.04) } : undefined}>
                               <div className="flex items-center gap-3">
                                 {isDone ? (
-                                  <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                                  <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
                                 ) : isActive ? (
                                   <div className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0" style={{ backgroundColor: pc }}>
                                     {i + 1}
@@ -1008,7 +1008,7 @@ export default function PortalViewPage() {
                                     return (
                                       <div key={d.id} className="flex items-center gap-2">
                                         {dDone ? (
-                                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                          <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
                                         ) : dActive ? (
                                           <div className="h-3.5 w-3.5 rounded-full border-2 shrink-0" style={{ borderColor: pc }} />
                                         ) : (
@@ -1467,7 +1467,7 @@ export default function PortalViewPage() {
                           <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{dels.length} entregas</p>
                           <div className="mt-2 flex items-center gap-1.5">
                             {done ? (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              <CheckCircle2 className="h-4 w-4 text-success" />
                             ) : (
                               <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all" style={{ width: `${dels.length ? (completedDels / dels.length) * 100 : 0}%`, backgroundColor: pc }} />

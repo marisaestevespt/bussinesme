@@ -143,14 +143,14 @@ export default function SecretariaPage() {
         {/* Navigation cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {[
-            { value: 'dia', label: 'O Meu Dia', icon: CalendarIcon, iconColor: 'text-info', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
-            { value: 'semana', label: 'A Minha Semana', icon: CalendarIcon, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10' },
-            { value: 'agenda', label: 'A Minha Agenda', icon: CalendarIcon, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10' },
-            { value: 'tarefas', label: 'As Minhas Tarefas', icon: CheckSquare, iconColor: 'text-success', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
-            { value: 'projetos', label: 'Os Meus Projetos', icon: FolderKanban, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
-            { value: 'reunioes', label: 'As Minhas Reuniões', icon: Users, iconColor: 'text-destructive', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
-            { value: 'produtividade', label: 'Produtividade', icon: BarChart3, iconColor: 'text-warning', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-            { value: 'contrato', label: 'Contrato & Pagamentos', icon: FileText, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10' },
+            { value: 'dia', label: 'O Meu Dia', icon: CalendarIcon, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
+            { value: 'semana', label: 'A Minha Semana', icon: CalendarIcon, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
+            { value: 'agenda', label: 'A Minha Agenda', icon: CalendarIcon, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
+            { value: 'tarefas', label: 'As Minhas Tarefas', icon: CheckSquare, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
+            { value: 'projetos', label: 'Os Meus Projetos', icon: FolderKanban, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
+            { value: 'reunioes', label: 'As Minhas Reuniões', icon: Users, iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
+            { value: 'produtividade', label: 'Produtividade', icon: BarChart3, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
+            { value: 'contrato', label: 'Contrato & Pagamentos', icon: FileText, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
           ].map(s => (
             <Card
               key={s.value}
@@ -240,7 +240,7 @@ export default function SecretariaPage() {
                       className="flex items-start gap-3 p-3 rounded-lg bg-background border cursor-pointer hover:shadow-sm transition-shadow"
                       onClick={() => navigate('/hub/tarefas')}
                     >
-                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                      <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                       <p className="text-sm text-foreground">
                         <strong>{alert.memberName}</strong> está ausente de{' '}
                         {format(parseISO(alert.startDate), 'dd/MM')} a {format(parseISO(alert.endDate), 'dd/MM')}.
@@ -261,8 +261,8 @@ export default function SecretariaPage() {
             {/* Bottom utility buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
               {[
-                { value: 'recomendacoes', label: 'Caixa de Recomendações', icon: ListTodo, iconColor: 'text-warning', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
-                { value: 'resumo_email', label: 'Resumo por Email', icon: Mail, iconColor: 'text-pink-600', color: 'from-pink-500/10 to-pink-600/5 hover:from-pink-500/20 hover:to-pink-600/10' },
+                { value: 'recomendacoes', label: 'Caixa de Recomendações', icon: ListTodo, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
+                { value: 'resumo_email', label: 'Resumo por Email', icon: Mail, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
               ].map(s => (
                 <Card
                   key={s.value}

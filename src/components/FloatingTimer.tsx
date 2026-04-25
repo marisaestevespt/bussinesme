@@ -69,11 +69,11 @@ export function FloatingTimer() {
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
               {isPaused ? (
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-warning" />
               ) : (
                 <>
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" />
                 </>
               )}
             </span>
@@ -94,7 +94,7 @@ export function FloatingTimer() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 hover:bg-emerald-500/10 hover:text-success"
+                className="h-7 w-7 p-0 hover:bg-success/10 hover:text-success"
                 onClick={resumeTimer}
                 title="Retomar"
               >
@@ -104,7 +104,7 @@ export function FloatingTimer() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 hover:bg-amber-500/10 hover:text-warning"
+                className="h-7 w-7 p-0 hover:bg-warning/10 hover:text-warning"
                 onClick={pauseTimer}
                 title="Pausar"
               >
@@ -149,7 +149,7 @@ export function FloatingTimer() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Coffee className="h-4 w-4 text-amber-500" /> Hora de uma pausa! ☕
+              <Coffee className="h-4 w-4 text-warning" /> Hora de uma pausa! ☕
             </DialogTitle>
             <DialogDescription className="space-y-2">
               <span className="block">Já estás a trabalhar há mais de 25 minutos sem parar.</span>

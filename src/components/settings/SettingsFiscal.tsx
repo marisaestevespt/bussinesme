@@ -384,7 +384,7 @@ export function SettingsFiscal() {
           )}
 
           {businessType === 'empresa' && (
-            <div className="rounded-md border border-warning/30 bg-warning/15/50 dark:bg-amber-950/20 dark:border-amber-800 p-4 text-sm text-muted-foreground flex gap-2">
+            <div className="rounded-md border border-warning/30 bg-warning/15/50 dark:bg-warning/20 dark:border-warning p-4 text-sm text-muted-foreground flex gap-2">
               <Info className="h-4 w-4 text-warning shrink-0 mt-0.5" />
               <span>Empresa com contabilidade organizada obrigatória. O contabilista trata de todas as declarações fiscais.</span>
             </div>
@@ -392,7 +392,7 @@ export function SettingsFiscal() {
 
           {/* Contabilidade organizada info for ENI */}
           {businessType === 'eni' && isContabOrganizada && (
-            <div className="rounded-md border border-warning/30 bg-warning/15/50 dark:bg-amber-950/20 dark:border-amber-800 p-4 text-sm text-muted-foreground flex gap-2">
+            <div className="rounded-md border border-warning/30 bg-warning/15/50 dark:bg-warning/20 dark:border-warning p-4 text-sm text-muted-foreground flex gap-2">
               <Info className="h-4 w-4 text-warning shrink-0 mt-0.5" />
               <span>Em contabilidade organizada, o IVA e a Segurança Social são geridos pelo contabilista. Essas páginas ficam em modo de guia informativo.</span>
             </div>

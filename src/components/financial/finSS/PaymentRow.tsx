@@ -56,7 +56,7 @@ export function PaymentRow({ month, predicted, paid, isPaid, onSave, onToggle, e
           variant={isPaid ? 'outline' : 'default'}
           disabled={toggling}
           onClick={handleToggle}
-          className={isPaid ? 'bg-success/15 text-success border-success/30 hover:bg-destructive/15 hover:text-destructive hover:border-destructive/30 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 h-7 text-xs' : 'h-7 text-xs'}
+          className={isPaid ? 'bg-success/15 text-success border-success/30 hover:bg-destructive/15 hover:text-destructive hover:border-destructive/30 dark:bg-success/20 dark:text-success dark:hover:bg-destructive/20 dark:hover:text-destructive h-7 text-xs' : 'h-7 text-xs'}
         >
           {isPaid ? 'Pago ✓' : 'Confirmar'}
         </Button>

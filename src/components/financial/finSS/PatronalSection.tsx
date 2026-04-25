@@ -20,7 +20,7 @@ export function PatronalSection({ data, contracts, currentYear, onSave, onToggle
 
   return (
     <div className="space-y-4">
-      <Card className="border-info/30 bg-info/15/50 dark:bg-blue-950/20 dark:border-blue-800">
+      <Card className="border-info/30 bg-info/15/50 dark:bg-info/20 dark:border-info">
         <CardContent className="pt-4 flex gap-2">
           <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
           <p className="text-sm text-muted-foreground">

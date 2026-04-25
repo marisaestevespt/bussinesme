@@ -19,17 +19,17 @@ type CrmLeadAction = Tables<'crm_lead_actions'>;
  * this list at runtime via useCrmStages.
  */
 export const CRM_STATUSES = [
-  { value: 'lead',              label: 'Lead',              color: 'bg-slate-100 text-slate-700 border-slate-200',   hex: '#6366f1' },
-  { value: 'primeiro_contacto', label: 'Primeiro Contacto', color: 'bg-sky-100 text-sky-700 border-sky-200',         hex: '#8b5cf6' },
-  { value: 'sessao_agendada',   label: 'Sessão Agendada',   color: 'bg-indigo-100 text-indigo-700 border-indigo-200',hex: '#a78bfa' },
-  { value: 'proposta_enviada',  label: 'Proposta Enviada',  color: 'bg-violet-100 text-violet-700 border-violet-200',hex: '#3b82f6' },
-  { value: 'follow_up_1',       label: 'Follow Up 1',       color: 'bg-amber-100 text-amber-700 border-amber-200',   hex: '#f59e0b' },
-  { value: 'follow_up_2',       label: 'Follow Up 2',       color: 'bg-orange-100 text-orange-700 border-orange-200',hex: '#f97316' },
-  { value: 'follow_up_3',       label: 'Follow Up 3',       color: 'bg-rose-100 text-rose-700 border-rose-200',      hex: '#ef4444' },
-  { value: 'aguarda_retorno',   label: 'Aguarda Retorno',   color: 'bg-cyan-100 text-cyan-700 border-cyan-200',      hex: '#64748b' },
-  { value: 'outra_altura',      label: 'Outra Altura',      color: 'bg-zinc-100 text-zinc-600 border-zinc-200',      hex: '#94a3b8' },
-  { value: 'ganho',             label: 'Ganho',             color: 'bg-emerald-100 text-emerald-700 border-emerald-200', hex: '#22c55e' },
-  { value: 'perdido',           label: 'Perdido',           color: 'bg-red-100 text-red-700 border-red-200',         hex: '#dc2626' },
+  { value: 'lead',              label: 'Lead',              color: 'bg-muted text-muted-foreground border-border',   hex: '#6366f1' },
+  { value: 'primeiro_contacto', label: 'Primeiro Contacto', color: 'bg-info/15 text-info border-info',         hex: '#8b5cf6' },
+  { value: 'sessao_agendada',   label: 'Sessão Agendada',   color: 'bg-info/15 text-info border-info',hex: '#a78bfa' },
+  { value: 'proposta_enviada',  label: 'Proposta Enviada',  color: 'bg-accent-violet/15 text-accent-violet border-accent-violet',hex: '#3b82f6' },
+  { value: 'follow_up_1',       label: 'Follow Up 1',       color: 'bg-warning/15 text-warning border-warning',   hex: '#f59e0b' },
+  { value: 'follow_up_2',       label: 'Follow Up 2',       color: 'bg-warning/15 text-warning border-warning',hex: '#f97316' },
+  { value: 'follow_up_3',       label: 'Follow Up 3',       color: 'bg-destructive/15 text-destructive border-destructive',      hex: '#ef4444' },
+  { value: 'aguarda_retorno',   label: 'Aguarda Retorno',   color: 'bg-info/15 text-info border-info',      hex: '#64748b' },
+  { value: 'outra_altura',      label: 'Outra Altura',      color: 'bg-muted text-muted-foreground border-border',      hex: '#94a3b8' },
+  { value: 'ganho',             label: 'Ganho',             color: 'bg-success/15 text-success border-success', hex: '#22c55e' },
+  { value: 'perdido',           label: 'Perdido',           color: 'bg-destructive/15 text-destructive border-destructive',         hex: '#dc2626' },
 ] as const;
 
 /** Status values that are "closed" (not in active pipeline). */

@@ -321,7 +321,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-success" />
                   <span className="text-sm font-medium">Receita total do lançamento:</span>
-                  <Badge variant="outline" className="text-success dark:text-green-400 border-success/30">
+                  <Badge variant="outline" className="text-success dark:text-success border-success/30">
                     {launchRevenue.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
                   </Badge>
                 </div>

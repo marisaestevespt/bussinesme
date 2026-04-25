@@ -90,7 +90,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Equipa ativa</p><p className="text-2xl font-bold">{activeMembers.length}</p><p className="text-xs text-muted-foreground">membros</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Capacidade mensal</p><p className="text-2xl font-bold">{totalMonthlyHours}h</p><p className="text-xs text-muted-foreground">{totalWeeklyHours}h/semana</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Registado (mês)</p><p className="text-2xl font-bold">{totalActual.toFixed(1)}h</p><p className="text-xs"><span className="text-primary font-medium">{totalClientH.toFixed(1)}h cliente</span> <span className="text-muted-foreground">+ {totalInternalH.toFixed(1)}h interno</span></p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Ocupação geral</p><p className={`text-2xl font-bold ${overallUsage > 100 ? 'text-destructive' : overallUsage > 85 ? 'text-amber-500' : 'text-foreground'}`}>{overallUsage}%</p><Progress value={Math.min(overallUsage, 100)} className="h-2 mt-1" /></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Ocupação geral</p><p className={`text-2xl font-bold ${overallUsage > 100 ? 'text-destructive' : overallUsage > 85 ? 'text-warning' : 'text-foreground'}`}>{overallUsage}%</p><Progress value={Math.min(overallUsage, 100)} className="h-2 mt-1" /></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Horas disponíveis</p><p className={`text-2xl font-bold ${totalRemainingH < 0 ? 'text-destructive' : 'text-foreground'}`}>{totalRemainingH.toFixed(1)}h</p><p className="text-xs text-muted-foreground">restantes no mês</p></CardContent></Card>
       </div>
 
@@ -131,12 +131,12 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                   <TableCell className="text-sm text-right tabular-nums text-primary">{m.clientH}h</TableCell>
                   <TableCell className="text-sm text-right tabular-nums">{m.internalH}h</TableCell>
                   <TableCell className={`text-sm text-right tabular-nums ${m.remainingH < 0 ? 'text-destructive' : ''}`}>{m.remainingH}h</TableCell>
-                  <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-amber-500' : ''}`}>{m.usagePct}%</TableCell>
+                  <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-warning' : ''}`}>{m.usagePct}%</TableCell>
                   <TableCell className="text-center text-xs">{m.weekendDays > 0 ? <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">{m.weekendDays}d · {m.weekendH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell className="text-center text-xs">{m.holidayDays > 0 ? <Badge variant="outline" className="text-[10px] border-info/30 text-info">{m.holidayDays}d · {m.holidayH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell>
                     <div className="flex h-2.5 w-24 rounded-full overflow-hidden bg-muted">
-                      <div className={`h-full rounded-full ${m.usagePct > 100 ? 'bg-destructive' : m.usagePct > 85 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${Math.min(m.usagePct, 100)}%` }} />
+                      <div className={`h-full rounded-full ${m.usagePct > 100 ? 'bg-destructive' : m.usagePct > 85 ? 'bg-warning' : 'bg-primary'}`} style={{ width: `${Math.min(m.usagePct, 100)}%` }} />
                     </div>
                   </TableCell>
                 </TableRow>

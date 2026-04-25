@@ -306,7 +306,7 @@ export function AbsenceCoverageTable() {
                     <TableCell>
                       {c.substitute_id ? getName(c.substitute_id) : (
                         <span className="text-muted-foreground flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3 text-amber-500" /> Sem substituto
+                          <AlertTriangle className="h-3 w-3 text-warning" /> Sem substituto
                         </span>
                       )}
                     </TableCell>

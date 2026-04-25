@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 /**
  * Unified semantic status badge.
  * Use this instead of manually styling badges with hardcoded color classes
- * (bg-green-100, text-amber-600, etc.) across the app.
+ * (bg-success/15, text-warning, etc.) across the app.
  *
  * Tones map to design-system tokens (success / warning / destructive / info /
  * primary / muted) so they automatically respect light/dark mode and brand

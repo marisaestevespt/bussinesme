@@ -36,13 +36,13 @@ const SOURCE_ICON: Record<ResponsibilitySource, typeof CheckSquare> = {
 const SOURCE_COLOR: Record<ResponsibilitySource, string> = {
   tarefa: 'bg-success/15 text-success border-success/30',
   crm: 'bg-info/15 text-info border-info/30',
-  conteudo: 'bg-violet-100 text-violet-800 border-violet-200',
+  conteudo: 'bg-accent-violet/15 text-accent-violet border-accent-violet',
   reuniao: 'bg-destructive/15 text-destructive border-destructive/30',
   projeto: 'bg-warning/15 text-warning border-warning/30',
   nps: 'bg-warning/15 text-warning border-warning/30',
-  marco: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+  marco: 'bg-info/15 text-info border-info',
   acao_venda: 'bg-warning/15 text-warning border-warning/30',
-  rotina: 'bg-purple-100 text-purple-800 border-purple-200',
+  rotina: 'bg-accent-violet/15 text-accent-violet border-accent-violet',
 };
 
 import { PRIORITY_LABELS } from '@/components/secretaria/secretaria-shared';

@@ -22,16 +22,16 @@ export interface ContentAttachment {
 
 export const STATUS_OPTIONS = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-muted text-muted-foreground' },
-  { value: 'pronto_para_copy', label: 'Pronto para copy', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300' },
-  { value: 'em_copy', label: 'Em copy', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' },
-  { value: 'pronto_para_design', label: 'Pronto para design', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' },
-  { value: 'em_design', label: 'Em design', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' },
-  { value: 'gravar', label: 'Gravar', color: 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300' },
-  { value: 'editar', label: 'Editar', color: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300' },
-  { value: 'aprovacao_final', label: 'Aprovação Final', color: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' },
-  { value: 'tudo_pronto', label: 'Tudo pronto', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' },
-  { value: 'agendado', label: 'Agendado', color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300' },
-  { value: 'publicado', label: 'Publicado', color: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' },
+  { value: 'pronto_para_copy', label: 'Pronto para copy', color: 'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning' },
+  { value: 'em_copy', label: 'Em copy', color: 'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning' },
+  { value: 'pronto_para_design', label: 'Pronto para design', color: 'bg-info/15 text-info dark:bg-info/20 dark:text-info' },
+  { value: 'em_design', label: 'Em design', color: 'bg-accent-violet/15 text-accent-violet dark:bg-accent-violet/20 dark:text-accent-violet' },
+  { value: 'gravar', label: 'Gravar', color: 'bg-accent-violet/15 text-accent-violet dark:bg-accent-violet/20 dark:text-accent-violet' },
+  { value: 'editar', label: 'Editar', color: 'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning' },
+  { value: 'aprovacao_final', label: 'Aprovação Final', color: 'bg-info/15 text-info dark:bg-info/20 dark:text-info' },
+  { value: 'tudo_pronto', label: 'Tudo pronto', color: 'bg-success/15 text-success dark:bg-success/20 dark:text-success' },
+  { value: 'agendado', label: 'Agendado', color: 'bg-info/15 text-info dark:bg-info/20 dark:text-info' },
+  { value: 'publicado', label: 'Publicado', color: 'bg-success/15 text-success dark:bg-success/20 dark:text-success' },
 ];
 
 export const FUNNEL_OPTIONS = [

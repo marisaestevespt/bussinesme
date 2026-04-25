@@ -169,7 +169,7 @@ export function FinAllDocuments() {
                 filtered.map(d => (
                   <TableRow key={d.id}>
                     <TableCell>
-                      <Badge className={`text-[10px] border-0 ${d.type === 'entrada' ? 'bg-success/15 text-success dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-destructive/15 text-destructive dark:bg-red-900/40 dark:text-red-400'}`}>
+                      <Badge className={`text-[10px] border-0 ${d.type === 'entrada' ? 'bg-success/15 text-success dark:bg-success/40 dark:text-success' : 'bg-destructive/15 text-destructive dark:bg-destructive/40 dark:text-destructive'}`}>
                         {d.type === 'entrada' ? 'Entrada' : 'Saída'}
                       </Badge>
                     </TableCell>
@@ -183,12 +183,12 @@ export function FinAllDocuments() {
                     <TableCell>
                       {(() => {
                         const sc: Record<string, string> = {
-                          pago: 'bg-success/15 text-success dark:bg-emerald-900/40 dark:text-emerald-400',
-                          confirmada: 'bg-success/15 text-success dark:bg-emerald-900/40 dark:text-emerald-400',
-                          pendente: 'bg-warning/15 text-warning dark:bg-amber-900/40 dark:text-amber-400',
-                          por_pagar: 'bg-warning/15 text-warning dark:bg-amber-900/40 dark:text-amber-400',
-                          cancelada: 'bg-destructive/15 text-destructive dark:bg-red-900/40 dark:text-red-400',
-                          cancelado: 'bg-destructive/15 text-destructive dark:bg-red-900/40 dark:text-red-400',
+                          pago: 'bg-success/15 text-success dark:bg-success/40 dark:text-success',
+                          confirmada: 'bg-success/15 text-success dark:bg-success/40 dark:text-success',
+                          pendente: 'bg-warning/15 text-warning dark:bg-warning/40 dark:text-warning',
+                          por_pagar: 'bg-warning/15 text-warning dark:bg-warning/40 dark:text-warning',
+                          cancelada: 'bg-destructive/15 text-destructive dark:bg-destructive/40 dark:text-destructive',
+                          cancelado: 'bg-destructive/15 text-destructive dark:bg-destructive/40 dark:text-destructive',
                         };
                         const cls = sc[d.status] || 'bg-muted text-muted-foreground';
                         return <Badge className={`text-[10px] border-0 ${cls}`}>{d.status}</Badge>;

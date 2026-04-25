@@ -106,9 +106,9 @@ export function ChannelMonthGallery({ channelId, year, onYearChange, onSelectMon
                   {pubCount} {pubCount === 1 ? 'publicação' : 'publicações'}
                 </span>
                 {fillStatus === 'complete' ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                 ) : fillStatus === 'partial' ? (
-                  <CircleDot className="h-3.5 w-3.5 text-amber-500" />
+                  <CircleDot className="h-3.5 w-3.5 text-warning" />
                 ) : (
                   <Circle className="h-3.5 w-3.5 text-muted-foreground/30" />
                 )}

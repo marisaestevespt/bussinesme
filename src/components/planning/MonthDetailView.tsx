@@ -423,7 +423,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-violet-500/10 text-violet-700 hover:bg-violet-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/hub/agenda`)}>{e.title}</div>
+            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-accent-violet/10 text-accent-violet hover:bg-accent-violet/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/hub/agenda`)}>{e.title}</div>
           )}
         </CardContent>
       </Card>
@@ -684,7 +684,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">Pausado</Badge></TableCell>
+                    <TableCell><Badge variant="secondary" className="bg-warning/15 text-warning text-xs">Pausado</Badge></TableCell>
                     <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
                     <TableCell className="text-xs">{c.email || '—'}</TableCell>
                     <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
@@ -847,10 +847,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                               <TableCell className="text-xs text-right">{cb.estimated}h</TableCell>
                               <TableCell className="text-xs text-right">{cb.realHours}h</TableCell>
                               <TableCell className="text-xs text-right">
-                                {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-blue-600 font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
+                                {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-info font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
                               </TableCell>
                               <TableCell>
-                                {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-blue-100 text-blue-700">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
+                                {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-info/15 text-info">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
                               </TableCell>
                             </TableRow>
                           );
@@ -859,9 +859,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                     </Table>
                   </div>
                   {Math.abs(p.deviation) >= 5 && (
-                    <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-3 flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">
+                    <div className="rounded-md border border-warning bg-warning/15 dark:bg-warning/20 dark:border-warning p-3 flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                      <p className="text-xs text-warning dark:text-warning flex-1">
                         O produto <strong>{p.name}</strong> demorou <strong>{Math.abs(p.deviation)}h</strong> {p.deviation > 0 ? 'a mais' : 'a menos'} do que o estimado.
                         {p.clientBreakdown.filter((cb) => cb.deviation > 2).length > 0 && (
                           <> Os clientes fora do normal: <strong>{p.clientBreakdown.filter((cb) => cb.deviation > 2).map((cb) => cb.clientName).join(', ')}</strong>.</>
@@ -875,9 +875,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             </>
           )}
           {teamCapacity.filter(m => m.over).map(m => (
-            <div key={m.name} className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-3 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-800 dark:text-amber-300">Este mês <strong>{m.name}</strong> teve <strong>{m.committed}h</strong> comprometidas com <strong>{m.available}h</strong> disponíveis. Considera redistribuir clientes.</p>
+            <div key={m.name} className="rounded-md border border-warning bg-warning/15 dark:bg-warning/20 dark:border-warning p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+              <p className="text-xs text-warning dark:text-warning">Este mês <strong>{m.name}</strong> teve <strong>{m.committed}h</strong> comprometidas com <strong>{m.available}h</strong> disponíveis. Considera redistribuir clientes.</p>
             </div>
           ))}
         </CardContent>
@@ -923,9 +923,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   >
                     {isDone ? (
                       completedLate ? (
-                        <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300">Atrasada</Badge>
+                        <Badge variant="outline" className="text-[10px] bg-warning/15 text-warning border-warning dark:bg-warning/20 dark:text-warning">Atrasada</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300">No prazo</Badge>
+                        <Badge variant="outline" className="text-[10px] bg-success/15 text-success border-success dark:bg-success/20 dark:text-success">No prazo</Badge>
                       )
                     ) : isLate ? (
                       <Badge variant="outline" className="text-[10px] bg-destructive/10 text-destructive border-destructive/30">Em falta</Badge>
@@ -1101,7 +1101,7 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
                   <div className="flex gap-4 text-xs text-muted-foreground pt-1">
                     <span>Estimado: <strong className="text-foreground">{expandedClient.estimated}h</strong></span>
                     <span>Real: <strong className="text-foreground">{expandedClient.realHours}h</strong></span>
-                    <span>Desvio: <strong className={cn(expandedClient.deviation > 2 ? 'text-destructive' : expandedClient.deviation < -2 ? 'text-blue-600' : 'text-foreground')}>{expandedClient.deviation > 0 ? '+' : ''}{expandedClient.deviation}h</strong></span>
+                    <span>Desvio: <strong className={cn(expandedClient.deviation > 2 ? 'text-destructive' : expandedClient.deviation < -2 ? 'text-info' : 'text-foreground')}>{expandedClient.deviation > 0 ? '+' : ''}{expandedClient.deviation}h</strong></span>
                   </div>
                 </DialogHeader>
                 {clientEntries.length === 0 ? (

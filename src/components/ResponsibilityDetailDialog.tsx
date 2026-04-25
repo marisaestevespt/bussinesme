@@ -21,7 +21,7 @@ import { TASK_STATUSES as CANON_TASK_STATUSES, getTaskPriorityInfo } from '@/lib
 const TASK_STATUSES = CANON_TASK_STATUSES;
 
 const MILESTONE_STATUSES = [
-  { value: 'por_fazer', label: 'Por Fazer', color: 'bg-gray-100 text-gray-800' },
+  { value: 'por_fazer', label: 'Por Fazer', color: 'bg-muted text-muted-foreground' },
   { value: 'em_atraso', label: 'Em Atraso', color: 'bg-destructive/15 text-destructive' },
   { value: 'concluido', label: 'Concluído', color: 'bg-success/15 text-success' },
 ];
@@ -148,11 +148,11 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
 
       {/* Routine badge */}
       {routine && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-violet-50 border border-violet-200">
-          <RotateCw className="h-4 w-4 text-violet-600 shrink-0" />
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-accent-violet/15 border border-accent-violet">
+          <RotateCw className="h-4 w-4 text-accent-violet shrink-0" />
           <div>
-            <p className="text-sm font-medium text-violet-900">{routine.title}</p>
-            <p className="text-xs text-violet-700">{recLabel}</p>
+            <p className="text-sm font-medium text-accent-violet">{routine.title}</p>
+            <p className="text-xs text-accent-violet">{recLabel}</p>
           </div>
         </div>
       )}
@@ -168,7 +168,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
             {TASK_STATUSES.map(s => (
               <SelectItem key={s.value} value={s.value}>
                 <div className="flex items-center gap-2">
-                  <div className={cn('h-2 w-2 rounded-full', s.value === 'done' ? 'bg-emerald-500' : s.value === 'a_fazer' ? 'bg-blue-500' : 'bg-gray-400')} />
+                  <div className={cn('h-2 w-2 rounded-full', s.value === 'done' ? 'bg-success' : s.value === 'a_fazer' ? 'bg-info' : 'bg-muted')} />
                   {s.label}
                 </div>
               </SelectItem>
@@ -299,7 +299,7 @@ function MilestoneDetail({ item, onClose }: { item: UnifiedItem; onClose: () => 
               <SelectItem key={s.value} value={s.value}>
                 <div className="flex items-center gap-2">
                   <div className={cn('h-2 w-2 rounded-full',
-                    s.value === 'concluido' ? 'bg-emerald-500' : s.value === 'em_atraso' ? 'bg-red-500' : 'bg-gray-400'
+                    s.value === 'concluido' ? 'bg-success' : s.value === 'em_atraso' ? 'bg-destructive' : 'bg-muted'
                   )} />
                   {s.label}
                 </div>
@@ -341,9 +341,9 @@ function RoutineChecklistDetail({ item, onClose }: { item: UnifiedItem; onClose:
 
   return (
     <div className="space-y-4 pb-4">
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-purple-50 border border-purple-200">
-        <RotateCw className="h-4 w-4 text-purple-600 shrink-0" />
-        <p className="text-sm text-purple-900">Rotina mensal do Planeamento Executivo</p>
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-accent-violet/15 border border-accent-violet">
+        <RotateCw className="h-4 w-4 text-accent-violet shrink-0" />
+        <p className="text-sm text-accent-violet">Rotina mensal do Planeamento Executivo</p>
       </div>
 
       <p className="text-sm">{item.title.replace('Rotina — ', '')}</p>
