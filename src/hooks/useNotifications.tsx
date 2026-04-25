@@ -86,12 +86,14 @@ export async function sendNotification(params: {
     authUserId = profile.user_id;
   }
 
-  await supabase.from('notifications').insert({
-    user_id: authUserId,
-    type: params.type,
-    title: params.title,
-    message: params.message || null,
-    link: params.link || null,
+  // Use SECURITY DEFINER RPC so we can notify other users without
+  // granting blanket cross-user INSERT privileges on the table.
+  await supabase.rpc('send_notification_to_user', {
+    _user_id: authUserId,
+    _type: params.type,
+    _title: params.title,
+    _message: params.message || null,
+    _link: params.link || null,
   });
 }
 
