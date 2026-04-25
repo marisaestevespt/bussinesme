@@ -1,4 +1,5 @@
 export { EntityHero } from './EntityHero';
+export { EntityTitle } from './EntityTitle';
 export { EntityTopBar } from './EntityTopBar';
 export type { EntityAction } from './EntityTopBar';
 export { EntityProperties, EntityProperty, inlineInputClass, inlineTriggerClass } from './EntityProperties';

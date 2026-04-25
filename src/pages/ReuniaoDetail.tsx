@@ -35,6 +35,15 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {
+  EntityTopBar,
+  EntityTitle,
+  EntityProperties,
+  EntityProperty,
+  EntitySection,
+  inlineInputClass,
+  inlineTriggerClass,
+} from '@/components/layout/entity';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -492,27 +501,39 @@ export default function ReuniaoDetailPage() {
     <AppLayout>
       <div className="w-full space-y-6">
         {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <BackNavigation parentRoute="/hub/reunioes" parentLabel="Reuniões" />
-          <div className="flex items-center gap-2">
-            {dirty && (
-              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? 'A guardar...' : 'Guardar'}
-              </Button>
-            )}
-            {isOwner && (
-              <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => {
-                if (isSeriesParent && seriesCount > 0) {
-                  setDeleteDialogOpen(true);
-                } else {
-                  deleteMutation.mutate('single');
+        <EntityTopBar
+          backTo="/hub/reunioes"
+          backLabel="Reuniões"
+          primaryAction={
+            dirty
+              ? {
+                  label: saveMutation.isPending ? 'A guardar...' : 'Guardar',
+                  onClick: () => saveMutation.mutate(),
+                  disabled: saveMutation.isPending,
+                  loading: saveMutation.isPending,
                 }
-              }} disabled={deleteMutation.isPending}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+              : undefined
+          }
+          secondaryActions={
+            isOwner
+              ? [
+                  {
+                    label: 'Eliminar',
+                    icon: Trash2,
+                    variant: 'destructive',
+                    onClick: () => {
+                      if (isSeriesParent && seriesCount > 0) {
+                        setDeleteDialogOpen(true);
+                      } else {
+                        deleteMutation.mutate('single');
+                      }
+                    },
+                    disabled: deleteMutation.isPending,
+                  },
+                ]
+              : []
+          }
+        />
 
         {/* Series delete dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -536,37 +557,33 @@ export default function ReuniaoDetailPage() {
         </AlertDialog>
 
         {/* Title */}
-        <div className="flex items-center gap-3">
-          <input
-            value={m.title}
-            onChange={e => update({ title: e.target.value })}
-            className="text-2xl font-bold text-foreground bg-transparent border-none outline-none flex-1"
-          />
-          <Badge className="text-[11px] font-semibold px-2.5 py-0.5" style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType], border: `1px solid ${typeColors[meetingType]}40` }}>
-            {typeLabels[meetingType]}
-          </Badge>
-          {(isSeriesParent || isSeriesChild) && (
-            <Badge variant="outline" className="text-[10px] gap-1">
-              <Repeat className="h-3 w-3" /> Série
-            </Badge>
-          )}
-        </div>
+        <EntityTitle
+          inlineMode
+          title={m.title}
+          onTitleChange={(next) => update({ title: next })}
+          isOwner={isOwner}
+          placeholder="Título da reunião"
+          meta={
+            <>
+              <Badge className="text-[11px] font-semibold px-2 py-0.5" style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType], border: `1px solid ${typeColors[meetingType]}40` }}>
+                {typeLabels[meetingType]}
+              </Badge>
+              {(isSeriesParent || isSeriesChild) && (
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Repeat className="h-3 w-3" /> Série
+                </Badge>
+              )}
+            </>
+          }
+        />
 
-        {/* ═══ Notion-style metadata properties ═══ */}
-        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-          <div className="px-4 py-2.5 bg-primary/10 border-b">
-            <span className="text-xs font-semibold text-primary uppercase tracking-wider">Detalhes da Reunião</span>
-          </div>
-          <div className="divide-y">
-          {/* Data e hora */}
-          <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-              <CalendarIcon className="h-3.5 w-3.5" /> Data e hora
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 flex-1">
+        {/* Properties */}
+        <EntityProperties>
+          <EntityProperty icon={CalendarIcon} label="Data e hora">
+            <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="text-sm hover:bg-muted rounded px-1.5 py-0.5 transition-colors">
+                  <button className="text-sm hover:bg-muted rounded px-2 py-1 transition-colors -ml-2">
                     {format(parseISO(m.date_time), "dd MMM yyyy", { locale: pt })}
                   </button>
                 </PopoverTrigger>
@@ -595,241 +612,192 @@ export default function ReuniaoDetailPage() {
                   d.setHours(h, min);
                   update({ date_time: d.toISOString() });
                 }}
-                className="h-7 w-20 text-xs border-none shadow-none bg-transparent p-0 px-1"
+                className={cn(inlineInputClass, 'w-20')}
               />
             </div>
-          </div>
+          </EntityProperty>
 
-          {/* Status */}
-          <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-              <div className="h-4 w-4 rounded bg-muted flex items-center justify-center"><div className="h-2 w-2 rounded-full bg-muted-foreground/50" /></div> Status
+          <EntityProperty icon={Clock} label="Status">
+            <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
+              <SelectTrigger className="h-auto border-none shadow-none p-0 w-auto [&>svg]:hidden bg-transparent">
+                <StatusBadge status={m.status} />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUSES.map(s => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                      {s.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </EntityProperty>
+
+          <EntityProperty icon={Clock} label="Duração">
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                value={m.duration_minutes || ''}
+                onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
+                placeholder="—"
+                className={cn(inlineInputClass, 'w-16')}
+              />
+              <span className="text-xs text-muted-foreground">min</span>
             </div>
-            <div className="px-3 py-1.5 flex-1">
-              <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
-                <SelectTrigger className="h-auto border-none shadow-none p-0 w-auto [&>svg]:hidden">
-                  <StatusBadge status={m.status} />
+          </EntityProperty>
+
+          {showClientSection && (
+            <EntityProperty icon={Users} label="Cliente">
+              <Select value={m.client_id ?? ''} onValueChange={v => {
+                const selected = clientsList.find((c: any) => c.id === v);
+                update({ client_id: v || null, client_name: selected?.full_name || null });
+              }}>
+                <SelectTrigger className={cn(inlineTriggerClass, 'min-w-[140px]')}>
+                  <SelectValue placeholder="Sem cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {STATUSES.map(s => (
-                    <SelectItem key={s.value} value={s.value}>
-                      <span className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-                        {s.label}
-                      </span>
-                    </SelectItem>
+                  {clientsList.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          {/* Duração */}
-          <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-              <Clock className="h-3.5 w-3.5" /> Duração
-            </div>
-            <div className="px-3 py-1.5 flex-1">
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min={0}
-                  value={m.duration_minutes || ''}
-                  onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
-                  placeholder="—"
-                  className="h-7 w-16 text-sm border-none shadow-none bg-transparent p-0 px-1"
-                />
-                <span className="text-xs text-muted-foreground">min</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Cliente */}
-          {showClientSection && (
-            <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-                <Users className="h-3.5 w-3.5" /> Cliente
-              </div>
-              <div className="px-3 py-1.5 flex-1">
-                <Select value={m.client_id ?? ''} onValueChange={v => {
-                  const selected = clientsList.find((c: any) => c.id === v);
-                  update({ client_id: v || null, client_name: selected?.full_name || null });
-                }}>
-                  <SelectTrigger className="h-7 w-auto min-w-[140px] text-sm border-none shadow-none bg-transparent px-1">
-                    <SelectValue placeholder="Sem cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientsList.map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            </EntityProperty>
           )}
 
-          {/* Departamento (when no client section) */}
           {!showClientSection && (
-            <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-                <FolderOpen className="h-3.5 w-3.5" /> Departamento
-              </div>
-              <div className="px-3 py-1.5 flex-1">
-                <Select value={m.department ?? ''} onValueChange={v => {
-                  const patch: Partial<MeetingFull> = { department: v || null };
-                  if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
-                  update(patch);
-                }}>
-                  <SelectTrigger className="h-7 w-auto min-w-[140px] text-sm border-none shadow-none bg-transparent px-1">
-                    <SelectValue placeholder="Nenhum" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
-                      <SelectItem key={key} value={key}>{v.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <EntityProperty icon={FolderOpen} label="Departamento">
+              <Select value={m.department ?? ''} onValueChange={v => {
+                const patch: Partial<MeetingFull> = { department: v || null };
+                if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
+                update(patch);
+              }}>
+                <SelectTrigger className={cn(inlineTriggerClass, 'min-w-[140px]')}>
+                  <SelectValue placeholder="Nenhum" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
+                    <SelectItem key={key} value={key}>{v.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </EntityProperty>
           )}
 
-          {/* Produto */}
           {m.department === 'produtos' && !showClientSection && (
-            <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-                <FileText className="h-3.5 w-3.5" /> Produto
-              </div>
-              <div className="px-3 py-1.5 flex-1">
-                <Select value={m.product_id ?? ''} onValueChange={v => {
-                  const prod = productsList.find(p => p.id === v);
-                  update({ product_id: v || null, product_name: prod?.name || null });
-                }}>
-                  <SelectTrigger className="h-7 w-auto min-w-[140px] text-sm border-none shadow-none bg-transparent px-1">
-                    <SelectValue placeholder="Sem produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {productsList.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <EntityProperty icon={FileText} label="Produto">
+              <Select value={m.product_id ?? ''} onValueChange={v => {
+                const prod = productsList.find(p => p.id === v);
+                update({ product_id: v || null, product_name: prod?.name || null });
+              }}>
+                <SelectTrigger className={cn(inlineTriggerClass, 'min-w-[140px]')}>
+                  <SelectValue placeholder="Sem produto" />
+                </SelectTrigger>
+                <SelectContent>
+                  {productsList.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </EntityProperty>
           )}
 
-          {/* Projeto */}
           {showProjectField && (
-            <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-                <FolderOpen className="h-3.5 w-3.5" /> Projeto
-              </div>
-              <div className="px-3 py-1.5 flex-1">
-                <Select value={m.project_id ?? ''} onValueChange={v => {
-                  const proj = projectsList.find(p => p.id === v);
-                  update({ project_id: v || null, project_name: proj?.name || null });
-                }}>
-                  <SelectTrigger className="h-7 w-auto min-w-[140px] text-sm border-none shadow-none bg-transparent px-1">
-                    <SelectValue placeholder="Sem projeto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projectsList.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <EntityProperty icon={FolderOpen} label="Projeto">
+              <Select value={m.project_id ?? ''} onValueChange={v => {
+                const proj = projectsList.find(p => p.id === v);
+                update({ project_id: v || null, project_name: proj?.name || null });
+              }}>
+                <SelectTrigger className={cn(inlineTriggerClass, 'min-w-[140px]')}>
+                  <SelectValue placeholder="Sem projeto" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectsList.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </EntityProperty>
           )}
 
-          {/* Participantes */}
-          <div className="flex items-start min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 py-2 text-xs font-medium text-muted-foreground">
-              <Users className="h-3.5 w-3.5" /> Participantes
+          <EntityProperty icon={Users} label="Participantes">
+            <div className="flex flex-wrap gap-2 items-center w-full py-1">
+              {participants.map(p => {
+                const profile = profiles.find(pr => pr.id === p.profile_id);
+                return (
+                  <div key={p.id} className="flex items-center gap-2 rounded-full border bg-muted/30 pl-1 pr-2 py-0.5 text-sm group">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={getPhotoUrl(profile)} />
+                      <AvatarFallback className="text-[8px]">{initials(profile?.full_name || null)}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs">{profile?.full_name || '—'}</span>
+                    <button
+                      onClick={async () => {
+                        await supabase.from('meeting_participants').delete().eq('id', p.id);
+                        qc.invalidateQueries({ queryKey: ['meeting_participants', id] });
+                      }}
+                      className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-0.5"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                );
+              })}
+              {(() => {
+                const participantIds = new Set(participants.map(p => p.profile_id));
+                const available = profiles.filter(p => !participantIds.has(p.id));
+                if (available.length === 0) return null;
+                return (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 rounded-full">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-1" align="start">
+                      <ScrollArea className="max-h-[200px]">
+                        {available.map(p => (
+                          <button
+                            key={p.id}
+                            className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted/50 rounded-md transition-colors"
+                            onClick={async () => {
+                              await supabase.from('meeting_participants').insert({ meeting_id: id!, profile_id: p.id });
+                              qc.invalidateQueries({ queryKey: ['meeting_participants', id] });
+                            }}
+                          >
+                            <Avatar className="h-5 w-5">
+                              <AvatarImage src={getPhotoUrl(p)} />
+                              <AvatarFallback className="text-[8px]">{initials(p.full_name)}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs">{p.full_name}</span>
+                          </button>
+                        ))}
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
+                );
+              })()}
             </div>
-            <div className="px-3 py-1.5 flex-1">
-              <div className="flex flex-wrap gap-2 items-center">
-                {participants.map(p => {
-                  const profile = profiles.find(pr => pr.id === p.profile_id);
-                  return (
-                    <div key={p.id} className="flex items-center gap-2 rounded-full border bg-muted/30 pl-1 pr-2 py-0.5 text-sm group">
-                      <Avatar className="h-5 w-5">
-                        <AvatarImage src={getPhotoUrl(profile)} />
-                        <AvatarFallback className="text-[8px]">{initials(profile?.full_name || null)}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs">{profile?.full_name || '—'}</span>
-                      <button
-                        onClick={async () => {
-                          await supabase.from('meeting_participants').delete().eq('id', p.id);
-                          qc.invalidateQueries({ queryKey: ['meeting_participants', id] });
-                        }}
-                        className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  );
-                })}
-                {(() => {
-                  const participantIds = new Set(participants.map(p => p.profile_id));
-                  const available = profiles.filter(p => !participantIds.has(p.id));
-                  if (available.length === 0) return null;
-                  return (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 rounded-full">
-                          <Plus className="h-3.5 w-3.5" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-1" align="start">
-                        <ScrollArea className="max-h-[200px]">
-                          {available.map(p => (
-                            <button
-                              key={p.id}
-                              className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted/50 rounded-md transition-colors"
-                              onClick={async () => {
-                                await supabase.from('meeting_participants').insert({ meeting_id: id!, profile_id: p.id });
-                                qc.invalidateQueries({ queryKey: ['meeting_participants', id] });
-                              }}
-                            >
-                              <Avatar className="h-5 w-5">
-                                <AvatarImage src={getPhotoUrl(p)} />
-                                <AvatarFallback className="text-[8px]">{initials(p.full_name)}</AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs">{p.full_name}</span>
-                            </button>
-                          ))}
-                        </ScrollArea>
-                      </PopoverContent>
-                    </Popover>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
+          </EntityProperty>
 
-          {/* Link de acesso */}
-          <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
-              <Link2 className="h-3.5 w-3.5" /> Link de acesso
-            </div>
-            <div className="px-3 py-1.5 flex-1">
-              {m.meeting_url ? (
-                <a href={m.meeting_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-2">
-                  {m.meeting_url.replace(/^https?:\/\//, '').slice(0, 40)}{m.meeting_url.length > 50 ? '…' : ''}
-                  <ExternalLink className="h-3 w-3 shrink-0" />
-                </a>
-              ) : (
-                <Input
-                  value=""
-                  onChange={e => update({ meeting_url: e.target.value || null })}
-                  placeholder="Adicionar link..."
-                  className="h-7 text-sm border-none shadow-none bg-transparent p-0 px-1"
-                />
-              )}
-            </div>
-          </div>
-          </div>
-        </div>
+          <EntityProperty icon={Link2} label="Link de acesso">
+            {m.meeting_url ? (
+              <a href={m.meeting_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-2">
+                {m.meeting_url.replace(/^https?:\/\//, '').slice(0, 40)}{m.meeting_url.length > 50 ? '…' : ''}
+                <ExternalLink className="h-4 w-4 shrink-0" />
+              </a>
+            ) : (
+              <Input
+                value=""
+                onChange={e => update({ meeting_url: e.target.value || null })}
+                placeholder="Adicionar link..."
+                className={inlineInputClass}
+              />
+            )}
+          </EntityProperty>
+        </EntityProperties>
 
         {/* Action buttons — subtle, outside card */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -844,16 +812,8 @@ export default function ReuniaoDetailPage() {
         </div>
 
         {/* ═══ CARD: Documentos & Transcrição ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <FolderOpen className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Documentos</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5 space-y-4">
+        <EntitySection title="Documentos" icon={FolderOpen}>
+          <div className="space-y-4">
             {/* Transcript */}
             <div className="flex items-center gap-3">
               <Label className="text-xs text-muted-foreground min-w-[80px]">Transcrição</Label>
@@ -894,8 +854,8 @@ export default function ReuniaoDetailPage() {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </EntitySection>
 
         {/* Portal notes from client */}
         {(m as any).portal_notes && (
@@ -908,111 +868,76 @@ export default function ReuniaoDetailPage() {
           </div>
         )}
 
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <CheckSquare className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Pontos Discutidos</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <RichTextEditor
-              content={m.discussion_notes || ''}
-              onChange={html => update({ discussion_notes: html })}
-            />
-          </CardContent>
-        </Card>
+        <EntitySection title="Pontos Discutidos" icon={CheckSquare}>
+          <RichTextEditor
+            content={m.discussion_notes || ''}
+            onChange={html => update({ discussion_notes: html })}
+          />
+        </EntitySection>
 
         {/* ═══ CARD: Próximos Passos ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <ListTodo className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Próximos Passos</CardTitle>
-            </div>
+        <EntitySection
+          title="Próximos Passos"
+          icon={ListTodo}
+          action={
             <Button variant="outline" size="sm" className="h-7 text-xs gap-2" onClick={() => setCreateTasksOpen(true)}>
               <ListTodo className="h-3.5 w-3.5" /> Criar Tarefas
             </Button>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          }
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-lg border bg-card/50 p-4 space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">{ownerLabel}</h4>
+              <EditableChecklist
+                items={m.owner_actions}
+                onChange={items => update({ owner_actions: items })}
+                label=""
+              />
+            </div>
+            {showClientSection && (
               <div className="rounded-lg border bg-card/50 p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">{ownerLabel}</h4>
+                <h4 className="text-sm font-semibold text-foreground">{clientLabel}</h4>
                 <EditableChecklist
-                  items={m.owner_actions}
-                  onChange={items => update({ owner_actions: items })}
+                  items={m.client_actions}
+                  onChange={items => update({ client_actions: items })}
                   label=""
                 />
               </div>
-              {showClientSection && (
-                <div className="rounded-lg border bg-card/50 p-4 space-y-3">
-                  <h4 className="text-sm font-semibold text-foreground">{clientLabel}</h4>
-                  <EditableChecklist
-                    items={m.client_actions}
-                    onChange={items => update({ client_actions: items })}
-                    label=""
-                  />
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+        </EntitySection>
 
         {/* ═══ CARD: Decisões Tomadas ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Lightbulb className="h-4 w-4 text-primary" />
+        <EntitySection title="Decisões Tomadas" icon={Lightbulb}>
+          <div className="space-y-2">
+            {m.priorities.map((p, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-xs font-semibold text-primary bg-primary/15 rounded-full h-6 w-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                <textarea
+                  value={p}
+                  onChange={e => {
+                    const next = [...m.priorities];
+                    next[i] = e.target.value;
+                    update({ priorities: next });
+                  }}
+                  placeholder={`Decisão ${i + 1}`}
+                  rows={2}
+                  onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                  className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed rounded px-2 py-1.5 min-h-[44px] hover:bg-muted/30 focus:bg-muted/30 transition-colors"
+                />
               </div>
-              <CardTitle className="text-base">Decisões Tomadas</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <div className="space-y-2">
-              {m.priorities.map((p, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className="text-xs font-semibold text-primary bg-primary/10 rounded-full h-6 w-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                  <textarea
-                    value={p}
-                    onChange={e => {
-                      const next = [...m.priorities];
-                      next[i] = e.target.value;
-                      update({ priorities: next });
-                    }}
-                    placeholder={`Decisão ${i + 1}`}
-                    rows={2}
-                    onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
-                    className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed rounded px-2 py-1.5 min-h-[44px] hover:bg-muted/30 focus:bg-muted/30 transition-colors"
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </EntitySection>
 
         {/* ═══ CARD: Notas finais ═══ */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <StickyNote className="h-4 w-4 text-primary" />
-              </div>
-              <CardTitle className="text-base">Notas Finais</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <EditableBulletList
-              items={m.final_notes}
-              onChange={items => update({ final_notes: items })}
-              label=""
-            />
-          </CardContent>
-        </Card>
+        <EntitySection title="Notas Finais" icon={StickyNote}>
+          <EditableBulletList
+            items={m.final_notes}
+            onChange={items => update({ final_notes: items })}
+            label=""
+          />
+        </EntitySection>
 
         {/* Create tasks dialog */}
         <CreateTasksFromMeetingDialog
