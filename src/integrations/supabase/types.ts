@@ -5719,6 +5719,60 @@ export type Database = {
         }
         Relationships: []
       }
+      member_quick_links: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: Json | null
+          id: string
+          member_id: string
+          name: string
+          sort_order: number
+          tags: string[]
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: Json | null
+          id?: string
+          member_id: string
+          name: string
+          sort_order?: number
+          tags?: string[]
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: Json | null
+          id?: string
+          member_id?: string
+          name?: string
+          sort_order?: number
+          tags?: string[]
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_quick_links_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_quick_links_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_sensitive_access: {
         Row: {
           category: string
@@ -9428,6 +9482,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          onboarding_id: string | null
           original_assignee: string | null
           parent_task_id: string | null
           priority: string
@@ -9458,6 +9513,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          onboarding_id?: string | null
           original_assignee?: string | null
           parent_task_id?: string | null
           priority?: string
@@ -9488,6 +9544,7 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          onboarding_id?: string | null
           original_assignee?: string | null
           parent_task_id?: string | null
           priority?: string
@@ -9523,6 +9580,13 @@ export type Database = {
             columns: ["content_id"]
             isOneToOne: false
             referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_onboarding_id_fkey"
+            columns: ["onboarding_id"]
+            isOneToOne: false
+            referencedRelation: "member_onboarding"
             referencedColumns: ["id"]
           },
           {
