@@ -119,7 +119,7 @@ export default function PortalViewPage() {
     setFeedback(feedbackList.slice().sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime()));
     setMeetings((meetingsR.data || []) as unknown as PortalMeeting[]);
     setPayments((paymentsR.data || []) as unknown as PortalPayment[]);
-    setTasks((tasksR.data || []) as Array<Record<string, unknown>>);
+    setTasks((tasksR.data || []) as Array<Record<string, any>>);
     // get_portal_phases now returns jsonb with deliverables included
     const phasesData = projPhasesR.data || [];
     const parsedPhases = (Array.isArray(phasesData) ? phasesData : []) as PortalPhase[];
@@ -657,7 +657,7 @@ export default function PortalViewPage() {
                                               {isClient ? '👤 Tu' : '👥 Equipa'}
                                             </span>
                                           </div>
-                                          {d.description && <p className="text-xs text-muted-foreground mt-1">{d.description}</p>}
+                                          {d.description && <p className="text-xs text-muted-foreground mt-1">{String(d.description)}</p>}
                                         </div>
                                       </div>
                                     );
