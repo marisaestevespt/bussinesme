@@ -7,6 +7,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { isTaskDone, isTaskOverdue, countDone } from '@/lib/taskStatus';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface RoutinesSectionProps {
   thisWeekRoutines: any[];

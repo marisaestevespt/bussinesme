@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { FileText, Download } from 'lucide-react';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Props {
   contractDocs: any[];

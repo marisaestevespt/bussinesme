@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Package, ArrowUpRight, UserCheck, BarChart3 } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
 import { expenseLabel } from '@/lib/financialCategories';
+import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface Insight { name: string; value: number; }
 
