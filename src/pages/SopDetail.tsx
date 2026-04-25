@@ -89,7 +89,7 @@ export default function SopDetailPage() {
     queryKey: ['team-role-titles'],
     queryFn: async () => {
       const { data } = await supabase.from('team_members').select('role_title').eq('status', 'ativo').not('role_title', 'is', null);
-      const unique = [...new Set((data || []).map((d: any) => d.role_title).filter(Boolean))].sort();
+      const unique = [...new Set((data || []).map((d) => d.role_title).filter(Boolean))].sort();
       return unique as string[];
     },
   });
@@ -302,9 +302,9 @@ export default function SopDetailPage() {
 
   const createTasksFromSop = useMutation({
     mutationFn: async () => {
-      const steps = sopSteps.filter((s: any) => s.description?.trim());
+      const steps = sopSteps.filter((s) => s.description?.trim());
       if (steps.length === 0) throw new Error('Sem passos para criar tarefas');
-      const rows = steps.map((step: any) => ({
+      const rows = steps.map((step) => ({
         name: `[${sopId}] ${step.description}`,
         project_id: taskProjectId || null,
         department: taskDepartment || null,
@@ -396,7 +396,7 @@ export default function SopDetailPage() {
         document_type: 'template',
         title: '',
         content: '',
-        sort_order: stepDocuments.filter((d: any) => d.step_id === stepId).length,
+        sort_order: stepDocuments.filter((d) => d.step_id === stepId).length,
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
@@ -733,10 +733,10 @@ export default function SopDetailPage() {
             <p className="text-sm text-muted-foreground text-center py-6">Sem passos definidos. Clica em "+ Passo" para começar.</p>
           )}
           <div className="space-y-2">
-            {sopSteps.map((step: any, idx: number) => {
+            {sopSteps.map((step, idx) => {
               const isExpanded = expandedSteps.has(step.id);
               const isDocOpen = docExpandedSteps.has(step.id);
-              const docs = stepDocuments.filter((d: any) => d.step_id === step.id);
+              const docs = stepDocuments.filter((d) => d.step_id === step.id);
               return (
                 <div key={step.id} className="border rounded-lg overflow-hidden">
                   {/* Main row */}
@@ -850,7 +850,7 @@ export default function SopDetailPage() {
                   {/* Inline docs */}
                   {isDocOpen && (
                     <div className="px-3 pb-3 pt-1 border-t bg-muted/10 space-y-2">
-                      {docs.map((doc: any) => (
+                      {docs.map((doc) => (
                         <div key={doc.id} className="flex items-start gap-2 bg-background rounded p-2 border">
                           <select
                             value={doc.document_type}
@@ -1046,7 +1046,7 @@ export default function SopDetailPage() {
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Criar Tarefas a partir deste SOP</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Serão criadas {sopSteps.filter((s: any) => s.description?.trim()).length} tarefas a partir dos passos do processo.
+            Serão criadas {sopSteps.filter((s) => s.description?.trim()).length} tarefas a partir dos passos do processo.
           </p>
           <div className="space-y-3">
             <div>
@@ -1074,7 +1074,7 @@ export default function SopDetailPage() {
               <Input type="date" value={taskDeadline} onChange={e => setTaskDeadline(e.target.value)} />
             </div>
             <Button className="w-full" onClick={() => createTasksFromSop.mutate()} disabled={createTasksFromSop.isPending}>
-              Criar {sopSteps.filter((s: any) => s.description?.trim()).length} Tarefas
+              Criar {sopSteps.filter((s) => s.description?.trim()).length} Tarefas
             </Button>
           </div>
         </DialogContent>

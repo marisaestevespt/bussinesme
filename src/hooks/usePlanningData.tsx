@@ -352,7 +352,7 @@ export function usePlanningData(year = currentYear) {
   });
 
   // ─── Auto-calculated values (only load when objectives need them) ──────────────────
-  const needsAutoCalc = (objectives.data || []).some((o: any) => o.value_source && o.value_source !== 'manual');
+  const needsAutoCalc = (objectives.data || []).some((o) => o.value_source && o.value_source !== 'manual');
   const AUTO_CACHE = { staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
   const autoSalesRaw = useQuery({
@@ -501,40 +501,40 @@ export function usePlanningData(year = currentYear) {
   const getAutoValue = (source: string, productName?: string | null, metricId?: string | null, sourceFilter?: Record<string, string> | null) => {
     const sf = sourceFilter || {};
     if (source === 'metrica' && metricId) {
-      const metric = (metrics.data || []).find((m: any) => m.id === metricId);
+      const metric = (metrics.data || []).find((m) => m.id === metricId);
       return metric ? Number(metric.current_value || 0) : null;
     }
     if (source === 'bd_vendas' || source === 'commercial') {
       const rows = autoSalesRaw.data || [];
       // Prefer relational match by product_id; fall back to name only if id can't be resolved.
-      const productId = productName ? (productsQuery.data || []).find((p: any) => p.name === productName)?.id : null;
+      const productId = productName ? (productsQuery.data || []).find((p) => p.name === productName)?.id : null;
       const filtered = productName
         ? (productId
-            ? rows.filter((r: any) => r.product_id === productId)
-            : rows.filter((r: any) => r.product === productName))
+            ? rows.filter((r) => r.product_id === productId)
+            : rows.filter((r) => r.product === productName))
         : rows;
       return sumRevenue(filtered);
     }
     if (source === 'bd_crm') {
       const rows = autoCrmRaw.data || [];
-      const productId = productName ? (productsQuery.data || []).find((p: any) => p.name === productName)?.id : null;
+      const productId = productName ? (productsQuery.data || []).find((p) => p.name === productName)?.id : null;
       const filtered = productName
         ? (productId
-            ? rows.filter((r: any) => r.potential_product_id === productId)
-            : rows.filter((r: any) => r.potential_product === productName))
+            ? rows.filter((r) => r.potential_product_id === productId)
+            : rows.filter((r) => r.potential_product === productName))
         : rows;
       return filtered.length;
     }
     if (source === 'bd_clientes') return autoActiveClients.data ?? null;
     if (source === 'bd_tempo') {
       let rows = autoTimeEntries.data || [];
-      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
-      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      if (sf.category) rows = rows.filter((r) => r.category === sf.category);
+      if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       return rows.reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
     }
     if (source === 'bd_tarefas') {
       let rows = autoTasksCompleted.data || [];
-      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
     if (source === 'bd_equipa') return autoTeamMembers.data ?? null;
@@ -542,39 +542,39 @@ export function usePlanningData(year = currentYear) {
       const allData = autoMarketingFollowersRaw.data || [];
       if (allData.length === 0) return 0;
       const latestMonth = allData[0].month;
-      let latest = allData.filter((d: any) => d.month === latestMonth);
-      if (sf.channel_id) latest = latest.filter((d: any) => d.channel_id === sf.channel_id);
+      let latest = allData.filter((d) => d.month === latestMonth);
+      if (sf.channel_id) latest = latest.filter((d) => d.channel_id === sf.channel_id);
       return latest.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
     }
     if (source === 'bd_conteudos') {
       let rows = autoContentRaw.data || [];
       if (sf.channel_id) {
         const links = autoContentChannels.data || [];
-        const contentIds = new Set(links.filter((l: any) => l.channel_id === sf.channel_id).map((l: any) => l.content_id));
-        rows = rows.filter((r: any) => contentIds.has(r.id));
+        const contentIds = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
+        rows = rows.filter((r) => contentIds.has(r.id));
       }
       return rows.length;
     }
     if (source === 'bd_reunioes') {
       let rows = autoMeetingsRaw.data || [];
-      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
     if (source === 'bd_nps') {
       let rows = autoNpsRaw.data || [];
-      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       if (rows.length === 0) return null;
       const sum = rows.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
       return Math.round((sum / rows.length) * 10) / 10;
     }
     if (source === 'bd_despesas') {
       let rows = autoExpensesRaw.data || [];
-      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       return rows.reduce((s: number, r: any) => s + Number(r.total_with_vat || 0), 0);
     }
     if (source === 'bd_projetos') {
       let rows = autoProjectsRaw.data || [];
-      if (sf.type) rows = rows.filter((r: any) => r.type === sf.type);
+      if (sf.type) rows = rows.filter((r) => r.type === sf.type);
       return rows.length;
     }
     return null;
@@ -591,12 +591,12 @@ export function usePlanningData(year = currentYear) {
 
   const resolveProductName = (productId: string | null) => {
     if (!productId) return null;
-    return (productsQuery.data || []).find((p: any) => p.id === productId)?.name || null;
+    return (productsQuery.data || []).find((p) => p.id === productId)?.name || null;
   };
 
   // Helper: filter rows by month (1-based) using various date fields
   const filterByMonth = (rows: any[], month: number, dateField: string) => {
-    return rows.filter((r: any) => {
+    return rows.filter((r) => {
       const val = r[dateField];
       if (!val) return false;
       if (typeof val === 'number') return val === month;
@@ -618,18 +618,18 @@ export function usePlanningData(year = currentYear) {
       let rows = autoSalesRaw.data || [];
       // Prefer product_id if available, else fall back to name match.
       if (obj.product_id) {
-        rows = rows.filter((r: any) => r.product_id === obj.product_id);
+        rows = rows.filter((r) => r.product_id === obj.product_id);
       } else if (obj.product_name) {
-        rows = rows.filter((r: any) => r.product === obj.product_name);
+        rows = rows.filter((r) => r.product === obj.product_name);
       }
       return sumRevenue(filterByMonth(rows, month, 'sale_month'));
     }
     if (source === 'bd_crm') {
       let rows = autoCrmRaw.data || [];
       if (obj.product_id) {
-        rows = rows.filter((r: any) => r.potential_product_id === obj.product_id);
+        rows = rows.filter((r) => r.potential_product_id === obj.product_id);
       } else if (obj.product_name) {
-        rows = rows.filter((r: any) => r.potential_product === obj.product_name);
+        rows = rows.filter((r) => r.potential_product === obj.product_name);
       }
       return filterByMonth(rows, month, 'created_at').length;
     }
@@ -648,46 +648,46 @@ export function usePlanningData(year = currentYear) {
       const allData = autoMarketingFollowersRaw.data || [];
       if (allData.length === 0) return 0;
       // Try to find data for this specific month
-      let monthData = allData.filter((d: any) => d.month === month);
-      if (sf.channel_id) monthData = monthData.filter((d: any) => d.channel_id === sf.channel_id);
+      let monthData = allData.filter((d) => d.month === month);
+      if (sf.channel_id) monthData = monthData.filter((d) => d.channel_id === sf.channel_id);
       if (monthData.length > 0) return monthData.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
       // Fall back to latest available
       const now = new Date();
       const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
       if (!isCurrentOrPast) return null;
       const latestMonth = allData[0].month;
-      let latest = allData.filter((d: any) => d.month === latestMonth);
-      if (sf.channel_id) latest = latest.filter((d: any) => d.channel_id === sf.channel_id);
+      let latest = allData.filter((d) => d.month === latestMonth);
+      if (sf.channel_id) latest = latest.filter((d) => d.channel_id === sf.channel_id);
       return latest.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
     }
     if (source === 'bd_tempo') {
       let rows = autoTimeEntries.data || [];
-      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
-      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      if (sf.category) rows = rows.filter((r) => r.category === sf.category);
+      if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       return filterByMonth(rows, month, 'entry_month').reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
     }
     if (source === 'bd_tarefas') {
       let rows = autoTasksCompleted.data || [];
-      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return filterByMonth(rows, month, 'updated_at').length;
     }
     if (source === 'bd_conteudos') {
       let rows = autoContentRaw.data || [];
       if (sf.channel_id) {
         const links = autoContentChannels.data || [];
-        const contentIds = new Set(links.filter((l: any) => l.channel_id === sf.channel_id).map((l: any) => l.content_id));
-        rows = rows.filter((r: any) => contentIds.has(r.id));
+        const contentIds = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
+        rows = rows.filter((r) => contentIds.has(r.id));
       }
       return filterByMonth(rows, month, 'scheduled_at').length;
     }
     if (source === 'bd_reunioes') {
       let rows = autoMeetingsRaw.data || [];
-      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return filterByMonth(rows, month, 'date_time').length;
     }
     if (source === 'bd_nps') {
       let rows = autoNpsRaw.data || [];
-      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       const monthRows = filterByMonth(rows, month, 'actual_date');
       if (monthRows.length === 0) return null;
       const sum = monthRows.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
@@ -695,12 +695,12 @@ export function usePlanningData(year = currentYear) {
     }
     if (source === 'bd_despesas') {
       let rows = autoExpensesRaw.data || [];
-      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       return filterByMonth(rows, month, 'expense_date').reduce((s: number, r: any) => s + Number(r.total_with_vat || 0), 0);
     }
     if (source === 'bd_projetos') {
       let rows = autoProjectsRaw.data || [];
-      if (sf.type) rows = rows.filter((r: any) => r.type === sf.type);
+      if (sf.type) rows = rows.filter((r) => r.type === sf.type);
       return filterByMonth(rows, month, 'updated_at').length;
     }
     return null;
@@ -718,9 +718,9 @@ export function usePlanningData(year = currentYear) {
       return Math.min(100, Math.round((cv / tv) * 100));
     }
     // Qualitative
-    const crits = (criteria.data || []).filter((c: any) => c.objective_id === obj.id);
+    const crits = (criteria.data || []).filter((c) => c.objective_id === obj.id);
     if (crits.length === 0) return 0;
-    return Math.round((crits.filter((c: any) => c.completed).length / crits.length) * 100);
+    return Math.round((crits.filter((c) => c.completed).length / crits.length) * 100);
   };
 
   // Helper: current value for objective
@@ -749,7 +749,7 @@ export function usePlanningData(year = currentYear) {
     const allG = goals.data || [];
     const now = new Date();
     const currentMonthIdx = now.getMonth();
-    return allG.filter((g: any) => {
+    return allG.filter((g) => {
       const monthIdx = MONTH_NAMES.indexOf(g.period);
       if (monthIdx === -1) return false;
       const target = Number(g.target_value || 0);
@@ -786,7 +786,7 @@ export function usePlanningData(year = currentYear) {
 
   // Metric trend (comparing last 3 records)
   const getMetricTrend = (metricId: string): 'up' | 'stable' | 'down' => {
-    const records = (metricHistory.data || []).filter((r: any) => r.metric_id === metricId);
+    const records = (metricHistory.data || []).filter((r) => r.metric_id === metricId);
     if (records.length < 2) return 'stable';
     const last3 = records.slice(-3);
     const first = Number(last3[0].value);
