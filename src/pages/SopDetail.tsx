@@ -16,15 +16,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Paperclip, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Paperclip, Pencil, Tag, Layers, Building2, UserCircle2, Package, Timer, Calendar as CalendarIcon, Hash, Clock, Link2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { BackNavigation } from '@/components/BackNavigation';
-import { EntitySection } from '@/components/layout/entity';
+import { EntitySection, EntityTopBar, EntityTitle, EntityProperties, EntityProperty, inlineInputClass, inlineTriggerClass } from '@/components/layout/entity';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
@@ -458,43 +457,45 @@ export default function SopDetailPage() {
   return (
     <AppLayout>
       <div className="w-full space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <BackNavigation parentRoute="/hub/processos" parentLabel="Processos" />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
+        {/* Top bar */}
+        <EntityTopBar
+          backTo="/hub/processos"
+          backLabel="Processos"
+          secondaryActions={[
+            { label: 'Criar Tarefas', icon: ListChecks, onClick: () => setShowCreateTasks(true), hideLabelOnMobile: true },
+            { label: `v${sopVersion + 1}`, icon: History, onClick: () => bumpVersion.mutate(), disabled: bumpVersion.isPending, loading: bumpVersion.isPending, hideLabelOnMobile: true },
+          ]}
+          primaryAction={{ label: 'Guardar', icon: Save, onClick: () => saveMutation.mutate(), disabled: saveMutation.isPending, loading: saveMutation.isPending }}
+        />
+
+        {/* Title + meta badges */}
+        <EntityTitle
+          title={name}
+          onTitleChange={(v) => setName(v as string)}
+          isOwner={true}
+          inlineMode
+          meta={
+            <>
               <Input value={sopId} onChange={e => setSopId(e.target.value)} className="w-24 font-mono text-xs h-7" />
               <Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge>
               <Badge variant="outline" className="text-xs font-mono">v{sopVersion}</Badge>
-            </div>
-            <Input value={name} onChange={e => setName(e.target.value)} className="text-xl font-bold border-none px-0 h-auto focus-visible:ring-0" />
-          </div>
-          <Button variant="outline" size="sm" onClick={() => setShowCreateTasks(true)} title="Criar tarefas a partir dos passos">
-            <ListChecks className="h-4 w-4 mr-1" /> Criar Tarefas
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => bumpVersion.mutate()} disabled={bumpVersion.isPending} title="Criar nova versão">
-            <History className="h-4 w-4 mr-1" /> v{sopVersion + 1}
-          </Button>
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            <Save className="h-4 w-4 mr-1" /> Guardar
-          </Button>
-        </div>
+            </>
+          }
+        />
 
-        {/* Meta fields */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <Label className="text-xs text-muted-foreground">Status</Label>
+        {/* Properties (Notion-style) */}
+        <EntityProperties>
+          <EntityProperty icon={Tag} label="Status">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
               <SelectContent>
                 {SOP_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Tipo de SOP</Label>
+          </EntityProperty>
+          <EntityProperty icon={Layers} label="Tipo de SOP">
             <Select value={sopType} onValueChange={setSopType}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="operacional">Operacional</SelectItem>
                 <SelectItem value="onboarding">Onboarding</SelectItem>
@@ -503,14 +504,13 @@ export default function SopDetailPage() {
                 <SelectItem value="outro">Outro</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Departamentos</Label>
+          </EntityProperty>
+          <EntityProperty icon={Building2} label="Departamentos">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start h-9 text-sm font-normal">
+                <Button variant="ghost" className={cn(inlineTriggerClass, 'w-full justify-start font-normal')}>
                   {departments.length === 0
-                    ? 'Selecionar departamentos...'
+                    ? <span className="text-muted-foreground">Selecionar…</span>
                     : departments.map(d => DEPARTMENTS.find(x => x.value === d)?.label || d).join(', ')}
                 </Button>
               </PopoverTrigger>
@@ -526,44 +526,38 @@ export default function SopDetailPage() {
                 ))}
               </PopoverContent>
             </Popover>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Função associada</Label>
+          </EntityProperty>
+          <EntityProperty icon={UserCircle2} label="Função associada">
             <Select value={sopRoleTitle || '_none_'} onValueChange={v => setSopRoleTitle(v === '_none_' ? '' : v)}>
-              <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Nenhuma" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="_none_">Nenhuma</SelectItem>
                 {teamRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Produto</Label>
+          </EntityProperty>
+          <EntityProperty icon={Package} label="Produto">
             <Select value={sopProductId || '_none_'} onValueChange={v => setSopProductId(v === '_none_' ? '' : v)}>
-              <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Nenhum" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="_none_">Nenhum</SelectItem>
                 {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
-            <Input type="number" min="0" step="0.5" value={sopEstimatedTime} onChange={e => setSopEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Data de criação</Label>
-            <Input type="date" value={createdAt} onChange={e => setCreatedAt(e.target.value)} className="h-9" />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Versão</Label>
-            <p className="text-sm pt-2 font-mono">v{sopVersion}{sopVersionNotes ? ` — ${sopVersionNotes}` : ''}</p>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Última atualização</Label>
-            <p className="text-sm pt-2">{sop.updated_at ? format(new Date(sop.updated_at), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}</p>
-          </div>
-        </div>
+          </EntityProperty>
+          <EntityProperty icon={Timer} label="Tempo estimado">
+            <Input type="number" min="0" step="0.5" value={sopEstimatedTime} onChange={e => setSopEstimatedTime(e.target.value)} placeholder="Ex: 2.5h" className={inlineInputClass} />
+          </EntityProperty>
+          <EntityProperty icon={CalendarIcon} label="Data de criação">
+            <Input type="date" value={createdAt} onChange={e => setCreatedAt(e.target.value)} className={inlineInputClass} />
+          </EntityProperty>
+          <EntityProperty icon={Hash} label="Versão">
+            <span className="font-mono text-sm px-2">v{sopVersion}{sopVersionNotes ? ` — ${sopVersionNotes}` : ''}</span>
+          </EntityProperty>
+          <EntityProperty icon={Clock} label="Última atualização">
+            <span className="text-sm px-2">{sop.updated_at ? format(new Date(sop.updated_at), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}</span>
+          </EntityProperty>
+        </EntityProperties>
 
         {/* Routine info */}
         {linkedRoutine && (
@@ -581,11 +575,10 @@ export default function SopDetailPage() {
         )}
 
         {/* Linked entity */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <Label className="text-xs text-muted-foreground">Tipo de ligação</Label>
+        <EntityProperties>
+          <EntityProperty icon={Link2} label="Tipo de ligação">
             <Select value={linkedEntityType} onValueChange={v => { setLinkedEntityType(v); setLinkedEntityId(''); setApplyToAllActiveClients(false); }}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="geral">Geral</SelectItem>
                 <SelectItem value="produto">Produto</SelectItem>
@@ -593,47 +586,43 @@ export default function SopDetailPage() {
                 <SelectItem value="projeto">Projeto</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </EntityProperty>
           {linkedEntityType === 'produto' && (
             <>
-              <div>
-                <Label className="text-xs text-muted-foreground">Produto</Label>
+              <EntityProperty icon={Package} label="Produto">
                 <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                  <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                   <SelectContent>
                     {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="flex items-end gap-2 pb-1">
-                <Switch checked={applyToAllActiveClients} onCheckedChange={setApplyToAllActiveClients} id="apply-all-clients" />
-                <Label htmlFor="apply-all-clients" className="text-xs cursor-pointer">Aplicar a todos os clientes ativos</Label>
-              </div>
+              </EntityProperty>
+              <EntityProperty icon={UserCircle2} label="Aplicar a todos os clientes ativos">
+                <Switch checked={applyToAllActiveClients} onCheckedChange={setApplyToAllActiveClients} />
+              </EntityProperty>
             </>
           )}
           {linkedEntityType === 'cliente' && (
-            <div>
-              <Label className="text-xs text-muted-foreground">Cliente</Label>
+            <EntityProperty icon={UserCircle2} label="Cliente">
               <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                 <SelectContent>
                   {clientsList.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
+            </EntityProperty>
           )}
           {linkedEntityType === 'projeto' && (
-            <div>
-              <Label className="text-xs text-muted-foreground">Projeto</Label>
+            <EntityProperty icon={Layers} label="Projeto">
               <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                 <SelectContent>
                   {projectsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
+            </EntityProperty>
           )}
-        </div>
+        </EntityProperties>
 
         <EntitySection
           title="1 · Objetivo"
