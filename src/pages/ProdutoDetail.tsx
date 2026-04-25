@@ -378,13 +378,79 @@ export default function ProdutoDetailPage() {
                         </span>
                       )}
                     </div>
-                    <Input
-                      value={form.name || ''}
-                      onChange={e => update('name', e.target.value)}
-                      placeholder="Nome do produto"
-                      className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto leading-tight tracking-tight"
-                      readOnly={!isOwner}
-                    />
+                    {editingName || isNew ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          autoFocus={!isNew}
+                          value={isNew ? (form.name || '') : nameDraft}
+                          onChange={e => isNew ? update('name', e.target.value) : setNameDraft(e.target.value)}
+                          placeholder="Nome do produto"
+                          className="text-2xl md:text-3xl font-bold border-input/60 shadow-none px-2 h-auto py-1 leading-tight tracking-tight bg-background/70"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !isNew) {
+                              e.preventDefault();
+                              if (!nameDraft.trim()) { toast.error('Nome obrigatório'); return; }
+                              update('name', nameDraft.trim());
+                              if (product) {
+                                upsertProduct.mutateAsync({ id: product.id, name: nameDraft.trim() } as Product)
+                                  .then(() => { toast.success('Nome atualizado'); setEditingName(false); })
+                                  .catch(() => toast.error('Erro ao guardar'));
+                              } else {
+                                setEditingName(false);
+                              }
+                            }
+                            if (e.key === 'Escape' && !isNew) { setEditingName(false); setNameDraft(form.name || ''); }
+                          }}
+                        />
+                        {!isNew && (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="default"
+                              className="h-9 w-9 shrink-0"
+                              onClick={async () => {
+                                if (!nameDraft.trim()) { toast.error('Nome obrigatório'); return; }
+                                update('name', nameDraft.trim());
+                                if (product) {
+                                  try {
+                                    await upsertProduct.mutateAsync({ id: product.id, name: nameDraft.trim() } as Product);
+                                    toast.success('Nome atualizado');
+                                    setEditingName(false);
+                                  } catch { toast.error('Erro ao guardar'); }
+                                }
+                              }}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-9 w-9 shrink-0"
+                              onClick={() => { setEditingName(false); setNameDraft(form.name || ''); }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="group/name flex items-center gap-2">
+                        <h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-foreground truncate">
+                          {form.name || 'Sem nome'}
+                        </h1>
+                        {isOwner && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 shrink-0 opacity-0 group-hover/name:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+                            onClick={() => { setNameDraft(form.name || ''); setEditingName(true); }}
+                            title="Editar nome"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     <ProductDescriptionEditor
                       value={form.description || ''}
                       onChange={(v) => update('description', v)}
