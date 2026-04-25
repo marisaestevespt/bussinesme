@@ -14,6 +14,7 @@ import { LayoutGrid, List, Table as TableIcon, Plus, Pencil, X, SlidersHorizonta
 import { UnifiedResponsibilitiesList } from '@/components/UnifiedResponsibilitiesList';
 import type { UnifiedItem, ResponsibilitySource } from '@/hooks/useUnifiedResponsibilities';
 import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
+import { useItemActions } from '@/hooks/useItemActions';
 import { toast } from 'sonner';
 import { useConfirm, usePrompt } from '@/components/ui/confirm-dialog';
 import { cn } from '@/lib/utils';
