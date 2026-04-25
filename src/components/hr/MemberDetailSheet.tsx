@@ -228,11 +228,24 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className={`grid ${onbTotal > 0 ? 'grid-cols-5' : 'grid-cols-4'} gap-2`}>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Horas (mês)</p><p className="font-bold text-sm">{monthHours.toFixed(1)}h</p></div>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Horas (total)</p><p className="font-bold text-sm">{totalHours.toFixed(1)}h</p></div>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Tarefas ativas</p><p className="font-bold text-sm">{pendingTasks}</p></div>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Sessões feedback</p><p className="font-bold text-sm">{feedbackSessions.length}</p></div>
+            {onbTotal > 0 && (
+              <button
+                type="button"
+                onClick={() => setDetailTab('onboarding')}
+                className={`rounded-lg p-2 text-center transition hover:opacity-80 ${onbPct === 100 ? 'bg-primary/15' : onbOverdue > 0 ? 'bg-destructive/10' : 'bg-muted/50'}`}
+              >
+                <p className="text-xs text-muted-foreground">Onboarding</p>
+                <p className="font-bold text-sm flex items-center justify-center gap-1">
+                  {onbPct === 100 && <CheckCircle2 className="h-3 w-3 text-primary" />}
+                  {onbDone}/{onbTotal}
+                </p>
+              </button>
+            )}
           </div>
 
           <Tabs value={detailTab} onValueChange={setDetailTab}>
