@@ -446,8 +446,8 @@ export default function ProdutoDetailPage() {
             const inlineInput = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-muted/40 rounded-md";
 
             const Row = ({ icon: Icon, label, children }: { icon: any; label: string; children: React.ReactNode }) => (
-              <div className="grid grid-cols-[160px_1fr] items-center gap-3 py-1.5 border-b border-border/40 last:border-b-0">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground pr-3 border-r border-border/40">
+              <div className="grid grid-cols-[150px_1fr] items-center py-1.5 border-b border-border/50">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pr-3 mr-3 border-r border-border/50 self-stretch py-1">
                   <Icon className="h-3.5 w-3.5" />
                   <span>{label}</span>
                 </div>
@@ -456,14 +456,14 @@ export default function ProdutoDetailPage() {
             );
 
             const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-              <div className="col-span-full pt-3 pb-1 first:pt-0">
+              <div className="col-span-full pt-4 pb-2 first:pt-0">
                 <p className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider">{children}</p>
               </div>
             );
 
             return (
               <div className="p-4 md:p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-border/40 gap-y-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
                   {/* ── Geral ── */}
                   <SectionTitle>Geral</SectionTitle>
                   <Row icon={Circle} label="Status">
