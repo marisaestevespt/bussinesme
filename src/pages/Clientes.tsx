@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, BarChart3, Globe, MessageSquare, Users } from 'lucide-react';
 import { useClients, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
+import { ProductIcon } from '@/components/entity-icon';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { format, parseISO } from 'date-fns';
 import {
@@ -85,7 +86,12 @@ export default function ClientesPage() {
         {/* Linha 2: Conversão | Produto | Email | Whatsapp | Aniversário */}
         <div className="grid grid-cols-[1fr_1.2fr_1.5fr_1fr_80px] gap-2 items-center text-xs text-muted-foreground">
           <span className="truncate"><span className="text-foreground/60">Conversão:</span> {fmtDate((c as any).conversion_date)}</span>
-          <span className="truncate text-foreground">{c.current_product || '—'}</span>
+          <span className="truncate text-foreground inline-flex items-center gap-1.5">
+            {c.current_product_id || c.current_product ? (
+              <ProductIcon productId={c.current_product_id as any} className="h-4 w-4" emojiClassName="text-xs" />
+            ) : null}
+            <span className="truncate">{c.current_product || '—'}</span>
+          </span>
           <span className="truncate">{c.email || '—'}</span>
           <span className="truncate">{c.whatsapp || '—'}</span>
           <span className="truncate">🎂 {fmtBirthday(c.birthday)}</span>
@@ -101,7 +107,13 @@ export default function ClientesPage() {
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="font-mono">{c.client_id}</span>
-          {c.current_product && <span>· {c.current_product}</span>}
+          {c.current_product && (
+            <span className="inline-flex items-center gap-1">
+              ·
+              <ProductIcon productId={c.current_product_id as any} className="h-3.5 w-3.5" emojiClassName="text-[10px]" />
+              {c.current_product}
+            </span>
+          )}
         </div>
       </div>
     </div>
