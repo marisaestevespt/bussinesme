@@ -27,6 +27,9 @@ export interface UnifiedItem {
   isInfoOnly: boolean;     // meetings & projects — no checkbox
   completed: boolean;
   estimatedHours: number;  // 0 = use default weight
+  status?: string;         // raw status from source (when applicable)
+  projectId?: string | null;
+  projectName?: string;
 }
 
 const DEFAULT_WEIGHT_HOURS = 0.25;
