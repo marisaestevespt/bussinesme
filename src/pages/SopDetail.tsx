@@ -635,36 +635,29 @@ export default function SopDetailPage() {
           )}
         </div>
 
-        <Card>
-           <CardHeader className="pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
-              Objetivo
-            </CardTitle>
+        <EntitySection
+          title="1 · Objetivo"
+          action={
             <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('objetivo')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-          </CardHeader>
-          <CardContent>
+          }
+        >
             {editingSections.has('objetivo') ? (
               <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
             ) : (
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{objetivo || <span className="italic">Sem objetivo definido</span>}</p>
             )}
-          </CardContent>
-        </Card>
+        </EntitySection>
 
-        <Card>
-          <CardHeader className="pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
-              Utilização
-            </CardTitle>
+        <EntitySection
+          title="2 · Utilização"
+          action={
             <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('utilizacao')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-          </CardHeader>
-          <CardContent>
+          }
+        >
             {editingSections.has('utilizacao') ? (
               <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
             ) : (
@@ -683,20 +676,16 @@ export default function SopDetailPage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </EntitySection>
 
-        <Card>
-          <CardHeader className="pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
-              Inputs Necessários
-            </CardTitle>
+        <EntitySection
+          title="3 · Inputs Necessários"
+          action={
             <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('inputs')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-          </CardHeader>
-          <CardContent>
+          }
+        >
             {editingSections.has('inputs') ? (
               <>
                 <p className="text-sm text-warning mb-3">⚠️ Se algum item estiver em falta, não iniciar.</p>
@@ -712,20 +701,16 @@ export default function SopDetailPage() {
                 ))}</ul>
               ) : <EmptyHint>Sem inputs definidos</EmptyHint>
             )}
-          </CardContent>
-        </Card>
+        </EntitySection>
 
-        <Card>
-          <CardHeader className="pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">4</span>
-              Passos do Processo
-            </CardTitle>
+        <EntitySection
+          title="4 · Passos do Processo"
+          action={
             <Button size="sm" variant="outline" onClick={() => addSopStep.mutate()}>
               <Plus className="h-3 w-3 mr-1" /> Passo
             </Button>
-          </CardHeader>
-          <CardContent>
+          }
+        >
           {(isOnboardingSop || isOffboardingSop) && (
             <p className="text-xs text-muted-foreground mb-3">
               Os passos marcados com 👁️ aparecerão no checklist do cliente no portal. Os restantes são apenas internos.
