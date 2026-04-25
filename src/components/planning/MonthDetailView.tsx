@@ -75,7 +75,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
-  const salesActionsQ = useQuery({ queryKey: ['md-sales-actions', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales_actions').select('*'); return (data || []).filter((a: any) => { if (!a.start_date) return false; const d = parseISO(a.start_date); return d >= range.start && d <= range.end; }); }});
+  const salesActionsQ = useQuery({ queryKey: ['md-sales-actions', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales_actions').select('*'); return (data || []).filter((a) => { if (!a.start_date) return false; const d = parseISO(a.start_date); return d >= range.start && d <= range.end; }); }});
   const leadsQ = useQuery({ queryKey: ['md-leads', year, monthNum], queryFn: async () => { const { data } = await supabase.from('crm_leads').select('*'); return data || []; }});
   const clientsQ = useQuery({ queryKey: ['md-clients'], queryFn: async () => { const { data } = await supabase.from('clients').select('*'); return data || []; }});
   const eventsQ = useQuery({ queryKey: ['md-events', year, monthNum], queryFn: async () => { const { data } = await supabase.from('events').select('*'); return data || []; }});
@@ -163,12 +163,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // ── Derived data ──
   const goals = planning.allGoals || [];
   const objectives = planning.allObjectives || [];
-  const monthGoals = goals.filter((g: any) => g.period === monthName);
-  const progress = monthGoals.length > 0 ? Math.round(monthGoals.filter((g: any) => g.status === 'atingido').length / monthGoals.length * 100) : 0;
+  const monthGoals = goals.filter((g) => g.period === monthName);
+  const progress = monthGoals.length > 0 ? Math.round(monthGoals.filter((g) => g.status === 'atingido').length / monthGoals.length * 100) : 0;
 
   // Objectives linked to this month's goals
-  const linkedObjIds = [...new Set(monthGoals.map((g: any) => g.objective_id).filter(Boolean))];
-  const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
+  const linkedObjIds = [...new Set(monthGoals.map((g) => g.objective_id).filter(Boolean))];
+  const linkedObjectives = objectives.filter((o) => linkedObjIds.includes(o.id));
 
   const sales = salesQ.data || [];
   const totalInvoiced = sumRevenue(sales);
@@ -178,7 +178,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const products = productsQ.data || [];
 
   const allLeads = leadsQ.data || [];
-  const monthLeads = allLeads.filter((l: any) => {
+  const monthLeads = allLeads.filter((l) => {
     const added = l.added_at ? parseISO(l.added_at) : null;
     const updated = l.updated_at ? parseISO(l.updated_at) : null;
     return (added && added >= range.start && added <= range.end) || (updated && updated >= range.start && updated <= range.end);
@@ -189,40 +189,40 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const CRM_COLORS: Record<string, string> = Object.fromEntries(CRM_STATUSES.map(s => [s.value, s.color]));
 
   const allClients = clientsQ.data || [];
-  const activeClients = allClients.filter((c: any) => c.status === 'ativo' || c.status === 'em_onboarding');
-  const pausedClients = allClients.filter((c: any) => c.status === 'pausado');
-  const endingClients = allClients.filter((c: any) => {
+  const activeClients = allClients.filter((c) => c.status === 'ativo' || c.status === 'em_onboarding');
+  const pausedClients = allClients.filter((c) => c.status === 'pausado');
+  const endingClients = allClients.filter((c) => {
     const isTerminado = c.status === 'terminado';
     const endsCycle = c.end_of_cycle ? (() => { const d = parseISO(c.end_of_cycle); return d >= range.start && d <= range.end; })() : false;
     return isTerminado || endsCycle;
   });
 
   const allEvents = useMemo(() => {
-    const events = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((e: any) => ({ ...e, _type: 'event' }));
-    const meetings = (meetingsQ.data || []).filter((m: any) => { if (!m.date_time) return false; const d = parseISO(m.date_time); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((m: any) => ({ ...m, start_date: m.date_time, _type: 'meeting' }));
+    const events = (eventsQ.data || []).filter((e) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((e) => ({ ...e, _type: 'event' }));
+    const meetings = (meetingsQ.data || []).filter((m) => { if (!m.date_time) return false; const d = parseISO(m.date_time); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((m) => ({ ...m, start_date: m.date_time, _type: 'meeting' }));
     return [...events, ...meetings];
   }, [eventsQ.data, meetingsQ.data, calMonth]);
 
-  const allContent = (contentQ.data || []).filter((c: any) => { if (!c.scheduled_at) return false; const d = parseISO(c.scheduled_at); return d >= range.start && d <= range.end; });
+  const allContent = (contentQ.data || []).filter((c) => { if (!c.scheduled_at) return false; const d = parseISO(c.scheduled_at); return d >= range.start && d <= range.end; });
   const channels = channelsQ.data || [];
 
-  const monthTasks = (tasksQ.data || []).filter((t: any) => { if (!t.deadline) return false; const d = parseISO(t.deadline); return d >= range.start && d <= range.end; });
+  const monthTasks = (tasksQ.data || []).filter((t) => { if (!t.deadline) return false; const d = parseISO(t.deadline); return d >= range.start && d <= range.end; });
 
   const timeEntries = timeEntriesQ.data || [];
   const team = teamQ.data || [];
 
   // Product review with per-client breakdown
   const productReview = useMemo(() => {
-    return products.map((p: any) => {
-      const clientsWithProduct = activeClients.filter((c: any) =>
+    return products.map((p) => {
+      const clientsWithProduct = activeClients.filter((c) =>
         c.current_product_id ? c.current_product_id === p.id : c.current_product === p.name
       );
       const hoursPerClient = p.monthly_hours_per_client || 0;
       const estimatedHours = hoursPerClient * clientsWithProduct.length;
 
       // Per-client breakdown with real hours from time_entries
-      const clientBreakdown = clientsWithProduct.map((c: any) => {
-        const clientTimeEntries = timeEntries.filter((te: any) => te.client_id === c.id);
+      const clientBreakdown = clientsWithProduct.map((c) => {
+        const clientTimeEntries = timeEntries.filter((te) => te.client_id === c.id);
         const realHours = Math.round(clientTimeEntries.reduce((s: number, te: any) => s + Number(te.duration || 0), 0) * 10) / 10;
         const deviation = Math.round((realHours - hoursPerClient) * 10) / 10;
         return { clientId: c.id, clientName: c.full_name, clientCode: c.client_id, estimated: hoursPerClient, realHours, deviation };
@@ -232,14 +232,14 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       const totalDeviation = Math.round((totalRealHours - estimatedHours) * 10) / 10;
 
       return { id: p.id, name: p.name, clientCount: clientsWithProduct.length, estimatedHours, realHours: totalRealHours, deviation: totalDeviation, clientBreakdown };
-    }).filter((p: any) => p.clientCount > 0);
+    }).filter((p) => p.clientCount > 0);
   }, [products, activeClients, timeEntries]);
 
   // Team capacity
   const teamCapacity = useMemo(() => {
-    return team.map((m: any) => {
+    return team.map((m) => {
       const monthlyAvailable = monthlyCapacity(m);
-      const memberTasks = monthTasks.filter((t: any) => t.assigned_to === m.profile_id);
+      const memberTasks = monthTasks.filter((t) => t.assigned_to === m.profile_id);
       const committed = memberTasks.reduce((s: number, t: any) => s + Number(t.estimated_time || 0), 0);
       return { name: m.full_name, available: Math.round(monthlyAvailable), committed: Math.round(committed), over: committed > monthlyAvailable };
     }).filter(m => m.committed > 0);
@@ -248,11 +248,11 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
   // Product sales breakdown for "goal" tab — always show all active products
   const prodSalesData = useMemo(() => {
-    const activeProducts = products.filter((p: any) => p.status !== 'off');
+    const activeProducts = products.filter((p) => p.status !== 'off');
     const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
-    return activeProducts.map((prod: any) => {
+    return activeProducts.map((prod) => {
       const prodName = normalize(prod.name);
-      const prodSales = sales.filter((s: any) => {
+      const prodSales = sales.filter((s) => {
         const saleName = normalize(s.product || '');
         if (!saleName) return false;
         return saleName === prodName
@@ -261,7 +261,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           || saleName.replace(/\s*\[.*?\]\s*/g, '') === prodName.replace(/\s*\[.*?\]\s*/g, '');
       });
       const totalFat = sumRevenue(prodSales);
-      const pg = commProdGoals.find((g: any) => {
+      const pg = commProdGoals.find((g) => {
         const goalName = normalize(g.product_name);
         return goalName === prodName || goalName.includes(prodName) || prodName.includes(goalName);
       });
@@ -359,8 +359,8 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Meta</TableHead><TableHead className="text-right">Alvo</TableHead><TableHead className="text-right">Atual</TableHead><TableHead>Progresso</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
-                  {monthGoals.map((g: any) => {
-                    const obj = objectives.find((o: any) => o.id === g.objective_id);
+                  {monthGoals.map((g) => {
+                    const obj = objectives.find((o) => o.id === g.objective_id);
                     const targetVal = Number(g.target_value || 0);
                     const actualVal = Number(g.actual_value || 0);
                     // For commercial objectives, calculate actual from sales
@@ -394,7 +394,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Objetivo</TableHead><TableHead>Tipo</TableHead><TableHead>Prazo</TableHead><TableHead>Progresso</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
-                  {linkedObjectives.map((o: any) => (
+                  {linkedObjectives.map((o) => (
                     <TableRow key={o.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedObjective(o)}>
                       <TableCell><Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(o.status)}</Badge></TableCell>
                       <TableCell className="text-xs">{planAreaLabel(o.area)}</TableCell>
@@ -513,7 +513,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 <TableBody>
                   {sales.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
-                  ) : sales.map((sl: any) => (
+                  ) : sales.map((sl) => (
                     <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
                       <TableCell className="text-xs">{sl.sale_id}</TableCell>
                       <TableCell className="text-sm">{sl.client || '—'}</TableCell>
@@ -534,7 +534,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               <Table>
                 <TableHeader><TableRow><TableHead>Status</TableHead><TableHead>Ação</TableHead><TableHead>Data/Período</TableHead><TableHead>Produto</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {salesActions.map((a: any) => (
+                  {salesActions.map((a) => (
                     <TableRow key={a.id}>
                       <TableCell><Badge variant="secondary" className="text-xs">{a.status}</Badge></TableCell>
                       <TableCell className="text-sm">{a.action_name}</TableCell>
@@ -566,13 +566,13 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {/* Channel tabs */}
           <div className="flex gap-1 flex-wrap">
             <Button size="sm" variant={contentTab === 'calendario' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setContentTab('calendario')}>Calendário</Button>
-            {channels.map((ch: any) => (
+            {channels.map((ch) => (
               <Button key={ch.id} size="sm" variant={contentTab === ch.id ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setContentTab(ch.id)}>{ch.name}</Button>
             ))}
           </div>
 
           {renderCalendarGrid(
-            contentTab === 'calendario' ? allContent : allContent.filter((c: any) => c.content_channels?.some((cc: any) => cc.channel_id === contentTab)),
+            contentTab === 'calendario' ? allContent : allContent.filter((c) => c.content_channels?.some((cc) => cc.channel_id === contentTab)),
             (c: any) => c.scheduled_at ? parseISO(c.scheduled_at) : null,
             (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => navigate(`/hub/marketing/conteudos/${c.id}`)}>{c.title}</div>
           )}
@@ -591,12 +591,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           <div className="overflow-x-auto pb-2">
             <div className="flex gap-2" style={{ minWidth: CRM_COLUMNS.length * 180 }}>
               {CRM_COLUMNS.map(col => {
-                const colLeads = monthLeads.filter((l: any) => l.status === col);
+                const colLeads = monthLeads.filter((l) => l.status === col);
                 return (
                   <div key={col} className="w-44 shrink-0">
                     <div className={cn('text-[10px] font-medium mb-1.5 px-2 py-1 rounded-md', CRM_COLORS[col] || 'text-muted-foreground')}>{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
                     <div className="space-y-1.5">
-                      {colLeads.map((l: any) => {
+                      {colLeads.map((l) => {
                         const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
                         const borderColor = CRM_COLORS[col]?.match(/border-\S+/)?.[0] || 'border-border/50';
                         return (
@@ -660,7 +660,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               <TableBody>
                 {activeClients.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
-                ) : activeClients.map((c: any) => (
+                ) : activeClients.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
@@ -680,7 +680,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               <TableBody>
                 {pausedClients.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes em pausa.</TableCell></TableRow>
-                ) : pausedClients.map((c: any) => (
+                ) : pausedClients.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
@@ -700,7 +700,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               <TableBody>
                 {endingClients.length === 0 ? (
                   <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem clientes a terminar este mês.</TableCell></TableRow>
-                ) : endingClients.map((c: any) => (
+                ) : endingClients.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
@@ -734,7 +734,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <TableBody>
               {sales.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem recebimentos registados.</TableCell></TableRow>
-              ) : sales.map((sl: any) => (
+              ) : sales.map((sl) => (
                 <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
                   <TableCell className="text-xs">{sl.sale_id}</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
@@ -770,7 +770,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 <TableHead>Tarefa</TableHead><TableHead>Prioridade</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {items.map((t: any) => (
+                {items.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell className="text-xs font-medium">{t.name}</TableCell>
                     <TableCell><Badge variant={t.priority === 'alta' ? 'destructive' : 'secondary'} className="text-[10px]">{t.priority}</Badge></TableCell>
@@ -814,7 +814,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <p className="text-sm text-muted-foreground text-center py-4">Sem produtos com clientes ativos para análise.</p>
           ) : (
             <>
-              {productReview.map((p: any) => (
+              {productReview.map((p) => (
                 <div key={p.id} className="space-y-1">
                   <Table>
                     <TableHeader><TableRow>
@@ -838,7 +838,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         <TableHead className="text-[10px]">Cliente</TableHead><TableHead className="text-[10px] text-right">Estimado</TableHead><TableHead className="text-[10px] text-right">Real</TableHead><TableHead className="text-[10px] text-right">Desvio</TableHead><TableHead className="text-[10px]">Status</TableHead>
                       </TableRow></TableHeader>
                       <TableBody>
-                        {p.clientBreakdown.map((cb: any) => {
+                        {p.clientBreakdown.map((cb) => {
                           const isOver = cb.deviation > 2;
                           const isUnder = cb.deviation < -2;
                           return (
@@ -863,8 +863,8 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                       <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                       <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">
                         O produto <strong>{p.name}</strong> demorou <strong>{Math.abs(p.deviation)}h</strong> {p.deviation > 0 ? 'a mais' : 'a menos'} do que o estimado.
-                        {p.clientBreakdown.filter((cb: any) => cb.deviation > 2).length > 0 && (
-                          <> Os clientes fora do normal: <strong>{p.clientBreakdown.filter((cb: any) => cb.deviation > 2).map((cb: any) => cb.clientName).join(', ')}</strong>.</>
+                        {p.clientBreakdown.filter((cb) => cb.deviation > 2).length > 0 && (
+                          <> Os clientes fora do normal: <strong>{p.clientBreakdown.filter((cb) => cb.deviation > 2).map((cb) => cb.clientName).join(', ')}</strong>.</>
                         )}
                       </p>
                       <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => navigate(`/produtos/${p.id}`)}><ExternalLink className="h-3 w-3" /> Ver produto</Button>
@@ -890,7 +890,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             Rotinas Semanais e Mensais
             {(() => {
               const tasks = routineTasksQ.data || [];
-              const done = tasks.filter((t: any) => isTaskDone(t)).length;
+              const done = tasks.filter((t) => isTaskDone(t)).length;
               const total = tasks.length;
               if (total === 0) return null;
               const pct = Math.round((done / total) * 100);
@@ -903,7 +903,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <p className="text-sm text-muted-foreground text-center py-4">Sem rotinas configuradas para este mês.</p>
           ) : (
             <div className="space-y-1.5">
-              {(routineTasksQ.data || []).map((t: any) => {
+              {(routineTasksQ.data || []).map((t) => {
                 const isDone = isTaskDone(t);
                 const deadlineDate = t.deadline ? parseISO(t.deadline) : null;
                 const completedAt = t.completed_at ? parseISO(t.completed_at) : null;
@@ -1092,7 +1092,7 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
       <Dialog open={!!expandedClient} onOpenChange={(open) => { if (!open) setExpandedClient(null); }}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           {expandedClient && (() => {
-            const clientEntries = timeEntries.filter((te: any) => te.client_id === expandedClient.clientId);
+            const clientEntries = timeEntries.filter((te) => te.client_id === expandedClient.clientId);
             const totalHours = Math.round(clientEntries.reduce((s: number, te: any) => s + Number(te.duration || 0), 0) * 10) / 10;
             return (
               <>
@@ -1116,8 +1116,8 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
                       <TableHead className="text-right">Tempo</TableHead>
                     </TableRow></TableHeader>
                     <TableBody>
-                      {clientEntries.sort((a: any, b: any) => (a.entry_date || '').localeCompare(b.entry_date || '')).map((te: any) => {
-                        const memberName = team.find((m: any) => m.id === te.member_id)?.full_name || '—';
+                      {clientEntries.sort((a, b) => (a.entry_date || '').localeCompare(b.entry_date || '')).map((te) => {
+                        const memberName = team.find((m) => m.id === te.member_id)?.full_name || '—';
                         return (
                           <TableRow key={te.id}>
                             <TableCell className="text-xs">{te.entry_date}</TableCell>
@@ -1192,7 +1192,7 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
         open={leadSheetOpen}
         onOpenChange={v => { setLeadSheetOpen(v); if (!v) setSelectedLead(null); }}
         lead={selectedLead}
-        products={(commProdGoalQ.data || []).map((p: any) => p.product_name)}
+        products={(commProdGoalQ.data || []).map((p) => p.product_name)}
         profiles={[]}
         onSave={(lead) => {
           upsertLead.mutate(lead, {

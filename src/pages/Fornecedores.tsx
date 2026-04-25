@@ -173,7 +173,7 @@ export default function FornecedoresPage() {
         .select('id,description,expense_name,expense_date,expense_id,base_value,vat_rate,total_with_vat,status,source_type,is_recurring,category,payment_method,documents,location,expense_month,expense_quarter,expense_year')
         .eq('supplier_id', selectedSupplierId!)
         .order('expense_date', { ascending: true });
-      return (data || []).map((expense: any) => ({
+      return (data || []).map((expense) => ({
         ...expense,
         status: normalizeUnpaidExpenseStatus(expense.status, expense.expense_date),
       }));
@@ -212,7 +212,7 @@ export default function FornecedoresPage() {
       const toDelete: any[] = [];
       let currentMonthExpenseId: string | null = null;
 
-      (childExpenses || []).forEach((e: any) => {
+      (childExpenses || []).forEach((e) => {
         if (isPaidExpenseStatus(e.status)) return;
         const eYear = e.expense_year || parseInt((e.expense_date || '').slice(0, 4));
         const eMonth = e.expense_month || parseInt((e.expense_date || '').slice(5, 7));
@@ -253,7 +253,7 @@ export default function FornecedoresPage() {
   // When supplier expenses load, auto-populate recurring expense fields if a rule exists
   useEffect(() => {
     if (!selectedSupplierId || !open) return;
-    const recurringRule = supplierExpenses.find((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado');
+    const recurringRule = supplierExpenses.find((e) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado');
     if (recurringRule) {
       setForm((f: any) => {
         // Only populate if not already set (avoid overwriting user edits)
@@ -340,7 +340,7 @@ export default function FornecedoresPage() {
     if (autoOpened || suppliers.length === 0) return;
     const openId = searchParams.get('open');
     if (openId) {
-      const supplier = suppliers.find((s: any) => s.id === openId);
+      const supplier = suppliers.find((s) => s.id === openId);
       if (supplier) {
         setForm({ ...supplier, create_recurring: false });
         setSelectedSupplierId(supplier.id);
@@ -360,7 +360,7 @@ export default function FornecedoresPage() {
         .select('supplier_id')
         .not('supplier_id', 'is', null);
       const counts: Record<string, number> = {};
-      (data || []).forEach((e: any) => {
+      (data || []).forEach((e) => {
         counts[e.supplier_id] = (counts[e.supplier_id] || 0) + 1;
       });
       return counts;
@@ -729,7 +729,7 @@ export default function FornecedoresPage() {
               <TableBody>
                 {suppliers.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
-                ) : suppliers.map((s: any) => (
+                ) : suppliers.map((s) => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm({ ...s, create_recurring: false }); setSelectedSupplierId(s.id); setOpen(true); }}>
                     <TableCell>
                       <div className="font-medium">{s.name}</div>
@@ -818,7 +818,7 @@ export default function FornecedoresPage() {
                     <RefreshCw className="h-3.5 w-3.5 mr-1" /> Renovar Contrato
                   </Button>
                 )}
-                {form.id && supplierExpenses.some((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado') && (
+                {form.id && supplierExpenses.some((e) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado') && (
                   <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => setCancelDialog({ supplierId: form.id, adjustValue: '', showAdjust: false })}>
                     <Ban className="h-3.5 w-3.5 mr-1" /> Cancelar Recorrência
                   </Button>
@@ -962,11 +962,11 @@ export default function FornecedoresPage() {
                 <Label>Documentos / Contratos</Label>
                 {form.documents && Array.isArray(form.documents) && form.documents.length > 0 && (
                   <div className="space-y-1">
-                    {form.documents.map((doc: any, i: number) => (
+                    {form.documents.map((doc, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
                         <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{doc.name}</a>
                         <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={() => {
-                          setForm((f: any) => ({ ...f, documents: (f.documents || []).filter((_: any, idx: number) => idx !== i) }));
+                          setForm((f: any) => ({ ...f, documents: (f.documents || []).filter((_, idx) => idx !== i) }));
                         }}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                       </div>
                     ))}
@@ -993,7 +993,7 @@ export default function FornecedoresPage() {
               {form.renewal_history && Array.isArray(form.renewal_history) && form.renewal_history.length > 0 && (
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Histórico de renovações</Label>
-                  {form.renewal_history.map((r: any, i: number) => (
+                  {form.renewal_history.map((r, i) => (
                     <div key={i} className="text-xs text-muted-foreground border-l-2 border-border pl-2">
                       {r.date}: {r.old_end} → {r.new_end} {r.notes && `— ${r.notes}`}
                     </div>
@@ -1006,15 +1006,15 @@ export default function FornecedoresPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs text-muted-foreground">
-                      Despesas associadas ({supplierExpenses.filter((e: any) => e.source_type !== 'rule').length})
+                      Despesas associadas ({supplierExpenses.filter((e) => e.source_type !== 'rule').length})
                     </Label>
                     <div className="flex gap-3 text-[11px] text-muted-foreground">
-                      <span>Pago: {formatEuro(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && isPaidExpenseStatus(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
-                      <span>Pendente: {formatEuro(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && !isPaidExpenseStatus(e.status) && e.status !== 'cancelado').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                      <span>Pago: {formatEuro(supplierExpenses.filter((e) => e.source_type !== 'rule' && isPaidExpenseStatus(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                      <span>Pendente: {formatEuro(supplierExpenses.filter((e) => e.source_type !== 'rule' && !isPaidExpenseStatus(e.status) && e.status !== 'cancelado').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
                     </div>
                   </div>
                   <div className="max-h-64 overflow-y-auto space-y-1 border rounded-md p-2">
-                    {supplierExpenses.filter((e: any) => e.source_type !== 'rule').map((exp: any) => {
+                    {supplierExpenses.filter((e) => e.source_type !== 'rule').map((exp) => {
                       const isEditing = editingExpenseId === exp.id;
                       if (isEditing) {
                         const totalPreview = Math.round((parseFloat(expenseEdit.base_value) || 0) * (1 + (expenseEdit.vat_rate ?? 23) / 100) * 100) / 100;

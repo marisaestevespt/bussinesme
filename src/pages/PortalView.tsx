@@ -25,37 +25,44 @@ import { SectionCard, SectionTitle } from '@/components/portal-view/SectionPrimi
 import { PortalContractSection } from '@/components/portal-view/PortalContractSection';
 import { PortalFeedbackSection } from '@/components/portal-view/PortalFeedbackSection';
 import { PortalHistorySection } from '@/components/portal-view/PortalHistorySection';
+import type {
+  PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
+  PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
+  PortalPayment, PortalPhase, PortalDeliverable,
+  PortalMaterial, PortalContractDocument, PortalProjectHistoryEntry,
+} from '@/types/portal';
 
 const sb = (table: string) => supabase.from(table as any) as any;
-const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
+const isClientStep = (o: { responsible?: string | null }) =>
+  o.responsible?.toLowerCase().trim() === 'cliente';
 
 export default function PortalViewPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [portal, setPortal] = useState<PublicPortal | null>(null);
-  const [client, setClient] = useState<any>(null);
-  const [settings, setSettings] = useState<any>(null);
+  const [client, setClient] = useState<Record<string, any> | null>(null);
+  const [settings, setSettings] = useState<Record<string, any> | null>(null);
   const { branding: portalBranding } = usePortalBranding(token);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('home');
 
-  const [faqs, setFaqs] = useState<any[]>([]);
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [comments, setComments] = useState<any[]>([]);
-  const [feedback, setFeedback] = useState<any[]>([]);
-  const [meetings, setMeetings] = useState<any[]>([]);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [onboarding, setOnboarding] = useState<any[]>([]); // derived from phases
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [phases, setPhases] = useState<any[]>([]);
-  
-  const [projectHistory, setProjectHistory] = useState<any[]>([]);
-  const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
-  const [contractDocs, setContractDocs] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<PortalFaq[]>([]);
+  const [questions, setQuestions] = useState<PortalQuestion[]>([]);
+  const [comments, setComments] = useState<PortalComment[]>([]);
+  const [feedback, setFeedback] = useState<PortalFeedback[]>([]);
+  const [meetings, setMeetings] = useState<PortalMeeting[]>([]);
+  const [payments, setPayments] = useState<PortalPayment[]>([]);
+  const [onboarding, setOnboarding] = useState<PortalPhase[]>([]); // derived from phases
+  const [tasks, setTasks] = useState<Array<Record<string, any>>>([]);
+  const [phases, setPhases] = useState<PortalPhase[]>([]);
+
+  const [projectHistory, setProjectHistory] = useState<PortalProjectHistoryEntry[]>([]);
+  const [portalMaterials, setPortalMaterials] = useState<PortalMaterial[]>([]);
+  const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
-  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PortalPayment | null>(null);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
   const [expandedOnbStep, setExpandedOnbStep] = useState<string | null>(null);
@@ -102,24 +109,29 @@ export default function PortalViewPage() {
       (supabase as any).rpc('get_portal_materials', { _token: realToken }),
       (supabase as any).rpc('get_portal_contract_documents', { _token: realToken }),
     ]);
-    setFaqs(((faqsR as any).data || []).slice().sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    setQuestions(((questionsR as any).data || []).slice().sort((a: any, b: any) =>
+    const faqsList = ((faqsR as any).data || []) as PortalFaq[];
+    setFaqs(faqsList.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+    const questionsList = ((questionsR as any).data || []) as Array<PortalQuestion & { group_sort_order?: number }>;
+    setQuestions(questionsList.slice().sort((a, b) =>
       (a.group_sort_order ?? 0) - (b.group_sort_order ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    setComments(((commentsR as any).data || []).slice().sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
-    setFeedback(((feedbackR as any).data || []).slice().sort((a: any, b: any) => new Date(b.submitted_at || b.created_at).getTime() - new Date(a.submitted_at || a.created_at).getTime()));
-    setMeetings((meetingsR as any).data || []);
-    setPayments((paymentsR as any).data || []);
-    setTasks((tasksR as any).data || []);
+    const commentsList = ((commentsR as any).data || []) as PortalComment[];
+    setComments(commentsList.slice().sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()));
+    const feedbackList = ((feedbackR as any).data || []) as PortalFeedback[];
+    setFeedback(feedbackList.slice().sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime()));
+    setMeetings(((meetingsR as any).data || []) as PortalMeeting[]);
+    setPayments(((paymentsR as any).data || []) as PortalPayment[]);
+    setTasks(((tasksR as any).data || []) as Array<Record<string, any>>);
     // get_portal_phases now returns jsonb with deliverables included
     const phasesData = (projPhasesR as any).data || [];
-    const parsedPhases = Array.isArray(phasesData) ? phasesData : [];
-    const allPhases = parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+    const parsedPhases = (Array.isArray(phasesData) ? phasesData : []) as PortalPhase[];
+    const allPhases: PortalPhase[] = parsedPhases.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
     setPhases(allPhases);
     // Show all phases in the onboarding/timeline section
     setOnboarding(allPhases);
-    setProjectHistory((historyR as any).data || []);
-    setPortalMaterials(((materialsR as any).data || []).slice().sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-    setContractDocs((contractR as any).data || []);
+    setProjectHistory(((historyR as any).data || []) as PortalProjectHistoryEntry[]);
+    const materialsList = ((materialsR as any).data || []) as PortalMaterial[];
+    setPortalMaterials(materialsList.slice().sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()));
+    setContractDocs(((contractR as any).data || []) as PortalContractDocument[]);
     setLoading(false);
   };
 
@@ -244,7 +256,7 @@ export default function PortalViewPage() {
   const logoUrl = settings?.logo_url;
   const firstName = client.full_name?.split(' ')[0] || '';
 
-  const hasUnansweredQuestions = questions.length > 0 && questions.some((q: any) => !q.answer?.trim() && !(Array.isArray(q.file_urls) && q.file_urls.length > 0));
+  const hasUnansweredQuestions = questions.length > 0 && questions.some((q) => !q.answer?.trim() && !(Array.isArray(q.file_urls) && q.file_urls.length > 0));
 
   const navItems = [
     { key: 'home', label: 'Início', icon: Star, always: true },
@@ -266,7 +278,7 @@ export default function PortalViewPage() {
   const nextStep = (() => {
     for (const phase of onboarding) {
       const dels = phase.deliverables || [];
-      const pending = dels.find((d: any) => !isDeliverableDone(d));
+      const pending = dels.find((d) => !isDeliverableDone(d));
       if (pending) return { ...pending, phase_name: phase.name };
     }
     return null;
@@ -284,13 +296,13 @@ export default function PortalViewPage() {
     // 1. Preferred: explicit link via meeting_id on the deliverable
     const linkedId = (nextStep as any).meeting_id;
     if (linkedId) {
-      const linked = (meetings || []).find((m: any) => m.id === linkedId);
+      const linked = (meetings || []).find((m) => m.id === linkedId);
       if (linked?.date_time) return linked.date_time;
     }
     // 2. Fallback: next upcoming meeting (this client only — RPC already filters)
     const upcoming = (meetings || [])
-      .filter((m: any) => m?.date_time && !['cancelada', 'realizada'].includes(m.status))
-      .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime());
+      .filter((m) => m?.date_time && !['cancelada', 'realizada'].includes(m.status))
+      .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime());
     return upcoming[0]?.date_time || null;
   })();
 
@@ -325,8 +337,8 @@ export default function PortalViewPage() {
   };
 
   // Current active phase for status display
-  const activePhase = phases.find((p: any) => p.status === 'em_curso');
-  const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
+  const activePhase = phases.find((p) => p.status === 'em_curso');
+  const allDeliverables = phases.flatMap((p) => p.deliverables || []);
   const completedDeliverables = allDeliverables.filter(isDeliverableDone).length;
   const projectProgress = deliverableProgress(allDeliverables);
 
@@ -431,8 +443,8 @@ export default function PortalViewPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {portal.show_meetings && (() => {
                 const next = meetings
-                  .filter((m: any) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
-                  .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
+                  .filter((m) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
+                  .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                 return (
                   <div
                     className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
@@ -457,14 +469,14 @@ export default function PortalViewPage() {
               {portal.show_payments && (() => {
                 const paidStatuses = ['pago', 'pago_falta_fatura', 'tudo_ok'];
                 const next = payments
-                  .filter((p: any) => {
+                  .filter((p) => {
                     if (!p.payment_date) return false;
                     const isPaid = paidStatuses.includes(p.status);
                     if (isPaid) return false;
                     // Show future pending payments OR past overdue ones
                     return true;
                   })
-                  .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
+                  .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                 return (
                   <div
                     className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
@@ -546,7 +558,7 @@ export default function PortalViewPage() {
 
                     {/* Phase cards */}
                     <div className="flex flex-wrap gap-3">
-                      {onboarding.map((phase: any, i: number) => {
+                      {onboarding.map((phase, i) => {
                         const dels = phase.deliverables || [];
                         const done = isPhaseComplete(phase);
                         const completedDels = dels.filter(isDeliverableDone).length;
@@ -584,7 +596,7 @@ export default function PortalViewPage() {
                     <Dialog open={!!expandedOnbStep} onOpenChange={(open) => !open && setExpandedOnbStep(null)}>
                       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                         {(() => {
-                          const phase = onboarding.find((p: any) => p.id === expandedOnbStep);
+                          const phase = onboarding.find((p) => p.id === expandedOnbStep);
                           if (!phase) return null;
                           const dels = phase.deliverables || [];
                           const completedDels = dels.filter(isDeliverableDone).length;
@@ -610,7 +622,7 @@ export default function PortalViewPage() {
                               </div>
                               {dels.length > 0 && (
                                 <div className="space-y-2 mt-2">
-                                  {dels.map((d: any) => {
+                                  {dels.map((d) => {
                                     const dDone = isDeliverableDone(d);
                                     const isClient = (d.responsible_type || 'equipa') === 'cliente';
                                     return (
@@ -623,7 +635,7 @@ export default function PortalViewPage() {
                                           const res = await (supabase as any).rpc('get_portal_phases', { _token: portalToken });
                                           const phasesData = res.data || [];
                                           const parsed = Array.isArray(phasesData) ? phasesData : [];
-                                          const all = parsed.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+                                          const all = parsed.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
                                           setPhases(all);
                                           setOnboarding(all);
                                         }}
@@ -757,7 +769,7 @@ export default function PortalViewPage() {
                             return next;
                           });
                           if (isSectionOpen) {
-                            const openInSection = section.items.find((q: any) => q.id === currentOpen);
+                            const openInSection = section.items.find((q) => q.id === currentOpen);
                             if (openInSection) setActiveQuestionId(null);
                           }
                         }}
@@ -776,7 +788,7 @@ export default function PortalViewPage() {
 
                       {isSectionOpen && (
                         <div className="divide-y divide-border/20 border-t border-border/20">
-                          {section.items.map((q: any, i: number) => {
+                          {section.items.map((q, i) => {
                             const isOpen = currentOpen === q.id;
                             const hasAnswer = q.answer?.trim() || draftAnswers[q.id]?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0);
                             return (
@@ -869,7 +881,7 @@ export default function PortalViewPage() {
                                           await answerQuestion(q.id, draftAnswers[q.id]);
                                           setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
                                           setEditingQuestionId(null);
-                                          const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim() && !(Array.isArray(qq.file_urls) && qq.file_urls.length));
+                                          const nextUnanswered = questions.find((qq) => qq.id !== q.id && !qq.answer?.trim() && !(Array.isArray(qq.file_urls) && qq.file_urls.length));
                                           setActiveQuestionId(nextUnanswered?.id || null);
                                         }}
                                       >
@@ -950,7 +962,7 @@ export default function PortalViewPage() {
                       </div>
                       {/* Phase timeline */}
                       <div className="space-y-4">
-                        {phases.map((p: any, i: number) => {
+                        {phases.map((p, i) => {
                           const isDone = isPhaseDone(p);
                           const isActive = p.status === 'em_curso';
                           const deliverables = Array.isArray(p.deliverables) ? p.deliverables : [];
@@ -991,7 +1003,7 @@ export default function PortalViewPage() {
                               {/* Deliverables / Marcos */}
                               {deliverables.length > 0 && (
                                 <div className="mt-3 pl-8 space-y-1.5">
-                                  {deliverables.map((d: any) => {
+                                  {deliverables.map((d) => {
                                     const dDone = d.status === 'concluido';
                                     const dActive = d.status === 'em_progresso';
                                     return (
@@ -1028,7 +1040,7 @@ export default function PortalViewPage() {
                 const allItems: { id: string; label: string; url: string; type: 'link' | 'file' }[] = [];
                 if (client.documents) allItems.push({ id: 'docs', label: 'Documentos', url: client.documents, type: 'link' });
                 if (client.drive_folder_url) allItems.push({ id: 'drive', label: 'Pasta Drive', url: client.drive_folder_url, type: 'link' });
-                portalMaterials.forEach((m: any) => allItems.push({ id: m.id, label: m.file_name, url: m.file_url, type: 'file' }));
+                portalMaterials.forEach((m) => allItems.push({ id: m.id, label: m.file_name, url: m.file_url, type: 'file' }));
 
                 return allItems.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1070,7 +1082,7 @@ export default function PortalViewPage() {
                     <span>Tarefa</span>
                     <span className="text-center">Estado</span>
                   </div>
-                  {tasks.map((t: any, i: number) => (
+                  {tasks.map((t, i) => (
                     <div key={t.id} className={`grid grid-cols-[1fr_120px] px-4 py-3 text-sm items-center ${i < tasks.length - 1 ? 'border-b border-border/20' : ''}`}>
                       <span className="truncate">{t.name}</span>
                       <div className="flex justify-center">
@@ -1094,7 +1106,7 @@ export default function PortalViewPage() {
               <p className="text-sm font-semibold mb-3">❓ Perguntas Frequentes</p>
               {faqs.length > 0 ? (
                 <Accordion type="single" collapsible className="w-full">
-                  {faqs.map((f: any) => (
+                  {faqs.map((f) => (
                     <AccordionItem key={f.id} value={f.id} className="border-border/30">
                       <AccordionTrigger className="text-sm font-medium hover:no-underline py-4">{f.question}</AccordionTrigger>
                       <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
@@ -1126,7 +1138,7 @@ export default function PortalViewPage() {
               </SectionCard>
             ) : (
               <div className="space-y-3">
-                {meetings.map((m: any) => {
+                {meetings.map((m) => {
                   const isPending = m.status === 'por_organizar' || m.status === 'por_confirmar';
                   const ms = meetingStatus(m.status);
                   return (
@@ -1205,11 +1217,11 @@ export default function PortalViewPage() {
                         </div>
                       )}
                       {(m.status === 'realizada' || m.status === 'concluida') && (() => {
-                        const points = Array.isArray(m.discussion_points) ? m.discussion_points.filter((p: any) => (typeof p === 'string' ? p.trim() : (p?.text || '').trim())) : [];
-                        const cActions = Array.isArray(m.client_actions) ? m.client_actions.filter((a: any) => (typeof a === 'string' ? a.trim() : (a?.text || a?.action || '').trim())) : [];
-                        const fNotes = Array.isArray(m.final_notes) ? m.final_notes.filter((n: any) => (typeof n === 'string' ? n.trim() : (n?.text || '').trim())) : [];
-                        const prios = Array.isArray(m.priorities) ? m.priorities.filter((p: any) => (typeof p === 'string' ? p.trim() : (p?.text || '').trim())) : [];
-                        const docs = Array.isArray(m.documents) ? m.documents.filter((d: any) => d?.url) : [];
+                        const points = Array.isArray(m.discussion_points) ? m.discussion_points.filter((p) => (typeof p === 'string' ? p.trim() : (p?.text || '').trim())) : [];
+                        const cActions = Array.isArray(m.client_actions) ? m.client_actions.filter((a) => (typeof a === 'string' ? a.trim() : (a?.text || a?.action || '').trim())) : [];
+                        const fNotes = Array.isArray(m.final_notes) ? m.final_notes.filter((n) => (typeof n === 'string' ? n.trim() : (n?.text || '').trim())) : [];
+                        const prios = Array.isArray(m.priorities) ? m.priorities.filter((p) => (typeof p === 'string' ? p.trim() : (p?.text || '').trim())) : [];
+                        const docs = Array.isArray(m.documents) ? m.documents.filter((d) => d?.url) : [];
                         const dNotes = (m.discussion_notes || '').trim();
                         const hasAny = points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes;
                         if (!hasAny) return null;
@@ -1226,7 +1238,7 @@ export default function PortalViewPage() {
                                   <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Pontos discutidos</p>
                                   {points.length > 0 && (
                                     <ul className="text-xs space-y-1 list-disc list-inside">
-                                      {points.map((p: any, i: number) => <li key={i}>{renderText(p)}</li>)}
+                                      {points.map((p, i) => <li key={i}>{renderText(p)}</li>)}
                                     </ul>
                                   )}
                                   {dNotes && <p className="text-xs whitespace-pre-wrap mt-1.5 bg-muted/20 rounded-lg p-2">{dNotes}</p>}
@@ -1236,7 +1248,7 @@ export default function PortalViewPage() {
                                 <div>
                                   <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">As tuas ações</p>
                                   <ul className="text-xs space-y-1 list-disc list-inside">
-                                    {cActions.map((a: any, i: number) => <li key={i}>{renderText(a)}</li>)}
+                                    {cActions.map((a, i) => <li key={i}>{renderText(a)}</li>)}
                                   </ul>
                                 </div>
                               )}
@@ -1244,7 +1256,7 @@ export default function PortalViewPage() {
                                 <div>
                                   <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Prioridades</p>
                                   <ul className="text-xs space-y-1 list-disc list-inside">
-                                    {prios.map((p: any, i: number) => <li key={i}>{renderText(p)}</li>)}
+                                    {prios.map((p, i) => <li key={i}>{renderText(p)}</li>)}
                                   </ul>
                                 </div>
                               )}
@@ -1252,7 +1264,7 @@ export default function PortalViewPage() {
                                 <div>
                                   <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Notas finais</p>
                                   <ul className="text-xs space-y-1 list-disc list-inside">
-                                    {fNotes.map((n: any, i: number) => <li key={i}>{renderText(n)}</li>)}
+                                    {fNotes.map((n, i) => <li key={i}>{renderText(n)}</li>)}
                                   </ul>
                                 </div>
                               )}
@@ -1260,7 +1272,7 @@ export default function PortalViewPage() {
                                 <div>
                                   <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Documentos</p>
                                   <div className="space-y-1.5">
-                                    {docs.map((d: any, i: number) => (
+                                    {docs.map((d, i) => (
                                       <a key={i}
                                          href={/^https?:\/\//i.test(d.url) ? d.url : `https://${d.url}`}
                                          target="_blank" rel="noopener noreferrer"
@@ -1296,7 +1308,7 @@ export default function PortalViewPage() {
               </SectionCard>
             ) : (
               <div className="space-y-3">
-                {payments.map((p: any) => {
+                {payments.map((p) => {
                   const st = statusLabel(p.status);
                   const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
                   return (
@@ -1375,7 +1387,7 @@ export default function PortalViewPage() {
                   {docs.length > 0 && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-2">Documentos</p>
-                      {docs.map((d: any, i: number) => (
+                      {docs.map((d, i) => (
                         <a key={i} href={d.url || d} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-2 text-sm hover:underline py-1" style={{ color: pc }}>
                           <Download className="h-3.5 w-3.5" />
@@ -1435,10 +1447,10 @@ export default function PortalViewPage() {
 
                 {/* Phase cards */}
                 <div className="flex flex-wrap gap-3">
-                  {onboarding.map((phase: any, i: number) => {
+                  {onboarding.map((phase, i) => {
                     const dels = phase.deliverables || [];
                     const done = isPhaseComplete(phase);
-                    const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
+                    const completedDels = dels.filter((d) => d.status === 'concluido' || d.status === 'concluida').length;
                     return (
                       <div
                         key={phase.id}
