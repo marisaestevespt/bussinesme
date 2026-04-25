@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen } from 'lucide-react';
+import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
 import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
@@ -33,6 +33,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { BackNavigation } from '@/components/BackNavigation';
 import { cn } from '@/lib/utils';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EntitySection } from '@/components/layout/entity';
 
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -562,9 +563,8 @@ export default function ProdutoDetailPage() {
         </div>
 
         {/* Sobre o Produto */}
-        <Card>
-          <CardHeader><CardTitle className="text-base">Sobre o Produto</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
+        <EntitySection title="Sobre o Produto" icon={Info}>
+          <div className="space-y-4">
             <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
             <div>
               <h4 className="text-sm font-semibold mb-2">O que está incluído</h4>
@@ -593,16 +593,16 @@ export default function ProdutoDetailPage() {
               </Accordion>
               {isOwner && <Button variant="outline" size="sm" className="mt-2" onClick={() => update('faqs', [...faqs, { question: '', answer: '' }])}><Plus className="h-3 w-3 mr-1" /> Adicionar FAQ</Button>}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </EntitySection>
 
         {/* Feedbacks */}
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="text-base">Feedbacks</CardTitle>
-            {isOwner && <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_feedbacks', data: { product_id: id, feedback: '', client_name: '' } })}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <EntitySection
+          title="Feedbacks"
+          icon={MessageSquare}
+          action={isOwner && <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_feedbacks', data: { product_id: id, feedback: '', client_name: '' } })}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
+        >
+          <div className="space-y-4">
             {feedbacks.length === 0 && <EmptyHint>Sem feedbacks</EmptyHint>}
             {feedbacks.map((f: Record<string, unknown>) => (
               <div key={f.id as string} className="border rounded-lg p-4 space-y-3">
@@ -642,16 +642,15 @@ export default function ProdutoDetailPage() {
                 {isOwner && <div className="flex justify-end"><Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteRow.mutate({ table: 'product_feedbacks', id: f.id as string })}><Trash2 className="h-3 w-3 mr-1" /> Remover</Button></div>}
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </EntitySection>
 
         {/* Datas Importantes */}
-        <Card className="bg-background border-secondary">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Datas Importantes</CardTitle>
-            {isOwner && <Button size="sm" variant="outline" onClick={() => setShowEventDialog(true)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar Evento</Button>}
-          </CardHeader>
-          <CardContent>
+        <EntitySection
+          title="Datas Importantes"
+          icon={CalendarClock}
+          action={isOwner && <Button size="sm" variant="outline" onClick={() => setShowEventDialog(true)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar Evento</Button>}
+        >
             {productEvents.length === 0 ? (
               <EmptyHint>Sem datas importantes associadas a este produto na Agenda.</EmptyHint>
             ) : (
@@ -674,8 +673,7 @@ export default function ProdutoDetailPage() {
                 </TableBody>
               </Table>
             )}
-          </CardContent>
-        </Card>
+        </EntitySection>
 
         <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
           <DialogContent>
