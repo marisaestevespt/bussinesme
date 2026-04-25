@@ -147,6 +147,7 @@ export default function ProjetosPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { allViews, addView, renameView, deleteView } = useUserViews('projetos', PROJETOS_DEFAULT_VIEWS);
+  const { isAreaEnabled: areaOn } = useKpiSettings();
   const [view, setView] = useState<string>('table');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
@@ -346,7 +347,6 @@ export default function ProjetosPage() {
 
         {/* Metrics strip */}
         {(() => {
-          const { isKpiEnabled: kpi, isAreaEnabled: areaOn } = useKpiSettings();
           if (!areaOn('operacao')) return null;
           const now = new Date();
           const monthStart = startOfMonth(now);
