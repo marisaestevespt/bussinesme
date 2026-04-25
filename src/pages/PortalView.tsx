@@ -25,37 +25,44 @@ import { SectionCard, SectionTitle } from '@/components/portal-view/SectionPrimi
 import { PortalContractSection } from '@/components/portal-view/PortalContractSection';
 import { PortalFeedbackSection } from '@/components/portal-view/PortalFeedbackSection';
 import { PortalHistorySection } from '@/components/portal-view/PortalHistorySection';
+import type {
+  PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
+  PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
+  PortalPayment, PortalPhase, PortalDeliverable,
+  PortalMaterial, PortalContractDocument, PortalProjectHistoryEntry,
+} from '@/types/portal';
 
 const sb = (table: string) => supabase.from(table as any) as any;
-const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
+const isClientStep = (o: { responsible?: string | null }) =>
+  o.responsible?.toLowerCase().trim() === 'cliente';
 
 export default function PortalViewPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [portal, setPortal] = useState<PublicPortal | null>(null);
-  const [client, setClient] = useState<any>(null);
-  const [settings, setSettings] = useState<any>(null);
+  const [client, setClient] = useState<Record<string, any> | null>(null);
+  const [settings, setSettings] = useState<Record<string, any> | null>(null);
   const { branding: portalBranding } = usePortalBranding(token);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('home');
 
-  const [faqs, setFaqs] = useState<any[]>([]);
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [comments, setComments] = useState<any[]>([]);
-  const [feedback, setFeedback] = useState<any[]>([]);
-  const [meetings, setMeetings] = useState<any[]>([]);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [onboarding, setOnboarding] = useState<any[]>([]); // derived from phases
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [phases, setPhases] = useState<any[]>([]);
-  
-  const [projectHistory, setProjectHistory] = useState<any[]>([]);
-  const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
-  const [contractDocs, setContractDocs] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<PortalFaq[]>([]);
+  const [questions, setQuestions] = useState<PortalQuestion[]>([]);
+  const [comments, setComments] = useState<PortalComment[]>([]);
+  const [feedback, setFeedback] = useState<PortalFeedback[]>([]);
+  const [meetings, setMeetings] = useState<PortalMeeting[]>([]);
+  const [payments, setPayments] = useState<PortalPayment[]>([]);
+  const [onboarding, setOnboarding] = useState<PortalPhase[]>([]); // derived from phases
+  const [tasks, setTasks] = useState<Array<Record<string, any>>>([]);
+  const [phases, setPhases] = useState<PortalPhase[]>([]);
+
+  const [projectHistory, setProjectHistory] = useState<PortalProjectHistoryEntry[]>([]);
+  const [portalMaterials, setPortalMaterials] = useState<PortalMaterial[]>([]);
+  const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
-  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PortalPayment | null>(null);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
   const [expandedOnbStep, setExpandedOnbStep] = useState<string | null>(null);
@@ -102,24 +109,29 @@ export default function PortalViewPage() {
       (supabase as any).rpc('get_portal_materials', { _token: realToken }),
       (supabase as any).rpc('get_portal_contract_documents', { _token: realToken }),
     ]);
-    setFaqs(((faqsR as any).data || []).slice().sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    setQuestions(((questionsR as any).data || []).slice().sort((a: any, b: any) =>
+    const faqsList = ((faqsR as any).data || []) as PortalFaq[];
+    setFaqs(faqsList.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+    const questionsList = ((questionsR as any).data || []) as Array<PortalQuestion & { group_sort_order?: number }>;
+    setQuestions(questionsList.slice().sort((a, b) =>
       (a.group_sort_order ?? 0) - (b.group_sort_order ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    setComments(((commentsR as any).data || []).slice().sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
-    setFeedback(((feedbackR as any).data || []).slice().sort((a: any, b: any) => new Date(b.submitted_at || b.created_at).getTime() - new Date(a.submitted_at || a.created_at).getTime()));
-    setMeetings((meetingsR as any).data || []);
-    setPayments((paymentsR as any).data || []);
-    setTasks((tasksR as any).data || []);
+    const commentsList = ((commentsR as any).data || []) as PortalComment[];
+    setComments(commentsList.slice().sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()));
+    const feedbackList = ((feedbackR as any).data || []) as PortalFeedback[];
+    setFeedback(feedbackList.slice().sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime()));
+    setMeetings(((meetingsR as any).data || []) as PortalMeeting[]);
+    setPayments(((paymentsR as any).data || []) as PortalPayment[]);
+    setTasks(((tasksR as any).data || []) as Array<Record<string, any>>);
     // get_portal_phases now returns jsonb with deliverables included
     const phasesData = (projPhasesR as any).data || [];
-    const parsedPhases = Array.isArray(phasesData) ? phasesData : [];
-    const allPhases = parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+    const parsedPhases = (Array.isArray(phasesData) ? phasesData : []) as PortalPhase[];
+    const allPhases: PortalPhase[] = parsedPhases.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
     setPhases(allPhases);
     // Show all phases in the onboarding/timeline section
     setOnboarding(allPhases);
-    setProjectHistory((historyR as any).data || []);
-    setPortalMaterials(((materialsR as any).data || []).slice().sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-    setContractDocs((contractR as any).data || []);
+    setProjectHistory(((historyR as any).data || []) as PortalProjectHistoryEntry[]);
+    const materialsList = ((materialsR as any).data || []) as PortalMaterial[];
+    setPortalMaterials(materialsList.slice().sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()));
+    setContractDocs(((contractR as any).data || []) as PortalContractDocument[]);
     setLoading(false);
   };
 
