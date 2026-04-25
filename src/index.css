@@ -42,6 +42,10 @@
     --info: 210 70% 50%;
     --info-foreground: 0 0% 100%;
 
+    /* Extended semantic accents (used by status systems) */
+    --accent-violet: 262 60% 55%;
+    --accent-violet-foreground: 0 0% 100%;
+
     --border: 30 18% 89%;
     --input: 30 18% 89%;
     --ring: 351 56% 28%;
@@ -124,6 +128,9 @@
     --warning-foreground: 0 0% 100%;
     --info: 210 60% 48%;
     --info-foreground: 0 0% 100%;
+
+    --accent-violet: 262 55% 65%;
+    --accent-violet-foreground: 0 0% 100%;
 
     --border: 350 10% 17%;
     --input: 350 10% 17%;
