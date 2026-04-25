@@ -164,7 +164,7 @@ export default function LeadDetailPage() {
       title: 'Eliminar lead?',
       description: 'Esta ação não pode ser revertida.',
       confirmText: 'Eliminar',
-      destructive: true,
+      variant: 'destructive',
     });
     if (!ok) return;
     const { error } = await supabase.from('crm_leads').delete().eq('id', id!);
