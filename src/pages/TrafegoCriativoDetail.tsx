@@ -109,8 +109,7 @@ export default function TrafegoCriativoDetail() {
           <div className="flex items-center gap-3">
             {isOwner ? (
               <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0"
-                className="!text-primary-foreground" />
+                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
             ) : (
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary-foreground">{form.name}</h1>
             )}

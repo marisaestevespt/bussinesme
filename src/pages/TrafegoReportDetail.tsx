@@ -118,8 +118,7 @@ export default function TrafegoReportDetail() {
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Tráfego Pago</p>
           {isOwner ? (
             <Input value={title} onChange={e => setTitle(e.target.value)}
-              className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0"
-              className="!text-primary-foreground" />
+              className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
           ) : (
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary-foreground">{title}</h1>
           )}
