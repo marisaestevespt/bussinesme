@@ -10562,76 +10562,61 @@ export type Database = {
       }
       team_members_public: {
         Row: {
+          access_revoked: boolean | null
+          access_suspended: boolean | null
           created_at: string | null
-          custom_holidays: Json | null
           custom_role_id: string | null
           department: string | null
           departments: Json | null
           email: string | null
-          expected_weekly_hours: number | null
           full_name: string | null
           id: string | null
-          member_type: string | null
+          inactivated_at: string | null
           photo_url: string | null
-          presentation: string | null
           profile_id: string | null
-          responsibilities: string | null
-          role_color: string | null
           role_title: string | null
           start_date: string | null
           status: string | null
           updated_at: string | null
           work_areas: Json | null
-          work_schedule: string | null
-          works_holidays: boolean | null
         }
         Insert: {
+          access_revoked?: boolean | null
+          access_suspended?: boolean | null
           created_at?: string | null
-          custom_holidays?: Json | null
           custom_role_id?: string | null
           department?: string | null
           departments?: Json | null
           email?: string | null
-          expected_weekly_hours?: number | null
           full_name?: string | null
           id?: string | null
-          member_type?: string | null
+          inactivated_at?: string | null
           photo_url?: string | null
-          presentation?: string | null
           profile_id?: string | null
-          responsibilities?: string | null
-          role_color?: string | null
           role_title?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
           work_areas?: Json | null
-          work_schedule?: string | null
-          works_holidays?: boolean | null
         }
         Update: {
+          access_revoked?: boolean | null
+          access_suspended?: boolean | null
           created_at?: string | null
-          custom_holidays?: Json | null
           custom_role_id?: string | null
           department?: string | null
           departments?: Json | null
           email?: string | null
-          expected_weekly_hours?: number | null
           full_name?: string | null
           id?: string | null
-          member_type?: string | null
+          inactivated_at?: string | null
           photo_url?: string | null
-          presentation?: string | null
           profile_id?: string | null
-          responsibilities?: string | null
-          role_color?: string | null
           role_title?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
           work_areas?: Json | null
-          work_schedule?: string | null
-          works_holidays?: boolean | null
         }
         Relationships: [
           {
