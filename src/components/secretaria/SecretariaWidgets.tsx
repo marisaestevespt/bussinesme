@@ -1,10 +1,8 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { FileText, Link2, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { FileText, Link2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { MemberQuickLinks } from '@/components/hr/MemberQuickLinks';
