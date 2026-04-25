@@ -67,13 +67,13 @@ export function PipelineFormDialog({ open, onOpenChange, onSave, products, proje
           <DialogTitle>{initialData ? 'Editar Pipeline' : 'Novo Pipeline'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Nome *</Label>
             <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Pipeline Q1 2026" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Data Início</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -87,7 +87,7 @@ export function PipelineFormDialog({ open, onOpenChange, onSave, products, proje
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Data Fim</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -103,7 +103,7 @@ export function PipelineFormDialog({ open, onOpenChange, onSave, products, proje
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Produto</Label>
             <Select value={product} onValueChange={setProduct}>
               <SelectTrigger>
@@ -118,7 +118,7 @@ export function PipelineFormDialog({ open, onOpenChange, onSave, products, proje
             </Select>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Projeto</Label>
             <Select value={projectId} onValueChange={setProjectId}>
               <SelectTrigger>

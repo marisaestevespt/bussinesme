@@ -456,7 +456,7 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
         <CardHeader><CardTitle className="text-base">Dados de Faturação</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Taxa de IVA</label>
               <select
                 value={(form.vat_rate as string) || '23'}
@@ -470,7 +470,7 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
                 <option value="23">23%</option>
               </select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Denominação para Faturas</label>
               <Input
                 value={(form.invoice_denomination as string) || ''}
@@ -480,7 +480,7 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
               />
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Notas de Contabilidade</label>
             <textarea
               value={(form.accounting_notes as string) || ''}

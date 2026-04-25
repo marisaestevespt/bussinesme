@@ -63,7 +63,7 @@ export function ChannelSettings() {
               return (
                 <div key={ch.id} className="py-2 px-1 rounded-md hover:bg-muted/30 hq-transition">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2">
                       <span className="text-base">{emoji}</span>
                       <span className="text-sm font-medium text-foreground">{ch.name}</span>
                     </div>

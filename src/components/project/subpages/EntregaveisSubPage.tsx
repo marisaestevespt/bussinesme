@@ -100,7 +100,7 @@ export function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, o
           </div>
           <div>
             <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
-            <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="gap-1.5">
+            <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="gap-2">
               <Upload className="h-3.5 w-3.5" /> {uploading ? 'A carregar...' : 'Carregar ficheiros'}
             </Button>
           </div>

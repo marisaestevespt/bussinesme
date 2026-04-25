@@ -59,7 +59,7 @@ export function ObjetivoFinalField({ type, value, onTypeChange, onValueChange, d
         disabled={disabled}
       >
         {OBJETIVO_TYPES.map(t => (
-          <div key={t.value} className="flex items-center gap-1.5">
+          <div key={t.value} className="flex items-center gap-2">
             <RadioGroupItem value={t.value} id={`obj-${t.value}`} />
             <Label htmlFor={`obj-${t.value}`} className="text-sm font-normal cursor-pointer">{t.label}</Label>
           </div>

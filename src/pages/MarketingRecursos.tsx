@@ -213,7 +213,7 @@ export default function MarketingRecursos() {
                     </Button>
                   )}
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {uteis.length === 0 && (
                     <EmptyHint>Nenhum link adicionado.</EmptyHint>
                   )}

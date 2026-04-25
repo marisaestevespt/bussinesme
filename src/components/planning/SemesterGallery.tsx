@@ -431,7 +431,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
       {/* ─── HEADER ─── */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5">
+          <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
           <div>
@@ -860,27 +860,27 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
         <CardHeader className="pb-2"><CardTitle className="text-sm">Análise & Reflexão</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">O que correu bem</label>
               <Textarea value={wentWell} onChange={e => setWentWell(e.target.value)} placeholder="Resultados positivos, conquistas..." className="min-h-[100px] text-sm" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">O que não correu</label>
               <Textarea value={wentWrong} onChange={e => setWentWrong(e.target.value)} placeholder="Desafios, problemas..." className="min-h-[100px] text-sm" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Principais aprendizagens</label>
               <Textarea value={lessonsField} onChange={e => setLessonsField(e.target.value)} placeholder="Lições para o futuro..." className="min-h-[100px] text-sm" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">{sIdx === 0 ? 'O que ajustar no 2º semestre' : 'O que ajustar no ano seguinte'}</label>
               <Textarea value={adjustmentsField} onChange={e => setAdjustmentsField(e.target.value)} placeholder="Ajustes, mudanças de estratégia..." className="min-h-[100px] text-sm" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Decisões a tomar</label>
               <Textarea value={decisionsField} onChange={e => setDecisionsField(e.target.value)} placeholder="Decisões pendentes, próximos passos..." className="min-h-[100px] text-sm" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Notas livres</label>
               <Textarea value={freeNotesField} onChange={e => setFreeNotesField(e.target.value)} placeholder="Anotações gerais..." className="min-h-[100px] text-sm" />
             </div>
@@ -938,7 +938,7 @@ function QuarterDetailWrapper({ qIdx, year, planning, onBack }: { qIdx: number; 
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5">
+      <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
         <ArrowLeft className="h-4 w-4" /> Voltar ao semestre
       </Button>
       <QuarterlyGallery planning={planning} year={year} />

@@ -99,7 +99,7 @@ export function StrategyGallery() {
           {strategies.length} {strategies.length === 1 ? 'documento' : 'documentos'}
         </p>
         {isOwner && (
-          <Button size="sm" onClick={handleCreate} className="gap-1.5">
+          <Button size="sm" onClick={handleCreate} className="gap-2">
             <Plus className="h-3.5 w-3.5" />
             Nova Estratégia
           </Button>
@@ -111,7 +111,7 @@ export function StrategyGallery() {
           <FileText className="h-10 w-10 mx-auto text-muted-foreground/40" />
           <p className="text-muted-foreground">Nenhuma estratégia criada.</p>
           {isOwner && (
-            <Button variant="outline" size="sm" onClick={handleCreate} className="gap-1.5">
+            <Button variant="outline" size="sm" onClick={handleCreate} className="gap-2">
               <Plus className="h-3.5 w-3.5" />
               Criar primeira estratégia
             </Button>

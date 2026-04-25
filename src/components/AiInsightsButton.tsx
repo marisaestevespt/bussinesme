@@ -132,7 +132,7 @@ export function AiInsightsButton() {
               {pageConfig.title}
             </DialogTitle>
             {!loading && content && (
-              <Button variant="ghost" size="sm" onClick={generate} className="h-7 px-2 gap-1.5 text-xs">
+              <Button variant="ghost" size="sm" onClick={generate} className="h-7 px-2 gap-2 text-xs">
                 <RefreshCw className="h-3 w-3" /> Regenerar
               </Button>
             )}
@@ -149,7 +149,7 @@ export function AiInsightsButton() {
               <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
                 <Sparkles className="h-5 w-5" />
                 <span className="text-sm">Clica para gerar a análise</span>
-                <Button size="sm" onClick={generate} className="gap-1.5">
+                <Button size="sm" onClick={generate} className="gap-2">
                   <Sparkles className="h-3.5 w-3.5" /> Gerar análise
                 </Button>
               </div>

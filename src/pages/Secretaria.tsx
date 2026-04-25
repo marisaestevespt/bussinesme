@@ -287,7 +287,7 @@ export default function SecretariaPage() {
         {/* Tab content with lazy loading */}
         {activeTab && (
           <>
-            <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => setActiveTab(null)}>
+            <Button variant="ghost" size="sm" className="gap-2" onClick={() => setActiveTab(null)}>
               <ArrowLeft className="h-4 w-4" /> Voltar à Secretária
             </Button>
             <Suspense fallback={<TabLoader />}>

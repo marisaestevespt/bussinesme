@@ -111,7 +111,7 @@ export function OnboardingTour() {
           <h2 className="text-xl font-bold text-foreground">{step.title}</h2>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">{step.description}</p>
         </div>
-        <div className="flex justify-center gap-1.5 pb-4">
+        <div className="flex justify-center gap-2 pb-4">
           {steps.map((_, i) => (
             <button
               key={i}

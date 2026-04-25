@@ -45,7 +45,7 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
         {item.cover_url && <img src={item.cover_url} className="h-10 w-10 rounded object-cover shrink-0" alt="" />}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate text-foreground">{item.title}</p>
-          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             {itemChannels.map(ch => (
               <Badge key={ch.id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ch.name}</Badge>
             ))}
@@ -226,7 +226,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
                           className={cn("cursor-grab active:cursor-grabbing", draggingId === item.id && "opacity-40")}
                         >
                           <Link to={`/hub/marketing/conteudos/${item.id}`} className="block" draggable={false}>
-                            <div className="rounded-md border bg-card p-2.5 hover:shadow-sm hq-transition space-y-1.5">
+                            <div className="rounded-md border bg-card p-2.5 hover:shadow-sm hq-transition space-y-2">
                               {item.cover_url && (
                                 <img src={item.cover_url} alt="" className="w-full aspect-video rounded object-cover pointer-events-none" draggable={false} />
                               )}
@@ -295,7 +295,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
                 <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="block">
                   <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 hq-transition">
                     <p className="text-sm font-medium truncate text-foreground flex-1 min-w-0">{item.title}</p>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       {itemChannels.map(ch => (
                         <Badge key={ch.id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ch.name}</Badge>
                       ))}

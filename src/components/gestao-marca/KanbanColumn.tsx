@@ -42,7 +42,7 @@ export function KanbanColumn({
   return (
     <div className="space-y-0 shadow-md rounded-lg overflow-hidden">
       <div className={cn('flex items-center justify-between px-3 py-3', group.headerBg)}>
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           {editingLabel && isOwner && onRenameGroup ? (
             <input
               autoFocus
@@ -133,7 +133,7 @@ export function KanbanColumn({
         </SortableContext>
         {isOwner && (
           addingToGroup === group.key ? (
-            <div className="p-2 space-y-1.5">
+            <div className="p-2 space-y-2">
               <Input
                 value={newItemTitle}
                 onChange={e => setNewItemTitle(e.target.value)}

@@ -371,7 +371,7 @@ export default function MarketingChannelStrategy() {
                       <span className={cn('text-[10px] font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
                       {colCards.length > 0 && <span className={cn('ml-1 text-[9px] font-medium opacity-60', col.headerText)}>({colCards.length})</span>}
                     </div>
-                    <div className="space-y-1.5 flex-1 min-h-[80px]">
+                    <div className="space-y-2 flex-1 min-h-[80px]">
                       {colCards.map(card => (
                         <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDist(card)}>
                           <CardContent className="p-2 space-y-0.5">
@@ -425,7 +425,7 @@ export default function MarketingChannelStrategy() {
                 </div>
                 <div>
                   <Label className="text-xs">Ficheiros</Label>
-                  <div className="space-y-1.5 mt-1">
+                  <div className="space-y-2 mt-1">
                     {distForm.files.map((file, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1">
                         <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" />
@@ -434,7 +434,7 @@ export default function MarketingChannelStrategy() {
                       </div>
                     ))}
                     {isOwner && (
-                      <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                      <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
                         <Upload className="h-3 w-3" />
                         {uploading ? 'A enviar...' : 'Adicionar ficheiro'}
                         <input type="file" className="hidden" onChange={handleDistFileUpload} disabled={uploading} />

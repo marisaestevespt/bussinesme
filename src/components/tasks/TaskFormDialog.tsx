@@ -449,14 +449,14 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 </Popover>
               </div>
               <div>
-                <Label className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Hora (opcional)</Label>
+                <Label className="flex items-center gap-2"><Clock className="h-3.5 w-3.5" /> Hora (opcional)</Label>
                 <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="HH:MM" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</Label>
+                <Label className="flex items-center gap-2"><Repeat className="h-3.5 w-3.5" /> Recorrência</Label>
                 <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
                   <SelectTrigger><SelectValue placeholder="Não se repete" /></SelectTrigger>
                   <SelectContent>{RECURRENCE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}</SelectContent>
@@ -546,7 +546,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </div>
 
             <div>
-              <Label className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Processo (SOP) associado</Label>
+              <Label className="flex items-center gap-2"><FileText className="h-3.5 w-3.5" /> Processo (SOP) associado</Label>
               <Select value={sopId || 'none'} onValueChange={v => {
                 const newSopId = v === 'none' ? '' : v;
                 setSopId(newSopId);
@@ -574,7 +574,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             {isSubtask && (
               <div className="space-y-4 pl-4 border-l-2 border-primary/20">
                 <div>
-                  <Label className="flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Tarefa principal</Label>
+                  <Label className="flex items-center gap-2"><GitBranch className="h-3.5 w-3.5" /> Tarefa principal</Label>
                   <Select value={parentTaskId} onValueChange={setParentTaskId}>
                     <SelectTrigger><SelectValue placeholder="Selecionar tarefa principal" /></SelectTrigger>
                     <SelectContent>
@@ -584,7 +584,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </Select>
                 </div>
                 <div>
-                  <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Depende de</Label>
+                  <Label className="flex items-center gap-2"><Link2 className="h-3.5 w-3.5" /> Depende de</Label>
                   <Select value="" onValueChange={val => { if (val && !dependsOnIds.includes(val)) setDependsOnIds(prev => [...prev, val]); }}>
                     <SelectTrigger><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
                     <SelectContent>{allTasks.filter(t => t.id !== editingTask?.id && !dependsOnIds.includes(t.id)).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
@@ -615,8 +615,8 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               const blockers = dependsOnIds.map(depId => allTasks.find(t => t.id === depId)).filter(t => t && !isTaskDone(t));
               if (blockers.length === 0) return null;
               return (
-                <div className="rounded-md border border-warning/30 bg-warning/15 p-3 space-y-1.5">
-                  <p className="text-sm font-medium text-warning flex items-center gap-1.5"><Link2 className="h-4 w-4" /> Dependências pendentes</p>
+                <div className="rounded-md border border-warning/30 bg-warning/15 p-3 space-y-2">
+                  <p className="text-sm font-medium text-warning flex items-center gap-2"><Link2 className="h-4 w-4" /> Dependências pendentes</p>
                   {blockers.map(dep => dep && (
                     <p key={dep.id} className="text-xs text-warning">
                       Pendente: <strong>"{dep.name}"</strong> — <Badge variant="outline" className={cn('text-[9px] px-1 py-0 ml-1', getStatusInfo(dep.status).color)}>{getStatusInfo(dep.status).label}</Badge>
@@ -632,7 +632,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               if (subtasks.length === 0) return null;
               return (
                 <div>
-                  <Label className="flex items-center gap-1.5 mb-2"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefas ({subtasks.length})</Label>
+                  <Label className="flex items-center gap-2 mb-2"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefas ({subtasks.length})</Label>
                   <div className="space-y-1">
                     {subtasks.map(st => (
                       <div key={st.id} className="flex items-center gap-2 p-2 rounded-md bg-muted/20 border border-border/40 text-sm">
@@ -647,27 +647,27 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
             {editingTask && isDoneAfterDeadline(editingTask) && (
               <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 space-y-1">
-                <p className="text-sm font-medium text-destructive flex items-center gap-1.5"><AlertTriangle className="h-4 w-4" /> Concluída após o prazo.</p>
+                <p className="text-sm font-medium text-destructive flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> Concluída após o prazo.</p>
                 <p className="text-xs text-destructive/80">Indica nas notas o motivo do atraso.</p>
               </div>
             )}
 
             {editingTask && isOverdue(editingTask) && (
               <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3">
-                <p className="text-sm font-medium text-destructive flex items-center gap-1.5"><AlertTriangle className="h-4 w-4" /> Esta tarefa está atrasada.</p>
+                <p className="text-sm font-medium text-destructive flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> Esta tarefa está atrasada.</p>
               </div>
             )}
 
             {editingTask && <TaskTimeTracker taskId={editingTask.id} />}
 
             <div>
-              <Label className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Tempo Estimado (horas)</Label>
+              <Label className="flex items-center gap-2"><Clock className="h-3.5 w-3.5" /> Tempo Estimado (horas)</Label>
               <Input type="number" min="0" step="0.5" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)} placeholder="Ex: 2.5" />
             </div>
 
             {capacityWarning && (
               <div className={cn("rounded-md border p-3", capacityWarning.occupancy > 100 ? "border-destructive/50 bg-destructive/5" : "border-warning/30 bg-warning/15")}>
-                <p className={cn("text-sm flex items-center gap-1.5", capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-warning")}>
+                <p className={cn("text-sm flex items-center gap-2", capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-warning")}>
                   <AlertTriangle className="h-4 w-4" />
                   <strong>{capacityWarning.memberName}</strong> ficará com {capacityWarning.occupancy}% de ocupação esta semana.
                 </p>
@@ -676,7 +676,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
             {offWarning && (
               <div className="rounded-md border border-warning/30 bg-warning/15 p-3">
-                <p className="text-sm flex items-center gap-1.5 text-warning">
+                <p className="text-sm flex items-center gap-2 text-warning">
                   <AlertTriangle className="h-4 w-4" />
                   Aviso: este prazo cai num período <strong>Off ({offWarning.title})</strong>. A tarefa pode ser criada à mesma.
                 </p>

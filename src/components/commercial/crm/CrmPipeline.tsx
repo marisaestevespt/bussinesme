@@ -105,22 +105,22 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                         onClick={() => onOpenLead(lead)}
                         className="p-4 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 transition-all duration-200 border-border/70 shadow-md bg-card"
                       >
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           <p className="font-bold text-sm truncate text-foreground">{lead.name}</p>
                           <CrmLabelBadges labelIds={leadLabelsMap[lead.id] || []} labels={labels} />
                           {lead.email && (
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground truncate">
                               <Mail className="h-3 w-3 shrink-0 text-primary/60" />{lead.email}
                             </div>
                           )}
                           {lead.phone && (
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Phone className="h-3 w-3 shrink-0 text-primary/60" />{lead.phone}
                             </div>
                           )}
                         </div>
 
-                        <div className="mt-3 pt-3 border-t border-border/40 space-y-1.5">
+                        <div className="mt-3 pt-3 border-t border-border/40 space-y-2">
                           <div className={`flex items-center gap-1 text-xs ${fuBadgeClass(fuState)}`}>
                             <FuIcon state={fuState} />
                             <span className="text-muted-foreground">Próximo FU:</span> {lead.next_followup ? format(new Date(lead.next_followup), 'dd/MM/yyyy') : '—'}

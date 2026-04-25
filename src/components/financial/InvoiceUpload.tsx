@@ -38,7 +38,7 @@ export function InvoiceUpload({ documents, onChange, label = 'Fatura / Documento
   const remove = (idx: number) => onChange(documents.filter((_, i) => i !== idx));
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {label && <Label className="text-xs">{label}</Label>}
       <div className="flex items-center gap-2 flex-wrap">
         {documents.map((doc, i) => (

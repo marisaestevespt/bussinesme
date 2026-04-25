@@ -181,7 +181,7 @@ function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onS
   };
   const timeValue = date ? `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : '';
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
@@ -207,9 +207,9 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
   };
   return (
     <div className="space-y-2">
-      <Label className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Participantes</Label>
+      <Label className="flex items-center gap-2"><Users className="h-3.5 w-3.5" /> Participantes</Label>
       <ScrollArea className="max-h-32 rounded border border-input p-2">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {profiles.map(p => (
             <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/50 rounded px-1 py-0.5">
               <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggle(p.id)} />

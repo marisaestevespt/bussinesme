@@ -128,18 +128,18 @@ export function CommercialAcoes() {
       {/* Summary + New button */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-4 text-sm flex-wrap">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Por Começar:</span>
             <span className="font-semibold">{countPorComecar}</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <PlayCircle className="h-4 w-4 text-info" />
             <span className="text-muted-foreground">Em Curso:</span>
             <span className="font-semibold">{countEmCurso}</span>
           </div>
           {nextStartDate && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">Próximo início:</span>
               <span className="font-semibold">{format(new Date(nextStartDate), 'dd/MM/yyyy')}</span>
@@ -411,7 +411,7 @@ function ActionDetailSheet({ action, onClose, onEdit }: {
               {savingToLib ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookOpen className="h-4 w-4" />}
               Guardar na Biblioteca
             </Button>
-            <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => onEdit(action)}>
+            <Button variant="ghost" size="sm" className="gap-2" onClick={() => onEdit(action)}>
               <Pencil className="h-3.5 w-3.5" />
               Editar campos
             </Button>

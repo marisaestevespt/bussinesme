@@ -325,11 +325,11 @@ export function FloatingAiChat() {
       let processed = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
       processed = processed.replace(/`(.+?)`/g, '<code class="bg-muted px-1 rounded text-xs">$1</code>');
       if (processed.match(/^[-•]\s/)) {
-        processed = `<span class="flex gap-1.5"><span class="text-primary">•</span><span>${processed.replace(/^[-•]\s/, "")}</span></span>`;
+        processed = `<span class="flex gap-2"><span class="text-primary">•</span><span>${processed.replace(/^[-•]\s/, "")}</span></span>`;
       }
       const numMatch = processed.match(/^(\d+)\.\s/);
       if (numMatch) {
-        processed = `<span class="flex gap-1.5"><span class="text-primary font-medium">${numMatch[1]}.</span><span>${processed.replace(/^\d+\.\s/, "")}</span></span>`;
+        processed = `<span class="flex gap-2"><span class="text-primary font-medium">${numMatch[1]}.</span><span>${processed.replace(/^\d+\.\s/, "")}</span></span>`;
       }
       if (processed.startsWith("### ")) processed = `<span class="font-semibold text-sm block mt-2 mb-1">${processed.slice(4)}</span>`;
       else if (processed.startsWith("## ")) processed = `<span class="font-bold text-sm block mt-2 mb-1">${processed.slice(3)}</span>`;
@@ -338,7 +338,7 @@ export function FloatingAiChat() {
   };
 
   const renderFileAttachment = (file: { name: string; type: string }) => (
-    <div className="flex items-center gap-1.5 mt-1 text-[11px] opacity-80">
+    <div className="flex items-center gap-2 mt-1 text-[11px] opacity-80">
       {getFileIcon(file.type)}
       <span className="truncate max-w-[180px]">{file.name}</span>
     </div>
@@ -375,10 +375,10 @@ export function FloatingAiChat() {
         
         {!isDecided && (
           <div className="flex gap-2 pt-1">
-            <Button size="sm" variant="default" className="h-7 text-xs gap-1.5 rounded-lg" onClick={() => handleConfirm(msgIndex)}>
+            <Button size="sm" variant="default" className="h-7 text-xs gap-2 rounded-lg" onClick={() => handleConfirm(msgIndex)}>
               <Check className="h-3 w-3" /> Confirmar
             </Button>
-            <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 rounded-lg" onClick={() => handleReject(msgIndex)}>
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-2 rounded-lg" onClick={() => handleReject(msgIndex)}>
               <XCircle className="h-3 w-3" /> Cancelar
             </Button>
           </div>
@@ -398,7 +398,7 @@ export function FloatingAiChat() {
       {open && (
         <div className="fixed bottom-20 right-5 z-50 w-[380px] max-w-[calc(100vw-2.5rem)] h-[520px] max-h-[calc(100vh-7rem)] bg-background border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-300">
           {/* Header */}
-          <div className="flex items-center gap-2.5 px-4 py-3 border-b bg-primary/5">
+          <div className="flex items-center gap-2 px-4 py-3 border-b bg-primary/5">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
@@ -449,7 +449,7 @@ export function FloatingAiChat() {
                           sendMessage(q.text);
                         }
                       }}
-                      className="w-full flex items-center gap-2.5 text-[12px] px-3 py-2 rounded-xl border bg-muted/30 hover:bg-muted/70 transition-colors text-muted-foreground hover:text-foreground text-left"
+                      className="w-full flex items-center gap-2 text-[12px] px-3 py-2 rounded-xl border bg-muted/30 hover:bg-muted/70 transition-colors text-muted-foreground hover:text-foreground text-left"
                     >
                       <span className="text-sm">{q.icon}</span>
                       <span>{q.text}</span>

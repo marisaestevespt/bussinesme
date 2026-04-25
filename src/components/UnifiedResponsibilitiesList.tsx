@@ -179,7 +179,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Filters */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {FILTER_OPTIONS.map(f => {
             const count = f.value === 'todos' ? items.length : (countBySource[f.value as ResponsibilitySource] || 0);
             if (f.value !== 'todos' && count === 0) return null;
@@ -200,7 +200,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
 
         {/* List */}
         <ScrollArea style={{ maxHeight }} className="overflow-auto pr-2">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {filtered.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-6">Sem responsabilidades pendentes.</p>
             )}
@@ -246,7 +246,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
                     <p className={cn('text-sm font-medium truncate', item.completed && 'line-through text-muted-foreground')}>
                       {item.title}
                     </p>
-                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <Badge className={cn('text-[9px] font-normal border', SOURCE_COLOR[item.source])}>
                         {SOURCE_LABELS[item.source]}
                       </Badge>

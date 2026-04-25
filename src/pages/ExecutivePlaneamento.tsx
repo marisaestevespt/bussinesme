@@ -148,7 +148,7 @@ export default function ExecutivePlaneamento() {
 
         {/* Back button when a view is active */}
         {viewMode !== null && (
-          <Button variant="ghost" size="sm" onClick={() => setViewMode(null)} className="gap-1.5 text-muted-foreground hover:text-foreground -mt-2">
+          <Button variant="ghost" size="sm" onClick={() => setViewMode(null)} className="gap-2 text-muted-foreground hover:text-foreground -mt-2">
             <ArrowLeft className="h-4 w-4" />
             Voltar ao Planeamento
           </Button>

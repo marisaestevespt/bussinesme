@@ -263,7 +263,7 @@ export default function ConteudoDetailPage() {
     <AppLayout><div className="flex items-center justify-center min-h-screen"><InlineLoader /></div></AppLayout>
   );
   if (!item) return (
-    <AppLayout><div className="p-10 text-center text-muted-foreground">Conteúdo não encontrado.</div></AppLayout>
+    <AppLayout><div className="p-8 text-center text-muted-foreground">Conteúdo não encontrado.</div></AppLayout>
   );
 
   const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -298,7 +298,7 @@ export default function ConteudoDetailPage() {
             <Button
               variant="ghost"
               size="sm"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
               onClick={async () => {
                 const ok = await confirm({
                   title: 'Eliminar conteúdo?',
@@ -387,7 +387,7 @@ export default function ConteudoDetailPage() {
                   </label>
                 </div>
                 {files.length > 0 ? (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {files.map(f => (
                       <div key={f.id} className="flex items-center gap-2 group">
                         <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
@@ -465,7 +465,7 @@ export default function ConteudoDetailPage() {
                   </Field>
 
                   <Field label="Canais">
-                    <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
                       {channels.filter(c => c.is_active).map(ch => (
                         <label key={ch.id} className="flex items-center gap-2 text-sm cursor-pointer">
                           <Checkbox checked={selectedChannels.includes(ch.id)}

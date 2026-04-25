@@ -216,7 +216,7 @@ function VisaoGeralTab({ projectId, tasks, launchData, profiles, profileMap, qc,
             { key: 'brainstorming', icon: Brain, label: 'Brainstorming' },
             { key: 'cronograma_content', icon: CalendarIcon, label: 'Cronograma' },
           ].map(i => (
-            <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2.5 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
+            <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
               <i.icon className="h-4 w-4 text-primary shrink-0" />
               <span className="text-sm font-medium">{i.label}</span>
             </button>
@@ -230,7 +230,7 @@ function VisaoGeralTab({ projectId, tasks, launchData, profiles, profileMap, qc,
             { key: 'materiais', icon: Package, label: 'Materiais & Recursos' },
             { key: 'produto', icon: Layers, label: 'Produto' },
           ].map(i => (
-            <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2.5 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
+            <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
               <i.icon className="h-4 w-4 text-primary shrink-0" />
               <span className="text-sm font-medium">{i.label}</span>
             </button>
@@ -244,7 +244,7 @@ function VisaoGeralTab({ projectId, tasks, launchData, profiles, profileMap, qc,
             { key: 'estrategia_lanc', icon: Zap, label: 'Estratégia de Lançamento' },
             { key: 'tracking', icon: BarChart3, label: 'Tracking de Resultados' },
           ].map(i => (
-            <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2.5 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
+            <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
               <i.icon className="h-4 w-4 text-primary shrink-0" />
               <span className="text-sm font-medium">{i.label}</span>
             </button>
@@ -258,7 +258,7 @@ function VisaoGeralTab({ projectId, tasks, launchData, profiles, profileMap, qc,
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Visão do Lançamento</h3>
-          <Button size="sm" onClick={() => setTaskDialogOpen(true)} className="gap-1.5"><Plus className="h-3.5 w-3.5" /> Introduzir tarefas</Button>
+          <Button size="sm" onClick={() => setTaskDialogOpen(true)} className="gap-2"><Plus className="h-3.5 w-3.5" /> Introduzir tarefas</Button>
         </div>
 
         {/* Task view tabs */}
@@ -348,16 +348,16 @@ function LaunchTaskDialog({ open, onOpenChange, projectId, profiles, qc, userId 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader><DialogTitle>Introduzir Tarefa de Lançamento</DialogTitle></DialogHeader>
         <div className="grid gap-3 py-2">
-          <div className="space-y-1.5"><Label>Título *</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nome da tarefa" /></div>
+          <div className="space-y-2"><Label>Título *</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nome da tarefa" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Fase</Label>
               <Select value={phase} onValueChange={setPhase}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{PHASES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Setor/Área</Label>
               <Select value={sector} onValueChange={setSector}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
@@ -366,14 +366,14 @@ function LaunchTaskDialog({ open, onOpenChange, projectId, profiles, qc, userId 
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Responsável</Label>
               <Select value={responsibleId} onValueChange={setResponsibleId}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>{profiles.map((p: Profile) => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Data final</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -459,7 +459,7 @@ function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) 
                         <TableCell className="font-medium text-sm">{t.title}</TableCell>
                         <TableCell>
                           {assignee ? (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2">
                               <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
                               <span className="text-xs truncate">{assignee.full_name}</span>
                             </div>
@@ -491,12 +491,12 @@ function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
         const phaseTasks = tasks.filter((t: any) => t.phase === phase.value);
         return (
           <div key={phase.value} className="rounded-lg border bg-muted/30 p-2 min-h-[200px]">
-            <div className="flex items-center gap-1.5 mb-2">
+            <div className="flex items-center gap-2 mb-2">
               <span className={cn('h-2 w-2 rounded-full', phase.dot)} />
               <p className="text-xs font-semibold truncate">{phase.label}</p>
               <Badge variant="secondary" className="text-[9px] ml-auto">{phaseTasks.length}</Badge>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {phaseTasks.map((t: any) => {
                 const si = getLaunchTaskStatusInfo(t.status);
                 const assignee = t.responsible_id ? profileMap.get(t.responsible_id) : null;
@@ -550,7 +550,7 @@ function TarefasPorDataView({ tasks, profileMap }: any) {
                 <TableCell className="text-xs text-muted-foreground">{t.due_date ? format(parseISO(t.due_date), 'd MMM', { locale: pt }) : '—'}</TableCell>
                 <TableCell>
                   {assignee ? (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
                       <span className="text-xs truncate">{assignee.full_name}</span>
                     </div>
@@ -629,7 +629,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
       {unassigned.length > 0 && (
         <div className="rounded-lg border bg-muted/30 p-2 min-w-[220px] max-w-[260px] shrink-0">
           <p className="text-xs font-semibold mb-2 text-muted-foreground">Sem responsável</p>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {unassigned.map((t: any) => {
               const si = getLaunchTaskStatusInfo(t.status);
               return (
@@ -651,7 +651,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
               <p className="text-xs font-semibold truncate">{p.full_name}</p>
               <Badge variant="secondary" className="text-[9px] ml-auto">{pTasks.length}</Badge>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {pTasks.map((t: any) => {
                 const si = getLaunchTaskStatusInfo(t.status);
                 return (
@@ -693,7 +693,7 @@ function ConteudoTab({ projectId, launchData, profiles, qc, initialSection, onCl
   if (section) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => { setSection(null); onClearSection(); }} className="gap-1.5">
+        <Button variant="ghost" size="sm" onClick={() => { setSection(null); onClearSection(); }} className="gap-2">
           <ArrowLeft className="h-4 w-4" /> Voltar ao índice
         </Button>
         {section === 'sobre' && <RichTextSection title="Sobre o Lançamento" field="sobre_lancamento" value={launchData?.sobre_lancamento} onSave={saveField} />}

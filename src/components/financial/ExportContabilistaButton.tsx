@@ -141,7 +141,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="outline" className="gap-1.5">
+          <Button size="sm" variant="outline" className="gap-2">
             <Download className="h-3.5 w-3.5" /> Exportar p/ contabilista
           </Button>
         </DropdownMenuTrigger>

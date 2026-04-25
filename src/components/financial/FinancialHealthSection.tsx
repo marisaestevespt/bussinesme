@@ -82,7 +82,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
           {/* MRR */}
           <Card className="border-dashed">
             <CardContent className="pt-4 pb-3 space-y-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">MRR (Receita Recorrente)</p>
               </div>
@@ -94,7 +94,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
           {/* Forecast */}
           <Card className="border-dashed">
             <CardContent className="pt-4 pb-3 space-y-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Previsão {forecast.label}</p>
               </div>
@@ -106,7 +106,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
           {/* Churn */}
           <Card className="border-dashed">
             <CardContent className="pt-4 pb-3 space-y-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Churn de Receita</p>
               </div>
@@ -122,7 +122,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
           {/* Concentration */}
           <Card className="border-dashed">
             <CardContent className="pt-4 pb-3 space-y-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <Users className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Concentração de Receita</p>
               </div>
@@ -146,7 +146,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
 
         {/* Alerts */}
         {concentration.alerts.length > 0 && (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {concentration.alerts.map((c, i) => (
               <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg bg-background border-2 border-warning/60 shadow-sm">
                 <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />

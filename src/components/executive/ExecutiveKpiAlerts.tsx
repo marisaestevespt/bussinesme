@@ -149,7 +149,7 @@ export function ExecutiveKpiAlerts() {
         <div className="flex flex-wrap gap-2">
           {alerts.map(a => (
             <Link key={a.label} to={a.link}>
-              <Badge variant={a.variant} className="gap-1.5 py-1 px-3 text-xs cursor-pointer hover:opacity-80 transition-opacity">
+              <Badge variant={a.variant} className="gap-2 py-1 px-3 text-xs cursor-pointer hover:opacity-80 transition-opacity">
                 <a.icon className="h-3 w-3" />
                 {a.count} {a.label}
               </Badge>

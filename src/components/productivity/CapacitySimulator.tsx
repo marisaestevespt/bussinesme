@@ -387,7 +387,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
           <CardContent className="p-3 pt-0">
             <div className="flex flex-wrap gap-2">
               {(savedSimsQ.data || []).map(sim => (
-                <div key={sim.id} className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs cursor-pointer transition-colors ${activeSimId === sim.id ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-muted'}`}>
+                <div key={sim.id} className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs cursor-pointer transition-colors ${activeSimId === sim.id ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-muted'}`}>
                   <button onClick={() => loadSimulation(sim)} className="font-medium">{sim.name}</button>
                   <button onClick={() => deleteSimulation(sim.id)} className="text-muted-foreground hover:text-destructive ml-1"><Trash2 className="h-3 w-3" /></button>
                 </div>
@@ -406,7 +406,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
             className="h-8 text-sm max-w-64"
           />
           {phantoms.length > 0 && (
-            <Button size="sm" variant="outline" onClick={saveSimulation} disabled={saving} className="gap-1.5">
+            <Button size="sm" variant="outline" onClick={saveSimulation} disabled={saving} className="gap-2">
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
               {activeSimId ? 'Atualizar' : 'Guardar'}
             </Button>
@@ -453,7 +453,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <Select value={p.contractType} onValueChange={v => {
                               updatePhantom(p.id, 'contractType', v);
                               if (v === 'colaborador') updatePhantom(p.id, 'contractDurationMonths', null);
@@ -505,7 +505,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                         <TableCell colSpan={7} className="py-0 px-2">
                           <Collapsible open={isExpanded} onOpenChange={open => setExpandedPhantom(open ? p.id : null)}>
                             <CollapsibleTrigger asChild>
-                              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1.5 transition-colors w-full">
+                              <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground py-1.5 transition-colors w-full">
                                 {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                                 <ListChecks className="h-3 w-3" />
                                 <span>Tarefas a delegar</span>
@@ -748,7 +748,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                   }
                 }}
                 disabled={aiLoading}
-                className="gap-1.5"
+                className="gap-2"
               >
                 {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                 {aiLoading ? 'A analisar...' : aiAnalysis ? 'Reanalisar' : 'Analisar simulação'}

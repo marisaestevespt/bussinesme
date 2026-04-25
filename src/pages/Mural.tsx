@@ -382,11 +382,11 @@ export default function MuralPage() {
               <DialogTitle>{editingPost ? 'Editar Publicação' : 'Nova Publicação'}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-2">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Título *</Label>
                 <MentionTextarea value={formTitle} onChange={setFormTitle} placeholder="Título da publicação" singleLine rows={1} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Categoria</Label>
                 <Select value={formCategory} onValueChange={setFormCategory}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -397,7 +397,7 @@ export default function MuralPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Corpo *</Label>
                 <MentionTextarea
                   value={formBody}
@@ -446,7 +446,7 @@ export default function MuralPage() {
                   size="sm"
                   disabled={uploadingImages}
                   onClick={() => imageInputRef.current?.click()}
-                  className="gap-1.5"
+                  className="gap-2"
                 >
                   <ImageIcon className="h-4 w-4" /> {uploadingImages ? 'A carregar...' : 'Imagens'}
                 </Button>
@@ -457,7 +457,7 @@ export default function MuralPage() {
                   size="sm"
                   disabled={uploadingFiles}
                   onClick={() => fileInputRef.current?.click()}
-                  className="gap-1.5"
+                  className="gap-2"
                 >
                   <Paperclip className="h-4 w-4" /> {uploadingFiles ? 'A carregar...' : 'Ficheiros'}
                 </Button>
@@ -598,7 +598,7 @@ function PostCard({
       )}
 
       {/* Reactions */}
-      <div className="px-5 pb-3 flex items-center gap-1.5 flex-wrap">
+      <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
         {reactionCounts.map(({ emoji, count, userReacted }) => (
           <button
             key={emoji}
@@ -621,7 +621,7 @@ function PostCard({
           onClick={() => setCommentsOpen(!commentsOpen)}
           className="w-full px-5 py-2.5 flex items-center justify-between text-sm text-muted-foreground hover:bg-muted/30 transition-colors"
         >
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
             {comments.length} {comments.length === 1 ? 'comentário' : 'comentários'}
           </span>
@@ -633,7 +633,7 @@ function PostCard({
             {comments.map(comment => {
               const cp = profileMap.get(comment.author_id);
               return (
-                <div key={comment.id} className="flex gap-2.5">
+                <div key={comment.id} className="flex gap-2">
                   <Avatar className="h-6 w-6 mt-0.5">
                     <AvatarImage src={getPhotoUrl(cp)} />
                     <AvatarFallback className="text-[10px]">{getInitials(cp?.full_name || null)}</AvatarFallback>

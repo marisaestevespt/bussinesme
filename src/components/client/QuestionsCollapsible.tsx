@@ -71,7 +71,7 @@ export function QuestionsCollapsible({
     <Card>
       <Collapsible open={open} onOpenChange={setOpen}>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CollapsibleTrigger className="flex items-center gap-2.5 cursor-pointer hover:opacity-80">
+          <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer hover:opacity-80">
             <ChevronRight className={cn("h-4 w-4 text-muted-foreground transition-transform duration-200", open && "rotate-90")} />
             <CardTitle className="text-sm">Perguntas Iniciais</CardTitle>
             <Badge variant="secondary" className="text-xs px-2 py-0.5 tabular-nums">{answeredCount}/{questionsList.length}</Badge>
@@ -135,7 +135,7 @@ export function QuestionsCollapsible({
                                       </Button>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center gap-1.5 group/q">
+                                    <div className="flex items-center gap-2 group/q">
                                       <span className="text-sm">{q.question || <span className="text-muted-foreground italic">Sem pergunta</span>}</span>
                                       <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/q:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'question')}>
                                         <Pencil className="h-3 w-3 text-muted-foreground" />
@@ -190,7 +190,7 @@ export function QuestionsCollapsible({
                                       </Button>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center gap-1.5 group/t">
+                                    <div className="flex items-center gap-2 group/t">
                                       <span className="text-sm">{answerType === 'text' ? 'Texto' : answerType === 'file' ? 'Ficheiro' : 'Imagem'}</span>
                                       <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/t:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'type')}>
                                         <Pencil className="h-3 w-3 text-muted-foreground" />

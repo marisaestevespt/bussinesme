@@ -137,7 +137,7 @@ function DeliverableRow({
           </TooltipContent>
         </Tooltip>
         {isRecurring && (
-          <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
+          <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-muted-foreground">
             <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
             Recorrente
           </label>
@@ -245,7 +245,7 @@ function PhaseCard({
           {isOwner && (
             <div className="flex items-center gap-3 flex-wrap rounded-md bg-muted/40 px-3 py-2">
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Timeline:</span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Começa</span>
                 <Input type="number" min={0} className="h-7 w-20 text-sm text-center px-1"
                   value={phase.offset_days ?? 0}
@@ -273,7 +273,7 @@ function PhaseCard({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Duração:</span>
                 <Input type="number" min={0} className="h-7 w-20 text-sm text-center px-1"
                   value={phase.duration_days ?? ''}
@@ -291,14 +291,14 @@ function PhaseCard({
             <div className="rounded-md border border-dashed border-primary/20 bg-primary/[0.02] px-3 py-1.5">
               <button
                 type="button"
-                className="flex items-center gap-1.5 text-[10px] font-medium text-primary w-full text-left"
+                className="flex items-center gap-2 text-[10px] font-medium text-primary w-full text-left"
                 onClick={() => setSopExpanded(!sopExpanded)}
               >
                 {sopExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                 <ListChecks className="h-3 w-3" /> SOP: {linkedSopName} ({sopSteps.length} passos)
               </button>
               {sopExpanded && (
-                <div className="mt-1.5 space-y-1.5">
+                <div className="mt-1.5 space-y-2">
                   {sopSteps.map((step, i) => (
                     <div key={step.id} className="flex items-start gap-2 pl-1">
                       <span className="text-[10px] text-muted-foreground font-mono w-4 text-right shrink-0 mt-0.5">{i + 1}.</span>

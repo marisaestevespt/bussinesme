@@ -224,7 +224,7 @@ export function MyTasksTable({ scope = 'all' }: Props) {
     <div className="space-y-4">
       {/* Toolbar: views + actions */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           {allViews.map(v => {
             const isActive = v.id === active.id;
             const showOverdueBadge = v.id === '__atrasadas' && overdueCount > 0;
@@ -234,7 +234,7 @@ export function MyTasksTable({ scope = 'all' }: Props) {
                 type="button"
                 onClick={() => setActiveId(v.id)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full px-3 h-8 text-xs font-medium border transition-colors',
+                  'inline-flex items-center gap-2 rounded-full px-3 h-8 text-xs font-medium border transition-colors',
                   isActive
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-background text-foreground/80 border-border hover:border-foreground/40',
@@ -382,7 +382,7 @@ function TableLayout({
                   {columns.map(c => {
                     if (c === 'task') return (
                       <TableCell key={c} className="font-medium">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           {t.name}
                           {t.content_id && (
                             <Button variant="ghost" aria-label="Documento" size="icon" className="h-6 w-6 shrink-0"
@@ -418,7 +418,7 @@ function ListLayout({ tasks, groupBy, projectName, onItemClick }: {
   return (
     <div className="space-y-3">
       {groups.map(g => (
-        <div key={g.key} className="space-y-1.5">
+        <div key={g.key} className="space-y-2">
           {groupBy !== 'none' && (
             <div className="flex items-center gap-2 px-1 text-xs font-semibold text-foreground/80">
               {g.label} <span className="text-muted-foreground tabular-nums">· {g.items.length}</span>
@@ -465,7 +465,7 @@ function BoardLayout({ tasks, groupBy, projectName, onItemClick }: {
             <span className="text-xs font-semibold text-foreground/90 truncate">{g.label}</span>
             <span className="text-[11px] font-medium text-muted-foreground tabular-nums">{g.items.length}</span>
           </div>
-          <div className="flex-1 space-y-1.5 max-h-[60vh] overflow-y-auto">
+          <div className="flex-1 space-y-2 max-h-[60vh] overflow-y-auto">
             {g.items.length === 0 && <p className="text-xs text-muted-foreground/70 text-center py-4">—</p>}
             {g.items.map((t: any) => {
               const pi = getTaskPriorityInfo(t.priority);
@@ -527,13 +527,13 @@ function ViewEditorDialog({
         </DialogHeader>
 
         <div className="space-y-5">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Nome</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Urgentes do projeto X" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Layout</Label>
               <Select value={layout} onValueChange={(v) => setLayout(v as ViewLayout)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -544,7 +544,7 @@ function ViewEditorDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Agrupar por</Label>
               <Select value={groupBy} onValueChange={(v) => setGroupBy(v as ViewGroupBy)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -559,7 +559,7 @@ function ViewEditorDialog({
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Ordenar por</Label>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as ViewSort)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -578,7 +578,7 @@ function ViewEditorDialog({
           {layout === 'table' && (
             <div className="space-y-2">
               <Label>Colunas visíveis</Label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {ALL_COLUMNS.map(c => {
                   const active = columns.includes(c.key);
                   return (
@@ -597,14 +597,14 @@ function ViewEditorDialog({
           <div className="border-t pt-4 space-y-4">
             <Label className="text-sm font-semibold">Filtros</Label>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Pesquisar no nome</Label>
               <Input value={filters.search || ''} onChange={(e) => setFilters({ ...filters, search: e.target.value })} placeholder="texto a procurar..." />
             </div>
 
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Estado de conclusão</Label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {([
                   { v: 'all', l: 'Tudo' },
                   { v: 'pending', l: 'Pendentes' },
@@ -626,7 +626,7 @@ function ViewEditorDialog({
 
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Status</Label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {TASK_STATUSES.map(s => {
                   const active = filters.statuses?.includes(s.value);
                   return (
@@ -643,7 +643,7 @@ function ViewEditorDialog({
 
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Prioridade</Label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {TASK_PRIORITIES.map(p => {
                   const active = filters.priorities?.includes(p.value);
                   return (
@@ -660,7 +660,7 @@ function ViewEditorDialog({
 
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Prazo</Label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {([
                   { v: 'all', l: 'Qualquer' },
                   { v: 'overdue', l: 'Atrasadas' },
@@ -685,7 +685,7 @@ function ViewEditorDialog({
             {projects.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Projetos</Label>
-                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                   {projects.map(p => {
                     const active = filters.projectIds?.includes(p.id);
                     return (

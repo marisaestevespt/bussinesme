@@ -183,7 +183,7 @@ export function ProductMarketingSection({
           {editing && (
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Tipo</Label>
                   <Select value={editing.type || ''} onValueChange={(v) => updateEditing({ type: v })} disabled={!isOwner}>
                     <SelectTrigger className="h-9"><SelectValue placeholder="Tipo" /></SelectTrigger>
@@ -192,7 +192,7 @@ export function ProductMarketingSection({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Status</Label>
                   <Select value={editing.status || ''} onValueChange={(v) => updateEditing({ status: v })} disabled={!isOwner}>
                     <SelectTrigger className="h-9"><SelectValue placeholder="Status" /></SelectTrigger>
@@ -201,7 +201,7 @@ export function ProductMarketingSection({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">URL</Label>
                   <div className="flex items-center gap-1">
                     <Input
@@ -221,7 +221,7 @@ export function ProductMarketingSection({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Headline</Label>
                   <Input
                     value={editing.headline || ''}
@@ -231,7 +231,7 @@ export function ProductMarketingSection({
                     readOnly={!isOwner}
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">CTA Principal</Label>
                   <Input
                     value={editing.cta || ''}
@@ -243,7 +243,7 @@ export function ProductMarketingSection({
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Sub-headline</Label>
                 <Textarea
                   value={editing.subheadline || ''}
@@ -254,7 +254,7 @@ export function ProductMarketingSection({
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Copy completo</Label>
                 <RichTextEditor
                   content={editing.copy || ''}
@@ -384,7 +384,7 @@ export function ProductMarketingSection({
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Notas internas</Label>
                 <Textarea
                   value={editing.notes || ''}

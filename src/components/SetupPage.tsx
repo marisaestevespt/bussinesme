@@ -72,7 +72,7 @@ function Section({ icon: Icon, title, children }: { icon: React.ElementType; tit
 
 function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
       <div className="flex items-center gap-2">
         <label className="relative h-10 w-10 cursor-pointer overflow-hidden rounded-lg border shadow-sm hq-transition hover:shadow-md">

@@ -109,7 +109,7 @@ export default function ProdutosPage() {
                   return (
                     <div
                       key={p.id}
-                      className="flex flex-col items-center gap-1.5 min-w-[100px] cursor-pointer group"
+                      className="flex flex-col items-center gap-2 min-w-[100px] cursor-pointer group"
                       onClick={() => navigate(`/hub/produtos/${p.id}`)}
                     >
                       <span className="text-[10px] text-muted-foreground text-center leading-tight">

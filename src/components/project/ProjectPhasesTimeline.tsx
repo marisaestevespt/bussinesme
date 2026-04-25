@@ -637,8 +637,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
                 <div className={cn('pb-5 flex-1 min-w-0', isLast && 'pb-0')}>
                   {isEditing ? (
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
                         <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-7 text-xs flex-1"
                           onKeyDown={e => e.key === 'Enter' && saveEditPhase(phase.id)} />
                         <Button size="sm" className="h-7 px-2" onClick={() => saveEditPhase(phase.id)}><Check className="h-3 w-3" /></Button>
@@ -723,7 +723,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                         const delStatusConfig = { bg: _delInfo.color, label: _delInfo.label };
                         return (
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
-                            <div className="flex items-center gap-2.5">
+                            <div className="flex items-center gap-2">
                               {isEditingThis ? (
                                 <>
                                   <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
@@ -822,7 +822,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
                   {/* Add deliverable */}
                   {addingDelPhase === phase.id ? (
-                    <div className="flex items-center gap-1.5 mt-1.5 pl-1">
+                    <div className="flex items-center gap-2 mt-1.5 pl-1">
                       <Input autoFocus placeholder="Nome da entrega" value={newName} onChange={e => setNewName(e.target.value)}
                         className="h-6 text-xs flex-1" onKeyDown={e => e.key === 'Enter' && newName.trim() && addDeliverable.mutate({ phaseId: phase.id, name: newName.trim() })} />
                       <Button size="sm" className="h-6 px-2" onClick={() => newName.trim() && addDeliverable.mutate({ phaseId: phase.id, name: newName.trim() })} disabled={!newName.trim()}>
@@ -851,7 +851,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                   <Plus className="h-3 w-3 text-muted-foreground" />
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 flex-1">
+              <div className="flex items-center gap-2 flex-1">
                 <Input autoFocus placeholder="Nome da fase" value={newName} onChange={e => setNewName(e.target.value)}
                   className="h-7 text-xs flex-1" onKeyDown={e => e.key === 'Enter' && newName.trim() && addPhase.mutate(newName.trim())} />
                 <Button size="sm" className="h-7" onClick={() => newName.trim() && addPhase.mutate(newName.trim())} disabled={!newName.trim()}>

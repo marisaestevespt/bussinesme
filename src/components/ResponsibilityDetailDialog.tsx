@@ -158,7 +158,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
       )}
 
       {/* Status change */}
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <label className="text-xs font-medium text-muted-foreground">Status</label>
         <Select value={task.status} onValueChange={(v) => updateStatus.mutate(v)}>
           <SelectTrigger className="h-9">
@@ -179,7 +179,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
 
       {/* Notes */}
       {task.notes && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground">Notas</label>
           <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">{task.notes}</p>
         </div>
@@ -208,7 +208,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
               <p className="text-sm font-medium">{linkedSop.name}</p>
               <p className="text-xs text-muted-foreground font-mono">{linkedSop.sop_id}</p>
               {linkedSop.passos && Array.isArray(linkedSop.passos) && (linkedSop.passos as any[]).length > 0 && (
-                <div className="mt-3 space-y-1.5">
+                <div className="mt-3 space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Passos</p>
                   {(linkedSop.passos as any[]).slice(0, 8).map((step: any, i: number) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
@@ -283,12 +283,12 @@ function MilestoneDetail({ item, onClose }: { item: UnifiedItem; onClose: () => 
         )}
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <label className="text-xs font-medium text-muted-foreground">Descrição</label>
         <p className="text-sm">{milestone.milestone}</p>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <label className="text-xs font-medium text-muted-foreground">Status</label>
         <Select value={milestone.status} onValueChange={(v) => updateStatus.mutate(v)}>
           <SelectTrigger className="h-9">
@@ -310,7 +310,7 @@ function MilestoneDetail({ item, onClose }: { item: UnifiedItem; onClose: () => 
       </div>
 
       {milestone.notes && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground">Notas</label>
           <p className="text-sm bg-muted/50 p-3 rounded-lg">{milestone.notes}</p>
         </div>

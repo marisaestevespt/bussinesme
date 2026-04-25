@@ -277,13 +277,13 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
           <div className="space-y-6 mt-6">
             {/* Header fields */}
             <div className="space-y-4">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs">Título</Label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nome da estratégia ou campanha" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs">Tipo</Label>
                   <Select value={entryType} onValueChange={setEntryType}>
                     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
@@ -292,7 +292,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs">Produto</Label>
                   <Select value={product} onValueChange={setProduct}>
                     <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecionar" /></SelectTrigger>
@@ -305,7 +305,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
               </div>
 
               {/* Project selector */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs">Projeto associado (para cálculo de receita)</Label>
                 <Select value={projectId} onValueChange={setProjectId}>
                   <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecionar projeto" /></SelectTrigger>
@@ -329,7 +329,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
 
               {/* Past launches button */}
               {isLaunchType && pastLaunches.length > 0 && (
-                <Button variant="outline" size="sm" onClick={() => setPastLaunchesOpen(true)} className="gap-1.5">
+                <Button variant="outline" size="sm" onClick={() => setPastLaunchesOpen(true)} className="gap-2">
                   <History className="h-3.5 w-3.5" />
                   Ver {pastLaunches.length} lançamento(s) anterior(es) deste produto
                 </Button>
@@ -338,7 +338,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
               <div className="grid grid-cols-3 gap-3">
                 <DatePicker date={startDate} onChange={setStartDate} label="Data Início" />
                 <DatePicker date={endDate} onChange={setEndDate} label="Data Fim" />
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs">Resultado</Label>
                   <Select value={result} onValueChange={setResult}>
                     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
@@ -388,14 +388,14 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-semibold">Conteúdos do Lançamento</Label>
-                  <Button variant="outline" size="sm" onClick={handleCreateContent} className="gap-1.5">
+                  <Button variant="outline" size="sm" onClick={handleCreateContent} className="gap-2">
                     <FileText className="h-3.5 w-3.5" /> Criar conteúdo
                   </Button>
                 </div>
                 {linkedContent.length === 0 ? (
                   <p className="text-xs text-muted-foreground">Nenhum conteúdo associado. Cria conteúdos para o calendário editorial.</p>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {linkedContent.map((c: any) => (
                       <Card key={c.id} className="p-0">
                         <CardContent className="p-3 flex items-center justify-between">
@@ -465,7 +465,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
 
 function SectionField({ label, hint, value, onChange }: { label: string; hint: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <Label className="text-sm font-semibold">{label}</Label>
       <p className="text-xs text-muted-foreground">{hint}</p>
       <Textarea value={value} onChange={e => onChange(e.target.value)} className="min-h-[100px] text-sm" placeholder={`Escrever ${label.toLowerCase()}...`} />
@@ -475,7 +475,7 @@ function SectionField({ label, hint, value, onChange }: { label: string; hint: s
 
 function DatePicker({ date, onChange, label }: { date?: Date; onChange: (d: Date | undefined) => void; label: string }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <Label className="text-xs">{label}</Label>
       <Popover>
         <PopoverTrigger asChild>

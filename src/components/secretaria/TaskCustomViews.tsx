@@ -216,7 +216,7 @@ function BoardView({ items, groupBy, onItemClick }: { items: UnifiedItem[]; grou
               </div>
               <span className="text-[11px] font-medium text-muted-foreground tabular-nums">{g.items.length}</span>
             </div>
-            <div className="flex-1 space-y-1.5 max-h-[60vh] overflow-y-auto">
+            <div className="flex-1 space-y-2 max-h-[60vh] overflow-y-auto">
               {g.items.length === 0 && <p className="text-xs text-muted-foreground/70 text-center py-4">—</p>}
               {g.items.map(i => (
                 <div
@@ -258,7 +258,7 @@ function GroupedListView({ items, groupBy, defaultDeadline, title }: { items: Un
               onClick={() => setCollapsed(c => ({ ...c, [g.key]: !c[g.key] }))}
               className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors rounded-t-2xl"
             >
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                 <span className={cn('w-2 h-2 rounded-full', dot)} aria-hidden />
                 <span className="text-sm font-semibold">{g.label}</span>
@@ -309,7 +309,7 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-4 space-y-4">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Pesquisar</label>
           <Input
             placeholder="Procurar tarefa..."
@@ -321,7 +321,7 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
         {sources.length > 0 && (
           <div className="space-y-2">
             <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Fonte</label>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {sources.map(s => {
                 const active = filters.sources?.includes(s);
                 return (
@@ -343,7 +343,7 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
         )}
         <div className="space-y-2">
           <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Prioridade</label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {(['urgente', 'alta', 'media', 'baixa'] as const).map(p => {
               const active = filters.priorities?.includes(p);
               return (
@@ -352,7 +352,7 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
                   type="button"
                   onClick={() => onChange({ ...filters, priorities: toggle(filters.priorities, p) })}
                   className={cn(
-                    'text-xs rounded-full px-3 py-1 border transition-colors inline-flex items-center gap-1.5',
+                    'text-xs rounded-full px-3 py-1 border transition-colors inline-flex items-center gap-2',
                     active
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-background text-foreground/80 border-border hover:border-foreground/40',
@@ -367,7 +367,7 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
         </div>
         <div className="space-y-2">
           <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Estado</label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {([
               { v: 'all', l: 'Tudo' },
               { v: 'pending', l: 'Pendentes' },
@@ -393,7 +393,7 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
         </div>
         <div className="space-y-2">
           <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Prazo</label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {([
               { v: undefined, l: 'Qualquer' },
               { v: 'overdue', l: 'Atrasadas' },
@@ -579,7 +579,7 @@ export function TaskCustomViews({ scope, items, defaultTitle, defaultDeadline }:
                   type="button"
                   onClick={() => setActiveView(sv.id)}
                   className={cn(
-                    'h-9 pl-3 pr-3 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-1.5',
+                    'h-9 pl-3 pr-3 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-2',
                     active
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted',

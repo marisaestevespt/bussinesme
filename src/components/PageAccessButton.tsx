@@ -109,7 +109,7 @@ export function PageAccessButton({ pagePath, pageTitle }: PageAccessButtonProps)
           </div>
 
           {grants.length > 0 && (
-            <div className="space-y-1.5 pt-1 border-t">
+            <div className="space-y-2 pt-1 border-t">
               <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Com acesso</span>
               {grants.map((g: any) => (
                 <div key={g.id} className="flex items-center justify-between">

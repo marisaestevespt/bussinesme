@@ -110,7 +110,7 @@ export function RecommendationWidget({ memberName }: Props) {
               size="sm"
               disabled={!text.trim() || !area || submit.isPending}
               onClick={() => submit.mutate()}
-              className="gap-1.5"
+              className="gap-2"
             >
               <Send className="h-3.5 w-3.5" /> Enviar
             </Button>
@@ -121,7 +121,7 @@ export function RecommendationWidget({ memberName }: Props) {
         {myRecs.length > 0 && (
           <Collapsible open={showHistory} onOpenChange={setShowHistory}>
             <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors pt-2 border-t w-full">
+              <button className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors pt-2 border-t w-full">
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
                 As minhas recomendações ({myRecs.length})
               </button>

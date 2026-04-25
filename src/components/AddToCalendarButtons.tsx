@@ -51,14 +51,14 @@ export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
 
   return (
     <div className="space-y-2 pt-1">
-      <Label className="text-xs font-semibold flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5" /> Adicionar ao calendário</Label>
+      <Label className="text-xs font-semibold flex items-center gap-2"><CalendarIcon className="h-3.5 w-3.5" /> Adicionar ao calendário</Label>
       <div className="flex flex-wrap gap-2">
         <a href={googleUrl} target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5">📅 Google Calendar</Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs gap-2">📅 Google Calendar</Button>
         </a>
-        <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={downloadICS}>🍎 Apple Calendar (.ics)</Button>
+        <Button variant="outline" size="sm" className="h-7 text-xs gap-2" onClick={downloadICS}>🍎 Apple Calendar (.ics)</Button>
         <a href={outlookUrl} target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5">📧 Outlook</Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs gap-2">📧 Outlook</Button>
         </a>
       </div>
     </div>

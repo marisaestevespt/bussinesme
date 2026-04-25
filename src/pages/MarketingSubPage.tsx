@@ -51,7 +51,7 @@ export default function MarketingSubPage() {
 
   if (!page) return (
     <AppLayout>
-      <div className="p-10 text-center text-muted-foreground">Página não encontrada.</div>
+      <div className="p-8 text-center text-muted-foreground">Página não encontrada.</div>
     </AppLayout>
   );
 

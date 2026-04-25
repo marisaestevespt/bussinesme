@@ -368,7 +368,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                         </div>
                       )}
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <div className="flex items-baseline justify-between">
                         <span className="text-2xl font-bold text-foreground">{g.current_value}</span>
                         <span className="text-sm text-muted-foreground">/ {g.target_value}</span>

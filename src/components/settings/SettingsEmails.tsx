@@ -565,11 +565,11 @@ export function SettingsEmails() {
 
             {/* Actions */}
             <div className="flex gap-2 pt-4 border-t">
-              <Button onClick={save} disabled={saving} size="sm" className="gap-1.5">
+              <Button onClick={save} disabled={saving} size="sm" className="gap-2">
                 <Save className="h-3.5 w-3.5" />
                 {saving ? 'A guardar...' : 'Guardar'}
               </Button>
-              <Button onClick={resetToDefaults} variant="outline" size="sm" className="gap-1.5">
+              <Button onClick={resetToDefaults} variant="outline" size="sm" className="gap-2">
                 <RotateCcw className="h-3.5 w-3.5" />
                 Repor original
               </Button>

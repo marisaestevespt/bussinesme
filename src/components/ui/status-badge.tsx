@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
  * theme changes.
  */
 const statusBadgeVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors",
+  "inline-flex items-center gap-2 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors",
   {
     variants: {
       tone: {

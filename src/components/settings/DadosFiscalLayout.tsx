@@ -77,7 +77,7 @@ export function DadosFiscalLayout() {
                       <button
                         onClick={() => handleNav(item.id)}
                         className={cn(
-                          'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-colors text-left',
+                          'w-full flex items-center gap-2 px-3 py-2 rounded-md text-[13px] transition-colors text-left',
                           active
                             ? 'bg-primary/10 text-primary font-medium'
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'

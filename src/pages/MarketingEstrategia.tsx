@@ -326,7 +326,7 @@ export default function MarketingEstrategia() {
                             <p className="text-xs font-medium text-foreground truncate">{card.title || 'Sem título'}</p>
                             {card.channel && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">{card.channel}</Badge>}
                             {card.description && <p className="text-[10px] text-muted-foreground truncate">{card.description}</p>}
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2">
                               {card.link_url && <ExternalLink className="h-2.5 w-2.5 text-info" />}
                               {(card.files as any[])?.length > 0 && <Paperclip className="h-2.5 w-2.5 text-muted-foreground" />}
                             </div>
@@ -374,7 +374,7 @@ export default function MarketingEstrategia() {
                 </div>
                 <div>
                   <Label className="text-xs">Ficheiros</Label>
-                  <div className="space-y-1.5 mt-1">
+                  <div className="space-y-2 mt-1">
                     {distForm.files.map((file, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1">
                         <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" />
@@ -383,7 +383,7 @@ export default function MarketingEstrategia() {
                       </div>
                     ))}
                     {isOwner && (
-                      <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                      <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
                         <Upload className="h-3 w-3" />
                         {uploading ? 'A enviar...' : 'Adicionar ficheiro'}
                         <input type="file" className="hidden" onChange={handleFileUpload} disabled={uploading} />

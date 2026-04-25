@@ -182,7 +182,7 @@ export function SectorTemplateApplier({ sector }: Props) {
                 <div className="border-t px-3 py-2 bg-muted/30">
                   <ul className="space-y-1">
                     {items.map((item: any, i: number) => (
-                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
                         <span className="text-primary mt-0.5">•</span>
                         <span>
                           {item.title || item.name}

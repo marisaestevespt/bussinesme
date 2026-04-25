@@ -511,7 +511,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
                 <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                 <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[status]}`} />
                     <span className="text-xs">{statusLabels[status]}</span>
                   </div>

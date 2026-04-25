@@ -144,11 +144,11 @@ function TeamWhatsAppLink() {
   return (
     <div className="flex items-center gap-2 mt-2">
       {url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-primary-foreground/80 hover:text-primary-foreground flex items-center gap-1.5 transition-colors">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-primary-foreground/80 hover:text-primary-foreground flex items-center gap-2 transition-colors">
           <WhatsAppIcon className="h-3.5 w-3.5" /> Grupo de Equipa (WhatsApp) <ExternalLink className="h-3 w-3" />
         </a>
       ) : (
-        <span className="text-xs text-primary-foreground/50 italic flex items-center gap-1.5"><WhatsAppIcon className="h-3.5 w-3.5" /> Sem link de grupo</span>
+        <span className="text-xs text-primary-foreground/50 italic flex items-center gap-2"><WhatsAppIcon className="h-3.5 w-3.5" /> Sem link de grupo</span>
       )}
       {isAdmin && (
         <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-primary-foreground/50 hover:text-primary-foreground hover:bg-primary-foreground/10" onClick={() => { setDraft(url); setEditing(true); }}>
