@@ -8,11 +8,8 @@ import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secreta
 import { RoutineMonthCard } from './SecretariaRotinas';
 import { isToday, parseISO } from 'date-fns';
 import { DayView } from '@/components/agenda/AppleCalendarViews';
-import { unifiedItemToAgendaEvent, buildSourceTypes } from './secretaria-agenda-mappers';
 import { useNavigate } from 'react-router-dom';
-import { useProductColors } from '@/hooks/useProductColors';
-import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
-import { isSameDay, parseISO as parseIsoDate } from 'date-fns';
+import { useMyAgendaEvents } from '@/hooks/useMyAgendaEvents';
 
 export default function SecretariaDia() {
   const navigate = useNavigate();
@@ -20,40 +17,16 @@ export default function SecretariaDia() {
   const timeEntries = useMyTimeEntries();
   const routineTasks = useMonthRoutineTasks();
   const unified = useUnifiedResponsibilities();
-  const { data: productColors } = useProductColors();
-  const { data: globalContext = [] } = useGlobalAgendaContext();
-
   const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const { events: dayAgendaEvents, types: sourceTypes } = useMyAgendaEvents({ from: todayStr, to: todayStr });
   const todayMeetings = useMemo(() => (meetings.data || []).filter((m: any) => isToday(parseISO(m.date_time))), [meetings.data]);
   const todayTime = useMemo(() => (timeEntries.data || []).filter((e: any) => e.entry_date === todayStr), [timeEntries.data, todayStr]);
   const todayHours = useMemo(() => todayTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [todayTime]);
 
-  const dayAgendaEvents = useMemo(
-    () => {
-      const own = unified.todayItems
-        .map(i => unifiedItemToAgendaEvent(i, productColors))
-        .filter((e): e is NonNullable<typeof e> => !!e);
-      const today = new Date();
-      const ctx = globalContext.filter(ev => {
-        try {
-          const s = parseIsoDate(ev.start_date);
-          const e = parseIsoDate(ev.end_date || ev.start_date);
-          return s <= today && today <= new Date(e.getTime() + 86400000) || isSameDay(s, today);
-        } catch { return false; }
-      });
-      return [...ctx, ...own];
-    },
-    [unified.todayItems, productColors, globalContext]
-  );
-  const sourceTypes = useMemo(buildSourceTypes, []);
-
   const handleEventClick = (ev: any) => {
-    const src = ev._source;
-    if (src === 'reuniao') navigate('/hub/reunioes');
-    else if (src === 'projeto' || src === 'marco') navigate('/hub/projetos');
-    else if (src === 'crm' || src === 'acao_venda') navigate('/hub/comercial');
-    else if (src === 'conteudo') navigate('/hub/conteudos');
-    else navigate('/hub/tarefas');
+    if (ev._isMeeting && ev._meetingId) navigate(`/hub/reunioes/${ev._meetingId}`);
+    else if (String(ev.id || '').startsWith('sales_')) navigate('/hub/comercial');
+    else navigate('/hub/agenda');
   };
 
   return (
