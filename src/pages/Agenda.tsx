@@ -1138,6 +1138,22 @@ function EventDetailDialog({
             </div>
           )}
 
+          {!isMeeting && (
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  onOpenChange(false);
+                  window.open(`/hub/agenda/eventos/${event.id}`, '_self');
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-1.5" />
+                Abrir página do evento
+              </Button>
+            </div>
+          )}
+
           {isOwner && !isMeeting && (
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" onClick={onEdit}>Editar</Button>
