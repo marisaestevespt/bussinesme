@@ -453,7 +453,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
   }, [existingTypes]);
 
   function empty() {
-    return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '', project_id: '' };
+    return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, enrollment_open_date: undefined as Date | undefined, product: '', objective: '', result: '', project_id: '' };
   }
 
   const hasProject = showProject || !!form.project_id;
@@ -476,6 +476,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
         action_type: initialData.action_type || 'outro',
         start_date: initialData.start_date ? new Date(initialData.start_date) : undefined,
         end_date: initialData.end_date ? new Date(initialData.end_date) : undefined,
+        enrollment_open_date: initialData.enrollment_open_date ? new Date(initialData.enrollment_open_date) : undefined,
         product: initialData.product || '',
         objective: initialData.objective || '',
         result: initialData.result || '',
@@ -497,6 +498,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
       action_type: form.action_type,
       start_date: form.start_date ? format(form.start_date, 'yyyy-MM-dd') : null,
       end_date: form.end_date ? format(form.end_date, 'yyyy-MM-dd') : null,
+      enrollment_open_date: form.enrollment_open_date ? format(form.enrollment_open_date, 'yyyy-MM-dd') : null,
       product: form.product || null,
       objective: form.objective || null,
       result: form.result || null,
