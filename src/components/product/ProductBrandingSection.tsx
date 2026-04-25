@@ -91,12 +91,12 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
       if (clientIds.length > 0) {
         const { data: portals, error: portalsErr } = await supabase
           .from('client_portals')
-          .select('id, portal_branding')
+          .select('id, portal_branding' as any)
           .in('client_id', clientIds);
         if (portalsErr) throw portalsErr;
 
-        for (const portal of portals ?? []) {
-          const current = (portal.portal_branding as Record<string, unknown>) || {};
+        for (const portal of (portals ?? []) as Array<{ id: string; portal_branding: Record<string, unknown> | null }>) {
+          const current = portal.portal_branding ?? {};
           const merged = {
             ...current,
             ...(b.primary_color ? { primary_color: b.primary_color } : {}),
@@ -105,7 +105,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           };
           const { error: updErr } = await supabase
             .from('client_portals')
-            .update({ portal_branding: merged })
+            .update({ portal_branding: merged } as any)
             .eq('id', portal.id);
           if (!updErr) portalsUpdated++;
         }
