@@ -23,14 +23,14 @@ export interface ProjectStatusInfo {
 }
 
 export const PROJECT_STATUSES: ProjectStatusInfo[] = [
-  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-amber-500' },
+  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-warning' },
   { value: 'em_ideia',      label: 'Em ideia',      color: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
   { value: 'em_curso',      label: 'Em curso',      color: 'bg-info/15 text-info border-info/30',          dot: 'bg-info' },
-  { value: 'em_pausa',      label: 'Em pausa',      color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-yellow-500' },
-  { value: 'em_revisao',    label: 'Em revisão',    color: 'bg-purple-100 text-purple-800 border-purple-300', dot: 'bg-purple-500' },
+  { value: 'em_pausa',      label: 'Em pausa',      color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-warning' },
+  { value: 'em_revisao',    label: 'Em revisão',    color: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30', dot: 'bg-accent-violet' },
   { value: 'concluido',     label: 'Concluído',     color: 'bg-success/15 text-success border-success/30', dot: 'bg-success' },
   { value: 'cancelado',     label: 'Cancelado',     color: 'bg-destructive/15 text-destructive border-destructive/30', dot: 'bg-destructive' },
-  { value: 'arquivo',       label: 'Arquivo',       color: 'bg-slate-100 text-slate-600 border-slate-300', dot: 'bg-slate-400' },
+  { value: 'arquivo',       label: 'Arquivo',       color: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
 ];
 
 export function getProjectStatusInfo(v: string | null | undefined): ProjectStatusInfo {
