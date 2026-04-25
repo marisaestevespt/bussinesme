@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, forwardRef } from 'react';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths,
   isSameDay, parseISO, addDays, subDays, startOfWeek, endOfWeek, addWeeks, subWeeks,
@@ -274,8 +274,10 @@ function positionEventsForDay(events: AgendaEvent[], day: Date, types: AgendaEve
 function startOfDay(d: Date): Date { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
 function endOfDay(d: Date): Date { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; }
 
-// Apple-style pastel block
-function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () => void; compact?: boolean }) {
+// Apple-style pastel block. forwardRef so React doesn't warn when DevTools/HMR
+// or wrapping primitives (Tooltip/Slot) try to attach a ref.
+const EventBlock = forwardRef<HTMLButtonElement, { p: PositionedEvent; onClick: () => void; compact?: boolean }>(
+  function EventBlock({ p, onClick, compact }, ref) {
   const isMeeting = (p.ev as any)._isMeeting;
   const widthPct = 100 / p.laneCount;
   const leftPct = widthPct * p.laneIdx;
@@ -293,6 +295,7 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
 
   return (
     <button
+      ref={ref}
       onClick={onClick}
       className={cn(
         'absolute rounded-md px-2 py-1 text-left transition-all overflow-hidden',
@@ -391,15 +394,17 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
       )}
     </button>
   );
-}
+});
 
 // All-day strip event (used in Week)
-function AllDayEventBlock({ ev, types, onClick }: { ev: AgendaEvent; types: AgendaEventType[]; onClick: () => void }) {
+const AllDayEventBlock = forwardRef<HTMLButtonElement, { ev: AgendaEvent; types: AgendaEventType[]; onClick: () => void }>(
+  function AllDayEventBlock({ ev, types, onClick }, ref) {
   const color = getColor(types, ev);
   const url = extractUrl(ev);
   const context = buildContextLine(ev);
   return (
     <button
+      ref={ref}
       onClick={onClick}
       className="flex w-full items-center gap-1 text-left rounded px-1.5 py-0.5 mb-0.5 text-[10px] font-medium border-l-2 hover:opacity-80 transition-opacity"
       style={{
@@ -428,7 +433,7 @@ function AllDayEventBlock({ ev, types, onClick }: { ev: AgendaEvent; types: Agen
       )}
     </button>
   );
-}
+});
 
 // Auto-scroll to current/business hours on mount
 function useScrollToHour(hour: number) {
