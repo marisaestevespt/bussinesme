@@ -7853,6 +7853,7 @@ export type Database = {
           drive_url: string | null
           escada: string | null
           faqs: Json | null
+          icon: Json | null
           id: string
           important_dates: Json | null
           improvements_content: string | null
@@ -7892,6 +7893,7 @@ export type Database = {
           drive_url?: string | null
           escada?: string | null
           faqs?: Json | null
+          icon?: Json | null
           id?: string
           important_dates?: Json | null
           improvements_content?: string | null
@@ -7931,6 +7933,7 @@ export type Database = {
           drive_url?: string | null
           escada?: string | null
           faqs?: Json | null
+          icon?: Json | null
           id?: string
           important_dates?: Json | null
           improvements_content?: string | null
