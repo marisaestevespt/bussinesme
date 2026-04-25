@@ -1039,11 +1039,7 @@ export default function ProjetoDetailPage() {
         )}
 
         {/* Section 1: Menu Inicial */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20">
-              <Target className="h-4.5 w-4.5 text-primary" />
-              <h3 className="text-sm font-bold text-primary uppercase tracking-wide">Menu Inicial</h3>
-            </div>
+          <EntitySection title="Menu Inicial" icon={Target}>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
@@ -1051,23 +1047,16 @@ export default function ProjetoDetailPage() {
                 { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
                 { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
               ].map(({ key, icon: Icon, label }) => (
-                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 text-center bg-card">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 group-hover:from-primary/10 group-hover:to-primary/15 transition-all" />
-                  <div className="rounded-full bg-primary/15 p-3 relative z-10">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
+                <button key={key} onClick={() => setSubPage(key)} className="group flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3 text-left transition-colors hover:bg-muted/40 hover:border-primary/40">
+                  <div className="rounded-md bg-primary/10 p-2"><Icon className="h-4 w-4 text-primary" /></div>
+                  <span className="text-sm font-medium text-foreground">{label}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </EntitySection>
 
         {/* Section 2: Desenvolvimento */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20">
-              <FileText className="h-4.5 w-4.5 text-primary" />
-              <h3 className="text-sm font-bold text-primary uppercase tracking-wide">Desenvolvimento</h3>
-            </div>
+          <EntitySection title="Desenvolvimento" icon={FileText}>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
@@ -1075,31 +1064,27 @@ export default function ProjetoDetailPage() {
                 { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
                 { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
               ].map(({ key, icon: Icon, label }) => (
-                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 text-center bg-card">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 group-hover:from-primary/10 group-hover:to-primary/15 transition-all" />
-                  <div className="rounded-full bg-primary/12 p-3 relative z-10">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
+                <button key={key} onClick={() => setSubPage(key)} className="group flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3 text-left transition-colors hover:bg-muted/40 hover:border-primary/40">
+                  <div className="rounded-md bg-primary/10 p-2"><Icon className="h-4 w-4 text-primary" /></div>
+                  <span className="text-sm font-medium text-foreground">{label}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </EntitySection>
 
         {/* Section 3: Estado e Prioridades */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-info/10 border border-info/20 flex-1">
-              <CheckSquare className="h-4.5 w-4.5 text-info" />
-              <h3 className="text-sm font-bold text-info uppercase tracking-wide">{taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}</h3>
+        <EntitySection
+          title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
+          icon={CheckSquare}
+          action={
+            <div className="flex gap-2 items-center">
               <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+              {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar</Button>}
+              <Button size="sm" variant="outline" className="gap-1" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+              <Button size="sm" variant="outline" className="gap-1" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
             </div>
-            <div className="flex gap-2 ml-3">
-              {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas</Button>}
-              <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-              <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
-            </div>
-          </div>
+          }
+        >
           {tasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
               <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
@@ -1134,17 +1119,13 @@ export default function ProjetoDetailPage() {
               </Table>
             </div>
           )}
-        </div>
+        </EntitySection>
 
         {/* Linked SOPs */}
         {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
 
         {/* Section 4: Fecho de Projeto */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted border border-border">
-              <Target className="h-4.5 w-4.5 text-muted-foreground" />
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Fecho de Projeto</h3>
-            </div>
+          <EntitySection title="Fecho de Projeto" icon={Flag}>
             <div className="space-y-2">
               {[
                 { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
@@ -1153,7 +1134,7 @@ export default function ProjetoDetailPage() {
               ].map(({ field, label }) => (
                 <Collapsible key={field}>
                   <CollapsibleTrigger asChild>
-                    <button className="flex items-center justify-between w-full p-3.5 rounded-xl border-2 border-border/60 bg-card hover:bg-muted/40 transition-colors">
+                    <button className="flex items-center justify-between w-full p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/40 transition-colors">
                       <span className="text-sm font-medium">{label}</span>
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </button>
@@ -1169,7 +1150,7 @@ export default function ProjetoDetailPage() {
                 </Collapsible>
               ))}
             </div>
-          </div>
+          </EntitySection>
 
         <Separator />
         <AlertDialog>
