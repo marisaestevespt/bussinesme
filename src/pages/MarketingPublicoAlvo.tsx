@@ -71,7 +71,7 @@ export default function MarketingPublicoAlvo() {
 
   const handleDeleteSection = (id: string) => {
     deleteSection.mutate(id, {
-      onSuccess: () => toast({ title: 'Secção eliminada' }),
+      onSuccess: () => toast.success('Secção eliminada'),
     });
   };
 
@@ -88,7 +88,7 @@ export default function MarketingPublicoAlvo() {
     }, {
       onSuccess: () => {
         setActiveKey(key);
-        toast({ title: 'Secção adicionada' });
+        toast.success('Secção adicionada');
       },
     });
   };
