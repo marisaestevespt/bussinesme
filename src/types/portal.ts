@@ -66,6 +66,9 @@ export interface PortalPayment {
   payment_date?: string | null;
   status?: string | null;
   description?: string | null;
+  invoice_total?: number | null;
+  sale_month?: number | null;
+  payment_method?: string | null;
   [k: string]: unknown;
 }
 
@@ -85,6 +88,9 @@ export interface PortalPhase {
   title?: string | null;
   status?: string | null;
   deliverables?: PortalDeliverable[] | null;
+  description?: string | null;
+  planned_start?: string | null;
+  planned_end?: string | null;
   [k: string]: unknown;
 }
 
