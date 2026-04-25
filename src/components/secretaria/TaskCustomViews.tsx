@@ -20,7 +20,6 @@ import { useConfirm, usePrompt } from '@/components/ui/confirm-dialog';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { getTaskStatusInfo, getTaskPriorityInfo } from '@/lib/taskStatus';
 
 type ViewType = 'list' | 'table' | 'board';
 type GroupBy = 'none' | 'source' | 'priority' | 'deadline';
@@ -160,59 +159,41 @@ function TableView({ items, onItemClick }: { items: UnifiedItem[]; onItemClick: 
           <TableRow className="border-b border-border/50 hover:bg-transparent">
             <TableHead className="w-[36px] py-3" />
             <TableHead className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Tarefa</TableHead>
-            <TableHead className="w-[110px] text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Status</TableHead>
+            <TableHead className="w-[120px] text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Fonte</TableHead>
             <TableHead className="w-[110px] text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Prioridade</TableHead>
-            <TableHead className="w-[110px] text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Data Limite</TableHead>
-            <TableHead className="w-[160px] text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Projeto</TableHead>
-            <TableHead className="w-[110px] text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Fonte</TableHead>
+            <TableHead className="w-[110px] text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Prazo</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {items.length === 0 && (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-12 text-sm">Nada para mostrar por aqui ✨</TableCell>
+              <TableCell colSpan={5} className="text-center text-muted-foreground py-12 text-sm">Nada para mostrar por aqui ✨</TableCell>
             </TableRow>
           )}
-          {items.map(i => {
-            const si = i.status ? getTaskStatusInfo(i.status) : null;
-            const pi = i.priority ? getTaskPriorityInfo(i.priority) : null;
-            return (
-              <TableRow
-                key={i.id}
-                onClick={() => onItemClick(i)}
-                className="border-b-0 border-t border-border/40 hover:bg-muted/40 transition-colors cursor-pointer"
-              >
-                <TableCell className="py-3">
-                  <span className={cn('block w-2 h-2 rounded-full', PRIORITY_DOT[i.priority || '__none__'])} aria-hidden />
-                </TableCell>
-                <TableCell className="py-3">
-                  <div className={cn('text-sm font-medium', i.completed && 'line-through text-muted-foreground')}>{i.title}</div>
-                  {i.subtitle && <div className="text-xs text-muted-foreground mt-0.5">{i.subtitle}</div>}
-                </TableCell>
-                <TableCell className="py-3">
-                  {si ? (
-                    <Badge variant="outline" className={cn('text-[10px]', si.color)}>{si.label}</Badge>
-                  ) : (
-                    <span className="text-xs text-muted-foreground/60">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="py-3">
-                  {pi ? (
-                    <Badge variant="outline" className={cn('text-[10px]', pi.color)}>{pi.short}</Badge>
-                  ) : (
-                    <span className="text-xs text-muted-foreground/60">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="py-3 text-xs text-muted-foreground">
-                  {i.deadline ? format(parseISO(i.deadline), 'dd/MM/yyyy', { locale: pt }) : '—'}
-                </TableCell>
-                <TableCell className="py-3 text-xs text-muted-foreground truncate max-w-[160px]">
-                  {i.projectName || '—'}
-                </TableCell>
-                <TableCell className="py-3 text-xs text-muted-foreground">{SOURCE_LABELS[i.source]}</TableCell>
-              </TableRow>
-            );
-          })}
+          {items.map(i => (
+            <TableRow
+              key={i.id}
+              onClick={() => onItemClick(i)}
+              className="border-b-0 border-t border-border/40 hover:bg-muted/40 transition-colors cursor-pointer"
+            >
+              <TableCell className="py-3">
+                <span className={cn('block w-2 h-2 rounded-full', PRIORITY_DOT[i.priority || '__none__'])} aria-hidden />
+              </TableCell>
+              <TableCell className="py-3">
+                <div className={cn('text-sm font-medium', i.completed && 'line-through text-muted-foreground')}>{i.title}</div>
+                {i.subtitle && <div className="text-xs text-muted-foreground mt-0.5">{i.subtitle}</div>}
+              </TableCell>
+              <TableCell className="py-3 text-xs text-muted-foreground">{SOURCE_LABELS[i.source]}</TableCell>
+              <TableCell className="py-3">
+                {i.priority
+                  ? <span className="text-xs font-medium text-foreground/80">{PRIORITY_LABEL[i.priority] || i.priority}</span>
+                  : <span className="text-xs text-muted-foreground/60">—</span>}
+              </TableCell>
+              <TableCell className="py-3 text-xs text-muted-foreground">
+                {i.deadline ? format(parseISO(i.deadline), 'dd MMM', { locale: pt }) : '—'}
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>

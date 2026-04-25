@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
-import { TaskCustomViews } from './TaskCustomViews';
+import { MyTasksTable } from './MyTasksTable';
 import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secretaria-shared';
 import { RoutineMonthCard } from './SecretariaRotinas';
 import { isToday, parseISO } from 'date-fns';
@@ -60,12 +60,7 @@ export default function SecretariaDia() {
         </CardContent>
       </Card>
 
-      <TaskCustomViews
-        scope="today"
-        items={unified.todayItems}
-        defaultTitle="Tarefas para hoje"
-        defaultDeadline={todayStr}
-      />
+      <MyTasksTable scope="today" />
 
       {todayTime.length > 0 && (
         <Card>

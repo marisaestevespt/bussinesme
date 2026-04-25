@@ -1,15 +1,9 @@
-import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
-import { TaskCustomViews } from './TaskCustomViews';
+import { MyTasksTable } from './MyTasksTable';
 
 export default function SecretariaTarefas() {
-  const unified = useUnifiedResponsibilities();
   return (
-    <div className="space-y-4 mt-4">
-      <TaskCustomViews
-        scope="tasks"
-        items={unified.items}
-        defaultTitle="As minhas tarefas"
-      />
+    <div className="mt-4">
+      <MyTasksTable scope="all" />
     </div>
   );
 }
