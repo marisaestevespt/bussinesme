@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
+import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
 import { useAuth } from '@/hooks/useAuth';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
