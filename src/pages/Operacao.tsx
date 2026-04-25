@@ -102,7 +102,7 @@ function TaskDynamicFilters({ filters, onChange, profiles, projects }: {
     + (filters.time !== 'todas' ? 1 : 0);
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       {(['todas', 'hoje', 'semana', 'atrasadas'] as TaskFilter[]).map(k => (
         <Button key={k} size="sm" variant={filters.time === k ? 'default' : 'outline'} className="h-7 text-xs"
           onClick={() => onChange({ ...filters, time: k })}>
@@ -860,14 +860,14 @@ export default function OperacaoPage() {
                                 : 'bg-card border-border'
                             }`} />
                             {/* Items empilhados abaixo */}
-                            <div className="mt-2 w-full flex flex-col gap-1.5">
+                            <div className="mt-2 w-full flex flex-col gap-2">
                               {day.items.map((item, i) => (
                                 (() => {
                                   const assignee = item.assigneeId ? profileMap.get(item.assigneeId) : null;
                                   const href = item.type === 'meeting'
                                     ? `/hub/reunioes/${item.id}`
                                     : item.type === 'project' && item.projectId ? `/hub/projetos/${item.projectId}` : null;
-                                  const className = `text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-1.5 ${
+                                  const className = `text-[11px] leading-snug px-2 py-1.5 rounded-md flex items-start gap-2 ${
                                     item.type === 'meeting' ? 'bg-info/15 text-info dark:text-info font-medium ring-1 ring-info/30' :
                                     item.type === 'project' ? 'bg-primary/15 text-primary font-medium ring-1 ring-primary/30' :
                                     'bg-accent/20 text-accent-foreground'
@@ -955,7 +955,7 @@ export default function OperacaoPage() {
                     </div>
                     {p.client_name && <p className="text-[10px] text-muted-foreground truncate mb-2 pl-4">{p.client_name}</p>}
                     {!p.isTarefasLivres && (
-                      <div className="flex items-center gap-1.5 pl-4">
+                      <div className="flex items-center gap-2 pl-4">
                         <Progress value={p.prog} className="h-1.5 flex-1" />
                         <span className={`text-[10px] font-bold ${healthColor.text}`}>{p.prog}%</span>
                       </div>
@@ -978,10 +978,10 @@ export default function OperacaoPage() {
 
         <Tabs defaultValue="clientes" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="clientes" className="gap-1.5">
+            <TabsTrigger value="clientes" className="gap-2">
               <Briefcase className="h-3.5 w-3.5" /> Clientes
             </TabsTrigger>
-            <TabsTrigger value="interno" className="gap-1.5">
+            <TabsTrigger value="interno" className="gap-2">
               <Building2 className="h-3.5 w-3.5" /> Interno
             </TabsTrigger>
           </TabsList>
@@ -994,7 +994,7 @@ export default function OperacaoPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Estado dos Clientes</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-1.5">
+                <CardContent className="pt-0 space-y-2">
                   {[
                     { value: 'em_onboarding', label: 'Em onboarding', className: 'bg-info/15 text-info' },
                     { value: 'ativo', label: 'Ativos', className: 'bg-success/15 text-success' },
@@ -1289,7 +1289,7 @@ export default function OperacaoPage() {
                   {internoMembers.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-3">Sem membros associados</p>
                   ) : internoMembers.map(m => (
-                    <div key={m.profile!.id} className="flex items-center gap-2.5 py-2 px-2 rounded-lg hover:bg-muted/40">
+                    <div key={m.profile!.id} className="flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-muted/40">
                       <Avatar className="h-7 w-7">
                         <AvatarImage src={getPhotoUrl(m.profile!)} />
                         <AvatarFallback className="text-[10px]">{getInitials(m.profile!.full_name)}</AvatarFallback>

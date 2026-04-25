@@ -69,7 +69,7 @@ export function SingleQuarterView({ selectedData, selectedMonthlyData, filteredP
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-warning" /><p className="text-xs text-muted-foreground">IVA — {selectedData.label}</p></div>
+            <div className="flex items-center gap-2 mb-2"><Receipt className="h-3.5 w-3.5 text-warning" /><p className="text-xs text-muted-foreground">IVA — {selectedData.label}</p></div>
             <div className="grid grid-cols-3 gap-2 text-sm">
               <div><p className="text-[10px] text-muted-foreground">Cobrado</p><p className="font-semibold">{formatEuro(dv.ivaCobrado)}</p></div>
               <div><p className="text-[10px] text-muted-foreground">Pago</p><p className="font-semibold">{formatEuro(dv.ivaPago)}</p></div>
@@ -79,7 +79,7 @@ export function SingleQuarterView({ selectedData, selectedMonthlyData, filteredP
         </Card>
         <Card>
           <CardContent className="pt-4 pb-3">
-            <div className="flex items-center gap-1.5 mb-2"><Shield className="h-3.5 w-3.5 text-info" /><p className="text-xs text-muted-foreground">Segurança Social — {selectedData.label}</p></div>
+            <div className="flex items-center gap-2 mb-2"><Shield className="h-3.5 w-3.5 text-info" /><p className="text-xs text-muted-foreground">Segurança Social — {selectedData.label}</p></div>
             <p className="text-xl font-bold">{formatEuro(dv.ss)}</p>
           </CardContent>
         </Card>

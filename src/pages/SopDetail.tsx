@@ -794,7 +794,7 @@ export default function SopDetailPage() {
                   {isExpanded && (
                     <div className="px-3 pb-3 pt-1 border-t bg-muted/20">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <Label className="text-[10px] text-muted-foreground whitespace-nowrap">Prazo</Label>
                           <Input
                             type="number"

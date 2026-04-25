@@ -156,7 +156,7 @@ export function ExportInitialQuestionsButton({ clientId, clientName, projectName
   };
 
   return (
-    <Button variant="outline" size="sm" onClick={handleExport} disabled={loading} className="gap-1.5">
+    <Button variant="outline" size="sm" onClick={handleExport} disabled={loading} className="gap-2">
       <FileDown className="h-3.5 w-3.5" />
       {loading ? 'A preparar...' : 'Exportar Q&A'}
     </Button>

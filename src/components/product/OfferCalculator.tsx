@@ -153,7 +153,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
         </div>
 
         {/* Margem desejada */}
-        <div className="max-w-xs space-y-1.5">
+        <div className="max-w-xs space-y-2">
           <Label className="text-xs text-muted-foreground">Margem de lucro desejada (%)</Label>
           <Input type="number" value={desiredMargin} onChange={e => setDesiredMargin(e.target.value)} placeholder="80" />
         </div>
@@ -189,11 +189,11 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
           <Label className="text-sm font-medium">Impostos</Label>
           <p className="text-xs text-muted-foreground">Configuração para a simulação de preço abaixo. Não afecta o preço recomendado.</p>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">IRS/IRC — aplicado sobre 75% do rendimento</Label>
               <Input type="number" value={taxRate} onChange={e => setTaxRate(e.target.value)} placeholder="25" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Segurança Social — aplicado sobre 70% do rendimento</Label>
               <Input type="number" value={ssRate} onChange={e => setSsRate(e.target.value)} placeholder="21.4" />
             </div>
@@ -204,7 +204,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
         <div className="space-y-3 pt-2 border-t">
           <Label className="text-sm font-medium">Testar um preço</Label>
           <div className="flex gap-3 items-end">
-            <div className="flex-1 space-y-1.5">
+            <div className="flex-1 space-y-2">
               <Label className="text-xs text-muted-foreground">Preço de venda (s/ IVA)</Label>
               <Input
                 type="number"

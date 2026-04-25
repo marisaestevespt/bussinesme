@@ -123,16 +123,16 @@ export function DepartmentLinks({
 
   const isInline = variant === "inline";
   const wrapperCls = isInline
-    ? "flex flex-wrap items-center gap-1.5"
+    ? "flex flex-wrap items-center gap-2"
     : "flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/50";
   const chipCls = isInline
-    ? "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-background/70 backdrop-blur-sm border border-border/60 hover:bg-background text-[11px] font-medium transition-colors"
-    : "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background border border-border hover:bg-accent text-xs font-medium transition-colors";
+    ? "inline-flex items-center gap-2 px-2 py-0.5 rounded-md bg-background/70 backdrop-blur-sm border border-border/60 hover:bg-background text-[11px] font-medium transition-colors"
+    : "inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-background border border-border hover:bg-accent text-xs font-medium transition-colors";
 
   return (
     <div className={wrapperCls}>
       {!isInline && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mr-1">
           <Link2 className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Links rápidos:</span>
         </div>

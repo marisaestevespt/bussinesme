@@ -234,7 +234,7 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
   return (
     <div className="space-y-2">
       {label && <Label className="text-xs font-semibold text-foreground">{label}</Label>}
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {items.map((item, i) => (
           <div key={i} className="flex items-start gap-2 group">
             <Checkbox checked={item.checked} onCheckedChange={() => toggleItem(i)} className="mt-1" />
@@ -278,8 +278,8 @@ function EditableBulletList({ items, onChange, label }: { items: string[]; onCha
 
   return (
     <div className="space-y-2">
-      {label && <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground"><StickyNote className="h-3.5 w-3.5" /> {label}</Label>}
-      <div className="space-y-1.5">
+      {label && <Label className="flex items-center gap-2 text-xs font-semibold text-foreground"><StickyNote className="h-3.5 w-3.5" /> {label}</Label>}
+      <div className="space-y-2">
         {items.map((item, i) => (
           <div key={i} className="flex items-start gap-2 group">
             <span className="text-muted-foreground text-xs mt-1.5">•</span>
@@ -630,7 +630,7 @@ export default function ReuniaoDetailPage() {
               <Clock className="h-3.5 w-3.5" /> Duração
             </div>
             <div className="px-3 py-1.5 flex-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <Input
                   type="number"
                   min={0}
@@ -747,11 +747,11 @@ export default function ReuniaoDetailPage() {
               <Users className="h-3.5 w-3.5" /> Participantes
             </div>
             <div className="px-3 py-1.5 flex-1">
-              <div className="flex flex-wrap gap-1.5 items-center">
+              <div className="flex flex-wrap gap-2 items-center">
                 {participants.map(p => {
                   const profile = profiles.find(pr => pr.id === p.profile_id);
                   return (
-                    <div key={p.id} className="flex items-center gap-1.5 rounded-full border bg-muted/30 pl-1 pr-2 py-0.5 text-sm group">
+                    <div key={p.id} className="flex items-center gap-2 rounded-full border bg-muted/30 pl-1 pr-2 py-0.5 text-sm group">
                       <Avatar className="h-5 w-5">
                         <AvatarImage src={getPhotoUrl(profile)} />
                         <AvatarFallback className="text-[8px]">{initials(profile?.full_name || null)}</AvatarFallback>
@@ -814,7 +814,7 @@ export default function ReuniaoDetailPage() {
             </div>
             <div className="px-3 py-1.5 flex-1">
               {m.meeting_url ? (
-                <a href={m.meeting_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1.5">
+                <a href={m.meeting_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-2">
                   {m.meeting_url.replace(/^https?:\/\//, '').slice(0, 40)}{m.meeting_url.length > 50 ? '…' : ''}
                   <ExternalLink className="h-3 w-3 shrink-0" />
                 </a>
@@ -881,7 +881,7 @@ export default function ReuniaoDetailPage() {
               {m.documents.length > 0 && (
                 <div className="flex flex-wrap gap-2 ml-[92px]">
                   {m.documents.map((doc, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs bg-muted/30">
+                    <div key={idx} className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs bg-muted/30">
                       <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[200px]">
                         {doc.name}
@@ -934,7 +934,7 @@ export default function ReuniaoDetailPage() {
               </div>
               <CardTitle className="text-base">Próximos Passos</CardTitle>
             </div>
-            <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={() => setCreateTasksOpen(true)}>
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-2" onClick={() => setCreateTasksOpen(true)}>
               <ListTodo className="h-3.5 w-3.5" /> Criar Tarefas
             </Button>
           </CardHeader>

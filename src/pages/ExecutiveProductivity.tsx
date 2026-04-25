@@ -163,13 +163,13 @@ export default function ExecutiveProductivity() {
         <BackNavigation />
         <PageHeader title="Produtividade & Capacidade" subtitle="Tempo, ocupação, capacidade e simulações de crescimento" />
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {MAIN_TABS.map(tab => (
             <button
               key={tab.value}
               onClick={() => setActive(tab.value)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium border transition-all",
+                "inline-flex items-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium border transition-all",
                 active === tab.value
                   ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                   : 'border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground'

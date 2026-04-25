@@ -249,13 +249,13 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
 
             {/* Date range */}
             <div className="flex items-center gap-3 flex-wrap text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <CalendarIcon className="h-3.5 w-3.5" />
                 <span>Início:</span>
                 {isOwner ? (
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1.5 font-normal", !startDate && "text-muted-foreground")}>
+                      <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-2 font-normal", !startDate && "text-muted-foreground")}>
                         {startDate ? format(startDate, "d MMM yyyy", { locale: pt }) : "Definir"}
                       </Button>
                     </PopoverTrigger>
@@ -268,12 +268,12 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
                 )}
               </div>
               <span className="text-border">→</span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <span>Fim:</span>
                 {isOwner ? (
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1.5 font-normal", !endDate && "text-muted-foreground")}>
+                      <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-2 font-normal", !endDate && "text-muted-foreground")}>
                         {endDate ? format(endDate, "d MMM yyyy", { locale: pt }) : "Definir"}
                       </Button>
                     </PopoverTrigger>
@@ -304,7 +304,7 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
                 <Check className="h-3 w-3" /> Guardado
               </span>
             )}
-            <Button variant="outline" size="sm" onClick={handleExportPdf} className="gap-1.5">
+            <Button variant="outline" size="sm" onClick={handleExportPdf} className="gap-2">
               <FileDown className="h-3.5 w-3.5" />
               Exportar PDF
             </Button>
@@ -391,7 +391,7 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
       {/* Add section */}
       {isOwner && (
         <div className="pt-4 pb-10">
-          <Button variant="outline" size="sm" onClick={addSection} className="gap-1.5">
+          <Button variant="outline" size="sm" onClick={addSection} className="gap-2">
             <Plus className="h-3.5 w-3.5" />
             Adicionar secção
           </Button>

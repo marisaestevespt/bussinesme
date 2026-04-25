@@ -173,7 +173,7 @@ export function ContentBodyTemplate({ format, value, onChange, editable = true }
             {field.type === 'checklist' && (
               <div className="space-y-2">
                 <label className="text-xs font-bold text-primary uppercase tracking-wide">▸ {field.label}</label>
-                <div className="space-y-1.5 pl-2">
+                <div className="space-y-2 pl-2">
                   {(field.items || []).map(item => {
                     const checked = (data[`${field.key}_checked`] || []).includes(item);
                     return (

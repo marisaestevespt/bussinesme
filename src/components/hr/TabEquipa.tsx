@@ -199,7 +199,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                   <AlertTriangle className="h-4 w-4 text-warning" />
                   {pendingTasks.length} tarefa(s) pendente(s) para reatribuir
                 </h3>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
                   {pendingTasks.map((t: any) => (
                     <div key={t.id} className="flex items-center gap-2 text-sm border rounded-md p-2">
                       <span className="flex-1 truncate">{t.name}</span>

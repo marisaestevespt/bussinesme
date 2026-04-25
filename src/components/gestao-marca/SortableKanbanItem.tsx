@@ -29,7 +29,7 @@ export function SortableKanbanItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-b-0 hover:bg-muted/40 transition-colors group bg-background/0"
+      className="flex items-center gap-2 px-3 py-2.5 border-b last:border-b-0 hover:bg-muted/40 transition-colors group bg-background/0"
     >
       {isOwner ? (
         <Popover>

@@ -66,7 +66,7 @@ export function NpsConfigSection({ productId, teamMembers }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Cadência de recolha (dias)</Label>
               <Input
                 type="number"
@@ -78,7 +78,7 @@ export function NpsConfigSection({ productId, teamMembers }: Props) {
               />
               <p className="text-xs text-muted-foreground">30 = mensal · 60 = bimensal · 90 = trimestral</p>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Responsável pela recolha</Label>
               <Select
                 value={effective?.responsible_id || ''}
@@ -98,7 +98,7 @@ export function NpsConfigSection({ productId, teamMembers }: Props) {
               </Button>
             </div>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Mensagem de recolha</Label>
             <Textarea
               placeholder="Mensagem ou pergunta a enviar ao cliente..."
@@ -107,7 +107,7 @@ export function NpsConfigSection({ productId, teamMembers }: Props) {
               className="min-h-[60px]"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Link do formulário de recolha de NPS</Label>
             <div className="flex gap-2">
               <Input

@@ -277,7 +277,7 @@ export default function MarketingAutomacaoDetail() {
               <BackNavigation parentRoute="/hub/marketing/automacoes" parentLabel="Automações" />
               {editing ? (
                 <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                  <SelectTrigger className="h-8 w-auto gap-1.5"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 w-auto gap-2"><SelectValue /></SelectTrigger>
                   <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
               ) : (

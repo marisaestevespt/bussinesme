@@ -251,7 +251,7 @@ export function RotinasView() {
             {routines.map((r: any) => (
               <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(r)}>
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
                     {r.title}
                   </div>

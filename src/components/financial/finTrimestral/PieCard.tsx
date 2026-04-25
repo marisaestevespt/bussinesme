@@ -11,7 +11,7 @@ interface Props {
 export function PieCard({ title, data }: Props) {
   return (
     <Card>
-      <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-1.5">{title}</CardTitle></CardHeader>
+      <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2">{title}</CardTitle></CardHeader>
       <CardContent>
         {data.length > 0 ? (
           <div className="flex items-center gap-4">
@@ -25,7 +25,7 @@ export function PieCard({ title, data }: Props) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="space-y-1.5 text-sm flex-1 min-w-0">
+            <div className="space-y-2 text-sm flex-1 min-w-0">
               {data.map((p, i) => (
                 <div key={p.name} className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />

@@ -106,7 +106,7 @@ export function OverviewTab({ entries, members, tasks }: { entries: any[]; membe
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">Tarefas da Semana</p>
-                <div className="flex items-baseline gap-1.5 mt-0.5">
+                <div className="flex items-baseline gap-2 mt-0.5">
                   <p className="text-2xl font-bold">{weeklyTasksDone}</p>
                   <span className="text-sm text-muted-foreground">/ {weeklyTasksPlanned}</span>
                 </div>

@@ -595,7 +595,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 return (
                   <div key={col} className="w-44 shrink-0">
                     <div className={cn('text-[10px] font-medium mb-1.5 px-2 py-1 rounded-md', CRM_COLORS[col] || 'text-muted-foreground')}>{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {colLeads.map((l) => {
                         const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
                         const borderColor = CRM_COLORS[col]?.match(/border-\S+/)?.[0] || 'border-border/50';
@@ -902,7 +902,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {(routineTasksQ.data || []).length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">Sem rotinas configuradas para este mês.</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {(routineTasksQ.data || []).map((t) => {
                 const isDone = isTaskDone(t);
                 const deadlineDate = t.deadline ? parseISO(t.deadline) : null;
@@ -1026,7 +1026,7 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
         return (
           <div className="rounded-xl border-2 border-primary/30 bg-gradient-to-r from-primary/5 via-primary/10 to-accent/5 p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <div className="rounded-lg bg-primary/15 p-2">
                   <FileBarChart className="h-5 w-5 text-primary" />
                 </div>

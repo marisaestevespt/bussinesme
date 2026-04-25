@@ -346,7 +346,7 @@ export function TabEscala() {
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 text-xs">
         {Object.entries(STATUS_LABELS).map(([key, label]) => (
-          <div key={key} className="flex items-center gap-1.5">
+          <div key={key} className="flex items-center gap-2">
             <span className={cn('h-3 w-3 rounded-full', STATUS_COLORS[key])} />
             <span className="text-muted-foreground">{label}</span>
           </div>

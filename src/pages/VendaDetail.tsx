@@ -255,14 +255,14 @@ export default function VendaDetailPage() {
               <CardHeader><CardTitle className="text-base">Detalhes da Venda</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Status</Label>
                     <Select value={form.status || 'aguarda_pagamento'} onValueChange={v => setForm((f: any) => ({ ...f, status: v }))} disabled={!isOwner}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Data de Pagamento</Label>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -278,17 +278,17 @@ export default function VendaDetailPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Descrição</Label>
                   <Input value={form.description || ''} onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))} readOnly={!isOwner} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Valor Base (€)</Label>
                     <Input type="number" step="0.01" value={form.base_value ?? ''} onChange={e => setForm((f: any) => ({ ...f, base_value: e.target.value }))} readOnly={!isOwner} />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
                       Fatura Total (€) {productInfo.data?.vat_rate && productInfo.data.vat_rate !== 'isento'
                         ? <span className="text-muted-foreground font-normal">({productInfo.data.vat_rate}% IVA)</span>
@@ -301,7 +301,7 @@ export default function VendaDetailPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Produto</Label>
                     <Select value={form.product || ''} onValueChange={v => setForm((f: any) => ({ ...f, product: v }))} disabled={!isOwner}>
                       <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
@@ -310,7 +310,7 @@ export default function VendaDetailPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Fonte</Label>
                     <Select value={form.source || ''} onValueChange={v => {
                       if (v === '__custom__') {
@@ -329,7 +329,7 @@ export default function VendaDetailPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Cliente</Label>
                   <Select value={form.client || ''} onValueChange={v => setForm((f: any) => ({ ...f, client: v }))} disabled={!isOwner}>
                     <SelectTrigger><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
@@ -342,7 +342,7 @@ export default function VendaDetailPage() {
                 {/* Special Offer */}
                 <div className="rounded-lg border border-border p-3 space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium flex items-center gap-1.5"><Gift className="h-4 w-4" /> Oferta Especial</Label>
+                    <Label className="text-sm font-medium flex items-center gap-2"><Gift className="h-4 w-4" /> Oferta Especial</Label>
                     <Switch
                       checked={form.is_special_offer || false}
                       onCheckedChange={v => setForm((f: any) => ({ ...f, is_special_offer: v, special_offer_reason: v ? f.special_offer_reason : '' }))}
@@ -350,7 +350,7 @@ export default function VendaDetailPage() {
                     />
                   </div>
                   {form.is_special_offer && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">Motivo da oferta</Label>
                       <Select value={form.special_offer_reason || ''} onValueChange={v => {
                         if (v === '__custom__') {

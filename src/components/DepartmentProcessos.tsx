@@ -382,7 +382,7 @@ function DeptWhatsAppCard({ department }: { department: string }) {
       <CardContent className="p-4 flex items-center gap-3">
         <MessageSquare className="h-4 w-4 text-success shrink-0" />
         {url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-success hover:text-success hover:underline flex items-center gap-1.5">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-success hover:text-success hover:underline flex items-center gap-2">
             Grupo de WhatsApp do Departamento <ExternalLink className="h-3 w-3" />
           </a>
         ) : (

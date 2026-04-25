@@ -246,7 +246,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
 
           {/* Toggles */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Settings2 className="h-3.5 w-3.5" />
               Secções visíveis
             </Label>

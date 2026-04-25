@@ -282,7 +282,7 @@ export default function ProcessosPage() {
                           </div>
                         </div>
                         {assignee && (
-                          <div className="flex items-center gap-1.5 mt-2">
+                          <div className="flex items-center gap-2 mt-2">
                             <Avatar className="h-5 w-5">
                               <AvatarImage src={getPhotoUrl(assignee)} />
                               <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>

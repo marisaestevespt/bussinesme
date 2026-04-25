@@ -304,10 +304,10 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               )}
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setImportOpen(true)}>
+              <Button size="sm" variant="outline" className="gap-2 h-7 text-xs" onClick={() => setImportOpen(true)}>
                 <Download className="h-3.5 w-3.5" /> Importar do Produto
               </Button>
-              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setDialogOpen(true)}>
+              <Button size="sm" variant="outline" className="gap-2 h-7 text-xs" onClick={() => setDialogOpen(true)}>
                 <Plus className="h-3.5 w-3.5" /> Nova Entrega
               </Button>
             </div>
@@ -420,7 +420,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Nova Entrega / Milestone</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Nome da entrega *</Label>
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Calendário Editorial" />
             </div>
@@ -470,7 +470,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                 )}
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Data de entrega</Label>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -486,7 +486,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               </div>
             )}
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Responsável</Label>
               <Select value={assignedTo} onValueChange={setAssignedTo}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
@@ -559,7 +559,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               return (
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Fases que serão criadas:</Label>
-                  <div className="rounded-lg border p-3 space-y-1.5 bg-muted/30">
+                  <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
                     {product.templates.map((t: any, i: number) => (
                       <div key={t.id} className="flex items-center gap-2 text-sm">
                         <span className="text-xs text-muted-foreground font-mono w-5 text-right">{i + 1}.</span>

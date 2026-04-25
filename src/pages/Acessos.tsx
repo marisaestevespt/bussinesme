@@ -323,19 +323,19 @@ export default function AcessosPage() {
               <DialogTitle>{editingId ? 'Editar Acesso' : 'Novo Acesso'}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-2">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Nome da plataforma *</Label>
                 <Input value={formName} onChange={e => setFormName(e.target.value)} placeholder="Ex: Google Workspace" />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Username / Email *</Label>
                 <Input value={formUsername} onChange={e => setFormUsername(e.target.value)} placeholder="user@email.com" />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Password {editingId ? '(deixar vazio para manter)' : '*'}</Label>
                 <Input type="password" value={formPassword} onChange={e => setFormPassword(e.target.value)} />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Tipo de plataforma</Label>
                 <Select value={formType} onValueChange={setFormType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -346,11 +346,11 @@ export default function AcessosPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Link direto</Label>
                 <Input value={formLink} onChange={e => setFormLink(e.target.value)} placeholder="https://..." />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Notas / Observações</Label>
                 <MentionTextarea value={formNotes} onChange={setFormNotes} rows={3} placeholder="Notas... usa @ para mencionar" />
               </div>

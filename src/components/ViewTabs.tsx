@@ -45,7 +45,7 @@ export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete
               variant={activeKey === v.key ? 'default' : 'outline'}
               size="sm"
               onClick={() => onSelect(v.key)}
-              className="gap-1.5 shrink-0"
+              className="gap-2 shrink-0"
             >
               {v.isDefault && (v as any).icon}
               {v.label}

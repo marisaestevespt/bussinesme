@@ -301,7 +301,7 @@ export function SettingsUsers() {
             <p className="text-sm text-muted-foreground">
               Alterar o email de login de <strong>{emailDialog.profile?.full_name}</strong>.
             </p>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label htmlFor="new-email" className="text-xs">Novo email</Label>
               <Input
                 id="new-email"

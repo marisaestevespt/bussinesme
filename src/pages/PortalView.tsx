@@ -352,7 +352,7 @@ export default function PortalViewPage() {
             </div>
             <div className="flex items-center gap-3">
               {(settings as any)?.support_hours && (
-                <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground">
+                <div className="hidden sm:flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
                   <span className="text-[11px]">{(settings as any).support_hours}</span>
                 </div>
@@ -382,7 +382,7 @@ export default function PortalViewPage() {
                 <button
                   key={item.key}
                   onClick={() => setActiveSection(item.key)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm whitespace-nowrap border-b-2 transition-all ${
+                  className={`flex items-center gap-2 px-3.5 py-2.5 text-sm whitespace-nowrap border-b-2 transition-all ${
                     active ? 'font-semibold border-current' : 'text-muted-foreground border-transparent hover:text-foreground hover:border-border'
                   }`}
                   style={active ? { color: pc } : undefined}
@@ -503,7 +503,7 @@ export default function PortalViewPage() {
             {portal.show_onboarding && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
                       <CheckSquare className="h-4 w-4" style={{ color: pc }} />
                     </div>
@@ -576,7 +576,7 @@ export default function PortalViewPage() {
                               </span>
                               <p className={`text-xs font-medium mt-1.5 line-clamp-2 ${done ? 'text-muted-foreground' : ''}`}>{phase.name || 'Sem nome'}</p>
                               <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{dels.length} entregas</p>
-                              <div className="mt-2 flex items-center gap-1.5">
+                              <div className="mt-2 flex items-center gap-2">
                                 {done ? (
                                   <CheckCircle2 className="h-4 w-4 text-success" />
                                 ) : (
@@ -676,7 +676,7 @@ export default function PortalViewPage() {
 
             {/* Feedback inline at bottom */}
             <div className="rounded-2xl border border-border/30 bg-muted/5 p-5 space-y-3">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 <p className="text-sm font-medium text-muted-foreground">Tens algum feedback para nós?</p>
               </div>
@@ -773,7 +773,7 @@ export default function PortalViewPage() {
                           }
                         }}
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                           <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isSectionOpen ? 'rotate-90' : ''}`} />
                           <p className="text-sm font-semibold">{section.group}</p>
                         </div>
@@ -1001,7 +1001,7 @@ export default function PortalViewPage() {
                               </div>
                               {/* Deliverables / Marcos */}
                               {deliverables.length > 0 && (
-                                <div className="mt-3 pl-8 space-y-1.5">
+                                <div className="mt-3 pl-8 space-y-2">
                                   {deliverables.map((d) => {
                                     const dDone = d.status === 'concluido';
                                     const dActive = d.status === 'em_progresso';
@@ -1227,7 +1227,7 @@ export default function PortalViewPage() {
                         const renderText = (item: any) => typeof item === 'string' ? item : (item?.text || item?.action || '');
                         return (
                           <details className="mt-3 pt-3 border-t border-border/20 group">
-                            <summary className="cursor-pointer text-xs font-semibold flex items-center gap-1.5 select-none" style={{ color: pc }}>
+                            <summary className="cursor-pointer text-xs font-semibold flex items-center gap-2 select-none" style={{ color: pc }}>
                               <span>📋 Ata da reunião</span>
                               <span className="text-[10px] text-muted-foreground font-normal">(clica para abrir)</span>
                             </summary>
@@ -1270,7 +1270,7 @@ export default function PortalViewPage() {
                               {docs.length > 0 && (
                                 <div>
                                   <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Documentos</p>
-                                  <div className="space-y-1.5">
+                                  <div className="space-y-2">
                                     {docs.map((d, i) => (
                                       <a key={i}
                                          href={/^https?:\/\//i.test(d.url) ? d.url : `https://${d.url}`}
@@ -1465,7 +1465,7 @@ export default function PortalViewPage() {
                           </span>
                           <p className={`text-xs font-medium mt-1.5 line-clamp-2 ${done ? 'text-muted-foreground' : ''}`}>{phase.name || 'Sem nome'}</p>
                           <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{dels.length} entregas</p>
-                          <div className="mt-2 flex items-center gap-1.5">
+                          <div className="mt-2 flex items-center gap-2">
                             {done ? (
                               <CheckCircle2 className="h-4 w-4 text-success" />
                             ) : (

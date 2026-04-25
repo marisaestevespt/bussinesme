@@ -53,10 +53,10 @@ export function MonthlyDocUpload({ title, icon, docs, accept, onUpload, onDelete
           </div>
         </div>
         {docs.length > 0 ? (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {docs.map((doc) => (
               <div key={doc.id} className="flex items-center gap-2 text-sm rounded-md bg-muted/50 px-3 py-1.5">
-                <a href={doc.document_url || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 flex-1 min-w-0 hover:underline text-foreground">
+                <a href={doc.document_url || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 flex-1 min-w-0 hover:underline text-foreground">
                   <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
                   <span className="truncate">{doc.document_name || doc.title}</span>
                 </a>

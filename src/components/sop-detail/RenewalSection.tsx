@@ -48,7 +48,7 @@ export function RenewalSection({ productId }: Props) {
           <CardTitle className="text-base">Antecedência de Renovação</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Antecedência de renovação (dias)</Label>
             <div className="flex items-center gap-3">
               <Input

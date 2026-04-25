@@ -299,7 +299,7 @@ export default function ProdutoDetailPage() {
               <div className="h-full w-full bg-gradient-to-br from-primary/15 via-accent/10 to-muted/30" />
             )}
             {isOwner && (
-              <label className="absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-md bg-background/80 hover:bg-background backdrop-blur px-2.5 py-1.5 text-xs font-medium text-foreground border border-border/60 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+              <label className="absolute top-3 right-3 inline-flex items-center gap-2 rounded-md bg-background/80 hover:bg-background backdrop-blur px-2.5 py-1.5 text-xs font-medium text-foreground border border-border/60 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                 <Upload className="h-3.5 w-3.5" />
                 {form.cover_url ? 'Mudar capa' : 'Adicionar capa'}
                 <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
@@ -680,13 +680,13 @@ export default function ProdutoDetailPage() {
           <DialogContent>
             <DialogHeader><DialogTitle>Novo Evento — {form.name}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Título</Label>
                 <Input value={newEvent.title} onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Lançamento do produto" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5"><Label>Data / Hora Início</Label><Input type="datetime-local" value={newEvent.start_date} onChange={e => setNewEvent(p => ({ ...p, start_date: e.target.value }))} /></div>
-                <div className="space-y-1.5"><Label>Data / Hora Fim (opcional)</Label><Input type="datetime-local" value={newEvent.end_date} onChange={e => setNewEvent(p => ({ ...p, end_date: e.target.value }))} /></div>
+                <div className="space-y-2"><Label>Data / Hora Início</Label><Input type="datetime-local" value={newEvent.start_date} onChange={e => setNewEvent(p => ({ ...p, start_date: e.target.value }))} /></div>
+                <div className="space-y-2"><Label>Data / Hora Fim (opcional)</Label><Input type="datetime-local" value={newEvent.end_date} onChange={e => setNewEvent(p => ({ ...p, end_date: e.target.value }))} /></div>
               </div>
             </div>
             <DialogFooter>

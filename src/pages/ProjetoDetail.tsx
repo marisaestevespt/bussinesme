@@ -429,7 +429,7 @@ export default function ProjetoDetailPage() {
 
           <Separator />
           <AlertDialog>
-            <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+            <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-2"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
             <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
           </AlertDialog>
         </div>
@@ -456,8 +456,8 @@ export default function ProjetoDetailPage() {
             <div className="relative rounded-xl overflow-hidden h-48 group">
               <img src={local.cover_url} alt="Capa" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <label className="cursor-pointer"><input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" /><Button variant="secondary" size="sm" className="gap-1.5"><ImageIcon className="h-3.5 w-3.5" /> Alterar</Button></label>
-                <Button variant="secondary" size="sm" className="gap-1.5 ml-2" onClick={() => { updateField('cover_url', null); supabase.from('projects').update({ cover_url: null }).eq('id', id!); }}><X className="h-3.5 w-3.5" /> Remover</Button>
+                <label className="cursor-pointer"><input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" /><Button variant="secondary" size="sm" className="gap-2"><ImageIcon className="h-3.5 w-3.5" /> Alterar</Button></label>
+                <Button variant="secondary" size="sm" className="gap-2 ml-2" onClick={() => { updateField('cover_url', null); supabase.from('projects').update({ cover_url: null }).eq('id', id!); }}><X className="h-3.5 w-3.5" /> Remover</Button>
               </div>
             </div>
           ) : (
@@ -592,7 +592,7 @@ export default function ProjetoDetailPage() {
             {/* Membros */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Users className="h-4 w-4" /> Membros</span>
-              <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+              <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <div className="flex -space-x-1">
                   {projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}
                 </div>
@@ -647,7 +647,7 @@ export default function ProjetoDetailPage() {
                           <span className="text-4xl">{isPdf ? '📄' : '📎'}</span>
                         </a>
                       )}
-                      <div className="px-2.5 py-2 flex items-center gap-1.5">
+                      <div className="px-2.5 py-2 flex items-center gap-2">
                         <span className="text-xs truncate flex-1 font-medium">{doc.name}</span>
                         <button
                           type="button"
@@ -763,8 +763,8 @@ export default function ProjetoDetailPage() {
                     <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
                   </div>
                   <div className="flex gap-2 ml-3">
-                    {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas do mês</Button>}
-                    <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                    {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas do mês</Button>}
+                    <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
                   </div>
                 </div>
                 {tasks.length === 0 ? (
@@ -793,7 +793,7 @@ export default function ProjetoDetailPage() {
                               <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
                               <TableCell className="font-medium text-sm">{t.name}</TableCell>
                               <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                              <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                              <TableCell>{assignee ? <div className="flex items-center gap-2"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
                             </TableRow>
                           );
                         })}
@@ -885,7 +885,7 @@ export default function ProjetoDetailPage() {
           {dirty && <div className="sticky bottom-4"><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2 shadow-lg"><Save className="h-4 w-4" /> Guardar</Button></div>}
           <Separator />
           <AlertDialog>
-            <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+            <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-2"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
             <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível. Todos os dados do projeto serão eliminados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
           </AlertDialog>
         </div>
@@ -976,8 +976,8 @@ export default function ProjetoDetailPage() {
           <div className="relative rounded-xl overflow-hidden h-48 group">
             <img src={local.cover_url} alt="Capa" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <label className="cursor-pointer"><input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" /><Button variant="secondary" size="sm" className="gap-1.5"><ImageIcon className="h-3.5 w-3.5" /> Alterar</Button></label>
-              <Button variant="secondary" size="sm" className="gap-1.5 ml-2" onClick={() => { updateField('cover_url', null); supabase.from('projects').update({ cover_url: null }).eq('id', id!); }}><X className="h-3.5 w-3.5" /> Remover</Button>
+              <label className="cursor-pointer"><input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" /><Button variant="secondary" size="sm" className="gap-2"><ImageIcon className="h-3.5 w-3.5" /> Alterar</Button></label>
+              <Button variant="secondary" size="sm" className="gap-2 ml-2" onClick={() => { updateField('cover_url', null); supabase.from('projects').update({ cover_url: null }).eq('id', id!); }}><X className="h-3.5 w-3.5" /> Remover</Button>
             </div>
           </div>
         ) : (
@@ -1034,7 +1034,7 @@ export default function ProjetoDetailPage() {
               <Badge variant="outline" className="gap-1 text-xs"><Clock className="h-3 w-3" /> Tempo total: {formatDuration(local.total_time_minutes)}</Badge>
             )}
             <div>
-              <Label className="text-xs flex items-center gap-1.5"><MessageSquare className="h-3 w-3" /> Grupo WhatsApp</Label>
+              <Label className="text-xs flex items-center gap-2"><MessageSquare className="h-3 w-3" /> Grupo WhatsApp</Label>
               <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="mt-1" />
               {(local as any).whatsapp_group_url && (
                 <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
@@ -1112,9 +1112,9 @@ export default function ProjetoDetailPage() {
               <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
             </div>
             <div className="flex gap-2 ml-3">
-              {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas</Button>}
-              <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-              <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
+              {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas</Button>}
+              <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+              <Button size="sm" variant="outline" className="gap-2 h-9" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
             </div>
           </div>
           {tasks.length === 0 ? (
@@ -1143,7 +1143,7 @@ export default function ProjetoDetailPage() {
                         <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
                         <TableCell className="font-medium text-sm">{t.name}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                        <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                        <TableCell>{assignee ? <div className="flex items-center gap-2"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -1190,7 +1190,7 @@ export default function ProjetoDetailPage() {
 
         <Separator />
         <AlertDialog>
-          <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+          <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-2"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
           <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível. Todos os dados do projeto serão eliminados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
         </AlertDialog>
       </div>

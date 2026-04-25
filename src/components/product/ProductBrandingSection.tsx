@@ -297,7 +297,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
         <CardHeader><CardTitle className="text-base">Identidade Visual</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Cor Primária</Label>
               <div className="flex gap-2 items-center">
                 <Input
@@ -316,7 +316,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Cor Secundária</Label>
               <div className="flex gap-2 items-center">
                 <Input
@@ -335,7 +335,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Cor de Destaque</Label>
               <div className="flex gap-2 items-center">
                 <Input
@@ -375,7 +375,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Tipografia — Display / Títulos</Label>
               <Input
                 value={b.fonts?.display || ''}
@@ -385,7 +385,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 readOnly={!isOwner}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Tipografia — Corpo</Label>
               <Input
                 value={b.fonts?.body || ''}
@@ -413,7 +413,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           <CardContent className="space-y-5">
             {/* Cores (HSL para combinar com o sistema) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Cor Primária (HSL)</Label>
                 <Input
                   value={pb.primary_color || ''}
@@ -426,7 +426,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                   <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.primary_color})` }} />
                 )}
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Cor de Destaque (HSL)</Label>
                 <Input
                   value={pb.accent_color || ''}
@@ -439,7 +439,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                   <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.accent_color})` }} />
                 )}
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Cor de Texto (HSL)</Label>
                 <Input
                   value={pb.text_color || ''}
@@ -456,7 +456,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
 
             {/* Tipografia */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Fonte Display / Títulos</Label>
                 <Input
                   value={pb.font_display || ''}
@@ -466,7 +466,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                   readOnly={!isOwner}
                 />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Fonte Corpo</Label>
                 <Input
                   value={pb.font_body || ''}
@@ -480,7 +480,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
 
             {/* Logo + nome */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Logo (URL)</Label>
                 <div className="flex gap-2 items-center">
                   <Input
@@ -527,7 +527,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                   <img src={pb.logo_url} alt="Logo portal" className="h-10 mt-2 object-contain" />
                 )}
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Nome a apresentar</Label>
                 <Input
                   value={pb.business_name || ''}
@@ -543,7 +543,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             <div className="space-y-3 pt-2 border-t">
               <Label className="text-sm font-semibold block">Login do portal</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Título</Label>
                   <Input
                     value={pb.login_title || ''}
@@ -553,7 +553,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                     readOnly={!isOwner}
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Subtítulo lateral</Label>
                   <Input
                     value={pb.login_subtitle || ''}
@@ -564,7 +564,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                   />
                 </div>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Mensagem de boas-vindas</Label>
                 <Textarea
                   value={pb.welcome_text || ''}
@@ -579,7 +579,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             {/* Hero / imagem de fundo */}
             <div className="space-y-3 pt-2 border-t">
               <Label className="text-sm font-semibold block">Painel lateral (hero)</Label>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Imagem de fundo (URL)</Label>
                 <div className="flex gap-2 items-center">
                   <Input
@@ -627,7 +627,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Título do hero</Label>
                   <Input
                     value={pb.hero_title || ''}
@@ -637,7 +637,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                     readOnly={!isOwner}
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Subtítulo do hero</Label>
                   <Input
                     value={pb.hero_subtitle || ''}
@@ -657,7 +657,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
       <Card>
         <CardHeader><CardTitle className="text-base">Posicionamento & Mensagem</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Tagline</Label>
             <Input
               value={b.tagline || ''}
@@ -667,7 +667,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               readOnly={!isOwner}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Posicionamento</Label>
             <Textarea
               value={b.positioning || ''}
@@ -677,7 +677,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               readOnly={!isOwner}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Promessa</Label>
             <Textarea
               value={b.promise || ''}
@@ -687,7 +687,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               readOnly={!isOwner}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Manifesto</Label>
             <Textarea
               value={b.manifesto || ''}
@@ -697,7 +697,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               readOnly={!isOwner}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Tom de Voz</Label>
             <Textarea
               value={b.tone_of_voice || ''}
@@ -714,7 +714,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
       <Card>
         <CardHeader><CardTitle className="text-base">Símbolos & Linguagem</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Emojis da Marca</Label>
             <Input
               value={b.emojis || ''}
@@ -724,7 +724,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               readOnly={!isOwner}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Palavras a Utilizar</Label>
             <Textarea
               value={b.words_to_use || ''}
@@ -734,7 +734,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               readOnly={!isOwner}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Palavras a NÃO Dizer</Label>
             <Textarea
               value={b.words_to_avoid || ''}
@@ -745,7 +745,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Dores</Label>
               <Textarea
                 value={b.pains || ''}
@@ -755,7 +755,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 readOnly={!isOwner}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Dificuldades</Label>
               <Textarea
                 value={b.difficulties || ''}
@@ -765,7 +765,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 readOnly={!isOwner}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Desejos</Label>
               <Textarea
                 value={b.desires || ''}
@@ -775,7 +775,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 readOnly={!isOwner}
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Sonhos</Label>
               <Textarea
                 value={b.dreams || ''}

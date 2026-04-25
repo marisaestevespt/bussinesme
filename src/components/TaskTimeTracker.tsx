@@ -156,7 +156,7 @@ export function TaskTimeTracker({ taskId }: TaskTimeTrackerProps) {
 
   return (
     <div className="space-y-3">
-      <Label className="flex items-center gap-1.5">
+      <Label className="flex items-center gap-2">
         <Clock className="h-3.5 w-3.5" /> Tempo investido
         {totalMinutes > 0 && (
           <Badge variant="secondary" className="ml-auto text-xs">{formatDuration(totalMinutes)} total</Badge>

@@ -174,7 +174,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs gap-1.5"
+                  className="h-7 text-xs gap-2"
                   onClick={handleCopyInviteLink}
                   disabled={generatingLink}
                 >
@@ -187,7 +187,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
           </div>
         </DialogHeader>
         <div className="space-y-4 mt-4">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="flex gap-2 flex-wrap">
               <Badge variant={member.status === 'ativo' ? 'default' : 'secondary'}>{labelFor(MEMBER_STATUSES, member.status)}</Badge>
               <Badge variant="outline">{labelFor(MEMBER_TYPES, member.member_type)}</Badge>

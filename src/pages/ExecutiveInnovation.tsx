@@ -46,9 +46,9 @@ export default function ExecutiveInnovation() {
 
         <Tabs defaultValue="estudos">
           <TabsList>
-            <TabsTrigger value="estudos" className="gap-1.5"><BookOpen className="h-3.5 w-3.5" /> Estudos & Formações</TabsTrigger>
-            <TabsTrigger value="implementar" className="gap-1.5"><Lightbulb className="h-3.5 w-3.5" /> Implementar no Negócio</TabsTrigger>
-            <TabsTrigger value="referencias" className="gap-1.5"><Link2 className="h-3.5 w-3.5" /> Banco de Referências</TabsTrigger>
+            <TabsTrigger value="estudos" className="gap-2"><BookOpen className="h-3.5 w-3.5" /> Estudos & Formações</TabsTrigger>
+            <TabsTrigger value="implementar" className="gap-2"><Lightbulb className="h-3.5 w-3.5" /> Implementar no Negócio</TabsTrigger>
+            <TabsTrigger value="referencias" className="gap-2"><Link2 className="h-3.5 w-3.5" /> Banco de Referências</TabsTrigger>
           </TabsList>
 
           <TabsContent value="estudos">
@@ -213,7 +213,7 @@ function CourseDetailSheet({ course, open, onClose }: { course: any; open: boole
             <h3 className="text-sm font-semibold">Adicionar dúvida</h3>
             <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="h-8 text-sm w-40" />
             <Textarea value={newDoubt} onChange={e => setNewDoubt(e.target.value)} placeholder="Escreve a dúvida..." className="min-h-[60px] text-sm" />
-            <Button size="sm" onClick={() => addDoubt.mutate()} disabled={!newDoubt.trim()} className="gap-1.5">
+            <Button size="sm" onClick={() => addDoubt.mutate()} disabled={!newDoubt.trim()} className="gap-2">
               <Plus className="h-3 w-3" /> Adicionar
             </Button>
           </div>
@@ -229,7 +229,7 @@ function CourseDetailSheet({ course, open, onClose }: { course: any; open: boole
                   <p className="text-xs font-medium text-muted-foreground">
                     {format(new Date(date + 'T00:00:00'), "d 'de' MMMM yyyy", { locale: pt })}
                   </p>
-                  <ul className="space-y-1.5">
+                  <ul className="space-y-2">
                     {groupedByDate[date].map((d: any) => (
                       <li key={d.id} className="flex items-start gap-2 group text-sm">
                         <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />

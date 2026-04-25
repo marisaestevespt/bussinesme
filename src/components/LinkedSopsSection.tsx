@@ -243,7 +243,7 @@ export function LinkedSopsSection({ entityType, entityId, productId, clientId, p
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           {title} {sops.length > 0 && `(${sops.length})`}
         </h3>
-        <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => { setDialogOpen(true); setSearch(''); }}>
+        <Button size="sm" variant="outline" className="gap-2 h-7 text-xs" onClick={() => { setDialogOpen(true); setSearch(''); }}>
           <Plus className="h-3.5 w-3.5" /> Associar Processo
         </Button>
       </div>

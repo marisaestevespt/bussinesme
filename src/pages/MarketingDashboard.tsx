@@ -265,7 +265,7 @@ export default function MarketingDashboard() {
                         </div>
                         <CardContent className="p-3 space-y-2">
                           <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                          <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
                             {itemChannels.map(ch => (
                               <Badge key={ch.id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ch.name}</Badge>
                             ))}

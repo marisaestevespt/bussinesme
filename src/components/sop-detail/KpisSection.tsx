@@ -100,11 +100,11 @@ export function KpisSection({ productId }: Props) {
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs">Nome do KPI</Label>
                     <Input value={kpiForm.name} onChange={e => setKpiForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Taxa de retenção" autoFocus />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs">Tipo</Label>
                     <Select value={kpiForm.kpi_type} onValueChange={v => setKpiForm(f => ({ ...f, kpi_type: v }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
@@ -113,7 +113,7 @@ export function KpisSection({ productId }: Props) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs">Fonte</Label>
                     <Select value={kpiForm.source} onValueChange={v => setKpiForm(f => ({ ...f, source: v as any }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
@@ -124,7 +124,7 @@ export function KpisSection({ productId }: Props) {
                     </Select>
                   </div>
                   {kpiForm.source === 'automatico' && (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <Label className="text-xs">Fonte automática</Label>
                       <Select value={kpiForm.auto_source} onValueChange={v => setKpiForm(f => ({ ...f, auto_source: v }))}>
                         <SelectTrigger><SelectValue placeholder="Selecionar fonte" /></SelectTrigger>
@@ -134,7 +134,7 @@ export function KpisSection({ productId }: Props) {
                       </Select>
                     </div>
                   )}
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label className="text-xs">Meta mensal (opcional)</Label>
                     <Input type="number" value={kpiForm.monthly_goal} onChange={e => setKpiForm(f => ({ ...f, monthly_goal: e.target.value }))} placeholder="Ex: 5000" />
                   </div>

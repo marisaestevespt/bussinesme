@@ -246,7 +246,7 @@ function StagesDialog({
           {stages.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-2">Nenhuma etapa criada.</p>
           )}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {stages.map((stage, idx) => {
               const count = leadsInStage(stage.id);
               const isEditing = editingId === stage.id;

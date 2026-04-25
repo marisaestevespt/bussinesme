@@ -196,7 +196,7 @@ export default function BibliotecaPage() {
   const fileAndLinkFields = (
     <div className="space-y-3">
       <div>
-        <Label className="flex items-center gap-1.5"><Upload className="h-3.5 w-3.5" /> Ficheiro</Label>
+        <Label className="flex items-center gap-2"><Upload className="h-3.5 w-3.5" /> Ficheiro</Label>
         {fileUrl ? (
           <div className="flex items-center gap-2 mt-1 p-2 rounded-md bg-muted/30 border border-border/50 text-sm">
             <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -215,7 +215,7 @@ export default function BibliotecaPage() {
         )}
       </div>
       <div>
-        <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Link externo</Label>
+        <Label className="flex items-center gap-2"><Link2 className="h-3.5 w-3.5" /> Link externo</Label>
         <Input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..." className="mt-1" />
       </div>
     </div>

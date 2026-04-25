@@ -119,7 +119,7 @@ function MemberPicker({ selected, onChange, profiles }: { selected: string[]; on
 function StatusBadge({ status, className }: { status: string; className?: string }) {
   const info = getStatusInfo(status);
   return (
-    <Badge className={cn(`${info.color} border font-medium gap-1.5 whitespace-nowrap`, className)}>
+    <Badge className={cn(`${info.color} border font-medium gap-2 whitespace-nowrap`, className)}>
       <span className={cn('h-2 w-2 rounded-full', info.dot)} />
       {info.label}
     </Badge>
@@ -421,7 +421,7 @@ export default function ProjetosPage() {
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-2">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Produto associado</Label>
                 <Select value={fProduct || '_none_'} onValueChange={v => {
                   const pid = v === '_none_' ? '' : v;
@@ -442,11 +442,11 @@ export default function ProjetosPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Nome do projeto *</Label>
                 <Input value={fName} onChange={e => setFName(e.target.value)} placeholder="Nome do projeto" />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Modo do projeto</Label>
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setFMode('pontual')} className={cn("flex flex-col items-start gap-1 p-3 rounded-lg border-2 transition-colors text-left", fMode === 'pontual' ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30")}>
@@ -460,11 +460,11 @@ export default function ProjetosPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Tipo</Label>
                   <Select value={fType} onValueChange={setFType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{PROJECT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent></Select>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Status</Label>
                   <Select value={fStatus} onValueChange={setFStatus}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -482,7 +482,7 @@ export default function ProjetosPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Departamento</Label>
                   <Select value={fDept} onValueChange={setFDept}>
                     <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
@@ -495,7 +495,7 @@ export default function ProjetosPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Cliente associado</Label>
                   <Select value={fClient || '_none_'} onValueChange={v => setFClient(v === '_none_' ? '' : v)}>
                     <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
@@ -509,19 +509,19 @@ export default function ProjetosPage() {
                 </div>
               </div>
               <div className={cn("grid gap-3", fMode === 'recorrente' ? "grid-cols-1" : "grid-cols-2")}>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Data de Início</Label>
                   <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fStartDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fStartDate ? format(fStartDate, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fStartDate} onSelect={setFStartDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
                 {fMode === 'pontual' && (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label>Data de Fim</Label>
                     <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                   </div>
                 )}
               </div>
               <MemberPicker selected={fMembers} onChange={setFMembers} profiles={profiles} />
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Notas</Label>
                 <MentionTextarea value={fNotes} onChange={setFNotes} rows={3} placeholder="Notas... usa @ para mencionar" />
               </div>

@@ -132,7 +132,7 @@ function TwoColumnBlock({ block, onUpdate }: BlockProps) {
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {(['left', 'right'] as const).map(side => (
         <AccentCard key={side} color={block[side].color || 'muted'} title={block[side].title}>
-          <ul className="text-xs text-foreground space-y-1.5 list-disc pl-4">
+          <ul className="text-xs text-foreground space-y-2 list-disc pl-4">
             {(block[side].items || []).map((item: string, i: number) => (
               <EditableListItem key={i} value={item} onSave={v => updateListItem(side, i, v)} onDelete={() => deleteListItem(side, i)} />
             ))}
@@ -270,7 +270,7 @@ function AccentGridBlock({ block, onUpdate }: BlockProps) {
             )}
             {card.items && (
               <>
-                <ul className="text-xs text-foreground space-y-1.5 list-disc pl-4">
+                <ul className="text-xs text-foreground space-y-2 list-disc pl-4">
                   {card.items.map((item: string, ii: number) => (
                     <EditableListItem key={ii} value={item} onSave={v => updateCardItem(ci, ii, v)} onDelete={() => deleteCardItem(ci, ii)} />
                   ))}
@@ -415,7 +415,7 @@ function NumberedLevelsBlock({ block, onUpdate }: BlockProps) {
               <EditableText value={l.desc} onSave={t => updateItem(i, { desc: t })} className="text-xs text-muted-foreground mt-1" multiline />
               {l.example && <EditableText value={l.example} onSave={t => updateItem(i, { example: t })} className="text-xs italic text-muted-foreground/70 mt-1" />}
               {l.tags && l.tags.length > 0 && (
-                <div className="flex gap-1.5 mt-2 flex-wrap">
+                <div className="flex gap-2 mt-2 flex-wrap">
                   {l.tags.map((t: any, ti: number) => <Tag key={ti} color={(t.color || 'muted') as AccentColor}>{t.text}</Tag>)}
                 </div>
               )}

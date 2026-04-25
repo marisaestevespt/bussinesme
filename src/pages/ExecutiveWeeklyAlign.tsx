@@ -133,15 +133,15 @@ export default function ExecutiveWeeklyAlign() {
             </Button>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Decisões tomadas</label>
               <Textarea placeholder="Decisões desta semana..." value={notesForm.decisions} onChange={e => setNotesForm(p => ({ ...p, decisions: e.target.value }))} className="min-h-[80px] text-sm" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Bloqueios / Riscos</label>
               <Textarea placeholder="Bloqueios identificados..." value={notesForm.blockers} onChange={e => setNotesForm(p => ({ ...p, blockers: e.target.value }))} className="min-h-[80px] text-sm" />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Pontos-chave</label>
               <Textarea placeholder="Destaques da semana..." value={notesForm.key_points} onChange={e => setNotesForm(p => ({ ...p, key_points: e.target.value }))} className="min-h-[80px] text-sm" />
             </div>

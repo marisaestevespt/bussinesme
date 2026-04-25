@@ -126,11 +126,11 @@ export function FinAllDocuments() {
               <SelectItem value="saida">Saídas</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <label className="text-xs text-muted-foreground whitespace-nowrap">De</label>
             <Input type="date" className="h-10 w-36 text-xs" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <label className="text-xs text-muted-foreground whitespace-nowrap">Até</label>
             <Input type="date" className="h-10 w-36 text-xs" value={dateTo} onChange={e => setDateTo(e.target.value)} />
           </div>

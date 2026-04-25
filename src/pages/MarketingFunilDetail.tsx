@@ -208,7 +208,7 @@ export default function MarketingFunilDetail() {
               <BackNavigation parentRoute="/hub/marketing/funis" parentLabel="Funis" />
               {editing ? (
                 <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                  <SelectTrigger className="h-8 w-auto gap-1.5"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 w-auto gap-2"><SelectValue /></SelectTrigger>
                   <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
               ) : (
@@ -293,7 +293,7 @@ export default function MarketingFunilDetail() {
             {editing ? (
               <div className="flex flex-wrap gap-3 items-center">
                 {allEntryPoints.map(ep => (
-                  <label key={ep} className="flex items-center gap-1.5 cursor-pointer">
+                  <label key={ep} className="flex items-center gap-2 cursor-pointer">
                     <Checkbox checked={form.entry_points.includes(ep)} onCheckedChange={() => toggleMulti('entry_points', ep)} />
                     <span className="text-sm">{ep}</span>
                   </label>
@@ -313,7 +313,7 @@ export default function MarketingFunilDetail() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {form.entry_points.length > 0
                   ? form.entry_points.map(ep => <Badge key={ep} variant="outline" className="text-xs">{ep}</Badge>)
                   : <EmptyHint>Nenhum ponto de entrada definido.</EmptyHint>}
@@ -327,7 +327,7 @@ export default function MarketingFunilDetail() {
             {editing ? (
               <div className="flex flex-wrap gap-3 items-center">
                 {allPlataformas.map(p => (
-                  <label key={p} className="flex items-center gap-1.5 cursor-pointer">
+                  <label key={p} className="flex items-center gap-2 cursor-pointer">
                     <Checkbox checked={form.plataformas.includes(p)} onCheckedChange={() => toggleMulti('plataformas', p)} />
                     <span className="text-sm">{p}</span>
                   </label>
@@ -347,7 +347,7 @@ export default function MarketingFunilDetail() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {form.plataformas.length > 0
                   ? form.plataformas.map(p => <Badge key={p} variant="outline" className="text-xs">{p}</Badge>)
                   : <EmptyHint>Nenhuma plataforma definida.</EmptyHint>}

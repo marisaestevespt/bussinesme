@@ -40,7 +40,7 @@ export function TabsBar() {
               key={tab.id}
               onClick={() => switchTab(tab.id)}
               className={cn(
-                'group relative flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium whitespace-nowrap hq-transition max-w-[180px]',
+                'group relative flex items-center gap-2 h-7 px-3 rounded-md text-xs font-medium whitespace-nowrap hq-transition max-w-[180px]',
                 tab.id === activeTabId
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/50'

@@ -626,7 +626,7 @@ export default function GestaoMarcaPage() {
                 {folders.length === 0 ? (
                   <EmptyHint>Nenhuma pasta adicionada.</EmptyHint>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {folders.map(link => (
                       <div key={link.id} className="flex items-center gap-2 group">
                         <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
@@ -662,7 +662,7 @@ export default function GestaoMarcaPage() {
                 {shortcuts.length === 0 ? (
                   <EmptyHint>Nenhum atalho adicionado.</EmptyHint>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {shortcuts.map(link => (
                       <div key={link.id} className="flex items-center gap-2 group">
                         <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
@@ -752,7 +752,7 @@ export default function GestaoMarcaPage() {
               </div>
               <DragOverlay>
                 {activeDragItem ? (
-                  <div className="flex items-center gap-2.5 px-3 py-2.5 bg-card border rounded-md shadow-lg">
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-card border rounded-md shadow-lg">
                     <span className="text-base leading-none">{activeDragItem.emoji || '📄'}</span>
                     <span className="text-sm text-foreground">{activeDragItem.title}</span>
                   </div>
@@ -873,7 +873,7 @@ export default function GestaoMarcaPage() {
                           </Button>
                         )}
                       </div>
-                      <div className="space-y-1.5">
+                      <div className="space-y-2">
                         {items.map(item => (
                           <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
                             <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
@@ -923,7 +923,7 @@ export default function GestaoMarcaPage() {
                             </Button>
                           )}
                         </div>
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           {items.map(item => (
                             <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
                               <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
@@ -1183,7 +1183,7 @@ export default function GestaoMarcaPage() {
               {visualFiles.filter(f => f.file_type === 'file').length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Ficheiros</p>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {visualFiles.filter(f => f.file_type === 'file').map(file => (
                       <div key={file.id} className="flex items-center gap-2 group">
                         <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
@@ -1221,7 +1221,7 @@ export default function GestaoMarcaPage() {
               {visualFiles.filter(f => f.file_type === 'link').length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Links</p>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {visualFiles.filter(f => f.file_type === 'link').map(file => (
                       <div key={file.id} className="flex items-center gap-2 group">
                         <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">

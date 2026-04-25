@@ -198,10 +198,10 @@ function ContractDocUpload({ contract, setC, uploading, setUploading, memberId }
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <label className="text-xs text-muted-foreground font-medium">Documento do contrato</label>
       <div className="flex items-center gap-2">
-        <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors text-xs text-muted-foreground hover:text-foreground">
+        <label className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors text-xs text-muted-foreground hover:text-foreground">
           {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
           {uploading ? 'A carregar...' : 'Upload ficheiro'}
           <input type="file" accept=".pdf,.doc,.docx,.jpg,.png" className="hidden" onChange={handleUpload} disabled={uploading} />
@@ -420,10 +420,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             </div>
 
             {/* Função */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <span className="text-xs text-muted-foreground font-medium">Cargo</span>
               <p className="text-[10px] text-muted-foreground">Título descritivo (ex: Designer, Gestora). Não controla permissões — isso é a "Função no sistema" mais abaixo.</p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {PRESET_ROLES.map(r => {
                   const isSelected = f.role_title === r.label;
                   return (
@@ -464,7 +464,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             </div>
 
             {/* Vínculo (fusão Tipo + Tipo de Contrato) */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <span className="text-xs text-muted-foreground font-medium">Vínculo</span>
               <p className="text-[10px] text-muted-foreground">Define o tipo de relação e o contrato associado.</p>
               <Select
@@ -560,16 +560,16 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             </div>
 
             {/* Áreas de trabalho */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <span className="text-xs text-muted-foreground font-medium">Áreas de trabalho</span>
               <p className="text-[10px] text-muted-foreground">Seleciona uma ou mais áreas em que este membro vai atuar.</p>
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-1 gap-2">
                 {WORK_AREAS.map(wa => {
                   const areas: string[] = Array.isArray(f.work_areas) ? f.work_areas : [];
                   const checked = areas.includes(wa.value);
                   return (
                     <label key={wa.value} className={cn(
-                      'flex items-start gap-2.5 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                      'flex items-start gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors',
                       checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
                     )}>
                       <Checkbox checked={checked} onCheckedChange={(v) => {
@@ -596,7 +596,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
 
             {/* Função no sistema (RBAC) */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <span className="text-xs text-muted-foreground font-medium">Função no sistema</span>
               <p className="text-[10px] text-muted-foreground">Define o que esta pessoa pode ver e fazer no software. Diferente do "cargo" — controla a segurança.</p>
               <Select value={f.system_role || 'team_member'} onValueChange={(v) => set('system_role', v)}>
@@ -616,7 +616,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               </Select>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
               <p className="text-[10px] text-muted-foreground">Define que informação sensível este membro pode ver. Tudo OFF por defeito.</p>
               <div className="space-y-1">

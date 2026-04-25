@@ -27,7 +27,7 @@ export function PortalHistorySection({ projectHistory, pc }: Props) {
           {Array.isArray(h.timeline_phases) && h.timeline_phases.length > 0 && (
             <div className="mb-3">
               <p className="text-xs font-semibold mb-2">Timeline</p>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {h.timeline_phases.map((p: any, i: number) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${

@@ -85,7 +85,7 @@ export function CommercialOverview() {
           onClick={() => navigate('/hub/comercial/crm')}
         >
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Users className="h-3.5 w-3.5" /> Leads Ativas
             </CardTitle>
           </CardHeader>

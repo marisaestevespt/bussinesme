@@ -33,7 +33,7 @@ export function ReunioesSubPage({ meetings, projectMembers, profileMap, getPhoto
             <Button variant="ghost" size="sm" onClick={onBack} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
             <h2 className="text-xl font-bold">Reuniões do Projeto</h2>
           </div>
-          <Button size="sm" onClick={onNewMeeting} className="gap-1.5"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>
+          <Button size="sm" onClick={onNewMeeting} className="gap-2"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>
         </div>
         {meetings.length === 0 ? (
           <p className="text-center text-muted-foreground py-12">Nenhuma reunião ligada a este projeto.</p>

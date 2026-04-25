@@ -237,7 +237,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
                         {c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}
                       </TableCell>
                       <TableCell>
-                        <div className={`flex items-center gap-1.5 ${renewal.className}`}>
+                        <div className={`flex items-center gap-2 ${renewal.className}`}>
                           {renewal.icon}
                           <span className="text-sm">{renewal.label}</span>
                         </div>

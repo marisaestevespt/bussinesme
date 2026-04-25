@@ -38,13 +38,13 @@ export function CrmLabelPicker({ leadId, selectedLabelIds }: CrmLabelPickerProps
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-2">
           <Tag className="h-3.5 w-3.5" /> Etiquetas
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-3" align="start">
         <p className="text-xs font-semibold mb-2">Etiquetas</p>
-        <div className="space-y-1.5 max-h-48 overflow-y-auto">
+        <div className="space-y-2 max-h-48 overflow-y-auto">
           {labels.map(label => (
             <div key={label.id} className="flex items-center gap-2 group">
               <Checkbox

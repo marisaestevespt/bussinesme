@@ -79,7 +79,7 @@ export default function ExecutiveBusinessPlanBlock() {
     <AppLayout>
       <div className="space-y-5 max-w-4xl mx-auto">
         <BackNavigation />
-        <Button variant="ghost" size="sm" onClick={() => navigate('/executive/business-plan')} className="gap-1.5 -mt-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/executive/business-plan')} className="gap-2 -mt-2">
           <ArrowLeft className="h-4 w-4" /> Voltar ao Canvas
         </Button>
 

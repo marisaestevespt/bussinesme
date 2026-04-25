@@ -486,7 +486,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <CardTitle className="text-base">Forma de Pagamento</CardTitle>
           </div>
           {payMethod && paymentLocked && (
-            <Button size="sm" variant="outline" onClick={() => setPaymentLocked(false)} className="gap-1.5">
+            <Button size="sm" variant="outline" onClick={() => setPaymentLocked(false)} className="gap-2">
               <Pencil className="h-3.5 w-3.5" /> Editar
             </Button>
           )}
@@ -669,17 +669,17 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
               {payMethod && (
                 <div className="flex items-center gap-3 pt-2">
-                  <Button onClick={handleSavePaymentConfig} className="gap-1.5">
+                  <Button onClick={handleSavePaymentConfig} className="gap-2">
                     <Save className="h-4 w-4" /> Guardar Configuração
                   </Button>
                   {!hasExistingProjectSales && (
-                    <Button variant="outline" onClick={() => generateSales.mutate()} disabled={generateSales.isPending} className="gap-1.5">
+                    <Button variant="outline" onClick={() => generateSales.mutate()} disabled={generateSales.isPending} className="gap-2">
                       {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                       Gerar Pagamentos
                     </Button>
                   )}
                   {hasExistingProjectSales && (
-                    <Button variant="outline" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5">
+                    <Button variant="outline" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-2">
                       {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
                       Regenerar Pagamentos
                     </Button>
