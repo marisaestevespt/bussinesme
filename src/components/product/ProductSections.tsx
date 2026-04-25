@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, X, Upload, Download, FileText, Video } from 'lucide-react';
+import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,6 +19,8 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnosticQuestions';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
+import { ArchiveDocumentsView } from '@/components/product/archive/ArchiveDocumentsView';
+import { RichEditor } from '@/components/product/archive/RichEditor';
 
 // ─── Processos Section ─────────────────────────────────────────
 import { getSopStatusInfo } from '@/lib/sopStatus';
