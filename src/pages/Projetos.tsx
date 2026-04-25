@@ -538,7 +538,7 @@ export default function ProjetosPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </CollectionPage>
     </AppLayout>
   );
 }
