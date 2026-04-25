@@ -179,6 +179,7 @@ function AppRoutes() {
         <Route path="/hub/processos/:id" element={<SopDetailPage />} />
         <Route path="/hub/biblioteca" element={<BibliotecaPage />} />
         <Route path="/hub/tarefas" element={<TarefasPage />} />
+        <Route path="/tarefas" element={<Navigate to="/hub/tarefas" replace />} />
         <Route path="/hub/marketing" element={<MarketingDashboard />} />
         <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
         <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
