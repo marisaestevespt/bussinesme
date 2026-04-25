@@ -19,6 +19,7 @@ import { ChevronLeft, Check, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
 import { resolveProductId } from '@/lib/productResolver';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
@@ -104,6 +105,21 @@ export default function TrafegoCriativoDetail() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <EntityHeroHeader
+          icon={parseIcon((item as any)?.icon)}
+          onIconChange={async (next) => {
+            await supabase.from('traffic_creatives').update({ icon: next as any } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['traffic-creative', id] });
+          }}
+          coverUrl={(item as any)?.cover_url || null}
+          onCoverChange={async (url) => {
+            await supabase.from('traffic_creatives').update({ cover_url: url } as any).eq('id', id!);
+            qc.invalidateQueries({ queryKey: ['traffic-creative', id] });
+          }}
+          bucket="entity-icons"
+          pathPrefix={`creatives/${id}`}
+          disabled={!isOwner}
+        />
         <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Criativo</p>
           <div className="flex items-center gap-3">
