@@ -20,6 +20,7 @@ import { format, parseISO, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ProductIcon } from '@/components/entity-icon';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import {
   useClient, useClients, useClientHistory,
   CLIENT_STATUS_OPTIONS, Client
@@ -647,6 +648,18 @@ export default function ClienteDetailPage() {
             ...(!isNew ? [{ label: 'Eliminar', icon: Trash2, onClick: handleDelete, variant: 'destructive', hideLabelOnMobile: true } as EntityAction] : []),
             ...(!isNew ? [{ label: 'Renovar / Novo Ciclo', icon: RefreshCw, onClick: openRenewDialog, hideLabelOnMobile: true } as EntityAction] : []),
           ]}
+        />
+
+        {/* Hero: cover + icon (Notion-style) */}
+        <EntityHeroHeader
+          icon={parseIcon((form as any).icon)}
+          onIconChange={(next) => update('icon' as any, next as any)}
+          coverUrl={(form as any).cover_url}
+          onCoverChange={(url) => update('cover_url' as any, url as any)}
+          bucket="entity-icons"
+          pathPrefix={`clients/${id || 'new'}`}
+          iconVariant="circle"
+          disabled={!isOwner}
         />
 
         {/* Title */}

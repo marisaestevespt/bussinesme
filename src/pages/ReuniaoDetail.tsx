@@ -44,6 +44,7 @@ import {
   inlineInputClass,
   inlineTriggerClass,
 } from '@/components/layout/entity';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 
 // ─── Types ──────────────────────────────────────────────────────
 
