@@ -21,22 +21,13 @@ import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
+import { SectionCard, SectionTitle } from '@/components/portal-view/SectionPrimitives';
+import { PortalContractSection } from '@/components/portal-view/PortalContractSection';
+import { PortalFeedbackSection } from '@/components/portal-view/PortalFeedbackSection';
+import { PortalHistorySection } from '@/components/portal-view/PortalHistorySection';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
-
-const SectionCard = ({ children, className = '', onClick, style }: { children: React.ReactNode; className?: string; onClick?: () => void; style?: React.CSSProperties }) => (
-  <div className={`bg-white rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-shadow ${className}`} onClick={onClick} style={style}>
-    {children}
-  </div>
-);
-
-const SectionTitle = ({ children, icon: Icon }: { children: React.ReactNode; icon?: any }) => (
-  <div className="flex items-center gap-2.5 mb-4">
-    {Icon && <div className="p-2 rounded-xl bg-primary/10"><Icon className="h-4 w-4 text-primary" /></div>}
-    <h2 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>{children}</h2>
-  </div>
-);
 
 export default function PortalViewPage() {
   const { token } = useParams<{ token: string }>();
