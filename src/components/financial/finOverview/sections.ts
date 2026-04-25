@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, Package, CalendarCheck, type LucideIcon } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, Package, CalendarCheck, ShieldCheck, type LucideIcon } from 'lucide-react';
 
 export interface SectionDef {
   path: string;
@@ -23,6 +23,7 @@ export const ALL_SECTIONS_ROW2: SectionDef[] = [
   { path: '/hub/financeiro/contabilidade', label: 'Prazos Fiscais', icon: CalendarCheck, iconColor: 'text-success', color: 'from-success/20 to-success/10 border-success/30/60 hover:from-success/30 hover:to-success/15 hover:border-success/30/80', key: 'contabilidade' },
   { path: '/hub/financeiro/setup-financeiro', label: 'Lista de Fornecedores', icon: Truck, iconColor: 'text-muted-foreground', color: 'from-border/20 to-border/10 border-border/60 hover:from-border/30 hover:to-border/15 hover:border-border/80', key: 'fornecedores' },
   { path: '/hub/financeiro/lista-produtos', label: 'Lista de Produtos', icon: Package, iconColor: 'text-info', color: 'from-info/20 to-info/10 border-info/60 hover:from-info/30 hover:to-info/15 hover:border-info/80', key: 'produtos' },
+  { path: '/hub/financeiro/auditoria-pagamentos', label: 'Auditoria de Pagamentos', icon: ShieldCheck, iconColor: 'text-accent-violet', color: 'from-accent-violet/20 to-accent-violet/10 border-accent-violet/60 hover:from-accent-violet/30 hover:to-accent-violet/15 hover:border-accent-violet/80', key: 'auditoria-pagamentos' },
 ];
 
 export const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
