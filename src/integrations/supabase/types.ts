@@ -10796,6 +10796,16 @@ export type Database = {
         Args: { _deliverable_id: string }
         Returns: string
       }
+      send_notification_to_user: {
+        Args: {
+          _link?: string
+          _message?: string
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: string
+      }
       test_product_rename_cascade: {
         Args: never
         Returns: {
