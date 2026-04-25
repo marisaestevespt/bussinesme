@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen, SlidersHorizontal } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
 export interface CalendarItem {
@@ -17,6 +19,7 @@ export interface CalendarFilters {
 }
 
 const STORAGE_PREFIX = 'agenda-calendars-hidden:';
+const COLLAPSED_PREFIX = 'agenda-calendars-collapsed:';
 
 function readHidden(storageKey: string): Set<string> {
   if (typeof window === 'undefined') return new Set();
@@ -65,6 +68,20 @@ export function useCalendarFilters(storageKey: string) {
   const isVisible = (id: string | null | undefined) => !id || !hidden.has(id);
 
   return { hidden, toggle, showAll, hideAll, isVisible };
+}
+
+/** Persisted collapsed state for the sidebar (desktop). */
+export function useSidebarCollapsed(storageKey: string) {
+  const key = COLLAPSED_PREFIX + storageKey;
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(key) === '1';
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try { window.localStorage.setItem(key, collapsed ? '1' : '0'); } catch {}
+  }, [collapsed, key]);
+  return [collapsed, setCollapsed] as const;
 }
 
 function CalendarSection({
@@ -132,14 +149,8 @@ function CalendarSection({
   );
 }
 
-export function AgendaCalendarsSidebar({
-  typeItems,
-  productItems,
-  hidden,
-  onToggle,
-  onShowAll,
-  onHideAll,
-  className,
+function SidebarBody({
+  typeItems, productItems, hidden, onToggle, onShowAll, onHideAll,
 }: {
   typeItems: CalendarItem[];
   productItems: CalendarItem[];
@@ -147,33 +158,146 @@ export function AgendaCalendarsSidebar({
   onToggle: (id: string) => void;
   onShowAll: (ids: string[]) => void;
   onHideAll: (ids: string[]) => void;
-  className?: string;
 }) {
   const typeIds = useMemo(() => typeItems.map(i => i.id), [typeItems]);
   const productIds = useMemo(() => productItems.map(i => i.id), [productItems]);
+  return (
+    <div className="py-2">
+      <CalendarSection
+        title="Tipos"
+        items={typeItems}
+        hidden={hidden}
+        onToggle={onToggle}
+        onShowAll={() => onShowAll(typeIds)}
+        onHideAll={() => onHideAll(typeIds)}
+      />
+      <CalendarSection
+        title="Produtos"
+        items={productItems}
+        hidden={hidden}
+        onToggle={onToggle}
+        onShowAll={() => onShowAll(productIds)}
+        onHideAll={() => onHideAll(productIds)}
+      />
+    </div>
+  );
+}
+
+/** Compact icon-only rail shown when sidebar is collapsed (desktop). */
+function CollapsedRail({ onExpand }: { onExpand: () => void }) {
+  return (
+    <aside className="w-9 shrink-0 border-r border-border/60 bg-card/40 hidden md:flex flex-col items-center py-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
+        aria-label="Mostrar calendários"
+        onClick={onExpand}
+        title="Mostrar calendários"
+      >
+        <PanelLeftOpen className="h-4 w-4" />
+      </Button>
+    </aside>
+  );
+}
+
+/**
+ * Responsive sidebar:
+ *  - Desktop (md+): full panel that can be collapsed to a thin icon rail.
+ *  - Mobile (<md): hidden; opened on demand via the trigger button (Sheet).
+ */
+export function AgendaCalendarsSidebar({
+  typeItems, productItems, hidden, onToggle, onShowAll, onHideAll,
+  collapsed, onCollapsedChange, mobileOpen, onMobileOpenChange, className,
+}: {
+  typeItems: CalendarItem[];
+  productItems: CalendarItem[];
+  hidden: Set<string>;
+  onToggle: (id: string) => void;
+  onShowAll: (ids: string[]) => void;
+  onHideAll: (ids: string[]) => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (next: boolean) => void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
+  className?: string;
+}) {
+  if (collapsed) {
+    return <CollapsedRail onExpand={() => onCollapsedChange?.(false)} />;
+  }
 
   return (
-    <aside className={cn('w-[220px] shrink-0 border-r border-border/60 bg-card/40', className)}>
-      <ScrollArea className="h-full">
-        <div className="py-2">
-          <CalendarSection
-            title="Tipos"
-            items={typeItems}
-            hidden={hidden}
-            onToggle={onToggle}
-            onShowAll={() => onShowAll(typeIds)}
-            onHideAll={() => onHideAll(typeIds)}
-          />
-          <CalendarSection
-            title="Produtos"
-            items={productItems}
-            hidden={hidden}
-            onToggle={onToggle}
-            onShowAll={() => onShowAll(productIds)}
-            onHideAll={() => onHideAll(productIds)}
-          />
+    <>
+      {/* Desktop / tablet panel */}
+      <aside
+        className={cn(
+          'hidden md:block w-[200px] lg:w-[220px] shrink-0 border-r border-border/60 bg-card/40',
+          className,
+        )}
+      >
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border/40">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+            Calendários
+          </span>
+          {onCollapsedChange && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 -mr-1"
+              aria-label="Ocultar calendários"
+              onClick={() => onCollapsedChange(true)}
+              title="Ocultar calendários"
+            >
+              <PanelLeftClose className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
-      </ScrollArea>
-    </aside>
+        <ScrollArea className="h-full">
+          <SidebarBody
+            typeItems={typeItems}
+            productItems={productItems}
+            hidden={hidden}
+            onToggle={onToggle}
+            onShowAll={onShowAll}
+            onHideAll={onHideAll}
+          />
+        </ScrollArea>
+      </aside>
+
+      {/* Mobile: drawer */}
+      <Sheet open={mobileOpen ?? false} onOpenChange={onMobileOpenChange}>
+        <SheetContent side="left" className="w-[260px] p-0 md:hidden">
+          <SheetHeader className="px-3 py-3 border-b">
+            <SheetTitle className="text-sm">Calendários</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="h-[calc(100%-3rem)]">
+            <SidebarBody
+              typeItems={typeItems}
+              productItems={productItems}
+              hidden={hidden}
+              onToggle={onToggle}
+              onShowAll={onShowAll}
+              onHideAll={onHideAll}
+            />
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
+
+/** Compact button to open the mobile sidebar. Place in your toolbar. */
+export function AgendaCalendarsMobileTrigger({ onClick, className }: { onClick: () => void; className?: string }) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn('md:hidden h-8 w-8', className)}
+      aria-label="Abrir calendários"
+      onClick={onClick}
+      title="Calendários"
+    >
+      <SlidersHorizontal className="h-4 w-4" />
+    </Button>
   );
 }

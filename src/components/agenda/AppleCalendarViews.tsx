@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, forwardRef } from 'react';
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths,
   isSameDay, parseISO, addDays, subDays, startOfWeek, endOfWeek, addWeeks, subWeeks,
@@ -98,6 +98,7 @@ function useHolidayMap(years: number[]): Map<string, string> {
 
 export function AgendaToolbar({
   mode, onModeChange, current, onPrev, onNext, onToday, label,
+  leftSlot, rightSlot,
 }: {
   mode: AgendaViewMode;
   onModeChange: (m: AgendaViewMode) => void;
@@ -106,6 +107,10 @@ export function AgendaToolbar({
   onNext: () => void;
   onToday: () => void;
   label: string;
+  /** Optional content rendered before the date label (e.g. mobile sidebar trigger). */
+  leftSlot?: React.ReactNode;
+  /** Optional content rendered after the navigation cluster (e.g. action buttons). */
+  rightSlot?: React.ReactNode;
 }) {
   const modes: { key: AgendaViewMode; label: string }[] = [
     { key: 'day', label: 'Dia' },
@@ -117,6 +122,7 @@ export function AgendaToolbar({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h3 className="text-xs font-normal lowercase text-muted-foreground tracking-tight truncate flex items-center gap-2">
+        {leftSlot}
         {mode === 'week' && (() => {
           const wn = getISOWeek(current);
           return (
@@ -153,6 +159,7 @@ export function AgendaToolbar({
         <Button variant="ghost" size="icon" aria-label="Seguinte" onClick={onNext} className="rounded-full h-8 w-8">
           <ChevronRight className="h-4 w-4" />
         </Button>
+        {rightSlot}
       </div>
     </div>
   );
@@ -274,8 +281,10 @@ function positionEventsForDay(events: AgendaEvent[], day: Date, types: AgendaEve
 function startOfDay(d: Date): Date { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
 function endOfDay(d: Date): Date { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; }
 
-// Apple-style pastel block
-function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () => void; compact?: boolean }) {
+// Apple-style pastel block. forwardRef so React doesn't warn when DevTools/HMR
+// or wrapping primitives (Tooltip/Slot) try to attach a ref.
+const EventBlock = forwardRef<HTMLButtonElement, { p: PositionedEvent; onClick: () => void; compact?: boolean }>(
+  function EventBlock({ p, onClick, compact }, ref) {
   const isMeeting = (p.ev as any)._isMeeting;
   const widthPct = 100 / p.laneCount;
   const leftPct = widthPct * p.laneIdx;
@@ -293,6 +302,7 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
 
   return (
     <button
+      ref={ref}
       onClick={onClick}
       className={cn(
         'absolute rounded-md px-2 py-1 text-left transition-all overflow-hidden',
@@ -391,15 +401,17 @@ function EventBlock({ p, onClick, compact }: { p: PositionedEvent; onClick: () =
       )}
     </button>
   );
-}
+});
 
 // All-day strip event (used in Week)
-function AllDayEventBlock({ ev, types, onClick }: { ev: AgendaEvent; types: AgendaEventType[]; onClick: () => void }) {
+const AllDayEventBlock = forwardRef<HTMLButtonElement, { ev: AgendaEvent; types: AgendaEventType[]; onClick: () => void }>(
+  function AllDayEventBlock({ ev, types, onClick }, ref) {
   const color = getColor(types, ev);
   const url = extractUrl(ev);
   const context = buildContextLine(ev);
   return (
     <button
+      ref={ref}
       onClick={onClick}
       className="flex w-full items-center gap-1 text-left rounded px-1.5 py-0.5 mb-0.5 text-[10px] font-medium border-l-2 hover:opacity-80 transition-opacity"
       style={{
@@ -428,7 +440,7 @@ function AllDayEventBlock({ ev, types, onClick }: { ev: AgendaEvent; types: Agen
       )}
     </button>
   );
-}
+});
 
 // Auto-scroll to current/business hours on mount
 function useScrollToHour(hour: number) {
@@ -444,14 +456,16 @@ function useScrollToHour(hour: number) {
 
 // ─── DAY VIEW ──────────────────────────────────────────────────
 
-export function DayView({
-  current, events, types, onEventClick,
-}: {
+interface ViewProps {
   current: Date;
   events: AgendaEvent[];
   types: AgendaEventType[];
   onEventClick: (ev: AgendaEvent) => void;
-}) {
+}
+
+export const DayView = forwardRef<HTMLDivElement, ViewProps>(function DayView(
+  { current, events, types, onEventClick }, _ref,
+) {
   const positioned = useMemo(() => positionEventsForDay(events, current, types), [events, current, types]);
   const isToday = isSameDay(current, new Date());
   const nowMin = isToday ? differenceInMinutes(new Date(), startOfDay(current)) : -1;
@@ -508,18 +522,13 @@ export function DayView({
       </div>
     </div>
   );
-}
+});
 
 // ─── WEEK VIEW ─────────────────────────────────────────────────
 
-export function WeekView({
-  current, events, types, onEventClick,
-}: {
-  current: Date;
-  events: AgendaEvent[];
-  types: AgendaEventType[];
-  onEventClick: (ev: AgendaEvent) => void;
-}) {
+export const WeekView = forwardRef<HTMLDivElement, ViewProps>(function WeekView(
+  { current, events, types, onEventClick }, _ref,
+) {
   const weekStart = startOfWeek(current, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
@@ -612,20 +621,15 @@ export function WeekView({
       </div>
     </div>
   );
-}
+});
 
 // ─── MONTH VIEW (Apple-style) ──────────────────────────────────
 
 const WEEKDAYS_PT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-export function MonthView({
-  current, events, types, onEventClick,
-}: {
-  current: Date;
-  events: AgendaEvent[];
-  types: AgendaEventType[];
-  onEventClick: (ev: AgendaEvent) => void;
-}) {
+export const MonthView = forwardRef<HTMLDivElement, ViewProps>(function MonthView(
+  { current, events, types, onEventClick }, _ref,
+) {
   const monthStart = startOfMonth(current);
   const monthEnd = endOfMonth(current);
   const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
@@ -714,17 +718,12 @@ export function MonthView({
       </div>
     </div>
   );
-}
+});
 
 // ─── YEAR VIEW (Apple-style mini-months) ───────────────────────
 
-export function YearView({
-  current, events, onMonthClick,
-}: {
-  current: Date;
-  events: AgendaEvent[];
-  onMonthClick: (d: Date) => void;
-}) {
+export const YearView = forwardRef<HTMLDivElement, { current: Date; events: AgendaEvent[]; onMonthClick: (d: Date) => void }>(
+  function YearView({ current, events, onMonthClick }, _ref) {
   const yearStart = startOfYear(current);
   const yearEnd = endOfYear(current);
   const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
@@ -782,7 +781,7 @@ export function YearView({
       })}
     </div>
   );
-}
+});
 
 // ─── Navigation helpers ────────────────────────────────────────
 

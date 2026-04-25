@@ -33,21 +33,12 @@ import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import { resolveProductId } from '@/lib/productResolver';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import {
-  AgendaToolbar,
-  DayView,
-  WeekView,
-  MonthView,
-  YearView,
-  navigatePrev,
-  navigateNext,
-  formatLabel,
   type AgendaViewMode,
 } from '@/components/agenda/AppleCalendarViews';
 import {
-  AgendaCalendarsSidebar,
-  useCalendarFilters,
   type CalendarItem,
 } from '@/components/agenda/AgendaCalendarsSidebar';
+import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 
@@ -1166,9 +1157,7 @@ export default function AgendaPage() {
   const { data: productColors } = useProductColors();
   const { data: productBrands = [] } = useProductBrands();
 
-  // ─── Calendars sidebar (filters by type / product) ─────────────
-  const calendarFilters = useCalendarFilters('agenda-business');
-
+  // ─── Calendars sidebar items (filters live inside AgendaCalendarView) ─────
   const typeCalendarItems: CalendarItem[] = useMemo(() => {
     const items: CalendarItem[] = types.map(t => ({ id: `type:${t.id}`, label: t.name, color: t.color }));
     items.push({ id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR });
@@ -1183,26 +1172,27 @@ export default function AgendaPage() {
     [productBrands],
   );
 
-  const isEventVisible = (ev: any) => {
+  const isEventVisible = (ev: any, isVisible: (id: string) => boolean) => {
     let typeKey: string;
     if (ev._isMeeting) typeKey = 'meta:meeting';
     else if (ev._isSalesAction) typeKey = 'meta:sales';
     else if (ev.event_type_id) typeKey = `type:${ev.event_type_id}`;
     else typeKey = 'meta:no-type';
-    if (!calendarFilters.isVisible(typeKey)) return false;
+    if (!isVisible(typeKey)) return false;
     const pid = ev.product_id as string | null | undefined;
-    if (pid && !calendarFilters.isVisible(`product:${pid}`)) return false;
+    if (pid && !isVisible(`product:${pid}`)) return false;
     return true;
   };
 
   // Merge events + meetings into a single sorted list
   const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
-  // Override colour with the linked product's brand colour, when present.
+  // Product brand colour ALWAYS takes precedence over the event-type colour
+  // when an event is linked to a product (per business rule).
   const allEvents = useMemo(() => {
     return allEventsRaw.map(ev => {
       const pid = (ev as any).product_id as string | null | undefined;
       const productC = pid ? productColors?.get(pid) : undefined;
-      // Sales actions get the amber pseudo-colour by default; product colour overrides if present.
+      // Sales actions get the amber pseudo-colour by default; product colour wins when present.
       const isSales = (ev as any)._isSalesAction;
       const fallbackC = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
       const c = productC ?? fallbackC;
@@ -1211,25 +1201,15 @@ export default function AgendaPage() {
     });
   }, [allEventsRaw, productColors]);
 
-  // Apple-calendar mode (Day/Week/Month/Year), persisted locally
-  const [mode, setMode] = useState<AgendaViewMode>(() => {
-    if (typeof window === 'undefined') return 'week';
-    const saved = window.localStorage.getItem(AGENDA_MODE_KEY) as AgendaViewMode | null;
-    return saved && ['day', 'week', 'month', 'year'].includes(saved) ? saved : 'week';
-  });
-  const handleModeChange = (m: AgendaViewMode) => {
-    setMode(m);
-    if (typeof window !== 'undefined') window.localStorage.setItem(AGENDA_MODE_KEY, m);
-  };
-
-  // Expand recurring events into a wide window so all views see occurrences
+  // Expand recurring events into a wide window so all views see occurrences.
+  // The visibility filter is applied inside AgendaCalendarView so it can react
+  // to sidebar toggles without re-running this expensive expansion.
   const expandedEvents = useMemo(() => {
     const rangeStart = subMonths(cursor, 6);
     const rangeEnd = addMonths(cursor, 18);
-    const expanded = expandRecurringEvents(allEvents, rangeStart, rangeEnd);
-    return expanded.filter(isEventVisible);
+    return expandRecurringEvents(allEvents, rangeStart, rangeEnd);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allEvents, cursor.getFullYear(), cursor.getMonth(), calendarFilters.hidden]);
+  }, [allEvents, cursor.getFullYear(), cursor.getMonth()]);
 
   const handleEventClick = (ev: EventRow) => {
     // Meetings and regular events both open the preview dialog.
@@ -1270,39 +1250,23 @@ export default function AgendaPage() {
             <InlineLoader />
           </div>
         ) : view === 'calendar' ? (
-          <div className="flex gap-0 border border-border/60 rounded-lg overflow-hidden bg-card">
-            <AgendaCalendarsSidebar
-              typeItems={typeCalendarItems}
-              productItems={productCalendarItems}
-              hidden={calendarFilters.hidden}
-              onToggle={calendarFilters.toggle}
-              onShowAll={calendarFilters.showAll}
-              onHideAll={calendarFilters.hideAll}
-            />
-            <div className="flex-1 min-w-0 p-3">
-              <AgendaToolbar
-                mode={mode}
-                onModeChange={handleModeChange}
-                current={cursor}
-                onPrev={() => setCursor(d => navigatePrev(mode, d))}
-                onNext={() => setCursor(d => navigateNext(mode, d))}
-                onToday={() => setCursor(new Date())}
-                label={formatLabel(mode, cursor)}
-              />
-              {mode === 'day' && (
-                <DayView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-              )}
-              {mode === 'week' && (
-                <WeekView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-              )}
-              {mode === 'month' && (
-                <MonthView current={cursor} events={expandedEvents} types={types} onEventClick={handleEventClick} />
-              )}
-              {mode === 'year' && (
-                <YearView current={cursor} events={expandedEvents} onMonthClick={(d) => { setCursor(d); handleModeChange('month'); }} />
-              )}
-            </div>
-          </div>
+          <AgendaCalendarView
+            storageKey="agenda-business"
+            cursor={cursor}
+            onCursorChange={setCursor}
+            events={expandedEvents}
+            types={types}
+            typeItems={typeCalendarItems}
+            productItems={productCalendarItems}
+            isEventVisible={isEventVisible}
+            onEventClick={handleEventClick}
+            defaultMode="week"
+            toolbarRight={
+              <Button size="sm" className="rounded-full h-8" onClick={handleNewEvent}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> Novo
+              </Button>
+            }
+          />
         ) : (
           <ListView events={allEvents} types={types} onEventClick={handleEventClick} />
         )}
