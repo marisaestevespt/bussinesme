@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,38 +7,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { format, parseISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear } from 'date-fns';
 import { useMonthRoutineTasks } from './secretaria-shared';
 import { RoutineMonthCard } from './SecretariaRotinas';
-import {
-  AgendaToolbar, DayView, WeekView, MonthView, YearView,
-  navigatePrev, navigateNext, formatLabel,
-  type AgendaEvent, type AgendaViewMode,
-} from '@/components/agenda/AppleCalendarViews';
+import { type AgendaEvent, type AgendaViewMode } from '@/components/agenda/AppleCalendarViews';
+import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
+import { type CalendarItem } from '@/components/agenda/AgendaCalendarsSidebar';
 import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import { parseISO as parseIsoDate, isWithinInterval } from 'date-fns';
-import {
-  AgendaCalendarsSidebar,
-  useCalendarFilters,
-  type CalendarItem,
-} from '@/components/agenda/AgendaCalendarsSidebar';
-
-const VIEW_STORAGE_KEY = 'secretaria-agenda:viewMode';
 
 export default function SecretariaAgenda() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<AgendaViewMode>(() => {
-    if (typeof window === 'undefined') return 'month';
-    const v = window.localStorage.getItem(VIEW_STORAGE_KEY);
-    return (v === 'day' || v === 'week' || v === 'month' || v === 'year') ? v : 'month';
-  });
   const [current, setCurrent] = useState<Date>(new Date());
   const routineTasks = useMonthRoutineTasks();
   const { data: productColors } = useProductColors();
   const { data: productBrands = [] } = useProductBrands();
   const { data: globalContext = [] } = useGlobalAgendaContext();
-
-  // ─── Calendars sidebar (filters by source / product) ───────────
-  const calendarFilters = useCalendarFilters('agenda-secretaria');
 
   const typeCalendarItems: CalendarItem[] = useMemo(() => ([
     { id: 'src:event',    label: 'Eventos',    color: '#0EA5E9' },
@@ -53,17 +36,13 @@ export default function SecretariaAgenda() {
     [productBrands],
   );
 
-  const isEventVisible = (ev: any) => {
+  const isEventVisible = (ev: any, isVisible: (id: string) => boolean) => {
     const src = ev._source ?? 'event';
-    if (!calendarFilters.isVisible(`src:${src}`)) return false;
+    if (!isVisible(`src:${src}`)) return false;
     const pid = ev._productId ?? ev.product_id ?? null;
-    if (pid && !calendarFilters.isVisible(`product:${pid}`)) return false;
+    if (pid && !isVisible(`product:${pid}`)) return false;
     return true;
   };
-
-  useEffect(() => {
-    try { window.localStorage.setItem(VIEW_STORAGE_KEY, mode); } catch {}
-  }, [mode]);
 
   // Resolver profile.id (as tarefas usam assigned_to=profile.id, não user.id)
   const profileQuery = useQuery({
@@ -77,17 +56,12 @@ export default function SecretariaAgenda() {
   const profileId = profileQuery.data;
 
   // Fetch range based on current view mode
+  // Fetch a wide window around the cursor so all view modes share a single query.
   const { fetchStart, fetchEnd } = useMemo(() => {
-    let start: Date, end: Date;
-    switch (mode) {
-      case 'day':   start = current; end = current; break;
-      case 'week':  start = startOfWeek(current, { weekStartsOn: 1 }); end = endOfWeek(current, { weekStartsOn: 1 }); break;
-      case 'year':  start = startOfYear(current); end = endOfYear(current); break;
-      case 'month':
-      default:      start = startOfMonth(current); end = endOfMonth(current); break;
-    }
+    const start = startOfYear(current);
+    const end = endOfYear(current);
     return { fetchStart: format(start, 'yyyy-MM-dd'), fetchEnd: format(end, 'yyyy-MM-dd') };
-  }, [mode, current]);
+  }, [current.getFullYear()]);
 
   const myEvents = useQuery({
     queryKey: ['agenda-events', user?.id, profileId, fetchStart, fetchEnd],
@@ -212,8 +186,8 @@ export default function SecretariaAgenda() {
             || (s <= startWin && e >= endWin);
       } catch { return false; }
     });
-    return [...ctx, ...events, ...tasks].filter(isEventVisible);
-  }, [myEvents.data, myAgendaTasks.data, productColors, globalContext, fetchStart, fetchEnd, calendarFilters.hidden]);
+    return [...ctx, ...events, ...tasks];
+  }, [myEvents.data, myAgendaTasks.data, productColors, globalContext, fetchStart, fetchEnd]);
 
   const types = useMemo(() => ([
     { id: '__src_event',   name: 'Evento',  color: '#0EA5E9', slug: 'event' },
@@ -228,50 +202,24 @@ export default function SecretariaAgenda() {
     else navigate('/hub/agenda');
   };
 
-  const goPrev = () => setCurrent(d => navigatePrev(mode, d));
-  const goNext = () => setCurrent(d => navigateNext(mode, d));
-  const goToday = () => setCurrent(new Date());
-  const handleMonthClick = (d: Date) => { setCurrent(d); setMode('month'); };
-
   return (
     <div className="space-y-6">
       <RoutineMonthCard tasks={routineTasks.data || []} />
 
       <Card>
         <CardContent className="p-0">
-          <div className="flex">
-            <AgendaCalendarsSidebar
-              typeItems={typeCalendarItems}
-              productItems={productCalendarItems}
-              hidden={calendarFilters.hidden}
-              onToggle={calendarFilters.toggle}
-              onShowAll={calendarFilters.showAll}
-              onHideAll={calendarFilters.hideAll}
-            />
-            <div className="flex-1 min-w-0 p-4">
-              <AgendaToolbar
-                mode={mode}
-                onModeChange={setMode}
-                current={current}
-                onPrev={goPrev}
-                onNext={goNext}
-                onToday={goToday}
-                label={formatLabel(mode, current)}
-              />
-              {mode === 'day' && (
-                <DayView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-              )}
-              {mode === 'week' && (
-                <WeekView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-              )}
-              {mode === 'month' && (
-                <MonthView current={current} events={agendaEvents} types={types} onEventClick={handleEventClick} />
-              )}
-              {mode === 'year' && (
-                <YearView current={current} events={agendaEvents} onMonthClick={handleMonthClick} />
-              )}
-            </div>
-          </div>
+          <AgendaCalendarView
+            storageKey="agenda-secretaria"
+            cursor={current}
+            onCursorChange={setCurrent}
+            events={agendaEvents}
+            types={types}
+            typeItems={typeCalendarItems}
+            productItems={productCalendarItems}
+            isEventVisible={isEventVisible}
+            onEventClick={handleEventClick}
+            defaultMode="month"
+          />
         </CardContent>
       </Card>
     </div>
