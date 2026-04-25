@@ -36,6 +36,7 @@ import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ProductIcon } from '@/components/entity-icon';
+import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { isTaskDone } from '@/lib/taskStatus';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
@@ -958,21 +959,17 @@ export default function ProjetoDetailPage() {
           {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
         </div>
 
-        {/* Cover image */}
-        {local.cover_url ? (
-          <div className="relative rounded-xl overflow-hidden h-48 group">
-            <img src={local.cover_url} alt="Capa" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <label className="cursor-pointer"><input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" /><Button variant="secondary" size="sm" className="gap-2"><ImageIcon className="h-3.5 w-3.5" /> Alterar</Button></label>
-              <Button variant="secondary" size="sm" className="gap-2 ml-2" onClick={() => { updateField('cover_url', null); supabase.from('projects').update({ cover_url: null }).eq('id', id!); }}><X className="h-3.5 w-3.5" /> Remover</Button>
-            </div>
-          </div>
-        ) : (
-          <label className="flex items-center justify-center h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/60 border border-border/50 transition-colors">
-            <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
-            <div className="flex items-center gap-2 text-muted-foreground"><ImageIcon className="h-5 w-5" /><span className="text-sm">Adicionar capa</span></div>
-          </label>
-        )}
+        {/* Hero: cover + icon (Notion-style) */}
+        <EntityHeroHeader
+          icon={parseIcon((local as any).icon)}
+          onIconChange={(next) => {
+            updateField('icon' as any, next as any);
+          }}
+          coverUrl={local.cover_url}
+          onCoverChange={(url) => updateField('cover_url' as any, url as any)}
+          bucket="entity-icons"
+          pathPrefix={`projects/${id || 'new'}`}
+        />
 
         {/* Deadline overdue banner */}
         {isOverdue && (
