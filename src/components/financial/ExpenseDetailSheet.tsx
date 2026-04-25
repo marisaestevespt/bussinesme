@@ -11,6 +11,7 @@ import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { EXP_STATUS } from './expenseDetail/constants';
 import { useExpenseForm } from './expenseDetail/useExpenseForm';
 import { ExpenseFormFields } from './expenseDetail/ExpenseFormFields';
+import { EntityIconPicker } from '@/components/entity-icon';
 
 interface Props {
   expense: Expense | null;
@@ -38,7 +39,16 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
+          <SheetTitle className="flex items-center gap-3">
+            <EntityIconPicker
+              icon={form.icon}
+              onChange={(next) => setForm(f => ({ ...f, icon: next }))}
+              bucket="entity-icons"
+              pathPrefix={`expenses/${expense.id}`}
+              className="h-10 w-10"
+              emojiClassName="text-2xl"
+              variant="rounded"
+            />
             <span className="font-mono text-sm text-muted-foreground">{expenseId}</span>
             {form.source_type && (
               <Badge variant="secondary" className="text-[10px]">
