@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { ProductIcon } from '@/components/entity-icon';
 import {
   useClient, useClients, useClientHistory,
   CLIENT_STATUS_OPTIONS, Client
@@ -882,7 +883,10 @@ export default function ClienteDetailPage() {
                     <span className="truncate">{s.description || '—'}</span>
                     <span>{Number(s.base_value).toFixed(2)}€</span>
                     <span>{Number(s.invoice_total).toFixed(2)}€</span>
-                    <span className="truncate">{s.product || '—'}</span>
+                    <span className="truncate inline-flex items-center gap-1.5">
+                      {s.product_id ? <ProductIcon productId={s.product_id as any} className="h-4 w-4" emojiClassName="text-[10px]" /> : null}
+                      {s.product || '—'}
+                    </span>
                   </div>
                 ))}
                 {clientSales.length > 0 && (
