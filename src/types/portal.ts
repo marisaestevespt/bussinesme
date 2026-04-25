@@ -19,6 +19,9 @@ export interface PortalQuestion {
   sort_order?: number | null;
   created_at?: string | null;
   section?: string | null;
+  question_group?: string | null;
+  group_sort_order?: number | null;
+  [k: string]: unknown;
 }
 
 export interface PortalComment {
@@ -70,6 +73,9 @@ export interface PortalDeliverable {
   id: string;
   title?: string | null;
   status?: string | null;
+  name?: string | null;
+  phase_name?: string | null;
+  planned_end?: string | null;
   [k: string]: unknown;
 }
 
