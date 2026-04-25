@@ -8542,6 +8542,51 @@ export type Database = {
         }
         Relationships: []
       }
+      secretaria_custom_views: {
+        Row: {
+          columns: Json
+          created_at: string
+          filters: Json
+          group_by: string
+          id: string
+          layout: string
+          name: string
+          scope: string
+          sort_by: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          columns?: Json
+          created_at?: string
+          filters?: Json
+          group_by?: string
+          id?: string
+          layout?: string
+          name: string
+          scope: string
+          sort_by?: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          columns?: Json
+          created_at?: string
+          filters?: Json
+          group_by?: string
+          id?: string
+          layout?: string
+          name?: string
+          scope?: string
+          sort_by?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sop_categories: {
         Row: {
           created_at: string
