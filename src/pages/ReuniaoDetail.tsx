@@ -536,6 +536,17 @@ export default function ReuniaoDetailPage() {
           }
         />
 
+        {/* Hero: cover + icon */}
+        <EntityHeroHeader
+          icon={parseIcon((m as any).icon)}
+          onIconChange={(next) => update({ icon: next as any })}
+          coverUrl={(m as any).cover_url}
+          onCoverChange={(url) => update({ cover_url: url } as any)}
+          bucket="entity-icons"
+          pathPrefix={`meetings/${id || 'new'}`}
+          disabled={!isOwner}
+        />
+
         {/* Series delete dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
