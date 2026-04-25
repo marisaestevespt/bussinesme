@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
         people.push({
           name: m.full_name,
           birthday: m.birthday,
-          link: "/hub/pessoas",
+          link: "/hub-equipa",
           source: "equipa",
         });
     });
