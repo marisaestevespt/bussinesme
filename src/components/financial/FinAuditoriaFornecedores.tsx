@@ -136,14 +136,21 @@ export function FinAuditoriaFornecedores() {
     });
 
     expenses.forEach(e => {
-      // Skip member-related expenses (handled by member auditor)
-      if (e.source_type && ['contract', 'contractor', 'salary', 'member_payment'].includes(e.source_type)) {
+      const isMemberExpense = !!e.source_type && ['contract', 'contractor', 'salary', 'member_payment'].includes(e.source_type);
+
+      // Always mark supplier as used (even for member-related expenses) so that
+      // suppliers tied to team members/contractors don't show as "unused".
+      if (e.supplier_id) {
+        usedSupplierIds.add(e.supplier_id);
+      }
+
+      // The remaining checks belong to the member auditor — skip them here.
+      if (isMemberExpense) {
         return;
       }
 
       // 1. Orphan supplier reference
       if (e.supplier_id) {
-        usedSupplierIds.add(e.supplier_id);
         const sup = supplierById.get(e.supplier_id);
         if (!sup) {
           result.push({
