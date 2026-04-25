@@ -198,7 +198,7 @@ export default function MarketingFunilDetail() {
                 className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none h-auto p-0 focus-visible:ring-0"
                 className="!text-primary-foreground" />
             ) : (
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight" className="!text-primary-foreground">{form.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary-foreground">{form.name}</h1>
             )}
           </div>
         </div>

@@ -121,7 +121,7 @@ export default function TrafegoReportDetail() {
               className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0"
               className="!text-primary-foreground" />
           ) : (
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight" className="!text-primary-foreground">{title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary-foreground">{title}</h1>
           )}
         </div>
 
