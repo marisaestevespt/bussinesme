@@ -9886,6 +9886,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_task_views: {
+        Row: {
+          created_at: string
+          filters: Json
+          group_by: string | null
+          id: string
+          name: string
+          scope: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+          view_type: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          group_by?: string | null
+          id?: string
+          name: string
+          scope?: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+          view_type?: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          group_by?: string | null
+          id?: string
+          name?: string
+          scope?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+          view_type?: string
+        }
+        Relationships: []
+      }
       user_views: {
         Row: {
           created_at: string
