@@ -1172,7 +1172,7 @@ export default function AgendaPage() {
     [productBrands],
   );
 
-  const buildIsEventVisible = (isVisible: (id: string) => boolean) => (ev: any) => {
+  const isEventVisible = (ev: any, isVisible: (id: string) => boolean) => {
     let typeKey: string;
     if (ev._isMeeting) typeKey = 'meta:meeting';
     else if (ev._isSalesAction) typeKey = 'meta:sales';
@@ -1250,15 +1250,22 @@ export default function AgendaPage() {
             <InlineLoader />
           </div>
         ) : view === 'calendar' ? (
-          <AgendaCalendarBusinessView
+          <AgendaCalendarView
+            storageKey="agenda-business"
             cursor={cursor}
             onCursorChange={setCursor}
             events={expandedEvents}
             types={types}
             typeItems={typeCalendarItems}
             productItems={productCalendarItems}
-            buildIsEventVisible={buildIsEventVisible}
+            isEventVisible={isEventVisible}
             onEventClick={handleEventClick}
+            defaultMode="week"
+            toolbarRight={
+              <Button size="sm" className="rounded-full h-8" onClick={handleNewEvent}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> Novo
+              </Button>
+            }
           />
         ) : (
           <ListView events={allEvents} types={types} onEventClick={handleEventClick} />
