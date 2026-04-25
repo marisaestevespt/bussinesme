@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, lazy, Suspense } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
@@ -8,10 +8,12 @@ import { AiInsightsButton } from '@/components/AiInsightsButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
-import { OnboardingTour } from '@/components/OnboardingTour';
-import { FloatingAiChat } from '@/components/FloatingAiChat';
 import { TabsBar } from '@/components/TabsBar';
 import { NewTabButton } from '@/components/TabsBar';
+
+// Lazy-load heavy floating widgets (pdfjs, large UI) to keep AppLayout chunk small
+const OnboardingTour = lazy(() => import('@/components/OnboardingTour').then(m => ({ default: m.OnboardingTour })));
+const FloatingAiChat = lazy(() => import('@/components/FloatingAiChat').then(m => ({ default: m.FloatingAiChat })));
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
@@ -46,8 +48,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <main className="flex-1 p-4 sm:p-8 lg:p-12 pb-24 sm:pb-10 overflow-auto">
               {children}
             </main>
-            <OnboardingTour />
-            <FloatingAiChat />
+            <Suspense fallback={null}>
+              <OnboardingTour />
+              <FloatingAiChat />
+            </Suspense>
           </div>
         </div>
       </SidebarProvider>
