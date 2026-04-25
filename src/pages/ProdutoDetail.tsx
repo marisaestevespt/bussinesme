@@ -446,8 +446,8 @@ export default function ProdutoDetailPage() {
             const inlineInput = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-muted/40 rounded-md";
 
             const Row = ({ icon: Icon, label, children }: { icon: any; label: string; children: React.ReactNode }) => (
-              <div className="grid grid-cols-[160px_1fr] items-center gap-2 py-1">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="grid grid-cols-[160px_1fr] items-center gap-3 py-1.5 border-b border-border/40 last:border-b-0">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pr-3 border-r border-border/40">
                   <Icon className="h-3.5 w-3.5" />
                   <span>{label}</span>
                 </div>
@@ -463,7 +463,7 @@ export default function ProdutoDetailPage() {
 
             return (
               <div className="p-4 md:p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-border/40 gap-y-0">
                   {/* ── Geral ── */}
                   <SectionTitle>Geral</SectionTitle>
                   <Row icon={Circle} label="Status">
