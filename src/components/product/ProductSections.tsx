@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, X, Upload, Download, FileText, Video } from 'lucide-react';
+import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,6 +19,8 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnosticQuestions';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
+import { ArchiveDocumentsView } from '@/components/product/archive/ArchiveDocumentsView';
+import { RichEditor } from '@/components/product/archive/RichEditor';
 
 // ─── Processos Section ─────────────────────────────────────────
 import { getSopStatusInfo } from '@/lib/sopStatus';
@@ -308,103 +312,117 @@ interface ArquivoSectionProps {
 }
 
 export function ProductArquivoSection({ productDocuments, archiveNotes, brainstormingContent, isOwner, productId, onUpdateField }: ArquivoSectionProps) {
-  const qc = useQueryClient();
+  const [view, setView] = useState<'gallery' | 'documentos' | 'notas' | 'brainstorming'>('gallery');
+
+  if (view === 'documentos') {
+    return (
+      <ArchiveDocumentsView
+        productId={productId}
+        documents={productDocuments as unknown as Parameters<typeof ArchiveDocumentsView>[0]['documents']}
+        isOwner={isOwner}
+        onBack={() => setView('gallery')}
+      />
+    );
+  }
+
+  if (view === 'notas') {
+    return (
+      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setView('gallery')} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Voltar ao Arquivo
+          </Button>
+          <h2 className="text-lg font-semibold">Notas</h2>
+          <div className="w-32" />
+        </div>
+        <Textarea
+          value={archiveNotes}
+          onChange={e => onUpdateField('archive_notes', e.target.value)}
+          readOnly={!isOwner}
+          placeholder="Escreve as tuas notas aqui..."
+          className="min-h-[500px] resize-y text-sm leading-relaxed"
+        />
+      </div>
+    );
+  }
+
+  if (view === 'brainstorming') {
+    return (
+      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setView('gallery')} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Voltar ao Arquivo
+          </Button>
+          <h2 className="text-lg font-semibold">Brainstorming</h2>
+          <div className="w-32" />
+        </div>
+        <RichEditor
+          content={brainstormingContent}
+          onChange={v => onUpdateField('brainstorming_content', v)}
+          editable={isOwner}
+          uploadFolder={`brainstorming/${productId}`}
+          variant="full"
+        />
+      </div>
+    );
+  }
+
+  // Gallery
+  const docCount = productDocuments.length;
+  const notesPreview = (archiveNotes || '').replace(/<[^>]+>/g, '').slice(0, 80);
+  const brainPreview = (brainstormingContent || '').replace(/<[^>]+>/g, '').slice(0, 80);
+
+  const cards = [
+    {
+      key: 'documentos' as const,
+      title: 'Documentos',
+      description: docCount > 0 ? `${docCount} ${docCount === 1 ? 'documento' : 'documentos'}` : 'Tabela com nome, link, ficheiros e etiquetas',
+      icon: FileText,
+      gradient: 'from-blue-500/10 to-cyan-500/10',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+    },
+    {
+      key: 'notas' as const,
+      title: 'Notas',
+      description: notesPreview || 'Notas rápidas em texto simples',
+      icon: StickyNote,
+      gradient: 'from-amber-500/10 to-yellow-500/10',
+      iconColor: 'text-amber-600 dark:text-amber-400',
+    },
+    {
+      key: 'brainstorming' as const,
+      title: 'Brainstorming',
+      description: brainPreview || 'Editor rico com imagens, tabelas e formatação',
+      icon: Lightbulb,
+      gradient: 'from-purple-500/10 to-pink-500/10',
+      iconColor: 'text-purple-600 dark:text-purple-400',
+    },
+  ];
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Documentos</CardTitle>
-          {isOwner && (
-            <label className="cursor-pointer">
-              <Button size="sm" variant="outline" asChild>
-                <span><Upload className="h-3 w-3 mr-1" /> Carregar</span>
-              </Button>
-              <input
-                type="file"
-                multiple
-                className="hidden"
-                onChange={async (e) => {
-                  const files = Array.from(e.target.files || []);
-                  if (!files.length) return;
-                  for (const file of files) {
-                    const path = `documents/${productId}/${Date.now()}-${file.name}`;
-                    const { error } = await supabase.storage.from('product-files').upload(path, file);
-                    if (error) { toast.error(`Erro ao enviar ${file.name}`); continue; }
-                    const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
-                    await supabase.from('product_documents' as 'clients').insert({
-                      product_id: productId,
-                      file_name: file.name,
-                      file_url: urlData.publicUrl,
-                      file_type: file.type || 'application/octet-stream',
-                      sort_order: productDocuments.length,
-                    } as never);
-                  }
-                  qc.invalidateQueries({ queryKey: ['product-documents', productId] });
-                  toast.success('Documento(s) carregado(s)');
-                  e.target.value = '';
-                }}
-              />
-            </label>
-          )}
-        </CardHeader>
-        <CardContent>
-          {productDocuments.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Sem documentos. Carrega ficheiros para os guardar aqui.</p>
-          ) : (
-            <div className="space-y-2">
-              {productDocuments.map((doc) => (
-                <div key={doc.id as string} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-sm truncate">{doc.file_name as string}</span>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <a href={doc.file_url as string} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" aria-label="Transferir" size="icon" className="h-7 w-7"><Download className="h-3.5 w-3.5" /></Button>
-                    </a>
-                    {isOwner && (
-                      <Button
-                        variant="ghost"
-                        aria-label="Eliminar" size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={async () => {
-                          await supabase.from('product_documents' as 'clients').delete().eq('id', doc.id as string);
-                          qc.invalidateQueries({ queryKey: ['product-documents', productId] });
-                        }}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+      {cards.map(card => {
+        const Icon = card.icon;
+        return (
+          <button
+            key={card.key}
+            onClick={() => setView(card.key)}
+            className="group text-left"
+          >
+            <Card className={`relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer h-full bg-gradient-to-br ${card.gradient}`}>
+              <CardContent className="p-6 flex flex-col gap-3 min-h-[180px]">
+                <div className={`w-12 h-12 rounded-xl bg-background/80 backdrop-blur flex items-center justify-center ${card.iconColor}`}>
+                  <Icon className="h-6 w-6" />
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
-        <CardContent>
-          <RichTextEditor
-            content={archiveNotes}
-            onChange={v => onUpdateField('archive_notes', v)}
-            editable={isOwner}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-base">Brainstorming</CardTitle></CardHeader>
-        <CardContent>
-          <RichTextEditor
-            content={brainstormingContent}
-            onChange={v => onUpdateField('brainstorming_content', v)}
-            editable={isOwner}
-          />
-        </CardContent>
-      </Card>
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-base">{card.title}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
+        );
+      })}
     </div>
   );
 }

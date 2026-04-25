@@ -6952,28 +6952,46 @@ export type Database = {
         Row: {
           created_at: string
           document_type: string | null
+          file_path: string | null
+          file_type: string | null
+          file_url: string | null
           id: string
           name: string
           notes: string | null
           product_id: string | null
+          sort_order: number
+          tags: string[]
+          updated_at: string
           url: string | null
         }
         Insert: {
           created_at?: string
           document_type?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           name: string
           notes?: string | null
           product_id?: string | null
+          sort_order?: number
+          tags?: string[]
+          updated_at?: string
           url?: string | null
         }
         Update: {
           created_at?: string
           document_type?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           name?: string
           notes?: string | null
           product_id?: string | null
+          sort_order?: number
+          tags?: string[]
+          updated_at?: string
           url?: string | null
         }
         Relationships: [
