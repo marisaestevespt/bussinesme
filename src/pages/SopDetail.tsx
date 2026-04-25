@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { EntitySection } from '@/components/layout/entity';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
