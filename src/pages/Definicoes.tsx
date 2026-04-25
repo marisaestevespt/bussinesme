@@ -11,6 +11,7 @@ import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { FinAuditoriaPagamentos } from '@/components/financial/FinAuditoriaPagamentos';
 import { FinAuditoriaFornecedores } from '@/components/financial/FinAuditoriaFornecedores';
+import { FinAuditoriaVendas } from '@/components/financial/FinAuditoriaVendas';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
@@ -18,10 +19,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { cn as _cn } from '@/lib/utils';
 
 function AuditoriaFinanceira() {
-  const [sub, setSub] = useState<'pagamentos' | 'fornecedores'>('pagamentos');
+  const [sub, setSub] = useState<'pagamentos' | 'fornecedores' | 'vendas'>('pagamentos');
   const SUBS = [
     { key: 'pagamentos' as const, label: 'Pagamentos a Membros' },
     { key: 'fornecedores' as const, label: 'Fornecedores' },
+    { key: 'vendas' as const, label: 'Vendas / Entradas' },
   ];
   return (
     <div className="space-y-4">
@@ -47,6 +49,7 @@ function AuditoriaFinanceira() {
       </div>
       {sub === 'pagamentos' && <FinAuditoriaPagamentos />}
       {sub === 'fornecedores' && <FinAuditoriaFornecedores />}
+      {sub === 'vendas' && <FinAuditoriaVendas />}
     </div>
   );
 }
