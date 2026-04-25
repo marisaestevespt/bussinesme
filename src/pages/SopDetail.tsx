@@ -16,15 +16,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Paperclip, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Paperclip, Pencil, Tag, Layers, Building2, UserCircle2, Package, Timer, Calendar as CalendarIcon, Hash, Clock, Link2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { BackNavigation } from '@/components/BackNavigation';
-import { EntitySection } from '@/components/layout/entity';
+import { EntitySection, EntityTopBar, EntityTitle, EntityProperties, EntityProperty, inlineInputClass, inlineTriggerClass } from '@/components/layout/entity';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
