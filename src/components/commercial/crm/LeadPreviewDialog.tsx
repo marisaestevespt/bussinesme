@@ -2,6 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { statusLabel } from '@/hooks/useCrmData';
 
@@ -11,6 +14,7 @@ interface Props {
 }
 
 export function LeadPreviewDialog({ leadId, onClose }: Props) {
+  const navigate = useNavigate();
   const { data: lead } = useQuery({
     queryKey: ['crm-lead-preview', leadId],
     queryFn: async () => {
@@ -44,6 +48,17 @@ export function LeadPreviewDialog({ leadId, onClose }: Props) {
           <DialogTitle className="flex items-center gap-2">
             Ficha CRM — {lead.name}
             <Badge variant="outline">{statusLabel(lead.status)}</Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={() => {
+                onClose();
+                navigate(`/hub/comercial/crm/${lead.id}`);
+              }}
+            >
+              <ExternalLink className="h-3.5 w-3.5 mr-1" /> Abrir página
+            </Button>
           </DialogTitle>
         </DialogHeader>
 

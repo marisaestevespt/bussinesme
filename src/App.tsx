@@ -85,6 +85,7 @@ const PortalAuthPage = lazy(() => import("./pages/PortalAuth"));
 const PortalViewPage = lazy(() => import("./pages/PortalView"));
 const VendaDetailPage = lazy(() => import("./pages/VendaDetail"));
 const CrmPipelinesPage = lazy(() => import("./pages/CrmPipelines"));
+const LeadDetailPage = lazy(() => import("./pages/LeadDetail"));
 const FinanceiroPage = lazy(() => import("./pages/Financeiro"));
 const FinanceiroSubPage = lazy(() => import("./pages/FinanceiroSubPage"));
 const FornecedoresPage = lazy(() => import("./pages/Fornecedores"));
@@ -212,6 +213,7 @@ function AppRoutes() {
         <Route path="/hub/comercial/analise" element={<ComercialAnalisePage />} />
         <Route path="/hub/comercial/vendas/:id" element={<VendaDetailPage />} />
         <Route path="/hub/comercial/pipelines" element={<CrmPipelinesPage />} />
+        <Route path="/hub/comercial/crm/:id" element={<LeadDetailPage />} />
         <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
         <Route path="/hub/produtos" element={<ProdutosPage />} />
         <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />
