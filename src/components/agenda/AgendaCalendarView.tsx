@@ -33,6 +33,9 @@ export interface AgendaCalendarViewProps {
   toolbarRight?: React.ReactNode;
   /** Whether to expose the sidebar at all (default: true). */
   showSidebar?: boolean;
+  /** Controlled cursor: parent owns the date when it needs it for data fetching. */
+  cursor?: Date;
+  onCursorChange?: (d: Date) => void;
 }
 
 const VIEW_KEY = (storage: string) => `${storage}:viewMode`;
@@ -70,7 +73,14 @@ export function AgendaCalendarView({
     }
   };
 
-  const [cursor, setCursor] = useState<Date>(new Date());
+  const [internalCursor, setInternalCursor] = useState<Date>(new Date());
+  const cursor = (arguments[0] as AgendaCalendarViewProps).cursor ?? internalCursor;
+  const setCursor = (next: Date | ((d: Date) => Date)) => {
+    const parent = (arguments[0] as AgendaCalendarViewProps).onCursorChange;
+    const value = typeof next === 'function' ? (next as (d: Date) => Date)(cursor) : next;
+    if (parent) parent(value);
+    else setInternalCursor(value);
+  };
 
   const visibleEvents = useMemo(
     () => events.filter(isEventVisible),
