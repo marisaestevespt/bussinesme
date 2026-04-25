@@ -316,6 +316,24 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             </div>
           </div>
 
+          {isOwner && productId && (
+            <div className="flex items-center justify-between gap-3 rounded-md border border-dashed border-border bg-muted/40 px-3 py-2">
+              <p className="text-xs text-muted-foreground">
+                Aplica estas cores em toda a app: agenda, vendas, eventos e portais dos clientes deste produto.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={applyProductColors}
+                disabled={applyingColors}
+              >
+                <Palette className="h-3.5 w-3.5 mr-1.5" />
+                {applyingColors ? 'A aplicar…' : 'Aplicar cores do produto'}
+              </Button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Tipografia — Display / Títulos</Label>
