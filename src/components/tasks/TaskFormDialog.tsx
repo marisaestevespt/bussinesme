@@ -298,7 +298,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         const wasReassigned = editingTask && editingTask.assigned_to !== assignedTo;
         const isNew = !editingTask;
         if (isNew || wasReassigned) {
-          sendNotification({ userId: assignedTo, type: 'task', title: `Tarefa atribuída: ${name}`, message: deadline ? `Prazo: ${format(deadline, 'dd/MM/yyyy')}` : undefined, link: '/tarefas' });
+          sendNotification({ userId: assignedTo, type: 'task', title: `Tarefa atribuída: ${name}`, message: deadline ? `Prazo: ${format(deadline, 'dd/MM/yyyy')}` : undefined, link: '/hub/tarefas' });
         }
       }
       if (result && result.newStatus === 'a_fazer' && result.prevStatus !== 'a_fazer') {
@@ -361,7 +361,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             originalAssignee = finalAssignedTo;
             finalAssignedTo = sub.profile_id;
             toast.info(`${absentName} está ausente. Tarefa atribuída a ${sub.full_name}.`, { duration: 8000 });
-            sendNotification({ userId: sub.profile_id, type: 'task', title: `Tarefa reatribuída: ${name.trim()}`, message: `${absentName} está ausente.`, link: '/tarefas' });
+            sendNotification({ userId: sub.profile_id, type: 'task', title: `Tarefa reatribuída: ${name.trim()}`, message: `${absentName} está ausente.`, link: '/hub/tarefas' });
           }
         } else {
           toast.warning(`${absentName} está ausente mas não tem substituto.`, { duration: 8000 });

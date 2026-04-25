@@ -223,7 +223,7 @@ export function AbsenceCoverageTable() {
         userId: ownerUserId,
         type: 'absence_conflict',
         title: `${memberName} está ausente de ${fmtStart} a ${fmtEnd}. A tarefa '${task.name}' precisa de ser realocada.`,
-        link: '/tarefas',
+        link: '/hub/tarefas',
       });
     }
   }

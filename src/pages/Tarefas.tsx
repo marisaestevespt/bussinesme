@@ -233,7 +233,7 @@ export default function TarefasPage() {
             type: 'task',
             title: `Tarefa atribuída: ${name}`,
             message: deadline ? `Prazo: ${format(deadline, 'dd/MM/yyyy')}` : undefined,
-            link: '/tarefas',
+            link: '/hub/tarefas',
           });
         }
       }
@@ -422,7 +422,7 @@ export default function TarefasPage() {
               type: 'task',
               title: `Tarefa reatribuída: ${name.trim()}`,
               message: `Data limite: ${format(deadline, 'dd/MM/yyyy')}. ${absentName} está ausente. ${coverage.sos_notes ? `Notas SOS: ${coverage.sos_notes}` : ''}`,
-              link: '/tarefas',
+              link: '/hub/tarefas',
             });
           }
         } else {
