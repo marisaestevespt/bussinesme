@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { BackNavigation } from '@/components/BackNavigation';
 import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
-import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
-import { Plus, LayoutList, LayoutGrid, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, LayoutList, LayoutGrid, CalendarIcon, ChevronLeft, ChevronRight, FolderKanban } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
@@ -35,6 +33,7 @@ import { MentionTextarea } from '@/components/MentionTextarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
+import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -340,10 +339,18 @@ export default function ProjetosPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <BackNavigation />
-        {/* Header */}
-        <PageHeader title="Projetos" />
+      <CollectionPage>
+        <CollectionHeader
+          title="Projetos"
+          icon={FolderKanban}
+          description="Projetos internos, lançamentos e trabalhos com clientes."
+          count={projects.length}
+          actions={
+            <Button size="sm" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Projeto
+            </Button>
+          }
+        />
 
         {/* Metrics strip */}
         {(() => {
@@ -531,7 +538,7 @@ export default function ProjetosPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </CollectionPage>
     </AppLayout>
   );
 }

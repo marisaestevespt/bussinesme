@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { BackNavigation } from '@/components/BackNavigation';
 import { DepartmentProcessos } from '@/components/DepartmentProcessos';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
-import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, ArrowLeft, FileText, List, RotateCw, UserPlus } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, FileText, List, RotateCw, UserPlus, Workflow } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
@@ -35,6 +33,7 @@ import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
 import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus';
 import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -178,9 +177,18 @@ export default function ProcessosPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-      <BackNavigation />
-      <PageHeader title="Processos (SOPs)" />
+      <CollectionPage>
+      <CollectionHeader
+        title="Processos (SOPs)"
+        icon={Workflow}
+        description="Documentação operacional, rotinas e fluxos por departamento."
+        count={totalSopCount}
+        actions={
+          <Button onClick={() => { if (selectedDept) setNewSopDepts([selectedDept]); setShowNewSop(true); }} size="sm">
+            <Plus className="h-4 w-4 mr-1" /> Novo Processo
+          </Button>
+        }
+      />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex items-center justify-between">
           <ViewTabs
@@ -191,9 +199,6 @@ export default function ProcessosPage() {
             onRename={(id, label) => renameView({ id, label })}
             onDelete={(id) => { if (activeTab.startsWith('custom_')) setActiveTab('galeria'); deleteView(id); }}
           />
-          <Button onClick={() => { if (selectedDept) setNewSopDepts([selectedDept]); setShowNewSop(true); }} size="sm">
-            <Plus className="h-4 w-4 mr-1" /> Novo Processo
-          </Button>
         </div>
 
         {/* ═══ TAB: Galeria ═══ */}
@@ -595,7 +600,7 @@ export default function ProcessosPage() {
         </DialogContent>
       </Dialog>
 
-      </div>
+      </CollectionPage>
     </AppLayout>
   );
 }

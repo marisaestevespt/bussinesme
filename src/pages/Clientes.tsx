@@ -1,17 +1,22 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
-import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, BarChart3, Globe, MessageSquare } from 'lucide-react';
-import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
+import { Plus, BarChart3, Globe, MessageSquare, Users } from 'lucide-react';
+import { useClients, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import {
+  CollectionPage,
+  CollectionHeader,
+  CollectionToolbar,
+  CollectionEmpty,
+} from '@/components/layout/collection';
+import { EntityTabs, EntityTabsList, EntityTabsTrigger } from '@/components/layout/entity';
 
 const fmtDate = (d: string | null | undefined) => {
   if (!d) return '—';
@@ -104,8 +109,18 @@ export default function ClientesPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <PageHeader title="Clientes" subtitle="Gestão de clientes, acompanhamento e satisfação." />
+      <CollectionPage>
+        <CollectionHeader
+          title="Clientes"
+          icon={Users}
+          description="Gestão de clientes, acompanhamento e satisfação."
+          count={items.length}
+          actions={
+            <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Cliente
+            </Button>
+          }
+        />
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
             {[
@@ -165,52 +180,43 @@ export default function ClientesPage() {
           </Card>
         </div>
 
-        {/* Client list with tabs */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-4 pt-5 px-6">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <CardTitle className="text-base font-semibold">Lista de Clientes & Alunos</CardTitle>
-              </div>
-              <div className="flex items-center gap-2">
-                <Tabs value={tab} onValueChange={v => setTab(v as any)}>
-                  <TabsList className="h-8">
-                    <TabsTrigger value="ativos" className="text-xs px-3">
-                      Ativos ({activeItems.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="arquivados" className="text-xs px-3">
-                      Arquivados ({archivedItems.length})
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-                <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
-                  <Plus className="h-4 w-4 mr-1" /> Novo Cliente
-                </Button>
-              </div>
+        {/* Client list */}
+        <CollectionToolbar
+          trailing={
+            <EntityTabs value={tab} onValueChange={v => setTab(v as any)}>
+              <EntityTabsList>
+                <EntityTabsTrigger value="ativos">Ativos · {activeItems.length}</EntityTabsTrigger>
+                <EntityTabsTrigger value="arquivados">Arquivados · {archivedItems.length}</EntityTabsTrigger>
+              </EntityTabsList>
+            </EntityTabs>
+          }
+        >
+          <h2 className="text-sm font-semibold">Lista de Clientes & Alunos</h2>
+        </CollectionToolbar>
+        <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+          <InfiniteScrollList
+            totalCount={clients.totalCount}
+            loadedCount={items.length}
+            hasNextPage={clients.hasNextPage}
+            isFetchingNextPage={clients.isFetchingNextPage}
+            fetchNextPage={clients.fetchNextPage}
+          >
+            <div className="hidden md:block bg-muted/40 px-6 py-2 font-medium text-[11px] uppercase tracking-wide text-muted-foreground border-b">
+              Nome · ID · Status · Datas · Produto · Contactos
             </div>
-          </CardHeader>
-          <CardContent className="p-0 pt-1">
-            <InfiniteScrollList
-              totalCount={clients.totalCount}
-              loadedCount={items.length}
-              hasNextPage={clients.hasNextPage}
-              isFetchingNextPage={clients.isFetchingNextPage}
-              fetchNextPage={clients.fetchNextPage}
-            >
-              <div className="hidden md:block bg-primary text-primary-foreground px-6 py-2 font-medium text-[11px] uppercase tracking-wide">
-                Nome · ID · Status · Datas · Produto · Contactos
-              </div>
-              {displayItems.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12 text-sm">
-                  {tab === 'ativos' ? 'Sem clientes ativos' : 'Sem clientes arquivados'}
-                </p>
-              ) : (
-                displayItems.map(renderClientRow)
-              )}
-            </InfiniteScrollList>
-          </CardContent>
-        </Card>
-      </div>
+            {displayItems.length === 0 ? (
+              <CollectionEmpty
+                icon={Users}
+                title={tab === 'ativos' ? 'Sem clientes ativos' : 'Sem clientes arquivados'}
+                description={tab === 'ativos' ? 'Adiciona um novo cliente para começar.' : 'Quando arquivares clientes, aparecem aqui.'}
+                className="border-0"
+              />
+            ) : (
+              displayItems.map(renderClientRow)
+            )}
+          </InfiniteScrollList>
+        </div>
+      </CollectionPage>
     </AppLayout>
   );
 }

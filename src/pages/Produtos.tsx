@@ -1,14 +1,22 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Plus, LayoutGrid, List, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, ArrowUpRight } from 'lucide-react';
+import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, Product } from '@/hooks/useProducts';
+import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS } from '@/hooks/useProducts';
+import {
+  CollectionPage,
+  CollectionHeader,
+  CollectionToolbar,
+  CollectionGrid,
+  CollectionCard,
+  CollectionViewSwitcher,
+  CollectionEmpty,
+  type CollectionView,
+} from '@/components/layout/collection';
 
 const STATUS_BADGE: Record<string, { label: string; className: string; icon: any }> = {
   em_ideia: { label: 'Em Ideia', className: 'bg-muted text-muted-foreground', icon: Lightbulb },
@@ -29,8 +37,9 @@ function getStatusBadge(status: string) {
 const ESCADA_ORDER = ESCADA_OPTIONS.map(o => o.value);
 
 export default function ProdutosPage() {
-  const [view, setView] = useState<'gallery' | 'list'>('gallery');
+  const [view, setView] = useState<CollectionView>('grid');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const { products } = useProducts();
   const items = products.data || [];
@@ -45,9 +54,17 @@ export default function ProdutosPage() {
 
   // Filtered items
   const filtered = useMemo(() => {
-    if (!statusFilter) return items;
-    return items.filter(p => p.status === statusFilter);
-  }, [items, statusFilter]);
+    let list = items;
+    if (statusFilter) list = list.filter(p => p.status === statusFilter);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(p =>
+        p.name?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [items, statusFilter, search]);
 
   // Escada de valor — only products with escada set, sorted
   const escadaProducts = useMemo(() => {
@@ -69,10 +86,20 @@ export default function ProdutosPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <PageHeader title="Produtos" subtitle="Catálogo de produtos, escada de valor e entregas." department="produtos" />
+      <CollectionPage>
+        <CollectionHeader
+          title="Produtos"
+          icon={Package}
+          description="Catálogo de produtos, escada de valor e entregas."
+          count={items.length}
+          actions={
+            <Button size="sm" onClick={() => navigate('/hub/produtos/novo')}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Produto
+            </Button>
+          }
+        />
 
-        {/* Summary Cards */}
+        {/* Summary Cards (filter chips) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {statusCards.map(sc => {
             const Icon = sc.icon;
@@ -101,7 +128,9 @@ export default function ProdutosPage() {
         {escadaProducts.length > 0 && (
           <Card>
             <CardContent className="p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Escada de Valor</h3>
+              <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5" /> Escada de Valor
+              </h3>
               <div className="flex items-end gap-2 overflow-x-auto pb-2">
                 {escadaProducts.map((p, i) => {
                   const stepHeight = 48 + i * 20;
@@ -136,84 +165,79 @@ export default function ProdutosPage() {
           </Card>
         )}
 
-        {/* Active filter indicator + View toggles */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ToggleGroup type="single" value={view} onValueChange={v => v && setView(v as any)}>
-              <ToggleGroupItem value="gallery" aria-label="Galeria"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="list" aria-label="Lista"><List className="h-4 w-4" /></ToggleGroupItem>
-            </ToggleGroup>
-            {statusFilter && (
-              <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setStatusFilter(null)}>
-                ✕ Limpar filtro
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <p className="text-xs text-muted-foreground">{filtered.length} produto{filtered.length !== 1 ? 's' : ''}</p>
-            <Button size="sm" onClick={() => navigate('/hub/produtos/novo')}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Produto
+        {/* Toolbar */}
+        <CollectionToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Pesquisar produto…"
+          trailing={
+            <CollectionViewSwitcher value={view} onChange={setView} />
+          }
+        >
+          {statusFilter && (
+            <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => setStatusFilter(null)}>
+              ✕ Limpar filtro
             </Button>
-          </div>
-        </div>
+          )}
+          <span className="text-xs text-muted-foreground">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
+        </CollectionToolbar>
 
         {/* Gallery */}
-        {view === 'gallery' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filtered.length === 0 && (
-              <div className="col-span-full text-center py-16 text-muted-foreground">
-                <p className="text-lg font-medium">Sem produtos</p>
-                <p className="text-sm mt-1">{statusFilter ? 'Nenhum produto com este status.' : 'Cria o teu primeiro produto.'}</p>
-              </div>
-            )}
-            {filtered.map(p => (
-              <Card
-                key={p.id}
-                className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
-                onClick={() => navigate(`/hub/produtos/${p.id}`)}
-              >
-                <div className="w-full h-36 overflow-hidden bg-muted/30 flex items-center justify-center">
-                  {p.cover_url ? (
-                    <img src={p.cover_url} alt={p.name} className="w-full h-full object-cover" />
-                  ) : p.logo_url ? (
-                    <img src={p.logo_url} alt={p.name} className="h-16 w-16 object-contain" />
-                  ) : (
-                    <span className="text-3xl font-bold text-muted-foreground/20">{p.name?.charAt(0)}</span>
-                  )}
-                </div>
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-base leading-snug">{p.name}</h3>
-                    {getStatusBadge(p.status)}
-                  </div>
-                  {p.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>
-                  )}
-                  <div className="flex items-center justify-between pt-1">
-                    {p.ticket != null ? (
-                      <p className="text-sm font-semibold text-primary">
-                        {Number(p.ticket).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
-                      </p>
-                    ) : <span />}
-                    {p.escada && (
-                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{getEscadaLabel(p.escada)}</span>
-                    )}
-                  </div>
-                  {p.sales_page_url && (
-                    <a
-                      href={p.sales_page_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary flex items-center gap-1 hover:underline"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <ExternalLink className="h-3 w-3" /> Landing Page
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {view === 'grid' && (
+          filtered.length === 0 ? (
+            <CollectionEmpty
+              icon={Package}
+              title="Sem produtos"
+              description={statusFilter || search ? 'Nenhum produto corresponde aos filtros.' : 'Cria o teu primeiro produto para começar.'}
+              action={!statusFilter && !search && (
+                <Button size="sm" onClick={() => navigate('/hub/produtos/novo')}>
+                  <Plus className="h-4 w-4 mr-1" /> Novo Produto
+                </Button>
+              )}
+            />
+          ) : (
+            <CollectionGrid density="compact">
+              {filtered.map(p => (
+                <CollectionCard
+                  key={p.id}
+                  title={p.name}
+                  description={p.description || undefined}
+                  status={getStatusBadge(p.status)}
+                  cover={
+                    p.cover_url ? (
+                      <img src={p.cover_url} alt={p.name} className="h-full w-full object-cover" />
+                    ) : p.logo_url ? (
+                      <div className="flex h-full w-full items-center justify-center"><img src={p.logo_url} alt={p.name} className="h-16 w-16 object-contain" /></div>
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-muted-foreground/20">{p.name?.charAt(0)}</div>
+                    )
+                  }
+                  meta={
+                    <>
+                      {p.ticket != null && (
+                        <span className="font-semibold text-primary">
+                          {Number(p.ticket).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
+                        </span>
+                      )}
+                      {p.escada && <span>· {getEscadaLabel(p.escada)}</span>}
+                      {p.sales_page_url && (
+                        <a
+                          href={p.sales_page_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto inline-flex items-center gap-1 text-primary hover:underline"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" /> Landing
+                        </a>
+                      )}
+                    </>
+                  }
+                  onClick={() => navigate(`/hub/produtos/${p.id}`)}
+                />
+              ))}
+            </CollectionGrid>
+          )
         )}
 
         {/* List */}
@@ -257,7 +281,7 @@ export default function ProdutosPage() {
           </Card>
         )}
 
-      </div>
+      </CollectionPage>
     </AppLayout>
   );
 }
