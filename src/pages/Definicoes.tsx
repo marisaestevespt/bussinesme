@@ -10,6 +10,7 @@ import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { FinAuditoriaPagamentos } from '@/components/financial/FinAuditoriaPagamentos';
+import { FinAuditoriaFornecedores } from '@/components/financial/FinAuditoriaFornecedores';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
@@ -76,10 +77,7 @@ export default function DefinicoesPage() {
           {tab === 'auditoria' && (
             <div className="space-y-10">
               <SettingsAuditLog />
-              <div>
-                <h2 className="text-lg font-semibold mb-4">Auditoria de Pagamentos</h2>
-                <FinAuditoriaPagamentos />
-              </div>
+              <AuditoriaFinanceira />
               <SettingsUsers />
             </div>
           )}
