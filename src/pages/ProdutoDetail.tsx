@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check } from 'lucide-react';
+import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
 import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
@@ -437,119 +437,128 @@ export default function ProdutoDetailPage() {
           </div>
         </div>
 
-        {/* Properties Card */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Status</Label>
-                <Select value={form.status || 'em_ideia'} onValueChange={v => update('status', v)} disabled={!isOwner}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              {/* ── Configuração de Projeto ── */}
-              <div className="col-span-full pt-2 pb-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Configuração de Projeto</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Modo do Projeto</Label>
-                <Select value={(form as any).default_project_mode || 'pontual'} onValueChange={v => update('default_project_mode', v)} disabled={!isOwner}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pontual">📌 Pontual</SelectItem>
-                    <SelectItem value="recorrente">🔄 Recorrente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Modo Operacional</Label>
-                <Select value={(form as any).task_mode || 'fases'} onValueChange={v => update('task_mode', v)} disabled={!isOwner}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
-                    <SelectItem value="tarefas_fixas">📋 Tarefas Fixas Mensais</SelectItem>
-                    <SelectItem value="tarefas_livres">✏️ Tarefas Livres</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-full pt-2 pb-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detalhes Comerciais</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Tipo de Produto</Label>
-                <Select value={form.product_type || ''} onValueChange={v => update('product_type', v)} disabled={!isOwner}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>{PRODUCT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Escada</Label>
-                <Select value={form.escada || ''} onValueChange={v => update('escada', v)} disabled={!isOwner}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>{ESCADA_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Tipo de Vendas</Label>
-                <Select value={form.sales_type || ''} onValueChange={v => update('sales_type', v)} disabled={!isOwner}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>{SALES_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Tipo de Ticket</Label>
-                <Select value={(form as any).ticket_type || 'fixo'} onValueChange={v => update('ticket_type', v)} disabled={!isOwner}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixo">Fixo</SelectItem>
-                    <SelectItem value="variavel">Variável</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {((form as any).ticket_type || 'fixo') === 'fixo' ? (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Ticket (€)</Label>
-                  <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 480€" className="h-9" readOnly={!isOwner} />
+        {/* Properties — Notion-style */}
+        <div className="rounded-lg border border-border/60 bg-card">
+          {(() => {
+            const ticketType = ((form as any).ticket_type || 'fixo') as string;
+            // Reusable styles for inline (borderless) controls
+            const inlineTrigger = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 [&>svg]:opacity-50";
+            const inlineInput = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-muted/40 rounded-md";
+
+            const Row = ({ icon: Icon, label, children }: { icon: any; label: string; children: React.ReactNode }) => (
+              <div className="grid grid-cols-[160px_1fr] items-center gap-2 py-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{label}</span>
                 </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Ticket Médio (€)</Label>
-                  <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 400-480€" className="h-9" readOnly={!isOwner} />
+                <div className="min-w-0 text-sm">{children}</div>
+              </div>
+            );
+
+            const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+              <div className="col-span-full pt-3 pb-1 first:pt-0">
+                <p className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider">{children}</p>
+              </div>
+            );
+
+            return (
+              <div className="p-4 md:p-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
+                  {/* ── Geral ── */}
+                  <SectionTitle>Geral</SectionTitle>
+                  <Row icon={Circle} label="Status">
+                    <Select value={form.status || 'em_ideia'} onValueChange={v => update('status', v)} disabled={!isOwner}>
+                      <SelectTrigger className={inlineTrigger}><SelectValue /></SelectTrigger>
+                      <SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </Row>
+
+                  {/* ── Configuração de Projeto ── */}
+                  <SectionTitle>Configuração de Projeto</SectionTitle>
+                  <Row icon={Layers} label="Modo do Projeto">
+                    <Select value={(form as any).default_project_mode || 'pontual'} onValueChange={v => update('default_project_mode', v)} disabled={!isOwner}>
+                      <SelectTrigger className={inlineTrigger}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pontual">📌 Pontual</SelectItem>
+                        <SelectItem value="recorrente">🔄 Recorrente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Row>
+                  <Row icon={Settings2} label="Modo Operacional">
+                    <Select value={(form as any).task_mode || 'fases'} onValueChange={v => update('task_mode', v)} disabled={!isOwner}>
+                      <SelectTrigger className={inlineTrigger}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
+                        <SelectItem value="tarefas_fixas">📋 Tarefas Fixas Mensais</SelectItem>
+                        <SelectItem value="tarefas_livres">✏️ Tarefas Livres</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Row>
+
+                  {/* ── Detalhes Comerciais ── */}
+                  <SectionTitle>Detalhes Comerciais</SectionTitle>
+                  <Row icon={Tag} label="Tipo de Produto">
+                    <Select value={form.product_type || ''} onValueChange={v => update('product_type', v)} disabled={!isOwner}>
+                      <SelectTrigger className={inlineTrigger}><SelectValue placeholder="Vazio" /></SelectTrigger>
+                      <SelectContent>{PRODUCT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </Row>
+                  <Row icon={ListTree} label="Escada">
+                    <Select value={form.escada || ''} onValueChange={v => update('escada', v)} disabled={!isOwner}>
+                      <SelectTrigger className={inlineTrigger}><SelectValue placeholder="Vazio" /></SelectTrigger>
+                      <SelectContent>{ESCADA_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </Row>
+                  <Row icon={ShoppingCart} label="Tipo de Vendas">
+                    <Select value={form.sales_type || ''} onValueChange={v => update('sales_type', v)} disabled={!isOwner}>
+                      <SelectTrigger className={inlineTrigger}><SelectValue placeholder="Vazio" /></SelectTrigger>
+                      <SelectContent>{SALES_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </Row>
+                  <Row icon={Wallet} label="Tipo de Ticket">
+                    <Select value={ticketType} onValueChange={v => update('ticket_type', v)} disabled={!isOwner}>
+                      <SelectTrigger className={inlineTrigger}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fixo">Fixo</SelectItem>
+                        <SelectItem value="variavel">Variável</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Row>
+                  <Row icon={Wallet} label={ticketType === 'fixo' ? 'Ticket (€)' : 'Ticket Médio (€)'}>
+                    <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder={ticketType === 'fixo' ? 'Ex: 480€' : 'Ex: 400-480€'} className={inlineInput} readOnly={!isOwner} />
+                  </Row>
+                  <Row icon={Clock} label="Horas/mês por cliente">
+                    <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className={inlineInput} readOnly={!isOwner} />
+                  </Row>
+                  <Row icon={Users} label="Máx. clientes simultâneos">
+                    <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
+                  </Row>
+                  <Row icon={Timer} label="Tempo de Acesso">
+                    <div className="flex items-center gap-2">
+                      <Input type="number" min={0} placeholder="Ex: 90" value={form.cycle_duration ?? ''} onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)} className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
+                      <span className="text-xs text-muted-foreground shrink-0">dias úteis</span>
+                    </div>
+                  </Row>
+
+                  {/* ── Links ── */}
+                  <SectionTitle>Links</SectionTitle>
+                  <Row icon={Link2} label="Página de Vendas">
+                    <div className="flex items-center gap-1">
+                      <Input value={form.sales_page_url || ''} onChange={e => update('sales_page_url', e.target.value)} placeholder="https://..." className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
+                      {form.sales_page_url && <a href={form.sales_page_url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 rounded hover:bg-muted"><ExternalLink className="h-3.5 w-3.5 text-muted-foreground" /></a>}
+                    </div>
+                  </Row>
+                  <Row icon={FolderOpen} label="Drive">
+                    <div className="flex items-center gap-1">
+                      <Input value={form.drive_url || ''} onChange={e => update('drive_url', e.target.value)} placeholder="https://..." className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
+                      {form.drive_url && <a href={form.drive_url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 rounded hover:bg-muted"><ExternalLink className="h-3.5 w-3.5 text-muted-foreground" /></a>}
+                    </div>
+                  </Row>
                 </div>
-              )}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Horas mensais por cliente</Label>
-                <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className="h-9" readOnly={!isOwner} />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Máx. clientes em simultâneo</Label>
-                <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className="h-9" readOnly={!isOwner} />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Tempo de Acesso</Label>
-                <div className="flex items-center gap-2">
-                  <Input type="number" min={0} placeholder="Ex: 90" value={form.cycle_duration ?? ''} onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)} className="h-9" readOnly={!isOwner} />
-                  <span className="text-xs text-muted-foreground shrink-0">dias úteis</span>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Página de Vendas</Label>
-                <div className="flex items-center gap-1">
-                  <Input value={form.sales_page_url || ''} onChange={e => update('sales_page_url', e.target.value)} placeholder="https://..." className="h-9" readOnly={!isOwner} />
-                  {form.sales_page_url && <a href={form.sales_page_url} target="_blank" rel="noopener noreferrer" className="shrink-0"><ExternalLink className="h-4 w-4 text-primary" /></a>}
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Drive</Label>
-                <div className="flex items-center gap-1">
-                  <Input value={form.drive_url || ''} onChange={e => update('drive_url', e.target.value)} placeholder="https://..." className="h-9" readOnly={!isOwner} />
-                  {form.drive_url && <a href={form.drive_url} target="_blank" rel="noopener noreferrer" className="shrink-0"><ExternalLink className="h-4 w-4 text-primary" /></a>}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            );
+          })()}
+        </div>
 
         {/* Sobre o Produto */}
         <Card>
