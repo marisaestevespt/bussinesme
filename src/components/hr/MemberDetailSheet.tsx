@@ -401,6 +401,10 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               </div>
             </TabsContent>
 
+            <TabsContent value="links" className="space-y-2 mt-3">
+              <MemberQuickLinks memberId={member.id} />
+            </TabsContent>
+
             {/* Férias tab — with overlap validation */}
             <TabsContent value="ferias" className="space-y-3 mt-3">
               <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2.5">
