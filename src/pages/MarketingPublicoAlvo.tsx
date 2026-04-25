@@ -10,7 +10,7 @@ import { SectionRenderer } from '@/components/publico-alvo/SectionRenderer';
 import { EditableText } from '@/components/publico-alvo/EditableText';
 import { Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
 
 export default function MarketingPublicoAlvo() {
