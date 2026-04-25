@@ -147,28 +147,56 @@ function useSalesActionsAsEvents(range: { from: string; to: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('commercial_sales_actions')
-        .select('id,action_name,start_date,end_date,product_id,product,status')
-        .or(`and(start_date.gte.${range.from},start_date.lte.${range.to}),and(end_date.gte.${range.from},end_date.lte.${range.to})`)
+        .select('id,action_name,start_date,end_date,enrollment_open_date,product_id,product,status')
+        .or(`and(start_date.gte.${range.from},start_date.lte.${range.to}),and(end_date.gte.${range.from},end_date.lte.${range.to}),and(enrollment_open_date.gte.${range.from},enrollment_open_date.lte.${range.to})`)
         .order('start_date');
       if (error) throw error;
-      return (data || []).map((a: any): EventRow & { _isSalesAction: true; _salesActionId: string } => ({
-        id: `sales_${a.id}`,
-        _isSalesAction: true as const,
-        _salesActionId: a.id,
-        title: `📣 ${a.action_name}`,
-        event_type_id: null,
-        start_date: a.start_date ? `${a.start_date}T09:00:00` : new Date().toISOString(),
-        end_date: a.end_date ? `${a.end_date}T18:00:00` : null,
-        product_name: a.product || null,
-        product_id: a.product_id || null,
-        department: 'comercial',
-        client_name: null,
-        notes: null,
-        created_by: null,
-        recurrence_type: null,
-        recurrence_end: null,
-        meeting_url: null,
-      }));
+      const events: Array<EventRow & { _isSalesAction: true; _salesActionId: string }> = [];
+      for (const a of (data || []) as any[]) {
+        // Período da campanha
+        if (a.start_date) {
+          events.push({
+            id: `sales_${a.id}`,
+            _isSalesAction: true as const,
+            _salesActionId: a.id,
+            title: `📣 ${a.action_name}`,
+            event_type_id: null,
+            start_date: `${a.start_date}T09:00:00`,
+            end_date: a.end_date ? `${a.end_date}T18:00:00` : null,
+            product_name: a.product || null,
+            product_id: a.product_id || null,
+            department: 'comercial',
+            client_name: null,
+            notes: null,
+            created_by: null,
+            recurrence_type: null,
+            recurrence_end: null,
+            meeting_url: null,
+          });
+        }
+        // Abertura de vagas/vendas (evento próprio)
+        if (a.enrollment_open_date) {
+          events.push({
+            id: `sales_open_${a.id}`,
+            _isSalesAction: true as const,
+            _salesActionId: a.id,
+            title: `🚪 Abertura: ${a.action_name}`,
+            event_type_id: null,
+            start_date: `${a.enrollment_open_date}T09:00:00`,
+            end_date: null,
+            product_name: a.product || null,
+            product_id: a.product_id || null,
+            department: 'comercial',
+            client_name: null,
+            notes: null,
+            created_by: null,
+            recurrence_type: null,
+            recurrence_end: null,
+            meeting_url: null,
+          });
+        }
+      }
+      return events;
     },
   });
 }
