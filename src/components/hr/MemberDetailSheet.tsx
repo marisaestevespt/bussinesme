@@ -24,6 +24,29 @@ import { DeptBadge, currentYear, currentMonth, scheduleToLines } from './team-he
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { deriveContractStatus } from '@/lib/contractStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
+
+function MemberIconBlock({ member }: { member: any }) {
+  const qc = useQueryClient();
+  const fallback = member?.photo_url ? { type: 'image' as const, value: member.photo_url } : null;
+  const icon = parseIcon(member?.icon) ?? fallback;
+  return (
+    <div className="-mb-1">
+      <EntityIconPicker
+        icon={icon}
+        onChange={async (next) => {
+          await supabase.from('team_members').update({ icon: next as any, photo_url: next?.type === 'image' ? next.value : member?.photo_url || null }).eq('id', member.id);
+          qc.invalidateQueries({ queryKey: ['team_members'] });
+        }}
+        bucket="entity-icons"
+        pathPrefix={`team-members/${member.id}`}
+        className="h-16 w-16"
+        emojiClassName="text-3xl"
+        variant="circle"
+      />
+    </div>
+  );
+}
 
 export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [newTask, setNewTask] = useState('');
