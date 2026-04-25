@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useEventTypes } from '@/hooks/useEventTypes';
 import { useProductColors } from '@/hooks/useProductColors';
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import type { AgendaEvent, AgendaEventType } from '@/components/agenda/AppleCalendarViews';
@@ -21,7 +20,14 @@ const HOLIDAY_COLOR = '#94A3B8';
  */
 export function useMyAgendaEvents(range: { from: string; to: string }) {
   const { user } = useAuth();
-  const { data: types = [] } = useEventTypes();
+  const { data: types = [] } = useQuery({
+    queryKey: ['event_types'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('event_types').select('*').order('name');
+      return (data || []) as Array<{ id: string; name: string; slug: string; color: string }>;
+    },
+  });
   const { data: productColors } = useProductColors();
   const { data: globalContext = [] } = useGlobalAgendaContext();
 
