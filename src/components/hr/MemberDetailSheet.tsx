@@ -25,6 +25,7 @@ import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { deriveContractStatus } from '@/lib/contractStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
+import { MemberQuickLinks } from './MemberQuickLinks';
 
 function MemberIconBlock({ member }: { member: any }) {
   const qc = useQueryClient();
@@ -236,6 +237,7 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               <TabsTrigger value="feedback" className="text-xs flex-1">Feedback</TabsTrigger>
               <TabsTrigger value="ferias" className="text-xs flex-1">Férias</TabsTrigger>
               <TabsTrigger value="onboarding" className="text-xs flex-1">Onboarding</TabsTrigger>
+              <TabsTrigger value="links" className="text-xs flex-1">Links</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="space-y-3 mt-3">
@@ -397,6 +399,10 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                   onKeyDown={e => { if (e.key === 'Enter' && newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}} className="h-8 text-sm" />
                 <Button size="sm" variant="ghost" className="h-8" onClick={() => { if (newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}}><Plus className="h-4 w-4" /></Button>
               </div>
+            </TabsContent>
+
+            <TabsContent value="links" className="space-y-2 mt-3">
+              <MemberQuickLinks memberId={member.id} />
             </TabsContent>
 
             {/* Férias tab — with overlap validation */}
