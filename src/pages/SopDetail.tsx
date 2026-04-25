@@ -474,12 +474,12 @@ export default function SopDetailPage() {
           icon={parseIcon((sop as any)?.icon)}
           onIconChange={(next) => {
             if (!id) return;
-            supabase.from('sops').update({ icon: next as any }).eq('id', id).then(() => qc.invalidateQueries({ queryKey: ['sop', id] }));
+            supabase.from('sops').update({ icon: next as any }).eq('id', id).then(() => queryClient.invalidateQueries({ queryKey: ['sop', id] }));
           }}
           coverUrl={(sop as any)?.cover_url}
           onCoverChange={(url) => {
             if (!id) return;
-            supabase.from('sops').update({ cover_url: url }).eq('id', id).then(() => qc.invalidateQueries({ queryKey: ['sop', id] }));
+            supabase.from('sops').update({ cover_url: url }).eq('id', id).then(() => queryClient.invalidateQueries({ queryKey: ['sop', id] }));
           }}
           bucket="entity-icons"
           pathPrefix={`sops/${id || 'new'}`}

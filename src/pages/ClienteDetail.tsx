@@ -659,7 +659,7 @@ export default function ClienteDetailPage() {
           bucket="entity-icons"
           pathPrefix={`clients/${id || 'new'}`}
           iconVariant="circle"
-          disabled={!isOwner}
+          disabled={false}
         />
 
         {/* Title */}
