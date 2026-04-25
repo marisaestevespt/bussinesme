@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import type { Json } from '@/integrations/supabase/types';
 import { useTeamData } from '@/hooks/useTeamData';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
