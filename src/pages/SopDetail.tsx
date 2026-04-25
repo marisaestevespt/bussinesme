@@ -98,8 +98,8 @@ export default function SopDetailPage() {
   const { data: sopSteps = [] } = useQuery({
     queryKey: ['sop-steps', id],
     queryFn: async () => {
-      const { data } = await supabase.from('sop_steps').select('*').eq('sop_id', id!).order('sort_order');
-      return data || [];
+      const { data } = await (supabase.from as any)('sop_steps').select('*').eq('sop_id', id!).order('sort_order');
+      return (data || []) as Array<Record<string, any>>;
     },
     enabled: !!id,
   });
@@ -108,8 +108,8 @@ export default function SopDetailPage() {
   const { data: stepDocuments = [] } = useQuery({
     queryKey: ['sop-step-documents', id],
     queryFn: async () => {
-      const { data } = await supabase.from('sop_step_documents').select('*').eq('sop_id', id!).order('sort_order');
-      return data || [];
+      const { data } = await (supabase.from as any)('sop_step_documents').select('*').eq('sop_id', id!).order('sort_order');
+      return (data || []) as Array<Record<string, any>>;
     },
     enabled: !!id,
   });
@@ -141,8 +141,7 @@ export default function SopDetailPage() {
   const [showCreateTasks, setShowCreateTasks] = useState(false);
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [docExpandedSteps, setDocExpandedSteps] = useState<Set<string>>(new Set());
-  type StepDocument = typeof stepDocuments[number];
-  const [editingDoc, setEditingDoc] = useState<StepDocument | null>(null);
+  const [editingDoc, setEditingDoc] = useState<Record<string, any> | null>(null);
   const [sopEstimatedTime, setSopEstimatedTime] = useState('');
   const [editingSections, setEditingSections] = useState<Set<string>>(new Set());
   const toggleEdit = (section: string) => setEditingSections(prev => {
@@ -259,13 +258,13 @@ export default function SopDetailPage() {
         custom_role_id: roleId || null,
         product_name: productName || null,
         objetivo: objetivo || null,
-        utilizacao_usado: usado as Json,
-        utilizacao_nao_usado: naoUsado as Json,
+        utilizacao_usado: usado as unknown as Json,
+        utilizacao_nao_usado: naoUsado as unknown as Json,
         inputs: inputs as unknown as Json,
-        passos: passos as Json,
-        decisoes: decisoes as Json,
+        passos: passos as unknown as Json,
+        decisoes: decisoes as unknown as Json,
         outputs: outputs as unknown as Json,
-        notas: notas as Json,
+        notas: notas as unknown as Json,
         linked_entity_type: linkedEntityType,
         linked_entity_id: linkedEntityId || null,
         apply_to_all_active_clients: applyToAllActiveClients,
@@ -328,7 +327,7 @@ export default function SopDetailPage() {
     mutationFn: async () => {
       if (!templateTable || !linkedProductId) return;
       const nextOrder = templateRows.length;
-      await supabase.from(templateTable).insert({ product_id: linkedProductId, activity: '', sort_order: nextOrder });
+      await (supabase.from as any)(templateTable).insert({ product_id: linkedProductId, activity: '', sort_order: nextOrder });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
@@ -336,7 +335,7 @@ export default function SopDetailPage() {
   const updateTemplateRow = useMutation({
     mutationFn: async ({ rowId, data }: { rowId: string; data: Record<string, unknown> }) => {
       if (!templateTable) return;
-      await supabase.from(templateTable).update(data).eq('id', rowId);
+      await (supabase.from as any)(templateTable).update(data).eq('id', rowId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
@@ -344,7 +343,7 @@ export default function SopDetailPage() {
   const deleteTemplateRow = useMutation({
     mutationFn: async (rowId: string) => {
       if (!templateTable) return;
-      await supabase.from(templateTable).delete().eq('id', rowId);
+      await (supabase.from as any)(templateTable).delete().eq('id', rowId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
@@ -352,7 +351,7 @@ export default function SopDetailPage() {
   // ─── Sop Steps CRUD ──────────────────────────────────────
   const addSopStep = useMutation({
     mutationFn: async () => {
-      await supabase.from('sop_steps').insert({
+      await (supabase.from as any)('sop_steps').insert({
         sop_id: id,
         description: '',
         sort_order: sopSteps.length,
@@ -363,14 +362,14 @@ export default function SopDetailPage() {
 
   const updateSopStep = useMutation({
     mutationFn: async ({ stepId, data }: { stepId: string; data: Record<string, unknown> }) => {
-      await supabase.from('sop_steps').update(data).eq('id', stepId);
+      await (supabase.from as any)('sop_steps').update(data).eq('id', stepId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
   });
 
   const deleteSopStep = useMutation({
     mutationFn: async (stepId: string) => {
-      await supabase.from('sop_steps').delete().eq('id', stepId);
+      await (supabase.from as any)('sop_steps').delete().eq('id', stepId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
   });
@@ -381,8 +380,8 @@ export default function SopDetailPage() {
     const a = sopSteps[idx];
     const b = sopSteps[swapIdx];
     await Promise.all([
-      supabase.from('sop_steps').update({ sort_order: b.sort_order }).eq('id', a.id),
-      supabase.from('sop_steps').update({ sort_order: a.sort_order }).eq('id', b.id),
+      (supabase.from as any)('sop_steps').update({ sort_order: b.sort_order }).eq('id', a.id),
+      (supabase.from as any)('sop_steps').update({ sort_order: a.sort_order }).eq('id', b.id),
     ]);
     queryClient.invalidateQueries({ queryKey: ['sop-steps', id] });
   };
@@ -390,7 +389,7 @@ export default function SopDetailPage() {
   // ─── Step Documents CRUD ──────────────────────────────────────
   const addStepDoc = useMutation({
     mutationFn: async (stepId: string) => {
-      await supabase.from('sop_step_documents').insert({
+      await (supabase.from as any)('sop_step_documents').insert({
         sop_id: id,
         step_id: stepId,
         step_index: 0,
@@ -405,14 +404,14 @@ export default function SopDetailPage() {
 
   const updateStepDoc = useMutation({
     mutationFn: async ({ docId, data }: { docId: string; data: Record<string, unknown> }) => {
-      await supabase.from('sop_step_documents').update(data).eq('id', docId);
+      await (supabase.from as any)('sop_step_documents').update(data).eq('id', docId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
   });
 
   const deleteStepDoc = useMutation({
     mutationFn: async (docId: string) => {
-      await supabase.from('sop_step_documents').delete().eq('id', docId);
+      await (supabase.from as any)('sop_step_documents').delete().eq('id', docId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
   });
@@ -905,7 +904,7 @@ export default function SopDetailPage() {
                         </Button>
                         <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => {
                           (async () => {
-                            await supabase.from('sop_step_documents').insert({
+                            await (supabase.from as any)('sop_step_documents').insert({
                               sop_id: id,
                               step_id: step.id,
                               step_index: 0,
