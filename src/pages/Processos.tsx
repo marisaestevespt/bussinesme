@@ -600,7 +600,7 @@ export default function ProcessosPage() {
         </DialogContent>
       </Dialog>
 
-      </div>
+      </CollectionPage>
     </AppLayout>
   );
 }
