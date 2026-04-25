@@ -156,6 +156,13 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
   };
 
   const items = (team.onboarding.data || []).filter((i: any) => i.member_id === member.id);
+  const onbTotal = items.length;
+  const onbDone = items.filter((i: any) => i.completed).length;
+  const onbPct = onbTotal > 0 ? Math.round((onbDone / onbTotal) * 100) : 0;
+  const onbOverdue = items.filter((i: any) => !i.completed && i.deadline_date && parseISO(i.deadline_date) < startOfDay(new Date())).length;
+  const onbNextDue = items
+    .filter((i: any) => !i.completed && i.deadline_date)
+    .sort((a: any, b: any) => a.deadline_date.localeCompare(b.deadline_date))[0];
   const contracts = (team.contracts.data || []).filter((c: any) => c.member_id === member.id);
   const payments = (team.payments.data || []).filter((p: any) => p.member_id === member.id);
   const totalHours = (memberTime.data || []).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
