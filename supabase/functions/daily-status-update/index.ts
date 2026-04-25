@@ -188,7 +188,7 @@ Deno.serve(async (req) => {
           ? `${emoji} Contrato de ${memberName} expirou`
           : `${emoji} Contrato de ${memberName} expira em ${daysLeft} dias`;
         await supabase.from("notifications").insert({
-          user_id: ownerId, type: "contract_expiry", title, message: notifKey, link: "/hub/pessoas",
+          user_id: ownerId, type: "contract_expiry", title, message: notifKey, link: "/hub-equipa",
         });
         contractCount++;
       }
@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
           await supabase.from("notifications").insert({
             user_id: ownerId, type: "capacity_alert",
             title: `🔴 ${member.full_name} está a ${Math.round(occupancy)}% de capacidade esta semana. Considera realocar tarefas.`,
-            message: weekKey, link: "/executive/gestao-equipa",
+            message: weekKey, link: "/hub/recursos-humanos",
           });
           capacityAlerts++;
         }
@@ -518,7 +518,7 @@ Deno.serve(async (req) => {
         const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("message", dedupKey);
         if ((existing || 0) > 0) continue;
         await supabase.from("notifications").insert({
-          user_id: uid, type: "crm", title: `📞 Follow-up em atraso: ${lead.name}`, message: dedupKey, link: "/comercial/crm",
+          user_id: uid, type: "crm", title: `📞 Follow-up em atraso: ${lead.name}`, message: dedupKey, link: "/hub/comercial/crm",
         });
         followUpAlerts++;
       }

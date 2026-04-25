@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppTabsProvider } from "@/hooks/useAppTabs";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DialogsProvider } from "@/components/ui/confirm-dialog";
@@ -18,6 +18,11 @@ import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
 import { useSuspensionCheck } from '@/hooks/useSuspensionCheck';
 import { SuspensionScreen } from '@/components/SuspensionScreen';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+
+function RedirectClienteId() {
+  const { id } = useParams();
+  return <Navigate to={`/hub/clientes/${id}`} replace />;
+}
 
 // Lazy-loaded pages (code-splitting per route)
 const SecretariaPage = lazy(() => import("./pages/Secretaria"));
@@ -180,6 +185,11 @@ function AppRoutes() {
         <Route path="/hub/biblioteca" element={<BibliotecaPage />} />
         <Route path="/hub/tarefas" element={<TarefasPage />} />
         <Route path="/tarefas" element={<Navigate to="/hub/tarefas" replace />} />
+        <Route path="/clientes/:id" element={<RedirectClienteId />} />
+        <Route path="/comercial/crm" element={<Navigate to="/hub/comercial/crm" replace />} />
+        <Route path="/financeiro/entradas" element={<Navigate to="/hub/financeiro/entradas" replace />} />
+        <Route path="/hub/pessoas" element={<Navigate to="/hub-equipa" replace />} />
+        <Route path="/executive/gestao-equipa" element={<Navigate to="/hub/recursos-humanos" replace />} />
         <Route path="/hub/marketing" element={<MarketingDashboard />} />
         <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
         <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
