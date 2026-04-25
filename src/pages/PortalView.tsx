@@ -21,22 +21,13 @@ import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
+import { SectionCard, SectionTitle } from '@/components/portal-view/SectionPrimitives';
+import { PortalContractSection } from '@/components/portal-view/PortalContractSection';
+import { PortalFeedbackSection } from '@/components/portal-view/PortalFeedbackSection';
+import { PortalHistorySection } from '@/components/portal-view/PortalHistorySection';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
-
-const SectionCard = ({ children, className = '', onClick, style }: { children: React.ReactNode; className?: string; onClick?: () => void; style?: React.CSSProperties }) => (
-  <div className={`bg-white rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-shadow ${className}`} onClick={onClick} style={style}>
-    {children}
-  </div>
-);
-
-const SectionTitle = ({ children, icon: Icon }: { children: React.ReactNode; icon?: any }) => (
-  <div className="flex items-center gap-2.5 mb-4">
-    {Icon && <div className="p-2 rounded-xl bg-primary/10"><Icon className="h-4 w-4 text-primary" /></div>}
-    <h2 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>{children}</h2>
-  </div>
-);
 
 export default function PortalViewPage() {
   const { token } = useParams<{ token: string }>();
@@ -1121,41 +1112,7 @@ export default function PortalViewPage() {
 
         {/* ═══ CONTRACT ═══ */}
         {activeSection === 'contract' && (
-          <div className="space-y-5">
-            <SectionTitle icon={FileText}>Contrato</SectionTitle>
-            {contractDocs.length === 0 ? (
-              <SectionCard className="p-8 text-center">
-                <FileText className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-sm text-muted-foreground">Sem documentos de contrato disponíveis.</p>
-              </SectionCard>
-            ) : (
-              <div className="space-y-3">
-                {contractDocs.map((proj: any, pi: number) => {
-                  const docs = Array.isArray(proj.contract_documents) ? proj.contract_documents : [];
-                  return docs.map((doc: any, di: number) => (
-                    <SectionCard key={`${pi}-${di}`} className="p-5">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2.5 rounded-xl" style={{ backgroundColor: pcAlpha(0.08) }}>
-                            <FileText className="h-5 w-5" style={{ color: pc }} />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{doc.name || 'Contrato'}</p>
-                            {proj.project_name && <p className="text-xs text-muted-foreground mt-0.5">{proj.project_name}</p>}
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" className="rounded-lg shrink-0" asChild>
-                          <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                            <Download className="h-3.5 w-3.5 mr-1" />Abrir
-                          </a>
-                        </Button>
-                      </div>
-                    </SectionCard>
-                  ));
-                })}
-              </div>
-            )}
-          </div>
+          <PortalContractSection contractDocs={contractDocs} pc={pc} pcAlpha={pcAlpha} />
         )}
 
         {/* ═══ MEETINGS ═══ */}
@@ -1519,95 +1476,20 @@ export default function PortalViewPage() {
 
         {/* ═══ FEEDBACK ═══ */}
         {activeSection === 'feedback' && (
-          <div className="space-y-5">
-            <SectionTitle icon={MessageSquare}>Feedback</SectionTitle>
-            <SectionCard className="p-5 space-y-4">
-              <Textarea
-                className="rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
-                placeholder="Partilha o teu feedback connosco... 💬"
-                value={feedbackText}
-                onChange={e => setFeedbackText(e.target.value)}
-                rows={4}
-                style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
-              />
-              <Button className="rounded-xl text-white" style={{ backgroundColor: pc }} disabled={!feedbackText.trim()} onClick={sendFeedback}>
-                <Send className="h-4 w-4 mr-2" />Enviar Feedback
-              </Button>
-            </SectionCard>
-            {feedback.length > 0 && (
-              <SectionCard className="p-5">
-                <p className="text-sm font-semibold mb-3">Feedback Anterior</p>
-                <div className="space-y-3">
-                  {feedback.map((f: any) => (
-                    <div key={f.id} className="rounded-xl border border-border/30 bg-muted/10 p-4">
-                      <p className="text-sm leading-relaxed">{f.content}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}</p>
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-            )}
-          </div>
+          <PortalFeedbackSection
+            feedback={feedback}
+            feedbackText={feedbackText}
+            setFeedbackText={setFeedbackText}
+            sendFeedback={sendFeedback}
+            pc={pc}
+            pcAlpha={pcAlpha}
+          />
         )}
 
 
         {/* ═══ HISTORY ═══ */}
         {activeSection === 'history' && (
-          <div className="space-y-5">
-            <SectionTitle icon={History}>Histórico de Projetos</SectionTitle>
-            <p className="text-sm text-muted-foreground -mt-2">Projetos anteriores concluídos.</p>
-            {projectHistory.map((h: any) => (
-              <SectionCard key={h.id} className="p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-semibold text-sm">{h.project_name}</p>
-                  <Badge variant="outline" className="text-[10px] bg-success/15 text-success border-success/30">Concluído</Badge>
-                </div>
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
-                  {h.product_name && <span>🏷️ {h.product_name}</span>}
-                  {h.start_date && <span>📅 Início: {h.start_date}</span>}
-                  {h.end_date && <span>🏁 Fim: {h.end_date}</span>}
-                </div>
-                {Array.isArray(h.timeline_phases) && h.timeline_phases.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold mb-2">Timeline</p>
-                    <div className="space-y-1.5">
-                      {h.timeline_phases.map((p: any, i: number) => (
-                        <div key={i} className="flex items-center gap-2 text-xs">
-                          <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            p.status === 'concluido' ? 'text-white' : p.status === 'em_curso' ? 'text-white' : 'bg-muted text-muted-foreground'
-                          }`} style={p.status === 'concluido' || p.status === 'em_curso' ? { backgroundColor: pc } : undefined}>
-                            {p.status === 'concluido' ? '✓' : i + 1}
-                          </div>
-                          <span className={p.status === 'concluido' ? 'text-muted-foreground line-through' : ''}>{p.title}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {Array.isArray(h.monthly_summaries) && h.monthly_summaries.length > 0 && (
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="summaries" className="border-border/30">
-                      <AccordionTrigger className="text-xs hover:no-underline">Resumos Mensais ({h.monthly_summaries.length})</AccordionTrigger>
-                      <AccordionContent className="space-y-2">
-                        {h.monthly_summaries.map((s: any, i: number) => (
-                          <div key={i} className="rounded-xl border border-border/30 bg-muted/10 p-3 text-xs">
-                            <p className="font-semibold" style={{ color: pc }}>{s.month}/{s.year}</p>
-                            <p className="text-muted-foreground whitespace-pre-wrap mt-1">{s.content}</p>
-                          </div>
-                        ))}
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                )}
-                {h.notes && (
-                  <div className="mt-3 rounded-xl bg-muted/20 p-3">
-                    <p className="text-xs font-semibold mb-1">Notas</p>
-                    <p className="text-xs text-muted-foreground">{h.notes}</p>
-                  </div>
-                )}
-              </SectionCard>
-            ))}
-          </div>
+          <PortalHistorySection projectHistory={projectHistory} pc={pc} />
         )}
 
       </main>
