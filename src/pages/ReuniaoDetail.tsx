@@ -501,27 +501,39 @@ export default function ReuniaoDetailPage() {
     <AppLayout>
       <div className="w-full space-y-6">
         {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <BackNavigation parentRoute="/hub/reunioes" parentLabel="Reuniões" />
-          <div className="flex items-center gap-2">
-            {dirty && (
-              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? 'A guardar...' : 'Guardar'}
-              </Button>
-            )}
-            {isOwner && (
-              <Button variant="destructive" aria-label="Eliminar" size="icon" onClick={() => {
-                if (isSeriesParent && seriesCount > 0) {
-                  setDeleteDialogOpen(true);
-                } else {
-                  deleteMutation.mutate('single');
+        <EntityTopBar
+          backTo="/hub/reunioes"
+          backLabel="Reuniões"
+          primaryAction={
+            dirty
+              ? {
+                  label: saveMutation.isPending ? 'A guardar...' : 'Guardar',
+                  onClick: () => saveMutation.mutate(),
+                  disabled: saveMutation.isPending,
+                  loading: saveMutation.isPending,
                 }
-              }} disabled={deleteMutation.isPending}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
+              : undefined
+          }
+          secondaryActions={
+            isOwner
+              ? [
+                  {
+                    label: 'Eliminar',
+                    icon: Trash2,
+                    variant: 'destructive',
+                    onClick: () => {
+                      if (isSeriesParent && seriesCount > 0) {
+                        setDeleteDialogOpen(true);
+                      } else {
+                        deleteMutation.mutate('single');
+                      }
+                    },
+                    disabled: deleteMutation.isPending,
+                  },
+                ]
+              : []
+          }
+        />
 
         {/* Series delete dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
