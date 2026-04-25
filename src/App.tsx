@@ -42,6 +42,7 @@ const ExecutiveRecommendations = lazy(() => import("./pages/ExecutiveRecommendat
 const ExecutiveProcessos = lazy(() => import("./pages/ExecutiveProcessos"));
 const DefinicoesPage = lazy(() => import("./pages/Definicoes"));
 const AgendaPage = lazy(() => import("./pages/Agenda"));
+const EventoDetailPage = lazy(() => import("./pages/EventoDetail"));
 const ReunioesPage = lazy(() => import("./pages/Reunioes"));
 const ReuniaoDetailPage = lazy(() => import("./pages/ReuniaoDetail"));
 const AcessosPage = lazy(() => import("./pages/Acessos"));
@@ -175,6 +176,7 @@ function AppRoutes() {
         <Route path="/hub-equipa" element={<HubEquipaPage />} />
         <Route path="/comeca-aqui" element={<ComecaAquiPage />} />
         <Route path="/hub/agenda" element={<AgendaPage />} />
+        <Route path="/hub/agenda/eventos/:id" element={<EventoDetailPage />} />
         <Route path="/hub/reunioes" element={<ReunioesPage />} />
         <Route path="/hub/reunioes/:id" element={<ReuniaoDetailPage />} />
         <Route path="/hub/acessos" element={<AcessosPage />} />
