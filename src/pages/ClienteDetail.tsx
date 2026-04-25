@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { ProductIcon } from '@/components/entity-icon';
 import {
   useClient, useClients, useClientHistory,
   CLIENT_STATUS_OPTIONS, Client

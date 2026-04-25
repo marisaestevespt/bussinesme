@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { ProductIcon } from '@/components/entity-icon';
 import { isTaskDone } from '@/lib/taskStatus';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
