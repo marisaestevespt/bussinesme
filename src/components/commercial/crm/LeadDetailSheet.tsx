@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload, X } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload, X, ExternalLink } from 'lucide-react';
 import { CrmLabelPicker, CrmLabelBadges } from './CrmLabelPicker';
 import { useCrmLabels } from '@/hooks/useCrmLabels';
 import { format, differenceInDays, parseISO } from 'date-fns';
@@ -316,7 +316,21 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="!w-[96vw] !max-w-[1400px] !h-[94vh] !max-h-[94vh] !gap-0 !p-0 overflow-hidden">
           <DialogHeader className="border-b px-6 py-5 pr-12">
-            <DialogTitle>{form.id ? 'Ficha do Lead' : 'Nova Lead'}</DialogTitle>
+            <div className="flex items-center justify-between gap-3">
+              <DialogTitle>{form.id ? 'Ficha do Lead' : 'Nova Lead'}</DialogTitle>
+              {form.id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onOpenChange(false);
+                    navigate(`/hub/comercial/crm/${form.id}`);
+                  }}
+                >
+                  <ExternalLink className="h-3.5 w-3.5 mr-1" /> Abrir página
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <div className="min-h-0 overflow-y-auto px-6 py-5">
