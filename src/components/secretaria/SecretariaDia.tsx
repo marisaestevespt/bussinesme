@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,25 +7,29 @@ import { TaskCustomViews } from './TaskCustomViews';
 import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secretaria-shared';
 import { RoutineMonthCard } from './SecretariaRotinas';
 import { isToday, parseISO } from 'date-fns';
-import { DayView } from '@/components/agenda/AppleCalendarViews';
 import { useNavigate } from 'react-router-dom';
 import { useMyAgendaEvents } from '@/hooks/useMyAgendaEvents';
+import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 
 export default function SecretariaDia() {
   const navigate = useNavigate();
+  const [cursor, setCursor] = useState<Date>(new Date());
   const meetings = useMyMeetings();
   const timeEntries = useMyTimeEntries();
   const routineTasks = useMonthRoutineTasks();
   const unified = useUnifiedResponsibilities();
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const { events: dayAgendaEvents, types: sourceTypes } = useMyAgendaEvents({ from: todayStr, to: todayStr });
+  const { events, types, typeItems, productItems, isEventVisible } = useMyAgendaEvents(
+    { from: format(new Date(cursor.getFullYear(), 0, 1), 'yyyy-MM-dd'), to: format(new Date(cursor.getFullYear(), 11, 31), 'yyyy-MM-dd') },
+    cursor,
+  );
   const todayMeetings = useMemo(() => (meetings.data || []).filter((m: any) => isToday(parseISO(m.date_time))), [meetings.data]);
   const todayTime = useMemo(() => (timeEntries.data || []).filter((e: any) => e.entry_date === todayStr), [timeEntries.data, todayStr]);
   const todayHours = useMemo(() => todayTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [todayTime]);
 
   const handleEventClick = (ev: any) => {
     if (ev._isMeeting && ev._meetingId) navigate(`/hub/reunioes/${ev._meetingId}`);
-    else if (String(ev.id || '').startsWith('sales_')) navigate('/hub/comercial');
+    else if (ev._isSalesAction || String(ev.id || '').startsWith('sales_')) navigate('/hub/comercial');
     else navigate('/hub/agenda');
   };
 
@@ -39,12 +43,22 @@ export default function SecretariaDia() {
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
       </div>
 
-      <DayView
-        current={new Date()}
-        events={dayAgendaEvents}
-        types={sourceTypes}
-        onEventClick={handleEventClick}
-      />
+      <Card>
+        <CardContent className="p-0">
+          <AgendaCalendarView
+            storageKey="agenda-secretaria-dia"
+            cursor={cursor}
+            onCursorChange={setCursor}
+            events={events}
+            types={types}
+            typeItems={typeItems}
+            productItems={productItems}
+            isEventVisible={isEventVisible}
+            onEventClick={handleEventClick}
+            defaultMode="day"
+          />
+        </CardContent>
+      </Card>
 
       <TaskCustomViews
         scope="today"
