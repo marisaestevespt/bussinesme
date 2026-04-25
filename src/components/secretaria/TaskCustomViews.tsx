@@ -357,6 +357,59 @@ function FiltersPopover({ filters, onChange, items }: { filters: SavedFilters; o
             })}
           </div>
         </div>
+        <div className="space-y-2">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Estado</label>
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              { v: 'all', l: 'Tudo' },
+              { v: 'pending', l: 'Pendentes' },
+              { v: 'done', l: 'Feitas' },
+            ] as const).map(opt => {
+              const cur = filters.completion || 'all';
+              const active = cur === opt.v;
+              return (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => onChange({ ...filters, completion: opt.v })}
+                  className={cn(
+                    'text-xs rounded-full px-3 py-1 border transition-colors',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground/80 border-border hover:border-foreground/40',
+                  )}
+                >{opt.l}</button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/80">Prazo</label>
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              { v: undefined, l: 'Qualquer' },
+              { v: 'overdue', l: 'Atrasadas' },
+              { v: 'today', l: 'Hoje' },
+              { v: 'week', l: 'Próx. 7 dias' },
+              { v: 'no_deadline', l: 'Sem prazo' },
+            ] as const).map(opt => {
+              const active = (filters.deadlineWindow ?? undefined) === opt.v;
+              return (
+                <button
+                  key={String(opt.v)}
+                  type="button"
+                  onClick={() => onChange({ ...filters, deadlineWindow: opt.v as SavedFilters['deadlineWindow'] })}
+                  className={cn(
+                    'text-xs rounded-full px-3 py-1 border transition-colors',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground/80 border-border hover:border-foreground/40',
+                  )}
+                >{opt.l}</button>
+              );
+            })}
+          </div>
+        </div>
         <label className="flex items-center justify-between gap-2 cursor-pointer">
           <span className="text-sm">Esconder feitas</span>
           <button
