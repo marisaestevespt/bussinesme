@@ -912,8 +912,7 @@ export default function SopDetailPage() {
               );
             })}
           </div>
-          </CardContent>
-        </Card>
+        </EntitySection>
 
         {isOffboardingSop && linkedProductId && (
           <RenewalSection productId={linkedProductId} />
@@ -935,17 +934,14 @@ export default function SopDetailPage() {
           <KpisSection productId={linkedProductId} />
         )}
 
-        <Card>
-          <CardHeader className="pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">5</span>
-              Decisões / Exceções
-            </CardTitle>
+        <EntitySection
+          title="5 · Decisões / Exceções"
+          action={
             <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('decisoes')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-          </CardHeader>
-          <CardContent>
+          }
+        >
             {editingSections.has('decisoes') ? (
               <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
             ) : (
@@ -953,20 +949,16 @@ export default function SopDetailPage() {
                 <ul className="text-sm space-y-0.5">{decisoes.filter(d => d.trim()).map((d, i) => <li key={i}>• {d}</li>)}</ul>
               ) : <EmptyHint>Sem decisões definidas</EmptyHint>
             )}
-          </CardContent>
-        </Card>
+        </EntitySection>
 
-        <Card>
-          <CardHeader className="pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">6</span>
-              Outputs Finais
-            </CardTitle>
+        <EntitySection
+          title="6 · Outputs Finais"
+          action={
             <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('outputs')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-          </CardHeader>
-          <CardContent>
+          }
+        >
             {editingSections.has('outputs') ? (
               <>
                 <p className="text-sm text-success mb-3">✅ O processo considera-se concluído quando:</p>
@@ -982,20 +974,16 @@ export default function SopDetailPage() {
                 ))}</ul>
               ) : <EmptyHint>Sem outputs definidos</EmptyHint>
             )}
-          </CardContent>
-        </Card>
+        </EntitySection>
 
-        <Card>
-          <CardHeader className="pb-3 flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">7</span>
-              Notas
-            </CardTitle>
+        <EntitySection
+          title="7 · Notas"
+          action={
             <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => toggleEdit('notas')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-          </CardHeader>
-          <CardContent>
+          }
+        >
             {editingSections.has('notas') ? (
               <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
             ) : (
@@ -1003,8 +991,7 @@ export default function SopDetailPage() {
                 <ul className="text-sm space-y-0.5">{notas.filter(n => n.trim()).map((n, i) => <li key={i}>• {n}</li>)}</ul>
               ) : <EmptyHint>Sem notas</EmptyHint>
             )}
-          </CardContent>
-        </Card>
+        </EntitySection>
 
         {/* Delete */}
         <div className="border-t pt-6">
