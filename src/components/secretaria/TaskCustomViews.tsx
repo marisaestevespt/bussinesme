@@ -670,8 +670,9 @@ export function TaskCustomViews({ scope, items, defaultTitle, defaultDeadline }:
           title={current ? current.name : defaultTitle}
         />
       )}
-      {viewType === 'table' && <TableView items={filteredItems} />}
-      {viewType === 'board' && <BoardView items={filteredItems} groupBy={groupBy} />}
+      {viewType === 'table' && <TableView items={filteredItems} onItemClick={openItem} />}
+      {viewType === 'board' && <BoardView items={filteredItems} groupBy={groupBy} onItemClick={openItem} />}
+      {dialogs}
     </div>
   );
 }
