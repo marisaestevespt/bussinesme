@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
-import { TaskCustomViews } from './TaskCustomViews';
+import { MyTasksTable } from './MyTasksTable';
 import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secretaria-shared';
 import { RoutineMonthCard } from './SecretariaRotinas';
 import { format, parseISO, isWithinInterval, startOfWeek, endOfWeek, startOfDay } from 'date-fns';
@@ -69,12 +69,7 @@ export default function SecretariaSemana() {
         </CardContent>
       </Card>
 
-      <TaskCustomViews
-        scope="week"
-        items={unified.weekItems}
-        defaultTitle="Tarefas desta semana"
-        defaultDeadline={format(endOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-      />
+      <MyTasksTable scope="week" />
     </div>
   );
 }
