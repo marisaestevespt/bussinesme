@@ -637,111 +637,80 @@ export default function ClienteDetailPage() {
           </div>
         )}
         {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
-            <div className="min-w-0 flex-1">
-              <Input
-                value={form.full_name || ''}
-                onChange={e => update('full_name', e.target.value)}
-                placeholder="Nome do cliente"
-                className="text-xl font-bold border-none shadow-none px-0 h-auto focus-visible:ring-0 bg-transparent w-full min-w-[320px]"
-              />
-              {form.client_id && <p className="text-xs text-muted-foreground font-mono">{form.client_id}</p>}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {!isNew && <Button variant="outline" size="sm" onClick={handleDuplicate}><Copy className="h-4 w-4 mr-1" />Duplicar</Button>}
-            {!isNew && <Button variant="outline" size="sm" className="text-destructive" onClick={handleDelete}><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>}
-            {!isNew && (
-              <Button variant="outline" size="sm" onClick={openRenewDialog}>
-                <RefreshCw className="h-4 w-4 mr-1" />Renovar / Novo Ciclo
-              </Button>
-            )}
-            <Button size="sm" onClick={() => save()}><Save className="h-4 w-4 mr-1" />Guardar</Button>
-          </div>
-        </div>
+        <EntityTopBar
+          backTo="/hub/clientes"
+          backLabel="Clientes"
+          primaryAction={{ label: 'Guardar', icon: Save, onClick: () => save() }}
+          secondaryActions={[
+            ...(!isNew ? [{ label: 'Duplicar', icon: Copy, onClick: handleDuplicate, hideLabelOnMobile: true } as EntityAction] : []),
+            ...(!isNew ? [{ label: 'Eliminar', icon: Trash2, onClick: handleDelete, variant: 'destructive', hideLabelOnMobile: true } as EntityAction] : []),
+            ...(!isNew ? [{ label: 'Renovar / Novo Ciclo', icon: RefreshCw, onClick: openRenewDialog, hideLabelOnMobile: true } as EntityAction] : []),
+          ]}
+        />
+
+        {/* Title */}
+        <EntityTitle
+          title={form.full_name || ''}
+          onTitleChange={(v) => update('full_name', v)}
+          isOwner
+          inlineMode
+          placeholder="Nome do cliente"
+          meta={form.client_id ? <span className="text-xs text-muted-foreground font-mono">{form.client_id}</span> : undefined}
+        />
 
         {/* Properties */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Propriedades</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {/* Linha 1: ID | Status | Data de Início | Fim de Ciclo */}
-            <div className="grid grid-cols-1 md:grid-cols-[120px_1fr_1fr_1fr] gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">ID</Label>
-                <Input value={form.client_id || ''} onChange={e => update('client_id', e.target.value)} placeholder="Auto" className="font-mono text-xs" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Status</Label>
-                <Select value={form.status || 'ativo'} onValueChange={v => update('status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CLIENT_STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <DateField label="Data de Início" value={form.start_date || null} onChange={v => update('start_date', v)} />
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Fim de Ciclo</Label>
-                <Input value={form.end_of_cycle || ''} readOnly className="bg-muted/50 cursor-default text-muted-foreground" placeholder="Auto (do projeto)" />
-              </div>
-            </div>
-            {/* Linha 2: Conversão | Produto Atual | Email | Whatsapp | Aniversário */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <DateField label="Data de Conversão" value={form.conversion_date || null} onChange={v => update('conversion_date', v)} />
-              <div className="space-y-1 min-w-0">
-                <Label className="text-xs text-muted-foreground">Produto Atual</Label>
-                <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
-                  <SelectTrigger className="[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0">
-                    <SelectValue placeholder="Selecionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">E-mail</Label>
-                <Input type="email" value={form.email || ''} onChange={e => update('email', e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Whatsapp</Label>
-                <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} />
-              </div>
-              <DateField label="Aniversário" value={form.birthday || null} onChange={v => update('birthday', v)} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Dados Fiscais */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Nome Completo</Label>
-              <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">NIF</Label>
-                <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Morada Fiscal</Label>
-                <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <EntityProperties>
+          <EntityProperty icon={Hash} label="ID">
+            <Input value={form.client_id || ''} onChange={e => update('client_id', e.target.value)} placeholder="Auto" className={cn(inlineInputClass, 'font-mono text-xs')} />
+          </EntityProperty>
+          <EntityProperty icon={Activity} label="Status">
+            <Select value={form.status || 'ativo'} onValueChange={v => update('status', v)}>
+              <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CLIENT_STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </EntityProperty>
+          <EntityProperty icon={CalendarDays} label="Data de Início">
+            <Input type="date" value={form.start_date || ''} onChange={e => update('start_date', e.target.value || null)} className={inlineInputClass} />
+          </EntityProperty>
+          <EntityProperty icon={Clock} label="Fim de Ciclo">
+            <Input value={form.end_of_cycle || ''} readOnly className={cn(inlineInputClass, 'text-muted-foreground')} placeholder="Auto (do projeto)" />
+          </EntityProperty>
+          <EntityProperty icon={CalendarDays} label="Conversão">
+            <Input type="date" value={form.conversion_date || ''} onChange={e => update('conversion_date', e.target.value || null)} className={inlineInputClass} />
+          </EntityProperty>
+          <EntityProperty icon={Package} label="Produto Atual">
+            <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
+              <SelectTrigger className={cn(inlineTriggerClass, '[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0')}>
+                <SelectValue placeholder="Selecionar" />
+              </SelectTrigger>
+              <SelectContent>
+                {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </EntityProperty>
+          <EntityProperty icon={Mail} label="E-mail">
+            <Input type="email" value={form.email || ''} onChange={e => update('email', e.target.value)} className={inlineInputClass} placeholder="email@exemplo.com" />
+          </EntityProperty>
+          <EntityProperty icon={Phone} label="Whatsapp">
+            <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} className={inlineInputClass} placeholder="+351 ..." />
+          </EntityProperty>
+          <EntityProperty icon={Cake} label="Aniversário">
+            <Input type="date" value={form.birthday || ''} onChange={e => update('birthday', e.target.value || null)} className={inlineInputClass} />
+          </EntityProperty>
+          <EntityProperty icon={FileText} label="NIF">
+            <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} className={inlineInputClass} placeholder="—" />
+          </EntityProperty>
+          <EntityProperty icon={MapPin} label="Morada Fiscal">
+            <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} className={inlineInputClass} placeholder="—" />
+          </EntityProperty>
+        </EntityProperties>
 
         {/* Observações */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Observações</CardTitle></CardHeader>
-          <CardContent>
-            <Textarea value={form.observations || ''} onChange={e => update('observations', e.target.value)} rows={3} placeholder="Notas sobre este cliente..." />
-          </CardContent>
-        </Card>
+        <EntitySection title="Observações" icon={NotebookText}>
+          <Textarea value={form.observations || ''} onChange={e => update('observations', e.target.value)} rows={3} placeholder="Notas sobre este cliente..." />
+        </EntitySection>
 
         {/* Custom Fields */}
         {!isNew && id && (
@@ -750,10 +719,8 @@ export default function ClienteDetailPage() {
 
         {/* Final Settlement (offboarding/terminado) */}
         {(form.status === 'em_offboarding' || form.status === 'terminado') && !isNew && (
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Liquidação Final</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <EntitySection title="Liquidação Final" icon={Wallet}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Valor de Liquidação (€)</Label>
                   <Input type="number" step="0.01" value={(form as any).final_settlement_amount || ''} onChange={e => update('final_settlement_amount', parseFloat(e.target.value) || 0)} />
@@ -774,25 +741,25 @@ export default function ClienteDetailPage() {
                   <Label className="text-xs text-muted-foreground">Notas</Label>
                   <Input value={(form as any).final_settlement_notes || ''} onChange={e => update('final_settlement_notes', e.target.value)} placeholder="Notas sobre a liquidação..." />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </EntitySection>
         )}
 
         {/* Tabs */}
-        <Tabs defaultValue="jornada" className="w-full">
-          <TabsList className="bg-transparent gap-2 flex-wrap">
-            <TabsTrigger value="jornada">Jornada</TabsTrigger>
-            <TabsTrigger value="gestao">Gestão do Cliente</TabsTrigger>
-            <TabsTrigger value="customer-success">Customer Success</TabsTrigger>
-          </TabsList>
+        <EntityTabs defaultValue="jornada" className="w-full">
+          <EntityTabsList>
+            <EntityTabsTrigger value="jornada">Jornada</EntityTabsTrigger>
+            <EntityTabsTrigger value="gestao">Gestão do Cliente</EntityTabsTrigger>
+            <EntityTabsTrigger value="customer-success">Customer Success</EntityTabsTrigger>
+          </EntityTabsList>
 
           {/* ─── Tab 1: Jornada ───────────────────────────── */}
-          <TabsContent value="jornada" className="space-y-6 mt-4">
+          <EntityTabsContent value="jornada" className="space-y-6 mt-4">
             {/* Projects history */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Histórico de Projetos</CardTitle>
+            <EntitySection
+              title="Histórico de Projetos"
+              icon={Briefcase}
+              action={
                 <Button size="sm" variant="outline" onClick={async () => {
                   if (isNew) {
                     const newId = await save();
@@ -804,8 +771,9 @@ export default function ClienteDetailPage() {
                 }}>
                   <Plus className="h-3 w-3 mr-1" />Novo Projeto
                 </Button>
-              </CardHeader>
-              <CardContent className="p-0">
+              }
+            >
+              <div className="rounded-lg border overflow-hidden">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_100px] gap-2">
                   <span>Projeto</span><span>Status</span><span>Data</span>
                 </div>
@@ -822,20 +790,20 @@ export default function ClienteDetailPage() {
                     <span>{p.created_at ? format(parseISO(p.created_at), 'dd/MM/yyyy') : '—'}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </EntitySection>
 
             {/* Client history */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Histórico do Cliente</CardTitle>
-                {!isNew && (
+            <EntitySection
+              title="Histórico do Cliente"
+              icon={History}
+              action={!isNew ? (
                   <Button size="sm" variant="outline" onClick={() => addHistory.mutateAsync({ client_id: id!, milestone: '', entry_date: format(new Date(), 'yyyy-MM-dd') })}>
                     <Plus className="h-3 w-3 mr-1" />Nova Entrada
                   </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-0">
+                ) : undefined}
+            >
+              <div className="rounded-lg border overflow-hidden">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
                   <span>Data</span><span>Entrada</span><span>Observações</span><span></span>
                 </div>
@@ -863,21 +831,21 @@ export default function ClienteDetailPage() {
                     </div>
                   );
                 })}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </EntitySection>
+          </EntityTabsContent>
 
           {/* ─── Tab 2: Gestão do Cliente ──────────────────── */}
-          <TabsContent value="gestao" className="space-y-6 mt-4">
+          <EntityTabsContent value="gestao" className="space-y-6 mt-4">
             {/* Financial Health */}
             {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
             {/* Meetings */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Reuniões</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>
-              </CardHeader>
-              <CardContent className="p-0">
+            <EntitySection
+              title="Reuniões"
+              icon={Users}
+              action={<Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>}
+            >
+              <div className="rounded-lg border overflow-hidden">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-5 gap-2">
                   <span>Status</span><span>Data & Hora</span><span>Reunião</span><span>Participantes</span><span>Link</span>
                 </div>
@@ -896,15 +864,12 @@ export default function ClienteDetailPage() {
                     </span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </EntitySection>
 
             {/* Payments */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Pagamentos</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
+            <EntitySection title="Pagamentos" icon={Receipt}>
+              <div className="rounded-lg border overflow-hidden">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
                   <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span>
                 </div>
@@ -926,15 +891,14 @@ export default function ClienteDetailPage() {
                     <span>Valor total: {sumRevenue(clientSales).toFixed(2)}€</span>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </EntitySection>
 
             <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
 
             {/* Links */}
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Links</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
+            <EntitySection title="Links" icon={Link2}>
+              <div className="space-y-4">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Pasta Drive</Label>
                   <div className="flex gap-2">
@@ -957,12 +921,12 @@ export default function ClienteDetailPage() {
                     )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </EntitySection>
+          </EntityTabsContent>
 
           {/* ─── Tab 3: Customer Success ──────────────────── */}
-          <TabsContent value="customer-success" className="space-y-6 mt-4">
+          <EntityTabsContent value="customer-success" className="space-y-6 mt-4">
             {/* Feedback */}
             <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
 
@@ -974,8 +938,8 @@ export default function ClienteDetailPage() {
                 startDate={form.start_date || null}
               />
             )}
-          </TabsContent>
-        </Tabs>
+          </EntityTabsContent>
+        </EntityTabs>
       </div>
 
       {/* Meeting dialog — full form with recurrence support */}
