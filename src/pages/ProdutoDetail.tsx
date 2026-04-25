@@ -314,57 +314,94 @@ export default function ProdutoDetailPage() {
         </div>
 
         {/* Logo + Name + Description (hero card) */}
-        <Card className="relative overflow-hidden border-primary/15 bg-gradient-to-br from-primary/[0.03] via-background to-accent/[0.03]">
-          <CardContent className="relative p-4">
-            <div className="flex gap-4 items-start">
-              <div className="relative shrink-0 group">
-                <div className="h-16 w-16 rounded-xl border bg-background overflow-hidden flex items-center justify-center">
-                  {form.logo_url ? (
-                    <img src={form.logo_url} alt="Logo" className="h-full w-full object-contain p-1" />
-                  ) : (
-                    <ImageIcon className="h-7 w-7 text-muted-foreground/40" />
-                  )}
+        {(() => {
+          const statusMap: Record<string, { label: string; bar: string; dot: string; chip: string }> = {
+            vendas_ativas: { label: 'Vendas Ativas', bar: 'bg-emerald-500', dot: 'bg-emerald-500', chip: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' },
+            a_criar:      { label: 'A Criar',       bar: 'bg-amber-500',   dot: 'bg-amber-500',   chip: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30' },
+            em_ideia:     { label: 'Em Ideia',      bar: 'bg-sky-500',     dot: 'bg-sky-500',     chip: 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30' },
+            off:          { label: 'Off',           bar: 'bg-slate-400',   dot: 'bg-slate-400',   chip: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/30' },
+          };
+          const st = statusMap[form.status as string] || statusMap.em_ideia;
+          const escadaLabel = ESCADA_OPTIONS.find(e => e.value === form.escada)?.label;
+          const typeLabel = PRODUCT_TYPE_OPTIONS.find(t => t.value === form.product_type)?.label;
+
+          return (
+            <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-primary/[0.04] via-background to-accent/[0.05] shadow-sm">
+              {/* status bar (left) */}
+              <div className={cn('absolute left-0 top-0 bottom-0 w-1', st.bar)} />
+              {/* decorative blob */}
+              <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/[0.06] blur-2xl" />
+              <div className="pointer-events-none absolute bottom-0 right-12 h-24 w-24 rounded-full bg-accent/[0.08] blur-xl" />
+
+              <CardContent className="relative p-5 pl-6">
+                <div className="flex gap-4 items-start">
+                  <div className="relative shrink-0 group">
+                    <div className="h-16 w-16 rounded-xl border bg-background overflow-hidden flex items-center justify-center shadow-sm ring-1 ring-border/50">
+                      {form.logo_url ? (
+                        <img src={form.logo_url} alt="Logo" className="h-full w-full object-contain p-1" />
+                      ) : (
+                        <ImageIcon className="h-7 w-7 text-muted-foreground/40" />
+                      )}
+                    </div>
+                    {isOwner && (
+                      <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <Upload className="h-4 w-4 text-white" />
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const path = `logos/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
+                          const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
+                          if (error) { toast.error('Erro ao enviar logo'); return; }
+                          const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
+                          update('logo_url', urlData.publicUrl);
+                        }} />
+                      </label>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* meta row: status + type + escada */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium', st.chip)}>
+                        <span className={cn('h-1.5 w-1.5 rounded-full', st.dot)} />
+                        {st.label}
+                      </span>
+                      {typeLabel && (
+                        <span className="inline-flex items-center rounded-full border border-border/60 bg-background/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                          {typeLabel}
+                        </span>
+                      )}
+                      {escadaLabel && (
+                        <span className="inline-flex items-center rounded-full border border-border/60 bg-background/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                          {escadaLabel}
+                        </span>
+                      )}
+                    </div>
+                    <Input
+                      value={form.name || ''}
+                      onChange={e => update('name', e.target.value)}
+                      placeholder="Nome do produto"
+                      className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto leading-tight tracking-tight"
+                      readOnly={!isOwner}
+                    />
+                    <ProductDescriptionEditor
+                      value={form.description || ''}
+                      onChange={(v) => update('description', v)}
+                      isOwner={isOwner}
+                      productId={product?.id}
+                      persistedValue={product?.description || ''}
+                      onSave={async (v) => {
+                        if (!product) return;
+                        await upsertProduct.mutateAsync({ id: product.id, name: form.name!, description: v ?? null } as Product);
+                        qc.invalidateQueries({ queryKey: ['products', product.id] });
+                      }}
+                      isSaving={upsertProduct.isPending}
+                    />
+                  </div>
                 </div>
-                {isOwner && (
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <Upload className="h-4 w-4 text-white" />
-                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const path = `logos/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
-                      const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
-                      if (error) { toast.error('Erro ao enviar logo'); return; }
-                      const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
-                      update('logo_url', urlData.publicUrl);
-                    }} />
-                  </label>
-                )}
-              </div>
-              <div className="flex-1 min-w-0 space-y-2">
-                <Input
-                  value={form.name || ''}
-                  onChange={e => update('name', e.target.value)}
-                  placeholder="Nome do produto"
-                  className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto leading-tight"
-                  readOnly={!isOwner}
-                />
-                <ProductDescriptionEditor
-                  value={form.description || ''}
-                  onChange={(v) => update('description', v)}
-                  isOwner={isOwner}
-                  productId={product?.id}
-                  persistedValue={product?.description || ''}
-                  onSave={async (v) => {
-                    if (!product) return;
-                    await upsertProduct.mutateAsync({ id: product.id, name: form.name!, description: v ?? null } as Product);
-                    qc.invalidateQueries({ queryKey: ['products', product.id] });
-                  }}
-                  isSaving={upsertProduct.isPending}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Properties Card */}
         <Card>
