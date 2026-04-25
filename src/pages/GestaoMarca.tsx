@@ -18,23 +18,24 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor,
-  closestCorners, useDroppable, useSensor, useSensors,
+  closestCorners, useSensor, useSensors,
 } from '@dnd-kit/core';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import {
-  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+  arrayMove,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
-  Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
-  Target, Sparkles, BarChart3, ChevronRight as ChevronRightIcon,
+  Trash2, Upload, FileText, Image as ImageIcon,
+  Target, Sparkles, BarChart3,
 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
-import EmojiPicker, { EmojiStyle, Theme } from 'emoji-picker-react';
+import { SortableKanbanItem } from '@/components/gestao-marca/SortableKanbanItem';
+import { KanbanColumn } from '@/components/gestao-marca/KanbanColumn';
+import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
+import type { KanbanItem } from '@/components/gestao-marca/types';
 
 // ── Types ──
 
@@ -58,15 +59,6 @@ interface BrandLink {
   label: string;
   url: string;
   sort_order: number;
-}
-
-interface KanbanItem {
-  id: string;
-  group_key: string;
-  title: string;
-  content: string | null;
-  sort_order: number;
-  emoji?: string | null;
 }
 
 interface VisualCard {
