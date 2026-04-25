@@ -1,6 +1,5 @@
 import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getInitials } from "@/lib/utils";
 import { parseIcon, type EntityIcon } from "./types";
 
 interface Props {
@@ -11,13 +10,6 @@ interface Props {
   emojiClassName?: string;
   /** Container variant */
   variant?: "rounded" | "square" | "circle";
-  /**
-   * Entity name. When no icon is set, the initials are used as a
-   * Notion-style fallback instead of the generic image icon.
-   */
-  name?: string | null;
-  /** Tailwind classes for the initials text. Defaults to a tasteful auto-scale. */
-  initialsClassName?: string;
   fallback?: React.ReactNode;
 }
 
@@ -26,8 +18,6 @@ export function EntityIconDisplay({
   className,
   emojiClassName,
   variant = "rounded",
-  name,
-  initialsClassName,
   fallback,
 }: Props) {
   const parsed = parseIcon(icon);
@@ -35,25 +25,6 @@ export function EntityIconDisplay({
     variant === "circle" ? "rounded-full" : variant === "square" ? "rounded-md" : "rounded-lg";
 
   if (!parsed) {
-    const initials = getInitials(name);
-    if (initials || fallback === undefined) {
-      return (
-        <div
-          className={cn(
-            "flex items-center justify-center bg-primary/10 text-primary font-semibold shrink-0 select-none",
-            radius,
-            className,
-          )}
-          aria-label={name ?? undefined}
-        >
-          {initials ? (
-            <span className={cn(initialsClassName ?? "text-[0.9em] leading-none")}>{initials}</span>
-          ) : (
-            fallback ?? <ImageIcon className="h-1/2 w-1/2 text-muted-foreground/60" />
-          )}
-        </div>
-      );
-    }
     return (
       <div
         className={cn(
@@ -62,7 +33,7 @@ export function EntityIconDisplay({
           className,
         )}
       >
-        {fallback}
+        {fallback ?? <ImageIcon className="h-1/2 w-1/2" />}
       </div>
     );
   }

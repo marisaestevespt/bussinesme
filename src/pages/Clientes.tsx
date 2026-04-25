@@ -88,7 +88,7 @@ export default function ClientesPage() {
           <span className="truncate"><span className="text-foreground/60">Conversão:</span> {fmtDate((c as any).conversion_date)}</span>
           <span className="truncate text-foreground inline-flex items-center gap-1.5">
             {c.current_product_id || c.current_product ? (
-              <ProductIcon productId={c.current_product_id as any} name={c.current_product} className="h-4 w-4" emojiClassName="text-xs" />
+              <ProductIcon productId={c.current_product_id as any} className="h-4 w-4" emojiClassName="text-xs" />
             ) : null}
             <span className="truncate">{c.current_product || '—'}</span>
           </span>
@@ -110,7 +110,7 @@ export default function ClientesPage() {
           {c.current_product && (
             <span className="inline-flex items-center gap-1">
               ·
-              <ProductIcon productId={c.current_product_id as any} name={c.current_product} className="h-3.5 w-3.5" emojiClassName="text-[10px]" />
+              <ProductIcon productId={c.current_product_id as any} className="h-3.5 w-3.5" emojiClassName="text-[10px]" />
               {c.current_product}
             </span>
           )}

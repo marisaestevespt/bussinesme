@@ -80,8 +80,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, full_name, role_title, phone, work_schedule, team_member_id, department, excluded_onboarding } = await req.json();
-    const excludedSet = new Set<string>(Array.isArray(excluded_onboarding) ? excluded_onboarding : []);
+    const { email, full_name, role_title, phone, work_schedule, team_member_id, department } = await req.json();
 
     if (!email || !full_name) {
       return new Response(JSON.stringify({ error: "Email e nome são obrigatórios" }), {
@@ -165,14 +164,13 @@ Deno.serve(async (req) => {
             if (template) {
               const { data: items } = await supabase
                 .from("sop_onboarding_items")
-                .select("id, task, deadline_days, sort_order")
+                .select("task, deadline_days, sort_order")
                 .eq("template_id", template.id)
                 .order("sort_order");
 
               if (items && items.length > 0) {
                 const todayDate = new Date();
-                const filtered = items.filter((it: any) => !excludedSet.has(it.id));
-                const onboardingRows = filtered.map((item: any) => {
+                const onboardingRows = items.map((item) => {
                   // Add business days (skip weekends + Portuguese holidays)
                   let deadlineDate = new Date(todayDate);
                   let remaining = item.deadline_days;
@@ -192,10 +190,8 @@ Deno.serve(async (req) => {
                     source_template_id: template.id,
                   };
                 });
-                if (onboardingRows.length > 0) {
-                  await supabase.from("member_onboarding").insert(onboardingRows);
-                  onboarding_created = true;
-                }
+                await supabase.from("member_onboarding").insert(onboardingRows);
+                onboarding_created = true;
               }
             }
 
@@ -206,8 +202,6 @@ Deno.serve(async (req) => {
                 const todayDate = new Date();
                 const onboardingRows = checklist.map((item: any, idx: number) => {
                   const text = typeof item === 'string' ? item : item.text || '';
-                  const key = `${onbSop.id}::${idx}::${text}`;
-                  if (excludedSet.has(key)) return null;
                   const deadlineDate = new Date(todayDate);
                   deadlineDate.setDate(deadlineDate.getDate() + 7); // default 7 days
                   return {
@@ -217,7 +211,7 @@ Deno.serve(async (req) => {
                     completed: false,
                     deadline_date: deadlineDate.toISOString().split("T")[0],
                   };
-                }).filter((r: any) => r && r.task);
+                }).filter((r: any) => r.task);
                 if (onboardingRows.length > 0) {
                   await supabase.from("member_onboarding").insert(onboardingRows);
                   onboarding_created = true;

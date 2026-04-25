@@ -9,11 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText, Link2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText, Link2, Loader2, CheckCircle2 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, parseISO, isWithinInterval, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { format, parseISO, isWithinInterval, getDay, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from 'date-fns';
 import { getHolidaySet } from '@/lib/holidays';
 import {
   MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES,
@@ -26,6 +26,7 @@ import { deriveContractStatus } from '@/lib/contractStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
 import { MemberQuickLinks } from './MemberQuickLinks';
+import { Progress } from '@/components/ui/progress';
 
 function MemberIconBlock({ member }: { member: any }) {
   const qc = useQueryClient();
@@ -155,6 +156,13 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
   };
 
   const items = (team.onboarding.data || []).filter((i: any) => i.member_id === member.id);
+  const onbTotal = items.length;
+  const onbDone = items.filter((i: any) => i.completed).length;
+  const onbPct = onbTotal > 0 ? Math.round((onbDone / onbTotal) * 100) : 0;
+  const onbOverdue = items.filter((i: any) => !i.completed && i.deadline_date && parseISO(i.deadline_date) < startOfDay(new Date())).length;
+  const onbNextDue = items
+    .filter((i: any) => !i.completed && i.deadline_date)
+    .sort((a: any, b: any) => a.deadline_date.localeCompare(b.deadline_date))[0];
   const contracts = (team.contracts.data || []).filter((c: any) => c.member_id === member.id);
   const payments = (team.payments.data || []).filter((p: any) => p.member_id === member.id);
   const totalHours = (memberTime.data || []).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
@@ -220,11 +228,24 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className={`grid ${onbTotal > 0 ? 'grid-cols-5' : 'grid-cols-4'} gap-2`}>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Horas (mês)</p><p className="font-bold text-sm">{monthHours.toFixed(1)}h</p></div>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Horas (total)</p><p className="font-bold text-sm">{totalHours.toFixed(1)}h</p></div>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Tarefas ativas</p><p className="font-bold text-sm">{pendingTasks}</p></div>
             <div className="bg-muted/50 rounded-lg p-2 text-center"><p className="text-xs text-muted-foreground">Sessões feedback</p><p className="font-bold text-sm">{feedbackSessions.length}</p></div>
+            {onbTotal > 0 && (
+              <button
+                type="button"
+                onClick={() => setDetailTab('onboarding')}
+                className={`rounded-lg p-2 text-center transition hover:opacity-80 ${onbPct === 100 ? 'bg-primary/15' : onbOverdue > 0 ? 'bg-destructive/10' : 'bg-muted/50'}`}
+              >
+                <p className="text-xs text-muted-foreground">Onboarding</p>
+                <p className="font-bold text-sm flex items-center justify-center gap-1">
+                  {onbPct === 100 && <CheckCircle2 className="h-3 w-3 text-primary" />}
+                  {onbDone}/{onbTotal}
+                </p>
+              </button>
+            )}
           </div>
 
           <Tabs value={detailTab} onValueChange={setDetailTab}>
@@ -380,15 +401,46 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
 
             {/* Onboarding tab — uses only SOP-generated items, no hardcoded defaults */}
             <TabsContent value="onboarding" className="space-y-2 mt-3">
+              {items.length > 0 && (
+                <div className={`rounded-lg p-3 space-y-2 ${onbPct === 100 ? 'bg-primary/10 border border-primary/20' : 'bg-muted/40'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {onbPct === 100 ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Onboarding concluído</span>
+                        </>
+                      ) : (
+                        <span className="text-sm font-medium">Progresso: {onbDone} de {onbTotal} passos</span>
+                      )}
+                    </div>
+                    <Badge variant={onbPct === 100 ? 'default' : 'outline'} className="text-xs">{onbPct}%</Badge>
+                  </div>
+                  <Progress value={onbPct} className="h-2" />
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    {onbOverdue > 0 ? (
+                      <span className="text-destructive font-medium">{onbOverdue} em atraso</span>
+                    ) : <span>Sem passos em atraso</span>}
+                    {onbNextDue && onbPct < 100 && (
+                      <span>Próximo: <span className="text-foreground">{onbNextDue.task}</span> ({onbNextDue.deadline_date})</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {items.length === 0 ? (
                 <EmptyHint>Sem checklist de onboarding. Cria um template de onboarding nos Processos do departamento para que seja gerada automaticamente.</EmptyHint>
               ) : (
                 <div className="space-y-1">
                   {items.map((i: any) => (
-                    <div key={i.id} className="flex items-center gap-2 group">
+                    <div key={i.id} className="flex items-center gap-2 group py-1">
                       <Checkbox checked={i.completed} onCheckedChange={v => team.toggleOnboardingItem.mutate({ id: i.id, completed: !!v })} />
                       <span className={`text-sm flex-1 ${i.completed ? 'line-through text-muted-foreground' : ''}`}>{i.task}</span>
-                      {i.deadline_date && <span className="text-[10px] text-muted-foreground">{i.deadline_date}</span>}
+                      {i.deadline_date && (
+                        <span className={`text-[10px] ${!i.completed && parseISO(i.deadline_date) < startOfDay(new Date()) ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                          {i.deadline_date}
+                        </span>
+                      )}
                       <button onClick={() => team.deleteOnboardingItem.mutate(i.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
                     </div>
                   ))}

@@ -19,8 +19,6 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { RichTextEditor } from '@/components/RichTextEditor';
-import { EntityIconPicker, EntityIconDisplay } from '@/components/entity-icon';
-import type { EntityIcon } from '@/components/entity-icon';
 
 const DEFAULT_CATEGORIES = [
   { value: 'cultura', label: 'Guia de Cultura' },
@@ -50,7 +48,6 @@ export default function BibliotecaPage() {
   const [fileUrl, setFileUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [icon, setIcon] = useState<EntityIcon>(null);
 
   const { data: documents = [] } = useQuery({
     queryKey: ['internal_documents'],
@@ -88,7 +85,7 @@ export default function BibliotecaPage() {
       const finalUrl = fileUrl || linkUrl || null;
       const docType = fileUrl ? 'ficheiro' : linkUrl ? 'link' : 'texto';
       const { error } = await supabase.from('internal_documents').insert({
-        title, category, content, created_by: user?.id, file_url: finalUrl, doc_type: docType, icon,
+        title, category, content, created_by: user?.id, file_url: finalUrl, doc_type: docType,
       });
       if (error) throw error;
     },
@@ -106,7 +103,7 @@ export default function BibliotecaPage() {
       const finalUrl = fileUrl || linkUrl || null;
       const docType = fileUrl ? 'ficheiro' : linkUrl ? 'link' : 'texto';
       const { error } = await supabase.from('internal_documents')
-        .update({ title, category, content, file_url: finalUrl, doc_type: docType, icon })
+        .update({ title, category, content, file_url: finalUrl, doc_type: docType })
         .eq('id', editingDoc.id);
       if (error) throw error;
     },
@@ -137,7 +134,6 @@ export default function BibliotecaPage() {
     setNewCategory('');
     setFileUrl('');
     setLinkUrl('');
-    setIcon(null);
   }
 
   function openEdit(doc: any) {
@@ -148,7 +144,6 @@ export default function BibliotecaPage() {
     setNewCategory('');
     setFileUrl(doc.doc_type === 'ficheiro' ? (doc.file_url || '') : '');
     setLinkUrl(doc.doc_type === 'link' ? (doc.file_url || '') : '');
-    setIcon((doc.icon ?? null) as EntityIcon);
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -287,11 +282,7 @@ export default function BibliotecaPage() {
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {doc.icon ? (
-                          <EntityIconDisplay icon={doc.icon} className="h-6 w-6" emojiClassName="text-base" variant="rounded" />
-                        ) : (
-                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        )}
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="font-medium">{doc.title}</span>
                       </div>
                     </TableCell>
@@ -334,20 +325,7 @@ export default function BibliotecaPage() {
       {/* New Document Dialog */}
       <Dialog open={showNew} onOpenChange={v => { if (!v) resetForm(); setShowNew(v); }}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <EntityIconPicker
-                icon={icon}
-                onChange={(next) => setIcon(next)}
-                bucket="entity-icons"
-                pathPrefix={`internal-documents/new`}
-                className="h-10 w-10"
-                emojiClassName="text-2xl"
-                variant="rounded"
-              />
-              <span>Novo Documento Interno</span>
-            </DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Novo Documento Interno</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Título *</Label>
@@ -369,20 +347,7 @@ export default function BibliotecaPage() {
       {/* Edit Document Dialog */}
       <Dialog open={!!editingDoc} onOpenChange={v => { if (!v) { setEditingDoc(null); resetForm(); } }}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <EntityIconPicker
-                icon={icon}
-                onChange={(next) => setIcon(next)}
-                bucket="entity-icons"
-                pathPrefix={`internal-documents/${editingDoc?.id || 'new'}`}
-                className="h-10 w-10"
-                emojiClassName="text-2xl"
-                variant="rounded"
-              />
-              <span>Editar Documento</span>
-            </DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Editar Documento</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Título *</Label>

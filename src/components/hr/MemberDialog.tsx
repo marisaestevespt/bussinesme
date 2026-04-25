@@ -23,7 +23,6 @@ import {
   WEEK_DAYS, PERIODS, TIME_OPTIONS, CONTRACT_DURATIONS, PRESET_ROLES, ROLE_COLORS,
   parseSchedule, formatSchedule,
 } from './team-helpers';
-import { OnboardingPreview } from './OnboardingPreview';
 
 const DEFAULT_MEMBER_FORM = {
   full_name: '',
@@ -245,7 +244,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     use_custom_payment_start: false,
   });
   const [contractLoaded, setContractLoaded] = useState(false);
-  const [excludedOnboarding, setExcludedOnboarding] = useState<string[]>([]);
 
   const isOwnerRole = f.role_title === 'Owner';
   const isENIOwner = isENI && isOwnerRole;
@@ -464,15 +462,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               )}
               {f.role_title && <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>}
             </div>
-
-            {/* Pré-visualização do onboarding (só novos membros) */}
-            {!isEdit && f.role_title && (
-              <OnboardingPreview
-                roleTitle={f.role_title}
-                excluded={excludedOnboarding}
-                onChange={setExcludedOnboarding}
-              />
-            )}
 
             {/* Vínculo (fusão Tipo + Tipo de Contrato) */}
             <div className="space-y-2">
@@ -776,7 +765,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             </>
           )}
 
-          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract, excluded_onboarding: excludedOnboarding }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
+          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
         </div>
       </DialogContent>
     </Dialog>

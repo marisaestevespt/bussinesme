@@ -7,7 +7,6 @@ import { format, parseISO } from 'date-fns';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { isTaskDone } from '@/lib/taskStatus';
 import { TASK_STATUSES, TASK_PRIORITIES, getTaskStatusInfo, getTaskPriorityInfo } from '@/lib/taskStatus';
-import { EntityIconDisplay } from '@/components/entity-icon';
 
 const PRIORITIES = TASK_PRIORITIES;
 
@@ -70,12 +69,6 @@ export function TaskTable({
               <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onTaskClick(task)}>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <EntityIconDisplay
-                      icon={task.icon}
-                      className="h-6 w-6"
-                      emojiClassName="text-base"
-                      variant="rounded"
-                    />
                     {task.parent_task_id && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
                     <span className="font-medium">{task.name}</span>
                     {subtaskCount > 0 && (

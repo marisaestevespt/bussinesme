@@ -22,9 +22,7 @@ interface QuickLink {
 
 interface Props {
   memberId: string;
-  /** Se true esconde o botão de adicionar (modo somente leitura) */
   readOnly?: boolean;
-  /** Compacto (cartão na Secretária) */
   compact?: boolean;
 }
 

@@ -26,7 +26,6 @@ import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth, getSubscriptionDueDat
 import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './expenseBuilders';
 import { VatPreview } from '../VatPreview';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
-import { EntityIconDisplay } from '@/components/entity-icon';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
@@ -220,17 +219,7 @@ export function SaidasTable({
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{e.expense_id || '—'}</TableCell>
                 <TableCell className="whitespace-nowrap">{e.expense_date || '—'}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <EntityIconDisplay
-                      icon={(e as Expense & { icon?: unknown }).icon}
-                      className="h-6 w-6"
-                      emojiClassName="text-base"
-                      variant="rounded"
-                    />
-                    <span>{e.description || '—'}</span>
-                  </div>
-                </TableCell>
+                <TableCell>{e.description || '—'}</TableCell>
                 <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                 <TableCell>{locationLabel(e.location)}</TableCell>
                 <TableCell className="text-right">{formatEuro(e.base_value)}</TableCell>

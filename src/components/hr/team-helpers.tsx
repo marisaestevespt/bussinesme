@@ -32,9 +32,9 @@ export function DeptBadge({ dept }: { dept: string | string[] | null }) {
   );
 }
 
-// Re-exported from the canonical helper so initials are computed the same
-// way in avatars, list icons and EntityIconDisplay fallbacks.
-export { getInitials } from '@/lib/utils';
+export function getInitials(name: string) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
 
 export function MemberSelect({ value, onChange, members }: { value: string; onChange: (v: string) => void; members: any[] }) {
   return (

@@ -10,8 +10,6 @@ interface Props {
   icon?: EntityIcon | unknown;
   /** Optional preloaded logo_url fallback */
   logoUrl?: string | null;
-  /** Optional name for the initials fallback */
-  name?: string | null;
   className?: string;
   emojiClassName?: string;
   variant?: "rounded" | "square" | "circle";
@@ -21,12 +19,11 @@ export function ProductIcon({
   productId,
   icon,
   logoUrl,
-  name,
   className = "h-6 w-6",
   emojiClassName,
   variant = "rounded",
 }: Props) {
-  const hasPreload = icon !== undefined || logoUrl !== undefined || !!name;
+  const hasPreload = icon !== undefined || logoUrl !== undefined;
 
   const { data } = useQuery({
     queryKey: ["product-icon", productId],
@@ -35,7 +32,7 @@ export function ProductIcon({
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("icon, logo_url, name")
+        .select("icon, logo_url")
         .eq("id", productId!)
         .maybeSingle();
       return data;
@@ -53,7 +50,6 @@ export function ProductIcon({
       className={cn(className)}
       emojiClassName={emojiClassName}
       variant={variant}
-      name={name ?? data?.name ?? null}
     />
   );
 }
