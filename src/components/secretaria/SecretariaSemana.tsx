@@ -7,9 +7,7 @@ import { RoutineMonthCard } from './SecretariaRotinas';
 import { format, parseISO, isWithinInterval, startOfWeek, endOfWeek, startOfDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { WeekView } from '@/components/agenda/AppleCalendarViews';
-import { unifiedItemToAgendaEvent, buildSourceTypes } from './secretaria-agenda-mappers';
-import { useProductColors } from '@/hooks/useProductColors';
-import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
+import { useMyAgendaEvents } from '@/hooks/useMyAgendaEvents';
 
 const today = startOfDay(new Date());
 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -21,8 +19,10 @@ export default function SecretariaSemana() {
   const timeEntries = useMyTimeEntries();
   const routineTasks = useMonthRoutineTasks();
   const unified = useUnifiedResponsibilities();
-  const { data: productColors } = useProductColors();
-  const { data: globalContext = [] } = useGlobalAgendaContext();
+  const { events: weekAgendaEvents, types: sourceTypes } = useMyAgendaEvents({
+    from: format(weekStart, 'yyyy-MM-dd'),
+    to: format(weekEnd, 'yyyy-MM-dd'),
+  });
 
   const weekMeetings = useMemo(() => (meetings.data || []).filter((m: any) => isWithinInterval(parseISO(m.date_time), { start: weekStart, end: weekEnd })), [meetings.data]);
   const weekTime = useMemo(() => (timeEntries.data || []).filter((e: any) => {
@@ -32,33 +32,10 @@ export default function SecretariaSemana() {
   }), [timeEntries.data]);
   const weekHours = useMemo(() => weekTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [weekTime]);
 
-  const weekAgendaEvents = useMemo(
-    () => {
-      const own = unified.weekItems
-        .map(i => unifiedItemToAgendaEvent(i, productColors))
-        .filter((e): e is NonNullable<typeof e> => !!e);
-      const ctx = globalContext.filter(ev => {
-        try {
-          const s = parseISO(ev.start_date);
-          const e = parseISO(ev.end_date || ev.start_date);
-          return isWithinInterval(s, { start: weekStart, end: weekEnd })
-              || isWithinInterval(e, { start: weekStart, end: weekEnd })
-              || (s <= weekStart && e >= weekEnd);
-        } catch { return false; }
-      });
-      return [...ctx, ...own];
-    },
-    [unified.weekItems, productColors, globalContext]
-  );
-  const sourceTypes = useMemo(buildSourceTypes, []);
-
   const handleEventClick = (ev: any) => {
-    const src = ev._source;
-    if (src === 'reuniao') navigate('/hub/reunioes');
-    else if (src === 'projeto' || src === 'marco') navigate('/hub/projetos');
-    else if (src === 'crm' || src === 'acao_venda') navigate('/hub/comercial');
-    else if (src === 'conteudo') navigate('/hub/conteudos');
-    else navigate('/hub/tarefas');
+    if (ev._isMeeting && ev._meetingId) navigate(`/hub/reunioes/${ev._meetingId}`);
+    else if (String(ev.id || '').startsWith('sales_')) navigate('/hub/comercial');
+    else navigate('/hub/agenda');
   };
 
   return (
