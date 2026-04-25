@@ -15,9 +15,8 @@ interface ExpenseRow {
   expense_year: number | null;
   source_type: string | null;
   status: string | null;
-  gross_value: number | null;
-  net_value: number | null;
-  amount: number | null;
+  base_value: number | null;
+  total_with_vat: number | null;
   expense_date: string | null;
 }
 
@@ -30,7 +29,6 @@ interface PaymentRow {
   status: string | null;
   gross_value: number | null;
   net_value: number | null;
-  payment_date: string | null;
 }
 
 interface MemberRow {
@@ -102,17 +100,17 @@ export function FinAuditoriaPagamentos() {
       const [{ data: ex }, { data: pa }, { data: tm }] = await Promise.all([
         supabase
           .from('financial_expenses')
-          .select('id,member_id,expense_month,expense_year,source_type,status,gross_value,net_value,amount,expense_date')
+          .select('id,member_id,expense_month,expense_year,source_type,status,base_value,total_with_vat,expense_date')
           .in('source_type', ['contract', 'contractor', 'salary', 'member_payment'])
           .not('member_id', 'is', null),
         supabase
           .from('member_payments')
-          .select('id,member_id,month,year,payment_type,status,gross_value,net_value,payment_date'),
+          .select('id,member_id,month,year,payment_type,status,gross_value,net_value'),
         supabase.from('team_members').select('id,full_name,contract_type'),
       ]);
-      setExpenses((ex as ExpenseRow[]) || []);
-      setPayments((pa as PaymentRow[]) || []);
-      setMembers((tm as MemberRow[]) || []);
+      setExpenses(((ex as unknown) as ExpenseRow[]) || []);
+      setPayments(((pa as unknown) as PaymentRow[]) || []);
+      setMembers(((tm as unknown) as MemberRow[]) || []);
     } catch (e: any) {
       toast.error('Erro a carregar dados de auditoria');
     } finally {
@@ -169,8 +167,8 @@ export function FinAuditoriaPagamentos() {
           details: `Despesa: ${e.status || 'pendente'} · Pagamento: ${p.status || 'pendente'}`,
         });
       }
-      const expGross = e.gross_value ?? e.amount;
-      const expNet = e.net_value ?? e.amount;
+      const expGross = e.total_with_vat ?? e.base_value;
+      const expNet = e.base_value ?? e.total_with_vat;
       if (!eqMoney(expGross, p.gross_value) || !eqMoney(expNet, p.net_value)) {
         result.push({
           key: `vm-${e.id}`,
@@ -228,16 +226,16 @@ export function FinAuditoriaPagamentos() {
       if (diff.type === 'missing_payment' && diff.expense) {
         const e = diff.expense;
         const member = memberById.get(e.member_id!);
-        const { error } = await supabase.from('member_payments').insert({
+        const payload: any = {
           member_id: e.member_id!,
           month: e.expense_month!,
           year: e.expense_year!,
           payment_type: paymentTypeFor(member),
-          gross_value: e.gross_value ?? e.amount ?? 0,
-          net_value: e.net_value ?? e.amount ?? 0,
+          gross_value: e.total_with_vat ?? e.base_value ?? 0,
+          net_value: e.base_value ?? e.total_with_vat ?? 0,
           status: e.status || 'pendente',
-          payment_date: e.expense_date,
-        });
+        };
+        const { error } = await supabase.from('member_payments').insert(payload);
         if (error) throw error;
       } else if (diff.type === 'missing_expense' && diff.payment) {
         // Removing the orphan payment is the safest reconciliation here —
@@ -258,8 +256,8 @@ export function FinAuditoriaPagamentos() {
         const { error } = await supabase
           .from('member_payments')
           .update({
-            gross_value: diff.expense.gross_value ?? diff.expense.amount ?? 0,
-            net_value: diff.expense.net_value ?? diff.expense.amount ?? 0,
+            gross_value: diff.expense.total_with_vat ?? diff.expense.base_value ?? 0,
+            net_value: diff.expense.base_value ?? diff.expense.total_with_vat ?? 0,
           })
           .eq('id', diff.payment.id);
         if (error) throw error;
