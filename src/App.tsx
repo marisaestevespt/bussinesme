@@ -180,6 +180,11 @@ function AppRoutes() {
         <Route path="/hub/biblioteca" element={<BibliotecaPage />} />
         <Route path="/hub/tarefas" element={<TarefasPage />} />
         <Route path="/tarefas" element={<Navigate to="/hub/tarefas" replace />} />
+        <Route path="/clientes/:id" element={<Navigate to="/hub/clientes/:id" replace />} />
+        <Route path="/comercial/crm" element={<Navigate to="/hub/comercial/crm" replace />} />
+        <Route path="/financeiro/entradas" element={<Navigate to="/hub/financeiro/entradas" replace />} />
+        <Route path="/hub/pessoas" element={<Navigate to="/hub-equipa" replace />} />
+        <Route path="/executive/gestao-equipa" element={<Navigate to="/hub/recursos-humanos" replace />} />
         <Route path="/hub/marketing" element={<MarketingDashboard />} />
         <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
         <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
