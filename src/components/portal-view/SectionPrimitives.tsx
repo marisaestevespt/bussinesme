@@ -15,8 +15,8 @@ export const SectionCard = ({
 export const SectionTitle = ({
   children, icon: Icon,
 }: { children: React.ReactNode; icon?: any }) => (
-  <div className="flex items-center gap-2 mb-3">
-    {Icon && <Icon className="h-5 w-5 text-muted-foreground" />}
-    <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
+  <div className="flex items-center gap-2.5 mb-4">
+    {Icon && <div className="p-2 rounded-xl bg-primary/10"><Icon className="h-4 w-4 text-primary" /></div>}
+    <h2 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>{children}</h2>
   </div>
 );
