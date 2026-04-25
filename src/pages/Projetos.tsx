@@ -339,10 +339,18 @@ export default function ProjetosPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <BackNavigation />
-        {/* Header */}
-        <PageHeader title="Projetos" />
+      <CollectionPage>
+        <CollectionHeader
+          title="Projetos"
+          icon={FolderKanban}
+          description="Projetos internos, lançamentos e trabalhos com clientes."
+          count={projects.length}
+          actions={
+            <Button size="sm" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Projeto
+            </Button>
+          }
+        />
 
         {/* Metrics strip */}
         {(() => {
