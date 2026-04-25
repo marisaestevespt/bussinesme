@@ -102,11 +102,19 @@ function useEvents(userId: string | undefined, isOwner: boolean, range: { from: 
         return data as EventRow[];
       }
 
-      // Non-owners: events they created OR are a participant of
+      // Non-owners: events they created OR are a participant of.
+      // event_members.profile_id stores profiles.id (NOT auth.users.id),
+      // so resolve the matching profile id first.
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      const profileIds = [userId, profile?.id].filter(Boolean) as string[];
       const { data: participations } = await supabase
         .from('event_members')
         .select('event_id')
-        .eq('profile_id', userId);
+        .in('profile_id', profileIds);
       const participantIds = participations?.map(p => p.event_id) || [];
 
       const { data: createdEvents, error: e1 } = await inRange(
