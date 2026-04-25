@@ -539,7 +539,7 @@ export default function ReuniaoDetailPage() {
         {/* Hero: cover + icon */}
         <EntityHeroHeader
           icon={parseIcon((m as any).icon)}
-          onIconChange={(next) => update({ icon: next as any })}
+          onIconChange={(next) => update({ icon: next as any } as any)}
           coverUrl={(m as any).cover_url}
           onCoverChange={(url) => update({ cover_url: url } as any)}
           bucket="entity-icons"
