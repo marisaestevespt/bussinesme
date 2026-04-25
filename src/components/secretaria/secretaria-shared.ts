@@ -91,7 +91,10 @@ export function useMyTasks() {
     },
   });
   const profileId = profileQ.data;
-  const assigneeIds = [user?.id!, ...(profileId && profileId !== user?.id ? [profileId] : [])];
+  const userId = user?.id;
+  const assigneeIds = userId
+    ? [userId, ...(profileId && profileId !== userId ? [profileId] : [])]
+    : [];
 
   return useQuery({
     queryKey: ['my-tasks', user?.id, profileId],
