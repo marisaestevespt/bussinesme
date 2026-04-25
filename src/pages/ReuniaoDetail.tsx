@@ -35,6 +35,15 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import {
+  EntityTopBar,
+  EntityTitle,
+  EntityProperties,
+  EntityProperty,
+  EntitySection,
+  inlineInputClass,
+  inlineTriggerClass,
+} from '@/components/layout/entity';
 
 // ─── Types ──────────────────────────────────────────────────────
 
