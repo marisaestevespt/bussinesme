@@ -175,7 +175,7 @@ function TaskBadge({ deadline, status }: { deadline: string | null; status: stri
   const d = new Date(deadline);
   const today = startOfToday();
   if (isBefore(d, today)) return <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Atrasada</Badge>;
-  if (isToday(d)) return <Badge className="bg-warning/15 text-warning border-warning/30 text-[10px] px-1.5 py-0">Hoje</Badge>;
+  if (isToday(d)) return <Badge  variant="warning" className="text-[10px] px-1.5 py-0">Hoje</Badge>;
   return null;
 }
 

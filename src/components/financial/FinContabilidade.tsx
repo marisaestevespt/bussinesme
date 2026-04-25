@@ -183,9 +183,9 @@ export function FinContabilidade({ currentYear }: Props) {
                               checked={isCompleted}
                               onCheckedChange={() => toggleDeadlineCompletion.mutate(dl)}
                             />
-                            {status === 'done' && <Badge className="bg-success/10 text-success gap-1"><CheckSquare className="h-3 w-3" /> Concluído</Badge>}
+                            {status === 'done' && <Badge  variant="success" className="gap-1"><CheckSquare className="h-3 w-3" /> Concluído</Badge>}
                             {status === 'overdue' && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Em atraso</Badge>}
-                            {status === 'soon' && <Badge className="bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
+                            {status === 'soon' && <Badge  variant="warning" className="dark: dark: gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
                             {status === 'upcoming' && <Badge variant="secondary" className="gap-1">Por vir</Badge>}
                           </div>
                         </TableCell>
