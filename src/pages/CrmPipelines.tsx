@@ -296,7 +296,7 @@ export default function CrmPipelines() {
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold truncate">{activePipeline.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold truncate">{activePipeline.name}</h1>
                 <Badge variant={activePipeline.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                   {activePipeline.status === 'active' ? 'Ativo' : 'Arquivado'}
                 </Badge>
@@ -399,7 +399,7 @@ export default function CrmPipelines() {
         <BackNavigation parentRoute="/hub/comercial/crm" parentLabel="Voltar ao CRM" />
 
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Pipelines</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Pipelines</h1>
           <Button size="sm" onClick={() => { setEditingPipeline(null); setFormOpen(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Novo Pipeline
           </Button>
