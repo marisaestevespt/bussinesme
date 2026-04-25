@@ -14,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Pencil, Trash2, Play, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { EntityIconPicker, EntityIconDisplay } from '@/components/entity-icon';
+import type { EntityIcon } from '@/components/entity-icon';
 
 const RECURRENCE_OPTIONS = [
   { value: 'diario', label: 'Diária' },
@@ -54,6 +56,7 @@ export function RotinasView() {
   const [hourTime, setHourTime] = useState('');
   const [adjustBizDay, setAdjustBizDay] = useState(true);
   const [active, setActive] = useState(true);
+  const [icon, setIcon] = useState<EntityIcon>(null);
 
   // Data
   const { data: routines = [], isLoading } = useQuery({
@@ -152,6 +155,7 @@ export function RotinasView() {
     setTitle(''); setRecurrenceType('semanal'); setWeekday(null); setMonthDay(null);
     setRoleFunction(''); setDepartment(''); setSopId(''); setEstimatedTime('');
     setHourTime(''); setAdjustBizDay(true); setActive(true);
+    setIcon(null);
     setDialogOpen(true);
   }
 
@@ -162,6 +166,7 @@ export function RotinasView() {
     setRoleFunction(r.role_function || ''); setDepartment(r.department || '');
     setSopId(r.sop_id || ''); setEstimatedTime(r.estimated_time != null ? String(r.estimated_time) : '');
     setHourTime(r.hour_time || ''); setAdjustBizDay(r.adjust_to_business_day); setActive(r.active);
+    setIcon((r.icon ?? null) as EntityIcon);
     setDialogOpen(true);
   }
 
@@ -191,6 +196,7 @@ export function RotinasView() {
       hour_time: hourTime || null,
       adjust_to_business_day: adjustBizDay,
       active,
+      icon,
     };
     upsert.mutate(payload);
   }
@@ -252,7 +258,11 @@ export function RotinasView() {
               <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(r)}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+                    {r.icon ? (
+                      <EntityIconDisplay icon={r.icon} className="h-6 w-6" emojiClassName="text-base" variant="rounded" />
+                    ) : (
+                      <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
                     {r.title}
                   </div>
                 </TableCell>
@@ -286,7 +296,18 @@ export function RotinasView() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? 'Editar Rotina' : 'Nova Rotina'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-3">
+              <EntityIconPicker
+                icon={icon}
+                onChange={(next) => setIcon(next)}
+                bucket="entity-icons"
+                pathPrefix={`routines/${editing?.id || 'new'}`}
+                className="h-10 w-10"
+                emojiClassName="text-2xl"
+                variant="rounded"
+              />
+              <span>{editing ? 'Editar Rotina' : 'Nova Rotina'}</span>
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
