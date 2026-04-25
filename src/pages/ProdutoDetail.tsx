@@ -34,6 +34,7 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { cn } from '@/lib/utils';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntitySection } from '@/components/layout/entity';
+import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
 
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -319,31 +320,19 @@ export default function ProdutoDetailPage() {
 
           {/* Title block */}
           <div className="px-2 md:px-6 pt-3">
-            {/* Floating logo (overlaps cover) */}
-            <div className="relative -mt-12 md:-mt-14 mb-3 group/logo w-fit">
-              <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl border-4 border-background bg-background overflow-hidden flex items-center justify-center shadow-lg">
-                {form.logo_url ? (
-                  <img src={form.logo_url} alt="Logo" className="h-full w-full object-contain p-1" />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-                  </div>
-                )}
-              </div>
-              {isOwner && (
-                <label className="absolute inset-0 flex items-center justify-center bg-black/45 rounded-2xl opacity-0 group-hover/logo:opacity-100 transition-opacity cursor-pointer">
-                  <Upload className="h-5 w-5 text-white" />
-                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const path = `logos/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
-                    const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
-                    if (error) { toast.error('Erro ao enviar logo'); return; }
-                    const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
-                    update('logo_url', urlData.publicUrl);
-                  }} />
-                </label>
-              )}
+            {/* Floating icon (emoji or image) — Notion-style */}
+            <div className="relative -mt-12 md:-mt-14 mb-3 w-fit">
+              <EntityIconPicker
+                icon={parseIcon(form.icon) ?? (form.logo_url ? { type: 'image', value: form.logo_url } : null)}
+                onChange={(next) => {
+                  update('icon', next as any);
+                  // Keep logo_url in sync for legacy consumers
+                  update('logo_url', next?.type === 'image' ? next.value : null);
+                }}
+                bucket="product-files"
+                pathPrefix={`icons/${id || 'new'}`}
+                disabled={!isOwner}
+              />
             </div>
 
             {/* Name */}
