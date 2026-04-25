@@ -151,7 +151,7 @@ function ItemRow({ item, compact }: { item: UnifiedItem; compact?: boolean }) {
   );
 }
 
-function TableView({ items }: { items: UnifiedItem[] }) {
+function TableView({ items, onItemClick }: { items: UnifiedItem[]; onItemClick: (i: UnifiedItem) => void }) {
   return (
     <div className="rounded-2xl border bg-card overflow-hidden shadow-card">
       <Table>
@@ -171,7 +171,11 @@ function TableView({ items }: { items: UnifiedItem[] }) {
             </TableRow>
           )}
           {items.map(i => (
-            <TableRow key={i.id} className="border-b-0 border-t border-border/40 hover:bg-muted/30 transition-colors">
+            <TableRow
+              key={i.id}
+              onClick={() => onItemClick(i)}
+              className="border-b-0 border-t border-border/40 hover:bg-muted/40 transition-colors cursor-pointer"
+            >
               <TableCell className="py-3">
                 <span className={cn('block w-2 h-2 rounded-full', PRIORITY_DOT[i.priority || '__none__'])} aria-hidden />
               </TableCell>
@@ -196,7 +200,7 @@ function TableView({ items }: { items: UnifiedItem[] }) {
   );
 }
 
-function BoardView({ items, groupBy }: { items: UnifiedItem[]; groupBy: GroupBy }) {
+function BoardView({ items, groupBy, onItemClick }: { items: UnifiedItem[]; groupBy: GroupBy; onItemClick: (i: UnifiedItem) => void }) {
   const effectiveGroup: GroupBy = groupBy === 'none' ? 'priority' : groupBy;
   const groups = useMemo(() => groupItems(items, effectiveGroup), [items, effectiveGroup]);
   return (
@@ -215,7 +219,11 @@ function BoardView({ items, groupBy }: { items: UnifiedItem[]; groupBy: GroupBy 
             <div className="flex-1 space-y-1.5 max-h-[60vh] overflow-y-auto">
               {g.items.length === 0 && <p className="text-xs text-muted-foreground/70 text-center py-4">—</p>}
               {g.items.map(i => (
-                <div key={i.id} className="rounded-xl bg-background p-2.5 shadow-card hover:shadow-elevated transition-shadow cursor-pointer">
+                <div
+                  key={i.id}
+                  onClick={() => onItemClick(i)}
+                  className="rounded-xl bg-background p-2.5 shadow-card hover:shadow-elevated transition-shadow cursor-pointer"
+                >
                   <ItemRow item={i} compact />
                   {i.deadline && (
                     <p className="text-[10px] text-muted-foreground/70 mt-1 ml-3.5">
