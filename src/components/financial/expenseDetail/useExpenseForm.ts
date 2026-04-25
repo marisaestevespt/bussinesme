@@ -44,6 +44,7 @@ export function useExpenseForm({ expense, open, fin, onClose }: Args) {
       monthly_equivalent: expense.monthly_equivalent || 0,
       payment_method: expense.payment_method || '',
       expense_name: expense.expense_name || '',
+      icon: (expense as Expense & { icon?: unknown }).icon ?? null,
     });
   }, [expense, open]);
 
@@ -99,6 +100,7 @@ export function useExpenseForm({ expense, open, fin, onClose }: Args) {
       payment_method: form.payment_method || null,
       expense_name: form.expense_name || null,
       source_type: isRecurring ? 'rule' : (form.source_type || 'manual'),
+      icon: (form.icon as never) ?? null,
     });
 
     if (form.source_type === 'contract' && form.source_id) {
