@@ -272,6 +272,9 @@ export function SetupPage() {
               <ColorField label="Fundo" value={colors.background} onChange={updateColor('background')} />
               <ColorField label="Texto" value={colors.text} onChange={updateColor('text')} />
             </div>
+            <p className="text-xs text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-3 mt-2">
+              As cores são guardadas, mas por defeito o sistema mantém o <strong className="text-foreground">tema Lyrata®</strong> (otimizado para leitura e contraste). Podes ativar as tuas cores a qualquer momento em <strong className="text-foreground">Definições → Identidade</strong>, no toggle <em>"Usar tema do sistema"</em>.
+            </p>
           </Section>
 
           {/* ── Tipografia ── */}
