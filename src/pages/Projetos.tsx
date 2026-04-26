@@ -34,6 +34,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
+import { PROJECT_TEMPLATES, type ProjectTemplate } from '@/components/project/PROJECT_TEMPLATES';
 
 // ─── Constants ──────────────────────────────────────────────────
 
