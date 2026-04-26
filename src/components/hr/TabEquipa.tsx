@@ -7,13 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, AlertTriangle } from 'lucide-react';
+import { Plus, AlertTriangle, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useTeamData, WORK_AREAS } from '@/hooks/useTeamData';
+import { useTeamData } from '@/hooks/useTeamData';
 import { useMemberSave } from '@/hooks/useMemberSave';
 import { MemberDialog } from '@/components/hr/MemberDialog';
 import { MemberDetailSheet } from '@/components/hr/MemberDetailSheet';
@@ -158,11 +158,13 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  <DeptBadge dept={(m as any).departments?.length ? (m as any).departments : m.department} />
-                  {Array.isArray((m as any).work_areas) && (m as any).work_areas.map((wa: string) => {
-                    const opt = WORK_AREAS.find(w => w.value === wa);
-                    return opt ? <Badge key={wa} variant="outline" className="text-[10px]">{opt.label}</Badge> : null;
-                  })}
+                  {(m.role_title || '').toLowerCase() === 'owner' ? (
+                    <Badge className="text-[10px] gap-1 bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 border-amber-500/30">
+                      <Crown className="h-3 w-3" /> Owner
+                    </Badge>
+                  ) : (
+                    <DeptBadge dept={(m as any).departments?.length ? (m as any).departments : m.department} />
+                  )}
                 </div>
                 {m.email && <p className="text-xs text-muted-foreground">{m.email}</p>}
                 {(m as any).inactivated_at && showExMembers && (
