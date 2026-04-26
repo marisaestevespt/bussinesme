@@ -1090,11 +1090,11 @@ export default function OperacaoPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[180px]">Status</TableHead>
-                        <TableHead>Nome da tarefa</TableHead>
+                        <TableHead className="w-[160px]">Status</TableHead>
+                        <TableHead className="w-[280px]">Nome da tarefa</TableHead>
                         <TableHead className="w-[160px]">Responsável</TableHead>
-                        <TableHead className="w-[160px]">Projeto</TableHead>
-                        <TableHead className="w-[90px]">Data</TableHead>
+                        <TableHead>Projeto</TableHead>
+                        <TableHead className="w-[80px]">Data</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
