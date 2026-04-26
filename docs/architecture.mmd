@@ -1,0 +1,37 @@
+graph TB
+    subgraph Browser["Browser - React 18 SPA"]
+        Pages["Pages 60+ lazy-loaded"]
+        Hooks["Hooks - TanStack Query"]
+        Ctx["Contexts - Auth, Settings, Timer"]
+        UI["shadcn/ui + Tailwind tokens"]
+    end
+
+    subgraph Cloud["Lovable Cloud"]
+        Client["Supabase JS Client - anon JWT"]
+        DB[("Postgres + RLS")]
+        Auth["Auth - email + Google"]
+        Storage["Storage Buckets - logos, fonts, portal files"]
+        EF["Edge Functions x23 Deno"]
+        Cron["pg_cron + pg_net + Vault"]
+    end
+
+    subgraph External["Serviços Externos"]
+        AI["Lovable AI Gateway - Gemini, GPT-5"]
+        Resend["Resend - transactional email"]
+    end
+
+    Pages --> Hooks
+    Hooks --> Client
+    Ctx --> Client
+    Client --> DB
+    Client --> Auth
+    Client --> Storage
+    Client --> EF
+
+    Cron --> EF
+    EF --> DB
+    EF --> Storage
+    EF --> AI
+    EF --> Resend
+
+    DB -. RLS has_role .-> Auth
