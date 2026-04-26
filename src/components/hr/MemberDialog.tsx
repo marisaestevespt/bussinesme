@@ -479,7 +479,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                           const newRole = isSelected ? '' : r.label;
                           set('role_title', newRole);
                           set('role_color', r.color);
-                          if (newRole === 'Owner' && isENI) {
+                          if (newRole === 'Owner') {
                             setTimeout(applyOwnerDefaults, 0);
                           }
                         }}
