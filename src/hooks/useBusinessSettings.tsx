@@ -83,11 +83,11 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
     setLoading(false);
   }, []);
 
-  // Single source of truth: auth listener fires INITIAL_SESSION on mount,
-  // so we don't need a separate mount-time fetch (avoids duplicate request).
+  // Single source of truth: only fetch on initial session or fresh sign-in.
+  // TOKEN_REFRESHED fires periodically and doesn't need to refetch settings.
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
         fetchSettings();
       }
       if (event === 'SIGNED_OUT') {
