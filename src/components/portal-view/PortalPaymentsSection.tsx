@@ -30,7 +30,7 @@ export function PortalPaymentsSection({ payments, selectedPayment, setSelectedPa
         ) : (
           <div className="space-y-3">
             {payments.map((p) => {
-              const st = statusLabel(p.status);
+              const st = statusLabel(p.status || '');
               return (
                 <SectionCard key={p.id} className="p-5 cursor-pointer" onClick={() => setSelectedPayment(p)}>
                   <div className="flex items-center justify-between gap-3">
@@ -60,9 +60,9 @@ export function PortalPaymentsSection({ payments, selectedPayment, setSelectedPa
       <Dialog open={!!selectedPayment} onOpenChange={() => setSelectedPayment(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle className="text-base">Detalhe do Pagamento</DialogTitle></DialogHeader>
-          {selectedPayment && (() => {
+          {selectedPayment && ((): JSX.Element => {
             const p = selectedPayment;
-            const st = statusLabel(p.status);
+            const st = statusLabel(p.status || '');
             const docs = Array.isArray(p.documents) ? p.documents : [];
             return (
               <div className="space-y-4">
