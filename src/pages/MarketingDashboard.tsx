@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ContentCalendar } from '@/components/marketing/ContentCalendar';
+import { NewContentButton } from '@/components/marketing/NewContentButton';
+import type { ContentTemplate } from '@/components/marketing/CONTENT_TEMPLATES';
 import { STATUS_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 import { toast } from 'sonner';
 import { startOfWeek, endOfWeek, isWithinInterval, format } from 'date-fns';
@@ -138,13 +140,21 @@ export default function MarketingDashboard() {
 
 
 
-  const createContent = async () => {
+  const createContent = async (tpl?: ContentTemplate) => {
     if (creatingContent) return;
     setCreatingContent(true);
     try {
-      const { data, error } = await supabase.from('content_items').insert({
-        title: 'Novo Conteúdo', created_by: user?.id,
-      } as any).select('id').single() as { data: { id: string } | null; error: any };
+      const payload: Record<string, any> = {
+        title: tpl?.defaultTitle || 'Novo Conteúdo',
+        created_by: user?.id,
+      };
+      if (tpl?.defaultContentType) payload.content_type = tpl.defaultContentType;
+      if (tpl?.defaultFormat) payload.format = tpl.defaultFormat;
+      if (tpl?.defaultFunnelStage) payload.funnel_stage = tpl.defaultFunnelStage;
+      if (tpl?.defaultObjective) payload.objective = tpl.defaultObjective;
+      if (tpl?.defaultCopy) payload.copy_content = tpl.defaultCopy;
+
+      const { data, error } = await supabase.from('content_items').insert(payload as any).select('id').single() as { data: { id: string } | null; error: any };
       if (error || !data) { toast.error('Erro ao criar'); return; }
       // Tarefa só é criada em ConteudoDetail quando se atribui responsável
       queryClient.invalidateQueries({ queryKey: ['content-items'] });
@@ -241,10 +251,7 @@ export default function MarketingDashboard() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Conteúdos a sair esta semana</h2>
-              <Button size="sm" onClick={createContent} disabled={creatingContent}>
-                {creatingContent ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
-                {creatingContent ? 'A criar...' : 'Novo Conteúdo'}
-              </Button>
+              <NewContentButton onPick={createContent} loading={creatingContent} />
             </div>
             {weekContent.length === 0 ? (
               <Card><CardContent className="p-8 text-center text-sm text-muted-foreground italic">Nenhum conteúdo agendado para esta semana.</CardContent></Card>
@@ -291,10 +298,7 @@ export default function MarketingDashboard() {
           <section className="space-y-4 pb-10">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Calendário de Conteúdos</h2>
-              <Button size="sm" onClick={createContent} disabled={creatingContent}>
-                {creatingContent ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
-                {creatingContent ? 'A criar...' : 'Novo Conteúdo'}
-              </Button>
+              <NewContentButton onPick={createContent} loading={creatingContent} />
             </div>
             <ContentCalendar items={contentItems} channels={channels} contentChannelLinks={contentChannelLinks} profiles={profiles} attachments={contentAttachments} />
           </section>
