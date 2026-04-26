@@ -207,7 +207,7 @@ export function PortalQuestionsSection(props: Props) {
                                 className="mt-2 rounded-lg text-white text-xs"
                                 style={{ backgroundColor: pc }}
                                 onClick={async () => {
-                                  await answerQuestion(q.id, draftAnswers[q.id]);
+                                  await answerQuestion(q.id, draftAnswers[q.id] || '');
                                   setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
                                   setEditingQuestionId(null);
                                   const nextUnanswered = questions.find((qq) => qq.id !== q.id && !qq.answer?.trim() && !(Array.isArray(qq.file_urls) && qq.file_urls.length));
