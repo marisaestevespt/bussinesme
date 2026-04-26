@@ -459,7 +459,9 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Vendas estimadas</Label>
+              <Label className="text-xs text-muted-foreground">
+                {scenario.amortization_mode === 'periodo' ? 'Vendas estimadas (no período)' : 'Vendas estimadas'}
+              </Label>
               <Input type="number" defaultValue={scenario.estimated_sales ?? ''}
                 onBlur={e => updateScenario.mutate({ estimated_sales: e.target.value === '' ? null : Number(e.target.value) })}
                 placeholder="ex: 50" disabled={!isOwner} />
