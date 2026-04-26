@@ -111,6 +111,43 @@ function getInitials(name: string | null) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
+function formatMin(min: number): string {
+  if (!min || min < 0) return '0m';
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m > 0 ? `${h}h${m}` : `${h}h`;
+}
+
+function EstimatedTimePopover({ currentMinutes, onSave }: { currentMinutes: number | null; onSave: (m: number | null) => void }) {
+  const [hours, setHours] = useState<string>(currentMinutes != null ? Math.floor(currentMinutes / 60).toString() : '');
+  const [mins, setMins] = useState<string>(currentMinutes != null ? (currentMinutes % 60).toString() : '');
+  return (
+    <PopoverContent className="w-64 p-3" align="end">
+      <Label className="text-xs">Tempo estimado</Label>
+      <div className="flex items-end gap-2 mt-2">
+        <div className="flex-1">
+          <span className="text-[10px] text-muted-foreground">Horas</span>
+          <Input type="number" min="0" value={hours} onChange={e => setHours(e.target.value)} placeholder="0" className="h-8" />
+        </div>
+        <div className="flex-1">
+          <span className="text-[10px] text-muted-foreground">Minutos</span>
+          <Input type="number" min="0" max="59" value={mins} onChange={e => setMins(e.target.value)} placeholder="0" className="h-8" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between mt-3 gap-2">
+        <Button variant="ghost" size="sm" className="text-xs" onClick={() => onSave(null)}>Limpar</Button>
+        <Button size="sm" className="text-xs" onClick={() => {
+          const h = parseInt(hours || '0') || 0;
+          const m = parseInt(mins || '0') || 0;
+          const total = h * 60 + m;
+          onSave(total > 0 ? total : null);
+        }}>Guardar</Button>
+      </div>
+    </PopoverContent>
+  );
+}
+
 export function ProjectDeliverables({ projectId, profiles }: { projectId: string; profiles: Profile[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { getPhotoUrl } = useTeamPhotos();
