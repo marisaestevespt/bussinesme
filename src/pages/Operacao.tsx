@@ -108,6 +108,17 @@ export default function OperacaoPage() {
     },
   });
 
+  // Status de TODAS as fases ativas — usado para saber se uma entrega já está "em curso".
+  const { data: allPhases = [] } = useQuery({
+    queryKey: ['op-all-phases-status'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_phases')
+        .select('id, status');
+      return (data || []) as { id: string; status: string }[];
+    },
+  });
+
   const { data: projectMembers = [] } = useQuery({
     queryKey: ['op-project-members'],
     queryFn: async () => {
@@ -123,7 +134,7 @@ export default function OperacaoPage() {
       // Exclui concluídos/entregues e apenas mostra os com data planeada.
       const { data } = await supabase
         .from('project_deliverables')
-        .select('id,name,planned_end,status,project_id,assigned_to,responsible_type')
+        .select('id,name,planned_start,planned_end,status,project_id,phase_id,assigned_to,responsible_type')
         .not('status', 'in', '(concluido,entregue)')
         .not('planned_end', 'is', null)
         .order('planned_end', { ascending: true });
@@ -131,11 +142,13 @@ export default function OperacaoPage() {
         id: d.id,
         name: d.name,
         deadline: d.planned_end as string | null, // alias para reutilizar lógica existente
+        planned_start: (d as any).planned_start as string | null,
         status: d.status,
         project_id: d.project_id,
+        phase_id: (d as any).phase_id as string | null,
         assigned_to: d.assigned_to,
         responsible_type: (d as any).responsible_type as string | null,
-      })) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null; responsible_type: string | null }[];
+      })) as { id: string; name: string; deadline: string | null; planned_start: string | null; status: string; project_id: string; phase_id: string | null; assigned_to: string | null; responsible_type: string | null }[];
     },
   });
 
@@ -314,9 +327,20 @@ export default function OperacaoPage() {
       });
     });
 
+    const phaseStatusById = new Map(allPhases.map(p => [p.id, p.status]));
+
     deliverables.forEach(d => {
       if (d.responsible_type !== 'cliente') return;
       if (isDeliverableDone(d)) return;
+      // Só conta se a entrega já está "ativa agora":
+      //  - a fase já arrancou (status em_curso), OU
+      //  - já passou a data de início planeada, OU
+      //  - o prazo já passou (caso extremo)
+      const phaseActive = d.phase_id ? phaseStatusById.get(d.phase_id) === 'em_curso' : false;
+      const startPassed = d.planned_start ? !isBefore(today, new Date(d.planned_start)) : false;
+      const deadlinePassed = d.deadline ? isBefore(new Date(d.deadline), today) : false;
+      if (!phaseActive && !startPassed && !deadlinePassed) return;
+
       const proj = allActiveProjects.find(p => p.id === d.project_id);
       const ref = d.deadline ? new Date(d.deadline) : null;
       const days = ref ? differenceInDays(today, ref) : 0;
@@ -332,7 +356,7 @@ export default function OperacaoPage() {
     });
 
     return items.sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.daysWaiting - a.daysWaiting);
-  }, [tasks, deliverables, allActiveProjects, today]);
+  }, [tasks, deliverables, allActiveProjects, allPhases, today]);
 
   // ── Em aprovação interna ────────────────────────────────────
   // Tarefas em "Para aprovação" — aguardam validação do responsável interno
