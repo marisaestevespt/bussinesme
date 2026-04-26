@@ -509,9 +509,6 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </SelectContent>
                 </Select>
               </EntityProperty>
-              <EntityProperty icon={Hash} label="Tempo estimado">
-                <Input type="number" min="0" step="0.5" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)} placeholder="Horas" className={inlineInputClass} />
-              </EntityProperty>
               {editingTask?.original_assignee && (
                 <EntityProperty icon={User} label="Resp. original">
                   <span className="text-sm text-muted-foreground">{profiles.find(p => p.id === editingTask.original_assignee)?.full_name || '—'}</span>
