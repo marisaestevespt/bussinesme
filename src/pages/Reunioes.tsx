@@ -104,7 +104,7 @@ function useMeetings() {
   });
 }
 
-function useProjects() {
+export function useProjects() {
   return useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
@@ -115,7 +115,7 @@ function useProjects() {
   });
 }
 
-function useClientsList() {
+export function useClientsList() {
   return useQuery({
     queryKey: ['clients_list'],
     queryFn: async () => {
@@ -126,7 +126,7 @@ function useClientsList() {
   });
 }
 
-function useProfiles() {
+export function useProfiles() {
   return useQuery({
     queryKey: ['profiles'],
     queryFn: async () => {
