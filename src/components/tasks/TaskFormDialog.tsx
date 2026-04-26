@@ -404,33 +404,25 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[92vh] overflow-y-auto p-0 gap-0">
-          {/* ── Header ─────────────────────────────────────────── */}
-          <DialogHeader className="px-8 pt-6 pb-5 border-b border-border/40 shrink-0 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <ListTodo className="h-3.5 w-3.5" />
-              <span>{editingTask ? 'Editar tarefa' : 'Nova tarefa'}</span>
+          {/* ── Header (Notion-style) ────────────────────────── */}
+          <DialogHeader className="px-10 pt-10 pb-4 shrink-0 space-y-2">
+            <DialogTitle className="sr-only">{name || 'Tarefa sem título'}</DialogTitle>
+            <div className="flex items-start gap-3">
+              <Input
+                value={name}
+                onChange={e => handleNameChange(e.target.value)}
+                placeholder="Tarefa sem título"
+                className="h-auto text-[28px] leading-tight font-bold border-0 shadow-none focus-visible:ring-0 px-0 py-0 placeholder:text-muted-foreground/30 bg-transparent"
+              />
               {editingTask && isOverdue(editingTask) && (
-                <Badge variant="destructive" className="ml-2 gap-1 text-[10px] uppercase">
+                <Badge variant="destructive" className="mt-2 gap-1 text-[10px] shrink-0">
                   <AlertTriangle className="h-3 w-3" /> Atrasada
                 </Badge>
               )}
             </div>
-            <DialogTitle className="sr-only">{editingTask ? 'Editar tarefa' : 'Nova tarefa'}</DialogTitle>
-            <div className="space-y-1">
-              <Label htmlFor="task-name-input" className="text-xs text-muted-foreground">
-                Nome da tarefa <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="task-name-input"
-                value={name}
-                onChange={e => handleNameChange(e.target.value)}
-                placeholder="Ex: Preparar relatório mensal"
-                className="h-11 text-lg font-medium"
-              />
-            </div>
           </DialogHeader>
 
-          <div className="px-8 py-7 space-y-8">
+          <div className="px-10 py-6 space-y-7">
             {/* Sugestão de tarefa similar */}
             {!editingTask && suggestion && !suggestionDismissed && (
               <div className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-2">
