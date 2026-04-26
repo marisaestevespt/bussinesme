@@ -84,6 +84,11 @@ export function DepartmentHealth({ derived }: { derived: Derived }) {
     h.equipa.usedPct >= 95 ? 'bad' :
     h.equipa.usedPct >= 80 ? 'warn' : 'good';
 
+  const mkt = h.marketing;
+  const mktStatus: 'good' | 'warn' | 'bad' =
+    mkt.publishedMonth === 0 && mkt.scheduledMonth === 0 ? 'bad' :
+    mkt.scheduledMonth < 2 ? 'warn' : 'good';
+
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
@@ -101,11 +106,11 @@ export function DepartmentHealth({ derived }: { derived: Derived }) {
           ]}
         />
         <AreaCard
-          title="Marketing" icon={Megaphone} link="/hub/marketing" status="neutral"
+          title="Marketing" icon={Megaphone} link="/hub/marketing" status={mktStatus}
           metrics={[
-            { label: 'Projetos', value: String(h.operacao.activeProjects) },
-            { label: 'NPS', value: h.clientes.avgNps != null ? `${h.clientes.avgNps}` : '—' },
-            { label: 'Leads', value: String(h.comercial.openLeads) },
+            { label: 'Publicados', value: String(mkt.publishedMonth) },
+            { label: 'Agendados', value: String(mkt.scheduledMonth) },
+            { label: 'Ideias', value: String(mkt.ideas) },
           ]}
         />
         <AreaCard
