@@ -1154,6 +1154,11 @@ export default function OperacaoPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* ─── TAB ANÁLISE ─── */}
+          <TabsContent value="analise" className="space-y-4">
+            <OperacaoAnaliseTab />
+          </TabsContent>
         </Tabs>
 
         {/* Client status dialog */}
