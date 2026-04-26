@@ -170,9 +170,6 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                 )}
                 <div className="flex gap-1 pt-1">
                   <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={e => { e.stopPropagation(); setDialog(m); }}>Editar</Button>
-                  {m.status === 'ativo' && (
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-warning" onClick={e => { e.stopPropagation(); handleStartOffboarding(m); }}>Offboarding</Button>
-                  )}
                   {m.status === 'inativo' && (
                     <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={e => {
                       e.stopPropagation();
@@ -187,7 +184,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
         </div>
       )}
       {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={saveMember} />}
-      {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
+      {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} onOffboard={(m: any) => { setSelected(null); handleStartOffboarding(m); }} />}
 
       <Dialog open={!!offboardingDialog} onOpenChange={() => setOffboardingDialog(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
