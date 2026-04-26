@@ -17,6 +17,9 @@ import { RoutinesSection } from '@/components/executive/WeeklyAlignRoutines';
 import { ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeeklyAlignData } from '@/hooks/useWeeklyAlignData';
+import { useCeoCockpit } from '@/hooks/useCeoCockpit';
+import { DepartmentHealth } from '@/components/executive/cockpit/DepartmentHealth';
+import { WeekFocus } from '@/components/executive/cockpit/WeekFocus';
 
 export default function ExecutiveWeeklyAlign() {
   const qc = useQueryClient();
@@ -24,6 +27,7 @@ export default function ExecutiveWeeklyAlign() {
 
   const wa = useWeeklyAlignData(weekOffset);
   const planning = usePlanningData(wa.currentYear);
+  const cockpit = useCeoCockpit();
 
   // Detail sheet state
   const [detailOpen, setDetailOpen] = useState(false);
@@ -100,6 +104,15 @@ export default function ExecutiveWeeklyAlign() {
         )}
 
         <WeeklyStrategicMetrics />
+
+        {cockpit.derived && weekOffset === 0 && (
+          <>
+            <Separator />
+            <WeekFocus derived={cockpit.derived} />
+            <Separator />
+            <DepartmentHealth derived={cockpit.derived} />
+          </>
+        )}
 
         <WeeklyKpiCards
           salesWeekTotal={wa.salesWeekTotal}
