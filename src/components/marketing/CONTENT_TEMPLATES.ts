@@ -18,7 +18,6 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     description: 'Começa do zero, sem pré-definições',
     defaultTitle: 'Novo Conteúdo',
   },
-  {
   // Instagram
   {
     key: 'ig_post',
