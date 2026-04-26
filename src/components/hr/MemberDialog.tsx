@@ -570,134 +570,103 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             <Input placeholder="Morada fiscal" value={f.fiscal_address || ''} onChange={e => set('fiscal_address', e.target.value)} />
           </div>
 
-          <Separator />
-
-          {/* ═══ BLOCO 2: POSIÇÃO ═══ */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 Posição</h3>
-            {isENIOwner && (
+          {isOwnerRole ? (
+            <>
+              <Separator />
               <div className="rounded-md bg-primary/10 border border-primary/20 px-3 py-2">
-                <p className="text-xs text-primary font-medium">👑 Como Owner de ENI, todos os departamentos, áreas de trabalho e permissões foram atribuídos automaticamente.</p>
+                <p className="text-xs text-primary font-medium">👑 Como Owner, todos os departamentos, áreas, função no sistema e permissões sensíveis foram atribuídos automaticamente.</p>
               </div>
-            )}
-            <div>
-              <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
-              <div className="space-y-1 mt-1.5">
-                {DEPARTMENTS.map(d => {
-                  const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
-                  const checked = depts.includes(d.value);
-                  return (
-                    <label key={d.value} className={cn(
-                      'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
-                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                    )}>
-                      <Checkbox checked={checked} onCheckedChange={(v) => {
-                        const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
-                        set('departments', next);
-                        set('department', next[0] || '');
-                      }} />
-                      <span>{d.icon} {d.label}</span>
-                    </label>
-                  );
-                })}
+            </>
+          ) : (
+            <>
+              <Separator />
+              {/* ═══ O QUE FAZ ═══ */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 O que faz</h3>
+                <div>
+                  <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
+                  <p className="text-[10px] text-muted-foreground">Define em que áreas do negócio este membro trabalha. Controla também o acesso a essas secções do sistema.</p>
+                  <div className="space-y-1 mt-1.5">
+                    {DEPARTMENTS.map(d => {
+                      const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
+                      const checked = depts.includes(d.value);
+                      return (
+                        <label key={d.value} className={cn(
+                          'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
+                          checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                        )}>
+                          <Checkbox checked={checked} onCheckedChange={(v) => {
+                            const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
+                            set('departments', next);
+                            set('department', next[0] || '');
+                            // Sincroniza work_areas com departments para manter compatibilidade
+                            set('work_areas', next);
+                          }} />
+                          <span>{d.icon} {d.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+                <Textarea placeholder="Responsabilidades específicas (opcional)" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
               </div>
-              {/* Resumo curto do que isto desbloqueia */}
-              <div className="mt-2 rounded-md bg-muted/40 px-3 py-2">
-                <p className="text-[11px] text-muted-foreground">
-                  {Array.isArray(f.departments) && f.departments.length > 0 ? (
-                    <>Acesso a <span className="font-medium text-foreground">{f.departments.length} departamento(s)</span> + áreas comuns da equipa (Hub, Agenda, Tarefas, Projetos, Biblioteca…).</>
-                  ) : (
-                    <>Sem departamentos — apenas áreas comuns (Hub, Agenda, Tarefas, Projetos…).</>
-                  )}
-                </p>
-              </div>
-            </div>
 
-            {/* Áreas de trabalho */}
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground font-medium">Áreas de trabalho</span>
-              <p className="text-[10px] text-muted-foreground">Seleciona uma ou mais áreas em que este membro vai atuar.</p>
-              <div className="grid grid-cols-1 gap-2">
-                {WORK_AREAS.map(wa => {
-                  const areas: string[] = Array.isArray(f.work_areas) ? f.work_areas : [];
-                  const checked = areas.includes(wa.value);
-                  return (
-                    <label key={wa.value} className={cn(
-                      'flex items-start gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors',
-                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                    )}>
-                      <Checkbox checked={checked} onCheckedChange={(v) => {
-                        const next = v ? [...areas, wa.value] : areas.filter(a => a !== wa.value);
-                        set('work_areas', next);
-                      }} className="mt-0.5" />
-                      <div>
-                        <span className="text-xs font-medium">{wa.label}</span>
-                        <p className="text-[10px] text-muted-foreground leading-tight">{wa.description}</p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+              <Separator />
 
-            <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
-          </div>
+              {/* ═══ ACESSOS & PERMISSÕES ═══ */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
+
+                <div className="space-y-2">
+                  <span className="text-xs text-muted-foreground font-medium">Função no sistema</span>
+                  <p className="text-[10px] text-muted-foreground">Controla o nível de acesso técnico. Diferente do cargo (descritivo).</p>
+                  <Select value={f.system_role || 'team_member'} onValueChange={(v) => set('system_role', v)}>
+                    <SelectTrigger className="h-9 text-xs">
+                      <SelectValue placeholder="Membro de equipa" />
+                    </SelectTrigger>
+                    <SelectContent className="max-w-[320px]">
+                      {SYSTEM_ROLE_OPTIONS.map(r => (
+                        <SelectItem key={r.value} value={r.value} className="text-xs py-2">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{r.label}</span>
+                            <span className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">{r.hint}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
+                  <p className="text-[10px] text-muted-foreground">Define que informação sensível este membro pode ver. Tudo OFF por defeito.</p>
+                  <div className="space-y-1">
+                    {SENSITIVE_CATEGORIES.map(cat => {
+                      const checked = !!(f.sensitiveAccess || {})[cat.key];
+                      return (
+                        <label key={cat.key} className={cn(
+                          'flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                          checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                        )}>
+                          <Switch checked={checked} onCheckedChange={(v) => {
+                            set('sensitiveAccess', { ...(f.sensitiveAccess || {}), [cat.key]: !!v });
+                          }} />
+                          <div>
+                            <span className="text-xs font-medium">{cat.label}</span>
+                            <p className="text-[10px] text-muted-foreground leading-tight">{cat.description}</p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           <Separator />
 
-          {/* ═══ BLOCO 3: ACESSOS & PERMISSÕES ═══ */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
-
-            {/* Função no sistema (RBAC) */}
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground font-medium">Função no sistema</span>
-              <p className="text-[10px] text-muted-foreground">Define o que esta pessoa pode ver e fazer no software. Diferente do "cargo" — controla a segurança.</p>
-              <Select value={f.system_role || 'team_member'} onValueChange={(v) => set('system_role', v)}>
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Membro de equipa" />
-                </SelectTrigger>
-                <SelectContent className="max-w-[320px]">
-                  {SYSTEM_ROLE_OPTIONS.map(r => (
-                    <SelectItem key={r.value} value={r.value} className="text-xs py-2">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{r.label}</span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">{r.hint}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
-              <p className="text-[10px] text-muted-foreground">Define que informação sensível este membro pode ver. Tudo OFF por defeito.</p>
-              <div className="space-y-1">
-                {SENSITIVE_CATEGORIES.map(cat => {
-                  const checked = !!(f.sensitiveAccess || {})[cat.key];
-                  return (
-                    <label key={cat.key} className={cn(
-                      'flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors',
-                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                    )}>
-                      <Switch checked={checked} onCheckedChange={(v) => {
-                        set('sensitiveAccess', { ...(f.sensitiveAccess || {}), [cat.key]: !!v });
-                      }} />
-                      <div>
-                        <span className="text-xs font-medium">{cat.label}</span>
-                        <p className="text-[10px] text-muted-foreground leading-tight">{cat.description}</p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* ═══ BLOCO 4: HORÁRIO ═══ */}
+          {/* ═══ HORÁRIO ═══ */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🕐 Horário</h3>
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
