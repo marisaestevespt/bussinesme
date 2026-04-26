@@ -200,9 +200,43 @@ export default function ProcessosPage() {
         description="Documentação operacional, rotinas e fluxos por departamento."
         count={totalSopCount}
         actions={
-          <Button onClick={() => { if (selectedDept) setNewSopDepts([selectedDept]); setShowNewSop(true); }} size="sm">
-            <Plus className="h-4 w-4 mr-1" /> Novo Processo
-          </Button>
+          <Popover open={sopTemplatePickerOpen} onOpenChange={setSopTemplatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Novo Processo</Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-1.5">
+              <div className="px-2 py-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Escolher template</p>
+              </div>
+              <div className="space-y-0.5">
+                {SOP_TEMPLATES.map(t => {
+                  const Icon = t.icon;
+                  return (
+                    <button
+                      key={t.value}
+                      onClick={() => {
+                        if (selectedDept) setNewSopDepts([selectedDept]);
+                        setNewSopTemplate(t);
+                        setNewSopType(t.defaultSopType);
+                        setNewSopObjetivo(t.defaultObjetivo || '');
+                        setSopTemplatePickerOpen(false);
+                        setShowNewSop(true);
+                      }}
+                      className="w-full flex items-start gap-3 rounded-md px-2 py-2 text-left hover:bg-muted transition-colors"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{t.label}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
         }
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
