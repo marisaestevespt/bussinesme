@@ -2,9 +2,8 @@ import { useState, type ReactNode } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus } from 'lucide-react';
-import { MeetingFormDialog } from '@/pages/Reunioes';
+import { MeetingFormDialog, useProfiles, useProjects, useClientsList } from '@/pages/Reunioes';
 import { MEETING_TEMPLATES, type MeetingTemplateType } from './MEETING_TEMPLATES';
-import { useProfiles, useProjects, useClientsList } from '@/hooks/useReuniaoData';
 
 interface Props {
   /** Optional contextual defaults that pre-fill the dialog */
