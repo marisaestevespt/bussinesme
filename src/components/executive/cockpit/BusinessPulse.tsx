@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, Users, CreditCard, Wallet, Activity, Heart, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Wallet, Activity, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { useCeoCockpit } from '@/hooks/useCeoCockpit';
 
