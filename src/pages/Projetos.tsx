@@ -164,6 +164,19 @@ export default function ProjetosPage() {
   const [fNotes, setFNotes] = useState('');
   const [fMode, setFMode] = useState('pontual');
   const [fProduct, setFProduct] = useState<string>('');
+  const [activeTemplate, setActiveTemplate] = useState<ProjectTemplate | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  function openWithTemplate(tpl: ProjectTemplate) {
+    setActiveTemplate(tpl);
+    setFType(tpl.defaultType);
+    setFMode(tpl.defaultMode);
+    setFStatus(tpl.defaultStatus);
+    setFDept(tpl.defaultDept || '');
+    setFNotes(tpl.defaultNotes || '');
+    setPickerOpen(false);
+    setDialogOpen(true);
+  }
 
   const projectsQuery = useInfiniteQuery<InfinitePageResult<Project>>({
     queryKey: ['projects'],
