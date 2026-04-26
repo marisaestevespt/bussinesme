@@ -327,9 +327,20 @@ export default function OperacaoPage() {
       });
     });
 
+    const phaseStatusById = new Map(allPhases.map(p => [p.id, p.status]));
+
     deliverables.forEach(d => {
       if (d.responsible_type !== 'cliente') return;
       if (isDeliverableDone(d)) return;
+      // Só conta se a entrega já está "ativa agora":
+      //  - a fase já arrancou (status em_curso), OU
+      //  - já passou a data de início planeada, OU
+      //  - o prazo já passou (caso extremo)
+      const phaseActive = d.phase_id ? phaseStatusById.get(d.phase_id) === 'em_curso' : false;
+      const startPassed = d.planned_start ? !isBefore(today, new Date(d.planned_start)) : false;
+      const deadlinePassed = d.deadline ? isBefore(new Date(d.deadline), today) : false;
+      if (!phaseActive && !startPassed && !deadlinePassed) return;
+
       const proj = allActiveProjects.find(p => p.id === d.project_id);
       const ref = d.deadline ? new Date(d.deadline) : null;
       const days = ref ? differenceInDays(today, ref) : 0;
@@ -345,7 +356,7 @@ export default function OperacaoPage() {
     });
 
     return items.sort((a, b) => Number(b.overdue) - Number(a.overdue) || b.daysWaiting - a.daysWaiting);
-  }, [tasks, deliverables, allActiveProjects, today]);
+  }, [tasks, deliverables, allActiveProjects, allPhases, today]);
 
   // ── Em aprovação interna ────────────────────────────────────
   // Tarefas em "Para aprovação" — aguardam validação do responsável interno
