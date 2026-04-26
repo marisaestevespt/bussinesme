@@ -17,6 +17,7 @@ import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getMeetingTemplate } from '@/components/meeting/MEETING_TEMPLATES';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
