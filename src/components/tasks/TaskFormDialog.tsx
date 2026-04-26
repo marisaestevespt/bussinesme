@@ -396,54 +396,35 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[92vh] overflow-y-auto p-0 gap-0">
-          {/* ── Header com meta info ─────────────────────────────── */}
-          <DialogHeader className="px-6 pt-5 pb-4 border-b shrink-0 space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <DialogTitle className="sr-only">{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
-                <Input
-                  value={name}
-                  onChange={e => handleNameChange(e.target.value)}
-                  placeholder={editingTask ? 'Nome da tarefa' : 'Nova tarefa'}
-                  className="h-10 text-base font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2"
-                />
+          {/* ── Header ─────────────────────────────────────────── */}
+          <DialogHeader className="px-6 pt-6 pb-5 border-b shrink-0 space-y-3">
+            <DialogTitle className="text-lg font-semibold">
+              {editingTask ? 'Editar tarefa' : 'Nova tarefa'}
+            </DialogTitle>
+            <div className="space-y-2">
+              <Label htmlFor="task-name" className="text-sm font-medium text-foreground mb-1.5 block">
+                Nome da tarefa <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="task-name"
+                value={name}
+                onChange={e => handleNameChange(e.target.value)}
+                placeholder="Ex: Preparar relatório mensal"
+                className="h-10"
+              />
+            </div>
+            {editingTask && isOverdue(editingTask) && (
+              <div className="flex items-center gap-2 text-xs text-destructive">
+                <AlertTriangle className="h-3.5 w-3.5" /> Esta tarefa está atrasada
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              {(() => {
-                const s = TASK_STATUSES.find(x => x.value === status);
-                return s ? <Badge variant="outline" className={cn('text-[10px]', s.color)}>{s.label}</Badge> : null;
-              })()}
-              {(() => {
-                const p = PRIORITIES.find(x => x.value === priority);
-                return p ? <Badge variant="outline" className={cn('text-[10px] border', p.color)}>{p.label}</Badge> : null;
-              })()}
-              {projectId && projectId !== 'none' && (() => {
-                const proj = projects.find(p => p.id === projectId);
-                return proj ? <Badge variant="secondary" className="text-[10px]">📁 {proj.name}</Badge> : null;
-              })()}
-              {clientId && clientId !== 'none' && (() => {
-                const c = clients.find(x => x.id === clientId);
-                return c ? <Badge variant="secondary" className="text-[10px]">👤 {c.full_name}</Badge> : null;
-              })()}
-              {deadline && (
-                <Badge variant="outline" className="text-[10px] gap-1">
-                  <CalendarIcon className="h-3 w-3" /> {format(deadline, 'd MMM yyyy', { locale: pt })}
-                </Badge>
-              )}
-              {editingTask && isOverdue(editingTask) && (
-                <Badge variant="destructive" className="text-[10px] gap-1">
-                  <AlertTriangle className="h-3 w-3" /> Atrasada
-                </Badge>
-              )}
-            </div>
+            )}
           </DialogHeader>
 
-          <div className="px-6 py-5 space-y-5">
+          <div className="px-6 py-6 space-y-6">
             {/* Sugestão de tarefa similar */}
             {!editingTask && suggestion && !suggestionDismissed && (
                 <div className="mt-2 rounded-md border border-border bg-muted/30 p-3 space-y-2">
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm font-medium text-foreground mb-1.5 block">
                     Tarefa similar: <strong className="text-foreground">{suggestion.taskName}</strong>. Tempo médio: <strong className="text-foreground">{suggestion.avgHours}h</strong>.
                   </p>
                   <div className="flex gap-2">
@@ -454,25 +435,25 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             )}
 
             {/* ── Secção: Detalhes principais ───────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Detalhes</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-muted-foreground">Status</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Status</Label>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>{TASK_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Prioridade</Label>
                 <Select value={priority} onValueChange={setPriority}>
                   <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>{PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}><Badge variant="outline" className={cn('text-xs border', p.color)}>{p.label}</Badge></SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Prazo *</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Prazo *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
@@ -486,18 +467,18 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 </Popover>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground flex items-center gap-1.5"><Clock className="h-3 w-3" /> Hora (opcional)</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-1.5"><Clock className="h-3 w-3" /> Hora (opcional)</Label>
                 <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="HH:MM" className="h-9" />
               </div>
               </div>
             </section>
 
             {/* ── Secção: Recorrência ──────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-muted-foreground">Frequência</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Frequência</Label>
                 <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Não se repete" /></SelectTrigger>
                   <SelectContent>{RECURRENCE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}</SelectContent>
@@ -505,13 +486,13 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
               {recurrenceType === 'personalizado' && (
                 <div>
-                  <Label className="text-xs text-muted-foreground">A cada X dias</Label>
+                  <Label className="text-sm font-medium text-foreground mb-1.5 block">A cada X dias</Label>
                   <Input type="number" min="1" max="365" value={recurrenceIntervalDays} onChange={e => setRecurrenceIntervalDays(e.target.value)} placeholder="Ex: 3" className="h-9" />
                 </div>
               )}
               {recurrenceType && recurrenceType !== 'personalizado' && (
                 <div>
-                  <Label className="text-xs text-muted-foreground">Repetir até</Label>
+                  <Label className="text-sm font-medium text-foreground mb-1.5 block">Repetir até</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
@@ -528,7 +509,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
               {recurrenceType === 'personalizado' && (
               <div>
-                <Label className="text-xs text-muted-foreground">Repetir até</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Repetir até</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
@@ -545,18 +526,18 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </section>
 
             {/* ── Secção: Atribuição ───────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Atribuição</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-muted-foreground">Responsável</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Responsável</Label>
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Departamento</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Departamento</Label>
                 <Select value={department} onValueChange={setDepartment}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>{PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
@@ -564,16 +545,16 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
               </div>
               {editingTask?.original_assignee && (
-                <div className="text-xs text-muted-foreground">Responsável original: {profiles.find(p => p.id === editingTask.original_assignee)?.full_name || '—'}</div>
+                <div className="text-sm font-medium text-foreground mb-1.5 block">Responsável original: {profiles.find(p => p.id === editingTask.original_assignee)?.full_name || '—'}</div>
               )}
             </section>
 
             {/* ── Secção: Contexto ─────────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contexto</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs text-muted-foreground">Projeto associado</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Projeto associado</Label>
               <Select value={projectId} onValueChange={v => { setProjectId(v); if (v && v !== 'none') { const proj = projects.find(p => p.id === v); if (proj?.client_id) setClientId(proj.client_id); } }}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
@@ -583,7 +564,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </Select>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Cliente associado</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Cliente associado</Label>
               <Select value={clientId || 'none'} onValueChange={v => setClientId(v === 'none' ? '' : v)}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
@@ -594,7 +575,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground flex items-center gap-1.5"><FileText className="h-3 w-3" /> Processo (SOP) associado</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-1.5"><FileText className="h-3 w-3" /> Processo (SOP) associado</Label>
               <Select value={sopId || 'none'} onValueChange={v => {
                 const newSopId = v === 'none' ? '' : v;
                 setSopId(newSopId);
@@ -615,7 +596,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </section>
 
             {/* ── Secção: Hierarquia (subtarefas) ──────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Hierarquia</h3>
                 <div className="flex items-center gap-2">
@@ -627,7 +608,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             {isSubtask && (
                 <div className="space-y-3 pl-3 border-l-2 border-primary/20">
                 <div>
-                    <Label className="text-xs text-muted-foreground">Tarefa principal</Label>
+                    <Label className="text-sm font-medium text-foreground mb-1.5 block">Tarefa principal</Label>
                   <Select value={parentTaskId} onValueChange={setParentTaskId}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar tarefa principal" /></SelectTrigger>
                     <SelectContent>
@@ -637,7 +618,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </Select>
                 </div>
                 <div>
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5"><Link2 className="h-3 w-3" /> Depende de</Label>
+                    <Label className="text-sm font-medium text-foreground mb-1.5 flex items-center gap-1.5"><Link2 className="h-3 w-3" /> Depende de</Label>
                   <Select value="" onValueChange={val => { if (val && !dependsOnIds.includes(val)) setDependsOnIds(prev => [...prev, val]); }}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
                     <SelectContent>{allTasks.filter(t => t.id !== editingTask?.id && !dependsOnIds.includes(t.id)).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
@@ -707,11 +688,11 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             )}
 
             {/* ── Secção: Tempo ────────────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Tempo</h3>
               {editingTask && <TaskTimeTracker taskId={editingTask.id} />}
               <div>
-                <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
+                <Label className="text-sm font-medium text-foreground mb-1.5 block">Tempo Estimado (horas)</Label>
                 <Input type="number" min="0" step="0.5" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
               </div>
             </section>
