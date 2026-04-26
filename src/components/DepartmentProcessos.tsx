@@ -20,6 +20,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Trash2, FileText, RotateCw, MessageSquare, ExternalLink, Pencil, Check, X } from 'lucide-react';
 import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus';
 import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { SOP_TEMPLATES, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
 
 interface DepartmentProcessosProps {
   department: string;
@@ -35,6 +37,9 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   const [showNewSop, setShowNewSop] = useState(false);
   const [newSopName, setNewSopName] = useState('');
   const [newSopStatus, setNewSopStatus] = useState('para_criar');
+  const [newSopTemplate, setNewSopTemplate] = useState<SopTemplate | null>(null);
+  const [newSopObjetivo, setNewSopObjetivo] = useState('');
+  const [sopPickerOpen, setSopPickerOpen] = useState(false);
 
 
   // Routine dialog state
@@ -74,21 +79,35 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   // Mutations
   const createSop = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('sops').insert({
+      const { data: sopData, error } = await supabase.from('sops').insert({
         name: newSopName,
         department,
         departments: [department],
         status: newSopStatus,
+        sop_type: newSopTemplate?.defaultSopType || 'operacional',
+        objetivo: newSopObjetivo.trim() || null,
         created_by: user?.id,
-      });
+      } as any).select('id').single();
       if (error) throw error;
+      if (newSopTemplate && newSopTemplate.defaultSteps.length > 0 && sopData?.id) {
+        const stepRows = newSopTemplate.defaultSteps.map((description, idx) => ({
+          sop_id: sopData.id,
+          description,
+          sort_order: idx,
+        }));
+        await (supabase.from as any)('sop_steps').insert(stepRows);
+      }
+      return sopData;
     },
-    onSuccess: () => {
+    onSuccess: (sopData: any) => {
       qc.invalidateQueries({ queryKey: ['sops'] });
       setShowNewSop(false);
       setNewSopName('');
       setNewSopStatus('para_criar');
+      setNewSopObjetivo('');
+      setNewSopTemplate(null);
       toast.success('Processo criado');
+      if (sopData?.id) navigate(`/hub/processos/${sopData.id}`);
     },
     onError: () => toast.error('Erro ao criar processo'),
   });
