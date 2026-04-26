@@ -89,11 +89,6 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
   const capacityStatus: 'good' | 'warn' | 'bad' =
     capacityPct >= 95 ? 'bad' : capacityPct >= 80 ? 'warn' : 'good';
 
-  const npsStatus: 'good' | 'warn' | 'bad' | 'neutral' =
-    derived.avgNps == null ? 'neutral' :
-    derived.avgNps >= 8 ? 'good' :
-    derived.avgNps >= 6 ? 'warn' : 'bad';
-
   const goalStatus: 'good' | 'warn' | 'bad' =
     derived.goalProgress >= 90 ? 'good' : derived.goalProgress >= 60 ? 'warn' : 'bad';
 
@@ -107,7 +102,7 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
         <span className="text-[10px] text-muted-foreground">vs mês passado</span>
       </div>
 
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <KpiTile
           label="MRR"
           value={formatEuros(derived.mrr)}
@@ -117,19 +112,11 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
           link="/hub/financeiro"
         />
         <KpiTile
-          label="Faturação mês"
-          value={formatEuros(derived.monthRevenue)}
-          icon={CreditCard}
-          status={revenueDelta < 0 ? 'warn' : 'good'}
-          delta={revenueDelta}
-          link="/hub/financeiro"
-        />
-        <KpiTile
           label="Resultado mês"
           value={formatEuros(derived.monthlyNet)}
           icon={Wallet}
           status={netStatus}
-          sub={`Despesas ${formatEuros(derived.monthExpenses)}`}
+          sub={`Receita ${formatEuros(derived.monthRevenue)}${revenueDelta !== 0 ? ` (${revenueDelta > 0 ? '+' : ''}${revenueDelta}%)` : ''}`}
           link="/hub/financeiro"
         />
         <KpiTile
@@ -147,14 +134,6 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
           status={capacityStatus}
           sub={derived.capacity ? `${derived.capacity.totalUsed}h / ${derived.capacity.totalCapacity}h` : undefined}
           link="/executive/productivity"
-        />
-        <KpiTile
-          label="NPS médio"
-          value={derived.avgNps != null ? `${derived.avgNps}/10` : '—'}
-          icon={Heart}
-          status={npsStatus}
-          sub="Últimos 90 dias"
-          link="/hub/clientes/feedback"
         />
       </div>
 
