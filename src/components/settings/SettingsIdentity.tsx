@@ -315,6 +315,27 @@ export function SettingsIdentity() {
           <p className="text-xs text-muted-foreground">Será visível no portal do cliente.</p>
         </div>
         <div className="space-y-2">
+          <Label htmlFor="weeklyAlignDay" className="text-sm font-medium flex items-center gap-2">
+            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+            Dia do Weekly Align
+          </Label>
+          <Select value={String(weeklyAlignDay)} onValueChange={(v) => setWeeklyAlignDay(Number(v))}>
+            <SelectTrigger id="weeklyAlignDay" className="h-11">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Segunda-feira</SelectItem>
+              <SelectItem value="2">Terça-feira</SelectItem>
+              <SelectItem value="3">Quarta-feira</SelectItem>
+              <SelectItem value="4">Quinta-feira</SelectItem>
+              <SelectItem value="5">Sexta-feira</SelectItem>
+              <SelectItem value="6">Sábado</SelectItem>
+              <SelectItem value="7">Domingo</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">A Sala do CEO mostra um aviso neste dia para fazeres a revisão semanal.</p>
+        </div>
+        <div className="space-y-2">
           <Label className="text-sm font-medium">Logo</Label>
           <div className="flex items-center gap-4">
             <label className="flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 hover:border-muted-foreground/50 hover:bg-muted/50 overflow-hidden transition-colors">
