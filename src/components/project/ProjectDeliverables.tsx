@@ -406,6 +406,54 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                       <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
                     )}
 
+                    {(() => {
+                      const linkedTask = taskByDeliverable.get(d.id);
+                      const realMin = linkedTask ? (timeByTask[linkedTask.id] || 0) : 0;
+                      const estMin = (d as any).estimated_minutes ?? null;
+                      const hasReal = realMin > 0;
+                      const hasEst = estMin != null && estMin > 0;
+                      if (!hasReal && !hasEst) {
+                        return (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                className="text-[10px] shrink-0 text-muted-foreground/60 hover:text-primary inline-flex items-center gap-1"
+                                title="Definir tempo estimado"
+                              >
+                                <Clock className="h-3 w-3" /> —
+                              </button>
+                            </PopoverTrigger>
+                            <EstimatedTimePopover
+                              currentMinutes={null}
+                              onSave={(m) => updateEstimated.mutate({ id: d.id, estimated_minutes: m })}
+                            />
+                          </Popover>
+                        );
+                      }
+                      const overBudget = hasEst && hasReal && realMin > estMin * 1.1;
+                      const onTrack = hasEst && hasReal && realMin <= estMin;
+                      return (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              className={cn(
+                                'text-[10px] shrink-0 inline-flex items-center gap-1 hover:underline tabular-nums',
+                                overBudget ? 'text-destructive font-semibold' : onTrack ? 'text-success' : 'text-muted-foreground'
+                              )}
+                              title={hasEst && hasReal ? `${formatMin(realMin)} usados de ${formatMin(estMin)} estimados` : hasEst ? `Estimado: ${formatMin(estMin)}` : `Real: ${formatMin(realMin)}`}
+                            >
+                              <Clock className="h-3 w-3" />
+                              {hasReal ? formatMin(realMin) : '—'}{hasEst ? ` / ${formatMin(estMin)}` : ''}
+                            </button>
+                          </PopoverTrigger>
+                          <EstimatedTimePopover
+                            currentMinutes={estMin}
+                            onSave={(m) => updateEstimated.mutate({ id: d.id, estimated_minutes: m })}
+                          />
+                        </Popover>
+                      );
+                    })()}
+
                     {displayDeadline && (
                       <Popover>
                         <PopoverTrigger asChild>
