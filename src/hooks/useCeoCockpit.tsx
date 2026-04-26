@@ -142,8 +142,8 @@ export function useCeoCockpit() {
       : 0;
 
     // ── Department health ────────────────────────────────────────
-    const tasksByDept = (dept: string) => d.tasks.filter((t: any) => t.department === dept && isTaskOpen(t));
-    const projectsByDept = (dept: string) => d.projects.filter((p: any) =>
+    const tasksByDept = (dept: string) => (d.tasks || []).filter((t: any) => t.department === dept && isTaskOpen(t));
+    const projectsByDept = (dept: string) => (d.projects || []).filter((p: any) =>
       p.department === dept && ['em_curso', 'em_revisao', 'em_pausa'].includes(p.status)
     );
 
