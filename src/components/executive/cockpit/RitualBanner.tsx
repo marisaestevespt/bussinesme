@@ -4,6 +4,14 @@ import { Button } from '@/components/ui/button';
 import { CalendarCheck, Target, Compass, ArrowRight } from 'lucide-react';
 import { format, getDay, getDate, getMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+
+const DAY_NAMES_FEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+
+/** Convert ISO weekday (1=Mon..7=Sun) to JS getDay (0=Sun..6=Sat). */
+function isoToJsDay(iso: number): number {
+  return iso === 7 ? 0 : iso;
+}
 
 /**
  * Banner contextual: muda conforme o dia/mês para empurrar o CEO
@@ -17,15 +25,20 @@ import { pt } from 'date-fns/locale';
  * 5. Outros dias → nada (banner não aparece)
  */
 export function RitualBanner() {
+  const { settings } = useBusinessSettings();
+  const weeklyAlignIso = (settings as any)?.weekly_align_day ?? 5; // default sexta
+  const weeklyAlignJsDay = isoToJsDay(weeklyAlignIso);
+  const dayBeforeJs = (weeklyAlignJsDay - 1 + 7) % 7;
+
   const now = new Date();
-  const dow = getDay(now); // 0=dom, 1=seg ... 5=sex
+  const dow = getDay(now); // 0=dom, 1=seg ... 6=sáb
   const dom = getDate(now);
   const month = getMonth(now) + 1; // 1-12
 
   const isQuarterStart = [1, 4, 7, 10].includes(month) && dom <= 3;
   const isMonthStart = !isQuarterStart && dom <= 3;
-  const isFriday = dow === 5;
-  const isMonday = dow === 1;
+  const isWeeklyAlignDay = dow === weeklyAlignJsDay;
+  const isDayBefore = dow === dayBeforeJs;
 
   let config: {
     icon: React.ElementType;
@@ -54,21 +67,24 @@ export function RitualBanner() {
       to: '/executive/planeamento',
       accent: 'from-primary/10 via-primary/5 to-transparent border-primary/30',
     };
-  } else if (isFriday) {
+  } else if (isWeeklyAlignDay) {
+    const dayName = DAY_NAMES_FEM[weeklyAlignJsDay];
+    const cap = dayName.charAt(0).toUpperCase() + dayName.slice(1);
     config = {
       icon: CalendarCheck,
-      title: 'Sexta-feira — está na hora do Weekly Align',
+      title: `${cap} — está na hora do Weekly Align`,
       subtitle: 'Revê a semana, alinha decisões e prepara a próxima.',
       cta: 'Fazer Weekly Align',
       to: '/executive/weekly-align',
       accent: 'from-warning/10 via-warning/5 to-transparent border-warning/30',
     };
-  } else if (isMonday) {
+  } else if (isDayBefore) {
+    const dayName = DAY_NAMES_FEM[weeklyAlignJsDay];
     config = {
       icon: CalendarCheck,
-      title: 'Segunda-feira — alinha o foco da semana',
-      subtitle: 'Define top 3 prioridades e revê saúde por área.',
-      cta: 'Abrir Weekly Align',
+      title: `Amanhã é o teu Weekly Align (${dayName})`,
+      subtitle: 'Aproveita para reunir notas, decisões e bloqueios da semana.',
+      cta: 'Preparar Weekly Align',
       to: '/executive/weekly-align',
       accent: 'from-info/10 via-info/5 to-transparent border-info/30',
     };
