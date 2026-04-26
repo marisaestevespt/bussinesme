@@ -93,10 +93,12 @@ export function DepartmentHealth({ derived }: { derived: Derived }) {
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Saúde por área</h2>
-        <span className="text-[10px] text-muted-foreground">Clica para ver análise completa</span>
+        <Link to="/executive/analise" className="text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors">
+          Clica para ver análise completa
+        </Link>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         <AreaCard
           title="Comercial" icon={Briefcase} link="/hub/comercial/analise" status={comStatus}
           metrics={[
