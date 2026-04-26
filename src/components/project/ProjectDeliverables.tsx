@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Package, CalendarIcon, Trash2, Download } from 'lucide-react';
+import { Plus, Package, CalendarIcon, Trash2, Download, Clock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, isAfter } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -156,6 +156,26 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const taskByDeliverable = new Map<string, any>(linkedTasks.map((t: any) => [t.deliverable_id, t]));
   const editingTask = taskDetailId ? linkedTasks.find((t: any) => t.id === taskDetailId) : null;
 
+  // Real time totals per task (sum of task_time_entries)
+  const linkedTaskIds = useMemo(() => linkedTasks.map((t: any) => t.id), [linkedTasks]);
+  const { data: timeByTask = {} } = useQuery({
+    queryKey: ['deliverable-time-totals', projectId, linkedTaskIds],
+    enabled: linkedTaskIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('task_time_entries')
+        .select('task_id, duration_minutes, ended_at, is_manual')
+        .in('task_id', linkedTaskIds);
+      const map: Record<string, number> = {};
+      (data || []).forEach((e: any) => {
+        if (e.ended_at || e.is_manual) {
+          map[e.task_id] = (map[e.task_id] || 0) + (e.duration_minutes || 0);
+        }
+      });
+      return map;
+    },
+  });
+
   // Enrich deliverables with computed next deadline for recurring ones
   const enrichedDeliverables = useMemo(() => {
     return deliverables.map(d => {
@@ -242,6 +262,19 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
       qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       toast.success('Data atualizada');
     },
+  });
+
+  const updateEstimated = useMutation({
+    mutationFn: async ({ id, estimated_minutes }: { id: string; estimated_minutes: number | null }) => {
+      const { error } = await supabase.from('project_deliverables').update({ estimated_minutes }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      qc.invalidateQueries({ queryKey: ['project-deliverable-tasks', projectId] });
+      toast.success('Tempo estimado atualizado');
+    },
+    onError: () => toast.error('Erro ao atualizar tempo'),
   });
 
   // Products with deliverable templates for import
