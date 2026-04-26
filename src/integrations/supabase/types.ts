@@ -3249,6 +3249,45 @@ export type Database = {
           },
         ]
       }
+      edge_function_runs: {
+        Row: {
+          attempts: number
+          context: Json | null
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          function_name: string
+          id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          context?: Json | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          function_name: string
+          id?: string
+          started_at?: string
+          status: string
+        }
+        Update: {
+          attempts?: number
+          context?: Json | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          function_name?: string
+          id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string

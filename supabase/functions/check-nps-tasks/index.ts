@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { runWithMonitoring } from "../_shared/resilience.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,11 +20,12 @@ Deno.serve(async (req) => {
     });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, serviceKey);
-
-  const today = new Date().toISOString().split("T")[0];
+  try {
+    const created = await runWithMonitoring(async () => {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, serviceKey);
+      const today = new Date().toISOString().split("T")[0];
 
   // Find NPS records due today or past that have no task yet
   const { data: dueRecords, error: fetchErr } = await supabase
@@ -33,19 +35,9 @@ Deno.serve(async (req) => {
     .neq("status", "feito")
     .is("task_id", null);
 
-  if (fetchErr) {
-    console.error("Error fetching NPS records:", fetchErr);
-    return new Response(JSON.stringify({ error: fetchErr.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+      if (fetchErr) throw new Error(`fetch NPS: ${fetchErr.message}`);
 
-  if (!dueRecords || dueRecords.length === 0) {
-    return new Response(JSON.stringify({ created: 0 }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+      if (!dueRecords || dueRecords.length === 0) return 0;
 
   // Gather unique product IDs to get NPS config (responsible_id)
   const productIds = [...new Set(dueRecords.filter(r => r.product_id).map(r => r.product_id))];
@@ -61,7 +53,7 @@ Deno.serve(async (req) => {
 
   // Get team_members to map team_member_id -> profile_id
   const responsibleIds = [...new Set(Object.values(configMap).filter(Boolean))] as string[];
-  let memberToProfile: Record<string, string> = {};
+      const memberToProfile: Record<string, string> = {};
   if (responsibleIds.length > 0) {
     const { data: members } = await supabase
       .from("team_members")
@@ -118,7 +110,17 @@ Deno.serve(async (req) => {
     created++;
   }
 
-  return new Response(JSON.stringify({ created }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+      return created;
+    }, { functionName: "check-nps-tasks", maxAttempts: 2 });
+
+    return new Response(JSON.stringify({ created }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 });

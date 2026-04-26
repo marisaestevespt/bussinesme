@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { logRun } from "../_shared/resilience.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,6 +35,7 @@ Deno.serve(async (req) => {
     });
   }
 
+  const startedAt = new Date();
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -188,6 +190,13 @@ Deno.serve(async (req) => {
       await supabase.from("notifications").insert(toInsert);
     }
 
+    await logRun({
+      functionName: "daily-birthday-check",
+      startedAt,
+      status: "success",
+      context: { inserted: toInsert.length, skipped: notifications.length - toInsert.length },
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -197,6 +206,7 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
+    await logRun({ functionName: "daily-birthday-check", startedAt, status: "failed", errorMessage: (error as Error).message });
     return new Response(
       JSON.stringify({ error: (error as Error).message }),
       {

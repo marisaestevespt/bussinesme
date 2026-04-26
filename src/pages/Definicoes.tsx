@@ -16,6 +16,7 @@ import { FinAuditoriaDocumentos } from '@/components/financial/FinAuditoriaDocum
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
+import { SettingsEdgeMonitoring } from '@/components/settings/SettingsEdgeMonitoring';
 import { useAuth } from '@/hooks/useAuth';
 import { cn as _cn } from '@/lib/utils';
 
@@ -122,7 +123,12 @@ export default function DefinicoesPage() {
               <SettingsUsers />
             </div>
           )}
-          {tab === 'sistema' && <SettingsBackups />}
+          {tab === 'sistema' && (
+            <div className="space-y-10">
+              <SettingsEdgeMonitoring />
+              <SettingsBackups />
+            </div>
+          )}
         </div>
 
         {/* Reset section moved to SettingsBackups */}
