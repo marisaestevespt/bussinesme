@@ -372,6 +372,18 @@ export function MeetingFormDialog({
 
   const skipAutoFillRef = useRef(false);
 
+  // When opened with a preselected template, sync state and apply default department
+  useEffect(() => {
+    if (!open) return;
+    if (initialMeetingType) {
+      setMeetingType(initialMeetingType);
+      setStep('form');
+      const tpl = getMeetingTemplate(initialMeetingType as string);
+      if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialMeetingType]);
+
   const resetForm = () => {
     setStep(skipTypeStep ? 'form' : 'type');
     setMeetingType(initialType);
