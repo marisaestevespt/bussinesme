@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { logRun } from "../_shared/resilience.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,6 +68,8 @@ Deno.serve(async (req) => {
     });
   }
 
+  const startedAt = new Date();
+  try {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, serviceKey);
@@ -93,6 +96,7 @@ Deno.serve(async (req) => {
 
   if (rErr) {
     console.error("Error fetching routines:", rErr);
+    await logRun({ functionName: "generate-routine-tasks", startedAt, status: "failed", errorMessage: rErr.message });
     return new Response(JSON.stringify({ error: rErr.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -100,6 +104,7 @@ Deno.serve(async (req) => {
   }
 
   if (!routines || routines.length === 0) {
+    await logRun({ functionName: "generate-routine-tasks", startedAt, status: "success", context: { created: 0, routines: 0 } });
     return new Response(JSON.stringify({ message: "No active routines", created: 0 }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -228,8 +233,17 @@ Deno.serve(async (req) => {
     }
   }
 
+  await logRun({ functionName: "generate-routine-tasks", startedAt, status: "success", context: { created: createdCount, routines: routines.length } });
   return new Response(
     JSON.stringify({ message: "Routine tasks generated", created: createdCount }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await logRun({ functionName: "generate-routine-tasks", startedAt, status: "failed", errorMessage: message });
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 });
