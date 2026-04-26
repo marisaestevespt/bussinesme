@@ -1113,7 +1113,7 @@ export default function OperacaoPage() {
                                 {statusMeta.label}
                               </Badge>
                             </TableCell>
-                            <TableCell className="font-medium">
+                            <TableCell className="font-medium max-w-[280px]">
                               <div className="flex items-center gap-2 min-w-0">
                                 <PriorityDot priority={t.priority} />
                                 <span className="truncate">{t.name}</span>
@@ -1132,8 +1132,8 @@ export default function OperacaoPage() {
                                 <span className="text-xs text-muted-foreground">—</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-xs text-muted-foreground truncate max-w-[160px]">
-                              {projName ?? '—'}
+                            <TableCell className="text-xs text-muted-foreground">
+                              <span className="block truncate">{projName ?? '—'}</span>
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                               {t.deadline ? format(new Date(t.deadline), 'dd/MM') : '—'}
