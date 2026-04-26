@@ -582,6 +582,7 @@ export type Database = {
           text_color: string
           updated_at: string
           use_system_theme: boolean
+          weekly_align_day: number
           welcome_text: string | null
           whatsapp_team_url: string | null
         }
@@ -620,6 +621,7 @@ export type Database = {
           text_color?: string
           updated_at?: string
           use_system_theme?: boolean
+          weekly_align_day?: number
           welcome_text?: string | null
           whatsapp_team_url?: string | null
         }
@@ -658,6 +660,7 @@ export type Database = {
           text_color?: string
           updated_at?: string
           use_system_theme?: boolean
+          weekly_align_day?: number
           welcome_text?: string | null
           whatsapp_team_url?: string | null
         }
