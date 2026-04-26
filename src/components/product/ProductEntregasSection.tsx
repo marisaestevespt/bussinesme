@@ -11,6 +11,7 @@ import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye,
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { Clock } from 'lucide-react';
 
 interface Template {
   id: string;
@@ -27,6 +28,7 @@ interface Template {
   offset_trigger?: string;
   responsible_type?: string;
   deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao';
+  estimated_minutes?: number | null;
 }
 
 interface Phase {
