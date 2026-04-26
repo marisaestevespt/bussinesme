@@ -115,17 +115,18 @@ export function EntityIconPicker({
             )}
           </div>
           <TabsContent value="emoji" className="m-0">
-            <Picker
-              data={data}
-              onEmojiSelect={(e: { native: string }) => {
-                onChange({ type: "emoji", value: e.native });
-                setOpen(false);
-              }}
-              theme="auto"
-              previewPosition="none"
-              skinTonePosition="search"
-              maxFrequentRows={1}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-72"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>}>
+              <EmojiPickerLazy
+                onEmojiSelect={(e: { native: string }) => {
+                  onChange({ type: "emoji", value: e.native });
+                  setOpen(false);
+                }}
+                theme="auto"
+                previewPosition="none"
+                skinTonePosition="search"
+                maxFrequentRows={1}
+              />
+            </Suspense>
           </TabsContent>
           <TabsContent value="upload" className="m-0 p-4">
             <input
