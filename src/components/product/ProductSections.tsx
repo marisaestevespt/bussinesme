@@ -18,7 +18,6 @@ import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnosticQuestions';
-import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { ArchiveDocumentsView } from '@/components/product/archive/ArchiveDocumentsView';
 import { RichEditor } from '@/components/product/archive/RichEditor';
 
