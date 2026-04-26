@@ -9,7 +9,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon, CalendarCheck } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon } from 'lucide-react';
 
 /* ── colour helpers ── */
 
@@ -131,7 +131,6 @@ export function SettingsIdentity() {
   const [businessName, setBusinessName] = useState('');
   
   const [supportHours, setSupportHours] = useState('');
-  const [weeklyAlignDay, setWeeklyAlignDay] = useState<number>(5);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bgFile, setBgFile] = useState<File | null>(null);
@@ -175,7 +174,6 @@ export function SettingsIdentity() {
     setBusinessName(settings.business_name);
     
     setSupportHours((settings as any).support_hours || '');
-    setWeeklyAlignDay((settings as any).weekly_align_day ?? 5);
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
     setUseSystemTheme((settings as any).use_system_theme ?? true);
@@ -276,7 +274,6 @@ export function SettingsIdentity() {
           logo_url: logoUrl,
           login_bg_url: loginBgUrl,
           support_hours: supportHours.trim() || null,
-          weekly_align_day: weeklyAlignDay,
           use_system_theme: useSystemTheme,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
@@ -313,27 +310,6 @@ export function SettingsIdentity() {
           <Label htmlFor="supportHours" className="text-sm font-medium">Horário de atendimento</Label>
           <Input id="supportHours" value={supportHours} onChange={(e) => setSupportHours(e.target.value)} placeholder="Ex: Seg a Sex, 10h – 18h" className="h-11" />
           <p className="text-xs text-muted-foreground">Será visível no portal do cliente.</p>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="weeklyAlignDay" className="text-sm font-medium flex items-center gap-2">
-            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-            Dia do Weekly Align
-          </Label>
-          <Select value={String(weeklyAlignDay)} onValueChange={(v) => setWeeklyAlignDay(Number(v))}>
-            <SelectTrigger id="weeklyAlignDay" className="h-11">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Segunda-feira</SelectItem>
-              <SelectItem value="2">Terça-feira</SelectItem>
-              <SelectItem value="3">Quarta-feira</SelectItem>
-              <SelectItem value="4">Quinta-feira</SelectItem>
-              <SelectItem value="5">Sexta-feira</SelectItem>
-              <SelectItem value="6">Sábado</SelectItem>
-              <SelectItem value="7">Domingo</SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">A Sala do CEO mostra um aviso neste dia para fazeres a revisão semanal.</p>
         </div>
         <div className="space-y-2">
           <Label className="text-sm font-medium">Logo</Label>
