@@ -690,16 +690,21 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
           </div>
 
           {/* ── Footer ───────────────────────────────────────── */}
-          <div className="px-6 py-4 border-t bg-muted/30 flex gap-2 sticky bottom-0">
-              <Button onClick={handleSave} className="flex-1" disabled={upsertTask.isPending}>
-                {editingTask ? 'Guardar' : 'Criar Tarefa'}
-              </Button>
+          <div className="px-8 py-4 border-t border-border/40 bg-background flex items-center justify-between gap-2 sticky bottom-0">
+            <div>
               {editingTask && isOwner && (
-                <Button variant="destructive" aria-label="Alerta" size="icon" onClick={() => deleteTask.mutate(editingTask.id)}>
-                  <AlertTriangle className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deleteTask.mutate(editingTask.id)}>
+                  Eliminar
                 </Button>
               )}
             </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button onClick={handleSave} disabled={upsertTask.isPending}>
+                {editingTask ? 'Guardar alterações' : 'Criar tarefa'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>
