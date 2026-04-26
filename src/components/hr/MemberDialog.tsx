@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Upload, FileText, ExternalLink, Loader2 } from 'lucide-react';
+import { Plus, Upload, FileText, ExternalLink, Loader2, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -248,6 +249,50 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isOwnerRole = f.role_title === 'Owner';
   const isENIOwner = isENI && isOwnerRole;
 
+  // Custom role presets from DB (replaces static PRESET_ROLES)
+  const qc = useQueryClient();
+  const { data: dbPresets = [] } = useQuery({
+    queryKey: ['team_role_presets'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('team_role_presets')
+        .select('id, label, color')
+        .order('label');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const rolePresets = dbPresets.length > 0 ? dbPresets : PRESET_ROLES.map(r => ({ id: r.label, label: r.label, color: r.color }));
+  const [creatingRole, setCreatingRole] = useState(false);
+  const [newRoleLabel, setNewRoleLabel] = useState('');
+  const [newRoleColor, setNewRoleColor] = useState('#6366f1');
+
+  async function saveNewRolePreset() {
+    const label = newRoleLabel.trim();
+    if (!label) { toast.error('Indica um nome para o cargo'); return; }
+    if (rolePresets.some((r: any) => r.label.toLowerCase() === label.toLowerCase())) {
+      toast.error('Já existe um cargo com esse nome');
+      return;
+    }
+    const { error } = await supabase.from('team_role_presets').insert({ label, color: newRoleColor });
+    if (error) { toast.error('Sem permissão para criar cargos'); return; }
+    toast.success('Cargo criado');
+    set('role_title', label);
+    set('role_color', newRoleColor);
+    setCreatingRole(false);
+    setNewRoleLabel('');
+    setNewRoleColor('#6366f1');
+    qc.invalidateQueries({ queryKey: ['team_role_presets'] });
+  }
+
+  async function deleteRolePreset(id: string, label: string) {
+    if (!confirm(`Eliminar o cargo "${label}" da lista?`)) return;
+    const { error } = await supabase.from('team_role_presets').delete().eq('id', id);
+    if (error) { toast.error('Sem permissão para eliminar'); return; }
+    toast.success('Cargo removido');
+    qc.invalidateQueries({ queryKey: ['team_role_presets'] });
+  }
+
   useEffect(() => {
     const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
     setF(init);
@@ -424,25 +469,65 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <span className="text-xs text-muted-foreground font-medium">Cargo</span>
               <p className="text-[10px] text-muted-foreground">Título descritivo (ex: Designer, Gestora). Não controla permissões — isso é a "Função no sistema" mais abaixo.</p>
               <div className="flex flex-wrap gap-2">
-                {PRESET_ROLES.map(r => {
+                {rolePresets.map((r: any) => {
                   const isSelected = f.role_title === r.label;
                   return (
-                    <button key={r.label} type="button"
-                      onClick={() => {
-                        const newRole = isSelected ? '' : r.label;
-                        set('role_title', newRole);
-                        set('role_color', r.color);
-                        if (newRole === 'Owner' && isENI) {
-                          setTimeout(applyOwnerDefaults, 0);
-                        }
-                      }}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
-                      style={isSelected ? { backgroundColor: r.color } : {}}
-                    >{r.label}</button>
+                    <div key={r.id || r.label} className="relative group">
+                      <button type="button"
+                        onClick={() => {
+                          const newRole = isSelected ? '' : r.label;
+                          set('role_title', newRole);
+                          set('role_color', r.color);
+                          if (newRole === 'Owner' && isENI) {
+                            setTimeout(applyOwnerDefaults, 0);
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
+                        style={isSelected ? { backgroundColor: r.color } : {}}
+                      >{r.label}</button>
+                      {r.id && r.label !== 'Owner' && (
+                        <button type="button"
+                          onClick={() => deleteRolePreset(r.id, r.label)}
+                          className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground items-center justify-center text-[10px] hidden group-hover:flex"
+                          title="Eliminar cargo"
+                        ><X className="h-2.5 w-2.5" /></button>
+                      )}
+                    </div>
                   );
                 })}
+                {!creatingRole && (
+                  <button type="button"
+                    onClick={() => { setCreatingRole(true); setNewRoleLabel(''); setNewRoleColor('#6366f1'); }}
+                    className="px-2.5 py-1 rounded-full text-xs font-medium border border-dashed border-foreground/30 text-muted-foreground hover:text-foreground hover:border-foreground/60 transition-all flex items-center gap-1"
+                  ><Plus className="h-3 w-3" /> Criar cargo</button>
+                )}
               </div>
-              {!PRESET_ROLES.some(r => r.label === f.role_title) && f.role_title ? (
+
+              {creatingRole && (
+                <div className="flex gap-2 items-center mt-2 p-2 rounded-md border border-dashed">
+                  <Input
+                    className="flex-1 h-8 text-xs"
+                    placeholder="Nome do cargo (ex: Consultora)"
+                    value={newRoleLabel}
+                    autoFocus
+                    onChange={e => setNewRoleLabel(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveNewRolePreset(); } }}
+                  />
+                  <div className="flex gap-1">
+                    {ROLE_COLORS.map(c => (
+                      <button key={c.value} type="button" onClick={() => setNewRoleColor(c.value)}
+                        className={`h-5 w-5 rounded-full border-2 transition-all shrink-0 ${newRoleColor === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                        style={{ backgroundColor: c.value }} title={c.label} />
+                    ))}
+                  </div>
+                  <button type="button" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={saveNewRolePreset}>
+                    <Check className="h-3 w-3" /> Guardar
+                  </button>
+                  <button type="button" className="text-xs text-muted-foreground hover:underline" onClick={() => setCreatingRole(false)}>Cancelar</button>
+                </div>
+              )}
+
+              {!rolePresets.some((r: any) => r.label === f.role_title) && f.role_title ? (
                 <div className="flex gap-2 items-center mt-2">
                   <Input className="flex-1 h-8 text-xs" value={f.role_title} onChange={e => set('role_title', e.target.value)} />
                   <div className="flex gap-1">
@@ -454,12 +539,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   </div>
                   <button type="button" className="text-xs text-destructive hover:underline" onClick={() => { set('role_title', ''); set('role_color', '#6366f1'); }}>Limpar</button>
                 </div>
-              ) : (
-                <button type="button" className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                  onClick={() => { set('role_title', 'Novo cargo'); set('role_color', '#6366f1'); }}>
-                  <Plus className="h-3 w-3" /> Adicionar outro cargo
-                </button>
-              )}
+              ) : null}
               {f.role_title && <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>}
             </div>
 
