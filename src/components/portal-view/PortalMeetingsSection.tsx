@@ -44,8 +44,9 @@ export function PortalMeetingsSection({ meetings, setMeetings, portalToken, pc, 
 
 function MeetingCard({ m, setMeetings, portalToken, pc, meetingStatus }: { m: PortalMeeting } & Omit<Props, 'meetings'>) {
   const [noteDraft, setNoteDraft] = useState('');
-  const isPending = m.status === 'por_organizar' || m.status === 'por_confirmar';
-  const ms = meetingStatus(m.status);
+  const status = m.status || '';
+  const isPending = status === 'por_organizar' || status === 'por_confirmar';
+  const ms = meetingStatus(status);
 
   const confirmMeeting = async () => {
     const { data, error } = await (supabase as unknown as { rpc: (f: string, a: unknown) => Promise<{ data: unknown; error: { message: string } | null }> })
@@ -71,7 +72,7 @@ function MeetingCard({ m, setMeetings, portalToken, pc, meetingStatus }: { m: Po
   const prios = Array.isArray(m.priorities) ? m.priorities.filter((p) => (typeof p === 'string' ? p.trim() : ((p as { text?: string })?.text || '').trim())) : [];
   const docs = Array.isArray(m.documents) ? m.documents.filter((d): d is { url: string; name?: string } => !!(d as { url?: string })?.url) : [];
   const dNotes = (m.discussion_notes || '').trim();
-  const showAta = (m.status === 'realizada' || m.status === 'concluida') && (points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes);
+  const showAta = (status === 'realizada' || status === 'concluida') && (points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes);
 
   return (
     <SectionCard className="p-5">
