@@ -13,12 +13,18 @@ import { useExecutiveData } from '@/hooks/useExecutiveData';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const SHORTCUTS = [
-  { to: '/executive/business-plan', icon: Rocket, label: 'Plano & Modelo de Negócio', desc: 'Visão, oferta, estratégia' },
-  { to: '/executive/innovation', icon: Lightbulb, label: 'Desenvolvimento & Inovação', desc: 'Ideias e roadmap' },
-  { to: '/executive/productivity', icon: Calculator, label: 'Produtividade & Capacidade', desc: 'Simular contratação' },
-  { to: '/executive/recommendations', icon: MessageSquareHeart, label: 'Caixa de Recomendações', desc: 'Feedback da equipa' },
-  { to: '/executive/processos', icon: FileText, label: 'Processos da Administração', desc: 'SOPs do owner' },
-  { to: '/executive/analise-empresarial', icon: Crown, label: 'Análise Empresarial', desc: 'Métricas estratégicas' },
+  { to: '/executive/business-plan', icon: Rocket, label: 'Plano & Modelo de Negócio', desc: 'Visão, oferta, estratégia',
+    iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
+  { to: '/executive/innovation', icon: Lightbulb, label: 'Desenvolvimento & Inovação', desc: 'Ideias e roadmap',
+    iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
+  { to: '/executive/productivity', icon: Calculator, label: 'Produtividade & Capacidade', desc: 'Simular contratação',
+    iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
+  { to: '/executive/recommendations', icon: MessageSquareHeart, label: 'Caixa de Recomendações', desc: 'Feedback da equipa',
+    iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
+  { to: '/executive/processos', icon: FileText, label: 'Processos da Administração', desc: 'SOPs do owner',
+    iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
+  { to: '/executive/analise-empresarial', icon: Crown, label: 'Análise Empresarial', desc: 'Métricas estratégicas',
+    iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
 ];
 
 export function StrategyShortcuts() {
@@ -154,15 +160,17 @@ export function StrategyShortcuts() {
           const Icon = s.icon;
           return (
             <Link key={s.to} to={s.to} className="group">
-              <div className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-all hover:shadow-sm hover:border-primary/30">
-                <div className="rounded-lg bg-primary/10 p-2 text-primary shrink-0">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium leading-tight">{s.label}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{s.desc}</p>
-                </div>
-              </div>
+              <Card className={`cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-tight">{s.label}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{s.desc}</p>
+                  </div>
+                </CardContent>
+              </Card>
             </Link>
           );
         })}

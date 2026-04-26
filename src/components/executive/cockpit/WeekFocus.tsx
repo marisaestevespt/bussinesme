@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarCheck, CalendarDays, Target, Flame, ChevronRight, AlertCircle } from 'lucide-react';
+import { CalendarCheck, CalendarDays, Target, Flame, ChevronRight, AlertCircle, FolderKanban } from 'lucide-react';
 import { format, isToday, isTomorrow, isThisWeek, parseISO, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { usePlanningData, planStatusLabel } from '@/hooks/usePlanningData';
@@ -47,6 +47,23 @@ export function WeekFocus({ derived }: { derived: Derived }) {
     .filter((m: any) => isThisWeek(new Date(m.date_time), { weekStartsOn: 1 }))
     .slice(0, 5);
 
+  // Projetos a vencer esta semana ou já atrasados
+  const focusProjects = (derived.projects || [])
+    .filter((p: any) => ['em_curso', 'em_revisao', 'em_pausa'].includes(p.status))
+    .map((p: any) => {
+      const deadline = p.deadline ? parseISO(p.deadline) : null;
+      const overdue = !!deadline && deadline < now;
+      const dueWeek = !!deadline && isWithinInterval(deadline, { start: weekStart, end: weekEnd });
+      return { ...p, deadline, overdue, dueWeek };
+    })
+    .filter((p: any) => p.overdue || p.dueWeek)
+    .sort((a: any, b: any) => {
+      if (a.overdue && !b.overdue) return -1;
+      if (!a.overdue && b.overdue) return 1;
+      return (a.deadline?.getTime() ?? 0) - (b.deadline?.getTime() ?? 0);
+    })
+    .slice(0, 5);
+
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
@@ -54,7 +71,7 @@ export function WeekFocus({ derived }: { derived: Derived }) {
         <Link to="/executive/weekly-align" className="text-xs text-primary hover:underline">Ver Weekly Align →</Link>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
         {/* Metas do mês */}
         <Card>
           <CardHeader className="pb-2">
@@ -161,6 +178,35 @@ export function WeekFocus({ derived }: { derived: Derived }) {
                 </Link>
               );
             })}
+          </CardContent>
+        </Card>
+
+        {/* Projetos da semana */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FolderKanban className="h-4 w-4 text-accent-violet" /> Projetos
+              {focusProjects.length > 0 && <Badge variant="outline" className="text-[10px] ml-auto">{focusProjects.length}</Badge>}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {focusProjects.length === 0 ? (
+              <div className="py-4 text-center">
+                <EmptyHint>Sem projetos críticos esta semana</EmptyHint>
+              </div>
+            ) : focusProjects.map((p: any) => (
+              <Link key={p.id} to={`/projetos/${p.id}`} className="flex items-start gap-2 py-1 hover:bg-muted/30 -mx-2 px-2 rounded transition-colors">
+                <div className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${p.overdue ? 'bg-destructive' : 'bg-warning'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{p.name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {p.deadline ? format(p.deadline, "d MMM", { locale: pt }) : '—'}
+                    {p.overdue && ' · atrasado'}
+                    {p.client_name && ` · ${p.client_name}`}
+                  </p>
+                </div>
+              </Link>
+            ))}
           </CardContent>
         </Card>
       </div>

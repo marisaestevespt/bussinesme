@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfMonth, endOfMonth, subMonths, startOfToday, differenceInDays, startOfWeek, endOfWeek } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, startOfToday, differenceInDays, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { calculateMRR } from '@/lib/financialHealth';
 import { teamMonthlyCapacitySummary } from '@/lib/memberCapacity';
@@ -37,7 +37,7 @@ export function useCeoCockpit() {
       const [
         clients, products, sales, expensesM, expensesPrevM, expenses90d,
         members, timeEntries, tasks, projects, leads, npsRecords, meetings,
-        annualGoal,
+        annualGoal, contentMonth, contentIdeas,
       ] = await Promise.all([
         supabase.from('clients').select('id, status, full_name, current_product, start_date, end_of_cycle'),
         supabase.from('products').select('id, name, ticket, product_type'),
@@ -53,6 +53,8 @@ export function useCeoCockpit() {
         supabase.from('client_nps_records').select('nps_score, actual_date, client_id').gte('actual_date', ninetyDaysAgo).not('nps_score', 'is', null),
         supabase.from('meetings').select('id, title, date_time, status, project_id, client_name').gte('date_time', monthStart).lte('date_time', monthEnd).order('date_time', { ascending: true }),
         supabase.from('commercial_annual_goals').select('goal_amount').eq('year', currentYear).maybeSingle(),
+        supabase.from('content_items').select('id, title, status, scheduled_at, content_type, format').gte('scheduled_at', monthStart).lte('scheduled_at', monthEnd),
+        supabase.from('marketing_ideas').select('id'),
       ]);
 
       return {
@@ -70,6 +72,8 @@ export function useCeoCockpit() {
         npsRecords: npsRecords.data || [],
         meetings: meetings.data || [],
         annualGoal: annualGoal.data?.goal_amount || 0,
+        contentMonth: contentMonth.data || [],
+        contentIdeas: contentIdeas.data || [],
       };
     },
   });
@@ -151,6 +155,13 @@ export function useCeoCockpit() {
         prevMonthRevenue,
         revenueDelta: prevMonthRevenue > 0 ? Math.round(((monthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100) : 0,
       },
+      marketing: {
+        publishedMonth: d.contentMonth.filter((c: any) => c.status === 'publicado').length,
+        scheduledMonth: d.contentMonth.filter((c: any) => c.status === 'agendado' || c.status === 'pronto').length,
+        draftMonth: d.contentMonth.filter((c: any) => c.status === 'rascunho' || c.status === 'em_producao').length,
+        ideas: d.contentIdeas.length,
+        marketingProjects: d.projects.filter((p: any) => p.department === 'marketing' && ['em_curso', 'em_revisao'].includes(p.status)).length,
+      },
       operacao: {
         activeProjects: d.projects.filter((p: any) => ['em_curso', 'em_revisao'].includes(p.status)).length,
         overdueProjects: overdueProjects.length,
@@ -214,6 +225,7 @@ export function useCeoCockpit() {
       meetings: d.meetings,
       tasks: d.tasks,
       members: d.members,
+      projects: d.projects,
     };
   }, [query.data, currentMonth, today]);
 
