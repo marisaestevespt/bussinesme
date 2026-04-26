@@ -747,7 +747,6 @@ const REUNIOES_DEFAULT_VIEWS: DefaultView[] = [
 export default function ReunioesPage() {
   const { allViews, addView, renameView, deleteView } = useUserViews('reunioes', REUNIOES_DEFAULT_VIEWS);
   const [view, setView] = useState<string>('proximas');
-  const [formOpen, setFormOpen] = useState(false);
   const navigate = useNavigate();
 
   const meetingsQuery = useMeetings();
