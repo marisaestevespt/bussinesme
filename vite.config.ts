@@ -25,6 +25,8 @@ export default defineConfig(({ mode }) => ({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'query-vendor': ['@tanstack/react-query'],
           'supabase-vendor': ['@supabase/supabase-js'],
+          'recharts-vendor': ['recharts'],
+          'editor-vendor': ['@tiptap/react', 'dompurify'],
         },
       },
     },

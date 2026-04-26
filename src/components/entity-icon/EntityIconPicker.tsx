@@ -1,6 +1,4 @@
-import { useState, useRef } from "react";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
+import { useState, useRef, lazy, Suspense, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -9,6 +7,18 @@ import { toast } from "sonner";
 import { Upload, Trash2, Loader2 } from "lucide-react";
 import { EntityIconDisplay } from "./EntityIconDisplay";
 import { parseIcon, type EntityIcon } from "./types";
+
+// Lazy emoji picker — heavy dataset (~270 KB) loaded only when popover opens
+const EmojiPickerLazy = lazy(async () => {
+  const [{ default: Picker }, dataMod] = await Promise.all([
+    import("@emoji-mart/react"),
+    import("@emoji-mart/data"),
+  ]);
+  const data = (dataMod as any).default ?? dataMod;
+  return {
+    default: (props: any) => <Picker data={data} {...props} />,
+  };
+});
 
 interface Props {
   icon: EntityIcon | unknown;
@@ -105,17 +115,18 @@ export function EntityIconPicker({
             )}
           </div>
           <TabsContent value="emoji" className="m-0">
-            <Picker
-              data={data}
-              onEmojiSelect={(e: { native: string }) => {
-                onChange({ type: "emoji", value: e.native });
-                setOpen(false);
-              }}
-              theme="auto"
-              previewPosition="none"
-              skinTonePosition="search"
-              maxFrequentRows={1}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-72"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>}>
+              <EmojiPickerLazy
+                onEmojiSelect={(e: { native: string }) => {
+                  onChange({ type: "emoji", value: e.native });
+                  setOpen(false);
+                }}
+                theme="auto"
+                previewPosition="none"
+                skinTonePosition="search"
+                maxFrequentRows={1}
+              />
+            </Suspense>
           </TabsContent>
           <TabsContent value="upload" className="m-0 p-4">
             <input
