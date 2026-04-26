@@ -437,25 +437,6 @@ export default function ProjetosPage() {
               onRename={(id, label) => renameView({ id, label })}
               onDelete={(id) => { if (view.startsWith('custom_')) setView('table'); deleteView(id); }}
             />
-            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-              <PopoverTrigger asChild>
-                <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Projeto</Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-2" align="end">
-                <div className="px-2 pt-1 pb-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Escolhe um template</div>
-                <div className="space-y-1">
-                  {PROJECT_TEMPLATES.map(tpl => (
-                    <button key={tpl.key} onClick={() => openWithTemplate(tpl)} className="w-full flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left">
-                      <span className="text-lg leading-none mt-0.5">{tpl.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">{tpl.label}</div>
-                        <div className="text-xs text-muted-foreground line-clamp-2">{tpl.description}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
           </div>
         </div>
 
