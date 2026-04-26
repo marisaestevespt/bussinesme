@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Package, CalendarIcon, Trash2, Download } from 'lucide-react';
+import { Plus, Package, CalendarIcon, Trash2, Download, Clock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, isAfter } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -111,6 +111,43 @@ function getInitials(name: string | null) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
+function formatMin(min: number): string {
+  if (!min || min < 0) return '0m';
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m > 0 ? `${h}h${m}` : `${h}h`;
+}
+
+function EstimatedTimePopover({ currentMinutes, onSave }: { currentMinutes: number | null; onSave: (m: number | null) => void }) {
+  const [hours, setHours] = useState<string>(currentMinutes != null ? Math.floor(currentMinutes / 60).toString() : '');
+  const [mins, setMins] = useState<string>(currentMinutes != null ? (currentMinutes % 60).toString() : '');
+  return (
+    <PopoverContent className="w-64 p-3" align="end">
+      <Label className="text-xs">Tempo estimado</Label>
+      <div className="flex items-end gap-2 mt-2">
+        <div className="flex-1">
+          <span className="text-[10px] text-muted-foreground">Horas</span>
+          <Input type="number" min="0" value={hours} onChange={e => setHours(e.target.value)} placeholder="0" className="h-8" />
+        </div>
+        <div className="flex-1">
+          <span className="text-[10px] text-muted-foreground">Minutos</span>
+          <Input type="number" min="0" max="59" value={mins} onChange={e => setMins(e.target.value)} placeholder="0" className="h-8" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between mt-3 gap-2">
+        <Button variant="ghost" size="sm" className="text-xs" onClick={() => onSave(null)}>Limpar</Button>
+        <Button size="sm" className="text-xs" onClick={() => {
+          const h = parseInt(hours || '0') || 0;
+          const m = parseInt(mins || '0') || 0;
+          const total = h * 60 + m;
+          onSave(total > 0 ? total : null);
+        }}>Guardar</Button>
+      </div>
+    </PopoverContent>
+  );
+}
+
 export function ProjectDeliverables({ projectId, profiles }: { projectId: string; profiles: Profile[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { getPhotoUrl } = useTeamPhotos();
@@ -155,6 +192,26 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   });
   const taskByDeliverable = new Map<string, any>(linkedTasks.map((t: any) => [t.deliverable_id, t]));
   const editingTask = taskDetailId ? linkedTasks.find((t: any) => t.id === taskDetailId) : null;
+
+  // Real time totals per task (sum of task_time_entries)
+  const linkedTaskIds = useMemo(() => linkedTasks.map((t: any) => t.id), [linkedTasks]);
+  const { data: timeByTask = {} } = useQuery({
+    queryKey: ['deliverable-time-totals', projectId, linkedTaskIds],
+    enabled: linkedTaskIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('task_time_entries')
+        .select('task_id, duration_minutes, ended_at, is_manual')
+        .in('task_id', linkedTaskIds);
+      const map: Record<string, number> = {};
+      (data || []).forEach((e: any) => {
+        if (e.ended_at || e.is_manual) {
+          map[e.task_id] = (map[e.task_id] || 0) + (e.duration_minutes || 0);
+        }
+      });
+      return map;
+    },
+  });
 
   // Enrich deliverables with computed next deadline for recurring ones
   const enrichedDeliverables = useMemo(() => {
@@ -244,13 +301,26 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     },
   });
 
+  const updateEstimated = useMutation({
+    mutationFn: async ({ id, estimated_minutes }: { id: string; estimated_minutes: number | null }) => {
+      const { error } = await supabase.from('project_deliverables').update({ estimated_minutes }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      qc.invalidateQueries({ queryKey: ['project-deliverable-tasks', projectId] });
+      toast.success('Tempo estimado atualizado');
+    },
+    onError: () => toast.error('Erro ao atualizar tempo'),
+  });
+
   // Products with deliverable templates for import
   const { data: productsWithTemplates = [] } = useQuery({
     queryKey: ['products-with-templates'],
     queryFn: async () => {
       const { data: products } = await supabase.from('products').select('id, name').order('name');
       if (!products?.length) return [];
-      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring');
+      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring, estimated_minutes');
       const templatesByProduct = new Map<string, any[]>();
       ((templates || []) as any[]).forEach((t: any) => {
         if (!templatesByProduct.has(t.product_id)) templatesByProduct.set(t.product_id, []);
@@ -275,6 +345,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         is_recurring: !!t.is_recurring,
         sort_order: deliverables.length + i,
         status: 'pendente',
+        estimated_minutes: t.estimated_minutes ?? null,
       }));
       const { error } = await supabase.from('project_deliverables').insert(inserts);
       if (error) throw error;
@@ -371,6 +442,54 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                     {d.is_recurring && d.recurrence_label && d.recurrence_week == null && (
                       <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
                     )}
+
+                    {(() => {
+                      const linkedTask = taskByDeliverable.get(d.id);
+                      const realMin = linkedTask ? (timeByTask[linkedTask.id] || 0) : 0;
+                      const estMin = (d as any).estimated_minutes ?? null;
+                      const hasReal = realMin > 0;
+                      const hasEst = estMin != null && estMin > 0;
+                      if (!hasReal && !hasEst) {
+                        return (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                className="text-[10px] shrink-0 text-muted-foreground/60 hover:text-primary inline-flex items-center gap-1"
+                                title="Definir tempo estimado"
+                              >
+                                <Clock className="h-3 w-3" /> —
+                              </button>
+                            </PopoverTrigger>
+                            <EstimatedTimePopover
+                              currentMinutes={null}
+                              onSave={(m) => updateEstimated.mutate({ id: d.id, estimated_minutes: m })}
+                            />
+                          </Popover>
+                        );
+                      }
+                      const overBudget = hasEst && hasReal && realMin > estMin * 1.1;
+                      const onTrack = hasEst && hasReal && realMin <= estMin;
+                      return (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              className={cn(
+                                'text-[10px] shrink-0 inline-flex items-center gap-1 hover:underline tabular-nums',
+                                overBudget ? 'text-destructive font-semibold' : onTrack ? 'text-success' : 'text-muted-foreground'
+                              )}
+                              title={hasEst && hasReal ? `${formatMin(realMin)} usados de ${formatMin(estMin)} estimados` : hasEst ? `Estimado: ${formatMin(estMin)}` : `Real: ${formatMin(realMin)}`}
+                            >
+                              <Clock className="h-3 w-3" />
+                              {hasReal ? formatMin(realMin) : '—'}{hasEst ? ` / ${formatMin(estMin)}` : ''}
+                            </button>
+                          </PopoverTrigger>
+                          <EstimatedTimePopover
+                            currentMinutes={estMin}
+                            onSave={(m) => updateEstimated.mutate({ id: d.id, estimated_minutes: m })}
+                          />
+                        </Popover>
+                      );
+                    })()}
 
                     {displayDeadline && (
                       <Popover>

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -27,6 +27,7 @@ interface Template {
   offset_trigger?: string;
   responsible_type?: string;
   deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao';
+  estimated_minutes?: number | null;
 }
 
 interface Phase {
@@ -66,8 +67,10 @@ function DeliverableRow({
 }) {
   const [name, setName] = useState(template.name);
   const [desc, setDesc] = useState(template.description || '');
+  const [minutes, setMinutes] = useState<string>(template.estimated_minutes?.toString() || '');
   const nameRef = useRef(template.name);
   const descRef = useRef(template.description || '');
+  const minutesRef = useRef(template.estimated_minutes ?? null);
 
   useEffect(() => {
     if (template.name !== nameRef.current) { nameRef.current = template.name; setName(template.name); }
@@ -76,6 +79,10 @@ function DeliverableRow({
     const d = template.description || '';
     if (d !== descRef.current) { descRef.current = d; setDesc(d); }
   }, [template.description]);
+  useEffect(() => {
+    const m = template.estimated_minutes ?? null;
+    if (m !== minutesRef.current) { minutesRef.current = m; setMinutes(m?.toString() || ''); }
+  }, [template.estimated_minutes]);
 
   return (
     <div className="space-y-1 pl-6 group">
@@ -100,6 +107,32 @@ function DeliverableRow({
         <Input value={desc} onChange={e => setDesc(e.target.value)}
           onBlur={() => { if (desc !== (template.description || '')) { descRef.current = desc; onUpdate(template.id, { description: desc }); } }}
           className="flex-1 h-9 text-sm" placeholder="Descrição (opcional)" readOnly={!isOwner} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-1 shrink-0">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                type="number"
+                min={0}
+                value={minutes}
+                onChange={e => setMinutes(e.target.value)}
+                onBlur={() => {
+                  const parsed = minutes === '' ? null : parseInt(minutes);
+                  const safe = parsed !== null && !Number.isNaN(parsed) && parsed >= 0 ? parsed : null;
+                  if (safe !== (template.estimated_minutes ?? null)) {
+                    minutesRef.current = safe;
+                    onUpdate(template.id, { estimated_minutes: safe });
+                  }
+                }}
+                className="h-9 w-16 text-xs text-center px-1"
+                placeholder="—"
+                readOnly={!isOwner}
+              />
+              <span className="text-[10px] text-muted-foreground">min</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Tempo estimado (minutos)</TooltipContent>
+        </Tooltip>
         {sops.length > 0 && (
           <Select value={template.linked_sop_id || 'none'}
             onValueChange={(v) => onUpdate(template.id, { linked_sop_id: v === 'none' ? null : v })}>
