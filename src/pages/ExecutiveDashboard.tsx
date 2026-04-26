@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle, Calculator, Zap, FileText } from 'lucide-react';
+import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle, Calculator, Zap, FileText, Activity } from 'lucide-react';
 
 
 import { useExecutiveData } from '@/hooks/useExecutiveData';
@@ -101,6 +101,9 @@ export default function ExecutiveDashboard() {
               </Link>
               <Link to="/executive/productivity" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
                 <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Produtividade & Capacidade
+              </Link>
+              <Link to="/executive/analise-empresarial" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <Activity className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Análise Empresarial
               </Link>
               <Link to="/executive/innovation" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
                 <Lightbulb className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Desenvolvimento & Inovação
