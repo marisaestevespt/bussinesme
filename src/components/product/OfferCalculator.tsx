@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 type CostType = 'one_off' | 'recorrente' | 'por_venda' | 'horas';
 type Recurrence = 'mensal' | 'anual';
 type AmortMode = 'vendas' | 'periodo';
-type TaxRegime = 'simplificado' | 'organizada' | 'dependente';
+type TaxRegime = 'simplificado' | 'organizada';
 
 interface ProductCost {
   id: string;
@@ -395,8 +395,8 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
   const testWithVat = testVal * (1 + vatPercent / 100);
   // Frações em função do regime fiscal
   const reg = scenario.tax_regime;
-  const irsBase = reg === 'simplificado' ? 0.75 : reg === 'organizada' ? 1.0 : 0; // dependente: empresa não paga IRS sobre venda
-  const ssBase  = reg === 'simplificado' ? 0.70 : reg === 'organizada' ? 0.234 : 0; // organizada usa TSU patronal aprox.
+  const irsBase = reg === 'simplificado' ? 0.75 : 1.0;     // organizada: base integral
+  const ssBase  = reg === 'simplificado' ? 0.70 : 0.234;   // organizada: TSU patronal aprox.
   const testIRS = testVal * irsBase * (Number(scenario.tax_rate) / 100);
   const testSS  = testVal * ssBase  * (Number(scenario.ss_rate)  / 100);
   const testRealProfit = testVal - testIRS - testSS - totalPerUnit;
@@ -430,7 +430,6 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
                 <SelectContent>
                   <SelectItem value="simplificado">Simplificado (75%/70%)</SelectItem>
                   <SelectItem value="organizada">Contabilidade Organizada</SelectItem>
-                  <SelectItem value="dependente">Trab. Dependente (sem dedução)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
