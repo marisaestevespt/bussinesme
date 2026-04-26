@@ -150,12 +150,19 @@ export default function MarketingDashboard() {
       };
       if (tpl?.defaultContentType) payload.content_type = tpl.defaultContentType;
       if (tpl?.defaultFormat) payload.format = tpl.defaultFormat;
-      if (tpl?.defaultFunnelStage) payload.funnel_stage = tpl.defaultFunnelStage;
-      if (tpl?.defaultObjective) payload.objective = tpl.defaultObjective;
       if (tpl?.defaultCopy) payload.copy_content = tpl.defaultCopy;
 
       const { data, error } = await supabase.from('content_items').insert(payload as any).select('id').single() as { data: { id: string } | null; error: any };
       if (error || !data) { toast.error('Erro ao criar'); return; }
+
+      // Link channel if template specifies one and a matching channel exists
+      if (tpl?.defaultChannel) {
+        const ch = channels.find(c => c.name.toLowerCase() === tpl.defaultChannel!.toLowerCase());
+        if (ch) {
+          await supabase.from('content_channels').insert({ content_id: data.id, channel_id: ch.id } as any);
+        }
+      }
+
       // Tarefa só é criada em ConteudoDetail quando se atribui responsável
       queryClient.invalidateQueries({ queryKey: ['content-items'] });
       navigate(`/hub/marketing/conteudos/${data.id}`);
