@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbsenceCoverage';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { sendNotification } from '@/hooks/useNotifications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
