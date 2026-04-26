@@ -28,6 +28,7 @@ import { PortalHistorySection } from '@/components/portal-view/PortalHistorySect
 import { PortalMeetingsSection } from '@/components/portal-view/PortalMeetingsSection';
 import { PortalPaymentsSection } from '@/components/portal-view/PortalPaymentsSection';
 import { PortalWorkspaceSection } from '@/components/portal-view/PortalWorkspaceSection';
+import { PortalQuestionsSection } from '@/components/portal-view/PortalQuestionsSection';
 import type {
   PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
