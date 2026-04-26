@@ -902,6 +902,52 @@ export default function OperacaoPage() {
         </Card>
 
 
+        {/* Navegação por secção (estilo Comercial) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" id="operacao-secoes">
+          {[
+            { value: 'clientes', label: 'Clientes', icon: Briefcase, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10', activeRing: 'ring-info' },
+            { value: 'interno', label: 'Interno', icon: Building2, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10', activeRing: 'ring-accent-violet' },
+            { value: 'analise', label: 'Análise', icon: Activity, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10', activeRing: 'ring-warning' },
+          ].map(s => {
+            const isActive = activeTab === s.value;
+            return (
+              <Card
+                key={s.value}
+                className={cn(
+                  'group cursor-pointer border bg-gradient-to-br transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
+                  s.color,
+                  isActive && `ring-2 ring-offset-1 ${s.activeRing}`,
+                )}
+                onClick={() => {
+                  const next = new URLSearchParams(searchParams);
+                  if (s.value === 'clientes') next.delete('tab');
+                  else next.set('tab', s.value);
+                  setSearchParams(next, { replace: true });
+                  // Scroll suave até ao conteúdo da secção
+                  setTimeout(() => {
+                    document.getElementById('operacao-tab-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 50);
+                }}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                    <s.icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm">{s.label}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {s.value === 'clientes' && 'Clientes, projetos e entregas'}
+                      {s.value === 'interno' && 'Trabalho interno e tarefas da equipa'}
+                      {s.value === 'analise' && 'Saúde de horas e desvios'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div id="operacao-tab-content" className="scroll-mt-4" />
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
@@ -912,17 +958,6 @@ export default function OperacaoPage() {
           }}
           className="space-y-4"
         >
-          <TabsList>
-            <TabsTrigger value="clientes" className="gap-2">
-              <Briefcase className="h-3.5 w-3.5" /> Clientes
-            </TabsTrigger>
-            <TabsTrigger value="interno" className="gap-2">
-              <Building2 className="h-3.5 w-3.5" /> Interno
-            </TabsTrigger>
-            <TabsTrigger value="analise" className="gap-2">
-              <Activity className="h-3.5 w-3.5" /> Análise
-            </TabsTrigger>
-          </TabsList>
 
           {/* ─── TAB CLIENTES ─── */}
           <TabsContent value="clientes" className="space-y-4">
