@@ -250,7 +250,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     queryFn: async () => {
       const { data: products } = await supabase.from('products').select('id, name').order('name');
       if (!products?.length) return [];
-      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring');
+      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring, estimated_minutes');
       const templatesByProduct = new Map<string, any[]>();
       ((templates || []) as any[]).forEach((t: any) => {
         if (!templatesByProduct.has(t.product_id)) templatesByProduct.set(t.product_id, []);
@@ -275,6 +275,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         is_recurring: !!t.is_recurring,
         sort_order: deliverables.length + i,
         status: 'pendente',
+        estimated_minutes: t.estimated_minutes ?? null,
       }));
       const { error } = await supabase.from('project_deliverables').insert(inserts);
       if (error) throw error;
