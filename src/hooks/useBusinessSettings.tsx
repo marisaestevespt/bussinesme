@@ -83,11 +83,8 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
-
-  // Re-fetch on auth state change (settings are gated by RLS to authenticated users)
+  // Single source of truth: auth listener fires INITIAL_SESSION on mount,
+  // so we don't need a separate mount-time fetch (avoids duplicate request).
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
@@ -95,6 +92,7 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
       }
       if (event === 'SIGNED_OUT') {
         setSettings(null);
+        setLoading(false);
       }
     });
     return () => subscription.unsubscribe();
