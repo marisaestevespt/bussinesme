@@ -25,6 +25,8 @@ import { SectionCard, SectionTitle } from '@/components/portal-view/SectionPrimi
 import { PortalContractSection } from '@/components/portal-view/PortalContractSection';
 import { PortalFeedbackSection } from '@/components/portal-view/PortalFeedbackSection';
 import { PortalHistorySection } from '@/components/portal-view/PortalHistorySection';
+import { PortalMeetingsSection } from '@/components/portal-view/PortalMeetingsSection';
+import { PortalPaymentsSection } from '@/components/portal-view/PortalPaymentsSection';
 import type {
   PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
