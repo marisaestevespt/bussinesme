@@ -493,12 +493,9 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
         </CardContent>
       </Card>
       <OfferCalculatorWrapper
+        productId={productId}
         vatRate={(form.vat_rate as string) || '23'}
-        costs={costs}
         isOwner={isOwner}
-        onAddCost={onAddCost}
-        onUpdateCost={onUpdateCost}
-        onDeleteCost={onDeleteCost}
       />
     </div>
   );
@@ -509,21 +506,15 @@ import { OfferCalculator } from '@/components/product/OfferCalculator';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 function OfferCalculatorWrapper(props: {
+  productId: string;
   vatRate: string;
-  costs: Array<Record<string, unknown>>;
   isOwner: boolean;
-  onAddCost: () => void;
-  onUpdateCost: (id: string, data: Record<string, unknown>) => void;
-  onDeleteCost: (id: string) => void;
 }) {
   return (
     <OfferCalculator
+      productId={props.productId}
       vatRate={props.vatRate}
-      costs={props.costs as Array<{ id: string; name: string; value: number; usage_desc: string }>}
       isOwner={props.isOwner}
-      onAddCost={props.onAddCost}
-      onUpdateCost={props.onUpdateCost}
-      onDeleteCost={props.onDeleteCost}
     />
   );
 }
