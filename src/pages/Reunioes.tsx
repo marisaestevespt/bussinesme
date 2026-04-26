@@ -327,11 +327,14 @@ export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
   defaultProjectId, defaultProjectName,
+  initialMeetingType,
   onMeetingCreated, navigateAfterCreate = true,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
   defaultClientId?: string; defaultClientName?: string; defaultRecurrenceEndDate?: Date;
   defaultProjectId?: string; defaultProjectName?: string;
+  /** Pre-select a meeting type (skips the type-picker step inside the dialog). */
+  initialMeetingType?: MeetingType;
   /** Called with the created meeting id BEFORE any navigation, so the caller can do follow-up writes (e.g. linking to a deliverable). */
   onMeetingCreated?: (meetingId: string) => void | Promise<void>;
   /** When false, the dialog closes but does not navigate to the meeting detail page. Useful when called from another context. */
@@ -343,8 +346,12 @@ export function MeetingFormDialog({
   const { data: offRanges } = useOffDates();
 
   const hasDefaults = !!defaultClientId || !!defaultProjectId;
-  const [step, setStep] = useState<'type' | 'form'>(hasDefaults ? 'form' : 'type');
-  const [meetingType, setMeetingType] = useState<MeetingType>(hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
+  const hasPreselectedType = !!initialMeetingType;
+  const skipTypeStep = hasDefaults || hasPreselectedType;
+  const initialType: MeetingType = initialMeetingType
+    ?? (hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
+  const [step, setStep] = useState<'type' | 'form'>(skipTypeStep ? 'form' : 'type');
+  const [meetingType, setMeetingType] = useState<MeetingType>(initialType);
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
@@ -365,7 +372,8 @@ export function MeetingFormDialog({
   const skipAutoFillRef = useRef(false);
 
   const resetForm = () => {
-    setStep(hasDefaults ? 'form' : 'type'); setMeetingType(hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
+    setStep(skipTypeStep ? 'form' : 'type');
+    setMeetingType(initialType);
     setTitle(''); setDateTime(undefined); setStatus('por_confirmar');
     setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []); setDepartment(hasDefaults ? 'clientes' : '');
     setSelectedMembers([]); setMeetingUrl('');
