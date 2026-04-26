@@ -7045,6 +7045,7 @@ export type Database = {
           description: string | null
           duration_days: number | null
           duration_unit: string
+          estimated_minutes: number | null
           id: string
           is_meeting: boolean
           is_recurring: boolean
@@ -7065,6 +7066,7 @@ export type Database = {
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
+          estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
@@ -7085,6 +7087,7 @@ export type Database = {
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
+          estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
@@ -8293,6 +8296,7 @@ export type Database = {
           description: string | null
           duration_days: number | null
           duration_unit: string
+          estimated_minutes: number | null
           id: string
           is_meeting: boolean
           is_recurring: boolean
@@ -8324,6 +8328,7 @@ export type Database = {
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
+          estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
@@ -8355,6 +8360,7 @@ export type Database = {
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
+          estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
@@ -8552,6 +8558,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          budgeted_minutes: number | null
           client_id: string | null
           client_name: string | null
           closure_bad: string | null
@@ -8590,6 +8597,7 @@ export type Database = {
           whatsapp_group_url: string | null
         }
         Insert: {
+          budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null
           closure_bad?: string | null
@@ -8628,6 +8636,7 @@ export type Database = {
           whatsapp_group_url?: string | null
         }
         Update: {
+          budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null
           closure_bad?: string | null
@@ -9626,6 +9635,7 @@ export type Database = {
           deadline: string | null
           deliverable_id: string | null
           department: string | null
+          estimated_minutes: number | null
           estimated_time: number | null
           icon: Json | null
           id: string
@@ -9657,6 +9667,7 @@ export type Database = {
           deadline?: string | null
           deliverable_id?: string | null
           department?: string | null
+          estimated_minutes?: number | null
           estimated_time?: number | null
           icon?: Json | null
           id?: string
@@ -9688,6 +9699,7 @@ export type Database = {
           deadline?: string | null
           deliverable_id?: string | null
           department?: string | null
+          estimated_minutes?: number | null
           estimated_time?: number | null
           icon?: Json | null
           id?: string
