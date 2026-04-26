@@ -411,13 +411,13 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               value={name}
               onChange={e => handleNameChange(e.target.value)}
               placeholder={editingTask ? 'Nome da tarefa' : 'Nova tarefa sem nome'}
-              className="h-auto !text-[25px] font-semibold border-0 shadow-none focus-visible:ring-0 px-0 py-1 placeholder:text-muted-foreground/40"
+              className="h-auto !text-[23px] font-semibold border-0 shadow-none focus-visible:ring-0 px-0 py-1 placeholder:text-muted-foreground/40"
             />
             {editingTask && isOverdue(editingTask) && (
-              <div className="flex items-center gap-1.5 text-xs text-destructive">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                <span>Esta tarefa está atrasada</span>
-              </div>
+              <Badge variant="destructive" className="gap-1 w-fit text-[10px] font-medium uppercase tracking-wide">
+                <AlertTriangle className="h-3 w-3" />
+                Atrasada
+              </Badge>
             )}
           </DialogHeader>
 
