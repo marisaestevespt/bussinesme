@@ -47,6 +47,7 @@ export default function OperacaoPage() {
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
   const [healthDetailProjectId, setHealthDetailProjectId] = useState<string | null>(null);
   const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
+  const [showOverdueTasks, setShowOverdueTasks] = useState(false);
 
   const qc = useQueryClient();
 
