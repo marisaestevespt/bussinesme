@@ -423,7 +423,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               value={name}
               onChange={e => handleNameChange(e.target.value)}
               placeholder="Tarefa sem título"
-              className="h-auto text-[28px] font-bold leading-tight tracking-tight border-0 shadow-none focus-visible:ring-0 px-0 py-0 placeholder:text-muted-foreground/40 bg-transparent text-foreground"
+              className="h-auto !text-[30px] md:!text-[30px] font-bold leading-[1.15] tracking-tight border-0 shadow-none focus-visible:ring-0 px-0 py-0 placeholder:text-muted-foreground/40 bg-transparent text-foreground"
             />
           </DialogHeader>
 
