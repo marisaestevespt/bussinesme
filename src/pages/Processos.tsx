@@ -424,9 +424,19 @@ export default function ProcessosPage() {
       </Tabs>
 
       {/* ═══ Dialog: Novo Processo ═══ */}
-      <Dialog open={showNewSop} onOpenChange={v => { if (!v) { setShowNewSop(false); setNewSopName(''); setNewSopType('operacional'); setNewSopRoleTitle(''); setNewSopProductId(''); } else setShowNewSop(true); }}>
+      <Dialog open={showNewSop} onOpenChange={v => { if (!v) { setShowNewSop(false); setNewSopName(''); setNewSopType('operacional'); setNewSopRoleTitle(''); setNewSopProductId(''); setNewSopObjetivo(''); setNewSopTemplate(null); } else setShowNewSop(true); }}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Novo Processo (SOP)</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Novo Processo (SOP)</DialogTitle>
+            {newSopTemplate && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+                <FileText className="h-3 w-3" /> Template: <span className="font-medium text-foreground">{newSopTemplate.label}</span>
+                {newSopTemplate.defaultSteps.length > 0 && (
+                  <span>· {newSopTemplate.defaultSteps.length} passos pré-preenchidos</span>
+                )}
+              </p>
+            )}
+          </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
             <div>
@@ -513,6 +523,10 @@ export default function ProcessosPage() {
                 </SelectContent>
               </Select>
             </div>
+            </div>
+            <div>
+              <Label>Objetivo</Label>
+              <Input value={newSopObjetivo} onChange={e => setNewSopObjetivo(e.target.value)} placeholder="O que se pretende alcançar com este processo?" />
             </div>
             <Button className="w-full" disabled={!newSopName.trim() || newSopDepts.length === 0} onClick={() => createSop.mutate()}>Criar Processo</Button>
           </div>
