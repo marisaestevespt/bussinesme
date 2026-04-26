@@ -6975,27 +6975,51 @@ export type Database = {
           cost_type: string | null
           cost_value: number | null
           created_at: string
+          hourly_rate: number | null
+          hours: number | null
           id: string
+          member_id: string | null
           notes: string | null
           product_id: string | null
+          recurrence: string | null
+          scenario_id: string | null
+          sort_order: number | null
+          unit: string | null
+          usage_desc: string | null
         }
         Insert: {
           cost_name: string
           cost_type?: string | null
           cost_value?: number | null
           created_at?: string
+          hourly_rate?: number | null
+          hours?: number | null
           id?: string
+          member_id?: string | null
           notes?: string | null
           product_id?: string | null
+          recurrence?: string | null
+          scenario_id?: string | null
+          sort_order?: number | null
+          unit?: string | null
+          usage_desc?: string | null
         }
         Update: {
           cost_name?: string
           cost_type?: string | null
           cost_value?: number | null
           created_at?: string
+          hourly_rate?: number | null
+          hours?: number | null
           id?: string
+          member_id?: string | null
           notes?: string | null
           product_id?: string | null
+          recurrence?: string | null
+          scenario_id?: string | null
+          sort_order?: number | null
+          unit?: string | null
+          usage_desc?: string | null
         }
         Relationships: [
           {
@@ -7003,6 +7027,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_costs_scenario_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "product_offer_scenarios"
             referencedColumns: ["id"]
           },
         ]
@@ -7662,6 +7693,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_offboarding_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_offer_scenarios: {
+        Row: {
+          amortization_mode: string
+          created_at: string
+          desired_margin: number
+          estimated_sales: number | null
+          id: string
+          is_default: boolean
+          lifetime_months: number | null
+          name: string
+          notes: string | null
+          product_id: string
+          sort_order: number | null
+          ss_rate: number
+          tax_rate: number
+          tax_regime: string
+          updated_at: string
+        }
+        Insert: {
+          amortization_mode?: string
+          created_at?: string
+          desired_margin?: number
+          estimated_sales?: number | null
+          id?: string
+          is_default?: boolean
+          lifetime_months?: number | null
+          name: string
+          notes?: string | null
+          product_id: string
+          sort_order?: number | null
+          ss_rate?: number
+          tax_rate?: number
+          tax_regime?: string
+          updated_at?: string
+        }
+        Update: {
+          amortization_mode?: string
+          created_at?: string
+          desired_margin?: number
+          estimated_sales?: number | null
+          id?: string
+          is_default?: boolean
+          lifetime_months?: number | null
+          name?: string
+          notes?: string | null
+          product_id?: string
+          sort_order?: number | null
+          ss_rate?: number
+          tax_rate?: number
+          tax_regime?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_offer_scenarios_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
