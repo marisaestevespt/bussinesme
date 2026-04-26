@@ -205,7 +205,7 @@ export default function ClientesPage() {
         >
           <h2 className="text-sm font-semibold">Lista de Clientes & Alunos</h2>
         </CollectionToolbar>
-        <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+        <div className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-sm">
           <InfiniteScrollList
             totalCount={clients.totalCount}
             loadedCount={items.length}
@@ -213,7 +213,7 @@ export default function ClientesPage() {
             isFetchingNextPage={clients.isFetchingNextPage}
             fetchNextPage={clients.fetchNextPage}
           >
-            <div className="hidden md:block bg-muted/40 px-6 py-2 font-medium text-[11px] uppercase tracking-wide text-muted-foreground border-b">
+            <div className="hidden md:block bg-gradient-to-r from-primary/15 via-primary/8 to-accent/10 px-6 py-3 font-semibold text-[11px] uppercase tracking-wider text-foreground/80 border-b border-primary/20">
               Nome · ID · Status · Datas · Produto · Contactos
             </div>
             {displayItems.length === 0 ? (
