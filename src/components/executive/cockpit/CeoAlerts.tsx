@@ -87,7 +87,7 @@ function buildAlerts(derived: Derived): AlertItem[] {
       id: `expense-spike:${a.expenseDeltaPct}`, severity: a.expenseDeltaPct >= 50 ? 'critical' : 'warning', icon: TrendingUp,
       title: 'Despesas a subir',
       detail: `+${a.expenseDeltaPct}% face ao mês passado`,
-      link: '/hub/financeiro/despesas', count: a.expenseDeltaPct,
+      link: '/hub/financeiro/saidas', count: a.expenseDeltaPct,
     });
   }
   if (a.overdueTasks.length > 0) {
