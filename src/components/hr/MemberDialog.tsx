@@ -599,8 +599,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                             const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
                             set('departments', next);
                             set('department', next[0] || '');
-                            // Sincroniza work_areas com departments para manter compatibilidade
-                            set('work_areas', next);
                           }} />
                           <span>{d.icon} {d.label}</span>
                         </label>
