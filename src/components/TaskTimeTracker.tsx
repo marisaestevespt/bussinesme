@@ -27,9 +27,11 @@ function formatTimer(totalSeconds: number): string {
 
 interface TaskTimeTrackerProps {
   taskId: string;
+  /** Minimal one-line layout (for use inside EntityProperty). */
+  compact?: boolean;
 }
 
-export function TaskTimeTracker({ taskId }: TaskTimeTrackerProps) {
+export function TaskTimeTracker({ taskId, compact }: TaskTimeTrackerProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [manualHours, setManualHours] = useState('');
@@ -153,6 +155,37 @@ export function TaskTimeTracker({ taskId }: TaskTimeTrackerProps) {
   const totalMinutes = entries
     .filter(e => e.ended_at || e.is_manual)
     .reduce((sum, e) => sum + (e.duration_minutes || 0), 0);
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 w-full">
+        <span className="text-sm tabular-nums text-foreground">
+          {timerRunning ? formatTimer(elapsed) : (totalMinutes > 0 ? formatDuration(totalMinutes) : '—')}
+        </span>
+        {timerRunning ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => stopTimer.mutate()}
+            disabled={stopTimer.isPending}
+          >
+            <Pause className="h-3.5 w-3.5" /> Parar
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 gap-1"
+            onClick={() => startTimer.mutate()}
+            disabled={startTimer.isPending}
+          >
+            <Play className="h-3.5 w-3.5" /> Iniciar
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
