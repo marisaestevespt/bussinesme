@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText, Link2, Loader2, CheckCircle2, Crown } from 'lucide-react';
+import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText, Link2, Loader2, CheckCircle2, Crown, UserMinus } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -50,7 +50,7 @@ function MemberIconBlock({ member }: { member: any }) {
   );
 }
 
-export function MemberDetailSheet({ open, onClose, member, team }: any) {
+export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: any) {
   const [newTask, setNewTask] = useState('');
   const [detailTab, setDetailTab] = useState('info');
   const [vacStart, setVacStart] = useState('');
@@ -210,6 +210,17 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 >
                   {generatingLink ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2 className="h-3 w-3" />}
                   Copiar link de convite
+                </Button>
+              )}
+              {member.status === 'ativo' && onOffboard && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-2 text-warning hover:text-warning"
+                  onClick={() => onOffboard(member)}
+                >
+                  <UserMinus className="h-3 w-3" />
+                  Iniciar offboarding
                 </Button>
               )}
             </div>

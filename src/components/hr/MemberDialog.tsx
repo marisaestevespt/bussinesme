@@ -599,6 +599,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                             const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
                             set('departments', next);
                             set('department', next[0] || '');
+                            // Sincroniza work_areas com departments para manter compatibilidade
+                            set('work_areas', next);
                           }} />
                           <span>{d.icon} {d.label}</span>
                         </label>
@@ -606,33 +608,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                     })}
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <span className="text-xs text-muted-foreground font-medium">Tipo de trabalho</span>
-                  <p className="text-[10px] text-muted-foreground">Em que tipo de tarefas atua. Usado em CRM, planeamento de capacidade e atribuição de leads.</p>
-                  <div className="grid grid-cols-1 gap-1.5">
-                    {WORK_AREAS.map(wa => {
-                      const areas: string[] = Array.isArray(f.work_areas) ? f.work_areas : [];
-                      const checked = areas.includes(wa.value);
-                      return (
-                        <label key={wa.value} className={cn(
-                          'flex items-start gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors',
-                          checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                        )}>
-                          <Checkbox checked={checked} onCheckedChange={(v) => {
-                            const next = v ? [...areas, wa.value] : areas.filter(a => a !== wa.value);
-                            set('work_areas', next);
-                          }} className="mt-0.5" />
-                          <div>
-                            <span className="text-xs font-medium">{wa.label}</span>
-                            <p className="text-[10px] text-muted-foreground leading-tight">{wa.description}</p>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
                 <Textarea placeholder="Responsabilidades específicas (opcional)" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
               </div>
 
