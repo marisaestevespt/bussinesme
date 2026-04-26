@@ -345,6 +345,7 @@ export default function ProjetosPage() {
   function resetForm() {
     setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual'); setFProduct('');
     setDialogOpen(false);
+    setActiveTemplate(null);
   }
 
   function getMembersForProject(projectId: string) {
