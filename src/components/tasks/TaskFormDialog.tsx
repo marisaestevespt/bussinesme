@@ -20,6 +20,14 @@ import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { TASK_STATUSES, PRIORITIES, getStatusInfo } from '@/components/tasks/TaskTable';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText } from 'lucide-react';
+import { User, Building, FolderOpen, Briefcase, Hash, Flag, ListTodo } from 'lucide-react';
+import {
+  EntitySection,
+  EntityProperties,
+  EntityProperty,
+  inlineInputClass,
+  inlineTriggerClass,
+} from '@/components/layout/entity';
 import { cn } from '@/lib/utils';
 import { format, parseISO, isBefore, startOfDay, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
