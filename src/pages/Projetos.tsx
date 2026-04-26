@@ -477,7 +477,14 @@ export default function ProjetosPage() {
         {/* Create dialog */}
         <Dialog open={dialogOpen} onOpenChange={v => { if (!v) resetForm(); }}>
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>Novo Projeto</DialogTitle>
+              {activeTemplate && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Template: {activeTemplate.emoji} {activeTemplate.label}
+                </p>
+              )}
+            </DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
                 <Label>Produto associado</Label>
