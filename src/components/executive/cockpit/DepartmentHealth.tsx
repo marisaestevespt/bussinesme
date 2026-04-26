@@ -93,7 +93,7 @@ export function DepartmentHealth({ derived }: { derived: Derived }) {
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Saúde por área</h2>
-        <Link to="/executive/analise" className="text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors">
+        <Link to="/executive/analise-empresarial" className="text-[10px] text-muted-foreground hover:text-foreground hover:underline transition-colors">
           Clica para ver análise completa
         </Link>
       </div>
