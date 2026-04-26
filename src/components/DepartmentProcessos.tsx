@@ -20,6 +20,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Plus, Trash2, FileText, RotateCw, MessageSquare, ExternalLink, Pencil, Check, X } from 'lucide-react';
 import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus';
 import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { SOP_TEMPLATES, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
 
 interface DepartmentProcessosProps {
   department: string;
@@ -35,6 +37,9 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   const [showNewSop, setShowNewSop] = useState(false);
   const [newSopName, setNewSopName] = useState('');
   const [newSopStatus, setNewSopStatus] = useState('para_criar');
+  const [newSopTemplate, setNewSopTemplate] = useState<SopTemplate | null>(null);
+  const [newSopObjetivo, setNewSopObjetivo] = useState('');
+  const [sopPickerOpen, setSopPickerOpen] = useState(false);
 
 
   // Routine dialog state
@@ -74,21 +79,35 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   // Mutations
   const createSop = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('sops').insert({
+      const { data: sopData, error } = await supabase.from('sops').insert({
         name: newSopName,
         department,
         departments: [department],
         status: newSopStatus,
+        sop_type: newSopTemplate?.defaultSopType || 'operacional',
+        objetivo: newSopObjetivo.trim() || null,
         created_by: user?.id,
-      });
+      } as any).select('id').single();
       if (error) throw error;
+      if (newSopTemplate && newSopTemplate.defaultSteps.length > 0 && sopData?.id) {
+        const stepRows = newSopTemplate.defaultSteps.map((description, idx) => ({
+          sop_id: sopData.id,
+          description,
+          sort_order: idx,
+        }));
+        await (supabase.from as any)('sop_steps').insert(stepRows);
+      }
+      return sopData;
     },
-    onSuccess: () => {
+    onSuccess: (sopData: any) => {
       qc.invalidateQueries({ queryKey: ['sops'] });
       setShowNewSop(false);
       setNewSopName('');
       setNewSopStatus('para_criar');
+      setNewSopObjetivo('');
+      setNewSopTemplate(null);
       toast.success('Processo criado');
+      if (sopData?.id) navigate(`/hub/processos/${sopData.id}`);
     },
     onError: () => toast.error('Erro ao criar processo'),
   });
@@ -158,9 +177,41 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold">Processos (SOPs)</h3>
-            <Button size="sm" onClick={() => setShowNewSop(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Processo
-            </Button>
+            <Popover open={sopPickerOpen} onOpenChange={setSopPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Novo Processo</Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-1.5">
+                <div className="px-2 py-1.5">
+                  <p className="text-xs font-medium text-muted-foreground">Escolher template</p>
+                </div>
+                <div className="space-y-0.5">
+                  {SOP_TEMPLATES.map(t => {
+                    const Icon = t.icon;
+                    return (
+                      <button
+                        key={t.value}
+                        onClick={() => {
+                          setNewSopTemplate(t);
+                          setNewSopObjetivo(t.defaultObjetivo || '');
+                          setSopPickerOpen(false);
+                          setShowNewSop(true);
+                        }}
+                        className="w-full flex items-start gap-3 rounded-md px-2 py-2 text-left hover:bg-muted transition-colors"
+                      >
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{t.label}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           <Card>
             <Table>
@@ -266,13 +317,27 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
       </div>
 
       {/* Dialog: Novo Processo */}
-      <Dialog open={showNewSop} onOpenChange={setShowNewSop}>
+      <Dialog open={showNewSop} onOpenChange={v => { if (!v) { setShowNewSop(false); setNewSopName(''); setNewSopObjetivo(''); setNewSopTemplate(null); } else setShowNewSop(true); }}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle>Novo Processo (SOP)</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Novo Processo (SOP)</DialogTitle>
+            {newSopTemplate && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+                <FileText className="h-3 w-3" /> Template: <span className="font-medium text-foreground">{newSopTemplate.label}</span>
+                {newSopTemplate.defaultSteps.length > 0 && (
+                  <span>· {newSopTemplate.defaultSteps.length} passos pré-preenchidos</span>
+                )}
+              </p>
+            )}
+          </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Nome do processo *</Label>
               <Input value={newSopName} onChange={e => setNewSopName(e.target.value)} placeholder="Ex: Onboarding de cliente" />
+            </div>
+            <div>
+              <Label>Objetivo</Label>
+              <Input value={newSopObjetivo} onChange={e => setNewSopObjetivo(e.target.value)} placeholder="O que se pretende alcançar?" />
             </div>
             <div>
               <Label>Status</Label>

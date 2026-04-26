@@ -34,6 +34,7 @@ import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus
 import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
+import { SOP_TEMPLATES, getSopTemplate, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -73,6 +74,9 @@ export default function ProcessosPage() {
   const [newSopRoleTitle, setNewSopRoleTitle] = useState('');
   const [newSopRoleOpen, setNewSopRoleOpen] = useState(false);
   const [newSopProductId, setNewSopProductId] = useState('');
+  const [newSopTemplate, setNewSopTemplate] = useState<SopTemplate | null>(null);
+  const [newSopObjetivo, setNewSopObjetivo] = useState('');
+  const [sopTemplatePickerOpen, setSopTemplatePickerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('galeria');
   const [filterRole, setFilterRole] = useState('');
 
@@ -133,9 +137,19 @@ export default function ProcessosPage() {
         sop_type: newSopType,
         role_title: newSopRoleTitle || null,
         product_id: newSopProductId || null,
+        objetivo: newSopObjetivo.trim() || null,
         created_by: user?.id,
       } as any).select('id').single();
       if (error) throw error;
+      // Insert template steps as sop_steps
+      if (newSopTemplate && newSopTemplate.defaultSteps.length > 0) {
+        const stepRows = newSopTemplate.defaultSteps.map((description, idx) => ({
+          sop_id: sopData.id,
+          description,
+          sort_order: idx,
+        }));
+        await (supabase.from as any)('sop_steps').insert(stepRows);
+      }
       return sopData;
     },
     onSuccess: (sopData) => {
@@ -146,6 +160,8 @@ export default function ProcessosPage() {
       setNewSopType('operacional');
       setNewSopRoleTitle('');
       setNewSopProductId('');
+      setNewSopObjetivo('');
+      setNewSopTemplate(null);
       toast.success('Processo criado');
       if (sopData?.id) navigate(`/hub/processos/${sopData.id}`);
     },
@@ -184,9 +200,43 @@ export default function ProcessosPage() {
         description="Documentação operacional, rotinas e fluxos por departamento."
         count={totalSopCount}
         actions={
-          <Button onClick={() => { if (selectedDept) setNewSopDepts([selectedDept]); setShowNewSop(true); }} size="sm">
-            <Plus className="h-4 w-4 mr-1" /> Novo Processo
-          </Button>
+          <Popover open={sopTemplatePickerOpen} onOpenChange={setSopTemplatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Novo Processo</Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-1.5">
+              <div className="px-2 py-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Escolher template</p>
+              </div>
+              <div className="space-y-0.5">
+                {SOP_TEMPLATES.map(t => {
+                  const Icon = t.icon;
+                  return (
+                    <button
+                      key={t.value}
+                      onClick={() => {
+                        if (selectedDept) setNewSopDepts([selectedDept]);
+                        setNewSopTemplate(t);
+                        setNewSopType(t.defaultSopType);
+                        setNewSopObjetivo(t.defaultObjetivo || '');
+                        setSopTemplatePickerOpen(false);
+                        setShowNewSop(true);
+                      }}
+                      className="w-full flex items-start gap-3 rounded-md px-2 py-2 text-left hover:bg-muted transition-colors"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{t.label}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
         }
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -374,9 +424,19 @@ export default function ProcessosPage() {
       </Tabs>
 
       {/* ═══ Dialog: Novo Processo ═══ */}
-      <Dialog open={showNewSop} onOpenChange={v => { if (!v) { setShowNewSop(false); setNewSopName(''); setNewSopType('operacional'); setNewSopRoleTitle(''); setNewSopProductId(''); } else setShowNewSop(true); }}>
+      <Dialog open={showNewSop} onOpenChange={v => { if (!v) { setShowNewSop(false); setNewSopName(''); setNewSopType('operacional'); setNewSopRoleTitle(''); setNewSopProductId(''); setNewSopObjetivo(''); setNewSopTemplate(null); } else setShowNewSop(true); }}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Novo Processo (SOP)</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Novo Processo (SOP)</DialogTitle>
+            {newSopTemplate && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+                <FileText className="h-3 w-3" /> Template: <span className="font-medium text-foreground">{newSopTemplate.label}</span>
+                {newSopTemplate.defaultSteps.length > 0 && (
+                  <span>· {newSopTemplate.defaultSteps.length} passos pré-preenchidos</span>
+                )}
+              </p>
+            )}
+          </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
             <div>
@@ -463,6 +523,10 @@ export default function ProcessosPage() {
                 </SelectContent>
               </Select>
             </div>
+            </div>
+            <div>
+              <Label>Objetivo</Label>
+              <Input value={newSopObjetivo} onChange={e => setNewSopObjetivo(e.target.value)} placeholder="O que se pretende alcançar com este processo?" />
             </div>
             <Button className="w-full" disabled={!newSopName.trim() || newSopDepts.length === 0} onClick={() => createSop.mutate()}>Criar Processo</Button>
           </div>
