@@ -17,6 +17,7 @@ import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getMeetingTemplate } from '@/components/meeting/MEETING_TEMPLATES';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +31,7 @@ import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { logAudit } from '@/lib/auditLog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader, CollectionEmpty } from '@/components/layout/collection';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -104,7 +106,7 @@ function useMeetings() {
   });
 }
 
-function useProjects() {
+export function useProjects() {
   return useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
@@ -115,7 +117,7 @@ function useProjects() {
   });
 }
 
-function useClientsList() {
+export function useClientsList() {
   return useQuery({
     queryKey: ['clients_list'],
     queryFn: async () => {
@@ -126,7 +128,7 @@ function useClientsList() {
   });
 }
 
-function useProfiles() {
+export function useProfiles() {
   return useQuery({
     queryKey: ['profiles'],
     queryFn: async () => {
@@ -327,11 +329,14 @@ export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
   defaultProjectId, defaultProjectName,
+  initialMeetingType,
   onMeetingCreated, navigateAfterCreate = true,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
   defaultClientId?: string; defaultClientName?: string; defaultRecurrenceEndDate?: Date;
   defaultProjectId?: string; defaultProjectName?: string;
+  /** Pre-select a meeting type (skips the type-picker step inside the dialog). */
+  initialMeetingType?: MeetingType;
   /** Called with the created meeting id BEFORE any navigation, so the caller can do follow-up writes (e.g. linking to a deliverable). */
   onMeetingCreated?: (meetingId: string) => void | Promise<void>;
   /** When false, the dialog closes but does not navigate to the meeting detail page. Useful when called from another context. */
@@ -343,8 +348,12 @@ export function MeetingFormDialog({
   const { data: offRanges } = useOffDates();
 
   const hasDefaults = !!defaultClientId || !!defaultProjectId;
-  const [step, setStep] = useState<'type' | 'form'>(hasDefaults ? 'form' : 'type');
-  const [meetingType, setMeetingType] = useState<MeetingType>(hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
+  const hasPreselectedType = !!initialMeetingType;
+  const skipTypeStep = hasDefaults || hasPreselectedType;
+  const initialType: MeetingType = initialMeetingType
+    ?? (hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
+  const [step, setStep] = useState<'type' | 'form'>(skipTypeStep ? 'form' : 'type');
+  const [meetingType, setMeetingType] = useState<MeetingType>(initialType);
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
@@ -364,8 +373,21 @@ export function MeetingFormDialog({
 
   const skipAutoFillRef = useRef(false);
 
+  // When opened with a preselected template, sync state and apply default department
+  useEffect(() => {
+    if (!open) return;
+    if (initialMeetingType) {
+      setMeetingType(initialMeetingType);
+      setStep('form');
+      const tpl = getMeetingTemplate(initialMeetingType as string);
+      if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialMeetingType]);
+
   const resetForm = () => {
-    setStep(hasDefaults ? 'form' : 'type'); setMeetingType(hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
+    setStep(skipTypeStep ? 'form' : 'type');
+    setMeetingType(initialType);
     setTitle(''); setDateTime(undefined); setStatus('por_confirmar');
     setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []); setDepartment(hasDefaults ? 'clientes' : '');
     setSelectedMembers([]); setMeetingUrl('');
@@ -471,6 +493,12 @@ export function MeetingFormDialog({
         recurrence_frequency: isRecurring ? recurrenceFrequency : null,
         recurrence_end_date: isRecurring && recurrenceEndDate ? format(recurrenceEndDate, 'yyyy-MM-dd') : null,
       };
+
+      // Apply template default agenda (discussion_points) when creating from a template
+      const tpl = getMeetingTemplate(meetingType as string);
+      if (tpl && tpl.defaultAgenda.length > 0) {
+        (meetingData as any).discussion_points = tpl.defaultAgenda.map(text => ({ text, checked: false }));
+      }
 
       const { data, error } = await supabase.from('meetings').insert(meetingData as any).select('id').single();
       if (error) throw error;
@@ -719,7 +747,6 @@ const REUNIOES_DEFAULT_VIEWS: DefaultView[] = [
 export default function ReunioesPage() {
   const { allViews, addView, renameView, deleteView } = useUserViews('reunioes', REUNIOES_DEFAULT_VIEWS);
   const [view, setView] = useState<string>('proximas');
-  const [formOpen, setFormOpen] = useState(false);
   const navigate = useNavigate();
 
   const meetingsQuery = useMeetings();
@@ -743,9 +770,7 @@ export default function ReunioesPage() {
           description="Reuniões recorrentes, com clientes, de projeto e diagnósticos."
           count={meetingsTotal}
           actions={
-            <Button size="sm" onClick={() => setFormOpen(true)}>
-              <Plus className="h-4 w-4 mr-1.5" /> Nova Reunião
-            </Button>
+            <NewMeetingButton size="sm" label="Nova Reunião" />
           }
         />
         <div className="flex items-center justify-between">
@@ -773,9 +798,7 @@ export default function ReunioesPage() {
             title={view === 'proximas' ? 'Sem reuniões futuras' : 'Sem reuniões'}
             description={view === 'proximas' ? 'Agenda a próxima reunião para a veres aqui.' : 'Cria a primeira reunião para começar.'}
             action={
-              <Button size="sm" onClick={() => setFormOpen(true)}>
-                <Plus className="h-4 w-4 mr-1.5" /> Nova Reunião
-              </Button>
+              <NewMeetingButton size="sm" label="Nova Reunião" />
             }
           />
         ) : (
@@ -817,7 +840,6 @@ export default function ReunioesPage() {
         )}
       </CollectionPage>
 
-      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} clients={clients} />
     </AppLayout>
   );
 }
