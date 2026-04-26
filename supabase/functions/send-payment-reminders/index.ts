@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
+import { logRun } from '../_shared/resilience.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +22,7 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const startedAt = new Date()
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -151,6 +153,14 @@ Deno.serve(async (req) => {
 
     console.log(`Payment reminders processed: ${results.length}`, results)
 
+    const errors = results.filter((r: any) => r.status === 'error').length
+    await logRun({
+      functionName: 'send-payment-reminders',
+      startedAt,
+      status: errors > 0 ? 'warning' : 'success',
+      context: { processed: results.length, errors },
+    })
+
     return new Response(JSON.stringify({ 
       message: `Processed ${results.length} reminders`,
       results,
@@ -159,6 +169,7 @@ Deno.serve(async (req) => {
     })
   } catch (err) {
     console.error('send-payment-reminders error:', err)
+    await logRun({ functionName: 'send-payment-reminders', startedAt, status: 'failed', errorMessage: String(err) })
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
