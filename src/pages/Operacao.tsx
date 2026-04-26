@@ -108,6 +108,17 @@ export default function OperacaoPage() {
     },
   });
 
+  // Status de TODAS as fases ativas — usado para saber se uma entrega já está "em curso".
+  const { data: allPhases = [] } = useQuery({
+    queryKey: ['op-all-phases-status'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_phases')
+        .select('id, status');
+      return (data || []) as { id: string; status: string }[];
+    },
+  });
+
   const { data: projectMembers = [] } = useQuery({
     queryKey: ['op-project-members'],
     queryFn: async () => {
