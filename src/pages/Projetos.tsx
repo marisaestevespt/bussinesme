@@ -34,6 +34,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
+import { PROJECT_TEMPLATES, type ProjectTemplate } from '@/components/project/PROJECT_TEMPLATES';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -163,6 +164,19 @@ export default function ProjetosPage() {
   const [fNotes, setFNotes] = useState('');
   const [fMode, setFMode] = useState('pontual');
   const [fProduct, setFProduct] = useState<string>('');
+  const [activeTemplate, setActiveTemplate] = useState<ProjectTemplate | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  function openWithTemplate(tpl: ProjectTemplate) {
+    setActiveTemplate(tpl);
+    setFType(tpl.defaultType);
+    setFMode(tpl.defaultMode);
+    setFStatus(tpl.defaultStatus);
+    setFDept(tpl.defaultDept || '');
+    setFNotes(tpl.defaultNotes || '');
+    setPickerOpen(false);
+    setDialogOpen(true);
+  }
 
   const projectsQuery = useInfiniteQuery<InfinitePageResult<Project>>({
     queryKey: ['projects'],
@@ -331,6 +345,7 @@ export default function ProjetosPage() {
   function resetForm() {
     setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual'); setFProduct('');
     setDialogOpen(false);
+    setActiveTemplate(null);
   }
 
   function getMembersForProject(projectId: string) {
@@ -346,9 +361,27 @@ export default function ProjetosPage() {
           description="Projetos internos, lançamentos e trabalhos com clientes."
           count={projects.length}
           actions={
-            <Button size="sm" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Projeto
-            </Button>
+            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-1" /> Novo Projeto
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-2" align="end">
+                <div className="px-2 pt-1 pb-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Escolhe um template</div>
+                <div className="space-y-1">
+                  {PROJECT_TEMPLATES.map(tpl => (
+                    <button key={tpl.key} onClick={() => openWithTemplate(tpl)} className="w-full flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left">
+                      <span className="text-lg leading-none mt-0.5">{tpl.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium">{tpl.label}</div>
+                        <div className="text-xs text-muted-foreground line-clamp-2">{tpl.description}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           }
         />
 
@@ -404,7 +437,6 @@ export default function ProjetosPage() {
               onRename={(id, label) => renameView({ id, label })}
               onDelete={(id) => { if (view.startsWith('custom_')) setView('table'); deleteView(id); }}
             />
-            <Button onClick={() => setDialogOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Novo Projeto</Button>
           </div>
         </div>
 
@@ -413,7 +445,7 @@ export default function ProjetosPage() {
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
             <EmptyHint>Nenhum projeto registado</EmptyHint>
-            <Button variant="outline" className="mt-4 gap-2" onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4" /> Criar primeiro projeto</Button>
+            <Button variant="outline" className="mt-4 gap-2" onClick={() => openWithTemplate(PROJECT_TEMPLATES[0])}><Plus className="h-4 w-4" /> Criar primeiro projeto</Button>
           </div>
         ) : (
           <>
@@ -426,7 +458,14 @@ export default function ProjetosPage() {
         {/* Create dialog */}
         <Dialog open={dialogOpen} onOpenChange={v => { if (!v) resetForm(); }}>
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>Novo Projeto</DialogTitle>
+              {activeTemplate && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Template: {activeTemplate.emoji} {activeTemplate.label}
+                </p>
+              )}
+            </DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
                 <Label>Produto associado</Label>
