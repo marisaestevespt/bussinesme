@@ -544,33 +544,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               {f.role_title && <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>}
             </div>
 
-            {/* Vínculo (fusão Tipo + Tipo de Contrato) */}
-            <div className="space-y-2">
-              <span className="text-xs text-muted-foreground font-medium">Vínculo</span>
-              <p className="text-[10px] text-muted-foreground">Define o tipo de relação e o contrato associado.</p>
-              <Select
-                value={bondFromTypes(f.member_type, contract.contract_type)}
-                onValueChange={(v) => {
-                  const opt = BOND_OPTIONS.find(o => o.value === v);
-                  if (!opt) return;
-                  set('member_type', opt.member_type);
-                  setC('contract_type', opt.contract_type);
-                }}
-              >
-                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {BOND_OPTIONS.map(o => (
-                    <SelectItem key={o.value} value={o.value} className="text-xs py-2">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{o.label}</span>
-                        <span className="text-[10px] text-muted-foreground">{o.hint}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Contactos */}
             <div className="grid grid-cols-2 gap-2">
               <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
