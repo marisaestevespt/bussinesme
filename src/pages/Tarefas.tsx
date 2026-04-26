@@ -38,6 +38,7 @@ import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { TaskTable, TASK_STATUSES, PRIORITIES, getStatusInfo, getPriorityInfo, getDeptInfo } from '@/components/tasks/TaskTable';
 import { CalendarView } from '@/components/tasks/CalendarView';
 import { ResponsavelView } from '@/components/tasks/ResponsavelView';
+import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 
 // ─── Constants ──────────────────────────────────────────────────
 
