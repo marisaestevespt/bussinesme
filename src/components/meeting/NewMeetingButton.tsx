@@ -112,7 +112,7 @@ export function NewMeetingButton({
         defaultClientName={defaultClientName}
         defaultProjectId={defaultProjectId}
         defaultProjectName={defaultProjectName}
-        initialMeetingType={pickedType}
+        initialMeetingType={pickedType as any}
         onMeetingCreated={onMeetingCreated}
         navigateAfterCreate={navigateAfterCreate}
       />
