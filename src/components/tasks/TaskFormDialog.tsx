@@ -395,15 +395,53 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
+        <DialogContent className="max-w-3xl w-[95vw] max-h-[92vh] overflow-y-auto p-0 gap-0">
+          {/* ── Header com meta info ─────────────────────────────── */}
+          <DialogHeader className="px-6 pt-5 pb-4 border-b shrink-0 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="sr-only">{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
+                <Input
+                  value={name}
+                  onChange={e => handleNameChange(e.target.value)}
+                  placeholder={editingTask ? 'Nome da tarefa' : 'Nova tarefa'}
+                  className="h-10 text-base font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {(() => {
+                const s = TASK_STATUSES.find(x => x.value === status);
+                return s ? <Badge variant="outline" className={cn('text-[10px]', s.color)}>{s.label}</Badge> : null;
+              })()}
+              {(() => {
+                const p = PRIORITIES.find(x => x.value === priority);
+                return p ? <Badge variant="outline" className={cn('text-[10px] border', p.color)}>{p.label}</Badge> : null;
+              })()}
+              {projectId && projectId !== 'none' && (() => {
+                const proj = projects.find(p => p.id === projectId);
+                return proj ? <Badge variant="secondary" className="text-[10px]">📁 {proj.name}</Badge> : null;
+              })()}
+              {clientId && clientId !== 'none' && (() => {
+                const c = clients.find(x => x.id === clientId);
+                return c ? <Badge variant="secondary" className="text-[10px]">👤 {c.full_name}</Badge> : null;
+              })()}
+              {deadline && (
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <CalendarIcon className="h-3 w-3" /> {format(deadline, 'd MMM yyyy', { locale: pt })}
+                </Badge>
+              )}
+              {editingTask && isOverdue(editingTask) && (
+                <Badge variant="destructive" className="text-[10px] gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Atrasada
+                </Badge>
+              )}
+            </div>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div>
-              <Label>Nome da tarefa *</Label>
-              <Input value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Nome da tarefa" />
-              {!editingTask && suggestion && !suggestionDismissed && (
+
+          <div className="px-6 py-5 space-y-5">
+            {/* Sugestão de tarefa similar */}
+            {!editingTask && suggestion && !suggestionDismissed && (
                 <div className="mt-2 rounded-md border border-border bg-muted/30 p-3 space-y-2">
                   <p className="text-xs text-muted-foreground">
                     Tarefa similar: <strong className="text-foreground">{suggestion.taskName}</strong>. Tempo médio: <strong className="text-foreground">{suggestion.avgHours}h</strong>.
@@ -413,32 +451,31 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                     <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSuggestionDismissed(true)}>Ignorar</Button>
                   </div>
                 </div>
-              )}
-            </div>
+            )}
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* ── Secção: Detalhes principais ───────────────────── */}
+            <section className="rounded-lg border bg-card p-4 space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Detalhes</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label>Status</Label>
+                <Label className="text-xs text-muted-foreground">Status</Label>
                 <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>{TASK_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Prioridade</Label>
+                <Label className="text-xs text-muted-foreground">Prioridade</Label>
                 <Select value={priority} onValueChange={setPriority}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>{PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}><Badge variant="outline" className={cn('text-xs border', p.color)}>{p.label}</Badge></SelectItem>)}</SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Prazo *</Label>
+                <Label className="text-xs text-muted-foreground">Prazo *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
                     </Button>
@@ -449,31 +486,35 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 </Popover>
               </div>
               <div>
-                <Label className="flex items-center gap-2"><Clock className="h-3.5 w-3.5" /> Hora (opcional)</Label>
-                <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="HH:MM" />
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5"><Clock className="h-3 w-3" /> Hora (opcional)</Label>
+                <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="HH:MM" className="h-9" />
               </div>
-            </div>
+              </div>
+            </section>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* ── Secção: Recorrência ──────────────────────────── */}
+            <section className="rounded-lg border bg-card p-4 space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label className="flex items-center gap-2"><Repeat className="h-3.5 w-3.5" /> Recorrência</Label>
+                <Label className="text-xs text-muted-foreground">Frequência</Label>
                 <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Não se repete" /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Não se repete" /></SelectTrigger>
                   <SelectContent>{RECURRENCE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               {recurrenceType === 'personalizado' && (
                 <div>
-                  <Label>A cada X dias</Label>
-                  <Input type="number" min="1" max="365" value={recurrenceIntervalDays} onChange={e => setRecurrenceIntervalDays(e.target.value)} placeholder="Ex: 3" />
+                  <Label className="text-xs text-muted-foreground">A cada X dias</Label>
+                  <Input type="number" min="1" max="365" value={recurrenceIntervalDays} onChange={e => setRecurrenceIntervalDays(e.target.value)} placeholder="Ex: 3" className="h-9" />
                 </div>
               )}
               {recurrenceType && recurrenceType !== 'personalizado' && (
                 <div>
-                  <Label>Repetir até</Label>
+                  <Label className="text-xs text-muted-foreground">Repetir até</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
+                      <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
                       </Button>
@@ -484,13 +525,13 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </Popover>
                 </div>
               )}
-            </div>
-            {recurrenceType === 'personalizado' && (
+              </div>
+              {recurrenceType === 'personalizado' && (
               <div>
-                <Label>Repetir até</Label>
+                <Label className="text-xs text-muted-foreground">Repetir até</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
                     </Button>
@@ -500,53 +541,60 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </PopoverContent>
                 </Popover>
               </div>
-            )}
+              )}
+            </section>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* ── Secção: Atribuição ───────────────────────────── */}
+            <section className="rounded-lg border bg-card p-4 space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Atribuição</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <Label>Responsável</Label>
+                <Label className="text-xs text-muted-foreground">Responsável</Label>
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Departamento</Label>
+                <Label className="text-xs text-muted-foreground">Departamento</Label>
                 <Select value={department} onValueChange={setDepartment}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>{PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-            </div>
+              </div>
+              {editingTask?.original_assignee && (
+                <div className="text-xs text-muted-foreground">Responsável original: {profiles.find(p => p.id === editingTask.original_assignee)?.full_name || '—'}</div>
+              )}
+            </section>
 
-            {editingTask?.original_assignee && (
-              <div className="text-xs text-muted-foreground">Responsável original: {profiles.find(p => p.id === editingTask.original_assignee)?.full_name || '—'}</div>
-            )}
-
-            <div>
-              <Label>Projeto associado</Label>
+            {/* ── Secção: Contexto ─────────────────────────────── */}
+            <section className="rounded-lg border bg-card p-4 space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contexto</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Projeto associado</Label>
               <Select value={projectId} onValueChange={v => { setProjectId(v); if (v && v !== 'none') { const proj = projects.find(p => p.id === v); if (proj?.client_id) setClientId(proj.client_id); } }}>
-                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <Label>Cliente associado</Label>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Cliente associado</Label>
               <Select value={clientId || 'none'} onValueChange={v => setClientId(v === 'none' ? '' : v)}>
-                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <Label className="flex items-center gap-2"><FileText className="h-3.5 w-3.5" /> Processo (SOP) associado</Label>
+              </div>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5"><FileText className="h-3 w-3" /> Processo (SOP) associado</Label>
               <Select value={sopId || 'none'} onValueChange={v => {
                 const newSopId = v === 'none' ? '' : v;
                 setSopId(newSopId);
@@ -557,26 +605,31 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   }
                 }
               }}>
-                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {sopsList.map(s => <SelectItem key={s.id} value={s.id}>{s.sop_id ? `${s.sop_id} — ` : ''}{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
+              </div>
+            </section>
 
-            {/* Subtask toggle */}
-            <div className="flex items-center gap-2">
+            {/* ── Secção: Hierarquia (subtarefas) ──────────────── */}
+            <section className="rounded-lg border bg-card p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Hierarquia</h3>
+                <div className="flex items-center gap-2">
               <Checkbox id="is-subtask-dialog" checked={isSubtask} onCheckedChange={checked => { setIsSubtask(!!checked); if (!checked) { setParentTaskId(''); setDependsOnIds([]); } }} />
               <Label htmlFor="is-subtask-dialog" className="text-sm cursor-pointer">Esta é uma subtarefa?</Label>
             </div>
+              </div>
 
             {isSubtask && (
-              <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                <div className="space-y-3 pl-3 border-l-2 border-primary/20">
                 <div>
-                  <Label className="flex items-center gap-2"><GitBranch className="h-3.5 w-3.5" /> Tarefa principal</Label>
+                    <Label className="text-xs text-muted-foreground">Tarefa principal</Label>
                   <Select value={parentTaskId} onValueChange={setParentTaskId}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar tarefa principal" /></SelectTrigger>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar tarefa principal" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Nenhuma</SelectItem>
                       {allTasks.filter(t => t.id !== editingTask?.id && !t.parent_task_id).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
@@ -584,9 +637,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </Select>
                 </div>
                 <div>
-                  <Label className="flex items-center gap-2"><Link2 className="h-3.5 w-3.5" /> Depende de</Label>
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5"><Link2 className="h-3 w-3" /> Depende de</Label>
                   <Select value="" onValueChange={val => { if (val && !dependsOnIds.includes(val)) setDependsOnIds(prev => [...prev, val]); }}>
-                    <SelectTrigger><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
                     <SelectContent>{allTasks.filter(t => t.id !== editingTask?.id && !dependsOnIds.includes(t.id)).map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
                   </Select>
                   {dependsOnIds.length > 0 && (
@@ -609,6 +662,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 </div>
               </div>
             )}
+            </section>
 
             {/* Dependency warnings */}
             {editingTask && dependsOnIds.length > 0 && (() => {
@@ -631,8 +685,8 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               const subtasks = allTasks.filter(t => t.parent_task_id === editingTask.id);
               if (subtasks.length === 0) return null;
               return (
-                <div>
-                  <Label className="flex items-center gap-2 mb-2"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefas ({subtasks.length})</Label>
+                <section className="rounded-lg border bg-card p-4 space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefas ({subtasks.length})</h3>
                   <div className="space-y-1">
                     {subtasks.map(st => (
                       <div key={st.id} className="flex items-center gap-2 p-2 rounded-md bg-muted/20 border border-border/40 text-sm">
@@ -641,7 +695,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
               );
             })()}
 
@@ -652,18 +706,15 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
             )}
 
-            {editingTask && isOverdue(editingTask) && (
-              <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3">
-                <p className="text-sm font-medium text-destructive flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> Esta tarefa está atrasada.</p>
+            {/* ── Secção: Tempo ────────────────────────────────── */}
+            <section className="rounded-lg border bg-card p-4 space-y-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Tempo</h3>
+              {editingTask && <TaskTimeTracker taskId={editingTask.id} />}
+              <div>
+                <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
+                <Input type="number" min="0" step="0.5" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
               </div>
-            )}
-
-            {editingTask && <TaskTimeTracker taskId={editingTask.id} />}
-
-            <div>
-              <Label className="flex items-center gap-2"><Clock className="h-3.5 w-3.5" /> Tempo Estimado (horas)</Label>
-              <Input type="number" min="0" step="0.5" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)} placeholder="Ex: 2.5" />
-            </div>
+            </section>
 
             {capacityWarning && (
               <div className={cn("rounded-md border p-3", capacityWarning.occupancy > 100 ? "border-destructive/50 bg-destructive/5" : "border-warning/30 bg-warning/15")}>
@@ -683,22 +734,24 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
             )}
 
-            <div>
-              <Label>Notas</Label>
-              <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas..." rows={3}
+            {/* ── Secção: Notas ────────────────────────────────── */}
+            <section className="rounded-lg border bg-card p-4 space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Notas</h3>
+              <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas..." rows={4}
                 className={cn(editingTask && isDoneAfterDeadline(editingTask) && !notes?.trim() && 'border-destructive ring-destructive/30 ring-2')} />
-            </div>
-
-            {editingTask?.status === 'done' && (
-              <div>
-                <Label>Data real de conclusão</Label>
-                <p className={cn("text-sm mt-1 font-medium", isDoneAfterDeadline(editingTask) ? 'text-destructive' : 'text-foreground')}>
+              {editingTask?.status === 'done' && (
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Data real de conclusão: </span>
+                  <span className={cn("font-medium", isDoneAfterDeadline(editingTask) ? 'text-destructive' : 'text-foreground')}>
                   {format(parseISO(editingTask.updated_at), "d 'de' MMMM 'de' yyyy, HH:mm", { locale: pt })}
-                </p>
-              </div>
-            )}
+                  </span>
+                </div>
+              )}
+            </section>
+          </div>
 
-            <div className="flex gap-2 pt-2">
+          {/* ── Footer ───────────────────────────────────────── */}
+          <div className="px-6 py-4 border-t bg-muted/30 flex gap-2 sticky bottom-0">
               <Button onClick={handleSave} className="flex-1" disabled={upsertTask.isPending}>
                 {editingTask ? 'Guardar' : 'Criar Tarefa'}
               </Button>
@@ -708,7 +761,6 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 </Button>
               )}
             </div>
-          </div>
         </DialogContent>
       </Dialog>
     </>
