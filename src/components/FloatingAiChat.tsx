@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import * as pdfjsLib from "pdfjs-dist";
 
 type WorkflowStep = {
   step_label: string;
@@ -71,6 +70,8 @@ function fileToBase64(file: File): Promise<string> {
 
 async function extractPdfText(file: File): Promise<string> {
   try {
+    // Lazy-load pdfjs-dist (~280 KB) only when the user attaches a PDF
+    const pdfjsLib = await import("pdfjs-dist");
     // Set worker source
     pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
     
