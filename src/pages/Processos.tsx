@@ -34,6 +34,7 @@ import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus
 import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
+import { SOP_TEMPLATES, getSopTemplate, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -73,6 +74,9 @@ export default function ProcessosPage() {
   const [newSopRoleTitle, setNewSopRoleTitle] = useState('');
   const [newSopRoleOpen, setNewSopRoleOpen] = useState(false);
   const [newSopProductId, setNewSopProductId] = useState('');
+  const [newSopTemplate, setNewSopTemplate] = useState<SopTemplate | null>(null);
+  const [newSopObjetivo, setNewSopObjetivo] = useState('');
+  const [sopTemplatePickerOpen, setSopTemplatePickerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('galeria');
   const [filterRole, setFilterRole] = useState('');
 
@@ -133,9 +137,19 @@ export default function ProcessosPage() {
         sop_type: newSopType,
         role_title: newSopRoleTitle || null,
         product_id: newSopProductId || null,
+        objetivo: newSopObjetivo.trim() || null,
         created_by: user?.id,
       } as any).select('id').single();
       if (error) throw error;
+      // Insert template steps as sop_steps
+      if (newSopTemplate && newSopTemplate.defaultSteps.length > 0) {
+        const stepRows = newSopTemplate.defaultSteps.map((description, idx) => ({
+          sop_id: sopData.id,
+          description,
+          sort_order: idx,
+        }));
+        await (supabase.from as any)('sop_steps').insert(stepRows);
+      }
       return sopData;
     },
     onSuccess: (sopData) => {
@@ -146,6 +160,8 @@ export default function ProcessosPage() {
       setNewSopType('operacional');
       setNewSopRoleTitle('');
       setNewSopProductId('');
+      setNewSopObjetivo('');
+      setNewSopTemplate(null);
       toast.success('Processo criado');
       if (sopData?.id) navigate(`/hub/processos/${sopData.id}`);
     },
