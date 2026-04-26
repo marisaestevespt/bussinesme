@@ -469,25 +469,65 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <span className="text-xs text-muted-foreground font-medium">Cargo</span>
               <p className="text-[10px] text-muted-foreground">Título descritivo (ex: Designer, Gestora). Não controla permissões — isso é a "Função no sistema" mais abaixo.</p>
               <div className="flex flex-wrap gap-2">
-                {PRESET_ROLES.map(r => {
+                {rolePresets.map((r: any) => {
                   const isSelected = f.role_title === r.label;
                   return (
-                    <button key={r.label} type="button"
-                      onClick={() => {
-                        const newRole = isSelected ? '' : r.label;
-                        set('role_title', newRole);
-                        set('role_color', r.color);
-                        if (newRole === 'Owner' && isENI) {
-                          setTimeout(applyOwnerDefaults, 0);
-                        }
-                      }}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
-                      style={isSelected ? { backgroundColor: r.color } : {}}
-                    >{r.label}</button>
+                    <div key={r.id || r.label} className="relative group">
+                      <button type="button"
+                        onClick={() => {
+                          const newRole = isSelected ? '' : r.label;
+                          set('role_title', newRole);
+                          set('role_color', r.color);
+                          if (newRole === 'Owner' && isENI) {
+                            setTimeout(applyOwnerDefaults, 0);
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
+                        style={isSelected ? { backgroundColor: r.color } : {}}
+                      >{r.label}</button>
+                      {r.id && r.label !== 'Owner' && (
+                        <button type="button"
+                          onClick={() => deleteRolePreset(r.id, r.label)}
+                          className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground items-center justify-center text-[10px] hidden group-hover:flex"
+                          title="Eliminar cargo"
+                        ><X className="h-2.5 w-2.5" /></button>
+                      )}
+                    </div>
                   );
                 })}
+                {!creatingRole && (
+                  <button type="button"
+                    onClick={() => { setCreatingRole(true); setNewRoleLabel(''); setNewRoleColor('#6366f1'); }}
+                    className="px-2.5 py-1 rounded-full text-xs font-medium border border-dashed border-foreground/30 text-muted-foreground hover:text-foreground hover:border-foreground/60 transition-all flex items-center gap-1"
+                  ><Plus className="h-3 w-3" /> Criar cargo</button>
+                )}
               </div>
-              {!PRESET_ROLES.some(r => r.label === f.role_title) && f.role_title ? (
+
+              {creatingRole && (
+                <div className="flex gap-2 items-center mt-2 p-2 rounded-md border border-dashed">
+                  <Input
+                    className="flex-1 h-8 text-xs"
+                    placeholder="Nome do cargo (ex: Consultora)"
+                    value={newRoleLabel}
+                    autoFocus
+                    onChange={e => setNewRoleLabel(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveNewRolePreset(); } }}
+                  />
+                  <div className="flex gap-1">
+                    {ROLE_COLORS.map(c => (
+                      <button key={c.value} type="button" onClick={() => setNewRoleColor(c.value)}
+                        className={`h-5 w-5 rounded-full border-2 transition-all shrink-0 ${newRoleColor === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                        style={{ backgroundColor: c.value }} title={c.label} />
+                    ))}
+                  </div>
+                  <button type="button" className="text-xs text-primary hover:underline flex items-center gap-1" onClick={saveNewRolePreset}>
+                    <Check className="h-3 w-3" /> Guardar
+                  </button>
+                  <button type="button" className="text-xs text-muted-foreground hover:underline" onClick={() => setCreatingRole(false)}>Cancelar</button>
+                </div>
+              )}
+
+              {!rolePresets.some((r: any) => r.label === f.role_title) && f.role_title ? (
                 <div className="flex gap-2 items-center mt-2">
                   <Input className="flex-1 h-8 text-xs" value={f.role_title} onChange={e => set('role_title', e.target.value)} />
                   <div className="flex gap-1">
@@ -499,12 +539,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   </div>
                   <button type="button" className="text-xs text-destructive hover:underline" onClick={() => { set('role_title', ''); set('role_color', '#6366f1'); }}>Limpar</button>
                 </div>
-              ) : (
-                <button type="button" className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                  onClick={() => { set('role_title', 'Novo cargo'); set('role_color', '#6366f1'); }}>
-                  <Plus className="h-3 w-3" /> Adicionar outro cargo
-                </button>
-              )}
+              ) : null}
               {f.role_title && <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>}
             </div>
 
