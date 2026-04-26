@@ -68,6 +68,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const queryClient = useQueryClient();
   const { startTimer: globalStartTimer } = useActiveTimer();
   const { coverages: absenceCoverages } = useAbsenceCoverage();
+  const { getPhotoUrl } = useTeamPhotos();
 
   // Form state
   const [name, setName] = useState('');
