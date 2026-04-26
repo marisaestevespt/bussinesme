@@ -812,6 +812,9 @@ export default function OperacaoPage() {
             <TabsTrigger value="interno" className="gap-2">
               <Building2 className="h-3.5 w-3.5" /> Interno
             </TabsTrigger>
+            <TabsTrigger value="analise" className="gap-2">
+              <Activity className="h-3.5 w-3.5" /> Análise
+            </TabsTrigger>
           </TabsList>
 
           {/* ─── TAB CLIENTES ─── */}
