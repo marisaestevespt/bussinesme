@@ -249,6 +249,50 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isOwnerRole = f.role_title === 'Owner';
   const isENIOwner = isENI && isOwnerRole;
 
+  // Custom role presets from DB (replaces static PRESET_ROLES)
+  const qc = useQueryClient();
+  const { data: dbPresets = [] } = useQuery({
+    queryKey: ['team_role_presets'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('team_role_presets')
+        .select('id, label, color')
+        .order('label');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const rolePresets = dbPresets.length > 0 ? dbPresets : PRESET_ROLES.map(r => ({ id: r.label, label: r.label, color: r.color }));
+  const [creatingRole, setCreatingRole] = useState(false);
+  const [newRoleLabel, setNewRoleLabel] = useState('');
+  const [newRoleColor, setNewRoleColor] = useState('#6366f1');
+
+  async function saveNewRolePreset() {
+    const label = newRoleLabel.trim();
+    if (!label) { toast.error('Indica um nome para o cargo'); return; }
+    if (rolePresets.some((r: any) => r.label.toLowerCase() === label.toLowerCase())) {
+      toast.error('Já existe um cargo com esse nome');
+      return;
+    }
+    const { error } = await supabase.from('team_role_presets').insert({ label, color: newRoleColor });
+    if (error) { toast.error('Sem permissão para criar cargos'); return; }
+    toast.success('Cargo criado');
+    set('role_title', label);
+    set('role_color', newRoleColor);
+    setCreatingRole(false);
+    setNewRoleLabel('');
+    setNewRoleColor('#6366f1');
+    qc.invalidateQueries({ queryKey: ['team_role_presets'] });
+  }
+
+  async function deleteRolePreset(id: string, label: string) {
+    if (!confirm(`Eliminar o cargo "${label}" da lista?`)) return;
+    const { error } = await supabase.from('team_role_presets').delete().eq('id', id);
+    if (error) { toast.error('Sem permissão para eliminar'); return; }
+    toast.success('Cargo removido');
+    qc.invalidateQueries({ queryKey: ['team_role_presets'] });
+  }
+
   useEffect(() => {
     const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
     setF(init);
