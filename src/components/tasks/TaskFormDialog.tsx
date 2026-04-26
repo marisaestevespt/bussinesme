@@ -404,22 +404,24 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[92vh] overflow-y-auto p-0 gap-0">
-          {/* ── Header (Notion-style) ────────────────────────── */}
-          <DialogHeader className="px-10 pt-10 pb-4 shrink-0 space-y-2">
+          {/* ── Header ─────────────────────────────────────────── */}
+          <DialogHeader className="px-8 pt-6 pb-5 border-b border-border/60 bg-muted/30 shrink-0 space-y-2">
             <DialogTitle className="sr-only">{name || 'Tarefa sem título'}</DialogTitle>
-            <div className="flex items-start gap-3">
-              <Input
-                value={name}
-                onChange={e => handleNameChange(e.target.value)}
-                placeholder="Tarefa sem título"
-                className="h-auto text-[28px] leading-tight font-bold border-0 shadow-none focus-visible:ring-0 px-0 py-0 placeholder:text-muted-foreground/30 bg-transparent"
-              />
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <ListTodo className="h-3.5 w-3.5" />
+              <span>Tarefa</span>
               {editingTask && isOverdue(editingTask) && (
-                <Badge variant="destructive" className="mt-2 gap-1 text-[10px] shrink-0">
+                <Badge variant="destructive" className="ml-1 gap-1 text-[10px]">
                   <AlertTriangle className="h-3 w-3" /> Atrasada
                 </Badge>
               )}
             </div>
+            <Input
+              value={name}
+              onChange={e => handleNameChange(e.target.value)}
+              placeholder="Tarefa sem título"
+              className="h-auto text-2xl font-bold border-0 shadow-none focus-visible:ring-0 px-0 py-0 placeholder:text-muted-foreground/40 bg-transparent text-foreground"
+            />
           </DialogHeader>
 
           <div className="px-10 py-6 space-y-7">
