@@ -481,6 +481,12 @@ export function MeetingFormDialog({
         recurrence_end_date: isRecurring && recurrenceEndDate ? format(recurrenceEndDate, 'yyyy-MM-dd') : null,
       };
 
+      // Apply template default agenda (discussion_points) when creating from a template
+      const tpl = getMeetingTemplate(meetingType as string);
+      if (tpl && tpl.defaultAgenda.length > 0) {
+        (meetingData as any).discussion_points = tpl.defaultAgenda.map(text => ({ text, checked: false }));
+      }
+
       const { data, error } = await supabase.from('meetings').insert(meetingData as any).select('id').single();
       if (error) throw error;
 
