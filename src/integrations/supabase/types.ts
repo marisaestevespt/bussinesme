@@ -9997,6 +9997,30 @@ export type Database = {
           },
         ]
       }
+      team_role_presets: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
       time_entries: {
         Row: {
           category: string
