@@ -721,7 +721,15 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
               <TabsList className="flex-wrap h-auto">
                 {scenarios.map(s => (
                   <TabsTrigger key={s.id} value={s.id} className="text-xs">
-                    {s.name}{s.is_default && <Badge variant="outline" className="ml-1.5 text-[9px] py-0 px-1">padrão</Badge>}
+                    {s.name}
+                    {s.is_default && (
+                      <Badge
+                        variant="secondary"
+                        className="ml-1.5 text-[9px] py-0 px-1.5 bg-primary/15 text-primary border border-primary/30"
+                      >
+                        padrão
+                      </Badge>
+                    )}
                   </TabsTrigger>
                 ))}
               </TabsList>
