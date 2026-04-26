@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { runWithMonitoring } from "../_shared/resilience.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,7 +21,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    const result = await runWithMonitoring(async () => {
+      const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
@@ -141,17 +143,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
+      return {
         checked: clients?.length || 0,
         updated,
         tasksCreated,
         notificationsCreated,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      };
+    }, { functionName: "check-renewal-status", maxAttempts: 2 });
+
+    return new Response(
+      JSON.stringify({ success: true, ...result }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
