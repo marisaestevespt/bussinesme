@@ -14,12 +14,15 @@ import { WeeklyKpiCards, CapacityFinancialCards } from '@/components/executive/W
 import { WeeklyStrategicMetrics } from '@/components/executive/WeeklyStrategicMetrics';
 import { MetasSection, AgendaSection, VendasSection, LeadsSection, ClientesSection, NpsSection, ExpiringContractsSection, OperacaoSection, MarketingGoalsSection } from '@/components/executive/WeeklyAlignSections';
 import { RoutinesSection } from '@/components/executive/WeeklyAlignRoutines';
-import { ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Save, CalendarCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeeklyAlignData } from '@/hooks/useWeeklyAlignData';
 import { useCeoCockpit } from '@/hooks/useCeoCockpit';
 import { DepartmentHealth } from '@/components/executive/cockpit/DepartmentHealth';
 import { WeekFocus } from '@/components/executive/cockpit/WeekFocus';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function ExecutiveWeeklyAlign() {
   const qc = useQueryClient();
@@ -28,6 +31,24 @@ export default function ExecutiveWeeklyAlign() {
   const wa = useWeeklyAlignData(weekOffset);
   const planning = usePlanningData(wa.currentYear);
   const cockpit = useCeoCockpit();
+  const { settings, refetch: refetchSettings } = useBusinessSettings();
+  const weeklyAlignDay = (settings as any)?.weekly_align_day ?? 5;
+
+  const updateWeeklyDay = useMutation({
+    mutationFn: async (day: number) => {
+      if (!settings?.id) return;
+      const { error } = await supabase
+        .from('business_settings')
+        .update({ weekly_align_day: day } as any)
+        .eq('id', settings.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refetchSettings();
+      toast.success('Dia do Weekly Align atualizado');
+    },
+    onError: () => toast.error('Erro ao atualizar o dia'),
+  });
 
   // Detail sheet state
   const [detailOpen, setDetailOpen] = useState(false);
@@ -99,6 +120,40 @@ export default function ExecutiveWeeklyAlign() {
             </Button>
           )}
         </div>
+
+        {/* Weekly Align day picker */}
+        <div className="flex items-center justify-center gap-2 -mt-4 text-xs text-muted-foreground">
+          <CalendarCheck className="h-3.5 w-3.5" />
+          <span>Faço o Weekly Align à</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Select
+                  value={String(weeklyAlignDay)}
+                  onValueChange={(v) => updateWeeklyDay.mutate(Number(v))}
+                  disabled={updateWeeklyDay.isPending}
+                >
+                  <SelectTrigger className="h-7 w-auto gap-1 border-0 bg-muted/50 px-2 py-0 text-xs font-medium hover:bg-muted">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Segunda-feira</SelectItem>
+                    <SelectItem value="2">Terça-feira</SelectItem>
+                    <SelectItem value="3">Quarta-feira</SelectItem>
+                    <SelectItem value="4">Quinta-feira</SelectItem>
+                    <SelectItem value="5">Sexta-feira</SelectItem>
+                    <SelectItem value="6">Sábado</SelectItem>
+                    <SelectItem value="7">Domingo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-[260px] text-xs">
+              A Sala do CEO mostra um aviso neste dia para te lembrares de fazer a revisão semanal.
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
         {!wa.isCurrentWeek && (
           <p className="text-xs text-muted-foreground text-center -mt-2">Dados de semanas anteriores são apenas de leitura.</p>
         )}
