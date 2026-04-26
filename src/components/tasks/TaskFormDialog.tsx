@@ -641,12 +641,30 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
             )}
 
-            {/* ── Tempo (timer) ──────────────────────────────── */}
-            {editingTask && (
-              <EntitySection title="Tempo" icon={Clock} compact>
-                <TaskTimeTracker taskId={editingTask.id} />
-              </EntitySection>
-            )}
+            {/* ── Tempo (estimado + investido) ───────────────── */}
+            <EntitySection title="Tempo" icon={Clock} compact>
+              <EntityProperties>
+                <EntityProperty icon={Hash} label="Tempo estimado">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={estimatedTime}
+                      onChange={e => setEstimatedTime(e.target.value)}
+                      placeholder="0"
+                      className={cn(inlineInputClass, 'w-24')}
+                    />
+                    <span className="text-xs text-muted-foreground">horas</span>
+                  </div>
+                </EntityProperty>
+              </EntityProperties>
+              {editingTask && (
+                <div className="mt-3">
+                  <TaskTimeTracker taskId={editingTask.id} />
+                </div>
+              )}
+            </EntitySection>
 
             {capacityWarning && (
               <div className={cn('rounded-md border p-3', capacityWarning.occupancy > 100 ? 'border-destructive/50 bg-destructive/5' : 'border-warning/30 bg-warning/15')}>
