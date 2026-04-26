@@ -7,6 +7,9 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isOwner: boolean;
+  isAdmin: boolean;
+  /** True when user has owner OR admin role (use for admin-area gating). */
+  isAdminOrOwner: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -19,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -33,13 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               .from('user_roles')
               .select('role')
               .eq('user_id', session.user.id)
-              .eq('role', 'owner')
-              .maybeSingle();
-            setIsOwner(!!data);
+              .in('role', ['owner', 'admin']);
+            const roles = (data || []).map(r => r.role);
+            setIsOwner(roles.includes('owner'));
+            setIsAdmin(roles.includes('admin'));
             setLoading(false);
           }, 0);
         } else {
           setIsOwner(false);
+          setIsAdmin(false);
           setLoading(false);
         }
       }
@@ -74,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isOwner, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isOwner, isAdmin, isAdminOrOwner: isOwner || isAdmin, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
