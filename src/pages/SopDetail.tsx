@@ -599,7 +599,6 @@ export default function SopDetailPage() {
               <SelectContent>
                 <SelectItem value="geral">Geral</SelectItem>
                 <SelectItem value="produto">Produto</SelectItem>
-                <SelectItem value="cliente">Cliente</SelectItem>
                 <SelectItem value="projeto">Projeto</SelectItem>
               </SelectContent>
             </Select>
@@ -618,16 +617,6 @@ export default function SopDetailPage() {
                 <Switch checked={applyToAllActiveClients} onCheckedChange={setApplyToAllActiveClients} />
               </EntityProperty>
             </>
-          )}
-          {linkedEntityType === 'cliente' && (
-            <EntityProperty icon={UserCircle2} label="Cliente">
-              <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
-                <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Selecionar…" /></SelectTrigger>
-                <SelectContent>
-                  {clientsList.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </EntityProperty>
           )}
           {linkedEntityType === 'projeto' && (
             <EntityProperty icon={Layers} label="Projeto">
