@@ -405,29 +405,20 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[92vh] overflow-y-auto p-0 gap-0">
           {/* ── Header ─────────────────────────────────────────── */}
-          <DialogHeader className="px-8 pt-6 pb-5 border-b border-border/40 shrink-0 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <ListTodo className="h-3.5 w-3.5" />
-              <span>{editingTask ? 'Editar tarefa' : 'Nova tarefa'}</span>
-              {editingTask && isOverdue(editingTask) && (
-                <Badge variant="destructive" className="ml-2 gap-1 text-[10px] uppercase">
-                  <AlertTriangle className="h-3 w-3" /> Atrasada
-                </Badge>
-              )}
-            </div>
-            <DialogTitle className="sr-only">{editingTask ? 'Editar tarefa' : 'Nova tarefa'}</DialogTitle>
-            <div className="space-y-1">
-              <Label htmlFor="task-name-input" className="text-xs text-muted-foreground">
-                Nome da tarefa <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="task-name-input"
-                value={name}
-                onChange={e => handleNameChange(e.target.value)}
-                placeholder="Ex: Preparar relatório mensal"
-                className="h-11 text-lg font-medium"
-              />
-            </div>
+          <DialogHeader className="px-8 pt-6 pb-5 border-b border-border/40 shrink-0 space-y-2">
+            <DialogTitle className="sr-only">{editingTask ? name || 'Editar tarefa' : 'Nova tarefa'}</DialogTitle>
+            <Input
+              value={name}
+              onChange={e => handleNameChange(e.target.value)}
+              placeholder={editingTask ? 'Nome da tarefa' : 'Nova tarefa sem nome'}
+              className="h-auto text-2xl font-semibold border-0 shadow-none focus-visible:ring-0 px-0 py-1 placeholder:text-muted-foreground/40"
+            />
+            {editingTask && isOverdue(editingTask) && (
+              <div className="flex items-center gap-1.5 text-xs text-destructive">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>Esta tarefa está atrasada</span>
+              </div>
+            )}
           </DialogHeader>
 
           <div className="px-8 py-7 space-y-8">
