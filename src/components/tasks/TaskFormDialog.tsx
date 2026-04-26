@@ -472,8 +472,42 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </EntityProperty>
               <EntityProperty icon={User} label="Responsável">
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
-                  <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className={inlineTriggerClass}>
+                    <SelectValue placeholder="—">
+                      {(() => {
+                        const sel = profiles.find(p => p.id === assignedTo);
+                        if (!sel) return null;
+                        const photo = getPhotoUrl(sel);
+                        const initials = (sel.full_name || '?').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+                        return (
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-5 w-5">
+                              {photo && <AvatarImage src={photo} alt={sel.full_name || ''} />}
+                              <AvatarFallback className="text-[9px]">{initials}</AvatarFallback>
+                            </Avatar>
+                            <span className="truncate">{sel.full_name || 'Sem nome'}</span>
+                          </div>
+                        );
+                      })()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {profiles.map(p => {
+                      const photo = getPhotoUrl(p);
+                      const initials = (p.full_name || '?').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+                      return (
+                        <SelectItem key={p.id} value={p.id}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-5 w-5">
+                              {photo && <AvatarImage src={photo} alt={p.full_name || ''} />}
+                              <AvatarFallback className="text-[9px]">{initials}</AvatarFallback>
+                            </Avatar>
+                            <span>{p.full_name || 'Sem nome'}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
                 </Select>
               </EntityProperty>
               <EntityProperty icon={Building} label="Departamento">
