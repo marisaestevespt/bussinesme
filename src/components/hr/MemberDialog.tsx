@@ -370,7 +370,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
 
   // Auto-fill everything when ENI + Owner is selected
   const applyOwnerDefaults = useCallback(() => {
-    if (!isENI) return;
     const allDepts = DEPARTMENTS.map(d => d.value);
     const allAreas = WORK_AREAS.map(wa => wa.value);
     const allSensitive: Record<string, boolean> = {};
@@ -381,17 +380,19 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
       department: allDepts[0] || '',
       work_areas: allAreas,
       sensitiveAccess: allSensitive,
+      system_role: 'admin',
     }));
-    // Set ENI Owner contract defaults
-    const today = new Date().toISOString().split('T')[0];
-    setContract(prev => ({
-      ...prev,
-      contract_type: 'outro',
-      duration: 'indefinido',
-      start_date: today,
-      end_date: '',
-      status: 'ativo',
-    }));
+    if (isENI) {
+      const today = new Date().toISOString().split('T')[0];
+      setContract(prev => ({
+        ...prev,
+        contract_type: 'outro',
+        duration: 'indefinido',
+        start_date: today,
+        end_date: '',
+        status: 'ativo',
+      }));
+    }
   }, [isENI]);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
