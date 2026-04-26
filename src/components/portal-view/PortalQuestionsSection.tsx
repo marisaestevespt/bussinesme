@@ -169,7 +169,7 @@ export function PortalQuestionsSection(props: Props) {
                                     );
                                   })}
                                 </div>
-                                {q.answered_at && <p className="text-[10px] text-muted-foreground mt-2">Enviado {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                {q.answered_at && <p className="text-[10px] text-muted-foreground mt-2">Enviado {format(parseISO(q.answered_at as string), 'dd/MM/yyyy')}</p>}
                               </div>
                             )}
 
@@ -177,7 +177,7 @@ export function PortalQuestionsSection(props: Props) {
                               <div className="space-y-2">
                                 <div className="rounded-xl bg-success/15/50 border border-success p-3">
                                   <p className="text-sm">{q.answer}</p>
-                                  {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                  {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at as string), 'dd/MM/yyyy')}</p>}
                                 </div>
                                 <Button
                                   variant="ghost" size="sm"
