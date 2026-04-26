@@ -9,7 +9,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon, CalendarCheck } from 'lucide-react';
 
 /* ── colour helpers ── */
 
@@ -131,6 +131,7 @@ export function SettingsIdentity() {
   const [businessName, setBusinessName] = useState('');
   
   const [supportHours, setSupportHours] = useState('');
+  const [weeklyAlignDay, setWeeklyAlignDay] = useState<number>(5);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bgFile, setBgFile] = useState<File | null>(null);
@@ -174,6 +175,7 @@ export function SettingsIdentity() {
     setBusinessName(settings.business_name);
     
     setSupportHours((settings as any).support_hours || '');
+    setWeeklyAlignDay((settings as any).weekly_align_day ?? 5);
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
     setUseSystemTheme((settings as any).use_system_theme ?? true);
@@ -274,6 +276,7 @@ export function SettingsIdentity() {
           logo_url: logoUrl,
           login_bg_url: loginBgUrl,
           support_hours: supportHours.trim() || null,
+          weekly_align_day: weeklyAlignDay,
           use_system_theme: useSystemTheme,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
