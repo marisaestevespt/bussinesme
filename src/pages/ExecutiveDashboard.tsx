@@ -6,6 +6,7 @@ import { BusinessPulse } from '@/components/executive/cockpit/BusinessPulse';
 import { CeoAlerts } from '@/components/executive/cockpit/CeoAlerts';
 import { StrategyShortcuts } from '@/components/executive/cockpit/StrategyShortcuts';
 import { RitualBanner } from '@/components/executive/cockpit/RitualBanner';
+import { ObjectivesBrainDump } from '@/components/executive/cockpit/ObjectivesBrainDump';
 
 /**
  * Sala do CEO — vista DIÁRIA (2 minutos) para o Owner/Admin.
@@ -44,8 +45,9 @@ export default function ExecutiveDashboard() {
           <>
             <RitualBanner />
             <BusinessPulse derived={derived} />
-            <CeoAlerts derived={derived} />
             <StrategyShortcuts />
+            <CeoAlerts derived={derived} />
+            <ObjectivesBrainDump />
           </>
         )}
       </div>
