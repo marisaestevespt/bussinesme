@@ -140,13 +140,21 @@ export default function MarketingDashboard() {
 
 
 
-  const createContent = async () => {
+  const createContent = async (tpl?: ContentTemplate) => {
     if (creatingContent) return;
     setCreatingContent(true);
     try {
-      const { data, error } = await supabase.from('content_items').insert({
-        title: 'Novo Conteúdo', created_by: user?.id,
-      } as any).select('id').single() as { data: { id: string } | null; error: any };
+      const payload: Record<string, any> = {
+        title: tpl?.defaultTitle || 'Novo Conteúdo',
+        created_by: user?.id,
+      };
+      if (tpl?.defaultContentType) payload.content_type = tpl.defaultContentType;
+      if (tpl?.defaultFormat) payload.format = tpl.defaultFormat;
+      if (tpl?.defaultFunnelStage) payload.funnel_stage = tpl.defaultFunnelStage;
+      if (tpl?.defaultObjective) payload.objective = tpl.defaultObjective;
+      if (tpl?.defaultCopy) payload.copy_content = tpl.defaultCopy;
+
+      const { data, error } = await supabase.from('content_items').insert(payload as any).select('id').single() as { data: { id: string } | null; error: any };
       if (error || !data) { toast.error('Erro ao criar'); return; }
       // Tarefa só é criada em ConteudoDetail quando se atribui responsável
       queryClient.invalidateQueries({ queryKey: ['content-items'] });
