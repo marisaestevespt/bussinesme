@@ -396,50 +396,31 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[92vh] overflow-y-auto p-0 gap-0">
-          {/* ── Header com meta info ─────────────────────────────── */}
-          <DialogHeader className="px-6 pt-5 pb-4 border-b shrink-0 space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <DialogTitle className="sr-only">{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
-                <Input
-                  value={name}
-                  onChange={e => handleNameChange(e.target.value)}
-                  placeholder={editingTask ? 'Nome da tarefa' : 'Nova tarefa'}
-                  className="h-10 text-base font-semibold border-0 shadow-none focus-visible:ring-1 px-2 -mx-2"
-                />
+          {/* ── Header ─────────────────────────────────────────── */}
+          <DialogHeader className="px-6 pt-6 pb-5 border-b shrink-0 space-y-3">
+            <DialogTitle className="text-lg font-semibold">
+              {editingTask ? 'Editar tarefa' : 'Nova tarefa'}
+            </DialogTitle>
+            <div className="space-y-2">
+              <Label htmlFor="task-name" className="text-sm font-medium text-foreground">
+                Nome da tarefa <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="task-name"
+                value={name}
+                onChange={e => handleNameChange(e.target.value)}
+                placeholder="Ex: Preparar relatório mensal"
+                className="h-10"
+              />
+            </div>
+            {editingTask && isOverdue(editingTask) && (
+              <div className="flex items-center gap-2 text-xs text-destructive">
+                <AlertTriangle className="h-3.5 w-3.5" /> Esta tarefa está atrasada
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              {(() => {
-                const s = TASK_STATUSES.find(x => x.value === status);
-                return s ? <Badge variant="outline" className={cn('text-[10px]', s.color)}>{s.label}</Badge> : null;
-              })()}
-              {(() => {
-                const p = PRIORITIES.find(x => x.value === priority);
-                return p ? <Badge variant="outline" className={cn('text-[10px] border', p.color)}>{p.label}</Badge> : null;
-              })()}
-              {projectId && projectId !== 'none' && (() => {
-                const proj = projects.find(p => p.id === projectId);
-                return proj ? <Badge variant="secondary" className="text-[10px]">📁 {proj.name}</Badge> : null;
-              })()}
-              {clientId && clientId !== 'none' && (() => {
-                const c = clients.find(x => x.id === clientId);
-                return c ? <Badge variant="secondary" className="text-[10px]">👤 {c.full_name}</Badge> : null;
-              })()}
-              {deadline && (
-                <Badge variant="outline" className="text-[10px] gap-1">
-                  <CalendarIcon className="h-3 w-3" /> {format(deadline, 'd MMM yyyy', { locale: pt })}
-                </Badge>
-              )}
-              {editingTask && isOverdue(editingTask) && (
-                <Badge variant="destructive" className="text-[10px] gap-1">
-                  <AlertTriangle className="h-3 w-3" /> Atrasada
-                </Badge>
-              )}
-            </div>
+            )}
           </DialogHeader>
 
-          <div className="px-6 py-5 space-y-5">
+          <div className="px-6 py-6 space-y-6">
             {/* Sugestão de tarefa similar */}
             {!editingTask && suggestion && !suggestionDismissed && (
                 <div className="mt-2 rounded-md border border-border bg-muted/30 p-3 space-y-2">
