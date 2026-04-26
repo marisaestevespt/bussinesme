@@ -422,7 +422,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </div>
           </DialogHeader>
 
-          <div className="px-8 py-7 space-y-8">
+          <div className="px-10 py-6 space-y-7">
             {/* Sugestão de tarefa similar */}
             {!editingTask && suggestion && !suggestionDismissed && (
               <div className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-2">
