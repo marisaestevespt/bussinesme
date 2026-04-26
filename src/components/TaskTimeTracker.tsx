@@ -27,9 +27,11 @@ function formatTimer(totalSeconds: number): string {
 
 interface TaskTimeTrackerProps {
   taskId: string;
+  /** Minimal one-line layout (for use inside EntityProperty). */
+  compact?: boolean;
 }
 
-export function TaskTimeTracker({ taskId }: TaskTimeTrackerProps) {
+export function TaskTimeTracker({ taskId, compact }: TaskTimeTrackerProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [manualHours, setManualHours] = useState('');
