@@ -3249,6 +3249,27 @@ export type Database = {
           },
         ]
       }
+      dismissed_ceo_alerts: {
+        Row: {
+          alert_key: string
+          dismissed_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          alert_key: string
+          dismissed_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          alert_key?: string
+          dismissed_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       edge_function_runs: {
         Row: {
           attempts: number
