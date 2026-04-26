@@ -570,6 +570,74 @@ export default function OperacaoPage() {
           }}
         />
 
+        {/* Overdue tasks dialog */}
+        <Dialog open={showOverdueTasks} onOpenChange={setShowOverdueTasks}>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <Clock className="h-4 w-4 text-destructive" /> Tarefas atrasadas
+                <Badge variant="destructive" className="text-[10px]">{overdueTasks.length}</Badge>
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground">Tarefas em aberto com prazo já vencido. Clica para abrir.</p>
+            </DialogHeader>
+            {overdueTasks.length === 0 ? (
+              <div className="py-8 text-center">
+                <CheckCircle2 className="h-8 w-8 text-success mx-auto mb-2" />
+                <p className="text-sm font-medium text-success">Tudo em dia!</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tarefa</TableHead>
+                      <TableHead>Projeto</TableHead>
+                      <TableHead className="text-right">Prazo</TableHead>
+                      <TableHead className="text-right">Atraso</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {overdueTasks
+                      .slice()
+                      .sort((a, b) => {
+                        const da = a.deadline ? differenceInDays(today, new Date(a.deadline)) : 0;
+                        const db = b.deadline ? differenceInDays(today, new Date(b.deadline)) : 0;
+                        return db - da;
+                      })
+                      .map(t => {
+                        const proj = t.project_id ? allActiveProjects.find(p => p.id === t.project_id) : null;
+                        const days = t.deadline ? differenceInDays(today, new Date(t.deadline)) : 0;
+                        return (
+                          <TableRow
+                            key={t.id}
+                            className="cursor-pointer"
+                            onClick={() => { setShowOverdueTasks(false); setTaskDetailId(t.id); }}
+                          >
+                            <TableCell className="text-sm">
+                              <div className="flex items-center gap-2">
+                                <PriorityDot priority={t.priority} />
+                                <span className="font-medium">{t.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {proj?.name || '—'}
+                            </TableCell>
+                            <TableCell className="text-xs text-right tabular-nums text-destructive">
+                              {t.deadline ? format(new Date(t.deadline), 'dd/MM/yyyy') : '—'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Badge variant="destructive" className="text-[10px]">{days}d</Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
         {/* Health detail dialog */}
         <Dialog open={!!healthDetailProjectId} onOpenChange={open => !open && setHealthDetailProjectId(null)}>
           <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
