@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, Users, Wallet, Activity, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Wallet, Activity, Target, Info, ChevronRight } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { useCeoCockpit } from '@/hooks/useCeoCockpit';
 
@@ -34,9 +35,10 @@ interface KpiTileProps {
   delta?: number;
   sub?: string;
   link: string;
+  hint?: string;
 }
 
-function KpiTile({ label, value, icon: Icon, status = 'neutral', delta, sub, link }: KpiTileProps) {
+function KpiTile({ label, value, icon: Icon, status = 'neutral', delta, sub, link, hint }: KpiTileProps) {
   const statusBar: Record<string, string> = {
     good: 'bg-success',
     warn: 'bg-warning',
@@ -51,16 +53,32 @@ function KpiTile({ label, value, icon: Icon, status = 'neutral', delta, sub, lin
   };
 
   return (
-    <Link to={link} className="block group">
-      <Card className="relative overflow-hidden transition-all group-hover:shadow-md group-hover:-translate-y-0.5">
+    <Link to={link} className="block group cursor-pointer">
+      <Card className="relative overflow-hidden transition-all group-hover:shadow-md group-hover:-translate-y-0.5 group-hover:border-primary/40">
         <div className={cn('absolute left-0 top-0 bottom-0 w-1', statusBar[status])} />
+        <ChevronRight className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
         <CardContent className="p-4 pl-5">
           <div className="flex items-start gap-3">
             <div className={cn('rounded-lg p-2 shrink-0', iconBg[status])}>
               <Icon className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{label}</p>
+              <div className="flex items-center gap-1">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                {hint && (
+                  <Tooltip>
+                    <TooltipTrigger
+                      asChild
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    >
+                      <Info className="h-3 w-3 text-muted-foreground/60 hover:text-foreground transition-colors cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[240px] text-xs">
+                      {hint}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
               <div className="flex items-baseline gap-2 flex-wrap">
                 <p className="text-xl font-bold tracking-tight">{value}</p>
                 {delta !== undefined && <DeltaBadge pct={delta} />}
@@ -99,7 +117,7 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Pulso do negócio</h2>
-        <span className="text-[10px] text-muted-foreground">vs mês passado</span>
+        <span className="text-[10px] text-muted-foreground">Clica em qualquer card para abrir o detalhe</span>
       </div>
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
@@ -110,6 +128,7 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
           status="good"
           sub={`${derived.activeClientsCount} clientes ativos`}
           link="/hub/financeiro"
+          hint="MRR (Monthly Recurring Revenue) é a receita recorrente que entra todos os meses dos clientes ativos."
         />
         <KpiTile
           label="Resultado mês"
@@ -118,14 +137,16 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
           status={netStatus}
           sub={`Receita ${formatEuros(derived.monthRevenue)}${revenueDelta !== 0 ? ` (${revenueDelta > 0 ? '+' : ''}${revenueDelta}%)` : ''}`}
           link="/hub/financeiro"
+          hint="Receita do mês menos despesas do mês. A percentagem entre parênteses compara a receita com o mês anterior."
         />
         <KpiTile
-          label="Runway"
+          label="Fôlego financeiro"
           value={runwayLabel}
           icon={TrendingUp}
           status={runwayStatus}
           sub={`Burn 90d: ${formatEuros(derived.burn90)}/mês`}
           link="/executive/business-plan"
+          hint="Também conhecido como 'runway'. Indica quantos meses o negócio aguenta com as despesas atuais. 'Saudável' significa que a receita cobre as despesas e o negócio é sustentável. Burn = média de despesas dos últimos 90 dias."
         />
         <KpiTile
           label="Capacidade"
@@ -134,6 +155,7 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
           status={capacityStatus}
           sub={derived.capacity ? `${derived.capacity.totalUsed}h / ${derived.capacity.totalCapacity}h` : undefined}
           link="/executive/productivity"
+          hint="Percentagem de horas da equipa que já estão alocadas este mês. Acima de 80% = atenção, acima de 95% = sobrecarga."
         />
       </div>
 
