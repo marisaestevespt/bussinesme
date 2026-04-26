@@ -435,9 +435,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             )}
 
             {/* ── Secção: Detalhes principais ───────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Detalhes</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-foreground">Status</Label>
                 <Select value={status} onValueChange={setStatus}>
@@ -474,9 +474,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </section>
 
             {/* ── Secção: Recorrência ──────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-foreground">Frequência</Label>
                 <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
@@ -526,9 +526,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </section>
 
             {/* ── Secção: Atribuição ───────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Atribuição</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-foreground">Responsável</Label>
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
@@ -550,9 +550,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </section>
 
             {/* ── Secção: Contexto ─────────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contexto</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-foreground">Projeto associado</Label>
               <Select value={projectId} onValueChange={v => { setProjectId(v); if (v && v !== 'none') { const proj = projects.find(p => p.id === v); if (proj?.client_id) setClientId(proj.client_id); } }}>
@@ -596,7 +596,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </section>
 
             {/* ── Secção: Hierarquia (subtarefas) ──────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Hierarquia</h3>
                 <div className="flex items-center gap-2">
@@ -688,7 +688,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             )}
 
             {/* ── Secção: Tempo ────────────────────────────────── */}
-            <section className="rounded-lg border bg-card p-4 space-y-4">
+            <section className="rounded-lg border bg-card p-5 space-y-5">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Tempo</h3>
               {editingTask && <TaskTimeTracker taskId={editingTask.id} />}
               <div>
