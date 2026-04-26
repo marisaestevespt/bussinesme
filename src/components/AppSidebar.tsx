@@ -148,7 +148,7 @@ function NavSection({
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const { isOwner, signOut } = useAuth();
+  const { isOwner, isAdminOrOwner, signOut } = useAuth();
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
   const { favorites } = useFavorites();
@@ -223,7 +223,7 @@ export function AppSidebar() {
         <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
         <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
         <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
-        {isOwner && (
+        {isAdminOrOwner && (
           <NavSection label="Administração" items={executiveItems} collapsed={collapsed} canAccess={() => true} sectorConfig={sectorConfig} />
         )}
       </SidebarContent>
