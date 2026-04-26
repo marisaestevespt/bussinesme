@@ -11,7 +11,8 @@ import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot, Hourglass } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot, Hourglass, Activity } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +22,7 @@ import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWee
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
+import { OperacaoAnaliseTab } from '@/components/operacao/OperacaoAnaliseTab';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { isDeliverableDone } from '@/lib/projectProgress';
 import { cn } from '@/lib/utils';
@@ -37,6 +39,9 @@ import {
 
 export default function OperacaoPage() {
   const [clientFilters, setClientFilters] = useState<TaskFilters>(EMPTY_FILTERS);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const activeTab = tabParam === 'interno' || tabParam === 'analise' ? tabParam : 'clientes';
   const { getPhotoUrl } = useTeamPhotos();
   const [internoFilters, setInternoFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
@@ -803,13 +808,25 @@ export default function OperacaoPage() {
         </Card>
 
 
-        <Tabs defaultValue="clientes" className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            const next = new URLSearchParams(searchParams);
+            if (v === 'clientes') next.delete('tab');
+            else next.set('tab', v);
+            setSearchParams(next, { replace: true });
+          }}
+          className="space-y-4"
+        >
           <TabsList>
             <TabsTrigger value="clientes" className="gap-2">
               <Briefcase className="h-3.5 w-3.5" /> Clientes
             </TabsTrigger>
             <TabsTrigger value="interno" className="gap-2">
               <Building2 className="h-3.5 w-3.5" /> Interno
+            </TabsTrigger>
+            <TabsTrigger value="analise" className="gap-2">
+              <Activity className="h-3.5 w-3.5" /> Análise
             </TabsTrigger>
           </TabsList>
 
@@ -1149,6 +1166,11 @@ export default function OperacaoPage() {
                 ) : filteredInternoTasks.map(t => renderTaskRow(t))}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* ─── TAB ANÁLISE ─── */}
+          <TabsContent value="analise" className="space-y-4">
+            <OperacaoAnaliseTab />
           </TabsContent>
         </Tabs>
 

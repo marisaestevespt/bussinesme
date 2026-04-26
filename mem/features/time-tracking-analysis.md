@@ -15,12 +15,13 @@ type: feature
 
 **`projects.budgeted_minutes`** existe na BD mas ainda não é usado (futuro snapshot congelado no arranque do projeto). Hoje a análise calcula on-the-fly somando entregas + tasks standalone com estimado.
 
-**Página "Análise Empresarial":** `/executive/analise-empresarial` (`ExecutiveAnaliseEmpresarial.tsx`)
+**Tab "Análise" em Operação:** `/hub/operacao?tab=analise` (componente `OperacaoAnaliseTab` em `src/components/operacao/`)
 - Saúde de horas dos projetos ativos (previsto vs real, % desvio)
 - Top 5 projetos a estourar (variance > 10%)
 - Alerta de capacidade quando 2+ projetos com estouro > 25% (sugere contratar/rever estimativas)
 - Espaço reservado para futuras análises (rentabilidade real, eficiência por membro)
-- Link no card "Business" do ExecutiveDashboard
+- Rota legada `/executive/analise-empresarial` redireciona para `/hub/operacao?tab=analise`
+- Página Operacao.tsx tornou-se controlada via `?tab=` (clientes/interno/analise)
 
 **UI do tempo na linha da entrega (ProjectDeliverables.tsx):**
 - Badge `Clock real / estimado` clicável → popover para editar estimado
