@@ -17,7 +17,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
@@ -726,9 +726,12 @@ export default function ProjetoDetailPage() {
                     { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
                     { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
                   ]).map(({ key, icon: Icon, label }) => (
-                    <button key={key} onClick={() => setSubPage(key)} className="group flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3 text-left transition-colors hover:bg-muted/40 hover:border-primary/40">
-                      <div className="rounded-md bg-primary/10 p-2"><Icon className="h-4 w-4 text-primary" /></div>
-                      <span className="text-sm font-medium text-foreground">{label}</span>
+                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+                      <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
+                      <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
                     </button>
                   ))}
                 </div>
@@ -743,9 +746,12 @@ export default function ProjetoDetailPage() {
                     { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
                     { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
                   ].map(({ key, icon: Icon, label }) => (
-                    <button key={key} onClick={() => setSubPage(key)} className="group flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3 text-left transition-colors hover:bg-muted/40 hover:border-primary/40">
-                      <div className="rounded-md bg-primary/10 p-2"><Icon className="h-4 w-4 text-primary" /></div>
-                      <span className="text-sm font-medium text-foreground">{label}</span>
+                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+                      <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
+                      <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
                     </button>
                   ))}
                 </div>
@@ -1048,9 +1054,12 @@ export default function ProjetoDetailPage() {
                 { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
                 { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
               ].map(({ key, icon: Icon, label }) => (
-                <button key={key} onClick={() => setSubPage(key)} className="group flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3 text-left transition-colors hover:bg-muted/40 hover:border-primary/40">
-                  <div className="rounded-md bg-primary/10 p-2"><Icon className="h-4 w-4 text-primary" /></div>
-                  <span className="text-sm font-medium text-foreground">{label}</span>
+                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+                  <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
+                  <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
                 </button>
               ))}
             </div>
@@ -1065,9 +1074,12 @@ export default function ProjetoDetailPage() {
                 { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
                 { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
               ].map(({ key, icon: Icon, label }) => (
-                <button key={key} onClick={() => setSubPage(key)} className="group flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3 text-left transition-colors hover:bg-muted/40 hover:border-primary/40">
-                  <div className="rounded-md bg-primary/10 p-2"><Icon className="h-4 w-4 text-primary" /></div>
-                  <span className="text-sm font-medium text-foreground">{label}</span>
+                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+                  <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
+                  <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
                 </button>
               ))}
             </div>
