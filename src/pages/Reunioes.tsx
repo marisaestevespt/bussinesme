@@ -31,6 +31,7 @@ import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { logAudit } from '@/lib/auditLog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader, CollectionEmpty } from '@/components/layout/collection';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -770,9 +771,7 @@ export default function ReunioesPage() {
           description="Reuniões recorrentes, com clientes, de projeto e diagnósticos."
           count={meetingsTotal}
           actions={
-            <Button size="sm" onClick={() => setFormOpen(true)}>
-              <Plus className="h-4 w-4 mr-1.5" /> Nova Reunião
-            </Button>
+            <NewMeetingButton size="sm" label="Nova Reunião" />
           }
         />
         <div className="flex items-center justify-between">
@@ -800,9 +799,7 @@ export default function ReunioesPage() {
             title={view === 'proximas' ? 'Sem reuniões futuras' : 'Sem reuniões'}
             description={view === 'proximas' ? 'Agenda a próxima reunião para a veres aqui.' : 'Cria a primeira reunião para começar.'}
             action={
-              <Button size="sm" onClick={() => setFormOpen(true)}>
-                <Plus className="h-4 w-4 mr-1.5" /> Nova Reunião
-              </Button>
+              <NewMeetingButton size="sm" label="Nova Reunião" />
             }
           />
         ) : (
@@ -844,7 +841,6 @@ export default function ReunioesPage() {
         )}
       </CollectionPage>
 
-      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} clients={clients} />
     </AppLayout>
   );
 }
