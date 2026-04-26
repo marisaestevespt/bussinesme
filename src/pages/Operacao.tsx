@@ -11,7 +11,7 @@ import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot, Hourglass } from 'lucide-react';
+import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot, Hourglass, Activity } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +21,7 @@ import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWee
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
+import { OperacaoAnaliseTab } from '@/components/operacao/OperacaoAnaliseTab';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { isDeliverableDone } from '@/lib/projectProgress';
 import { cn } from '@/lib/utils';
