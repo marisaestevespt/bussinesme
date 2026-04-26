@@ -14,9 +14,9 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const SHORTCUTS = [
   { to: '/executive/weekly-align', icon: CalendarCheck, label: 'Weekly Align', desc: 'Ritual semanal de revisão',
-    iconColor: 'text-accent-teal', color: 'from-accent-teal/10 to-accent-teal/5 hover:from-accent-teal/20 hover:to-accent-teal/10' },
+    iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
   { to: '/executive/planeamento', icon: Target, label: 'Planeamento Anual', desc: 'Objetivos e metas do ano',
-    iconColor: 'text-accent-pink', color: 'from-accent-pink/10 to-accent-pink/5 hover:from-accent-pink/20 hover:to-accent-pink/10' },
+    iconColor: 'text-accent', color: 'from-accent/15 to-accent/5 hover:from-accent/25 hover:to-accent/10' },
   { to: '/executive/business-plan', icon: Rocket, label: 'Plano & Modelo de Negócio', desc: 'Visão, oferta, estratégia',
     iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
   { to: '/executive/innovation', icon: Lightbulb, label: 'Desenvolvimento & Inovação', desc: 'Ideias e roadmap',
@@ -28,7 +28,7 @@ const SHORTCUTS = [
   { to: '/executive/processos', icon: FileText, label: 'Processos da Administração', desc: 'SOPs do owner',
     iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
   { to: '/executive/analise-empresarial', icon: Crown, label: 'Análise Empresarial', desc: 'Métricas estratégicas',
-    iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
+    iconColor: 'text-purple-500', color: 'from-purple-500/10 to-purple-500/5 hover:from-purple-500/20 hover:to-purple-500/10' },
 ];
 
 export function StrategyShortcuts() {
