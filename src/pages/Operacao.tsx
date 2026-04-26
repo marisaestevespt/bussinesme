@@ -532,6 +532,7 @@ export default function OperacaoPage() {
           overdueTasks={overdueTasks.length}
           weeklyCompletion={weeklyCompletion}
           allocatedMembers={allocatedMembers}
+          onClickOverdue={() => setShowOverdueTasks(true)}
         />
 
         {/* Clients near end of cycle — kept as small alert */}
