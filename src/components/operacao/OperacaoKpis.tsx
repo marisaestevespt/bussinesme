@@ -10,9 +10,11 @@ interface OperacaoKpisProps {
   overdueTasks: number;
   weeklyCompletion: { done: number; total: number; rate: number };
   allocatedMembers: number;
+  onClickOverdue?: () => void;
 }
 
-export function OperacaoKpis({ allActiveCount, pontuaisCount, recorrentesCount, overdueTasks, weeklyCompletion, allocatedMembers }: OperacaoKpisProps) {
+export function OperacaoKpis({ allActiveCount, pontuaisCount, recorrentesCount, overdueTasks, weeklyCompletion, allocatedMembers, onClickOverdue }: OperacaoKpisProps) {
+  const overdueClickable = overdueTasks > 0 && !!onClickOverdue;
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <Card className="border-l-4 border-l-primary/60">
@@ -28,13 +30,19 @@ export function OperacaoKpis({ allActiveCount, pontuaisCount, recorrentesCount, 
         </CardContent>
       </Card>
 
-      <Card className={`border-l-4 ${overdueTasks > 0 ? 'border-l-destructive' : 'border-l-emerald-500'}`}>
+      <Card
+        className={`border-l-4 ${overdueTasks > 0 ? 'border-l-destructive' : 'border-l-emerald-500'} ${overdueClickable ? 'cursor-pointer hover:bg-muted/40 transition-colors' : ''}`}
+        onClick={overdueClickable ? onClickOverdue : undefined}
+        role={overdueClickable ? 'button' : undefined}
+        tabIndex={overdueClickable ? 0 : undefined}
+        onKeyDown={overdueClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClickOverdue?.(); } } : undefined}
+      >
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Tarefas Atrasadas</p>
               <p className={`text-2xl font-bold mt-1 ${overdueTasks > 0 ? 'text-destructive' : 'text-success'}`}>{overdueTasks}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{overdueTasks > 0 ? 'Requer atenção' : 'Tudo em dia ✓'}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{overdueTasks > 0 ? (overdueClickable ? 'Clica para ver →' : 'Requer atenção') : 'Tudo em dia ✓'}</p>
             </div>
             <div className={`p-2 rounded-md ${overdueTasks > 0 ? 'bg-destructive/10' : 'bg-success/10'}`}>
               <AlertTriangle className={`h-4 w-4 ${overdueTasks > 0 ? 'text-destructive' : 'text-success'}`} />
