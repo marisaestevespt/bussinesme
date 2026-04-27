@@ -72,7 +72,7 @@ function MeetingCard({ m, setMeetings, portalToken, pc, meetingStatus }: { m: Po
   const prios = Array.isArray(m.priorities) ? m.priorities.filter((p) => (typeof p === 'string' ? p.trim() : ((p as { text?: string })?.text || '').trim())) : [];
   const docs = Array.isArray(m.documents) ? m.documents.filter((d): d is { url: string; name?: string } => !!(d as { url?: string })?.url) : [];
   const dNotes = (m.discussion_notes || '').trim();
-  const showAta = (status === 'realizada' || status === 'concluida') && (points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes);
+  const showAta = (status === 'realizada' || status === 'concluida' || status === 'terminada') && (points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes);
 
   return (
     <SectionCard className="p-5">
