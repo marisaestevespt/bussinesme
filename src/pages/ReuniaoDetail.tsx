@@ -359,6 +359,9 @@ export default function ReuniaoDetailPage() {
   const [dirty, setDirty] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createTasksOpen, setCreateTasksOpen] = useState(false);
+  // Track which fields the user has changed in this session
+  const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
+  const [seriesSaveDialogOpen, setSeriesSaveDialogOpen] = useState(false);
 
   useEffect(() => {
     if (meeting && !localMeeting) setLocalMeeting(meeting);
@@ -385,13 +388,35 @@ export default function ReuniaoDetailPage() {
     if (!m) return;
     setLocalMeeting({ ...m, ...patch });
     setDirty(true);
+    setChangedFields(prev => {
+      const next = new Set(prev);
+      Object.keys(patch).forEach(k => next.add(k));
+      return next;
+    });
+  };
+
+  // Fields that make sense to propagate across the whole series
+  const SERIES_PROPAGABLE_FIELDS = new Set([
+    'title', 'meeting_url', 'meeting_type', 'duration_minutes',
+    'department', 'client_id', 'client_name', 'project_id', 'project_name',
+    'product_id', 'product_name',
+  ]);
+  const hasPropagableChange = Array.from(changedFields).some(f => SERIES_PROPAGABLE_FIELDS.has(f));
+  const isInSeries = isSeriesParent || isSeriesChild;
+
+  const handleSave = () => {
+    if (isInSeries && hasPropagableChange) {
+      setSeriesSaveDialogOpen(true);
+    } else {
+      saveMutation.mutate('single');
+    }
   };
 
   // Save
   const saveMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (mode: 'single' | 'series' = 'single') => {
       if (!m) return;
-      const { error } = await supabase.from('meetings').update({
+      const fullPatch = {
         title: m.title,
         date_time: m.date_time,
         status: m.status as any,
@@ -412,15 +437,39 @@ export default function ReuniaoDetailPage() {
         final_notes: m.final_notes as any,
         duration_minutes: m.duration_minutes,
         documents: m.documents as any,
-      }).eq('id', m.id);
+      } as Record<string, any>;
+      const { error } = await supabase.from('meetings').update(fullPatch as any).eq('id', m.id);
       if (error) throw error;
+
+      if (mode === 'series' && isInSeries) {
+        // Build a partial patch with only the propagable fields the user actually changed
+        const seriesPatch: Record<string, any> = {};
+        Array.from(changedFields)
+          .filter(f => SERIES_PROPAGABLE_FIELDS.has(f))
+          .forEach(f => { seriesPatch[f] = (m as any)[f]; });
+
+        if (Object.keys(seriesPatch).length > 0) {
+          const parentId = isSeriesParent ? m.id : m.parent_meeting_id!;
+          // Update the parent (when current is a child)
+          if (m.parent_meeting_id) {
+            await supabase.from('meetings').update(seriesPatch as any).eq('id', parentId);
+          }
+          // Update all siblings (other children of the same parent), excluding current
+          await supabase
+            .from('meetings')
+            .update(seriesPatch as any)
+            .eq('parent_meeting_id', parentId)
+            .neq('id', m.id);
+        }
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_data, mode) => {
       qc.invalidateQueries({ queryKey: ['meeting', id] });
       qc.invalidateQueries({ queryKey: ['meetings'] });
       setDirty(false);
+      setChangedFields(new Set());
       logAudit('updated', 'meeting', id, { title: m?.title });
-      toast.success('Reunião guardada');
+      toast.success(mode === 'series' ? 'Série atualizada' : 'Reunião guardada');
     },
     onError: () => toast.error('Não consegui guardar a reunião. Tenta novamente.'),
   });
@@ -536,7 +585,7 @@ export default function ReuniaoDetailPage() {
             dirty
               ? {
                   label: saveMutation.isPending ? 'A guardar...' : 'Guardar',
-                  onClick: () => saveMutation.mutate(),
+                  onClick: handleSave,
                   disabled: saveMutation.isPending,
                   loading: saveMutation.isPending,
                 }
@@ -590,6 +639,27 @@ export default function ReuniaoDetailPage() {
               </AlertDialogAction>
               <AlertDialogAction onClick={() => deleteMutation.mutate('future')} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Eliminar esta e futuras
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Series save dialog */}
+        <AlertDialog open={seriesSaveDialogOpen} onOpenChange={setSeriesSaveDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Aplicar alterações à série?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta reunião faz parte de uma série recorrente. Alteraste campos que podem ser propagados (ex.: link Meet, título, duração, cliente). O que pretendes fazer?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { setSeriesSaveDialogOpen(false); saveMutation.mutate('single'); }}>
+                Só esta reunião
+              </AlertDialogAction>
+              <AlertDialogAction onClick={() => { setSeriesSaveDialogOpen(false); saveMutation.mutate('series'); }}>
+                Aplicar a toda a série
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -994,7 +1064,7 @@ export default function ReuniaoDetailPage() {
         {/* Sticky save bar */}
         {dirty && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="shadow-lg px-6">
+            <Button onClick={handleSave} disabled={saveMutation.isPending} className="shadow-lg px-6">
               {saveMutation.isPending ? 'A guardar...' : 'Guardar alterações'}
             </Button>
           </div>
