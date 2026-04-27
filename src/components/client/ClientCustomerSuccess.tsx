@@ -31,9 +31,11 @@ interface Props {
   clientName: string;
   productName: string | null;
   startDate: string | null;
+  /** When set, render only the requested sub-section (used inside dialogs) */
+  onlySection?: 'nps' | 'milestones';
 }
 
-export function ClientCustomerSuccess({ clientId, clientName, productName, startDate }: Props) {
+export function ClientCustomerSuccess({ clientId, clientName, productName, startDate, onlySection }: Props) {
   const qc = useQueryClient();
   const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
@@ -270,6 +272,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
   return (
     <>
       {/* NPS Records */}
+      {(!onlySection || onlySection === 'nps') && (
       <Card className="h-full">
         <CardHeader className="space-y-3 pb-3">
           <div className="flex items-start justify-between gap-3">
@@ -375,8 +378,10 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Milestones */}
+      {(!onlySection || onlySection === 'milestones') && (
       <Card className="h-full">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
@@ -436,6 +441,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
           )}
         </CardContent>
       </Card>
+      )}
     </>
   );
 }
