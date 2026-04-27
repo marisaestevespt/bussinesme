@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { InvoiceUpload, DocEntry } from './InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,6 +75,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
 
   const [status, setStatus] = useState(sale?.status || 'por_pagar');
   const [docs, setDocs] = useState<DocEntry[]>([]);
+  const [description, setDescription] = useState<string>(sale?.description || '');
   const [saving, setSaving] = useState(false);
   const [confirmNoDocsOpen, setConfirmNoDocsOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -83,6 +85,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   if (sale && sale.id !== lastId) {
     setLastId(sale.id);
     setStatus(sale.status || 'por_pagar');
+    setDescription(sale.description || '');
     const rawDocs = sale.documents;
     setDocs(Array.isArray(rawDocs) ? rawDocs : []);
   }
@@ -96,7 +99,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await upsertSale.mutateAsync({ id: sale.id, status, documents: docs as any });
+      await upsertSale.mutateAsync({ id: sale.id, status, description, documents: docs as any });
       toast.success('Entrada atualizada');
     } catch {
       toast.error('Não consegui guardar a entrada. Tenta novamente.');
@@ -151,9 +154,15 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
 
           {/* Description & Client */}
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-muted-foreground text-xs">Descrição</p>
-              <p className="font-medium">{sale.description || '—'}</p>
+            <div className="space-y-1">
+              <Label className="text-muted-foreground text-xs font-normal">Descrição</Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Sem descrição"
+                rows={2}
+                className="text-sm"
+              />
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Cliente</p>
