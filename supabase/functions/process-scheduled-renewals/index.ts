@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
       const { data: scheduled, error } = await supabase
         .from('projects')
-        .select('id')
+        .select('id, client_id')
         .eq('status', 'agendado')
         .lte('start_date', today);
 
@@ -45,6 +45,25 @@ Deno.serve(async (req) => {
 
       for (const proj of scheduled || []) {
         try {
+          // Gap #7: detect orphan scheduled projects (client deleted in the meantime)
+          if (proj.client_id) {
+            const { data: clientExists } = await supabase
+              .from('clients').select('id').eq('id', proj.client_id).maybeSingle();
+            if (!clientExists) {
+              await supabase.from('projects')
+                .update({ status: 'cancelado', notes: 'Auto-cancelado: cliente já não existe.' })
+                .eq('id', proj.id);
+              results.push({ project_id: proj.id, status: 'orphan_cancelled' });
+              continue;
+            }
+          } else {
+            await supabase.from('projects')
+              .update({ status: 'cancelado', notes: 'Auto-cancelado: sem cliente associado.' })
+              .eq('id', proj.id);
+            results.push({ project_id: proj.id, status: 'orphan_cancelled' });
+            continue;
+          }
+
           const { data: rpcResult, error: rpcError } = await supabase.rpc(
             'activate_renewal_project' as any,
             { _project_id: proj.id },
