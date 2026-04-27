@@ -54,6 +54,9 @@ import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog
 import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { buildPaymentEntries } from '@/lib/paymentGenerator';
+import { useAuth } from '@/hooks/useAuth';
+import { PAYMENT_METHOD_OPTIONS } from '@/lib/salesConstants';
 
 // ─── Client Financial Health Card ────────────────────────────────
 function ClientFinancialHealthCard({ clientName }: { clientName: string }) {
@@ -165,6 +168,35 @@ export default function ClienteDetailPage() {
 
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const { user } = useAuth();
+
+  // ─── Renewals (history + scheduled) ─────────────────────────────
+  const renewalsQuery = useQuery({
+    queryKey: ['client-renewals', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data } = await (supabase as any).from('client_renewals')
+        .select('*')
+        .eq('client_id', id)
+        .order('cycle_number', { ascending: false })
+        .order('sort_order');
+      return data || [];
+    },
+    enabled: !!id && !isNew,
+  });
+
+  const scheduledRenewalProjectQuery = useQuery({
+    queryKey: ['scheduled-renewal-project', (form as any).pending_renewal_project_id],
+    queryFn: async () => {
+      const pid = (form as any).pending_renewal_project_id;
+      if (!pid) return null;
+      const { data } = await supabase.from('projects')
+        .select('id, name, start_date, deadline, status, product_name')
+        .eq('id', pid).maybeSingle();
+      return data;
+    },
+    enabled: !!(form as any).pending_renewal_project_id,
+  });
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'em_onboarding' }); setInitialized(true); }
@@ -448,13 +480,38 @@ export default function ClienteDetailPage() {
   const [renewProduct, setRenewProduct] = useState('');
   const [renewCloseActive, setRenewCloseActive] = useState(true);
   const [renewStartDate, setRenewStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  // Payment fields for renewal (mirrors ProjectGestaoTab)
+  const [renewPayMethod, setRenewPayMethod] = useState('');
+  const [renewTotalValue, setRenewTotalValue] = useState('');
+  const [renewEntradaValue, setRenewEntradaValue] = useState('');
+  const [renewNumPrestacoes, setRenewNumPrestacoes] = useState('');
+  const [renewPayDay, setRenewPayDay] = useState('1');
+  const [renewNumMeses, setRenewNumMeses] = useState('');
+  const [renewAvencaValue, setRenewAvencaValue] = useState('');
+  const [renewPaymentMethodType, setRenewPaymentMethodType] = useState('');
 
   const activeProjects = clientProjects.filter((p: any) => !['concluido', 'cancelado', 'arquivado'].includes(p.status));
 
   const openRenewDialog = () => {
     setRenewProduct(form.current_product || '');
     setRenewCloseActive(activeProjects.length > 0);
-    setRenewStartDate(format(new Date(), 'yyyy-MM-dd'));
+    // Default start = end_of_cycle of current cycle (or today if none)
+    const defaultStart = form.end_of_cycle
+      ? format(addDays(parseISO(form.end_of_cycle as string), 1), 'yyyy-MM-dd')
+      : format(new Date(), 'yyyy-MM-dd');
+    setRenewStartDate(defaultStart);
+    // Pre-fill payment method based on current product type
+    const curProd = productList.find(p => p.name === form.current_product);
+    const defaultPay = curProd?.sales_type === 'avenca_mensal' || curProd?.sales_type === 'subscricao'
+      ? 'avenca_mensal' : 'pagamento_total';
+    setRenewPayMethod(defaultPay);
+    setRenewTotalValue('');
+    setRenewEntradaValue('');
+    setRenewNumPrestacoes('');
+    setRenewPayDay('1');
+    setRenewNumMeses(curProd?.cycle_duration ? String(curProd.cycle_duration) : '');
+    setRenewAvencaValue('');
+    setRenewPaymentMethodType('');
     setRenewDialogOpen(true);
   };
 
@@ -464,9 +521,14 @@ export default function ClienteDetailPage() {
       if (!id) throw new Error('Cliente não guardado');
 
       const matchedProduct = productList.find(p => p.name === renewProduct);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const startDateObj = parseISO(renewStartDate);
+      const isFutureStart = startDateObj > today;
 
-      // 1. Optionally close active projects + snapshot to portal history
-      if (renewCloseActive && activeProjects.length > 0) {
+      // 1. Optionally close active projects NOW (only if start is today/past).
+      //    For future start, we keep current project active and let the cron
+      //    activate the scheduled project on its start date.
+      if (renewCloseActive && !isFutureStart && activeProjects.length > 0) {
         // Get portal id for snapshots
         const { data: portalRow } = await supabase.from('client_portals').select('id').eq('client_id', id).maybeSingle();
         const portalId = portalRow?.id;
@@ -522,12 +584,13 @@ export default function ClienteDetailPage() {
         deadline = format(end, 'yyyy-MM-dd');
       }
 
-      // 3. Create new project
+      // 3. Create new project (scheduled if future, em_onboarding if today/past)
       const isRecurringRenew = matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
+      const projStatus = isFutureStart ? 'agendado' : 'em_onboarding';
       const { data: newProject, error: projError } = await supabase.from('projects').insert({
         name: `${renewProduct} — ${form.full_name || 'Cliente'}`,
         type: isRecurringRenew ? 'cliente_servico_mensal' : 'cliente_projeto_unico',
-        status: 'em_onboarding',
+        status: projStatus,
         department: 'clientes',
         departments: ['clientes', 'operacao'],
         client_name: form.full_name || null,
@@ -539,14 +602,91 @@ export default function ClienteDetailPage() {
       }).select('id').single();
       if (projError) throw projError;
 
+      // 3.1 Generate payments for the new cycle (do NOT filter from current month — renewal can be in future)
+      try {
+        const vatRate = Number(matchedProduct?.vat_rate) || 0;
+        const entries = buildPaymentEntries({
+          payMethod: renewPayMethod,
+          startDate: renewStartDate,
+          deadline,
+          totalValue: renewTotalValue,
+          entradaValue: renewEntradaValue,
+          numPrestacoes: renewNumPrestacoes,
+          payDay: renewPayDay,
+          numMeses: renewNumMeses,
+          avencaValue: renewAvencaValue,
+          paymentMethodType: renewPaymentMethodType,
+          product: renewProduct,
+          client: form.full_name || '',
+          projectId: newProject.id,
+          vatRate,
+          createdBy: user?.id || null,
+          filterFromCurrentMonth: false,
+        });
+        if (entries.length > 0) {
+          // Add product_id for ficheiro/sales linkage
+          const enriched = entries.map(e => ({ ...e, product_id: matchedProduct?.id || null }));
+          const { error: salesErr } = await supabase.from('commercial_sales').insert(enriched);
+          if (salesErr) throw salesErr;
+        }
+      } catch (e: any) {
+        // Don't block renewal if payment generation fails — surface a soft warning
+        console.warn('Falha ao gerar pagamentos do novo ciclo:', e);
+        toast.warning(`Projeto criado, mas pagamentos não foram gerados: ${e.message || e}`);
+      }
+
+      // 3.2 Create renewal checklist from product_renewal_templates
+      const cycleNumber = (form.renewal_count || 0) + 1;
+      const { data: templates } = await (supabase as any)
+        .from('product_renewal_templates')
+        .select('*')
+        .eq('product_id', matchedProduct?.id)
+        .order('sort_order');
+
+      if (templates && templates.length > 0) {
+        const renewalRows = templates.map((t: any, i: number) => {
+          // Compute due_date from rule
+          let dueDate: string | null = null;
+          if (t.rule_days && deadline) {
+            const refDate = parseISO(deadline);
+            const offsetDays = (t.rule_unit === 'semanas' ? t.rule_days * 7 : t.rule_days) * (t.rule_trigger === 'apos_inicio_ciclo' ? 1 : -1);
+            const due = new Date(refDate);
+            due.setDate(due.getDate() + offsetDays);
+            dueDate = format(due, 'yyyy-MM-dd');
+          }
+          return {
+            client_id: id,
+            cycle_number: cycleNumber,
+            activity: t.name,
+            phase: t.notes || null,
+            responsible: t.responsible_type || null,
+            rule_days: t.rule_days,
+            rule_unit: t.rule_unit,
+            rule_trigger: t.rule_trigger,
+            due_date: dueDate,
+            sort_order: t.sort_order ?? i,
+            completed: false,
+          };
+        });
+        await (supabase as any).from('client_renewals').insert(renewalRows);
+      }
+
       // 4. Update client current_product, start_date and end_of_cycle
-      await supabase.from('clients').update({
-        current_product: renewProduct,
-        current_product_id: matchedProduct?.id || null,
-        start_date: renewStartDate,
-        end_of_cycle: deadline,
-        status: 'ativo',
-      }).eq('id', id);
+      if (isFutureStart) {
+        // Just mark the pending renewal — don't change current product yet
+        await (supabase as any).from('clients').update({
+          pending_renewal_project_id: newProject.id,
+        }).eq('id', id);
+      } else {
+        await (supabase as any).from('clients').update({
+          current_product: renewProduct,
+          current_product_id: matchedProduct?.id || null,
+          start_date: renewStartDate,
+          end_of_cycle: deadline,
+          status: 'ativo',
+          renewal_count: cycleNumber,
+        }).eq('id', id);
+      }
 
       // 5. Auto-create/reactivate portal if product type supports it
       if (matchedProduct?.product_type) {
@@ -599,7 +739,9 @@ export default function ClienteDetailPage() {
       await supabase.from('client_history').insert({
         client_id: id,
         entry_date: format(new Date(), 'yyyy-MM-dd'),
-        milestone: `Renovação/Novo ciclo: ${renewProduct}`,
+        milestone: isFutureStart
+          ? `Renovação agendada para ${renewStartDate}: ${renewProduct}`
+          : `Renovação/Novo ciclo: ${renewProduct}`,
         observations: renewCloseActive && activeProjects.length > 0
           ? `Projetos anteriores concluídos: ${activeProjects.map((p: any) => p.name).join(', ')}`
           : null,
@@ -611,8 +753,15 @@ export default function ClienteDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['projects', 'client'] });
       queryClient.invalidateQueries({ queryKey: ['client'] });
       setRenewDialogOpen(false);
-      setForm(prev => ({ ...prev, current_product: renewProduct, start_date: renewStartDate, status: 'ativo' }));
-      toast.success('Novo ciclo criado com sucesso!');
+      const startObj = parseISO(renewStartDate);
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (startObj > today) {
+        setForm(prev => ({ ...prev, pending_renewal_project_id: projectId } as any));
+        toast.success(`Renovação agendada para ${format(startObj, 'dd/MM/yyyy')}!`);
+      } else {
+        setForm(prev => ({ ...prev, current_product: renewProduct, start_date: renewStartDate, status: 'ativo' }));
+        toast.success('Novo ciclo criado com sucesso!');
+      }
       navigate(`/hub/projetos/${projectId}`);
     },
     onError: (err: any) => toast.error(err.message || 'Erro ao criar novo ciclo'),
@@ -669,7 +818,21 @@ export default function ClienteDetailPage() {
           isOwner
           inlineMode
           placeholder="Nome do cliente"
-          meta={form.client_id ? <span className="text-xs text-muted-foreground font-mono">{form.client_id}</span> : undefined}
+          meta={
+            <span className="flex items-center gap-2 flex-wrap">
+              {form.client_id && <span className="text-xs text-muted-foreground font-mono">{form.client_id}</span>}
+              {(form as any).pending_renewal_project_id && (
+                <Badge variant="outline" className="bg-accent-violet/15 text-accent-violet border-accent-violet/30 gap-1">
+                  <RefreshCw className="h-3 w-3" /> Renovação agendada
+                </Badge>
+              )}
+              {(form as any).client_since && (
+                <span className="text-xs text-muted-foreground">
+                  Cliente desde {format(parseISO((form as any).client_since), 'MMM yyyy', { locale: pt })}
+                </span>
+              )}
+            </span>
+          }
         />
 
         {/* Properties */}
@@ -847,6 +1010,65 @@ export default function ClienteDetailPage() {
                 })}
               </div>
             </EntitySection>
+
+            {/* Renewals */}
+            {!isNew && (
+              <EntitySection title="Renovações" icon={RefreshCw}>
+                <div className="space-y-3">
+                  {scheduledRenewalProjectQuery.data && (
+                    <div className="flex items-start justify-between gap-3 rounded-lg border border-accent-violet/40 bg-accent-violet/5 p-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="bg-accent-violet/15 text-accent-violet border-accent-violet/30 gap-1">
+                            <RefreshCw className="h-3 w-3" /> Renovação agendada
+                          </Badge>
+                          <span className="text-sm font-medium">{scheduledRenewalProjectQuery.data.product_name}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Início: {scheduledRenewalProjectQuery.data.start_date ? format(parseISO(scheduledRenewalProjectQuery.data.start_date), 'dd MMM yyyy', { locale: pt }) : '—'}
+                          {scheduledRenewalProjectQuery.data.deadline && ` • Fim: ${format(parseISO(scheduledRenewalProjectQuery.data.deadline), 'dd MMM yyyy', { locale: pt })}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/hub/projetos/${scheduledRenewalProjectQuery.data!.id}`)}>
+                          <ExternalLink className="h-3 w-3 mr-1" />Ver
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => {
+                          if (!await confirm({ title: 'Cancelar renovação agendada?', description: 'O projeto agendado será eliminado e os pagamentos pendentes removidos.' })) return;
+                          const projId = scheduledRenewalProjectQuery.data!.id;
+                          await supabase.from('commercial_sales').delete().eq('project_id', projId).neq('status','pago');
+                          await supabase.from('projects').delete().eq('id', projId);
+                          await (supabase as any).from('clients').update({ pending_renewal_project_id: null }).eq('id', id);
+                          setForm(prev => ({ ...prev, pending_renewal_project_id: null } as any));
+                          queryClient.invalidateQueries({ queryKey: ['scheduled-renewal-project'] });
+                          toast.success('Renovação agendada cancelada');
+                        }}>
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="rounded-lg border overflow-hidden">
+                    <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2">
+                      <span>Ciclo</span><span>Atividade</span><span>Responsável</span><span>Prazo</span><span>Estado</span>
+                    </div>
+                    {(renewalsQuery.data || []).length === 0 ? (
+                      <EmptyHint>Sem renovações registadas</EmptyHint>
+                    ) : (renewalsQuery.data || []).map((r: any) => (
+                      <div key={r.id} className="px-4 py-2 text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2 border-b items-center">
+                        <Badge variant="outline" className="text-xs w-fit">#{r.cycle_number}</Badge>
+                        <span>{r.activity}</span>
+                        <span className="text-muted-foreground">{r.responsible || '—'}</span>
+                        <span className="text-muted-foreground">{r.due_date ? format(parseISO(r.due_date), 'dd/MM/yyyy') : '—'}</span>
+                        <Badge variant={r.completed ? 'default' : 'outline'} className={r.completed ? 'bg-success/15 text-success border-success/30' : ''}>
+                          {r.completed ? 'Concluída' : 'Pendente'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </EntitySection>
+            )}
           </EntityTabsContent>
 
           {/* ─── Tab 2: Gestão do Cliente ──────────────────── */}
@@ -991,7 +1213,7 @@ export default function ClienteDetailPage() {
 
       {/* Renewal dialog */}
       <Dialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Renovar / Novo Ciclo</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1">
@@ -1009,9 +1231,79 @@ export default function ClienteDetailPage() {
               )}
             </div>
 
-            <div className="space-y-1">
-              <Label>Data de início do novo ciclo</Label>
-              <Input type="date" value={renewStartDate} onChange={e => setRenewStartDate(e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Data de início do novo ciclo</Label>
+                <Input type="date" value={renewStartDate} onChange={e => setRenewStartDate(e.target.value)} />
+                {(() => {
+                  const startObj = parseISO(renewStartDate);
+                  const today = new Date(); today.setHours(0,0,0,0);
+                  return startObj > today ? (
+                    <p className="text-xs text-info">
+                      📅 Data futura — projeto será criado como <b>agendado</b> e ativado automaticamente.
+                    </p>
+                  ) : null;
+                })()}
+              </div>
+              <div className="space-y-1">
+                <Label>Método de pagamento</Label>
+                <Select value={renewPayMethod} onValueChange={setRenewPayMethod}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pagamento_total">Pagamento Total</SelectItem>
+                    <SelectItem value="entrada_prestacoes">Entrada + Prestações</SelectItem>
+                    <SelectItem value="prestacoes">Prestações</SelectItem>
+                    <SelectItem value="avenca_mensal">Avença Mensal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Payment-specific fields */}
+            <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+              <p className="text-xs font-medium text-muted-foreground">Configuração dos pagamentos</p>
+
+              {renewPayMethod === 'pagamento_total' && (
+                <div className="space-y-1">
+                  <Label>Valor total (€)</Label>
+                  <Input type="number" step="0.01" value={renewTotalValue} onChange={e => setRenewTotalValue(e.target.value)} />
+                </div>
+              )}
+
+              {renewPayMethod === 'entrada_prestacoes' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1"><Label>Valor total (€)</Label><Input type="number" step="0.01" value={renewTotalValue} onChange={e => setRenewTotalValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Entrada (€)</Label><Input type="number" step="0.01" value={renewEntradaValue} onChange={e => setRenewEntradaValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Nº prestações</Label><Input type="number" value={renewNumPrestacoes} onChange={e => setRenewNumPrestacoes(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>
+                </div>
+              )}
+
+              {renewPayMethod === 'prestacoes' && (
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1"><Label>Valor total (€)</Label><Input type="number" step="0.01" value={renewTotalValue} onChange={e => setRenewTotalValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Nº prestações</Label><Input type="number" value={renewNumPrestacoes} onChange={e => setRenewNumPrestacoes(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>
+                </div>
+              )}
+
+              {renewPayMethod === 'avenca_mensal' && (
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1"><Label>Valor mensal (€)</Label><Input type="number" step="0.01" value={renewAvencaValue} onChange={e => setRenewAvencaValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Nº meses</Label><Input type="number" value={renewNumMeses} onChange={e => setRenewNumMeses(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <Label>Forma de cobrança (opcional)</Label>
+                <Select value={renewPaymentMethodType} onValueChange={setRenewPaymentMethodType}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {activeProjects.length > 0 && (
@@ -1021,13 +1313,22 @@ export default function ClienteDetailPage() {
                   <p className="text-xs text-muted-foreground">
                     {activeProjects.length} projeto(s) ativo(s): {activeProjects.map((p: any) => p.name).join(', ')}
                   </p>
+                  {(() => {
+                    const startObj = parseISO(renewStartDate);
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    return startObj > today ? (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ℹ️ Como a data é futura, os projetos atuais serão concluídos automaticamente apenas quando o novo ciclo arrancar.
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
                 <Switch checked={renewCloseActive} onCheckedChange={setRenewCloseActive} />
               </div>
             )}
 
             <p className="text-xs text-muted-foreground">
-              Será criado um novo projeto, o produto atual do cliente será atualizado, e o portal será reactivado (se aplicável).
+              Será criado um novo projeto, gerados os pagamentos do novo ciclo, criada a checklist de renovação a partir do template do produto, e o portal será reactivado (se aplicável).
             </p>
           </div>
           <DialogFooter>
