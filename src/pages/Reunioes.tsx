@@ -22,6 +22,9 @@ import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'dat
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { isHoliday } from '@/lib/holidays';
+import { getPortugueseHolidays } from '@/lib/holidays';
+import { addDays } from 'date-fns';
+import { AlertTriangle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
@@ -387,6 +390,8 @@ export function MeetingFormDialog({
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<string>('semanal');
   const [recurrenceStartDate, setRecurrenceStartDate] = useState<Date | undefined>();
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>(defaultRecurrenceEndDate);
+  // Per-occurrence holiday overrides: key = original yyyy-MM-dd, value = new Date or 'skip'
+  const [holidayOverrides, setHolidayOverrides] = useState<Record<string, Date | 'skip'>>({});
 
   const skipAutoFillRef = useRef(false);
 
@@ -410,6 +415,7 @@ export function MeetingFormDialog({
     setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []); setDepartment(hasDefaults ? 'clientes' : '');
     setSelectedMembers([]); setMeetingUrl('');
     setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceStartDate(undefined); setRecurrenceEndDate(defaultRecurrenceEndDate);
+    setHolidayOverrides({});
     skipAutoFillRef.current = false;
   };
 
@@ -429,6 +435,41 @@ export function MeetingFormDialog({
     if (!clientId) return [];
     return projects.filter(p => p.client_id === clientId);
   }, [clientId, projects]);
+
+  // Compute occurrences that fall on Portuguese holidays (preview)
+  const recurrencePreview = useMemo(() => {
+    if (!isRecurring || !dateTime) return [] as Array<{ key: string; original: Date; adjusted: Date | 'skip' | null; holidayName: string | null }>;
+    const base = recurrenceStartDate || dateTime;
+    let effectiveEnd = recurrenceEndDate;
+    const previewSelectedClient = clients.find((c: any) => c.id === clientId);
+    const cycleEndStr = (previewSelectedClient as any)?.end_of_cycle as string | null | undefined;
+    if (cycleEndStr) {
+      const cycleEnd = new Date(cycleEndStr + 'T23:59:59');
+      if (!effectiveEnd || cycleEnd.getTime() < effectiveEnd.getTime()) effectiveEnd = cycleEnd;
+    }
+    const dates = generateRecurrenceDates(base, recurrenceFrequency, effectiveEnd);
+    const conflicts: Array<{ key: string; original: Date; adjusted: Date | 'skip' | null; holidayName: string | null }> = [];
+    for (const d of dates) {
+      if (!isHoliday(d)) continue;
+      const key = format(d, 'yyyy-MM-dd');
+      const holidays = getPortugueseHolidays(d.getFullYear());
+      const h = holidays.find(x => x.dateStr === key);
+      const override = holidayOverrides[key] ?? null;
+      conflicts.push({ key, original: d, adjusted: override, holidayName: h?.name ?? null });
+    }
+    return conflicts;
+  }, [isRecurring, dateTime, recurrenceStartDate, recurrenceFrequency, recurrenceEndDate, clientId, clients, holidayOverrides]);
+
+  // Helper: find next non-holiday weekday after a given date
+  const nextBusinessDay = (d: Date): Date => {
+    let next = addDays(d, 1);
+    while (next.getDay() === 0 || next.getDay() === 6 || isHoliday(next)) {
+      next = addDays(next, 1);
+    }
+    // Preserve original time
+    next.setHours(d.getHours(), d.getMinutes(), 0, 0);
+    return next;
+  };
 
   const handleClientChange = (newClientId: string) => {
     const actualId = newClientId === '__none' ? '' : newClientId;
@@ -570,7 +611,16 @@ export function MeetingFormDialog({
             effectiveEnd = cycleEnd;
           }
         }
-        const futureDates = generateRecurrenceDates(recurrenceBase, recurrenceFrequency, effectiveEnd);
+        const rawDates = generateRecurrenceDates(recurrenceBase, recurrenceFrequency, effectiveEnd);
+        // Apply per-occurrence holiday overrides chosen by the user
+        const futureDates: Date[] = [];
+        for (const d of rawDates) {
+          const key = format(d, 'yyyy-MM-dd');
+          const ov = holidayOverrides[key];
+          if (ov === 'skip') continue;
+          if (ov instanceof Date) futureDates.push(ov);
+          else futureDates.push(d);
+        }
         if (futureDates.length > 0) {
           const occurrences = futureDates.map(d => ({
             ...meetingData,
@@ -762,6 +812,91 @@ export function MeetingFormDialog({
                       <Label className="text-xs">Data de fim (opcional)</Label>
                       <DateTimePickerField date={recurrenceEndDate} onSelect={setRecurrenceEndDate} placeholder="Sem data de fim (12 meses)" />
                     </div>
+                    {recurrencePreview.length > 0 && (
+                      <div className="rounded-lg border border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                          <div className="text-xs">
+                            <p className="font-semibold text-amber-900 dark:text-amber-200">
+                              {recurrencePreview.length} ocorrência{recurrencePreview.length > 1 ? 's' : ''} cai{recurrencePreview.length > 1 ? 'em' : ''} em feriado
+                            </p>
+                            <p className="text-amber-800/80 dark:text-amber-200/70">Escolhe o que fazer com cada uma:</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          {recurrencePreview.map(c => {
+                            const adjusted = c.adjusted;
+                            const next = nextBusinessDay(c.original);
+                            return (
+                              <div key={c.key} className="flex flex-col gap-1.5 rounded-md bg-background/60 p-2 border border-amber-200/40">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="text-xs">
+                                    <span className="font-medium">{format(c.original, "dd MMM yyyy", { locale: pt })}</span>
+                                    {c.holidayName && <span className="text-muted-foreground"> · {c.holidayName}</span>}
+                                  </div>
+                                  {adjusted === 'skip' && <span className="text-[10px] font-medium text-destructive">Saltada</span>}
+                                  {adjusted instanceof Date && (
+                                    <span className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                                      → {format(adjusted, "dd MMM", { locale: pt })}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={adjusted === null ? 'secondary' : 'ghost'}
+                                    className="h-6 text-[10px] px-2"
+                                    onClick={() => setHolidayOverrides(prev => { const n = { ...prev }; delete n[c.key]; return n; })}
+                                  >
+                                    Manter
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={adjusted instanceof Date ? 'secondary' : 'ghost'}
+                                    className="h-6 text-[10px] px-2"
+                                    onClick={() => setHolidayOverrides(prev => ({ ...prev, [c.key]: next }))}
+                                  >
+                                    Próximo dia útil ({format(next, "dd MMM", { locale: pt })})
+                                  </Button>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] px-2">
+                                        Outro dia…
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                      <Calendar
+                                        mode="single"
+                                        selected={adjusted instanceof Date ? adjusted : c.original}
+                                        onSelect={d => {
+                                          if (!d) return;
+                                          const dt = new Date(d);
+                                          dt.setHours(c.original.getHours(), c.original.getMinutes(), 0, 0);
+                                          setHolidayOverrides(prev => ({ ...prev, [c.key]: dt }));
+                                        }}
+                                        locale={pt}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={adjusted === 'skip' ? 'secondary' : 'ghost'}
+                                    className="h-6 text-[10px] px-2 text-destructive hover:text-destructive"
+                                    onClick={() => setHolidayOverrides(prev => ({ ...prev, [c.key]: 'skip' }))}
+                                  >
+                                    Saltar
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
