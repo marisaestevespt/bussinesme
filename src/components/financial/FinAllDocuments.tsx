@@ -9,6 +9,8 @@ import { Search, X, ExternalLink, ArrowDownLeft, ArrowUpRight } from 'lucide-rea
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { formatEuro } from '@/lib/formatting';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 type UnifiedDoc = {
   id: string;
   type: 'entrada' | 'saida';
@@ -26,6 +28,19 @@ export function FinAllDocuments() {
   // Only need expenses (entries come from useCommercialData)
   const fin = useFinancialData({ expenses: true, recurring: false, documents: false, payroll: false, contractors: false });
   const com = useCommercialData();
+
+  // Suppliers map (id → name) for the "Cliente / Fornecedor" column on saídas
+  const { data: suppliersMap } = useQuery({
+    queryKey: ['suppliers-id-name-map'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('suppliers').select('id, name');
+      if (error) throw error;
+      const map = new Map<string, string>();
+      (data || []).forEach((s: any) => map.set(s.id, s.name));
+      return map;
+    },
+  });
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -54,7 +69,12 @@ export function FinAllDocuments() {
       type: 'saida' as const,
       ref: e.expense_id,
       description: e.description || '',
-      client_or_supplier: e.category || '',
+      client_or_supplier:
+        (e.supplier_id && suppliersMap?.get(e.supplier_id))
+        || (e as any).expense_name
+        || e.description
+        || e.category
+        || '',
       category: e.category || '',
       date: e.expense_date,
       value: e.total_with_vat,
@@ -68,7 +88,7 @@ export function FinAllDocuments() {
       if (!b.date) return -1;
       return b.date.localeCompare(a.date);
     });
-  }, [com.sales.data, fin.expenses.data]);
+  }, [com.sales.data, fin.expenses.data, suppliersMap]);
 
   const filtered = useMemo(() => {
     let data = unified;
