@@ -131,23 +131,6 @@ export default function ClientesPage() {
           icon={Users}
           description="Gestão de clientes, acompanhamento e satisfação."
           count={items.length}
-          actions={
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-1" /> Novo Cliente <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate('/hub/clientes/novo')}>
-                  <Plus className="h-4 w-4 mr-2" /> Cliente novo (com projeto)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLegacyDialogOpen(true)}>
-                  <Archive className="h-4 w-4 mr-2" /> Cliente histórico (arquivo)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          }
         />
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
@@ -211,13 +194,30 @@ export default function ClientesPage() {
         {/* Client list */}
         <CollectionToolbar
           trailing={
-            <EntityTabs value={tab} onValueChange={v => setTab(v as any)}>
-              <EntityTabsList>
-                <EntityTabsTrigger value="ativos">Ativos · {activeItems.length}</EntityTabsTrigger>
-                <EntityTabsTrigger value="arquivados">Arquivados · {archivedItems.length}</EntityTabsTrigger>
-                <EntityTabsTrigger value="historico">Histórico · {legacyItems.length}</EntityTabsTrigger>
-              </EntityTabsList>
-            </EntityTabs>
+            <div className="flex items-center gap-2">
+              <EntityTabs value={tab} onValueChange={v => setTab(v as any)}>
+                <EntityTabsList>
+                  <EntityTabsTrigger value="ativos">Ativos · {activeItems.length}</EntityTabsTrigger>
+                  <EntityTabsTrigger value="arquivados">Arquivados · {archivedItems.length}</EntityTabsTrigger>
+                  <EntityTabsTrigger value="historico">Histórico · {legacyItems.length}</EntityTabsTrigger>
+                </EntityTabsList>
+              </EntityTabs>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Novo Cliente <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate('/hub/clientes/novo')}>
+                    <Plus className="h-4 w-4 mr-2" /> Cliente novo (com projeto)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLegacyDialogOpen(true)}>
+                    <Archive className="h-4 w-4 mr-2" /> Cliente histórico (arquivo)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           }
         >
           <h2 className="text-sm font-semibold">Lista de Clientes & Alunos</h2>
