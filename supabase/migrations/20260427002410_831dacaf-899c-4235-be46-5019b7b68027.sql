@@ -1,0 +1,2 @@
+-- No enum check on projects.status (text column), so just document via comment
+COMMENT ON COLUMN public.projects.status IS 'Estados válidos: em_onboarding, em_ideia, em_curso, em_pausa, em_revisao, concluido, cancelado, arquivo, agendado (para renovações futuras)';
