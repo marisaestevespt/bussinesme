@@ -328,13 +328,15 @@ function MeetingTypeStep({ onSelect }: { onSelect: (type: MeetingType) => void }
 export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
-  defaultProjectId, defaultProjectName,
+  defaultProjectId, defaultProjectName, defaultTitle,
   initialMeetingType,
   onMeetingCreated, navigateAfterCreate = true,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
   defaultClientId?: string; defaultClientName?: string; defaultRecurrenceEndDate?: Date;
   defaultProjectId?: string; defaultProjectName?: string;
+  /** Pre-fill the meeting title (e.g. when launched from a deliverable's template). */
+  defaultTitle?: string;
   /** Pre-select a meeting type (skips the type-picker step inside the dialog). */
   initialMeetingType?: MeetingType;
   /** Called with the created meeting id BEFORE any navigation, so the caller can do follow-up writes (e.g. linking to a deliverable). */
