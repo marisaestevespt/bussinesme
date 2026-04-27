@@ -390,6 +390,8 @@ export function MeetingFormDialog({
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<string>('semanal');
   const [recurrenceStartDate, setRecurrenceStartDate] = useState<Date | undefined>();
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>(defaultRecurrenceEndDate);
+  // Per-occurrence holiday overrides: key = original yyyy-MM-dd, value = new Date or 'skip'
+  const [holidayOverrides, setHolidayOverrides] = useState<Record<string, Date | 'skip'>>({});
 
   const skipAutoFillRef = useRef(false);
 
