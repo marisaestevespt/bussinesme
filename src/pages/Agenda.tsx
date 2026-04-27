@@ -1205,7 +1205,6 @@ export default function AgendaPage() {
     items.push({ id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR });
     items.push({ id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR });
     items.push({ id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' });
-    items.push({ id: 'meta:no-type',  label: 'Sem tipo',         color: 'hsl(var(--muted-foreground))' });
     return items;
   }, [types]);
 
@@ -1215,12 +1214,12 @@ export default function AgendaPage() {
   );
 
   const isEventVisible = (ev: any, isVisible: (id: string) => boolean) => {
-    let typeKey: string;
+    let typeKey: string | null = null;
     if (ev._isMeeting) typeKey = 'meta:meeting';
     else if (ev._isSalesAction) typeKey = 'meta:sales';
     else if (ev.event_type_id) typeKey = `type:${ev.event_type_id}`;
-    else typeKey = 'meta:no-type';
-    if (!isVisible(typeKey)) return false;
+    // Events without a type are not filterable by type — always visible from the type axis.
+    if (typeKey && !isVisible(typeKey)) return false;
     const pid = ev.product_id as string | null | undefined;
     if (pid && !isVisible(`product:${pid}`)) return false;
     return true;
