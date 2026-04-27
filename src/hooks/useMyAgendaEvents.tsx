@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
+import { getProductColorFromMap, useProductColors, useProductBrands } from '@/hooks/useProductColors';
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import type { AgendaEvent, AgendaEventType } from '@/components/agenda/AppleCalendarViews';
 import type { CalendarItem } from '@/components/agenda/AgendaCalendarsSidebar';
@@ -205,7 +205,8 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
     // Apply product-colour override (product colour wins over type colour)
     return out.map(ev => {
       const pid = ev.product_id as string | null | undefined;
-      const productC = pid ? productColors?.get(pid) : undefined;
+      const productName = ev.product_name as string | null | undefined;
+      const productC = getProductColorFromMap(productColors, pid, productName);
       const isSales = ev._isSalesAction;
       const fallback = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
       const c = productC ?? fallback;
