@@ -272,6 +272,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
   return (
     <>
       {/* NPS Records */}
+      {(!onlySection || onlySection === 'nps') && (
       <Card className="h-full">
         <CardHeader className="space-y-3 pb-3">
           <div className="flex items-start justify-between gap-3">
@@ -377,8 +378,10 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Milestones */}
+      {(!onlySection || onlySection === 'milestones') && (
       <Card className="h-full">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
