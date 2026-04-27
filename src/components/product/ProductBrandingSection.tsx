@@ -377,6 +377,44 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             </div>
           )}
 
+          {onUpdateCalendarColor && (
+            <div className="space-y-2 rounded-md border border-border bg-muted/30 px-3 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm font-semibold">Cor no calendário</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Cor usada na Agenda para todas as reuniões, eventos e blocos de trabalho associados a este produto (com cliente, internos ou ações comerciais).
+                  </p>
+                </div>
+                <div className="flex gap-2 items-center shrink-0">
+                  <Input
+                    type="color"
+                    value={calendarColor || b.primary_color || '#6366f1'}
+                    onChange={(e) => onUpdateCalendarColor(e.target.value)}
+                    className="h-9 w-14 p-1 shrink-0"
+                    disabled={!isOwner}
+                  />
+                  <Input
+                    value={calendarColor || ''}
+                    onChange={(e) => onUpdateCalendarColor(e.target.value)}
+                    placeholder="#6366f1"
+                    className="h-9 text-sm w-32"
+                    readOnly={!isOwner}
+                  />
+                </div>
+              </div>
+              {(calendarColor || b.primary_color) && (
+                <div
+                  className="mt-2 inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium text-white shadow-sm"
+                  style={{ backgroundColor: calendarColor || b.primary_color }}
+                >
+                  <span className="h-2 w-2 rounded-full bg-white/80" />
+                  Pré-visualização na agenda
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Tipografia — Display / Títulos</Label>
