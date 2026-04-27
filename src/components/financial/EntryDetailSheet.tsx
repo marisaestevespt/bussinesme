@@ -65,7 +65,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
       if (!sale?.client) return null;
       const { data } = await supabase
         .from('clients')
-        .select('full_name, nif, fiscal_address, email')
+        .select('full_name, nif, fiscal_address, email, client_id')
         .eq('full_name', sale.client)
         .maybeSingle();
       return data;
@@ -251,6 +251,11 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             documents={docs}
             onChange={setDocs}
             label="Ficheiros (faturas, comprovativos, recibos)"
+            suggestedName={
+              sale.sale_month && sale.sale_year && clientData?.client_id
+                ? `${String(sale.sale_month).padStart(2, '0')}${sale.sale_year}_${clientData.client_id}`
+                : undefined
+            }
           />
 
           <div className="flex gap-2">
