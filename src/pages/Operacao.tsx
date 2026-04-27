@@ -289,7 +289,7 @@ export default function OperacaoPage() {
     return clients.filter(c => {
       if (c.status === 'terminado' || !c.end_of_cycle) return false;
       const daysLeft = differenceInDays(new Date(c.end_of_cycle), today);
-      return daysLeft >= 0 && daysLeft <= 30;
+      return daysLeft >= 0 && daysLeft <= 15;
     });
   }, [clients, today]);
 
