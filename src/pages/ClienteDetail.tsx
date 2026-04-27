@@ -1002,8 +1002,8 @@ export default function ClienteDetailPage() {
                   </Button>
                 ) : undefined}
             >
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[110px_1fr_1fr_40px] gap-3">
                   <span>Data</span><span>Entrada</span><span>Observações</span><span></span>
                 </div>
                 {(history.data || []).length === 0 ? (
@@ -1013,20 +1013,20 @@ export default function ClienteDetailPage() {
                   return isCrm ? (
                     <div
                       key={h.id}
-                      className="px-4 py-2.5 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center cursor-pointer hover:bg-muted/50 transition-colors"
+                      className="px-4 py-3 text-sm grid grid-cols-[110px_1fr_1fr_40px] gap-3 border-b last:border-b-0 items-center cursor-pointer hover:bg-muted/40 transition-colors"
                       onClick={() => setLeadPreviewId((h as any).lead_id)}
                     >
                       <span>{h.entry_date ? format(parseISO(h.entry_date), 'dd/MM/yyyy') : '—'}</span>
                       <span className="text-primary font-medium">{h.milestone}</span>
                       <span className="text-muted-foreground">{h.observations || '—'}</span>
-                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
                   ) : (
-                    <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
-                      <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
-                      <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
-                      <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
+                    <div key={h.id} className="px-4 py-2.5 text-sm grid grid-cols-[110px_1fr_1fr_40px] gap-3 border-b last:border-b-0 items-center">
+                      <Input type="date" className="h-9 text-sm" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
+                      <Input className="h-9 text-sm" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
+                      <Input className="h-9 text-sm" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3.5 w-3.5" /></Button>
                     </div>
                   );
                 })}
