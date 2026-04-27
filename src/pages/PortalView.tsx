@@ -350,20 +350,31 @@ export default function PortalViewPage() {
     return map[s] || { text: s, cls: '' };
   };
 
-  // Current active phase: prefer status='em_curso'. If none, derive from planned dates
-  // (first phase whose window contains today, else first not-done phase).
+  // Current active phase. A phase is considered DONE if status is concluida
+  // OR if every deliverable inside it is done (so a phase that is 4/4 done but still
+  // marked em_curso in the DB is not shown as the active one).
+  const isPhaseFullyDone = (p: PortalPhase) => {
+    const statusDone = p.status === 'concluido' || p.status === 'concluida';
+    if (statusDone) return true;
+    const dels = p.deliverables || [];
+    return dels.length > 0 && dels.every(isDeliverableDone);
+  };
   const activePhase = (() => {
-    const explicit = phases.find((p) => p.status === 'em_curso');
+    // 1. Explicit em_curso, but only if not actually fully done
+    const explicit = phases.find((p) => p.status === 'em_curso' && !isPhaseFullyDone(p));
     if (explicit) return explicit;
+    // 2. Phase whose planned window contains today
     const today = new Date();
     const inWindow = phases.find((p) => {
+      if (isPhaseFullyDone(p)) return false;
       const start = p.planned_start ? new Date(p.planned_start) : null;
       const end = p.planned_end ? new Date(p.planned_end) : null;
       if (!start || !end) return false;
-      return today >= start && today <= end && p.status !== 'concluido' && p.status !== 'concluida';
+      return today >= start && today <= end;
     });
     if (inWindow) return inWindow;
-    return phases.find((p) => p.status !== 'concluido' && p.status !== 'concluida') || null;
+    // 3. First phase that is not yet fully done
+    return phases.find((p) => !isPhaseFullyDone(p)) || null;
   })();
   const allDeliverables = phases.flatMap((p) => p.deliverables || []);
   const completedDeliverables = allDeliverables.filter(isDeliverableDone).length;
