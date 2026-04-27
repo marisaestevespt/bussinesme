@@ -391,6 +391,7 @@ export default function ReuniaoDetailPage() {
   const isSeriesChild = !!m?.parent_meeting_id;
   const { data: seriesCount = 0 } = useSeriesCount(isSeriesParent ? m?.id ?? null : null);
   const { data: parentRecurrence } = useParentRecurrence(isSeriesChild ? m?.parent_meeting_id ?? null : null);
+  const { data: clientEmail } = useClientEmail(m?.client_id ?? null);
 
   // Build recurrence prop for AddToCalendarButtons (covers both parent and child occurrences)
   const calendarRecurrence = isSeriesParent
@@ -927,7 +928,13 @@ export default function ReuniaoDetailPage() {
 
         {/* Action buttons — subtle, outside card */}
         <div className="flex items-center gap-2 flex-wrap">
-          <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url, recurrence: calendarRecurrence }} />
+          <AddToCalendarButtons event={{
+            title: m.title,
+            startDate: m.date_time,
+            meetingUrl: m.meeting_url,
+            recurrence: calendarRecurrence,
+            attendees: clientEmail ? [clientEmail] : [],
+          }} />
           {m.meeting_url && (
             <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => {
               update({ meeting_url: null });
