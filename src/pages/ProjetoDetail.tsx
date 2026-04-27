@@ -136,6 +136,23 @@ export default function ProjetoDetailPage() {
   } = useProjectDetailData(id, { isRecorrenteMensal, monthStart, monthEnd });
   const resolvedClientId = clientForProject?.id;
 
+  // Suggested meeting title from the next pending meeting-deliverable's template
+  const suggestedMeetingTitle = useMemo(() => {
+    const dels = (projectDeliverables || []) as any[];
+    if (!dels.length) return '';
+    const meetingDels = dels
+      .filter(d => (d.deliverable_type === 'reuniao' || d.is_meeting === true))
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const next = meetingDels.find(d => !d.meeting_id && d.meeting_title_template);
+    if (!next?.meeting_title_template) return '';
+    const sameTpl = meetingDels.filter(d => d.meeting_title_template === next.meeting_title_template);
+    const n = sameTpl.findIndex(d => d.id === next.id) + 1;
+    const clientName = (local as any)?.client_name || clientForProject?.full_name || '';
+    return String(next.meeting_title_template)
+      .replace(/\{N\}/g, String(n))
+      .replace(/\{cliente\}/gi, clientName);
+  }, [projectDeliverables, (local as any)?.client_name, clientForProject?.full_name]);
+
   function getProjectProgress() {
     // Recorrente mensal: progress by current month tasks
     if (isRecorrenteMensal) {
