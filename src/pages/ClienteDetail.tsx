@@ -172,7 +172,7 @@ export default function ClienteDetailPage() {
 
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const { user } = useAuth();
+  const { user, isAdminOrOwner } = useAuth();
 
   // ─── Renewals (history + scheduled) ─────────────────────────────
   const renewalsQuery = useQuery({
@@ -201,6 +201,37 @@ export default function ClienteDetailPage() {
     },
     enabled: !!(form as any).pending_renewal_project_id,
   });
+
+  // ─── Rollback: latest activated renewal project (≠ scheduled) ───
+  const latestActivatedRenewal = (() => {
+    const pendingPid = (form as any).pending_renewal_project_id || null;
+    const items = (renewalsQuery.data || []) as any[];
+    // pick highest cycle_number that has a project_id and isn't the scheduled one
+    const candidate = items
+      .filter(r => r.project_id && r.project_id !== pendingPid)
+      .sort((a, b) => (b.cycle_number || 0) - (a.cycle_number || 0))[0];
+    return candidate ? { project_id: candidate.project_id as string, cycle_number: candidate.cycle_number as number } : null;
+  })();
+
+  const rollbackProjectQuery = useQuery({
+    queryKey: ['rollback-renewal-project', latestActivatedRenewal?.project_id],
+    queryFn: async () => {
+      if (!latestActivatedRenewal?.project_id) return null;
+      const { data } = await supabase.from('projects')
+        .select('id, name, status, created_at')
+        .eq('id', latestActivatedRenewal.project_id).maybeSingle();
+      return data;
+    },
+    enabled: !!latestActivatedRenewal?.project_id && isAdminOrOwner,
+  });
+
+  const canRollbackRenewal = (() => {
+    if (!isAdminOrOwner || !latestActivatedRenewal || !rollbackProjectQuery.data) return false;
+    const p = rollbackProjectQuery.data as any;
+    if (!p?.created_at) return false;
+    const ageDays = (Date.now() - new Date(p.created_at).getTime()) / (1000 * 60 * 60 * 24);
+    return ageDays <= 7 && p.status !== 'cancelado';
+  })();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'em_onboarding' }); setInitialized(true); }
