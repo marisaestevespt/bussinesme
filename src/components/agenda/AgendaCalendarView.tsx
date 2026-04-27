@@ -21,6 +21,8 @@ export interface AgendaCalendarViewProps {
   types: AgendaEventType[];
   /** Items shown in the "Tipos" section of the sidebar. */
   typeItems: CalendarItem[];
+  /** Items shown in the "Automáticos" section of the sidebar (system-generated). */
+  autoTypeItems?: CalendarItem[];
   /** Items shown in the "Produtos" section of the sidebar. */
   productItems: CalendarItem[];
   /**
@@ -53,6 +55,7 @@ export function AgendaCalendarView({
   events,
   types,
   typeItems,
+  autoTypeItems,
   productItems,
   isEventVisible,
   onEventClick,
@@ -98,6 +101,7 @@ export function AgendaCalendarView({
       {showSidebar && (
         <AgendaCalendarsSidebar
           typeItems={typeItems}
+          autoTypeItems={autoTypeItems}
           productItems={productItems}
           hidden={filters.hidden}
           onToggle={filters.toggle}
