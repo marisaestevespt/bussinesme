@@ -22,6 +22,7 @@ import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'dat
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { isHoliday } from '@/lib/holidays';
+import { getPortugueseHolidays } from '@/lib/holidays';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
