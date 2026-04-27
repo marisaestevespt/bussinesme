@@ -611,7 +611,16 @@ export function MeetingFormDialog({
             effectiveEnd = cycleEnd;
           }
         }
-        const futureDates = generateRecurrenceDates(recurrenceBase, recurrenceFrequency, effectiveEnd);
+        const rawDates = generateRecurrenceDates(recurrenceBase, recurrenceFrequency, effectiveEnd);
+        // Apply per-occurrence holiday overrides chosen by the user
+        const futureDates: Date[] = [];
+        for (const d of rawDates) {
+          const key = format(d, 'yyyy-MM-dd');
+          const ov = holidayOverrides[key];
+          if (ov === 'skip') continue;
+          if (ov instanceof Date) futureDates.push(ov);
+          else futureDates.push(d);
+        }
         if (futureDates.length > 0) {
           const occurrences = futureDates.map(d => ({
             ...meetingData,
