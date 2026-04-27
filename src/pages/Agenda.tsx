@@ -1351,6 +1351,12 @@ export default function AgendaPage() {
             isEventVisible={isEventVisible}
             onEventClick={handleEventClick}
             defaultMode="week"
+            onAutoItemRename={(id, name) => {
+              const key = id === 'meta:meeting' ? 'meeting'
+                        : id === 'meta:sales'   ? 'sales'
+                        : id === 'meta:feriado' ? 'feriado' : null;
+              if (key) renameAutoLabel(key, name);
+            }}
             toolbarRight={
               <Button size="sm" className="rounded-full h-8" onClick={handleNewEvent}>
                 <Plus className="h-3.5 w-3.5 mr-1" /> Novo
