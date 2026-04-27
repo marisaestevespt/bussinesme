@@ -168,6 +168,7 @@ export default function ClienteDetailPage() {
 
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const { user } = useAuth();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'em_onboarding' }); setInitialized(true); }
