@@ -31,9 +31,11 @@ interface Props {
   clientName: string;
   productName: string | null;
   startDate: string | null;
+  /** When set, render only the requested sub-section (used inside dialogs) */
+  onlySection?: 'nps' | 'milestones';
 }
 
-export function ClientCustomerSuccess({ clientId, clientName, productName, startDate }: Props) {
+export function ClientCustomerSuccess({ clientId, clientName, productName, startDate, onlySection }: Props) {
   const qc = useQueryClient();
   const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
