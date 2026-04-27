@@ -302,39 +302,29 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
               {!startDate ? 'Define a Data de Início para gerar as datas de recolha.' : 'Sem registos de NPS.'}
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data prevista</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[80px]">NPS (0-10)</TableHead>
-                  <TableHead>Notas</TableHead>
-                  <TableHead>Data real</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {npsRecords.map((r: any) => {
-                  const computedStatus = autoStatus(r.expected_date, r.status);
-                  return (
-                    <TableRow key={r.id} className={getRowColor(r.expected_date, computedStatus)}>
-                      <TableCell className="text-sm font-medium">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {npsRecords.map((r: any) => {
+                const computedStatus = autoStatus(r.expected_date, r.status);
+                const statusInfo = computedStatus === 'feito'
+                  ? { label: 'Feito', cls: 'bg-success/15 text-success border-success/30', accent: 'border-l-success' }
+                  : computedStatus === 'em_atraso'
+                    ? { label: 'Em atraso', cls: 'bg-destructive/15 text-destructive border-destructive/30', accent: 'border-l-destructive' }
+                    : { label: 'Por fazer', cls: 'bg-warning/15 text-warning border-warning/30', accent: 'border-l-warning' };
+                return (
+                  <div key={r.id} className={`rounded-lg border-l-4 ${statusInfo.accent} border bg-card shadow-sm hover:shadow-md transition-shadow p-4 space-y-3`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                         {format(parseISO(r.expected_date), 'dd/MM/yyyy')}
-                        {r.is_manual && <Badge variant="outline" className="ml-2 text-xs">Manual</Badge>}
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={computedStatus}
-                          onValueChange={v => updateNps.mutate({ id: r.id, data: { status: v } })}
-                        >
-                          <SelectTrigger className="h-8 w-[120px] text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
+                      </div>
+                      <Badge variant="outline" className={`${statusInfo.cls} whitespace-nowrap`}>{statusInfo.label}</Badge>
+                    </div>
+                    {r.is_manual && <Badge variant="outline" className="text-[10px]">Manual</Badge>}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                          <Star className="h-3 w-3" /> NPS
+                        </label>
                         <Input
                           type="number"
                           min={0}
@@ -348,30 +338,44 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
                               actual_date: e.target.value ? (r.actual_date || format(new Date(), 'yyyy-MM-dd')) : r.actual_date,
                             }
                           })}
-                          className="h-8 w-16 text-sm"
+                          className="h-9 text-sm font-semibold"
+                          placeholder="0-10"
                         />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={r.notes || ''}
-                          onChange={e => updateNps.mutate({ id: r.id, data: { notes: e.target.value } })}
-                          className="h-8 text-sm"
-                          placeholder="Notas..."
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="date"
-                          value={r.actual_date || ''}
-                          onChange={e => updateNps.mutate({ id: r.id, data: { actual_date: e.target.value || null } })}
-                          className="h-8 text-sm w-[130px]"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Status</label>
+                        <Select value={computedStatus} onValueChange={v => updateNps.mutate({ id: r.id, data: { status: v } })}>
+                          <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Data real</label>
+                      <Input
+                        type="date"
+                        value={r.actual_date || ''}
+                        onChange={e => updateNps.mutate({ id: r.id, data: { actual_date: e.target.value || null } })}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" /> Notas
+                      </label>
+                      <Textarea
+                        value={r.notes || ''}
+                        onChange={e => updateNps.mutate({ id: r.id, data: { notes: e.target.value } })}
+                        className="text-sm min-h-[60px]"
+                        placeholder="Notas..."
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
