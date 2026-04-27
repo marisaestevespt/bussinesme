@@ -69,9 +69,11 @@ function DeliverableRow({
   const [name, setName] = useState(template.name);
   const [desc, setDesc] = useState(template.description || '');
   const [minutes, setMinutes] = useState<string>(template.estimated_minutes?.toString() || '');
+  const [titleTpl, setTitleTpl] = useState(template.meeting_title_template || '');
   const nameRef = useRef(template.name);
   const descRef = useRef(template.description || '');
   const minutesRef = useRef(template.estimated_minutes ?? null);
+  const titleTplRef = useRef(template.meeting_title_template || '');
 
   useEffect(() => {
     if (template.name !== nameRef.current) { nameRef.current = template.name; setName(template.name); }
@@ -84,6 +86,10 @@ function DeliverableRow({
     const m = template.estimated_minutes ?? null;
     if (m !== minutesRef.current) { minutesRef.current = m; setMinutes(m?.toString() || ''); }
   }, [template.estimated_minutes]);
+  useEffect(() => {
+    const t = template.meeting_title_template || '';
+    if (t !== titleTplRef.current) { titleTplRef.current = t; setTitleTpl(t); }
+  }, [template.meeting_title_template]);
 
   return (
     <div className="space-y-1 pl-6 group">
