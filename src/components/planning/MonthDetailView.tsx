@@ -372,10 +372,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                     return (
                       <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => obj && setSelectedObjective(obj)}>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(g.status)}</Badge></TableCell>
-                        <TableCell className="text-xs">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
+                        <TableCell className="">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
                         <TableCell className="text-sm">{obj?.title || '—'}</TableCell>
-                        <TableCell className="text-xs text-right font-medium">{targetVal > 0 ? `${targetVal.toLocaleString('pt-PT')}${unit}` : '—'}</TableCell>
-                        <TableCell className="text-xs text-right font-medium">{computedActual > 0 ? `${computedActual.toLocaleString('pt-PT', { minimumFractionDigits: unit === '€' ? 2 : 0 })}${unit}` : '0'}</TableCell>
+                        <TableCell className="text-right font-medium">{targetVal > 0 ? `${targetVal.toLocaleString('pt-PT')}${unit}` : '—'}</TableCell>
+                        <TableCell className="text-right font-medium">{computedActual > 0 ? `${computedActual.toLocaleString('pt-PT', { minimumFractionDigits: unit === '€' ? 2 : 0 })}${unit}` : '0'}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Progress value={pct} className="h-1.5 w-16" />
@@ -398,10 +398,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   {linkedObjectives.map((o) => (
                     <TableRow key={o.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedObjective(o)}>
                       <TableCell><Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(o.status)}</Badge></TableCell>
-                      <TableCell className="text-xs">{planAreaLabel(o.area)}</TableCell>
+                      <TableCell className="">{planAreaLabel(o.area)}</TableCell>
                       <TableCell className="text-sm font-medium">{o.title}</TableCell>
-                      <TableCell className="text-xs">{o.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</TableCell>
-                      <TableCell className="text-xs">{o.deadline || '—'}</TableCell>
+                      <TableCell className="">{o.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</TableCell>
+                      <TableCell className="">{o.deadline || '—'}</TableCell>
                       <TableCell><Progress value={planning.objectiveProgress(o)} className="h-1.5 w-20" /></TableCell>
                     </TableRow>
                   ))}
@@ -443,12 +443,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 </TableRow></TableHeader>
                 <TableBody>
                   <TableRow className="cursor-pointer hover:bg-muted/60" onClick={() => { setGoalEditValue(commGoal ? String(commGoal.goal_amount) : ''); setGoalEditOpen(true); }}>
-                    <TableCell className="text-xs">T{quarter}</TableCell>
-                    <TableCell className="text-xs">{monthName}</TableCell>
-                    <TableCell className="text-xs">{range.label}</TableCell>
-                    <TableCell className="text-xs text-right font-medium">{commGoal ? `${Number(commGoal.goal_amount).toLocaleString('pt-PT')}€` : '—'}</TableCell>
-                    <TableCell className="text-xs text-right font-medium">{totalInvoiced.toLocaleString('pt-PT')}€</TableCell>
-                    <TableCell className="text-xs">
+                    <TableCell className="">T{quarter}</TableCell>
+                    <TableCell className="">{monthName}</TableCell>
+                    <TableCell className="">{range.label}</TableCell>
+                    <TableCell className="text-right font-medium">{commGoal ? `${Number(commGoal.goal_amount).toLocaleString('pt-PT')}€` : '—'}</TableCell>
+                    <TableCell className="text-right font-medium">{totalInvoiced.toLocaleString('pt-PT')}€</TableCell>
+                    <TableCell className="">
                       {commGoal ? (
                         <span className="text-muted-foreground">
                           Progresso: {Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100)}% — Faturado: {totalInvoiced.toLocaleString('pt-PT')}€ de {Number(commGoal.goal_amount).toLocaleString('pt-PT')}€
@@ -497,11 +497,11 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   ) : prodSalesData.map(p => (
                     <TableRow key={p.product}>
                       <TableCell className="text-sm font-medium">{p.product}</TableCell>
-                      <TableCell className="text-xs text-right">{p.numVendas}</TableCell>
-                      <TableCell className="text-xs text-right">{Number(p.price).toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-xs text-right">{p.goalAmount.toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-xs text-right">{p.totalFat.toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{p.goalAmount > 0 ? `Em progresso (${p.pct}%)` : 'Sem previsão definida'}</TableCell>
+                      <TableCell className="text-right">{p.numVendas}</TableCell>
+                      <TableCell className="text-right">{Number(p.price).toLocaleString('pt-PT')}€</TableCell>
+                      <TableCell className="text-right">{p.goalAmount.toLocaleString('pt-PT')}€</TableCell>
+                      <TableCell className="text-right">{p.totalFat.toLocaleString('pt-PT')}€</TableCell>
+                      <TableCell className="text-muted-foreground">{p.goalAmount > 0 ? `Em progresso (${p.pct}%)` : 'Sem previsão definida'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -516,7 +516,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                     <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
                   ) : sales.map((sl) => (
                     <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
-                      <TableCell className="text-xs">{sl.sale_id}</TableCell>
+                      <TableCell className="">{sl.sale_id}</TableCell>
                       <TableCell className="text-sm">{sl.client || '—'}</TableCell>
                       <TableCell className="text-sm">{sl.product || '—'}</TableCell>
                       <TableCell className="text-sm text-right">{Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€</TableCell>
@@ -539,7 +539,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                     <TableRow key={a.id}>
                       <TableCell><Badge variant="secondary" className="text-xs">{a.status}</Badge></TableCell>
                       <TableCell className="text-sm">{a.action_name}</TableCell>
-                      <TableCell className="text-xs">{a.start_date ? format(parseISO(a.start_date), 'dd/MM') : '—'}{a.end_date ? ` → ${format(parseISO(a.end_date), 'dd/MM')}` : ''}</TableCell>
+                      <TableCell className="">{a.start_date ? format(parseISO(a.start_date), 'dd/MM') : '—'}{a.end_date ? ` → ${format(parseISO(a.end_date), 'dd/MM')}` : ''}</TableCell>
                       <TableCell className="text-sm">{a.product || '—'}</TableCell>
                     </TableRow>
                   ))}
@@ -663,12 +663,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
                 ) : activeClients.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="text-xs">{c.client_id}</TableCell>
-                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+                    <TableCell className="">{c.client_id}</TableCell>
+                    <TableCell className="">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="default" className="text-xs">{c.status === 'em_onboarding' ? 'Em onboarding' : 'Ativo'}</Badge></TableCell>
                     <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="text-xs">{c.email || '—'}</TableCell>
-                    <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
+                    <TableCell className="">{c.email || '—'}</TableCell>
+                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -683,12 +683,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes em pausa.</TableCell></TableRow>
                 ) : pausedClients.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="text-xs">{c.client_id}</TableCell>
-                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+                    <TableCell className="">{c.client_id}</TableCell>
+                    <TableCell className="">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="secondary" className="bg-warning/15 text-warning text-xs">Pausado</Badge></TableCell>
                     <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="text-xs">{c.email || '—'}</TableCell>
-                    <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
+                    <TableCell className="">{c.email || '—'}</TableCell>
+                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -703,12 +703,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem clientes a terminar este mês.</TableCell></TableRow>
                 ) : endingClients.map((c) => (
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="text-xs">{c.client_id}</TableCell>
-                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+                    <TableCell className="">{c.client_id}</TableCell>
+                    <TableCell className="">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="secondary" className="text-xs">{c.status}</Badge></TableCell>
                     <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="text-xs">{c.email || '—'}</TableCell>
-                    <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
+                    <TableCell className="">{c.email || '—'}</TableCell>
+                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
                     <TableCell><Badge variant="destructive" className="text-xs">{c.end_of_cycle}</Badge></TableCell>
                   </TableRow>
                 ))}
@@ -737,13 +737,13 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem recebimentos registados.</TableCell></TableRow>
               ) : sales.map((sl) => (
                 <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
-                  <TableCell className="text-xs">{sl.sale_id}</TableCell>
+                  <TableCell className="">{sl.sale_id}</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
-                  <TableCell className="text-xs">{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                  <TableCell className="text-xs">{sl.description || '—'}</TableCell>
-                  <TableCell className="text-xs text-right">{Number(sl.base_value || 0).toLocaleString('pt-PT')}€</TableCell>
-                  <TableCell className="text-xs">{sl.product || '—'}</TableCell>
-                  <TableCell className="text-xs">{sl.client || '—'}</TableCell>
+                  <TableCell className="">{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                  <TableCell className="">{sl.description || '—'}</TableCell>
+                  <TableCell className="text-right">{Number(sl.base_value || 0).toLocaleString('pt-PT')}€</TableCell>
+                  <TableCell className="">{sl.product || '—'}</TableCell>
+                  <TableCell className="">{sl.client || '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -773,10 +773,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               <TableBody>
                 {items.map((t) => (
                   <TableRow key={t.id}>
-                    <TableCell className="text-xs font-medium">{t.name}</TableCell>
+                    <TableCell className="font-medium">{t.name}</TableCell>
                     <TableCell><Badge variant={t.priority === 'alta' ? 'destructive' : 'secondary'} className="text-[10px]">{t.priority}</Badge></TableCell>
                     <TableCell><Badge variant={isTaskDone(t) ? 'default' : 'outline'} className="text-[10px]">{t.status}</Badge></TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{t.deadline || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{t.deadline || '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -844,10 +844,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                           const isUnder = cb.deviation < -2;
                           return (
                             <TableRow key={cb.clientId} className={cn('cursor-pointer hover:bg-muted/60', isOver && 'bg-destructive/5')} onClick={() => setExpandedClient({ ...cb, productName: p.name })}>
-                              <TableCell className="text-xs">{cb.clientName} <span className="text-muted-foreground">({cb.clientCode})</span></TableCell>
-                              <TableCell className="text-xs text-right">{cb.estimated}h</TableCell>
-                              <TableCell className="text-xs text-right">{cb.realHours}h</TableCell>
-                              <TableCell className="text-xs text-right">
+                              <TableCell className="">{cb.clientName} <span className="text-muted-foreground">({cb.clientCode})</span></TableCell>
+                              <TableCell className="text-right">{cb.estimated}h</TableCell>
+                              <TableCell className="text-right">{cb.realHours}h</TableCell>
+                              <TableCell className="text-right">
                                 {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-info font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
                               </TableCell>
                               <TableCell>
@@ -1121,17 +1121,17 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
                         const memberName = team.find((m) => m.id === te.member_id)?.full_name || '—';
                         return (
                           <TableRow key={te.id}>
-                            <TableCell className="text-xs">{te.entry_date}</TableCell>
-                            <TableCell className="text-xs">{te.description || '—'}</TableCell>
+                            <TableCell className="">{te.entry_date}</TableCell>
+                            <TableCell className="">{te.description || '—'}</TableCell>
                             <TableCell><Badge variant="outline" className="text-[10px]">{te.category || '—'}</Badge></TableCell>
-                            <TableCell className="text-xs">{memberName}</TableCell>
-                            <TableCell className="text-xs text-right font-medium">{te.duration}h</TableCell>
+                            <TableCell className="">{memberName}</TableCell>
+                            <TableCell className="text-right font-medium">{te.duration}h</TableCell>
                           </TableRow>
                         );
                       })}
                       <TableRow className="bg-muted/30 font-medium">
-                        <TableCell colSpan={4} className="text-xs text-right">Total</TableCell>
-                        <TableCell className="text-xs text-right font-bold">{totalHours}h</TableCell>
+                        <TableCell colSpan={4} className="text-right">Total</TableCell>
+                        <TableCell className="text-right font-bold">{totalHours}h</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>

@@ -323,9 +323,9 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
                         </TableCell>
                         <TableCell className="text-sm">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
                         <TableCell className="text-sm">{g.name || '—'}</TableCell>
-                        <TableCell className="text-xs">{g.target_date ? format(parseISO(g.target_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                        <TableCell className="text-xs">{g.achieved_date ? format(parseISO(g.achieved_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                        <TableCell className="text-xs">{g.period || '—'}</TableCell>
+                        <TableCell className="">{g.target_date ? format(parseISO(g.target_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                        <TableCell className="">{g.achieved_date ? format(parseISO(g.achieved_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                        <TableCell className="">{g.period || '—'}</TableCell>
                         <TableCell className="text-right">
                           {dev !== null ? (
                             <Badge variant={dev < 0 ? 'destructive' : 'secondary'} className="text-xs">
@@ -365,10 +365,10 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
                       </TableCell>
                       <TableCell className="text-sm">{planAreaLabel(o.area)}</TableCell>
                       <TableCell className="text-sm font-medium">{o.title}</TableCell>
-                      <TableCell className="text-xs capitalize">{o.objective_type}</TableCell>
+                      <TableCell className="capitalize">{o.objective_type}</TableCell>
                       <TableCell className="text-sm text-right">{o.target_value ?? '—'}</TableCell>
                       <TableCell className="text-sm text-right">{o.current_value ?? '—'}</TableCell>
-                      <TableCell className="text-xs">{o.deadline ? format(parseISO(o.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
+                      <TableCell className="">{o.deadline ? format(parseISO(o.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

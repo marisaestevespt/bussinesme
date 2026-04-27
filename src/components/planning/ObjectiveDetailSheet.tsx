@@ -370,12 +370,12 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
             return (
               <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
                 <TableCell className="text-sm">{g.period}</TableCell>
-                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
-                <TableCell className="text-xs">
+                <TableCell className="">{g.target_value || '—'}</TableCell>
+                <TableCell className="">
                   {actualVal != null ? Number(actualVal).toLocaleString('pt-PT') : '—'}
                   {isAutoSource && !g.isQuarter && actualVal != null && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
                 </TableCell>
-                <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                <TableCell className={` ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
                 <TableCell>
                   <Badge variant={autoStatus === 'atingido' ? 'default' : autoStatus === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">{planStatusLabel(autoStatus)}</Badge>
                   {autoStatus !== g.status && !g.isQuarter && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
@@ -508,16 +508,16 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
             return (
               <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-destructive/15' : dueToday ? 'bg-warning/15' : ''}`} onClick={() => setEditMetric(m)}>
                 <TableCell className="text-sm font-medium">{m.name}</TableCell>
-                <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
-                <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell className="">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
+                <TableCell className="">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell className="">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[status]}`} />
                     <span className="text-xs">{statusLabels[status]}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
+                <TableCell className="">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
                 <TableCell className="flex gap-1">
                   <button className="text-muted-foreground hover:text-foreground" onClick={e => { e.stopPropagation(); setHistoryMetric(m); }} title="Histórico"><TrendingUp className="h-3 w-3" /></button>
                   <button onClick={e => { e.stopPropagation(); planning.deleteMetric.mutate(m.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
@@ -672,13 +672,13 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
                 <TableBody>
                   {allHistory.filter((r: any) => r.metric_id === historyMetric.id).map((r: any) => (
                     <TableRow key={r.id}>
-                      <TableCell className="text-xs">{r.recorded_at}</TableCell>
-                      <TableCell className="text-xs">{Number(r.value).toLocaleString()}</TableCell>
-                      <TableCell className="text-xs">{r.notes || '—'}</TableCell>
+                      <TableCell className="">{r.recorded_at}</TableCell>
+                      <TableCell className="">{Number(r.value).toLocaleString()}</TableCell>
+                      <TableCell className="">{r.notes || '—'}</TableCell>
                     </TableRow>
                   ))}
                   {allHistory.filter((r: any) => r.metric_id === historyMetric.id).length === 0 && (
-                    <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground text-xs py-4">Sem registos</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem registos</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -751,9 +751,9 @@ function ActionsSection({ objectiveId, actions, planning }: any) {
           <TableBody>{actions.map((a: any) => (
             <TableRow key={a.id} className="cursor-pointer hover:bg-muted/60" onClick={() => openEdit(a)}>
               <TableCell className="text-sm">{a.description}</TableCell>
-              <TableCell className="text-xs">{a.action_type === 'tarefa' ? 'Tarefa' : 'Ação Simples'}</TableCell>
+              <TableCell className="">{a.action_type === 'tarefa' ? 'Tarefa' : 'Ação Simples'}</TableCell>
               <TableCell><Badge variant={a.status === 'feito' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(a.status)}</Badge></TableCell>
-              <TableCell className="text-xs">{a.deadline || '—'}</TableCell>
+              <TableCell className="">{a.deadline || '—'}</TableCell>
               <TableCell className="flex gap-1">
                 {a.action_type !== 'tarefa' && !a.task_id && (
                   <Button size="sm" variant="outline" className="h-7 text-xs" onClick={e => { e.stopPropagation(); planning.convertActionToTask.mutate(a); }}>

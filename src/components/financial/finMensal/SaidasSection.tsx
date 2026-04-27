@@ -217,7 +217,7 @@ export function SaidasTable({
                     }}
                   />
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{e.expense_id || '—'}</TableCell>
+                <TableCell className="text-muted-foreground whitespace-nowrap">{e.expense_id || '—'}</TableCell>
                 <TableCell className="whitespace-nowrap">{e.expense_date || '—'}</TableCell>
                 <TableCell>{e.description || '—'}</TableCell>
                 <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>

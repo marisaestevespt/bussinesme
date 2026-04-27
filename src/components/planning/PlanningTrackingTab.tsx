@@ -132,12 +132,12 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
                 const displayVal = m.source === 'manual' ? m.current_value : autoVal;
                 return (
                   <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-destructive/15' : ''}`} onClick={() => setEditMetric(m)}>
-                    <TableCell className="text-xs">{getObjectiveName(m.objective_id)}</TableCell>
+                    <TableCell className="">{getObjectiveName(m.objective_id)}</TableCell>
                     <TableCell className="text-sm font-medium">{m.name}</TableCell>
-                    <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                    <TableCell className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</TableCell>
-                    <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
-                    <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
+                    <TableCell className="">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
+                    <TableCell className="">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</TableCell>
+                    <TableCell className="">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                    <TableCell className="">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
                     <TableCell><TrendIcon metricId={m.id} /></TableCell>
                   </TableRow>
                 );

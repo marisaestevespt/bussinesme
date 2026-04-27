@@ -231,10 +231,10 @@ export function SettingsUsers() {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
+                        <TableCell className="text-muted-foreground">
                           {p.phone || '—'}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
+                        <TableCell className="text-muted-foreground">
                           {format(parseISO(p.created_at), 'dd/MM/yyyy')}
                         </TableCell>
                         <TableCell className="text-right">

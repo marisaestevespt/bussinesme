@@ -117,9 +117,9 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
               <TableBody>
                 {clientStats.map((c: any) => (
                   <TableRow
-                    key={c.name}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
+ key={c.name}
+ className="cursor-pointer hover:bg-muted/50"
+ onClick={() => {
                       const match = clientsLookup.find((cl: any) => cl.full_name === c.name);
                       if (match) navigate(`/hub/clientes/${match.id}`);
                     }}

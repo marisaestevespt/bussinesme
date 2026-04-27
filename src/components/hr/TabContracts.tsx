@@ -81,12 +81,12 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
                 contractsData.map(c => (
                   <TableRow key={c.id}>
                     <TableCell className="text-sm">{memberName(c.member_id)}</TableCell>
-                    <TableCell className="text-xs">
+                    <TableCell className="">
                       {labelFor(CONTRACT_TYPES, c.contract_type)}
                       {c.previous_contract_id && <Badge variant="outline" className="ml-2 text-[9px]">Renovação</Badge>}
                     </TableCell>
-                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
-                    <TableCell className="text-xs">{c.end_date || '—'}</TableCell>
+                    <TableCell className="">{c.start_date || '—'}</TableCell>
+                    <TableCell className="">{c.end_date || '—'}</TableCell>
                     <TableCell>{(() => {
                       const eff = deriveContractStatus(c);
                       return <Badge variant={eff === 'ativo' ? 'default' : eff === 'terminado' ? 'secondary' : 'outline'} className="text-[10px]">{labelFor(CONTRACT_STATUSES, eff)}</Badge>;
@@ -134,10 +134,10 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
                   return (
                     <TableRow key={p.id} className={isOverdue ? 'bg-destructive/5' : ''}>
                       <TableCell className="text-sm">{memberName(p.member_id)}</TableCell>
-                      <TableCell className="text-xs">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
-                      <TableCell className="text-xs">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
-                      <TableCell className="text-xs">€{Number(p.gross_value).toLocaleString()}</TableCell>
-                      <TableCell className="text-xs">€{Number(p.net_value).toLocaleString()}</TableCell>
+                      <TableCell className="">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
+                      <TableCell className="">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
+                      <TableCell className="">€{Number(p.gross_value).toLocaleString()}</TableCell>
+                      <TableCell className="">€{Number(p.net_value).toLocaleString()}</TableCell>
                       <TableCell><Badge variant={p.status === 'pago' ? 'default' : isOverdue ? 'destructive' : 'secondary'} className="text-[10px]">{isOverdue ? 'Em atraso' : labelFor(PAYMENT_STATUSES, p.status)}</Badge></TableCell>
                       <TableCell><div className="flex gap-1">
                         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPaymentDialog(p)}>Editar</Button>

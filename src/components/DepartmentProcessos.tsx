@@ -279,9 +279,9 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
                   const linkedSop = sops.find((s: any) => s.routine_id === pr.id);
                   return (
                     <TableRow
-                      key={pr.id}
-                      className={cn("cursor-pointer", linkedSop && "hover:bg-muted/50")}
-                      onClick={() => { if (linkedSop) navigate(`/hub/processos/${linkedSop.id}`); }}
+ key={pr.id}
+ className={cn("cursor-pointer", linkedSop &&"hover:bg-muted/50")}
+ onClick={() => { if (linkedSop) navigate(`/hub/processos/${linkedSop.id}`); }}
                     >
                       <TableCell className="font-medium">{pr.title}</TableCell>
                       <TableCell>{recLabel}</TableCell>

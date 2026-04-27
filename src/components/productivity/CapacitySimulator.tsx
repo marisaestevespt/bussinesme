@@ -637,7 +637,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                   <TableRow key={f.id}>
                     <TableCell className="text-sm">{f.name}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{f.type}</Badge></TableCell>
-                    <TableCell className="text-xs">{f.startDate ? new Date(f.startDate + 'T00:00:00').toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }) : '—'}</TableCell>
+                    <TableCell className="">{f.startDate ? new Date(f.startDate + 'T00:00:00').toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }) : '—'}</TableCell>
                     <TableCell className="text-right text-sm">{formatEuro(f.gross)}</TableCell>
                     <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? formatEuro(f.ssEmployer) : <span className="text-muted-foreground">n/a</span>}</TableCell>
                     <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? formatEuro(f.mealAllowance) : <span className="text-muted-foreground">n/a</span>}</TableCell>

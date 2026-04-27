@@ -375,13 +375,13 @@ export function TabEscala() {
                   const isHoliday = nationalHolidays.some(h => isSameDay(h, d));
                   return (
                     <TableHead
-                      key={d.toISOString()}
-                      className={cn(
-                        'text-center text-[10px] px-1 min-w-[32px]',
-                        isWeekend && 'bg-muted/50',
-                        isHoliday && 'bg-warning/15 dark:bg-warning/20'
-                      )}
-                    >
+ key={d.toISOString()}
+ className={cn(
+ 'text-center text-[10px] px-1 min-w-[32px]',
+ isWeekend && 'bg-muted/50',
+ isHoliday && 'bg-warning/15 dark:bg-warning/20'
+ )}
+ >
                       <div>{DAY_LABELS[d.getDay()]}</div>
                       <div className="font-semibold">{d.getDate()}</div>
                     </TableHead>

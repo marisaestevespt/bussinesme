@@ -234,7 +234,7 @@ function ByClientView({ entries, clients }: { entries: any[]; clients: any[] }) 
                     <TableCell className="text-sm text-right">{r.hours.toFixed(1)}h</TableCell>
                     <TableCell className="text-sm text-right">{r.sessions}</TableCell>
                     <TableCell className="text-sm text-right">{r.avg.toFixed(1)}h</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{r.last ? format(new Date(r.last), 'dd/MM') : '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{r.last ? format(new Date(r.last), 'dd/MM') : '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -385,14 +385,14 @@ function TimeLogView({ entries, members, clients, projects, tasks }: { entries: 
                 <TableRow><TableCell colSpan={9} className="text-center text-sm text-muted-foreground py-8">Sem registos de tempo</TableCell></TableRow>
               ) : filtered.map((e: any) => (
                 <TableRow key={e.id}>
-                  <TableCell className="text-xs text-muted-foreground font-mono">{e.entry_id}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono">{e.entry_id}</TableCell>
                   <TableCell className="text-sm">{format(new Date(e.entry_date), 'dd/MM/yyyy')}</TableCell>
                   <TableCell className="text-sm">{e.member_id ? memberName(e.member_id) : '—'}</TableCell>
                   <TableCell className="text-sm text-right font-medium">{Number(e.duration).toFixed(1)}h</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{catLabel(e.category)}</Badge></TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">{e.task_id ? taskName(e.task_id) : '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{e.client_id ? clientName(e.client_id) : '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">{e.description || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground max-w-[120px] truncate">{e.task_id ? taskName(e.task_id) : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{e.client_id ? clientName(e.client_id) : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground max-w-[150px] truncate">{e.description || '—'}</TableCell>
                   <TableCell><button onClick={() => deleteEntry.mutate(e.id)} className="text-muted-foreground hover:text-destructive"><Clock className="h-3 w-3" /></button></TableCell>
                 </TableRow>
               ))}

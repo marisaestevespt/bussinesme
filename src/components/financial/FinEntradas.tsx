@@ -124,7 +124,7 @@ export function FinEntradas({ sales, currentYear }: Props) {
               ) : filtered.map(s => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(s)}>
                     <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={Array.isArray(s.documents) && s.documents.length > 0} /></TableCell>
-                    <TableCell className="font-mono text-xs">{s.sale_id}</TableCell>
+                    <TableCell className="font-mono">{s.sale_id}</TableCell>
                     <TableCell>{s.payment_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{s.description || '—'}</TableCell>
                     <TableCell className="text-right">{formatEuro(s.base_value)}</TableCell>

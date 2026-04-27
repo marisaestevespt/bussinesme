@@ -42,7 +42,7 @@ export function EntradasTable({ monthSales, totalBaseEntradas, totalEntradas, on
                 <TableRow key={i} className="cursor-pointer hover:bg-muted/50" onClick={() => onSelectSale(s)}>
                   <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={docs.length > 0} /></TableCell>
                   <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
                   <TableCell>{s.description || '—'}</TableCell>
                   <TableCell>{s.client || '—'}</TableCell>
                   <TableCell className="text-right">{formatEuro(s.base_value)}</TableCell>

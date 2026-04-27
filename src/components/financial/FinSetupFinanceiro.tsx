@@ -136,7 +136,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
                   <TableCell><Badge variant="secondary" className="text-xs">{CATEGORY_LABELS[s.category] || s.category || '—'}</Badge></TableCell>
                   <TableCell><Badge variant="outline">{PAYMENT_LABELS[s.payment_method] || s.payment_method || '—'}</Badge></TableCell>
                   <TableCell>{s.default_vat_rate != null ? `${s.default_vat_rate}%` : '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
+                  <TableCell className="text-muted-foreground">
                     {s.contract_start_date && s.contract_end_date
                       ? `${s.contract_start_date} → ${s.contract_end_date}`
                       : '—'}

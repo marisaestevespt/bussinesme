@@ -127,7 +127,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
               {memberCapacity.map(m => (
                 <TableRow key={m.id}>
                   <TableCell className="text-sm font-medium">{m.name}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{m.role}</TableCell>
+                  <TableCell className="text-muted-foreground">{m.role}</TableCell>
                   <TableCell><Badge variant={m.isClientFacing ? 'default' : 'secondary'} className="text-[10px]">{m.areaLabel}</Badge></TableCell>
                   <TableCell className="text-sm text-right tabular-nums">{m.monthlyH}h</TableCell>
                   <TableCell className="text-sm text-right tabular-nums font-medium">{m.actualH}h</TableCell>
@@ -135,8 +135,8 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                   <TableCell className="text-sm text-right tabular-nums">{m.internalH}h</TableCell>
                   <TableCell className={`text-sm text-right tabular-nums ${m.remainingH < 0 ? 'text-destructive' : ''}`}>{m.remainingH}h</TableCell>
                   <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-warning' : ''}`}>{m.usagePct}%</TableCell>
-                  <TableCell className="text-center text-xs">{m.weekendDays > 0 ? <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">{m.weekendDays}d · {m.weekendH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
-                  <TableCell className="text-center text-xs">{m.holidayDays > 0 ? <Badge variant="outline" className="text-[10px] border-info/30 text-info">{m.holidayDays}d · {m.holidayH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell className="text-center">{m.weekendDays > 0 ? <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">{m.weekendDays}d · {m.weekendH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell className="text-center">{m.holidayDays > 0 ? <Badge variant="outline" className="text-[10px] border-info/30 text-info">{m.holidayDays}d · {m.holidayH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell>
                     <div className="flex h-2.5 w-24 rounded-full overflow-hidden bg-muted">
                       <div className={`h-full rounded-full ${m.usagePct > 100 ? 'bg-destructive' : m.usagePct > 85 ? 'bg-warning' : 'bg-primary'}`} style={{ width: `${Math.min(m.usagePct, 100)}%` }} />

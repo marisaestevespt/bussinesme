@@ -159,14 +159,14 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 <TableRow key={i}>
                   <TableCell className="font-medium">{d.mes}</TableCell>
                   <TableCell
-                    className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
-                    onClick={() => setCobradoMonth(i)}
+ className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
+ onClick={() => setCobradoMonth(i)}
                   >
                     {formatEuro(d.cobrado)}
                   </TableCell>
                   <TableCell
-                    className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
-                    onClick={() => setPagoMonth(i)}
+ className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
+ onClick={() => setPagoMonth(i)}
                   >
                     {formatEuro(d.pago)}
                   </TableCell>

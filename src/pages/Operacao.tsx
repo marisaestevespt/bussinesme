@@ -609,9 +609,9 @@ export default function OperacaoPage() {
                         const days = t.deadline ? differenceInDays(today, new Date(t.deadline)) : 0;
                         return (
                           <TableRow
-                            key={t.id}
-                            className="cursor-pointer"
-                            onClick={() => { setShowOverdueTasks(false); setTaskDetailId(t.id); }}
+ key={t.id}
+ className="cursor-pointer"
+ onClick={() => { setShowOverdueTasks(false); setTaskDetailId(t.id); }}
                           >
                             <TableCell className="text-sm">
                               <div className="flex items-center gap-2">
@@ -619,10 +619,10 @@ export default function OperacaoPage() {
                                 <span className="font-medium">{t.name}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="text-xs text-muted-foreground">
+                            <TableCell className="text-muted-foreground">
                               {proj?.name || '—'}
                             </TableCell>
-                            <TableCell className="text-xs text-right tabular-nums text-destructive">
+                            <TableCell className="text-right tabular-nums text-destructive">
                               {t.deadline ? format(new Date(t.deadline), 'dd/MM/yyyy') : '—'}
                             </TableCell>
                             <TableCell className="text-right">
@@ -1104,8 +1104,8 @@ export default function OperacaoPage() {
                         const statusMeta = TASK_STATUS_META[t.status as keyof typeof TASK_STATUS_META] ?? { label: t.status, color: 'bg-muted text-muted-foreground' };
                         return (
                           <TableRow
-                            key={t.id}
-                            onClick={() => setTaskDetailId(t.id)}
+ key={t.id}
+ onClick={() => setTaskDetailId(t.id)}
                             className="cursor-pointer"
                           >
                             <TableCell>
@@ -1132,10 +1132,10 @@ export default function OperacaoPage() {
                                 <span className="text-xs text-muted-foreground">—</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-xs text-muted-foreground">
+                            <TableCell className="text-muted-foreground">
                               <span className="block truncate">{projName ?? '—'}</span>
                             </TableCell>
-                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            <TableCell className="text-muted-foreground whitespace-nowrap">
                               {t.deadline ? format(new Date(t.deadline), 'dd/MM') : '—'}
                             </TableCell>
                           </TableRow>
@@ -1324,19 +1324,19 @@ export default function OperacaoPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs">Nome</TableHead>
-                      <TableHead className="text-xs">Data de Início</TableHead>
-                      <TableHead className="text-xs">Fim de Ciclo</TableHead>
-                      <TableHead className="text-xs">Produto Atual</TableHead>
+                      <TableHead className="">Nome</TableHead>
+                      <TableHead className="">Data de Início</TableHead>
+                      <TableHead className="">Fim de Ciclo</TableHead>
+                      <TableHead className="">Produto Atual</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {clients.filter(c => c.status === expandedStatus).map(c => (
                       <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
                         <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}</TableCell>
-                        <TableCell className="text-xs">{c.current_product || '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">{c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}</TableCell>
+                        <TableCell className="">{c.current_product || '—'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -1345,10 +1345,10 @@ export default function OperacaoPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs">ID</TableHead>
-                      <TableHead className="text-xs">Nome</TableHead>
-                      <TableHead className="text-xs">Data de Início</TableHead>
-                      {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && <TableHead className="text-xs">Por concluir</TableHead>}
+                      <TableHead className="">ID</TableHead>
+                      <TableHead className="">Nome</TableHead>
+                      <TableHead className="">Data de Início</TableHead>
+                      {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && <TableHead className="">Por concluir</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1366,9 +1366,9 @@ export default function OperacaoPage() {
                       const allDone = allItems.length > 0 && pendingItems.length === 0;
                       return (
                         <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
-                          <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
+                          <TableCell className="font-mono">{c.client_id}</TableCell>
                           <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                          <TableCell className="text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
                           {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && (
                             <TableCell>
                               {allDone ? (

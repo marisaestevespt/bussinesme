@@ -172,8 +172,8 @@ function TableView({ items, onItemClick }: { items: UnifiedItem[]; onItemClick: 
           )}
           {items.map(i => (
             <TableRow
-              key={i.id}
-              onClick={() => onItemClick(i)}
+ key={i.id}
+ onClick={() => onItemClick(i)}
               className="border-b-0 border-t border-border/40 hover:bg-muted/40 transition-colors cursor-pointer"
             >
               <TableCell className="py-3">
@@ -183,13 +183,13 @@ function TableView({ items, onItemClick }: { items: UnifiedItem[]; onItemClick: 
                 <div className={cn('text-sm font-medium', i.completed && 'line-through text-muted-foreground')}>{i.title}</div>
                 {i.subtitle && <div className="text-xs text-muted-foreground mt-0.5">{i.subtitle}</div>}
               </TableCell>
-              <TableCell className="py-3 text-xs text-muted-foreground">{SOURCE_LABELS[i.source]}</TableCell>
+              <TableCell className="py-3 text-muted-foreground">{SOURCE_LABELS[i.source]}</TableCell>
               <TableCell className="py-3">
                 {i.priority
                   ? <span className="text-xs font-medium text-foreground/80">{PRIORITY_LABEL[i.priority] || i.priority}</span>
                   : <span className="text-xs text-muted-foreground/60">—</span>}
               </TableCell>
-              <TableCell className="py-3 text-xs text-muted-foreground">
+              <TableCell className="py-3 text-muted-foreground">
                 {i.deadline ? format(parseISO(i.deadline), 'dd MMM', { locale: pt }) : '—'}
               </TableCell>
             </TableRow>

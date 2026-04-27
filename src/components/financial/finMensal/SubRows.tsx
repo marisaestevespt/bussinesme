@@ -56,7 +56,7 @@ export function SubRow({ sub, linkedExpense, month, currentYear, fin, onExpenseC
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
-      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
+      <TableCell className="text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
       <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
       <TableCell>{linkedExpense?.description || subName}</TableCell>
       <TableCell>{getCategoryLabel('expense', category)}</TableCell>
@@ -117,7 +117,7 @@ export function ContractRow({ contract, linkedExpense, month, currentYear, fin, 
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `contract-${contract.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
-      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
+      <TableCell className="text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
       <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
       <TableCell>{description}</TableCell>
       <TableCell>{categoryLabel}</TableCell>
