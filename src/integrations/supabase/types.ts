@@ -11391,6 +11391,7 @@ export type Database = {
         Args: { _deliverable_id: string }
         Returns: string
       }
+      rollback_renewal_project: { Args: { _project_id: string }; Returns: Json }
       send_notification_to_user: {
         Args: {
           _link?: string
