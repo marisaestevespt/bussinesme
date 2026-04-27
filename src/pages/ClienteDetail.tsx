@@ -1112,7 +1112,7 @@ export default function ClienteDetailPage() {
 
       {/* Renewal dialog */}
       <Dialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Renovar / Novo Ciclo</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1">
@@ -1130,9 +1130,79 @@ export default function ClienteDetailPage() {
               )}
             </div>
 
-            <div className="space-y-1">
-              <Label>Data de início do novo ciclo</Label>
-              <Input type="date" value={renewStartDate} onChange={e => setRenewStartDate(e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Data de início do novo ciclo</Label>
+                <Input type="date" value={renewStartDate} onChange={e => setRenewStartDate(e.target.value)} />
+                {(() => {
+                  const startObj = parseISO(renewStartDate);
+                  const today = new Date(); today.setHours(0,0,0,0);
+                  return startObj > today ? (
+                    <p className="text-xs text-info">
+                      📅 Data futura — projeto será criado como <b>agendado</b> e ativado automaticamente.
+                    </p>
+                  ) : null;
+                })()}
+              </div>
+              <div className="space-y-1">
+                <Label>Método de pagamento</Label>
+                <Select value={renewPayMethod} onValueChange={setRenewPayMethod}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pagamento_total">Pagamento Total</SelectItem>
+                    <SelectItem value="entrada_prestacoes">Entrada + Prestações</SelectItem>
+                    <SelectItem value="prestacoes">Prestações</SelectItem>
+                    <SelectItem value="avenca_mensal">Avença Mensal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Payment-specific fields */}
+            <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+              <p className="text-xs font-medium text-muted-foreground">Configuração dos pagamentos</p>
+
+              {renewPayMethod === 'pagamento_total' && (
+                <div className="space-y-1">
+                  <Label>Valor total (€)</Label>
+                  <Input type="number" step="0.01" value={renewTotalValue} onChange={e => setRenewTotalValue(e.target.value)} />
+                </div>
+              )}
+
+              {renewPayMethod === 'entrada_prestacoes' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1"><Label>Valor total (€)</Label><Input type="number" step="0.01" value={renewTotalValue} onChange={e => setRenewTotalValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Entrada (€)</Label><Input type="number" step="0.01" value={renewEntradaValue} onChange={e => setRenewEntradaValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Nº prestações</Label><Input type="number" value={renewNumPrestacoes} onChange={e => setRenewNumPrestacoes(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>
+                </div>
+              )}
+
+              {renewPayMethod === 'prestacoes' && (
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1"><Label>Valor total (€)</Label><Input type="number" step="0.01" value={renewTotalValue} onChange={e => setRenewTotalValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Nº prestações</Label><Input type="number" value={renewNumPrestacoes} onChange={e => setRenewNumPrestacoes(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>
+                </div>
+              )}
+
+              {renewPayMethod === 'avenca_mensal' && (
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1"><Label>Valor mensal (€)</Label><Input type="number" step="0.01" value={renewAvencaValue} onChange={e => setRenewAvencaValue(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Nº meses</Label><Input type="number" value={renewNumMeses} onChange={e => setRenewNumMeses(e.target.value)} /></div>
+                  <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <Label>Forma de cobrança (opcional)</Label>
+                <Select value={renewPaymentMethodType} onValueChange={setRenewPaymentMethodType}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {activeProjects.length > 0 && (
@@ -1142,13 +1212,22 @@ export default function ClienteDetailPage() {
                   <p className="text-xs text-muted-foreground">
                     {activeProjects.length} projeto(s) ativo(s): {activeProjects.map((p: any) => p.name).join(', ')}
                   </p>
+                  {(() => {
+                    const startObj = parseISO(renewStartDate);
+                    const today = new Date(); today.setHours(0,0,0,0);
+                    return startObj > today ? (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ℹ️ Como a data é futura, os projetos atuais serão concluídos automaticamente apenas quando o novo ciclo arrancar.
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
                 <Switch checked={renewCloseActive} onCheckedChange={setRenewCloseActive} />
               </div>
             )}
 
             <p className="text-xs text-muted-foreground">
-              Será criado um novo projeto, o produto atual do cliente será atualizado, e o portal será reactivado (se aplicável).
+              Será criado um novo projeto, gerados os pagamentos do novo ciclo, criada a checklist de renovação a partir do template do produto, e o portal será reactivado (se aplicável).
             </p>
           </div>
           <DialogFooter>
