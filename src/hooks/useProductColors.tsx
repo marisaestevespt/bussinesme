@@ -103,6 +103,7 @@ export function useProductBrands() {
         .select('id, name, branding')
         .order('name');
       if (error) throw error;
+      const items: ProductBrand[] = [];
       for (const p of (data ?? []) as { id: string; name: string; branding: any }[]) {
         const color = normalizeBrandColor(p?.branding?.primary_color, `${p.id}:${p.name}`);
         items.push({ id: p.id, name: p.name, color });
