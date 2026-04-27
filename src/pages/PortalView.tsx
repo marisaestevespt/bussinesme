@@ -348,8 +348,21 @@ export default function PortalViewPage() {
     return map[s] || { text: s, cls: '' };
   };
 
-  // Current active phase for status display
-  const activePhase = phases.find((p) => p.status === 'em_curso');
+  // Current active phase: prefer status='em_curso'. If none, derive from planned dates
+  // (first phase whose window contains today, else first not-done phase).
+  const activePhase = (() => {
+    const explicit = phases.find((p) => p.status === 'em_curso');
+    if (explicit) return explicit;
+    const today = new Date();
+    const inWindow = phases.find((p) => {
+      const start = p.planned_start ? new Date(p.planned_start) : null;
+      const end = p.planned_end ? new Date(p.planned_end) : null;
+      if (!start || !end) return false;
+      return today >= start && today <= end && p.status !== 'concluido' && p.status !== 'concluida';
+    });
+    if (inWindow) return inWindow;
+    return phases.find((p) => p.status !== 'concluido' && p.status !== 'concluida') || null;
+  })();
   const allDeliverables = phases.flatMap((p) => p.deliverables || []);
   const completedDeliverables = allDeliverables.filter(isDeliverableDone).length;
   const projectProgress = deliverableProgress(allDeliverables);
