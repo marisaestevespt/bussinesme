@@ -40,7 +40,7 @@ import {
 } from '@/components/agenda/AgendaCalendarsSidebar';
 import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
-import { getProductColorFromMap, useProductColors, useProductBrands } from '@/hooks/useProductColors';
+import { getProductColorFromMap, useProductColors, useProductBrands, useClientProductMap } from '@/hooks/useProductColors';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1184,6 +1184,7 @@ export default function AgendaPage() {
   const { data: profiles = [] } = useProfiles();
   const { data: productColors, isLoading: productColorsLoading } = useProductColors();
   const { data: productBrands = [] } = useProductBrands();
+  const { data: clientProductMap } = useClientProductMap();
 
   // ─── Calendars sidebar items (filters live inside AgendaCalendarView) ─────
   const typeCalendarItems: CalendarItem[] = useMemo(() => {
@@ -1216,19 +1217,31 @@ export default function AgendaPage() {
   const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
   // Product brand colour ALWAYS takes precedence over the event-type colour
   // when an event is linked to a product (per business rule).
+  // When an event only knows the client (no product_id), we look up the
+  // client's current product so the meeting still inherits the product colour.
   const allEvents = useMemo(() => {
     return allEventsRaw.map(ev => {
-      const pid = (ev as any).product_id as string | null | undefined;
-      const productName = (ev as any).product_name as string | null | undefined;
+      let pid = (ev as any).product_id as string | null | undefined;
+      let productName = (ev as any).product_name as string | null | undefined;
+      // Derive product from client when missing — guarantees calendar colour
+      // for every client meeting, even if the form was saved without product.
+      if (!pid && !productName) {
+        const clientId = (ev as any).client_id as string | null | undefined;
+        const clientName = (ev as any).client_name as string | null | undefined;
+        const cp = (clientId && clientProductMap?.byId.get(clientId))
+          || (clientName && clientProductMap?.byName.get(clientName.trim().toLocaleLowerCase('pt-PT')))
+          || null;
+        if (cp) { pid = cp.product_id ?? undefined; productName = cp.product_name ?? undefined; }
+      }
       const productC = getProductColorFromMap(productColors, pid, productName);
       // Sales actions get the amber pseudo-colour by default; product colour wins when present.
       const isSales = (ev as any)._isSalesAction;
       const fallbackC = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
       const c = productC ?? fallbackC;
-      if (!c) return ev;
-      return { ...ev, _color: c } as EventRow;
+      if (!c) return { ...ev, product_id: pid ?? null, product_name: productName ?? null } as EventRow;
+      return { ...ev, product_id: pid ?? null, product_name: productName ?? null, _color: c } as EventRow;
     });
-  }, [allEventsRaw, productColors]);
+  }, [allEventsRaw, productColors, clientProductMap]);
 
   // Expand recurring events into a wide window so all views see occurrences.
   // The visibility filter is applied inside AgendaCalendarView so it can react
