@@ -1610,6 +1610,7 @@ export type Database = {
           due_date: string | null
           id: string
           phase: string | null
+          project_id: string | null
           responsible: string | null
           rule: string | null
           rule_days: number | null
@@ -1628,6 +1629,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           phase?: string | null
+          project_id?: string | null
           responsible?: string | null
           rule?: string | null
           rule_days?: number | null
@@ -1646,6 +1648,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           phase?: string | null
+          project_id?: string | null
           responsible?: string | null
           rule?: string | null
           rule_days?: number | null
@@ -1667,6 +1670,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_renewals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
