@@ -1116,6 +1116,29 @@ export default function ClienteDetailPage() {
                     </div>
                   )}
                   <div className="rounded-lg border overflow-hidden bg-card">
+                    {canRollbackRenewal && latestActivatedRenewal && (
+                      <div className="flex items-center justify-between gap-3 px-4 py-2 bg-warning/10 border-b border-warning/30 text-xs">
+                        <span className="text-warning-foreground">
+                          Ciclo #{latestActivatedRenewal.cycle_number} ativado há pouco (≤ 7 dias). Podes reverter se foi por engano.
+                        </span>
+                        <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={async () => {
+                          if (!await confirm({
+                            title: `Reverter ciclo #${latestActivatedRenewal.cycle_number}?`,
+                            description: 'O projeto, checklist e pagamentos pendentes deste ciclo serão eliminados. Pagamentos já pagos bloqueiam a operação.',
+                          })) return;
+                          const { data, error } = await (supabase as any).rpc('rollback_renewal_project', { _project_id: latestActivatedRenewal.project_id });
+                          if (error) { toast.error(error.message || 'Erro ao reverter renovação'); return; }
+                          queryClient.invalidateQueries({ queryKey: ['client-renewals', id] });
+                          queryClient.invalidateQueries({ queryKey: ['rollback-renewal-project'] });
+                          queryClient.invalidateQueries({ queryKey: ['projects', 'client'] });
+                          queryClient.invalidateQueries({ queryKey: ['client', id] });
+                          const r = data as any;
+                          toast.success(`Ciclo revertido — ${r?.deleted_renewal_items || 0} item(ns) e ${r?.deleted_payments || 0} pagamento(s) removidos`);
+                        }}>
+                          Reverter ciclo
+                        </Button>
+                      </div>
+                    )}
                     <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[70px_1fr_140px_120px_110px] gap-3">
                       <span>Ciclo</span><span>Atividade</span><span>Responsável</span><span>Prazo</span><span>Estado</span>
                     </div>
