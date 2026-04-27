@@ -441,7 +441,8 @@ export function MeetingFormDialog({
     if (!isRecurring || !dateTime) return [] as Array<{ key: string; original: Date; adjusted: Date | 'skip' | null; holidayName: string | null }>;
     const base = recurrenceStartDate || dateTime;
     let effectiveEnd = recurrenceEndDate;
-    const cycleEndStr = (selectedClient as any)?.end_of_cycle as string | null | undefined;
+    const previewSelectedClient = clients.find((c: any) => c.id === clientId);
+    const cycleEndStr = (previewSelectedClient as any)?.end_of_cycle as string | null | undefined;
     if (cycleEndStr) {
       const cycleEnd = new Date(cycleEndStr + 'T23:59:59');
       if (!effectiveEnd || cycleEnd.getTime() < effectiveEnd.getTime()) effectiveEnd = cycleEnd;
@@ -457,7 +458,7 @@ export function MeetingFormDialog({
       conflicts.push({ key, original: d, adjusted: override, holidayName: h?.name ?? null });
     }
     return conflicts;
-  }, [isRecurring, dateTime, recurrenceStartDate, recurrenceFrequency, recurrenceEndDate, selectedClient, holidayOverrides]);
+  }, [isRecurring, dateTime, recurrenceStartDate, recurrenceFrequency, recurrenceEndDate, clientId, clients, holidayOverrides]);
 
   // Helper: find next non-holiday weekday after a given date
   const nextBusinessDay = (d: Date): Date => {
