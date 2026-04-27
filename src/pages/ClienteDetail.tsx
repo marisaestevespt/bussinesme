@@ -452,13 +452,38 @@ export default function ClienteDetailPage() {
   const [renewProduct, setRenewProduct] = useState('');
   const [renewCloseActive, setRenewCloseActive] = useState(true);
   const [renewStartDate, setRenewStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  // Payment fields for renewal (mirrors ProjectGestaoTab)
+  const [renewPayMethod, setRenewPayMethod] = useState('');
+  const [renewTotalValue, setRenewTotalValue] = useState('');
+  const [renewEntradaValue, setRenewEntradaValue] = useState('');
+  const [renewNumPrestacoes, setRenewNumPrestacoes] = useState('');
+  const [renewPayDay, setRenewPayDay] = useState('1');
+  const [renewNumMeses, setRenewNumMeses] = useState('');
+  const [renewAvencaValue, setRenewAvencaValue] = useState('');
+  const [renewPaymentMethodType, setRenewPaymentMethodType] = useState('');
 
   const activeProjects = clientProjects.filter((p: any) => !['concluido', 'cancelado', 'arquivado'].includes(p.status));
 
   const openRenewDialog = () => {
     setRenewProduct(form.current_product || '');
     setRenewCloseActive(activeProjects.length > 0);
-    setRenewStartDate(format(new Date(), 'yyyy-MM-dd'));
+    // Default start = end_of_cycle of current cycle (or today if none)
+    const defaultStart = form.end_of_cycle
+      ? format(addDays(parseISO(form.end_of_cycle as string), 1), 'yyyy-MM-dd')
+      : format(new Date(), 'yyyy-MM-dd');
+    setRenewStartDate(defaultStart);
+    // Pre-fill payment method based on current product type
+    const curProd = productList.find(p => p.name === form.current_product);
+    const defaultPay = curProd?.sales_type === 'avenca_mensal' || curProd?.sales_type === 'subscricao'
+      ? 'avenca_mensal' : 'pagamento_total';
+    setRenewPayMethod(defaultPay);
+    setRenewTotalValue('');
+    setRenewEntradaValue('');
+    setRenewNumPrestacoes('');
+    setRenewPayDay('1');
+    setRenewNumMeses(curProd?.cycle_duration ? String(curProd.cycle_duration) : '');
+    setRenewAvencaValue('');
+    setRenewPaymentMethodType('');
     setRenewDialogOpen(true);
   };
 
