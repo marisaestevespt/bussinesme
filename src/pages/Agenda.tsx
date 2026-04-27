@@ -40,12 +40,13 @@ import {
 } from '@/components/agenda/AgendaCalendarsSidebar';
 import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
-import { getProductColorFromMap, useProductColors, useProductBrands } from '@/hooks/useProductColors';
+import { getProductColorFromMap, useProductColors, useProductBrands, useClientProductMap } from '@/hooks/useProductColors';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; product_id: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; meeting_url: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; product_id: string | null; department: string | null; client_id?: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; meeting_url: string | null; }
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -208,7 +209,7 @@ function useMeetingsAsEvents(range: { from: string; to: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('meetings')
-        .select('id,title,date_time,status,meeting_url,client_name,department,project_name,product_id,product_name,is_recurring,recurrence_frequency,recurrence_end_date')
+        .select('id,title,date_time,status,meeting_url,client_id,client_name,department,project_name,product_id,product_name,is_recurring,recurrence_frequency,recurrence_end_date')
         .gte('date_time', range.from + 'T00:00:00')
         .lte('date_time', range.to + 'T23:59:59')
         .order('date_time');
@@ -224,6 +225,7 @@ function useMeetingsAsEvents(range: { from: string; to: string }) {
         product_name: m.product_name || null,
         product_id: m.product_id || null,
         department: m.department || null,
+        client_id: m.client_id || null,
         client_name: m.client_name || null,
         notes: m.project_name ? `Projeto: ${m.project_name}` : null,
         created_by: null,
@@ -1184,6 +1186,18 @@ export default function AgendaPage() {
   const { data: profiles = [] } = useProfiles();
   const { data: productColors, isLoading: productColorsLoading } = useProductColors();
   const { data: productBrands = [] } = useProductBrands();
+  const { data: clientProductMap } = useClientProductMap();
+  const { settings: businessSettings } = useBusinessSettings();
+  // Brand colour for internal/company meetings (no client/product). Falls
+  // back to the meeting pseudo-colour only if branding is empty.
+  const companyBrandColor = useMemo(() => {
+    const raw = (businessSettings as any)?.primary_color as string | null | undefined;
+    if (!raw) return undefined;
+    const t = raw.trim();
+    if (/^hsl\(.*\)$/i.test(t)) return t;
+    if (/^\d+\s+\d+%\s+\d+%$/.test(t)) return `hsl(${t})`;
+    return t;
+  }, [businessSettings]);
 
   // ─── Calendars sidebar items (filters live inside AgendaCalendarView) ─────
   const typeCalendarItems: CalendarItem[] = useMemo(() => {
@@ -1216,19 +1230,37 @@ export default function AgendaPage() {
   const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
   // Product brand colour ALWAYS takes precedence over the event-type colour
   // when an event is linked to a product (per business rule).
+  // When an event only knows the client (no product_id), we look up the
+  // client's current product so the meeting still inherits the product colour.
   const allEvents = useMemo(() => {
     return allEventsRaw.map(ev => {
-      const pid = (ev as any).product_id as string | null | undefined;
-      const productName = (ev as any).product_name as string | null | undefined;
+      let pid = (ev as any).product_id as string | null | undefined;
+      let productName = (ev as any).product_name as string | null | undefined;
+      // Derive product from client when missing — guarantees calendar colour
+      // for every client meeting, even if the form was saved without product.
+      if (!pid && !productName) {
+        const clientId = (ev as any).client_id as string | null | undefined;
+        const clientName = (ev as any).client_name as string | null | undefined;
+        const cp = (clientId && clientProductMap?.byId.get(clientId))
+          || (clientName && clientProductMap?.byName.get(clientName.trim().toLocaleLowerCase('pt-PT')))
+          || null;
+        if (cp) { pid = cp.product_id ?? undefined; productName = cp.product_name ?? undefined; }
+      }
       const productC = getProductColorFromMap(productColors, pid, productName);
       // Sales actions get the amber pseudo-colour by default; product colour wins when present.
       const isSales = (ev as any)._isSalesAction;
-      const fallbackC = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
+      const isMeeting = (ev as any)._isMeeting;
+      // Internal company meetings (no product, no client product): use the
+      // company brand colour so they are clearly distinguishable from the
+      // generic violet "meeting" pill.
+      const fallbackC = isSales
+        ? SALES_ACTION_PSEUDO_COLOR
+        : (isMeeting ? companyBrandColor : undefined);
       const c = productC ?? fallbackC;
-      if (!c) return ev;
-      return { ...ev, _color: c } as EventRow;
+      if (!c) return { ...ev, product_id: pid ?? null, product_name: productName ?? null } as EventRow;
+      return { ...ev, product_id: pid ?? null, product_name: productName ?? null, _color: c } as EventRow;
     });
-  }, [allEventsRaw, productColors]);
+  }, [allEventsRaw, productColors, clientProductMap, companyBrandColor]);
 
   // Expand recurring events into a wide window so all views see occurrences.
   // The visibility filter is applied inside AgendaCalendarView so it can react

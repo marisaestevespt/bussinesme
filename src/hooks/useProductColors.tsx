@@ -112,3 +112,30 @@ export function useProductBrands() {
     },
   });
 }
+
+/** Maps client.id → current product (id and name).
+ *  Used to recover the product/brand colour for events that only carry the
+ *  client (e.g. meetings created without picking a product). Without this
+ *  map, any meeting with a client but no `product_id` would lose the
+ *  product-specific colour and fall back to a generic palette. */
+export interface ClientProduct { product_id: string | null; product_name: string | null; }
+export function useClientProductMap() {
+  return useQuery({
+    queryKey: ['client-product-map'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, full_name, current_product_id, current_product');
+      if (error) throw error;
+      const byId = new Map<string, ClientProduct>();
+      const byName = new Map<string, ClientProduct>();
+      for (const c of (data ?? []) as { id: string; full_name: string | null; current_product_id: string | null; current_product: string | null }[]) {
+        const entry: ClientProduct = { product_id: c.current_product_id, product_name: c.current_product };
+        byId.set(c.id, entry);
+        if (c.full_name) byName.set(c.full_name.trim().toLocaleLowerCase('pt-PT'), entry);
+      }
+      return { byId, byName };
+    },
+  });
+}
