@@ -1225,12 +1225,15 @@ export default function AgendaPage() {
 
   // ─── Calendars sidebar items (filters live inside AgendaCalendarView) ─────
   const typeCalendarItems: CalendarItem[] = useMemo(() => {
-    const items: CalendarItem[] = types.map(t => ({ id: `type:${t.id}`, label: t.name, color: t.color }));
-    items.push({ id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR });
-    items.push({ id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR });
-    items.push({ id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' });
-    return items;
+    return types.map(t => ({ id: `type:${t.id}`, label: t.name, color: t.color }));
   }, [types]);
+
+  // Calendários automáticos (gerados pelo sistema, sempre presentes, não editáveis).
+  const autoTypeCalendarItems: CalendarItem[] = useMemo(() => ([
+    { id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR },
+    { id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR },
+    { id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' },
+  ]), []);
 
   const productCalendarItems: CalendarItem[] = useMemo(
     () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),
@@ -1341,6 +1344,7 @@ export default function AgendaPage() {
             events={expandedEvents}
             types={types}
             typeItems={typeCalendarItems}
+            autoTypeItems={autoTypeCalendarItems}
             productItems={productCalendarItems}
             isEventVisible={isEventVisible}
             onEventClick={handleEventClick}

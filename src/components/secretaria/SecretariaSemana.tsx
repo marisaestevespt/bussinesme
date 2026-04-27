@@ -20,7 +20,7 @@ export default function SecretariaSemana() {
   const timeEntries = useMyTimeEntries();
   const routineTasks = useMonthRoutineTasks();
   const unified = useUnifiedResponsibilities();
-  const { events, types, typeItems, productItems, isEventVisible } = useMyAgendaEvents(
+  const { events, types, typeItems, autoTypeItems, productItems, isEventVisible } = useMyAgendaEvents(
     {
       from: format(new Date(cursor.getFullYear(), 0, 1), 'yyyy-MM-dd'),
       to: format(new Date(cursor.getFullYear(), 11, 31), 'yyyy-MM-dd'),
@@ -61,6 +61,7 @@ export default function SecretariaSemana() {
             events={events}
             types={types}
             typeItems={typeItems}
+            autoTypeItems={autoTypeItems}
             productItems={productItems}
             isEventVisible={isEventVisible}
             onEventClick={handleEventClick}
