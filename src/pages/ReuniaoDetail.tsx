@@ -370,6 +370,16 @@ export default function ReuniaoDetailPage() {
   const isSeriesParent = m?.is_recurring === true;
   const isSeriesChild = !!m?.parent_meeting_id;
   const { data: seriesCount = 0 } = useSeriesCount(isSeriesParent ? m?.id ?? null : null);
+  const { data: parentRecurrence } = useParentRecurrence(isSeriesChild ? m?.parent_meeting_id ?? null : null);
+
+  // Build recurrence prop for AddToCalendarButtons (covers both parent and child occurrences)
+  const calendarRecurrence = isSeriesParent
+    ? (m?.recurrence_frequency
+        ? { frequency: m.recurrence_frequency, endDate: m?.recurrence_end_date ?? null }
+        : null)
+    : (parentRecurrence?.recurrence_frequency
+        ? { frequency: parentRecurrence.recurrence_frequency, endDate: parentRecurrence.recurrence_end_date ?? null }
+        : null);
 
   const update = (patch: Partial<MeetingFull>) => {
     if (!m) return;
