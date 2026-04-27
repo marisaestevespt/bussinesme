@@ -4,6 +4,7 @@ import { addMonths, format, subMonths } from 'date-fns';
 import { type AgendaEvent } from '@/components/agenda/AppleCalendarViews';
 import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useMyAgendaEvents } from '@/hooks/useMyAgendaEvents';
+import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 
 export default function SecretariaAgenda() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function SecretariaAgenda() {
   }), [current.getFullYear(), current.getMonth()]);
 
   const { events, types, typeItems, autoTypeItems, productItems, isEventVisible } = useMyAgendaEvents(fetchRange, current);
+  const { rename: renameAutoLabel } = useAutoCalendarLabels();
 
   const handleEventClick = (ev: AgendaEvent) => {
     const anyEv = ev as any;
@@ -37,6 +39,12 @@ export default function SecretariaAgenda() {
         isEventVisible={isEventVisible}
         onEventClick={handleEventClick}
         defaultMode="week"
+        onAutoItemRename={(id, name) => {
+          const key = id === 'meta:meeting' ? 'meeting'
+                    : id === 'meta:sales'   ? 'sales'
+                    : id === 'meta:feriado' ? 'feriado' : null;
+          if (key) renameAutoLabel(key, name);
+        }}
       />
     </div>
   );

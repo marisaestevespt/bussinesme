@@ -6,6 +6,7 @@ import { getProductColorFromMap, useProductColors, useProductBrands } from '@/ho
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import type { AgendaEvent, AgendaEventType } from '@/components/agenda/AppleCalendarViews';
 import type { CalendarItem } from '@/components/agenda/AgendaCalendarsSidebar';
+import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 import { expandRecurringEvents } from '@/lib/expandRecurringEvents';
 import { addMonths, subMonths } from 'date-fns';
 
@@ -33,6 +34,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
   const { data: productColors } = useProductColors();
   const { data: productBrands = [] } = useProductBrands();
   const { data: globalContext = [] } = useGlobalAgendaContext();
+  const { labels: autoLabels } = useAutoCalendarLabels();
 
   // Resolve profile.id once
   const profileQ = useQuery({
@@ -230,10 +232,10 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
 
   // Calendários automáticos (gerados pelo sistema, não editáveis)
   const autoTypeItems: CalendarItem[] = useMemo(() => ([
-    { id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR },
-    { id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR },
-    { id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' },
-  ]), []);
+    { id: 'meta:meeting',  label: autoLabels.meeting, color: MEETING_PSEUDO_COLOR },
+    { id: 'meta:sales',    label: autoLabels.sales,   color: SALES_ACTION_PSEUDO_COLOR },
+    { id: 'meta:feriado',  label: autoLabels.feriado, color: 'hsl(var(--destructive))' },
+  ]), [autoLabels]);
 
   const productItems: CalendarItem[] = useMemo(
     () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),

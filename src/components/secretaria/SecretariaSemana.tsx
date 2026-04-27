@@ -8,6 +8,7 @@ import { format, parseISO, isWithinInterval, startOfWeek, endOfWeek, startOfDay 
 import { useNavigate } from 'react-router-dom';
 import { useMyAgendaEvents } from '@/hooks/useMyAgendaEvents';
 import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
+import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 
 const today = startOfDay(new Date());
 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -27,6 +28,7 @@ export default function SecretariaSemana() {
     },
     cursor,
   );
+  const { rename: renameAutoLabel } = useAutoCalendarLabels();
 
   const weekMeetings = useMemo(() => (meetings.data || []).filter((m: any) => isWithinInterval(parseISO(m.date_time), { start: weekStart, end: weekEnd })), [meetings.data]);
   const weekTime = useMemo(() => (timeEntries.data || []).filter((e: any) => {
@@ -66,6 +68,12 @@ export default function SecretariaSemana() {
             isEventVisible={isEventVisible}
             onEventClick={handleEventClick}
             defaultMode="week"
+            onAutoItemRename={(id, name) => {
+              const key = id === 'meta:meeting' ? 'meeting'
+                        : id === 'meta:sales'   ? 'sales'
+                        : id === 'meta:feriado' ? 'feriado' : null;
+              if (key) renameAutoLabel(key, name);
+            }}
           />
         </CardContent>
       </Card>

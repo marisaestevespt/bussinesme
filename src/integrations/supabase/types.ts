@@ -553,6 +553,7 @@ export type Database = {
           accountant_member_id: string | null
           accountant_type: string
           activity_start_date: string | null
+          auto_calendar_labels: Json
           background_color: string
           business_name: string
           business_sector: string
@@ -592,6 +593,7 @@ export type Database = {
           accountant_member_id?: string | null
           accountant_type?: string
           activity_start_date?: string | null
+          auto_calendar_labels?: Json
           background_color?: string
           business_name: string
           business_sector?: string
@@ -631,6 +633,7 @@ export type Database = {
           accountant_member_id?: string | null
           accountant_type?: string
           activity_start_date?: string | null
+          auto_calendar_labels?: Json
           background_color?: string
           business_name?: string
           business_sector?: string

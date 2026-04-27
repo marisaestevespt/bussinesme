@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
@@ -85,7 +86,7 @@ export function useSidebarCollapsed(storageKey: string) {
 }
 
 function CalendarSection({
-  title, items, hidden, onToggle, onShowAll, onHideAll, defaultOpen = true,
+  title, items, hidden, onToggle, onShowAll, onHideAll, defaultOpen = true, onItemRename,
 }: {
   title: string;
   items: CalendarItem[];
@@ -94,8 +95,12 @@ function CalendarSection({
   onShowAll: () => void;
   onHideAll: () => void;
   defaultOpen?: boolean;
+  /** When provided, item labels become inline-editable (used for "Automáticos"). */
+  onItemRename?: (id: string, newLabel: string) => void;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState('');
   if (!items.length) return null;
   const allHidden = items.every(i => hidden.has(i.id));
   return (
@@ -122,6 +127,7 @@ function CalendarSection({
           {items.map(it => {
             const isOn = !hidden.has(it.id);
             const inputId = `cal-${it.id}`;
+            const isEditing = editingId === it.id;
             return (
               <Label
                 key={it.id}
@@ -139,7 +145,37 @@ function CalendarSection({
                   className="h-3.5 w-3.5 rounded-[4px] border-2"
                   style={isOn ? { backgroundColor: it.color, borderColor: it.color } : { borderColor: it.color }}
                 />
-                <span className="truncate flex-1">{it.label}</span>
+                {onItemRename && isEditing ? (
+                  <Input
+                    autoFocus
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onClick={(e) => e.preventDefault()}
+                    onBlur={() => {
+                      const next = draft.trim();
+                      if (next && next !== it.label) onItemRename(it.id, next);
+                      setEditingId(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { (e.target as HTMLInputElement).blur(); }
+                      if (e.key === 'Escape') { setEditingId(null); }
+                    }}
+                    className="h-6 px-1.5 py-0 text-sm flex-1"
+                  />
+                ) : (
+                  <span
+                    className={cn('truncate flex-1', onItemRename && 'hover:underline')}
+                    onDoubleClick={(e) => {
+                      if (!onItemRename) return;
+                      e.preventDefault();
+                      setDraft(it.label);
+                      setEditingId(it.id);
+                    }}
+                    title={onItemRename ? 'Duplo-clique para renomear' : undefined}
+                  >
+                    {it.label}
+                  </span>
+                )}
               </Label>
             );
           })}
@@ -150,7 +186,7 @@ function CalendarSection({
 }
 
 function SidebarBody({
-  typeItems, autoTypeItems = [], productItems, hidden, onToggle, onShowAll, onHideAll,
+  typeItems, autoTypeItems = [], productItems, hidden, onToggle, onShowAll, onHideAll, onAutoItemRename,
 }: {
   typeItems: CalendarItem[];
   autoTypeItems?: CalendarItem[];
@@ -159,6 +195,7 @@ function SidebarBody({
   onToggle: (id: string) => void;
   onShowAll: (ids: string[]) => void;
   onHideAll: (ids: string[]) => void;
+  onAutoItemRename?: (id: string, newLabel: string) => void;
 }) {
   const typeIds = useMemo(() => typeItems.map(i => i.id), [typeItems]);
   const autoIds = useMemo(() => autoTypeItems.map(i => i.id), [autoTypeItems]);
@@ -180,6 +217,7 @@ function SidebarBody({
         onToggle={onToggle}
         onShowAll={() => onShowAll(autoIds)}
         onHideAll={() => onHideAll(autoIds)}
+        onItemRename={onAutoItemRename}
       />
       <CalendarSection
         title="Produtos"
@@ -219,6 +257,7 @@ function CollapsedRail({ onExpand }: { onExpand: () => void }) {
 export function AgendaCalendarsSidebar({
   typeItems, autoTypeItems, productItems, hidden, onToggle, onShowAll, onHideAll,
   collapsed, onCollapsedChange, mobileOpen, onMobileOpenChange, className,
+  onAutoItemRename,
 }: {
   typeItems: CalendarItem[];
   autoTypeItems?: CalendarItem[];
@@ -232,6 +271,7 @@ export function AgendaCalendarsSidebar({
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
   className?: string;
+  onAutoItemRename?: (id: string, newLabel: string) => void;
 }) {
   if (collapsed) {
     return <CollapsedRail onExpand={() => onCollapsedChange?.(false)} />;
@@ -272,6 +312,7 @@ export function AgendaCalendarsSidebar({
             onToggle={onToggle}
             onShowAll={onShowAll}
             onHideAll={onHideAll}
+            onAutoItemRename={onAutoItemRename}
           />
         </ScrollArea>
       </aside>
@@ -291,6 +332,7 @@ export function AgendaCalendarsSidebar({
               onToggle={onToggle}
               onShowAll={onShowAll}
               onHideAll={onHideAll}
+              onAutoItemRename={onAutoItemRename}
             />
           </ScrollArea>
         </SheetContent>

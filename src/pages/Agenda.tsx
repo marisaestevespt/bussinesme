@@ -42,6 +42,7 @@ import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { getProductColorFromMap, useProductColors, useProductBrands, useClientProductMap } from '@/hooks/useProductColors';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1212,6 +1213,7 @@ export default function AgendaPage() {
   const { data: productBrands = [] } = useProductBrands();
   const { data: clientProductMap } = useClientProductMap();
   const { settings: businessSettings } = useBusinessSettings();
+  const { labels: autoLabels, rename: renameAutoLabel } = useAutoCalendarLabels();
   // Brand colour for internal/company meetings (no client/product). Falls
   // back to the meeting pseudo-colour only if branding is empty.
   const companyBrandColor = useMemo(() => {
@@ -1230,10 +1232,10 @@ export default function AgendaPage() {
 
   // Calendários automáticos (gerados pelo sistema, sempre presentes, não editáveis).
   const autoTypeCalendarItems: CalendarItem[] = useMemo(() => ([
-    { id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR },
-    { id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR },
-    { id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' },
-  ]), []);
+    { id: 'meta:meeting',  label: autoLabels.meeting, color: MEETING_PSEUDO_COLOR },
+    { id: 'meta:sales',    label: autoLabels.sales,   color: SALES_ACTION_PSEUDO_COLOR },
+    { id: 'meta:feriado',  label: autoLabels.feriado, color: 'hsl(var(--destructive))' },
+  ]), [autoLabels]);
 
   const productCalendarItems: CalendarItem[] = useMemo(
     () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),
@@ -1349,6 +1351,12 @@ export default function AgendaPage() {
             isEventVisible={isEventVisible}
             onEventClick={handleEventClick}
             defaultMode="week"
+            onAutoItemRename={(id, name) => {
+              const key = id === 'meta:meeting' ? 'meeting'
+                        : id === 'meta:sales'   ? 'sales'
+                        : id === 'meta:feriado' ? 'feriado' : null;
+              if (key) renameAutoLabel(key, name);
+            }}
             toolbarRight={
               <Button size="sm" className="rounded-full h-8" onClick={handleNewEvent}>
                 <Plus className="h-3.5 w-3.5 mr-1" /> Novo
