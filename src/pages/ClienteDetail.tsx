@@ -170,6 +170,34 @@ export default function ClienteDetailPage() {
   const confirm = useConfirm();
   const { user } = useAuth();
 
+  // ─── Renewals (history + scheduled) ─────────────────────────────
+  const renewalsQuery = useQuery({
+    queryKey: ['client-renewals', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data } = await (supabase as any).from('client_renewals')
+        .select('*')
+        .eq('client_id', id)
+        .order('cycle_number', { ascending: false })
+        .order('sort_order');
+      return data || [];
+    },
+    enabled: !!id && !isNew,
+  });
+
+  const scheduledRenewalProjectQuery = useQuery({
+    queryKey: ['scheduled-renewal-project', (form as any).pending_renewal_project_id],
+    queryFn: async () => {
+      const pid = (form as any).pending_renewal_project_id;
+      if (!pid) return null;
+      const { data } = await supabase.from('projects')
+        .select('id, name, start_date, deadline, status, product_name')
+        .eq('id', pid).maybeSingle();
+      return data;
+    },
+    enabled: !!(form as any).pending_renewal_project_id,
+  });
+
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'em_onboarding' }); setInitialized(true); }
 
