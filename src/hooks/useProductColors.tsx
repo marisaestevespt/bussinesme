@@ -76,11 +76,13 @@ export function useProductColors() {
     queryKey: ['product-brand-colors'],
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('id, name, branding');
+      const { data, error } = await supabase.from('products').select('id, name, branding, calendar_color');
       if (error) throw error;
       const map = new Map<string, string>();
-      for (const p of (data ?? []) as { id: string; name: string; branding: any }[]) {
-        const color = normalizeBrandColor(p?.branding?.primary_color, `${p.id}:${p.name}`);
+      for (const p of (data ?? []) as { id: string; name: string; branding: any; calendar_color: string | null }[]) {
+        // Prioridade: calendar_color (dedicada) → branding.primary_color → fallback determinístico
+        const raw = p.calendar_color ?? p?.branding?.primary_color;
+        const color = normalizeBrandColor(raw, `${p.id}:${p.name}`);
         map.set(p.id, color);
         map.set(`name:${normalizeProductKey(p.name)}`, color);
       }
@@ -100,12 +102,13 @@ export function useProductBrands() {
     queryFn: async (): Promise<ProductBrand[]> => {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, branding')
+        .select('id, name, branding, calendar_color')
         .order('name');
       if (error) throw error;
       const items: ProductBrand[] = [];
-      for (const p of (data ?? []) as { id: string; name: string; branding: any }[]) {
-        const color = normalizeBrandColor(p?.branding?.primary_color, `${p.id}:${p.name}`);
+      for (const p of (data ?? []) as { id: string; name: string; branding: any; calendar_color: string | null }[]) {
+        const raw = p.calendar_color ?? p?.branding?.primary_color;
+        const color = normalizeBrandColor(raw, `${p.id}:${p.name}`);
         items.push({ id: p.id, name: p.name, color });
       }
       return items;
