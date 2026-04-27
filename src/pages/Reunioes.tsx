@@ -559,7 +559,18 @@ export function MeetingFormDialog({
       // Generate recurring occurrences
       if (isRecurring && dateTime) {
         const recurrenceBase = recurrenceStartDate || dateTime;
-        const futureDates = generateRecurrenceDates(recurrenceBase, recurrenceFrequency, recurrenceEndDate);
+        // Cap recurrence by client's end_of_cycle when applicable, so we never
+        // create occurrences past the contract end. If the user picked a later
+        // end date, the cycle still wins; if they picked an earlier one, theirs wins.
+        let effectiveEnd = recurrenceEndDate;
+        const cycleEndStr = (selectedClient as any)?.end_of_cycle as string | null | undefined;
+        if (cycleEndStr) {
+          const cycleEnd = new Date(cycleEndStr + 'T23:59:59');
+          if (!effectiveEnd || cycleEnd.getTime() < effectiveEnd.getTime()) {
+            effectiveEnd = cycleEnd;
+          }
+        }
+        const futureDates = generateRecurrenceDates(recurrenceBase, recurrenceFrequency, effectiveEnd);
         if (futureDates.length > 0) {
           const occurrences = futureDates.map(d => ({
             ...meetingData,
