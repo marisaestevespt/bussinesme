@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { CalendarDays, Send, Download, ExternalLink, Clock } from 'lucide-react';
+import { CalendarDays, Send, Download, ExternalLink, Clock, MessageSquare, CheckCircle2, Star, FileText, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -233,47 +233,83 @@ function MeetingDialog({
 
         {/* Ata */}
         {hasAta ? (
-          <div className="mt-4 pt-4 border-t border-border/20">
-            <p className="text-xs font-semibold mb-3" style={{ color: pc }}>📋 Ata da reunião</p>
-            <div className="space-y-4">
+          <div className="mt-6 pt-6 border-t border-border/30">
+            <div className="flex items-center gap-2 mb-5">
+              <div
+                className="h-8 w-8 rounded-full flex items-center justify-center text-white text-sm"
+                style={{ backgroundColor: pc }}
+                aria-hidden
+              >
+                📋
+              </div>
+              <div>
+                <h3 className="text-base font-semibold leading-tight">Ata da reunião</h3>
+                <p className="text-xs text-muted-foreground">Resumo do que ficou decidido</p>
+              </div>
+            </div>
+
+            <div className="space-y-5">
               {(points.length > 0 || dNotes) && (
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Pontos discutidos</p>
+                <AtaSection icon={MessageSquare} title="Pontos discutidos" pc={pc}>
                   {points.length > 0 && (
-                    <ul className="text-xs space-y-1 list-disc list-inside">
-                      {points.map((p, i) => <li key={i}>{renderText(p)}</li>)}
+                    <ul className="space-y-2">
+                      {points.map((p, i) => (
+                        <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: pc }} />
+                          <span>{renderText(p)}</span>
+                        </li>
+                      ))}
                     </ul>
                   )}
-                  {dNotes && <p className="text-xs whitespace-pre-wrap mt-1.5 bg-muted/20 rounded-lg p-2">{dNotes}</p>}
-                </div>
+                  {dNotes && (
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap mt-3 bg-muted/30 rounded-xl p-3 border border-border/20">
+                      {dNotes}
+                    </p>
+                  )}
+                </AtaSection>
               )}
+
               {cActions.length > 0 && (
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">As tuas ações</p>
-                  <ul className="text-xs space-y-1 list-disc list-inside">
-                    {cActions.map((a, i) => <li key={i}>{renderText(a)}</li>)}
+                <AtaSection icon={CheckCircle2} title="As tuas ações" pc={pc}>
+                  <ul className="space-y-2">
+                    {cActions.map((a, i) => (
+                      <li key={i} className="flex gap-2.5 text-sm leading-relaxed bg-muted/20 rounded-lg p-2.5">
+                        <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" style={{ color: pc }} />
+                        <span>{renderText(a)}</span>
+                      </li>
+                    ))}
                   </ul>
-                </div>
+                </AtaSection>
               )}
+
               {prios.length > 0 && (
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Prioridades</p>
-                  <ul className="text-xs space-y-1 list-disc list-inside">
-                    {prios.map((p, i) => <li key={i}>{renderText(p)}</li>)}
+                <AtaSection icon={Star} title="Prioridades" pc={pc}>
+                  <ul className="space-y-2">
+                    {prios.map((p, i) => (
+                      <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
+                        <Star className="h-4 w-4 mt-0.5 shrink-0" style={{ color: pc }} />
+                        <span>{renderText(p)}</span>
+                      </li>
+                    ))}
                   </ul>
-                </div>
+                </AtaSection>
               )}
+
               {fNotes.length > 0 && (
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Notas finais</p>
-                  <ul className="text-xs space-y-1 list-disc list-inside">
-                    {fNotes.map((n, i) => <li key={i}>{renderText(n)}</li>)}
+                <AtaSection icon={FileText} title="Notas finais" pc={pc}>
+                  <ul className="space-y-2">
+                    {fNotes.map((n, i) => (
+                      <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
+                        <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
+                        <span>{renderText(n)}</span>
+                      </li>
+                    ))}
                   </ul>
-                </div>
+                </AtaSection>
               )}
+
               {docs.length > 0 && (
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground mb-1.5">Documentos</p>
+                <AtaSection icon={Paperclip} title="Documentos" pc={pc}>
                   <div className="space-y-2">
                     {docs.map((d, i) => (
                       <a
@@ -281,25 +317,47 @@ function MeetingDialog({
                         href={normalizeUrl(d.url)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-xs hover:underline bg-muted/20 rounded-lg p-2"
+                        className="flex items-center gap-2.5 text-sm bg-muted/30 hover:bg-muted/50 rounded-xl p-3 transition border border-border/20"
                       >
-                        <Download className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{d.name || d.url}</span>
+                        <Download className="h-4 w-4 shrink-0" style={{ color: pc }} />
+                        <span className="truncate flex-1">{d.name || d.url}</span>
                       </a>
                     ))}
                   </div>
-                </div>
+                </AtaSection>
               )}
             </div>
           </div>
         ) : (
           isDone && (
-            <div className="mt-4 pt-4 border-t border-border/20">
-              <p className="text-xs text-muted-foreground italic">Ainda não há ata disponível para esta reunião.</p>
+            <div className="mt-6 pt-6 border-t border-border/30 text-center">
+              <p className="text-sm text-muted-foreground">Ainda não há ata disponível para esta reunião.</p>
             </div>
           )
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function AtaSection({
+  icon: Icon,
+  title,
+  pc,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  title: string;
+  pc: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-2.5">
+        <Icon className="h-4 w-4" style={{ color: pc }} />
+        <h4 className="text-sm font-semibold tracking-tight">{title}</h4>
+      </div>
+      <div className="pl-6">{children}</div>
+    </section>
   );
 }
