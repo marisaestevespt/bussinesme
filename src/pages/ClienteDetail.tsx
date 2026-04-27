@@ -1194,18 +1194,19 @@ export default function ClienteDetailPage() {
           </EntityTabsContent>
 
           {/* ─── Tab 3: Customer Success ──────────────────── */}
-          <EntityTabsContent value="customer-success" className="space-y-6 mt-4">
-            {/* Feedback */}
-            <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
+          <EntityTabsContent value="customer-success" className="mt-4">
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+              <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
 
-            {!isNew && (
-              <ClientCustomerSuccess
-                clientId={id!}
-                clientName={form.full_name || ''}
-                productName={form.current_product || null}
-                startDate={form.start_date || null}
-              />
-            )}
+              {!isNew && (
+                <ClientCustomerSuccess
+                  clientId={id!}
+                  clientName={form.full_name || ''}
+                  productName={form.current_product || null}
+                  startDate={form.start_date || null}
+                />
+              )}
+            </div>
           </EntityTabsContent>
         </EntityTabs>
       </div>
