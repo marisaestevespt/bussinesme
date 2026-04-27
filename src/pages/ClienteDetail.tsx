@@ -1103,25 +1103,28 @@ export default function ClienteDetailPage() {
               icon={Users}
               action={<Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>}
             >
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-5 gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[140px_160px_1fr_1fr_60px] gap-3">
                   <span>Status</span><span>Data & Hora</span><span>Reunião</span><span>Participantes</span><span>Link</span>
                 </div>
                 {clientMeetings.length === 0 ? (
                   <EmptyHint>Sem reuniões associadas</EmptyHint>
-                ) : clientMeetings.map((m: any) => (
-                  <div key={m.id} className="px-4 py-2 text-xs grid grid-cols-5 gap-2 border-b items-center">
-                    <span><Badge variant="outline">{m.status}</Badge></span>
-                    <span>{m.date_time ? format(parseISO(m.date_time), 'dd/MM/yyyy HH:mm') : '—'}</span>
-                    <span className="truncate">{m.title}</span>
-                    <span className="truncate">
-                      {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
-                    </span>
-                    <span>
-                      {m.transcript_url ? <a href={m.transcript_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3" /></a> : '—'}
-                    </span>
-                  </div>
-                ))}
+                ) : clientMeetings.map((m: any) => {
+                  const ms = getMeetingStatusInfo(m.status);
+                  return (
+                    <div key={m.id} className="px-4 py-3 text-sm grid grid-cols-[140px_160px_1fr_1fr_60px] gap-3 border-b last:border-b-0 items-center">
+                      <Badge variant="outline" className={`${ms.color} w-fit`}>{ms.label}</Badge>
+                      <span className="text-muted-foreground">{m.date_time ? format(parseISO(m.date_time), 'dd/MM/yyyy HH:mm') : '—'}</span>
+                      <span className="font-medium truncate">{m.title}</span>
+                      <span className="text-muted-foreground truncate">
+                        {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
+                      </span>
+                      <span>
+                        {m.transcript_url ? <a href={m.transcript_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-primary hover:underline"><ExternalLink className="h-4 w-4" /></a> : <span className="text-muted-foreground">—</span>}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </EntitySection>
 
