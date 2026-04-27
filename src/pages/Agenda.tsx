@@ -40,7 +40,7 @@ import {
 } from '@/components/agenda/AgendaCalendarsSidebar';
 import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
-import { useProductColors, useProductBrands } from '@/hooks/useProductColors';
+import { getProductColorFromMap, useProductColors, useProductBrands } from '@/hooks/useProductColors';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1219,7 +1219,8 @@ export default function AgendaPage() {
   const allEvents = useMemo(() => {
     return allEventsRaw.map(ev => {
       const pid = (ev as any).product_id as string | null | undefined;
-      const productC = pid ? productColors?.get(pid) : undefined;
+      const productName = (ev as any).product_name as string | null | undefined;
+      const productC = getProductColorFromMap(productColors, pid, productName);
       // Sales actions get the amber pseudo-colour by default; product colour wins when present.
       const isSales = (ev as any)._isSalesAction;
       const fallbackC = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
