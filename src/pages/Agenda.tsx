@@ -1344,6 +1344,7 @@ export default function AgendaPage() {
             events={expandedEvents}
             types={types}
             typeItems={typeCalendarItems}
+            autoTypeItems={autoTypeCalendarItems}
             productItems={productCalendarItems}
             isEventVisible={isEventVisible}
             onEventClick={handleEventClick}
