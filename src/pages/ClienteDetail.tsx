@@ -1010,6 +1010,65 @@ export default function ClienteDetailPage() {
                 })}
               </div>
             </EntitySection>
+
+            {/* Renewals */}
+            {!isNew && (
+              <EntitySection title="Renovações" icon={RefreshCw}>
+                <div className="space-y-3">
+                  {scheduledRenewalProjectQuery.data && (
+                    <div className="flex items-start justify-between gap-3 rounded-lg border border-accent-violet/40 bg-accent-violet/5 p-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="bg-accent-violet/15 text-accent-violet border-accent-violet/30 gap-1">
+                            <RefreshCw className="h-3 w-3" /> Renovação agendada
+                          </Badge>
+                          <span className="text-sm font-medium">{scheduledRenewalProjectQuery.data.product_name}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Início: {scheduledRenewalProjectQuery.data.start_date ? format(parseISO(scheduledRenewalProjectQuery.data.start_date), 'dd MMM yyyy', { locale: pt }) : '—'}
+                          {scheduledRenewalProjectQuery.data.deadline && ` • Fim: ${format(parseISO(scheduledRenewalProjectQuery.data.deadline), 'dd MMM yyyy', { locale: pt })}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/hub/projetos/${scheduledRenewalProjectQuery.data!.id}`)}>
+                          <ExternalLink className="h-3 w-3 mr-1" />Ver
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => {
+                          if (!await confirm({ title: 'Cancelar renovação agendada?', description: 'O projeto agendado será eliminado e os pagamentos pendentes removidos.' })) return;
+                          const projId = scheduledRenewalProjectQuery.data!.id;
+                          await supabase.from('commercial_sales').delete().eq('project_id', projId).neq('status','pago');
+                          await supabase.from('projects').delete().eq('id', projId);
+                          await (supabase as any).from('clients').update({ pending_renewal_project_id: null }).eq('id', id);
+                          setForm(prev => ({ ...prev, pending_renewal_project_id: null } as any));
+                          queryClient.invalidateQueries({ queryKey: ['scheduled-renewal-project'] });
+                          toast.success('Renovação agendada cancelada');
+                        }}>
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="rounded-lg border overflow-hidden">
+                    <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2">
+                      <span>Ciclo</span><span>Atividade</span><span>Responsável</span><span>Prazo</span><span>Estado</span>
+                    </div>
+                    {(renewalsQuery.data || []).length === 0 ? (
+                      <EmptyHint>Sem renovações registadas</EmptyHint>
+                    ) : (renewalsQuery.data || []).map((r: any) => (
+                      <div key={r.id} className="px-4 py-2 text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2 border-b items-center">
+                        <Badge variant="outline" className="text-xs w-fit">#{r.cycle_number}</Badge>
+                        <span>{r.activity}</span>
+                        <span className="text-muted-foreground">{r.responsible || '—'}</span>
+                        <span className="text-muted-foreground">{r.due_date ? format(parseISO(r.due_date), 'dd/MM/yyyy') : '—'}</span>
+                        <Badge variant={r.completed ? 'default' : 'outline'} className={r.completed ? 'bg-success/15 text-success border-success/30' : ''}>
+                          {r.completed ? 'Concluída' : 'Pendente'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </EntitySection>
+            )}
           </EntityTabsContent>
 
           {/* ─── Tab 2: Gestão do Cliente ──────────────────── */}
