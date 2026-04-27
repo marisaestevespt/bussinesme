@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, MessageSquare, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -90,14 +90,18 @@ export function ClientFeedbackSection({ clientId, clientName }: Props) {
 
   return (
     <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm">Feedback Recebido</CardTitle>
+      <CardHeader className="pb-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-base flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-primary" />
+          Feedback Recebido
+        </CardTitle>
+        <Badge variant="outline" className="text-xs">{allFeedback.length}</Badge>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {/* Add manual feedback */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-start">
           <Textarea
-            className="text-xs min-h-[60px]"
+            className="text-sm min-h-[60px]"
             placeholder="Adicionar feedback manualmente..."
             value={newContent}
             onChange={e => setNewContent(e.target.value)}
@@ -110,33 +114,50 @@ export function ClientFeedbackSection({ clientId, clientName }: Props) {
             disabled={!newContent.trim() || !clientId}
             onClick={() => addFeedback.mutate(newContent.trim())}
           >
-            <Plus className="h-3 w-3 mr-1" />Adicionar
+            <Plus className="h-4 w-4 mr-1" />Adicionar
           </Button>
         </div>
 
-        {/* List */}
+        {/* Gallery */}
         {allFeedback.length === 0 ? (
           <EmptyHint>Sem feedback recebido</EmptyHint>
         ) : (
-          <div className="space-y-2">
-            {allFeedback.map((f: any) => (
-              <div key={f.id} className="border rounded-md p-3 text-xs flex justify-between items-start gap-2">
-                <div className="flex-1">
-                  <p>{f.content}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-muted-foreground">{format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}</span>
-                    <Badge variant="outline" className="text-[10px]">
-                      {f.source === 'portal' ? 'Portal' : 'Manual'}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allFeedback.map((f: any) => {
+              const isPortal = f.source === 'portal';
+              const accent = isPortal ? 'border-l-primary' : 'border-l-accent-violet';
+              const badgeCls = isPortal
+                ? 'bg-primary/15 text-primary border-primary/30'
+                : 'bg-accent-violet/15 text-accent-violet border-accent-violet/30';
+              return (
+                <div
+                  key={f.id}
+                  className={`relative rounded-lg border-l-4 ${accent} border bg-card shadow-sm hover:shadow-md transition-shadow p-4 space-y-3`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <Badge variant="outline" className={`${badgeCls} whitespace-nowrap`}>
+                      {isPortal ? 'Portal' : 'Manual'}
                     </Badge>
+                    {!isPortal && (
+                      <Button
+                        variant="ghost"
+                        aria-label="Eliminar"
+                        size="icon"
+                        className="h-7 w-7 text-destructive shrink-0 -mt-1 -mr-1"
+                        onClick={() => deleteFeedback.mutate(f.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{f.content}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground border-t pt-2">
+                    <Calendar className="h-3 w-3" />
+                    {format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}
                   </div>
                 </div>
-                {f.source !== 'portal' && (
-                  <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 text-destructive shrink-0" onClick={() => deleteFeedback.mutate(f.id)}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
