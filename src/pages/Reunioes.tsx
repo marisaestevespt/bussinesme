@@ -436,6 +436,40 @@ export function MeetingFormDialog({
     return projects.filter(p => p.client_id === clientId);
   }, [clientId, projects]);
 
+  // Compute occurrences that fall on Portuguese holidays (preview)
+  const recurrencePreview = useMemo(() => {
+    if (!isRecurring || !dateTime) return [] as Array<{ key: string; original: Date; adjusted: Date | 'skip' | null; holidayName: string | null }>;
+    const base = recurrenceStartDate || dateTime;
+    let effectiveEnd = recurrenceEndDate;
+    const cycleEndStr = (selectedClient as any)?.end_of_cycle as string | null | undefined;
+    if (cycleEndStr) {
+      const cycleEnd = new Date(cycleEndStr + 'T23:59:59');
+      if (!effectiveEnd || cycleEnd.getTime() < effectiveEnd.getTime()) effectiveEnd = cycleEnd;
+    }
+    const dates = generateRecurrenceDates(base, recurrenceFrequency, effectiveEnd);
+    const conflicts: Array<{ key: string; original: Date; adjusted: Date | 'skip' | null; holidayName: string | null }> = [];
+    for (const d of dates) {
+      if (!isHoliday(d)) continue;
+      const key = format(d, 'yyyy-MM-dd');
+      const holidays = getPortugueseHolidays(d.getFullYear());
+      const h = holidays.find(x => x.dateStr === key);
+      const override = holidayOverrides[key] ?? null;
+      conflicts.push({ key, original: d, adjusted: override, holidayName: h?.name ?? null });
+    }
+    return conflicts;
+  }, [isRecurring, dateTime, recurrenceStartDate, recurrenceFrequency, recurrenceEndDate, selectedClient, holidayOverrides]);
+
+  // Helper: find next non-holiday weekday after a given date
+  const nextBusinessDay = (d: Date): Date => {
+    let next = addDays(d, 1);
+    while (next.getDay() === 0 || next.getDay() === 6 || isHoliday(next)) {
+      next = addDays(next, 1);
+    }
+    // Preserve original time
+    next.setHours(d.getHours(), d.getMinutes(), 0, 0);
+    return next;
+  };
+
   const handleClientChange = (newClientId: string) => {
     const actualId = newClientId === '__none' ? '' : newClientId;
     skipAutoFillRef.current = true;
