@@ -43,6 +43,9 @@ interface Props {
   portalBranding?: PortalBrandingData;
   onUpdatePortalBranding?: (next: PortalBrandingData) => void;
   productId?: string;
+  /** Cor exclusiva do calendário/agenda (separada do branding visual). */
+  calendarColor?: string | null;
+  onUpdateCalendarColor?: (next: string) => void;
 }
 
 export interface PortalBrandingData {
@@ -61,7 +64,7 @@ export interface PortalBrandingData {
   hero_subtitle?: string;
 }
 
-export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBranding, onUpdatePortalBranding, productId }: Props) {
+export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBranding, onUpdatePortalBranding, productId, calendarColor, onUpdateCalendarColor }: Props) {
   const b = branding || {};
   const set = (patch: Partial<BrandingData>) => onUpdate({ ...b, ...patch });
   const pb = portalBranding || {};
