@@ -1213,6 +1213,7 @@ export default function ProjetoDetailPage() {
         defaultClientName={local.client_name || undefined}
         defaultProjectId={id}
         defaultProjectName={local.name}
+        defaultTitle={suggestedMeetingTitle || undefined}
       />
 
       {/* Members dialog */}
