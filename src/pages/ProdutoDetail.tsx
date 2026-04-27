@@ -799,6 +799,8 @@ export default function ProdutoDetailPage() {
               portalBranding={((form as any).portal_branding || {}) as Record<string, unknown>}
               onUpdatePortalBranding={(next) => update('portal_branding', next)}
               productId={id!}
+              calendarColor={(form as any).calendar_color ?? null}
+              onUpdateCalendarColor={(next) => update('calendar_color', next)}
             />
           )}
 
