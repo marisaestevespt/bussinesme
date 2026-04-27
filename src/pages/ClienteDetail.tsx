@@ -786,7 +786,17 @@ export default function ClienteDetailPage() {
       }
       navigate(`/hub/projetos/${projectId}`);
     },
-    onError: (err: any) => toast.error(err.message || 'Erro ao criar novo ciclo'),
+    onError: (err: any) => {
+      const msg: string = err?.message || '';
+      // Gap #13: friendly message when the unique index blocks a duplicate scheduled renewal
+      if (msg.includes('uniq_one_scheduled_project_per_client')) {
+        toast.error('Este cliente já tem uma renovação agendada. Cancela a anterior antes de agendar outra.');
+      } else if (msg.includes('uniq_client_renewal_per_cycle')) {
+        toast.error('Já existe um checklist de renovação para este ciclo.');
+      } else {
+        toast.error(msg || 'Erro ao criar novo ciclo');
+      }
+    },
   });
 
   if (!isNew && isLoading) {
