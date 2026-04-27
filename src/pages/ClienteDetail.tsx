@@ -57,6 +57,9 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { buildPaymentEntries } from '@/lib/paymentGenerator';
 import { useAuth } from '@/hooks/useAuth';
 import { PAYMENT_METHOD_OPTIONS } from '@/lib/salesConstants';
+import { getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
+import { getProjectStatusInfo } from '@/lib/projectStatus';
+import { getMeetingStatusInfo } from '@/lib/meetingStatus';
 
 // ─── Client Financial Health Card ────────────────────────────────
 function ClientFinancialHealthCard({ clientName }: { clientName: string }) {
@@ -966,23 +969,26 @@ export default function ClienteDetailPage() {
                 </Button>
               }
             >
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_100px] gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[1fr_140px_120px] gap-3">
                   <span>Projeto</span><span>Status</span><span>Data</span>
                 </div>
                 {clientProjects.length === 0 ? (
                   <EmptyHint>Sem projetos associados</EmptyHint>
-                ) : clientProjects.map((p: any) => (
-                  <div
-                    key={p.id}
-                    className="px-4 py-2 text-xs grid grid-cols-[1fr_120px_100px] gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/hub/projetos/${p.id}`)}
-                  >
-                    <span className="font-medium">{p.name}</span>
-                    <Badge variant="outline" className="w-fit">{p.status}</Badge>
-                    <span>{p.created_at ? format(parseISO(p.created_at), 'dd/MM/yyyy') : '—'}</span>
-                  </div>
-                ))}
+                ) : clientProjects.map((p: any) => {
+                  const ps = getProjectStatusInfo(p.status);
+                  return (
+                    <div
+                      key={p.id}
+                      className="px-4 py-3 text-sm grid grid-cols-[1fr_140px_120px] gap-3 border-b last:border-b-0 items-center cursor-pointer hover:bg-muted/40 transition-colors"
+                      onClick={() => navigate(`/hub/projetos/${p.id}`)}
+                    >
+                      <span className="font-medium truncate">{p.name}</span>
+                      <Badge variant="outline" className={`${ps.color} w-fit`}>{ps.label}</Badge>
+                      <span className="text-muted-foreground">{p.created_at ? format(parseISO(p.created_at), 'dd/MM/yyyy') : '—'}</span>
+                    </div>
+                  );
+                })}
               </div>
             </EntitySection>
 
@@ -996,8 +1002,8 @@ export default function ClienteDetailPage() {
                   </Button>
                 ) : undefined}
             >
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[110px_1fr_1fr_40px] gap-3">
                   <span>Data</span><span>Entrada</span><span>Observações</span><span></span>
                 </div>
                 {(history.data || []).length === 0 ? (
@@ -1007,20 +1013,20 @@ export default function ClienteDetailPage() {
                   return isCrm ? (
                     <div
                       key={h.id}
-                      className="px-4 py-2.5 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center cursor-pointer hover:bg-muted/50 transition-colors"
+                      className="px-4 py-3 text-sm grid grid-cols-[110px_1fr_1fr_40px] gap-3 border-b last:border-b-0 items-center cursor-pointer hover:bg-muted/40 transition-colors"
                       onClick={() => setLeadPreviewId((h as any).lead_id)}
                     >
                       <span>{h.entry_date ? format(parseISO(h.entry_date), 'dd/MM/yyyy') : '—'}</span>
                       <span className="text-primary font-medium">{h.milestone}</span>
                       <span className="text-muted-foreground">{h.observations || '—'}</span>
-                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
                   ) : (
-                    <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
-                      <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
-                      <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
-                      <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
+                    <div key={h.id} className="px-4 py-2.5 text-sm grid grid-cols-[110px_1fr_1fr_40px] gap-3 border-b last:border-b-0 items-center">
+                      <Input type="date" className="h-9 text-sm" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
+                      <Input className="h-9 text-sm" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
+                      <Input className="h-9 text-sm" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3.5 w-3.5" /></Button>
                     </div>
                   );
                 })}
@@ -1064,19 +1070,19 @@ export default function ClienteDetailPage() {
                       </div>
                     </div>
                   )}
-                  <div className="rounded-lg border overflow-hidden">
-                    <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2">
+                  <div className="rounded-lg border overflow-hidden bg-card">
+                    <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[70px_1fr_140px_120px_110px] gap-3">
                       <span>Ciclo</span><span>Atividade</span><span>Responsável</span><span>Prazo</span><span>Estado</span>
                     </div>
                     {(renewalsQuery.data || []).length === 0 ? (
                       <EmptyHint>Sem renovações registadas</EmptyHint>
                     ) : (renewalsQuery.data || []).map((r: any) => (
-                      <div key={r.id} className="px-4 py-2 text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2 border-b items-center">
-                        <Badge variant="outline" className="text-xs w-fit">#{r.cycle_number}</Badge>
-                        <span>{r.activity}</span>
-                        <span className="text-muted-foreground">{r.responsible || '—'}</span>
+                      <div key={r.id} className="px-4 py-3 text-sm grid grid-cols-[70px_1fr_140px_120px_110px] gap-3 border-b last:border-b-0 items-center">
+                        <Badge variant="outline" className="bg-accent-violet/15 text-accent-violet border-accent-violet/30 w-fit">#{r.cycle_number}</Badge>
+                        <span className="font-medium truncate">{r.activity}</span>
+                        <span className="text-muted-foreground truncate">{r.responsible || '—'}</span>
                         <span className="text-muted-foreground">{r.due_date ? format(parseISO(r.due_date), 'dd/MM/yyyy') : '—'}</span>
-                        <Badge variant={r.completed ? 'default' : 'outline'} className={r.completed ? 'bg-success/15 text-success border-success/30' : ''}>
+                        <Badge variant="outline" className={`w-fit ${r.completed ? 'bg-success/15 text-success border-success/30' : 'bg-warning/15 text-warning border-warning/30'}`}>
                           {r.completed ? 'Concluída' : 'Pendente'}
                         </Badge>
                       </div>
@@ -1097,53 +1103,60 @@ export default function ClienteDetailPage() {
               icon={Users}
               action={<Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>}
             >
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-5 gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[140px_160px_1fr_1fr_60px] gap-3">
                   <span>Status</span><span>Data & Hora</span><span>Reunião</span><span>Participantes</span><span>Link</span>
                 </div>
                 {clientMeetings.length === 0 ? (
                   <EmptyHint>Sem reuniões associadas</EmptyHint>
-                ) : clientMeetings.map((m: any) => (
-                  <div key={m.id} className="px-4 py-2 text-xs grid grid-cols-5 gap-2 border-b items-center">
-                    <span><Badge variant="outline">{m.status}</Badge></span>
-                    <span>{m.date_time ? format(parseISO(m.date_time), 'dd/MM/yyyy HH:mm') : '—'}</span>
-                    <span className="truncate">{m.title}</span>
-                    <span className="truncate">
-                      {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
-                    </span>
-                    <span>
-                      {m.transcript_url ? <a href={m.transcript_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3" /></a> : '—'}
-                    </span>
-                  </div>
-                ))}
+                ) : clientMeetings.map((m: any) => {
+                  const ms = getMeetingStatusInfo(m.status);
+                  return (
+                    <div key={m.id} className="px-4 py-3 text-sm grid grid-cols-[140px_160px_1fr_1fr_60px] gap-3 border-b last:border-b-0 items-center">
+                      <Badge variant="outline" className={`${ms.color} w-fit`}>{ms.label}</Badge>
+                      <span className="text-muted-foreground">{m.date_time ? format(parseISO(m.date_time), 'dd/MM/yyyy HH:mm') : '—'}</span>
+                      <span className="font-medium truncate">{m.title}</span>
+                      <span className="text-muted-foreground truncate">
+                        {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
+                      </span>
+                      <span>
+                        {m.transcript_url ? <a href={m.transcript_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-primary hover:underline"><ExternalLink className="h-4 w-4" /></a> : <span className="text-muted-foreground">—</span>}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </EntitySection>
 
             {/* Payments */}
             <EntitySection title="Pagamentos" icon={Receipt}>
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[130px_110px_1fr_110px_110px_180px] gap-3">
                   <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span>
                 </div>
                 {clientSales.length === 0 ? (
                   <EmptyHint>Sem pagamentos associados</EmptyHint>
-                ) : clientSales.map(s => (
-                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
-                    <span>{s.status}</span>
-                    <span>{s.payment_date || '—'}</span>
-                    <span className="truncate">{s.description || '—'}</span>
-                    <span>{Number(s.base_value).toFixed(2)}€</span>
-                    <span>{Number(s.invoice_total).toFixed(2)}€</span>
-                    <span className="truncate inline-flex items-center gap-1.5">
-                      {s.product_id ? <ProductIcon productId={s.product_id as any} className="h-4 w-4" emojiClassName="text-[10px]" /> : null}
-                      {s.product || '—'}
-                    </span>
-                  </div>
-                ))}
+                ) : clientSales.map(s => {
+                  const eff = getEffectiveEntryStatus(s.status, s.payment_date ?? null);
+                  const sb = getEntryStatusBadge(eff);
+                  return (
+                    <div key={s.id} className="px-4 py-3 text-sm grid grid-cols-[130px_110px_1fr_110px_110px_180px] gap-3 border-b last:border-b-0 items-center cursor-pointer hover:bg-muted/40 transition-colors" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
+                      <Badge variant="outline" className={`${sb.cls} w-fit`}>{sb.label}</Badge>
+                      <span className="text-muted-foreground">{s.payment_date || '—'}</span>
+                      <span className="truncate">{s.description || <span className="text-muted-foreground">—</span>}</span>
+                      <span className="font-medium tabular-nums">{Number(s.base_value).toFixed(2)}€</span>
+                      <span className="font-medium tabular-nums">{Number(s.invoice_total).toFixed(2)}€</span>
+                      <span className="truncate inline-flex items-center gap-1.5">
+                        {s.product_id ? <ProductIcon productId={s.product_id as any} className="h-4 w-4" emojiClassName="text-[10px]" /> : null}
+                        <span className="truncate">{s.product || '—'}</span>
+                      </span>
+                    </div>
+                  );
+                })}
                 {clientSales.length > 0 && (
-                  <div className="px-4 py-3 text-xs font-medium border-t flex justify-between">
+                  <div className="px-4 py-3 text-sm font-semibold border-t bg-muted/30 flex justify-between">
                     <span>Total: {clientSales.length} pagamento(s)</span>
-                    <span>Valor total: {sumRevenue(clientSales).toFixed(2)}€</span>
+                    <span className="tabular-nums">Valor total: {sumRevenue(clientSales).toFixed(2)}€</span>
                   </div>
                 )}
               </div>
