@@ -693,10 +693,12 @@ export default function ClienteDetailPage() {
 
       // 4. Update client current_product, start_date and end_of_cycle
       if (isFutureStart) {
-        // Just mark the pending renewal — don't change current product yet
-        await (supabase as any).from('clients').update({
-          pending_renewal_project_id: newProject.id,
-        }).eq('id', id);
+        // Mark pending renewal — keep current product, but reset altura_renovacao→ativo
+        // because the renewal is already organized (scheduled). The status will move
+        // again automatically when the cron activates the scheduled project.
+        const updates: any = { pending_renewal_project_id: newProject.id };
+        if (form.status === 'altura_renovacao') updates.status = 'ativo';
+        await (supabase as any).from('clients').update(updates).eq('id', id);
       } else {
         await (supabase as any).from('clients').update({
           current_product: renewProduct,
