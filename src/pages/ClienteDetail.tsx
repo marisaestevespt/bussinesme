@@ -382,7 +382,23 @@ export default function ClienteDetailPage() {
 
   // Filtered payments
   const allSales = commercialData.sales.data || [];
-  const clientSales = allSales.filter(s => s.client === form.full_name);
+  // Fetch all sales for this client across ALL years (current year hook is year-scoped)
+  const { data: clientAllYearSales = [] } = useQuery({
+    queryKey: ['client-all-sales', form.full_name],
+    enabled: !!form.full_name,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('commercial_sales')
+        .select('id,sale_id,client,product,product_id,base_value,invoice_total,payment_date,status,sale_month,sale_quarter,sale_year,source,description,documents,project_id,created_at')
+        .eq('client', form.full_name)
+        .order('payment_date', { ascending: false });
+      return data || [];
+    },
+    staleTime: 60 * 1000,
+  });
+  const clientSales = clientAllYearSales.length > 0
+    ? clientAllYearSales
+    : allSales.filter(s => s.client === form.full_name);
 
   // Filtered meetings
   const { data: clientMeetings = [] } = useFilteredMeetings(isNew ? undefined : id);
