@@ -67,7 +67,10 @@ export default function ClientesPage() {
   }, [activeItems]);
 
   // Column template: Nome | ID | Status | Produto | Início | Fim ciclo | Email | Contacto
-  const COLS = 'minmax(180px,1.6fr)_90px_120px_minmax(140px,1.3fr)_100px_100px_minmax(160px,1.5fr)_120px';
+  const gridColsStyle = {
+    gridTemplateColumns:
+      'minmax(180px,1.6fr) 90px 120px minmax(140px,1.3fr) 100px 100px minmax(160px,1.5fr) 120px',
+  } as React.CSSProperties;
 
   const renderClientRow = (c: Client) => (
     <div
@@ -77,7 +80,8 @@ export default function ClientesPage() {
     >
       {/* Desktop: single-row table layout */}
       <div
-        className={`hidden md:grid grid-cols-[${COLS}] gap-3 items-center px-6 py-3`}
+        className="hidden md:grid gap-3 items-center px-6 py-3"
+        style={gridColsStyle}
       >
         <span className="font-medium truncate" title={c.full_name}>{c.full_name}</span>
         <span className="font-mono text-xs text-muted-foreground truncate">{c.client_id}</span>
@@ -230,7 +234,8 @@ export default function ClientesPage() {
             fetchNextPage={clients.fetchNextPage}
           >
             <div
-              className={`hidden md:grid grid-cols-[${COLS}] gap-3 items-center bg-gradient-to-r from-primary/15 via-primary/8 to-accent/10 px-6 py-3 font-semibold text-[10px] uppercase tracking-wider text-foreground/80 border-b border-primary/20`}
+              className="hidden md:grid gap-3 items-center bg-gradient-to-r from-primary/15 via-primary/8 to-accent/10 px-6 py-3 font-semibold text-[10px] uppercase tracking-wider text-foreground/80 border-b border-primary/20"
+              style={gridColsStyle}
             >
               <span>Nome</span>
               <span>ID</span>
