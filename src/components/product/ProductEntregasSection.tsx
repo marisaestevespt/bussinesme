@@ -196,6 +196,32 @@ function DeliverableRow({
           </div>
         )}
       </div>
+      {template.deliverable_type === 'reuniao' && (
+        <div className="flex items-center gap-3 pl-9">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">Título reunião</span>
+          <Input
+            value={titleTpl}
+            onChange={e => setTitleTpl(e.target.value)}
+            onBlur={() => {
+              if (titleTpl !== (template.meeting_title_template || '')) {
+                titleTplRef.current = titleTpl;
+                onUpdate(template.id, { meeting_title_template: titleTpl || null });
+              }
+            }}
+            placeholder="Ex: 🪉 | Sessão Criação de Processos | {N} | {cliente}"
+            className="flex-1 h-8 text-xs"
+            readOnly={!isOwner}
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-[10px] text-muted-foreground cursor-help">{'{N}'} {'{cliente}'}</span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs max-w-xs">
+              Variáveis: <b>{'{N}'}</b> = número sequencial entre reuniões iguais no projeto · <b>{'{cliente}'}</b> = nome do cliente
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
     </div>
   );
 }
