@@ -222,9 +222,9 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
                   const st = getClientStatusInfo(c.status);
                   return (
                     <TableRow
-                      key={c.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => navigate(`/hub/clientes/${c.id}`)}
+ key={c.id}
+ className="cursor-pointer hover:bg-muted/50"
+ onClick={() => navigate(`/hub/clientes/${c.id}`)}
                     >
                       <TableCell className="font-medium">{c.full_name}</TableCell>
                       <TableCell>

@@ -58,7 +58,7 @@ export function ProductProcessosSection({ productSops, projectTemplate, isOwner,
                 const st = getSopStatusInfo(sop.status as string);
                 return (
                   <TableRow key={sop.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
-                    <TableCell className="text-xs font-mono text-muted-foreground">{sop.sop_id as string}</TableCell>
+                    <TableCell className="font-mono text-muted-foreground">{sop.sop_id as string}</TableCell>
                     <TableCell className="font-medium text-sm">{sop.name as string}</TableCell>
                     <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
                   </TableRow>

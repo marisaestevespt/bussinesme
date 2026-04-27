@@ -410,7 +410,7 @@ export default function ProcessosPage() {
                           <TableCell className="text-muted-foreground">{(sop as any).role_title || '—'}</TableCell>
                           <TableCell className="text-muted-foreground">{((sop as any).departments?.length ? (sop as any).departments : [sop.department]).map((d: string) => getDeptLabel(d)).join(', ')}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{(sop as any).sop_type || 'operacional'}</Badge></TableCell>
-                          <TableCell className="font-mono text-xs">v{(sop as any).version || 1}</TableCell>
+                          <TableCell className="font-mono">v{(sop as any).version || 1}</TableCell>
                           <TableCell><Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge></TableCell>
                         </TableRow>
                       );

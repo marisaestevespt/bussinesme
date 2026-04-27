@@ -422,7 +422,7 @@ export function ProductMarketingSection({
                   <TableCell><Badge variant="outline" className="text-xs">{((c.status as string) || '').replace('_', ' ') || '—'}</Badge></TableCell>
                   <TableCell className="font-medium">{c.title as string}</TableCell>
                   <TableCell className="text-sm">{(c.format as string) || '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{c.scheduled_at ? format(new Date(c.scheduled_at as string), 'dd/MM/yyyy') : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{c.scheduled_at ? format(new Date(c.scheduled_at as string), 'dd/MM/yyyy') : '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -462,7 +462,7 @@ export function ProductMarketingSection({
                   <TableCell className="font-medium">{f.name as string}</TableCell>
                   <TableCell className="text-sm">{(f.tipo_funil as string) || '—'}</TableCell>
                   <TableCell className="text-sm">{(f.objetivo as string) || '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{format(new Date(f.updated_at as string), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell className="text-muted-foreground">{format(new Date(f.updated_at as string), 'dd/MM/yyyy')}</TableCell>
                   {isOwner && (
                     <TableCell>
                       <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('marketing_funnels', f.id as string); }}><Trash2 className="h-3 w-3" /></Button>
@@ -507,7 +507,7 @@ export function ProductMarketingSection({
                   <TableCell className="font-medium">{a.name as string}</TableCell>
                   <TableCell className="text-sm">{(a.plataforma as string) || '—'}</TableCell>
                   <TableCell className="text-sm">{(a.objetivo as string) || '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{format(new Date(a.updated_at as string), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell className="text-muted-foreground">{format(new Date(a.updated_at as string), 'dd/MM/yyyy')}</TableCell>
                   {isOwner && (
                     <TableCell>
                       <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); onDeleteRow('marketing_automations', a.id as string); }}><Trash2 className="h-3 w-3" /></Button>

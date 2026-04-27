@@ -310,7 +310,7 @@ export function AbsenceCoverageTable() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                    <TableCell className="max-w-[200px] truncate text-muted-foreground">
                       {c.sos_notes || '—'}
                     </TableCell>
                     <TableCell>

@@ -73,7 +73,7 @@ export function OverloadTab({ entries, members, tasks }: { entries: any[]; membe
           <Table>
             <TableHeader><TableRow>
               <TableHead>Membro</TableHead>
-              {weekRanges.map((w, i) => <TableHead key={i} className="text-center text-xs">{w.label}</TableHead>)}
+              {weekRanges.map((w, i) => <TableHead key={i} className="text-center">{w.label}</TableHead>)}
               <TableHead>Tendência</TableHead>
             </TableRow></TableHeader>
             <TableBody>

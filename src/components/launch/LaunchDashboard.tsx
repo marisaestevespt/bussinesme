@@ -466,7 +466,7 @@ function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) 
                             </div>
                           ) : <span className="text-xs text-muted-foreground">—</span>}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{t.due_date ? format(parseISO(t.due_date), 'd MMM', { locale: pt }) : '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">{t.due_date ? format(parseISO(t.due_date), 'd MMM', { locale: pt }) : '—'}</TableCell>
                         <TableCell>{t.sector_area ? <Badge variant="outline" className="text-[10px]">{t.sector_area}</Badge> : '—'}</TableCell>
                       </TableRow>
                     );
@@ -548,7 +548,7 @@ function TarefasPorDataView({ tasks, profileMap }: any) {
                 <TableCell><Badge className={cn(pi.color, 'border-0 text-[10px]')}>{pi.label}</Badge></TableCell>
                 <TableCell><Badge className={cn(si.color, 'border-0 text-[10px]')}>{si.label}</Badge></TableCell>
                 <TableCell className="font-medium text-sm">{t.title}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{t.due_date ? format(parseISO(t.due_date), 'd MMM', { locale: pt }) : '—'}</TableCell>
+                <TableCell className="text-muted-foreground">{t.due_date ? format(parseISO(t.due_date), 'd MMM', { locale: pt }) : '—'}</TableCell>
                 <TableCell>
                   {assignee ? (
                     <div className="flex items-center gap-2">

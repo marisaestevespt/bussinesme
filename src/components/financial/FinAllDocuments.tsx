@@ -173,11 +173,11 @@ export function FinAllDocuments() {
                         {d.type === 'entrada' ? 'Entrada' : 'Saída'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs font-mono">{d.ref}</TableCell>
+                    <TableCell className="font-mono">{d.ref}</TableCell>
                     <TableCell className="text-sm">{d.client_or_supplier || '—'}</TableCell>
-                    <TableCell className="text-xs max-w-[200px] truncate">{d.description || '—'}</TableCell>
-                    <TableCell className="text-xs">{d.date || '—'}</TableCell>
-                    <TableCell className={`text-xs text-right font-medium ${d.type === 'entrada' ? 'text-success' : 'text-destructive'}`}>
+                    <TableCell className="max-w-[200px] truncate">{d.description || '—'}</TableCell>
+                    <TableCell className="">{d.date || '—'}</TableCell>
+                    <TableCell className={` text-right font-medium ${d.type === 'entrada' ? 'text-success' : 'text-destructive'}`}>
                       {d.type === 'entrada' ? '+' : '-'}{formatEuro(d.value)}
                     </TableCell>
                     <TableCell>

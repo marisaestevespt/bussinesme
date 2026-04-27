@@ -81,11 +81,11 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
                     const dev = targetValue > 0 ? actualValue - targetValue : null;
                     return (
                       <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
-                        <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
+                        <TableCell className="">{obj?.title || '—'}</TableCell>
                         <TableCell className="text-sm">{g.period}</TableCell>
-                        <TableCell className="text-xs">{targetValue || '—'}</TableCell>
-                        <TableCell className="text-xs">{actualValue || '—'}</TableCell>
-                        <TableCell className={`text-xs ${dev !== null && dev < 0 ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                        <TableCell className="">{targetValue || '—'}</TableCell>
+                        <TableCell className="">{actualValue || '—'}</TableCell>
+                        <TableCell className={` ${dev !== null && dev < 0 ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
                       </TableRow>
                     );
@@ -108,10 +108,10 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
                     const daysOverdue = m.last_updated_at ? Math.floor((new Date().getTime() - new Date(m.last_updated_at).getTime()) / (1000 * 60 * 60 * 24)) : '—';
                     return (
                       <TableRow key={m.id} className="bg-destructive/15">
-                        <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
+                        <TableCell className="">{obj?.title || '—'}</TableCell>
                         <TableCell className="text-sm font-medium">{m.name}</TableCell>
-                        <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : 'Nunca'}</TableCell>
-                        <TableCell className="text-xs text-destructive font-medium">{daysOverdue} dias</TableCell>
+                        <TableCell className="">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : 'Nunca'}</TableCell>
+                        <TableCell className="text-destructive font-medium">{daysOverdue} dias</TableCell>
                       </TableRow>
                     );
                   })
@@ -150,7 +150,7 @@ export function AgendaSection({ events, onOpenDetail }: AgendaSectionProps) {
             {events.length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
               events.map(e => (
                 <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
-                  <TableCell className="text-xs">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
+                  <TableCell className="">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
                 </TableRow>
               ))
             }
@@ -224,7 +224,7 @@ export function VendasSection({ salesWeek, salesActions, salesWeekTotal, prevSal
           <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
             <TableBody>{salesWeek.map(s => (
               <TableRow key={s.id} className={clickableRow} onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
-                <TableCell className="text-xs">{s.sale_id}</TableCell><TableCell className="text-xs">{s.client}</TableCell><TableCell className="text-xs">{s.product}</TableCell><TableCell className="text-xs">€{Number(s.invoice_total).toLocaleString()}</TableCell>
+                <TableCell className="">{s.sale_id}</TableCell><TableCell className="">{s.client}</TableCell><TableCell className="">{s.product}</TableCell><TableCell className="">€{Number(s.invoice_total).toLocaleString()}</TableCell>
               </TableRow>
             ))}</TableBody>
           </Table>
@@ -236,7 +236,7 @@ export function VendasSection({ salesWeek, salesActions, salesWeekTotal, prevSal
           <Table><TableHeader><TableRow><TableHead>Ação</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Produto</TableHead></TableRow></TableHeader>
             <TableBody>{salesActions.map(a => (
               <TableRow key={a.id} className={clickableRow} onClick={() => openSaleActionDetail(a)}>
-                <TableCell className="text-xs">{a.action_name}</TableCell><TableCell className="text-xs">{a.action_type}</TableCell><TableCell><Badge variant="secondary" className="text-[10px]">{a.status}</Badge></TableCell><TableCell className="text-xs">{a.product}</TableCell>
+                <TableCell className="">{a.action_name}</TableCell><TableCell className="">{a.action_type}</TableCell><TableCell><Badge variant="secondary" className="text-[10px]">{a.status}</Badge></TableCell><TableCell className="">{a.product}</TableCell>
               </TableRow>
             ))}</TableBody>
           </Table>
@@ -277,11 +277,11 @@ export function LeadsSection({ leads, followUps, onOpenDetail }: LeadsSectionPro
             <TableRow key={l.id} className={clickableRow} onClick={() => openLeadDetail(l)}>
               <TableCell className="text-sm font-medium">{l.name}</TableCell>
               <TableCell><Badge variant="secondary" className="text-[10px]">{l.status}</Badge></TableCell>
-              <TableCell className="text-xs">{l.estimated_value ? `€${Number(l.estimated_value).toLocaleString()}` : '—'}</TableCell>
-              <TableCell className="text-xs">{l.phone || '—'}</TableCell>
-              <TableCell className="text-xs">{l.email || '—'}</TableCell>
-              <TableCell className="text-xs">{l.next_followup || '—'}</TableCell>
-              <TableCell className="text-xs max-w-[150px] truncate">{l.followup_notes || '—'}</TableCell>
+              <TableCell className="">{l.estimated_value ? `€${Number(l.estimated_value).toLocaleString()}` : '—'}</TableCell>
+              <TableCell className="">{l.phone || '—'}</TableCell>
+              <TableCell className="">{l.email || '—'}</TableCell>
+              <TableCell className="">{l.next_followup || '—'}</TableCell>
+              <TableCell className="max-w-[150px] truncate">{l.followup_notes || '—'}</TableCell>
             </TableRow>
           ))
         }
@@ -319,13 +319,13 @@ export function ClientesSection({ onboardingClients, renewalClients }: ClientesS
         {data.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
           data.map(c => (
             <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-              <TableCell className="text-xs">{c.client_id}</TableCell>
-              <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+              <TableCell className="">{c.client_id}</TableCell>
+              <TableCell className="">{c.start_date || '—'}</TableCell>
               <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
               <TableCell className="text-sm">{c.full_name}</TableCell>
-              <TableCell className="text-xs">{c.email || '—'}</TableCell>
-              <TableCell className="text-xs">{c.current_product || '—'}</TableCell>
-              <TableCell className="text-xs">{c.end_of_cycle || '—'}</TableCell>
+              <TableCell className="">{c.email || '—'}</TableCell>
+              <TableCell className="">{c.current_product || '—'}</TableCell>
+              <TableCell className="">{c.end_of_cycle || '—'}</TableCell>
             </TableRow>
           ))
         }
@@ -403,10 +403,10 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
               return (
                 <TableRow key={r.id} className={cn(getNpsRowColor(r.expected_date, status), clickableRow)} onClick={() => openNpsDetail(r)}>
                   <TableCell className="text-sm font-medium">{r.clients?.full_name || '—'}</TableCell>
-                  <TableCell className="text-xs">{r.clients?.current_product || '—'}</TableCell>
-                  <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell className="">{r.clients?.current_product || '—'}</TableCell>
+                  <TableCell className="">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
                   <TableCell><Badge variant={status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary'} className="text-[10px]">{status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer'}</Badge></TableCell>
-                  <TableCell className="text-xs">{r.nps_score != null ? r.nps_score : '—'}</TableCell>
+                  <TableCell className="">{r.nps_score != null ? r.nps_score : '—'}</TableCell>
                 </TableRow>
               );
             })}</TableBody></Table>
@@ -427,9 +427,9 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
             <TableBody>{npsOverdue.map((r: any) => (
               <TableRow key={r.id} className={cn("bg-destructive/15 border-l-4 border-l-red-500", clickableRow)} onClick={() => openNpsDetail(r)}>
                 <TableCell className="text-sm font-medium">{r.clients?.full_name || '—'}</TableCell>
-                <TableCell className="text-xs">{r.clients?.current_product || '—'}</TableCell>
-                <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
-                <TableCell className="text-xs font-medium text-destructive">{differenceInDays(now, parseISO(r.expected_date))} dias</TableCell>
+                <TableCell className="">{r.clients?.current_product || '—'}</TableCell>
+                <TableCell className="">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
+                <TableCell className="font-medium text-destructive">{differenceInDays(now, parseISO(r.expected_date))} dias</TableCell>
               </TableRow>
             ))}</TableBody></Table>
           </div>
@@ -448,11 +448,11 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
               return (
                 <TableRow key={m.id} className={cn(getNpsRowColor(m.expected_date, status), clickableRow)} onClick={() => openMilestoneDetail(m)}>
                   <TableCell className="text-sm font-medium">{m.clients?.full_name || '—'}</TableCell>
-                  <TableCell className="text-xs">{m.clients?.current_product || '—'}</TableCell>
-                  <TableCell className="text-xs">{m.milestone || '—'}</TableCell>
-                  <TableCell className="text-xs">{MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type}</TableCell>
-                  <TableCell className="text-xs">{format(parseISO(m.expected_date), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell className="text-xs">{getMemberName(m.responsible_id)}</TableCell>
+                  <TableCell className="">{m.clients?.current_product || '—'}</TableCell>
+                  <TableCell className="">{m.milestone || '—'}</TableCell>
+                  <TableCell className="">{MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type}</TableCell>
+                  <TableCell className="">{format(parseISO(m.expected_date), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell className="">{getMemberName(m.responsible_id)}</TableCell>
                   <TableCell><Badge variant={status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary'} className="text-[10px]">{status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer'}</Badge></TableCell>
                 </TableRow>
               );
@@ -485,13 +485,13 @@ export function ExpiringContractsSection({ expiringContractsList }: ContractsSec
         </TableRow></TableHeader>
         <TableBody>{expiringContractsList.map((c: any) => (
           <TableRow key={c.id} className={cn(
-            c.daysLeft <= 0 ? 'bg-destructive/15 border-l-4 border-l-red-500' :
-            c.daysLeft <= 14 ? 'bg-warning/15 border-l-4 border-l-amber-500' : ''
-          )}>
+ c.daysLeft <= 0 ? 'bg-destructive/15 border-l-4 border-l-red-500' :
+ c.daysLeft <= 14 ? 'bg-warning/15 border-l-4 border-l-amber-500' : ''
+ )}>
             <TableCell className="text-sm font-medium">{c.team_members?.full_name || '—'}</TableCell>
-            <TableCell className="text-xs">{c.team_members?.role_title || '—'}</TableCell>
-            <TableCell className="text-xs">{c.team_members?.department || '—'}</TableCell>
-            <TableCell className="text-xs">{c.end_date}</TableCell>
+            <TableCell className="">{c.team_members?.role_title || '—'}</TableCell>
+            <TableCell className="">{c.team_members?.department || '—'}</TableCell>
+            <TableCell className="">{c.end_date}</TableCell>
             <TableCell>
               <Badge variant={c.daysLeft <= 0 ? 'destructive' : c.daysLeft <= 14 ? 'secondary' : 'outline'} className="text-[10px]">
                 {c.daysLeft <= 0 ? `Expirou há ${Math.abs(c.daysLeft)} dias` : `${c.daysLeft} dias`}
@@ -568,8 +568,8 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
               <TableRow key={p.id} className={clickableRow} onClick={() => navigate(`/hub/projetos/${p.id}`)}>
                 <TableCell><Badge variant="secondary" className="text-[10px]">{p.status}</Badge></TableCell>
                 <TableCell className="text-sm">{p.name}</TableCell>
-                <TableCell className="text-xs">{p.department || '—'}</TableCell>
-                <TableCell className="text-xs">{p.deadline || '—'}</TableCell>
+                <TableCell className="">{p.department || '—'}</TableCell>
+                <TableCell className="">{p.deadline || '—'}</TableCell>
               </TableRow>
             ))}</TableBody></Table>
           </div>
@@ -673,9 +673,9 @@ export function MarketingGoalsSection({ currentMonth, currentYear }: MarketingGo
               return (
                 <TableRow key={g.id}>
                   <TableCell className="text-sm font-medium">{g.metric_label}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{channelName || 'Geral'}</TableCell>
-                  <TableCell className="text-xs text-right">{g.target_value}</TableCell>
-                  <TableCell className="text-xs text-right">{g.current_value}</TableCell>
+                  <TableCell className="text-muted-foreground">{channelName || 'Geral'}</TableCell>
+                  <TableCell className="text-right">{g.target_value}</TableCell>
+                  <TableCell className="text-right">{g.current_value}</TableCell>
                   <TableCell className="text-right">
                     <Badge variant={achieved ? 'default' : 'secondary'} className={cn('text-[10px]', achieved && 'bg-success hover:bg-success')}>
                       {pct}%

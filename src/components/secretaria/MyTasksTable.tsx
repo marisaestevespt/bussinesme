@@ -367,7 +367,7 @@ function TableLayout({
           <>
             {groupBy !== 'none' && (
               <TableRow key={`g-${g.key}`} className="bg-muted/30 hover:bg-muted/30">
-                <TableCell colSpan={totalCols} className="py-2 text-xs font-semibold text-foreground/80">
+                <TableCell colSpan={totalCols} className="py-2 font-semibold text-foreground/80">
                   {g.label} <span className="text-muted-foreground tabular-nums">· {g.items.length}</span>
                 </TableCell>
               </TableRow>

@@ -45,9 +45,9 @@ export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: Routines
 
                 return (
                   <TableRow
-                    key={t.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate('/hub/tarefas')}
+ key={t.id}
+ className="cursor-pointer hover:bg-muted/50"
+ onClick={() => navigate('/hub/tarefas')}
                   >
                     <TableCell>
                       {isDone ? (
@@ -59,9 +59,9 @@ export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: Routines
                       )}
                     </TableCell>
                     <TableCell className={cn('text-sm', isDone && 'line-through text-muted-foreground')}>{t.name}</TableCell>
-                    <TableCell className="text-xs">{routineInfo?.role_function || '—'}</TableCell>
-                    <TableCell className="text-xs">{t.deadline ? format(parseISO(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                    <TableCell className="text-xs">{(t.profiles as any)?.full_name || '—'}</TableCell>
+                    <TableCell className="">{routineInfo?.role_function || '—'}</TableCell>
+                    <TableCell className="">{t.deadline ? format(parseISO(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
+                    <TableCell className="">{(t.profiles as any)?.full_name || '—'}</TableCell>
                   </TableRow>
                 );
               })}

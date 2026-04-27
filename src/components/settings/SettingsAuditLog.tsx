@@ -122,7 +122,7 @@ export function SettingsAuditLog() {
 
                 return (
                   <TableRow key={log.id}>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
                       {format(new Date(log.created_at), "dd MMM yyyy HH:mm", { locale: pt })}
                     </TableCell>
                     <TableCell className="text-sm">{log.user_name || '—'}</TableCell>
@@ -134,7 +134,7 @@ export function SettingsAuditLog() {
                     <TableCell className="text-sm">
                       {ENTITY_LABELS[log.entity_type] || log.entity_type}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
+                    <TableCell className="text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
                       {detail}
                     </TableCell>
                   </TableRow>

@@ -144,13 +144,13 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
             {data.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem sessões</TableCell></TableRow> :
               data.map(r => (
                 <TableRow key={r.id}>
-                  <TableCell className="text-xs">{r.session_date}</TableCell>
-                  <TableCell className="text-xs">{r.session_time || '—'}</TableCell>
+                  <TableCell className="">{r.session_date}</TableCell>
+                  <TableCell className="">{r.session_time || '—'}</TableCell>
                   <TableCell className="text-sm">{memberName(r.member_id)}</TableCell>
                   <TableCell><Badge variant="outline" className="text-[10px]">{labelFor(FEEDBACK_TYPES, r.feedback_type)}</Badge></TableCell>
-                  <TableCell className="text-xs max-w-[150px] truncate">{r.summary || '—'}</TableCell>
+                  <TableCell className="max-w-[150px] truncate">{r.summary || '—'}</TableCell>
                   <TableCell>{r.transcript_url ? <a href={r.transcript_url} target="_blank" rel="noopener" className="text-xs text-primary underline">PDF</a> : '—'}</TableCell>
-                  <TableCell className="text-xs">{r.next_session || '—'}</TableCell>
+                  <TableCell className="">{r.next_session || '—'}</TableCell>
                   <TableCell><div className="flex gap-1">
                     <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDialog(r)}>Editar</Button>
                     <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => setConfirmDelete({ id: r.id, label: `a sessão de ${memberName(r.member_id)} de ${r.session_date}` })}><Trash2 className="h-3 w-3" /></Button>

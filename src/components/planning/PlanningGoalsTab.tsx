@@ -166,18 +166,18 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
     const autoStatus = !g.isAggregated ? planning.computeGoalStatus(g) : g.status;
     return (
       <TableRow
-        key={g.id || g.period}
-        className={`${opts.clickable ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isAggregated ? 'bg-muted/30' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`}
-        onClick={() => opts.clickable && openEdit(g)}
+ key={g.id || g.period}
+ className={`${opts.clickable ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isAggregated ? 'bg-muted/30' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`}
+ onClick={() => opts.clickable && openEdit(g)}
       >
         <TableCell className="text-sm">
           {g.period}
         </TableCell>
-        <TableCell className="text-xs">{area ? <Badge variant="outline" className="text-[10px]">{area}</Badge> : '—'}</TableCell>
-        <TableCell className="text-xs">{deadline || '—'}</TableCell>
-        <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
-        <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
-        <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>
+        <TableCell className="">{area ? <Badge variant="outline" className="text-[10px]">{area}</Badge> : '—'}</TableCell>
+        <TableCell className="">{deadline || '—'}</TableCell>
+        <TableCell className="">{g.target_value || '—'}</TableCell>
+        <TableCell className="">{g.actual_value || '—'}</TableCell>
+        <TableCell className={` ${hasDeviation ? 'text-destructive font-medium' : ''}`}>
           {dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}
         </TableCell>
         <TableCell>

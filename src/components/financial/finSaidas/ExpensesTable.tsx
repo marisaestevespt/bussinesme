@@ -66,7 +66,7 @@ export function ExpensesTable({ expenses, loading, filter, ivaExempt, getCategor
                       {EXP_STATUS.find(s => s.value === e.status)?.label || e.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{e.expense_id}</TableCell>
+                  <TableCell className="font-mono">{e.expense_id}</TableCell>
                   <TableCell>{e.expense_date || '—'}</TableCell>
                   <TableCell className="truncate max-w-[200px]">
                     {e.description || '—'}

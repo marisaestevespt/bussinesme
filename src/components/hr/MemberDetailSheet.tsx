@@ -323,15 +323,15 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
               ) : (
                 <Table>
                   <TableHeader><TableRow>
-                    <TableHead className="text-xs">Data</TableHead><TableHead className="text-xs">Duração</TableHead><TableHead className="text-xs">Categoria</TableHead><TableHead className="text-xs">Descrição</TableHead>
+                    <TableHead className="">Data</TableHead><TableHead className="">Duração</TableHead><TableHead className="">Categoria</TableHead><TableHead className="">Descrição</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {(memberTime.data || []).slice(0, 20).map((e: any) => (
                       <TableRow key={e.id}>
-                        <TableCell className="text-xs">{e.entry_date}</TableCell>
-                        <TableCell className="text-xs">{Number(e.duration).toFixed(1)}h</TableCell>
-                        <TableCell className="text-xs">{e.category || '—'}</TableCell>
-                        <TableCell className="text-xs max-w-[200px] truncate">{e.description || '—'}</TableCell>
+                        <TableCell className="">{e.entry_date}</TableCell>
+                        <TableCell className="">{Number(e.duration).toFixed(1)}h</TableCell>
+                        <TableCell className="">{e.category || '—'}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{e.description || '—'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -375,17 +375,17 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
               ) : (
                 <Table>
                   <TableHeader><TableRow>
-                    <TableHead className="text-xs">Mês</TableHead><TableHead className="text-xs">Tipo</TableHead><TableHead className="text-xs">Bruto</TableHead><TableHead className="text-xs">Líquido</TableHead><TableHead className="text-xs">Status</TableHead>
+                    <TableHead className="">Mês</TableHead><TableHead className="">Tipo</TableHead><TableHead className="">Bruto</TableHead><TableHead className="">Líquido</TableHead><TableHead className="">Status</TableHead>
                   </TableRow></TableHeader>
                   <TableBody>
                     {payments.map((p: any) => {
                       const isOverdue = p.status === 'por_pagar' && (p.year < currentYear || (p.year === currentYear && p.month < currentMonth));
                       return (
                         <TableRow key={p.id} className={isOverdue ? 'bg-destructive/5' : ''}>
-                          <TableCell className="text-xs">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
-                          <TableCell className="text-xs">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
-                          <TableCell className="text-xs">€{Number(p.gross_value).toLocaleString()}</TableCell>
-                          <TableCell className="text-xs">€{Number(p.net_value).toLocaleString()}</TableCell>
+                          <TableCell className="">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
+                          <TableCell className="">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
+                          <TableCell className="">€{Number(p.gross_value).toLocaleString()}</TableCell>
+                          <TableCell className="">€{Number(p.net_value).toLocaleString()}</TableCell>
                           <TableCell><Badge variant={p.status === 'pago' ? 'default' : isOverdue ? 'destructive' : 'secondary'} className="text-[10px]">{isOverdue ? 'Em atraso' : labelFor(PAYMENT_STATUSES, p.status)}</Badge></TableCell>
                         </TableRow>
                       );

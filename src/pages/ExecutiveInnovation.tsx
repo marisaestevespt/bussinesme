@@ -403,8 +403,8 @@ function IdeasTable() {
                       <SelectContent>{PLANS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{format(new Date(idea.created_at), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{idea.implementation_date ? format(new Date(idea.implementation_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{format(new Date(idea.created_at), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell className="text-muted-foreground">{idea.implementation_date ? format(new Date(idea.implementation_date), 'dd/MM/yyyy') : '—'}</TableCell>
                   <TableCell>
                     <button onClick={() => deleteIdea.mutate(idea.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
                   </TableCell>

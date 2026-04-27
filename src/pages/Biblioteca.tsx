@@ -276,9 +276,9 @@ export default function BibliotecaPage() {
               <TableBody>
                 {filteredDocs.map(doc => (
                   <TableRow
-                    key={doc.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => openEdit(doc)}
+ key={doc.id}
+ className="cursor-pointer hover:bg-muted/50"
+ onClick={() => openEdit(doc)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">

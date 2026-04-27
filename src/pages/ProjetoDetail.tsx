@@ -804,9 +804,9 @@ export default function ProjetoDetailPage() {
                           const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
                           return (
                             <TableRow
-                              key={t.id}
-                              className="cursor-pointer hover:bg-muted/30"
-                              onClick={() => setTaskDetailId(t.id)}
+ key={t.id}
+ className="cursor-pointer hover:bg-muted/30"
+ onClick={() => setTaskDetailId(t.id)}
                             >
                               <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
                               <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
@@ -1134,9 +1134,9 @@ export default function ProjetoDetailPage() {
                     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
                     return (
                       <TableRow
-                        key={t.id}
-                        className="cursor-pointer hover:bg-muted/30"
-                        onClick={() => setTaskDetailId(t.id)}
+ key={t.id}
+ className="cursor-pointer hover:bg-muted/30"
+ onClick={() => setTaskDetailId(t.id)}
                       >
                         <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
                         <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
