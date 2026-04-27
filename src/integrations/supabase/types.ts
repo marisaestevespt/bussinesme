@@ -8122,15 +8122,20 @@ export type Database = {
       }
       product_renewal_templates: {
         Row: {
+          activity: string | null
           created_at: string
           deliverable_type: string | null
           description: string | null
+          documents_links: string | null
           id: string
           is_meeting: boolean
-          name: string
+          name: string | null
           notes: string | null
+          phase: string | null
           product_id: string
+          responsible: string | null
           responsible_type: string | null
+          rule: string | null
           rule_days: number | null
           rule_trigger: string | null
           rule_unit: string | null
@@ -8138,15 +8143,20 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          activity?: string | null
           created_at?: string
           deliverable_type?: string | null
           description?: string | null
+          documents_links?: string | null
           id?: string
           is_meeting?: boolean
-          name: string
+          name?: string | null
           notes?: string | null
+          phase?: string | null
           product_id: string
+          responsible?: string | null
           responsible_type?: string | null
+          rule?: string | null
           rule_days?: number | null
           rule_trigger?: string | null
           rule_unit?: string | null
@@ -8154,15 +8164,20 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          activity?: string | null
           created_at?: string
           deliverable_type?: string | null
           description?: string | null
+          documents_links?: string | null
           id?: string
           is_meeting?: boolean
-          name?: string
+          name?: string | null
           notes?: string | null
+          phase?: string | null
           product_id?: string
+          responsible?: string | null
           responsible_type?: string | null
+          rule?: string | null
           rule_days?: number | null
           rule_trigger?: string | null
           rule_unit?: string | null
