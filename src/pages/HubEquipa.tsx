@@ -204,7 +204,7 @@ export default function HubEquipaPage() {
             </p>
             <div className="mt-3"><TeamWhatsAppLink /></div>
           </div>
-          <HeaderClock />
+          <AnalogClock />
         </div>
       </div>
 
