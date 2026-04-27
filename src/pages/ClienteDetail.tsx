@@ -1060,13 +1060,14 @@ export default function ClienteDetailPage() {
                         </Button>
                         <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => {
                           if (!await confirm({ title: 'Cancelar renovação agendada?', description: 'O projeto agendado será eliminado e os pagamentos pendentes removidos.' })) return;
-                          const projId = scheduledRenewalProjectQuery.data!.id;
-                          await supabase.from('commercial_sales').delete().eq('project_id', projId).neq('status','pago');
-                          await supabase.from('projects').delete().eq('id', projId);
-                          await (supabase as any).from('clients').update({ pending_renewal_project_id: null }).eq('id', id);
+                          const { data, error } = await (supabase as any).rpc('cancel_scheduled_renewal', { _client_id: id });
+                          if (error) { toast.error(error.message || 'Erro ao cancelar renovação'); return; }
                           setForm(prev => ({ ...prev, pending_renewal_project_id: null } as any));
                           queryClient.invalidateQueries({ queryKey: ['scheduled-renewal-project'] });
-                          toast.success('Renovação agendada cancelada');
+                          queryClient.invalidateQueries({ queryKey: ['client-renewals', id] });
+                          queryClient.invalidateQueries({ queryKey: ['projects', 'client'] });
+                          const r = data as any;
+                          toast.success(`Renovação cancelada — ${r?.deleted_renewals || 0} item(ns) da checklist e ${r?.deleted_sales || 0} pagamento(s) removidos`);
                         }}>
                           Cancelar
                         </Button>
