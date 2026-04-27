@@ -33,6 +33,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DEPARTMENTS } from '@/lib/departments';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
+import { ClientCustomerSuccessGallery } from '@/components/client/ClientCustomerSuccessGallery';
 import {
   EntityTitle,
   EntityTopBar,
@@ -1195,18 +1196,13 @@ export default function ClienteDetailPage() {
 
           {/* ─── Tab 3: Customer Success ──────────────────── */}
           <EntityTabsContent value="customer-success" className="mt-4">
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-              <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
-
-              {!isNew && (
-                <ClientCustomerSuccess
-                  clientId={id!}
-                  clientName={form.full_name || ''}
-                  productName={form.current_product || null}
-                  startDate={form.start_date || null}
-                />
-              )}
-            </div>
+            <ClientCustomerSuccessGallery
+              clientId={isNew ? undefined : id}
+              clientName={form.full_name || ''}
+              productName={form.current_product || null}
+              startDate={form.start_date || null}
+              isNew={isNew}
+            />
           </EntityTabsContent>
         </EntityTabs>
       </div>
