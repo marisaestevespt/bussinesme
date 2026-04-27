@@ -66,43 +66,39 @@ export default function ClientesPage() {
     return Object.entries(map).map(([name, count]) => ({ name, count }));
   }, [activeItems]);
 
+  // Column template: Nome | ID | Status | Produto | Início | Fim ciclo | Email | Contacto
+  const COLS = 'minmax(180px,1.6fr)_90px_120px_minmax(140px,1.3fr)_100px_100px_minmax(160px,1.5fr)_120px';
+
   const renderClientRow = (c: Client) => (
     <div
       key={c.id}
-      className="px-6 py-2.5 text-sm border-b hover:bg-muted/50 cursor-pointer"
+      className="text-sm border-b hover:bg-muted/40 cursor-pointer transition-colors"
       onClick={() => navigate(`/hub/clientes/${c.id}`)}
     >
-      {/* Desktop: 2 rows per client */}
-      <div className="hidden md:block space-y-1">
-        {/* Nome em destaque */}
-        <div className="font-medium truncate">{c.full_name}</div>
-        {/* Linha 1: ID | Status | Data Início | Fim de Ciclo */}
-        <div className="grid grid-cols-[90px_140px_1fr_1fr] gap-2 items-center text-xs">
-          <span className="font-mono text-muted-foreground">{c.client_id}</span>
-          <span>
-            <Badge variant="outline" className={`text-[10px] ${getClientStatusInfo(c.status).color}`}>
-              {getClientStatusInfo(c.status).label}
-            </Badge>
-          </span>
-          <span className="text-muted-foreground"><span className="text-foreground/60">Início:</span> {fmtDate(c.start_date)}</span>
-          <span className="text-muted-foreground"><span className="text-foreground/60">Fim ciclo:</span> {fmtDate(c.end_of_cycle)}</span>
-        </div>
-        {/* Linha 2: Conversão | Produto | Email | Whatsapp | Aniversário */}
-        <div className="grid grid-cols-[1fr_1.2fr_1.5fr_1fr_80px] gap-2 items-center text-xs text-muted-foreground">
-          <span className="truncate"><span className="text-foreground/60">Conversão:</span> {fmtDate((c as any).conversion_date)}</span>
-          <span className="truncate text-foreground inline-flex items-center gap-1.5">
-            {c.current_product_id || c.current_product ? (
-              <ProductIcon productId={c.current_product_id as any} className="h-4 w-4" emojiClassName="text-xs" />
-            ) : null}
-            <span className="truncate">{c.current_product || '—'}</span>
-          </span>
-          <span className="truncate">{c.email || '—'}</span>
-          <span className="truncate">{c.whatsapp || '—'}</span>
-          <span className="truncate">🎂 {fmtBirthday(c.birthday)}</span>
-        </div>
+      {/* Desktop: single-row table layout */}
+      <div
+        className={`hidden md:grid grid-cols-[${COLS}] gap-3 items-center px-6 py-3`}
+      >
+        <span className="font-medium truncate" title={c.full_name}>{c.full_name}</span>
+        <span className="font-mono text-xs text-muted-foreground truncate">{c.client_id}</span>
+        <span>
+          <Badge variant="outline" className={`text-[10px] whitespace-nowrap ${getClientStatusInfo(c.status).color}`}>
+            {getClientStatusInfo(c.status).label}
+          </Badge>
+        </span>
+        <span className="inline-flex items-center gap-1.5 min-w-0">
+          {(c.current_product_id || c.current_product) && (
+            <ProductIcon productId={c.current_product_id as any} className="h-4 w-4 shrink-0" emojiClassName="text-xs" />
+          )}
+          <span className="truncate text-xs">{c.current_product || '—'}</span>
+        </span>
+        <span className="text-xs text-muted-foreground tabular-nums">{fmtDate(c.start_date)}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">{fmtDate(c.end_of_cycle)}</span>
+        <span className="text-xs text-muted-foreground truncate" title={c.email || ''}>{c.email || '—'}</span>
+        <span className="text-xs text-muted-foreground truncate">{c.whatsapp || '—'}</span>
       </div>
       {/* Mobile: stacked */}
-      <div className="md:hidden space-y-1">
+      <div className="md:hidden px-4 py-3 space-y-1">
         <div className="flex items-center justify-between gap-2">
           <span className="font-medium truncate">{c.full_name}</span>
           <Badge variant="outline" className={`shrink-0 text-[10px] ${getClientStatusInfo(c.status).color}`}>
@@ -112,12 +108,15 @@ export default function ClientesPage() {
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="font-mono">{c.client_id}</span>
           {c.current_product && (
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 truncate">
               ·
               <ProductIcon productId={c.current_product_id as any} className="h-3.5 w-3.5" emojiClassName="text-[10px]" />
-              {c.current_product}
+              <span className="truncate">{c.current_product}</span>
             </span>
           )}
+        </div>
+        <div className="text-[11px] text-muted-foreground truncate">
+          {c.email || '—'}{c.whatsapp ? ` · ${c.whatsapp}` : ''}
         </div>
       </div>
     </div>
@@ -230,8 +229,17 @@ export default function ClientesPage() {
             isFetchingNextPage={clients.isFetchingNextPage}
             fetchNextPage={clients.fetchNextPage}
           >
-            <div className="hidden md:block bg-gradient-to-r from-primary/15 via-primary/8 to-accent/10 px-6 py-3 font-semibold text-[11px] uppercase tracking-wider text-foreground/80 border-b border-primary/20">
-              Nome · ID · Status · Datas · Produto · Contactos
+            <div
+              className={`hidden md:grid grid-cols-[${COLS}] gap-3 items-center bg-gradient-to-r from-primary/15 via-primary/8 to-accent/10 px-6 py-3 font-semibold text-[10px] uppercase tracking-wider text-foreground/80 border-b border-primary/20`}
+            >
+              <span>Nome</span>
+              <span>ID</span>
+              <span>Status</span>
+              <span>Produto</span>
+              <span>Início</span>
+              <span>Fim ciclo</span>
+              <span>Email</span>
+              <span>Contacto</span>
             </div>
             {displayItems.length === 0 ? (
               <CollectionEmpty
