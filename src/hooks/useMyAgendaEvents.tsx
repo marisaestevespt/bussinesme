@@ -225,12 +225,15 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
 
   // Sidebar items (same composition as Agenda.tsx so it looks/feels the same)
   const typeItems: CalendarItem[] = useMemo(() => {
-    const items: CalendarItem[] = (types || []).map(t => ({ id: `type:${t.id}`, label: t.name, color: t.color }));
-    items.push({ id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR });
-    items.push({ id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR });
-    items.push({ id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' });
-    return items;
+    return (types || []).map(t => ({ id: `type:${t.id}`, label: t.name, color: t.color }));
   }, [types]);
+
+  // Calendários automáticos (gerados pelo sistema, não editáveis)
+  const autoTypeItems: CalendarItem[] = useMemo(() => ([
+    { id: 'meta:meeting',  label: 'Reuniões',         color: MEETING_PSEUDO_COLOR },
+    { id: 'meta:sales',    label: 'Campanhas vendas', color: SALES_ACTION_PSEUDO_COLOR },
+    { id: 'meta:feriado',  label: 'Feriados PT',      color: 'hsl(var(--destructive))' },
+  ]), []);
 
   const productItems: CalendarItem[] = useMemo(
     () => productBrands.map(p => ({ id: `product:${p.id}`, label: p.name, color: p.color })),
@@ -252,6 +255,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
     events: expandedEvents,
     types,
     typeItems,
+    autoTypeItems,
     productItems,
     isEventVisible,
     isLoading: eventsQ.isLoading || meetingsQ.isLoading,
