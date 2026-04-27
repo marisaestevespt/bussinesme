@@ -328,13 +328,15 @@ function MeetingTypeStep({ onSelect }: { onSelect: (type: MeetingType) => void }
 export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
-  defaultProjectId, defaultProjectName,
+  defaultProjectId, defaultProjectName, defaultTitle,
   initialMeetingType,
   onMeetingCreated, navigateAfterCreate = true,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
   defaultClientId?: string; defaultClientName?: string; defaultRecurrenceEndDate?: Date;
   defaultProjectId?: string; defaultProjectName?: string;
+  /** Pre-fill the meeting title (e.g. when launched from a deliverable's template). */
+  defaultTitle?: string;
   /** Pre-select a meeting type (skips the type-picker step inside the dialog). */
   initialMeetingType?: MeetingType;
   /** Called with the created meeting id BEFORE any navigation, so the caller can do follow-up writes (e.g. linking to a deliverable). */
@@ -354,7 +356,7 @@ export function MeetingFormDialog({
     ?? (hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
   const [step, setStep] = useState<'type' | 'form'>(skipTypeStep ? 'form' : 'type');
   const [meetingType, setMeetingType] = useState<MeetingType>(initialType);
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(defaultTitle || '');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientId, setClientId] = useState(defaultClientId || '');
@@ -382,13 +384,14 @@ export function MeetingFormDialog({
       const tpl = getMeetingTemplate(initialMeetingType as string);
       if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
     }
+    if (defaultTitle && !title) setTitle(defaultTitle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialMeetingType]);
+  }, [open, initialMeetingType, defaultTitle]);
 
   const resetForm = () => {
     setStep(skipTypeStep ? 'form' : 'type');
     setMeetingType(initialType);
-    setTitle(''); setDateTime(undefined); setStatus('por_confirmar');
+    setTitle(defaultTitle || ''); setDateTime(undefined); setStatus('por_confirmar');
     setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []); setDepartment(hasDefaults ? 'clientes' : '');
     setSelectedMembers([]); setMeetingUrl('');
     setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceStartDate(undefined); setRecurrenceEndDate(defaultRecurrenceEndDate);

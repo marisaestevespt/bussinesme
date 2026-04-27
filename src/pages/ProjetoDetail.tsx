@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { getTaskStatusInfo } from '@/lib/taskStatus';
@@ -135,6 +135,23 @@ export default function ProjetoDetailPage() {
     deleteMutation,
   } = useProjectDetailData(id, { isRecorrenteMensal, monthStart, monthEnd });
   const resolvedClientId = clientForProject?.id;
+
+  // Suggested meeting title from the next pending meeting-deliverable's template
+  const suggestedMeetingTitle = useMemo(() => {
+    const dels = (projectDeliverables || []) as any[];
+    if (!dels.length) return '';
+    const meetingDels = dels
+      .filter(d => (d.deliverable_type === 'reuniao' || d.is_meeting === true))
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const next = meetingDels.find(d => !d.meeting_id && d.meeting_title_template);
+    if (!next?.meeting_title_template) return '';
+    const sameTpl = meetingDels.filter(d => d.meeting_title_template === next.meeting_title_template);
+    const n = sameTpl.findIndex(d => d.id === next.id) + 1;
+    const clientName = (local as any)?.client_name || (clientForProject as any)?.full_name || '';
+    return String(next.meeting_title_template)
+      .replace(/\{N\}/g, String(n))
+      .replace(/\{cliente\}/gi, clientName);
+  }, [projectDeliverables, (local as any)?.client_name, (clientForProject as any)?.full_name]);
 
   function getProjectProgress() {
     // Recorrente mensal: progress by current month tasks
@@ -895,6 +912,7 @@ export default function ProjetoDetailPage() {
           defaultClientName={local.client_name || undefined}
           defaultProjectId={id}
           defaultProjectName={local.name}
+          defaultTitle={suggestedMeetingTitle || undefined}
         />
 
         {/* Task dialog (mesmo da página Tarefas) */}
@@ -1195,6 +1213,7 @@ export default function ProjetoDetailPage() {
         defaultClientName={local.client_name || undefined}
         defaultProjectId={id}
         defaultProjectName={local.name}
+        defaultTitle={suggestedMeetingTitle || undefined}
       />
 
       {/* Members dialog */}

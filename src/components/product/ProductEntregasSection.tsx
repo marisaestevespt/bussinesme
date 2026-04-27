@@ -28,6 +28,7 @@ interface Template {
   responsible_type?: string;
   deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao';
   estimated_minutes?: number | null;
+  meeting_title_template?: string | null;
 }
 
 interface Phase {
@@ -68,9 +69,11 @@ function DeliverableRow({
   const [name, setName] = useState(template.name);
   const [desc, setDesc] = useState(template.description || '');
   const [minutes, setMinutes] = useState<string>(template.estimated_minutes?.toString() || '');
+  const [titleTpl, setTitleTpl] = useState(template.meeting_title_template || '');
   const nameRef = useRef(template.name);
   const descRef = useRef(template.description || '');
   const minutesRef = useRef(template.estimated_minutes ?? null);
+  const titleTplRef = useRef(template.meeting_title_template || '');
 
   useEffect(() => {
     if (template.name !== nameRef.current) { nameRef.current = template.name; setName(template.name); }
@@ -83,6 +86,10 @@ function DeliverableRow({
     const m = template.estimated_minutes ?? null;
     if (m !== minutesRef.current) { minutesRef.current = m; setMinutes(m?.toString() || ''); }
   }, [template.estimated_minutes]);
+  useEffect(() => {
+    const t = template.meeting_title_template || '';
+    if (t !== titleTplRef.current) { titleTplRef.current = t; setTitleTpl(t); }
+  }, [template.meeting_title_template]);
 
   return (
     <div className="space-y-1 pl-6 group">
@@ -189,6 +196,32 @@ function DeliverableRow({
           </div>
         )}
       </div>
+      {template.deliverable_type === 'reuniao' && (
+        <div className="flex items-center gap-3 pl-9">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">Título reunião</span>
+          <Input
+            value={titleTpl}
+            onChange={e => setTitleTpl(e.target.value)}
+            onBlur={() => {
+              if (titleTpl !== (template.meeting_title_template || '')) {
+                titleTplRef.current = titleTpl;
+                onUpdate(template.id, { meeting_title_template: titleTpl || null });
+              }
+            }}
+            placeholder="Ex: 🪉 | Sessão Criação de Processos | {N} | {cliente}"
+            className="flex-1 h-8 text-xs"
+            readOnly={!isOwner}
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-[10px] text-muted-foreground cursor-help">{'{N}'} {'{cliente}'}</span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs max-w-xs">
+              Variáveis: <b>{'{N}'}</b> = número sequencial entre reuniões iguais no projeto · <b>{'{cliente}'}</b> = nome do cliente
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
     </div>
   );
 }
