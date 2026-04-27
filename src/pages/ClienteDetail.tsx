@@ -790,7 +790,21 @@ export default function ClienteDetailPage() {
           isOwner
           inlineMode
           placeholder="Nome do cliente"
-          meta={form.client_id ? <span className="text-xs text-muted-foreground font-mono">{form.client_id}</span> : undefined}
+          meta={
+            <span className="flex items-center gap-2 flex-wrap">
+              {form.client_id && <span className="text-xs text-muted-foreground font-mono">{form.client_id}</span>}
+              {(form as any).pending_renewal_project_id && (
+                <Badge variant="outline" className="bg-accent-violet/15 text-accent-violet border-accent-violet/30 gap-1">
+                  <RefreshCw className="h-3 w-3" /> Renovação agendada
+                </Badge>
+              )}
+              {(form as any).client_since && (
+                <span className="text-xs text-muted-foreground">
+                  Cliente desde {format(parseISO((form as any).client_since), 'MMM yyyy', { locale: pt })}
+                </span>
+              )}
+            </span>
+          }
         />
 
         {/* Properties */}
