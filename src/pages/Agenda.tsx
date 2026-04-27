@@ -208,7 +208,7 @@ function useMeetingsAsEvents(range: { from: string; to: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('meetings')
-        .select('id,title,date_time,status,meeting_url,client_name,department,project_name,product_id,product_name,is_recurring,recurrence_frequency,recurrence_end_date')
+        .select('id,title,date_time,status,meeting_url,client_id,client_name,department,project_name,product_id,product_name,is_recurring,recurrence_frequency,recurrence_end_date')
         .gte('date_time', range.from + 'T00:00:00')
         .lte('date_time', range.to + 'T23:59:59')
         .order('date_time');
@@ -224,6 +224,7 @@ function useMeetingsAsEvents(range: { from: string; to: string }) {
         product_name: m.product_name || null,
         product_id: m.product_id || null,
         department: m.department || null,
+        client_id: m.client_id || null,
         client_name: m.client_name || null,
         notes: m.project_name ? `Projeto: ${m.project_name}` : null,
         created_by: null,
