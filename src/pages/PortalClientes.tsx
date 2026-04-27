@@ -67,11 +67,9 @@ export default function PortalClientesPage() {
 
   return (
     <AppLayout>
+      <PageHeader title="Portal de Clientes" />
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
-          <PageHeader title="Portal de Clientes" />
-        </div>
+        <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
 
         <Card>
           <CardContent className="p-0">

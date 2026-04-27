@@ -53,11 +53,9 @@ export default function ClientesFeedbackPage() {
 
   return (
     <AppLayout>
+      <PageHeader title="Todos os Feedbacks" />
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
-          <PageHeader title="Todos os Feedbacks" />
-        </div>
+        <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
 
         <Card>
           <CardHeader className="pb-2">
