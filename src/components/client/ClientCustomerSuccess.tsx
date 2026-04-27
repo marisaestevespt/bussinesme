@@ -441,6 +441,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
           )}
         </CardContent>
       </Card>
+      )}
     </>
   );
 }
