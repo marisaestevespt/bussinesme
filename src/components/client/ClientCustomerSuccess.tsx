@@ -259,7 +259,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
 
   if (!productName) {
     return (
-      <Card>
+      <Card className="h-full">
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
           Associa um Produto Atual para ativar o Customer Success.
         </CardContent>
@@ -268,32 +268,28 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Customer Success</h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => { generateNpsRecords.mutate(); generateMilestones.mutate(); }}
-          disabled={!startDate}
-        >
-          Recalcular datas
-        </Button>
-      </div>
-
+    <>
       {/* NPS Records */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      <Card className="h-full">
+        <CardHeader className="space-y-3 pb-3">
+          <div className="flex items-start justify-between gap-3">
             <CardTitle className="text-base">Recolha de NPS</CardTitle>
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">
-                Média NPS: <span className="text-lg font-bold text-primary">{avgNps}</span>
-              </span>
-              <Button variant="outline" size="sm" onClick={() => addManualNps.mutate()}>
-                <Plus className="h-4 w-4 mr-1" /> Recolha Manual
-              </Button>
-            </div>
+            <span className="whitespace-nowrap text-sm font-medium">
+              Média: <span className="text-lg font-bold text-primary">{avgNps}</span>
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => addManualNps.mutate()}>
+              <Plus className="h-4 w-4 mr-1" /> Recolha Manual
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { generateNpsRecords.mutate(); generateMilestones.mutate(); }}
+              disabled={!startDate}
+            >
+              Recalcular datas
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -302,7 +298,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
               {!startDate ? 'Define a Data de Início para gerar as datas de recolha.' : 'Sem registos de NPS.'}
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {npsRecords.map((r: any) => {
                 const computedStatus = autoStatus(r.expected_date, r.status);
                 const statusInfo = computedStatus === 'feito'
@@ -381,8 +377,8 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
       </Card>
 
       {/* Milestones */}
-      <Card>
-        <CardHeader>
+      <Card className="h-full">
+        <CardHeader className="pb-3">
           <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
         </CardHeader>
         <CardContent>
@@ -391,7 +387,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
               {!startDate ? 'Define a Data de Início para gerar os marcos.' : 'Sem marcos definidos para este produto.'}
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {clientMilestones.map((m: any) => {
                 const computedStatus = autoStatus(m.expected_date, m.status);
                 const statusInfo = computedStatus === 'feito'
@@ -440,6 +436,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

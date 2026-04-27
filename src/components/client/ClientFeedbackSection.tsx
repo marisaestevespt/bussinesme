@@ -89,7 +89,7 @@ export function ClientFeedbackSection({ clientId, clientName }: Props) {
   });
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-base flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-primary" />
@@ -122,7 +122,7 @@ export function ClientFeedbackSection({ clientId, clientName }: Props) {
         {allFeedback.length === 0 ? (
           <EmptyHint>Sem feedback recebido</EmptyHint>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {allFeedback.map((f: any) => {
               const isPortal = f.source === 'portal';
               const accent = isPortal ? 'border-l-primary' : 'border-l-accent-violet';
