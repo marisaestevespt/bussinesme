@@ -14,6 +14,7 @@ import { VatPreview } from '../VatPreview';
 import { InvoiceUpload } from '../InvoiceUpload';
 import type { ExpenseFormState } from '../types';
 import { VAT_OPTIONS, LOCATIONS } from './constants';
+import { buildExpenseFileName, useSupplierName } from '../expenseFileName';
 
 interface PMOption { value: string; label: string; }
 
@@ -25,6 +26,12 @@ interface Props {
 
 export function ExpenseFormFields({ form, setForm, paymentMethods }: Props) {
   const update = (patch: Partial<ExpenseFormState>) => setForm(f => ({ ...f, ...patch }));
+  const { data: supplierName } = useSupplierName(form.supplier_id || null);
+  const suggestedFileName = buildExpenseFileName({
+    expenseDate: form.expense_date,
+    supplierName,
+    expenseName: (form as any).expense_name || form.description,
+  });
 
   return (
     <>
@@ -149,6 +156,7 @@ export function ExpenseFormFields({ form, setForm, paymentMethods }: Props) {
         documents={Array.isArray(form.documents) ? form.documents : []}
         onChange={docs => update({ documents: docs })}
         label="Ficheiros (faturas, comprovativos, recibos)"
+        suggestedName={suggestedFileName}
       />
 
       {(form.category === 'marketing' || form.department === 'marketing' || (form.description || '').toLowerCase().includes('meta') || (form.description || '').toLowerCase().includes('ads')) && (
@@ -156,6 +164,7 @@ export function ExpenseFormFields({ form, setForm, paymentMethods }: Props) {
           documents={Array.isArray(form.meta_ads_docs) ? form.meta_ads_docs : []}
           onChange={docs => update({ meta_ads_docs: docs })}
           label="Relatório Meta Ads (opcional)"
+          suggestedName={suggestedFileName ? `${suggestedFileName}_MetaAds` : undefined}
         />
       )}
     </>
