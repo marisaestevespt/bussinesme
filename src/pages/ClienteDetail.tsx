@@ -1130,29 +1130,33 @@ export default function ClienteDetailPage() {
 
             {/* Payments */}
             <EntitySection title="Pagamentos" icon={Receipt}>
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[130px_110px_1fr_110px_110px_180px] gap-3">
                   <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span>
                 </div>
                 {clientSales.length === 0 ? (
                   <EmptyHint>Sem pagamentos associados</EmptyHint>
-                ) : clientSales.map(s => (
-                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
-                    <span>{s.status}</span>
-                    <span>{s.payment_date || '—'}</span>
-                    <span className="truncate">{s.description || '—'}</span>
-                    <span>{Number(s.base_value).toFixed(2)}€</span>
-                    <span>{Number(s.invoice_total).toFixed(2)}€</span>
-                    <span className="truncate inline-flex items-center gap-1.5">
-                      {s.product_id ? <ProductIcon productId={s.product_id as any} className="h-4 w-4" emojiClassName="text-[10px]" /> : null}
-                      {s.product || '—'}
-                    </span>
-                  </div>
-                ))}
+                ) : clientSales.map(s => {
+                  const eff = getEffectiveEntryStatus(s.status, s.payment_date ?? null);
+                  const sb = getEntryStatusBadge(eff);
+                  return (
+                    <div key={s.id} className="px-4 py-3 text-sm grid grid-cols-[130px_110px_1fr_110px_110px_180px] gap-3 border-b last:border-b-0 items-center cursor-pointer hover:bg-muted/40 transition-colors" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
+                      <Badge variant="outline" className={`${sb.cls} w-fit`}>{sb.label}</Badge>
+                      <span className="text-muted-foreground">{s.payment_date || '—'}</span>
+                      <span className="truncate">{s.description || <span className="text-muted-foreground">—</span>}</span>
+                      <span className="font-medium tabular-nums">{Number(s.base_value).toFixed(2)}€</span>
+                      <span className="font-medium tabular-nums">{Number(s.invoice_total).toFixed(2)}€</span>
+                      <span className="truncate inline-flex items-center gap-1.5">
+                        {s.product_id ? <ProductIcon productId={s.product_id as any} className="h-4 w-4" emojiClassName="text-[10px]" /> : null}
+                        <span className="truncate">{s.product || '—'}</span>
+                      </span>
+                    </div>
+                  );
+                })}
                 {clientSales.length > 0 && (
-                  <div className="px-4 py-3 text-xs font-medium border-t flex justify-between">
+                  <div className="px-4 py-3 text-sm font-semibold border-t bg-muted/30 flex justify-between">
                     <span>Total: {clientSales.length} pagamento(s)</span>
-                    <span>Valor total: {sumRevenue(clientSales).toFixed(2)}€</span>
+                    <span className="tabular-nums">Valor total: {sumRevenue(clientSales).toFixed(2)}€</span>
                   </div>
                 )}
               </div>
