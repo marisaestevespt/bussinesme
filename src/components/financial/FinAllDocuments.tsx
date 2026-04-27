@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, X, ExternalLink, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Search, X, ExternalLink, ArrowDownLeft, ArrowUpRight, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { formatEuro } from '@/lib/formatting';
@@ -46,6 +46,33 @@ export function FinAllDocuments() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  type SortKey = 'type' | 'ref' | 'client_or_supplier' | 'description' | 'date' | 'value' | 'status';
+  const [sortKey, setSortKey] = useState<SortKey>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'date' || key === 'value' ? 'desc' : 'asc');
+    }
+  };
+
+  const SortHeader = ({ k, children, align }: { k: SortKey; children: React.ReactNode; align?: 'right' }) => (
+    <button
+      type="button"
+      onClick={() => toggleSort(k)}
+      className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${align === 'right' ? 'justify-end w-full' : ''}`}
+    >
+      {children}
+      {sortKey === k ? (
+        sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-40" />
+      )}
+    </button>
+  );
 
   const unified = useMemo(() => {
     const sales = com.sales.data || [];
@@ -82,12 +109,7 @@ export function FinAllDocuments() {
       documents: e.documents,
     }));
 
-    return [...entradas, ...saidas].sort((a, b) => {
-      if (!a.date && !b.date) return 0;
-      if (!a.date) return 1;
-      if (!b.date) return -1;
-      return b.date.localeCompare(a.date);
-    });
+    return [...entradas, ...saidas];
   }, [com.sales.data, fin.expenses.data, suppliersMap]);
 
   const filtered = useMemo(() => {
@@ -114,8 +136,23 @@ export function FinAllDocuments() {
       );
     }
 
-    return data;
-  }, [unified, typeFilter, dateFrom, dateTo, search]);
+    const sorted = [...data].sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1;
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (sortKey === 'value') {
+        return ((av as number) - (bv as number)) * dir;
+      }
+      // strings / dates (ISO strings sort lexicographically)
+      const as = (av ?? '').toString();
+      const bs = (bv ?? '').toString();
+      if (!as && !bs) return 0;
+      if (!as) return 1;
+      if (!bs) return -1;
+      return as.localeCompare(bs) * dir;
+    });
+    return sorted;
+  }, [unified, typeFilter, dateFrom, dateTo, search, sortKey, sortDir]);
 
   const totalEntradas = filtered.filter(d => d.type === 'entrada').reduce((s, d) => s + d.value, 0);
   const totalSaidas = filtered.filter(d => d.type === 'saida').reduce((s, d) => s + d.value, 0);
@@ -168,13 +205,13 @@ export function FinAllDocuments() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Ref.</TableHead>
-                <TableHead>Cliente / Fornecedor</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead><SortHeader k="type">Tipo</SortHeader></TableHead>
+                <TableHead><SortHeader k="ref">Ref.</SortHeader></TableHead>
+                <TableHead><SortHeader k="client_or_supplier">Cliente / Fornecedor</SortHeader></TableHead>
+                <TableHead><SortHeader k="description">Descrição</SortHeader></TableHead>
+                <TableHead><SortHeader k="date">Data</SortHeader></TableHead>
+                <TableHead className="text-right"><SortHeader k="value" align="right">Valor</SortHeader></TableHead>
+                <TableHead><SortHeader k="status">Status</SortHeader></TableHead>
                 <TableHead>Doc</TableHead>
               </TableRow>
             </TableHeader>
