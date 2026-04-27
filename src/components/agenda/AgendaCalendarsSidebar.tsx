@@ -150,9 +150,10 @@ function CalendarSection({
 }
 
 function SidebarBody({
-  typeItems, productItems, hidden, onToggle, onShowAll, onHideAll,
+  typeItems, autoTypeItems = [], productItems, hidden, onToggle, onShowAll, onHideAll,
 }: {
   typeItems: CalendarItem[];
+  autoTypeItems?: CalendarItem[];
   productItems: CalendarItem[];
   hidden: Set<string>;
   onToggle: (id: string) => void;
@@ -160,16 +161,25 @@ function SidebarBody({
   onHideAll: (ids: string[]) => void;
 }) {
   const typeIds = useMemo(() => typeItems.map(i => i.id), [typeItems]);
+  const autoIds = useMemo(() => autoTypeItems.map(i => i.id), [autoTypeItems]);
   const productIds = useMemo(() => productItems.map(i => i.id), [productItems]);
   return (
     <div className="py-2">
       <CalendarSection
-        title="Tipos"
+        title="Os meus tipos"
         items={typeItems}
         hidden={hidden}
         onToggle={onToggle}
         onShowAll={() => onShowAll(typeIds)}
         onHideAll={() => onHideAll(typeIds)}
+      />
+      <CalendarSection
+        title="Automáticos"
+        items={autoTypeItems}
+        hidden={hidden}
+        onToggle={onToggle}
+        onShowAll={() => onShowAll(autoIds)}
+        onHideAll={() => onHideAll(autoIds)}
       />
       <CalendarSection
         title="Produtos"
@@ -207,10 +217,11 @@ function CollapsedRail({ onExpand }: { onExpand: () => void }) {
  *  - Mobile (<md): hidden; opened on demand via the trigger button (Sheet).
  */
 export function AgendaCalendarsSidebar({
-  typeItems, productItems, hidden, onToggle, onShowAll, onHideAll,
+  typeItems, autoTypeItems, productItems, hidden, onToggle, onShowAll, onHideAll,
   collapsed, onCollapsedChange, mobileOpen, onMobileOpenChange, className,
 }: {
   typeItems: CalendarItem[];
+  autoTypeItems?: CalendarItem[];
   productItems: CalendarItem[];
   hidden: Set<string>;
   onToggle: (id: string) => void;
@@ -255,6 +266,7 @@ export function AgendaCalendarsSidebar({
         <ScrollArea className="h-full">
           <SidebarBody
             typeItems={typeItems}
+            autoTypeItems={autoTypeItems}
             productItems={productItems}
             hidden={hidden}
             onToggle={onToggle}
@@ -273,6 +285,7 @@ export function AgendaCalendarsSidebar({
           <ScrollArea className="h-[calc(100%-3rem)]">
             <SidebarBody
               typeItems={typeItems}
+              autoTypeItems={autoTypeItems}
               productItems={productItems}
               hidden={hidden}
               onToggle={onToggle}
