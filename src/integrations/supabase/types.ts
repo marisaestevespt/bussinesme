@@ -8331,6 +8331,7 @@ export type Database = {
           archive_notes: string | null
           brainstorming_content: string | null
           branding: Json
+          calendar_color: string | null
           client_profile: Json | null
           competitors: Json | null
           cover_url: string | null
@@ -8371,6 +8372,7 @@ export type Database = {
           archive_notes?: string | null
           brainstorming_content?: string | null
           branding?: Json
+          calendar_color?: string | null
           client_profile?: Json | null
           competitors?: Json | null
           cover_url?: string | null
@@ -8411,6 +8413,7 @@ export type Database = {
           archive_notes?: string | null
           brainstorming_content?: string | null
           branding?: Json
+          calendar_color?: string | null
           client_profile?: Json | null
           competitors?: Json | null
           cover_url?: string | null
