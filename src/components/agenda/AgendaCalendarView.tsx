@@ -41,6 +41,11 @@ export interface AgendaCalendarViewProps {
   /** Controlled cursor: parent owns the date when it needs it for data fetching. */
   cursor?: Date;
   onCursorChange?: (d: Date) => void;
+  /**
+   * If provided, items in the "Automáticos" section become inline-renameable.
+   * The id passed back is the calendar id (e.g. `meta:meeting`).
+   */
+  onAutoItemRename?: (id: string, newLabel: string) => void;
 }
 
 const VIEW_KEY = (storage: string) => `${storage}:viewMode`;
@@ -64,6 +69,7 @@ export function AgendaCalendarView({
   showSidebar = true,
   cursor: cursorProp,
   onCursorChange,
+  onAutoItemRename,
 }: AgendaCalendarViewProps) {
   const filters = useCalendarFilters(storageKey);
   const [collapsed, setCollapsed] = useSidebarCollapsed(storageKey);
@@ -111,6 +117,7 @@ export function AgendaCalendarView({
           onCollapsedChange={setCollapsed}
           mobileOpen={mobileOpen}
           onMobileOpenChange={setMobileOpen}
+          onAutoItemRename={onAutoItemRename}
         />
       )}
       <div className="flex-1 min-w-0 p-3 sm:p-4">
