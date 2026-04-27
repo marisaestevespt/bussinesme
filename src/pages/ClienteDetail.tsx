@@ -984,7 +984,7 @@ export default function ClienteDetailPage() {
                       onClick={() => navigate(`/hub/projetos/${p.id}`)}
                     >
                       <span className="font-medium truncate">{p.name}</span>
-                      <Badge variant="outline" className={`${ps.color} w-fit`}>{ps.label}</Badge>
+                      <Badge variant="outline" className={`${ps.color} w-fit whitespace-nowrap`}>{ps.label}</Badge>
                       <span className="text-muted-foreground">{p.created_at ? format(parseISO(p.created_at), 'dd/MM/yyyy') : '—'}</span>
                     </div>
                   );
@@ -1082,7 +1082,7 @@ export default function ClienteDetailPage() {
                         <span className="font-medium truncate">{r.activity}</span>
                         <span className="text-muted-foreground truncate">{r.responsible || '—'}</span>
                         <span className="text-muted-foreground">{r.due_date ? format(parseISO(r.due_date), 'dd/MM/yyyy') : '—'}</span>
-                        <Badge variant="outline" className={`w-fit ${r.completed ? 'bg-success/15 text-success border-success/30' : 'bg-warning/15 text-warning border-warning/30'}`}>
+                        <Badge variant="outline" className={`w-fit whitespace-nowrap ${r.completed ? 'bg-success/15 text-success border-success/30' : 'bg-warning/15 text-warning border-warning/30'}`}>
                           {r.completed ? 'Concluída' : 'Pendente'}
                         </Badge>
                       </div>
@@ -1113,7 +1113,7 @@ export default function ClienteDetailPage() {
                   const ms = getMeetingStatusInfo(m.status);
                   return (
                     <div key={m.id} className="px-4 py-3 text-sm grid grid-cols-[140px_160px_1fr_1fr_60px] gap-3 border-b last:border-b-0 items-center">
-                      <Badge variant="outline" className={`${ms.color} w-fit`}>{ms.label}</Badge>
+                      <Badge variant="outline" className={`${ms.color} w-fit whitespace-nowrap`}>{ms.label}</Badge>
                       <span className="text-muted-foreground">{m.date_time ? format(parseISO(m.date_time), 'dd/MM/yyyy HH:mm') : '—'}</span>
                       <span className="font-medium truncate">{m.title}</span>
                       <span className="text-muted-foreground truncate">
@@ -1141,7 +1141,7 @@ export default function ClienteDetailPage() {
                   const sb = getEntryStatusBadge(eff);
                   return (
                     <div key={s.id} className="px-4 py-3 text-sm grid grid-cols-[130px_110px_1fr_110px_110px_180px] gap-3 border-b last:border-b-0 items-center cursor-pointer hover:bg-muted/40 transition-colors" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
-                      <Badge variant="outline" className={`${sb.cls} w-fit`}>{sb.label}</Badge>
+                      <Badge variant="outline" className={`${sb.cls} w-fit whitespace-nowrap`}>{sb.label}</Badge>
                       <span className="text-muted-foreground">{s.payment_date || '—'}</span>
                       <span className="truncate">{s.description || <span className="text-muted-foreground">—</span>}</span>
                       <span className="font-medium tabular-nums">{Number(s.base_value).toFixed(2)}€</span>
