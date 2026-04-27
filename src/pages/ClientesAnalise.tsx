@@ -222,7 +222,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     terminado: 'Terminado',
   };
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-6">
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* KPIs */}
@@ -442,7 +442,7 @@ export default function ClientesAnalisePage() {
     return (
       <AppLayout>
         <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
-        <div className="space-y-6">
+        <div className="space-y-6 pt-6">
           <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
           <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
         </div>
@@ -453,7 +453,7 @@ export default function ClientesAnalisePage() {
   return (
     <AppLayout>
       <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
-      <div className="space-y-6">
+      <div className="space-y-6 pt-6">
         <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
 
         <YearSelector year={year} onChange={setYear} />
