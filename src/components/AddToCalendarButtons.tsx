@@ -14,6 +14,8 @@ interface CalendarEvent {
     frequency: 'diaria' | 'semanal' | 'quinzenal' | 'mensal' | string;
     endDate?: string | null; // ISO date or datetime
   } | null;
+  /** Optional list of attendee emails to pre-fill as guests. */
+  attendees?: string[];
 }
 
 export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
@@ -22,6 +24,13 @@ export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
   const endDate = event.endDate ? parseISO(event.endDate) : new Date(startDate.getTime() + 60 * 60 * 1000);
   const details = encodeURIComponent([event.notes, event.meetingUrl].filter(Boolean).join('\n'));
   const location = event.meetingUrl ? encodeURIComponent(event.meetingUrl) : '';
+
+  const validAttendees = (event.attendees || [])
+    .filter(e => typeof e === 'string' && /\S+@\S+\.\S+/.test(e.trim()))
+    .map(e => e.trim());
+  const guestsParam = validAttendees.length > 0
+    ? `&add=${encodeURIComponent(validAttendees.join(','))}`
+    : '';
 
   const toGoogleFormat = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
   const toICSFormat = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
@@ -52,6 +61,7 @@ export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
     `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}` +
     `&dates=${toGoogleFormat(startDate)}/${toGoogleFormat(endDate)}` +
     `&details=${details}&location=${location}` +
+    guestsParam +
     (rrule ? `&recur=${encodeURIComponent('RRULE:' + rrule)}` : '');
   const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${title}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${details}&location=${location}`;
 
@@ -68,6 +78,7 @@ export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
       event.notes ? `DESCRIPTION:${event.notes.replace(/\n/g, '\\n')}` : '',
       event.meetingUrl ? `URL:${event.meetingUrl}` : '',
       event.meetingUrl ? `LOCATION:${event.meetingUrl}` : '',
+      ...validAttendees.map(e => `ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=TRUE;CN=${e}:mailto:${e}`),
       'END:VEVENT',
       'END:VCALENDAR',
     ].filter(Boolean).join('\r\n');
