@@ -76,24 +76,23 @@ function AnalogClock() {
     <div className="flex flex-col items-center gap-1 shrink-0">
       <div className="relative h-16 w-16">
         <svg viewBox="0 0 100 100" className="h-full w-full">
-          {/* Face */}
-          <circle cx="50" cy="50" r="48" fill="none" stroke="white" strokeOpacity="0.3" strokeWidth="2" />
+          <circle cx="50" cy="50" r="48" fill="none" stroke="hsl(var(--foreground))" strokeOpacity="0.25" strokeWidth="2" />
           {Array.from({ length: 12 }).map((_, i) => {
             const angle = (i * 30 - 90) * (Math.PI / 180);
             const x1 = 50 + 40 * Math.cos(angle);
             const y1 = 50 + 40 * Math.sin(angle);
             const x2 = 50 + 45 * Math.cos(angle);
             const y2 = 50 + 45 * Math.sin(angle);
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--foreground))" strokeOpacity="0.5" strokeWidth="2" strokeLinecap="round" />;
           })}
-          <line x1="50" y1="50" x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)} y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)} stroke="white" strokeWidth="3" strokeLinecap="round" />
-          <line x1="50" y1="50" x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)} y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)} stroke="white" strokeWidth="2" strokeLinecap="round" />
-          <line x1="50" y1="50" x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)} y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)} stroke="white" strokeOpacity="0.7" strokeWidth="1" strokeLinecap="round" />
-          <circle cx="50" cy="50" r="2.5" fill="white" />
+          <line x1="50" y1="50" x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)} y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="3" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)} y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="2" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)} y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)} stroke="hsl(var(--primary))" strokeOpacity="0.8" strokeWidth="1" strokeLinecap="round" />
+          <circle cx="50" cy="50" r="2.5" fill="hsl(var(--primary))" />
         </svg>
       </div>
-      <span className="text-xs font-medium tabular-nums text-white">{timeStr}</span>
-      <span className="text-[10px] text-white/70 capitalize">{dateStr}</span>
+      <span className="text-xs font-medium tabular-nums text-foreground">{timeStr}</span>
+      <span className="text-[10px] text-muted-foreground capitalize">{dateStr}</span>
     </div>
   );
 }
@@ -178,21 +177,38 @@ export default function HubEquipaPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <BackNavigation parentRoute="/secretaria" parentLabel="Secretaria" />
-        {/* Header */}
-        <div className="rounded-xl bg-primary px-6 py-5 flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-primary-foreground">
+      {/* Full-width banner aligned with system PageHeader style */}
+      <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-5 sm:py-8 overflow-hidden border-b border-border/60">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg, hsl(var(--primary) / 0.10) 0%, hsl(var(--primary) / 0.04) 50%, hsl(var(--gradient-end)) 100%)`,
+          }}
+        />
+        <div
+          className="hidden sm:block absolute -top-8 -right-8 w-56 h-56 rounded-full opacity-[0.10] blur-3xl"
+          style={{ background: `hsl(var(--gradient-accent))` }}
+        />
+        <div
+          className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full"
+          style={{ background: `hsl(var(--primary) / 0.35)` }}
+        />
+        <div className="relative flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">
               {greetingText()}, {firstName}.
             </h1>
-            <p className="text-sm text-primary-foreground/70 mt-1">
+            <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-muted-foreground hidden sm:block">
               Olá! Bem-vindo(a) ao nosso espaço. Este é o lugar onde organizamos, colaboramos e crescemos juntos.
             </p>
-            <TeamWhatsAppLink />
+            <div className="mt-3"><TeamWhatsAppLink /></div>
           </div>
           <AnalogClock />
         </div>
+      </div>
+
+      <div className="space-y-6 pt-6">
+        <BackNavigation parentRoute="/secretaria" parentLabel="Secretaria" />
 
         {/* Active absence alerts */}
         <ActiveAbsenceAlerts />
