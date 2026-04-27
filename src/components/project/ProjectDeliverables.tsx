@@ -350,7 +350,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         is_meeting: !!t.is_meeting || t.deliverable_type === 'reuniao',
         meeting_title_template: t.meeting_title_template ?? null,
       }));
-      const { error } = await supabase.from('project_deliverables').insert(inserts);
+      const { error } = await supabase.from('project_deliverables').insert(inserts as any);
       if (error) throw error;
     },
     onSuccess: () => {
