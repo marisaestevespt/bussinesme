@@ -76,24 +76,23 @@ function AnalogClock() {
     <div className="flex flex-col items-center gap-1 shrink-0">
       <div className="relative h-16 w-16">
         <svg viewBox="0 0 100 100" className="h-full w-full">
-          {/* Face */}
-          <circle cx="50" cy="50" r="48" fill="none" stroke="white" strokeOpacity="0.3" strokeWidth="2" />
+          <circle cx="50" cy="50" r="48" fill="none" stroke="hsl(var(--foreground))" strokeOpacity="0.25" strokeWidth="2" />
           {Array.from({ length: 12 }).map((_, i) => {
             const angle = (i * 30 - 90) * (Math.PI / 180);
             const x1 = 50 + 40 * Math.cos(angle);
             const y1 = 50 + 40 * Math.sin(angle);
             const x2 = 50 + 45 * Math.cos(angle);
             const y2 = 50 + 45 * Math.sin(angle);
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--foreground))" strokeOpacity="0.5" strokeWidth="2" strokeLinecap="round" />;
           })}
-          <line x1="50" y1="50" x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)} y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)} stroke="white" strokeWidth="3" strokeLinecap="round" />
-          <line x1="50" y1="50" x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)} y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)} stroke="white" strokeWidth="2" strokeLinecap="round" />
-          <line x1="50" y1="50" x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)} y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)} stroke="white" strokeOpacity="0.7" strokeWidth="1" strokeLinecap="round" />
-          <circle cx="50" cy="50" r="2.5" fill="white" />
+          <line x1="50" y1="50" x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)} y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="3" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)} y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="2" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)} y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)} stroke="hsl(var(--primary))" strokeOpacity="0.8" strokeWidth="1" strokeLinecap="round" />
+          <circle cx="50" cy="50" r="2.5" fill="hsl(var(--primary))" />
         </svg>
       </div>
-      <span className="text-xs font-medium tabular-nums text-white">{timeStr}</span>
-      <span className="text-[10px] text-white/70 capitalize">{dateStr}</span>
+      <span className="text-xs font-medium tabular-nums text-foreground">{timeStr}</span>
+      <span className="text-[10px] text-muted-foreground capitalize">{dateStr}</span>
     </div>
   );
 }
