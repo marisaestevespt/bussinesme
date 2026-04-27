@@ -212,7 +212,21 @@ The workflow will NOT execute yet — the user sees a summary and confirms once.
     },
   },
 ];
-const BLOCKED_TABLES = new Set(["member_sensitive_access", "backups", "user_roles", "profiles"]);
+const BLOCKED_TABLES = new Set([
+  "member_sensitive_access",
+  "backups",
+  "user_roles",
+  "profiles",
+  // Sensitive: stores AES-GCM encrypted credentials for external platforms
+  "platform_accesses",
+  // Auth/role-control adjacent tables
+  "role_permissions",
+  "role_activity_log",
+  "audit_logs",
+  // Secrets / tokens
+  "client_portals",
+  "portal_otp_codes",
+]);
 const READONLY_TABLES = new Set(["business_settings", "business_setup", "automation_settings", "system_config", "audit_logs"]);
 const PRODUCT_MUTABLE_FIELDS = new Set([
   "name",
