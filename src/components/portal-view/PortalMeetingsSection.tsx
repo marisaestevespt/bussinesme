@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import type { PortalMeeting } from '@/types/portal';
+import { isMeetingDone, isMeetingPending } from '@/lib/meetingStatus';
 
 interface Props {
   meetings: PortalMeeting[];
@@ -118,7 +119,7 @@ function MeetingDialog({
   if (!meeting) return null;
   const m = meeting;
   const status = m.status || '';
-  const isPending = status === 'por_organizar' || status === 'por_confirmar';
+  const isPending = isMeetingPending({ status });
   const ms = meetingStatus(status);
 
   const confirmMeeting = async () => {
@@ -158,8 +159,8 @@ function MeetingDialog({
     ? m.documents.filter((d): d is { url: string; name?: string } => !!(d as { url?: string })?.url)
     : [];
   const dNotes = (m.discussion_notes || '').trim();
-  const hasAta = (status === 'realizada' || status === 'concluida' || status === 'terminada') &&
-    (points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes);
+  const isDone = isMeetingDone({ status });
+  const hasAta = isDone && (points.length || cActions.length || fNotes.length || prios.length || docs.length || dNotes);
 
   return (
     <Dialog open={!!meeting} onOpenChange={(o) => !o && onClose()}>
@@ -292,7 +293,7 @@ function MeetingDialog({
             </div>
           </div>
         ) : (
-          (status === 'realizada' || status === 'concluida' || status === 'terminada') && (
+          isDone && (
             <div className="mt-4 pt-4 border-t border-border/20">
               <p className="text-xs text-muted-foreground italic">Ainda não há ata disponível para esta reunião.</p>
             </div>
