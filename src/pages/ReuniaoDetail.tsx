@@ -404,6 +404,14 @@ export default function ReuniaoDetailPage() {
   const hasPropagableChange = Array.from(changedFields).some(f => SERIES_PROPAGABLE_FIELDS.has(f));
   const isInSeries = isSeriesParent || isSeriesChild;
 
+  const handleSave = () => {
+    if (isInSeries && hasPropagableChange) {
+      setSeriesSaveDialogOpen(true);
+    } else {
+      saveMutation.mutate('single');
+    }
+  };
+
   // Save
   const saveMutation = useMutation({
     mutationFn: async (mode: 'single' | 'series' = 'single') => {
