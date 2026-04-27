@@ -13,7 +13,8 @@ export type ProjectStatusValue =
   | 'em_revisao'
   | 'concluido'
   | 'cancelado'
-  | 'arquivo';
+  | 'arquivo'
+  | 'agendado';
 
 export interface ProjectStatusInfo {
   value: ProjectStatusValue;
@@ -31,6 +32,7 @@ export const PROJECT_STATUSES: ProjectStatusInfo[] = [
   { value: 'concluido',     label: 'Concluído',     color: 'bg-success/15 text-success border-success/30', dot: 'bg-success' },
   { value: 'cancelado',     label: 'Cancelado',     color: 'bg-destructive/15 text-destructive border-destructive/30', dot: 'bg-destructive' },
   { value: 'arquivo',       label: 'Arquivo',       color: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
+  { value: 'agendado',      label: 'Agendado',      color: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30', dot: 'bg-accent-violet' },
 ];
 
 export function getProjectStatusInfo(v: string | null | undefined): ProjectStatusInfo {
