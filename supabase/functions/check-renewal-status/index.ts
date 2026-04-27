@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       if (p.name) productByName[p.name] = days;
     }
 
-    // Get owner user_id(s) from user_roles
+    // Get all owner user_ids — gap #4: notify every owner, not just the first.
     const { data: ownerRoles } = await supabase
       .from("user_roles")
       .select("user_id")
@@ -65,14 +65,15 @@ Deno.serve(async (req) => {
 
     const ownerIds = (ownerRoles || []).map((r: any) => r.user_id);
 
-    // Get owner profile ids (for task assignment)
     const { data: ownerProfiles } = await supabase
       .from("profiles")
       .select("id, user_id")
       .in("user_id", ownerIds);
 
+    // Task gets assigned to the first owner profile (one task per cycle is enough);
+    // notifications fan out to all owners.
     const ownerProfileId = ownerProfiles?.[0]?.id || null;
-    const ownerUserId = ownerProfiles?.[0]?.user_id || null;
+    const ownerUserIds: string[] = (ownerProfiles || []).map((p: any) => p.user_id).filter(Boolean);
 
     let updated = 0;
     let tasksCreated = 0;
@@ -129,27 +130,40 @@ Deno.serve(async (req) => {
         if (!taskError) tasksCreated++;
       }
 
-      // 3. Notification: one per cycle per owner
-      if (ownerUserId) {
+      // 3. Notification: fan out to ALL owners (gap #4), one per cycle per owner
+      for (const uid of ownerUserIds) {
         const { data: existingNotifs } = await supabase
           .from("notifications")
           .select("id")
-          .eq("user_id", ownerUserId)
+          .eq("user_id", uid)
           .eq("title", taskTitle)
           .limit(1);
+        if (existingNotifs?.length) continue;
+        const { error: notifError } = await supabase.from("notifications").insert({
+          user_id: uid,
+          title: taskTitle,
+          message: `O ciclo do cliente ${client.full_name} termina em ${client.end_of_cycle}. É altura de iniciar o processo de renovação.`,
+          type: "renovacao",
+          link: `/hub/clientes/${client.id}`,
+        });
+        if (!notifError) notificationsCreated++;
+      }
 
-        if (!existingNotifs?.length) {
-          const { error: notifError } = await supabase
-            .from("notifications")
-            .insert({
-              user_id: ownerUserId,
-              title: taskTitle,
-              message: `O ciclo do cliente ${client.full_name} termina em ${client.end_of_cycle}. É altura de iniciar o processo de renovação.`,
-              type: "renovacao",
-              link: `/hub/clientes/${client.id}`,
-            });
-          if (!notifError) notificationsCreated++;
-        }
+      // 4. Gap #5: write a history entry on transition (idempotent per cycle)
+      const historyMilestone = `Entrou em altura de renovação (ciclo #${nextCycle})`;
+      const { data: existingHist } = await supabase
+        .from("client_history")
+        .select("id")
+        .eq("client_id", client.id)
+        .eq("milestone", historyMilestone)
+        .limit(1);
+      if (!existingHist?.length) {
+        await supabase.from("client_history").insert({
+          client_id: client.id,
+          entry_date: todayStr,
+          milestone: historyMilestone,
+          observations: `Fim de ciclo previsto: ${client.end_of_cycle}.`,
+        });
       }
     }
 
