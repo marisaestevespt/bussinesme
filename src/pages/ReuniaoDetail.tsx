@@ -200,6 +200,23 @@ function useSeriesCount(parentId: string | null) {
   });
 }
 
+// Fetch recurrence info from parent (for child occurrences)
+function useParentRecurrence(parentId: string | null) {
+  return useQuery({
+    queryKey: ['parent_recurrence', parentId],
+    queryFn: async () => {
+      if (!parentId) return null;
+      const { data } = await supabase
+        .from('meetings')
+        .select('recurrence_frequency, recurrence_end_date')
+        .eq('id', parentId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!parentId,
+  });
+}
+
 // ─── Helpers ────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: MeetingStatus }) {
