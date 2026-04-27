@@ -104,6 +104,23 @@ export default function ProjetoDetailPage() {
 
   // Meeting dialog
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
+  // Suggested meeting title from the next pending meeting-deliverable's template
+  const suggestedMeetingTitle = useMemo(() => {
+    const dels = (projectDeliverables || []) as any[];
+    if (!dels.length) return '';
+    const meetingDels = dels
+      .filter(d => (d.deliverable_type === 'reuniao' || d.is_meeting === true))
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const next = meetingDels.find(d => !d.meeting_id && d.meeting_title_template);
+    if (!next?.meeting_title_template) return '';
+    // Compute {N}: position among same-template deliverables (1-based)
+    const sameTpl = meetingDels.filter(d => d.meeting_title_template === next.meeting_title_template);
+    const n = sameTpl.findIndex(d => d.id === next.id) + 1;
+    const clientName = (local as any)?.client_name || '';
+    return String(next.meeting_title_template)
+      .replace(/\{N\}/g, String(n))
+      .replace(/\{cliente\}/gi, clientName);
+  }, [projectDeliverables, (local as any)?.client_name]);
 
   // Members dialog
   const [membersDialogOpen, setMembersDialogOpen] = useState(false);
