@@ -30,24 +30,31 @@ Deno.serve(async (req) => {
     const today = new Date();
     const todayStr = today.toISOString().split("T")[0];
 
-    // Get all active clients with end_of_cycle set and their associated product's renewal_advance_days
+    // Active clients with an end-of-cycle in the future. We exclude those who
+    // already have a renewal scheduled (pending_renewal_project_id) to avoid
+    // re-flagging clients whose renewal is already organized.
     const { data: clients, error: fetchError } = await supabase
       .from("clients")
-      .select("id, full_name, end_of_cycle, status, current_product")
+      .select("id, full_name, end_of_cycle, status, current_product, current_product_id, renewal_count, pending_renewal_project_id")
       .eq("status", "ativo")
+      .is("pending_renewal_project_id", null)
       .not("end_of_cycle", "is", null)
       .gte("end_of_cycle", todayStr);
 
     if (fetchError) throw fetchError;
 
-    // Get all products with their renewal_advance_days
+    // Index products by id (primary) and by name (fallback for legacy rows
+    // that never got current_product_id populated).
     const { data: products } = await supabase
       .from("products")
-      .select("name, renewal_advance_days");
+      .select("id, name, renewal_advance_days");
 
-    const productMap: Record<string, number> = {};
+    const productById: Record<string, number> = {};
+    const productByName: Record<string, number> = {};
     for (const p of products || []) {
-      productMap[p.name] = p.renewal_advance_days ?? 30;
+      const days = p.renewal_advance_days ?? 30;
+      if (p.id) productById[p.id] = days;
+      if (p.name) productByName[p.name] = days;
     }
 
     // Get owner user_id(s) from user_roles
@@ -77,10 +84,13 @@ Deno.serve(async (req) => {
         (endOfCycle.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Get advance days from product or default 30
-      const advanceDays = client.current_product
-        ? productMap[client.current_product] ?? 30
-        : 30;
+      // Resolve advance days: prefer product_id (stable), fall back to name (legacy).
+      let advanceDays = 30;
+      if (client.current_product_id && productById[client.current_product_id] !== undefined) {
+        advanceDays = productById[client.current_product_id];
+      } else if (client.current_product && productByName[client.current_product] !== undefined) {
+        advanceDays = productByName[client.current_product];
+      }
 
       // Only process clients within the advance window
       if (daysUntilEnd > advanceDays) continue;
@@ -94,19 +104,21 @@ Deno.serve(async (req) => {
       if (updateError) continue;
       updated++;
 
-      // 2. Check if a renewal task already exists for this client
+      // Tag tasks/notifications with the upcoming cycle so each renewal cycle
+      // gets its own task even if the previous one was never closed.
+      const nextCycle = (client.renewal_count || 0) + 1;
+      const taskTitle = `Renovação ciclo #${nextCycle} — ${client.full_name}`;
+
+      // 2. Create task if none exists for this specific cycle
       const { data: existingTasks } = await supabase
         .from("tasks")
         .select("id")
-        .ilike("name", `Renovação — ${client.full_name}%`)
-        .neq("status", "done")
-        .neq("status", "concluida")
+        .eq("name", taskTitle)
         .limit(1);
 
       if (!existingTasks?.length && ownerProfileId) {
-        // Create task
         const { error: taskError } = await supabase.from("tasks").insert({
-          name: `Renovação — ${client.full_name}`,
+          name: taskTitle,
           status: "por_comecar",
           priority: "alta",
           deadline: client.end_of_cycle,
@@ -114,17 +126,16 @@ Deno.serve(async (req) => {
           tag: "Renovação",
           notes: `Fim de ciclo: ${client.end_of_cycle}. Link: /hub/clientes/${client.id}`,
         });
-
         if (!taskError) tasksCreated++;
       }
 
-      // 3. Check if notification already exists (avoid duplicates)
+      // 3. Notification: one per cycle per owner
       if (ownerUserId) {
         const { data: existingNotifs } = await supabase
           .from("notifications")
           .select("id")
           .eq("user_id", ownerUserId)
-          .ilike("title", `Renovação — ${client.full_name}%`)
+          .eq("title", taskTitle)
           .limit(1);
 
         if (!existingNotifs?.length) {
@@ -132,12 +143,11 @@ Deno.serve(async (req) => {
             .from("notifications")
             .insert({
               user_id: ownerUserId,
-              title: `Renovação — ${client.full_name}`,
+              title: taskTitle,
               message: `O ciclo do cliente ${client.full_name} termina em ${client.end_of_cycle}. É altura de iniciar o processo de renovação.`,
               type: "renovacao",
               link: `/hub/clientes/${client.id}`,
             });
-
           if (!notifError) notificationsCreated++;
         }
       }
