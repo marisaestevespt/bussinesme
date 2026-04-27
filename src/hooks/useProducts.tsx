@@ -98,7 +98,11 @@ export function useProducts() {
         return newId;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['products'] });
+      qc.invalidateQueries({ queryKey: ['product-brand-colors'] });
+      qc.invalidateQueries({ queryKey: ['product-brand-list'] });
+    },
     onError: () => toast.error('Erro ao guardar produto'),
   });
 
