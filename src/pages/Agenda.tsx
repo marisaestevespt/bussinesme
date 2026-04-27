@@ -444,6 +444,17 @@ function EventTypeManager({ types }: { types: EventType[] }) {
     onError: () => toast.error('Não consegui atualizar a cor. Tenta novamente.'),
   });
 
+  const updateNameMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const trimmed = name.trim();
+      if (!trimmed) throw new Error('Nome obrigatório');
+      const { error } = await supabase.from('event_types').update({ name: trimmed }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['event_types'] }); toast.success('Nome atualizado'); },
+    onError: (e: Error) => toast.error(e.message || 'Não consegui atualizar o nome.'),
+  });
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-foreground">Tipos de evento</h3>
@@ -458,7 +469,20 @@ function EventTypeManager({ types }: { types: EventType[] }) {
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
             </label>
-            <span className="flex-1 text-foreground">{t.name}</span>
+            <Input
+              defaultValue={t.name}
+              onBlur={e => {
+                const v = e.target.value.trim();
+                if (v && v !== t.name) updateNameMutation.mutate({ id: t.id, name: v });
+                else if (!v) e.target.value = t.name;
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                if (e.key === 'Escape') { (e.target as HTMLInputElement).value = t.name; (e.target as HTMLInputElement).blur(); }
+              }}
+              className="flex-1 h-7 text-sm border-transparent hover:border-input focus:border-input bg-transparent px-2"
+              title="Clica para renomear"
+            />
             <button onClick={() => deleteMutation.mutate(t.id)} className="text-muted-foreground hover:text-destructive transition-colors">
               <X className="h-3.5 w-3.5" />
             </button>
