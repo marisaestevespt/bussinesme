@@ -728,6 +728,7 @@ export function MeetingFormDialog({
                           <SelectItem value="bimestral">Bimestral</SelectItem>
                           <SelectItem value="trimestral">Trimestral</SelectItem>
                           <SelectItem value="semestral">Semestral</SelectItem>
+                          <SelectItem value="mensal_primeira_sexta">Mensal (1ª sexta-feira)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
