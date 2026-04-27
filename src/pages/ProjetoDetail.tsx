@@ -912,6 +912,7 @@ export default function ProjetoDetailPage() {
           defaultClientName={local.client_name || undefined}
           defaultProjectId={id}
           defaultProjectName={local.name}
+          defaultTitle={suggestedMeetingTitle || undefined}
         />
 
         {/* Task dialog (mesmo da página Tarefas) */}
