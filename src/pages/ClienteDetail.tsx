@@ -969,23 +969,26 @@ export default function ClienteDetailPage() {
                 </Button>
               }
             >
-              <div className="rounded-lg border overflow-hidden">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_100px] gap-2">
+              <div className="rounded-lg border overflow-hidden bg-card">
+                <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[1fr_140px_120px] gap-3">
                   <span>Projeto</span><span>Status</span><span>Data</span>
                 </div>
                 {clientProjects.length === 0 ? (
                   <EmptyHint>Sem projetos associados</EmptyHint>
-                ) : clientProjects.map((p: any) => (
-                  <div
-                    key={p.id}
-                    className="px-4 py-2 text-xs grid grid-cols-[1fr_120px_100px] gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/hub/projetos/${p.id}`)}
-                  >
-                    <span className="font-medium">{p.name}</span>
-                    <Badge variant="outline" className="w-fit">{p.status}</Badge>
-                    <span>{p.created_at ? format(parseISO(p.created_at), 'dd/MM/yyyy') : '—'}</span>
-                  </div>
-                ))}
+                ) : clientProjects.map((p: any) => {
+                  const ps = getProjectStatusInfo(p.status);
+                  return (
+                    <div
+                      key={p.id}
+                      className="px-4 py-3 text-sm grid grid-cols-[1fr_140px_120px] gap-3 border-b last:border-b-0 items-center cursor-pointer hover:bg-muted/40 transition-colors"
+                      onClick={() => navigate(`/hub/projetos/${p.id}`)}
+                    >
+                      <span className="font-medium truncate">{p.name}</span>
+                      <Badge variant="outline" className={`${ps.color} w-fit`}>{ps.label}</Badge>
+                      <span className="text-muted-foreground">{p.created_at ? format(parseISO(p.created_at), 'dd/MM/yyyy') : '—'}</span>
+                    </div>
+                  );
+                })}
               </div>
             </EntitySection>
 
