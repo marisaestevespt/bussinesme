@@ -840,7 +840,7 @@ export default function ReuniaoDetailPage() {
 
         {/* Action buttons — subtle, outside card */}
         <div className="flex items-center gap-2 flex-wrap">
-          <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url }} />
+          <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url, recurrence: calendarRecurrence }} />
           {m.meeting_url && (
             <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => {
               update({ meeting_url: null });
