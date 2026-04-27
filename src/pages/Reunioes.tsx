@@ -758,7 +758,7 @@ export default function ReunioesPage() {
   const { data: clients = [] } = useClientsList();
 
   const filteredMeetings = view === 'proximas'
-    ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'por_organizar' || m.status === 'confirmada')
+    ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'confirmada')
     : meetings;
 
   return (
