@@ -14,7 +14,7 @@ export default function SecretariaAgenda() {
     to: format(addMonths(current, 18), 'yyyy-MM-dd'),
   }), [current.getFullYear(), current.getMonth()]);
 
-  const { events, types, typeItems, productItems, isEventVisible } = useMyAgendaEvents(fetchRange, current);
+  const { events, types, typeItems, autoTypeItems, productItems, isEventVisible } = useMyAgendaEvents(fetchRange, current);
 
   const handleEventClick = (ev: AgendaEvent) => {
     const anyEv = ev as any;
@@ -32,6 +32,7 @@ export default function SecretariaAgenda() {
         events={events}
         types={types}
         typeItems={typeItems}
+        autoTypeItems={autoTypeItems}
         productItems={productItems}
         isEventVisible={isEventVisible}
         onEventClick={handleEventClick}
