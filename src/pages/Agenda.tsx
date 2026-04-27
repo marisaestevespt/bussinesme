@@ -42,6 +42,7 @@ import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { getProductColorFromMap, useProductColors, useProductBrands, useClientProductMap } from '@/hooks/useProductColors';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 
 // ─── Types ──────────────────────────────────────────────────────
 
