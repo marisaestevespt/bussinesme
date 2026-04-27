@@ -41,6 +41,7 @@ import {
 import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { getProductColorFromMap, useProductColors, useProductBrands, useClientProductMap } from '@/hooks/useProductColors';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1186,6 +1187,17 @@ export default function AgendaPage() {
   const { data: productColors, isLoading: productColorsLoading } = useProductColors();
   const { data: productBrands = [] } = useProductBrands();
   const { data: clientProductMap } = useClientProductMap();
+  const { settings: businessSettings } = useBusinessSettings();
+  // Brand colour for internal/company meetings (no client/product). Falls
+  // back to the meeting pseudo-colour only if branding is empty.
+  const companyBrandColor = useMemo(() => {
+    const raw = (businessSettings as any)?.primary_color as string | null | undefined;
+    if (!raw) return undefined;
+    const t = raw.trim();
+    if (/^hsl\(.*\)$/i.test(t)) return t;
+    if (/^\d+\s+\d+%\s+\d+%$/.test(t)) return `hsl(${t})`;
+    return t;
+  }, [businessSettings]);
 
   // ─── Calendars sidebar items (filters live inside AgendaCalendarView) ─────
   const typeCalendarItems: CalendarItem[] = useMemo(() => {
@@ -1237,12 +1249,18 @@ export default function AgendaPage() {
       const productC = getProductColorFromMap(productColors, pid, productName);
       // Sales actions get the amber pseudo-colour by default; product colour wins when present.
       const isSales = (ev as any)._isSalesAction;
-      const fallbackC = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
+      const isMeeting = (ev as any)._isMeeting;
+      // Internal company meetings (no product, no client product): use the
+      // company brand colour so they are clearly distinguishable from the
+      // generic violet "meeting" pill.
+      const fallbackC = isSales
+        ? SALES_ACTION_PSEUDO_COLOR
+        : (isMeeting ? companyBrandColor : undefined);
       const c = productC ?? fallbackC;
       if (!c) return { ...ev, product_id: pid ?? null, product_name: productName ?? null } as EventRow;
       return { ...ev, product_id: pid ?? null, product_name: productName ?? null, _color: c } as EventRow;
     });
-  }, [allEventsRaw, productColors, clientProductMap]);
+  }, [allEventsRaw, productColors, clientProductMap, companyBrandColor]);
 
   // Expand recurring events into a wide window so all views see occurrences.
   // The visibility filter is applied inside AgendaCalendarView so it can react
