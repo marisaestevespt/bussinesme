@@ -495,8 +495,18 @@ export function MeetingFormDialog({
       const primaryProject = primaryProjectId ? projects.find(p => p.id === primaryProjectId) : null;
       const selectedClient = clients.find((c: any) => c.id === clientId);
 
+      // Convention: meetings with a client always carry the client name in the title for
+      // easy identification across the agenda and meeting lists.
+      let finalTitle = title.trim();
+      if (selectedClient?.full_name) {
+        const clientName = selectedClient.full_name;
+        if (!finalTitle.toLowerCase().includes(clientName.toLowerCase())) {
+          finalTitle = `${finalTitle} — ${clientName}`;
+        }
+      }
+
       const meetingData = {
-        title: title.trim(),
+        title: finalTitle,
         date_time: dateTime.toISOString(),
         status,
         meeting_type: meetingType,
