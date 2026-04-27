@@ -548,7 +548,7 @@ export function MeetingFormDialog({
       const isClientMeeting = meetingType === 'cliente';
       const eventTypeId: string | null = null;
       await supabase.from('events').insert({
-        title: title.trim(),
+        title: finalTitle,
         start_date: dateTime.toISOString(),
         event_type_id: eventTypeId,
         client_name: isClientMeeting ? (selectedClient?.full_name || null) : null,
@@ -572,7 +572,7 @@ export function MeetingFormDialog({
           // Create calendar events for each occurrence
           if (insertedOccurrences) {
             const occurrenceEvents = insertedOccurrences.map((occ: any) => ({
-              title: title.trim(),
+              title: finalTitle,
               start_date: occ.date_time,
               event_type_id: eventTypeId,
               client_name: isClientMeeting ? (selectedClient?.full_name || null) : null,
@@ -597,7 +597,7 @@ export function MeetingFormDialog({
     onSuccess: async (id) => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
       qc.invalidateQueries({ queryKey: ['events'] });
-      logAudit('created', 'meeting', id, { title: title.trim(), meeting_type: meetingType, is_recurring: isRecurring });
+      logAudit('created', 'meeting', id, { meeting_type: meetingType, is_recurring: isRecurring });
       toast.success('Reunião criada');
       resetForm();
       onOpenChange(false);
