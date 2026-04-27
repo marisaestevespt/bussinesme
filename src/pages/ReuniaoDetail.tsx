@@ -585,7 +585,7 @@ export default function ReuniaoDetailPage() {
             dirty
               ? {
                   label: saveMutation.isPending ? 'A guardar...' : 'Guardar',
-                  onClick: () => saveMutation.mutate(),
+                  onClick: handleSave,
                   disabled: saveMutation.isPending,
                   loading: saveMutation.isPending,
                 }
@@ -1043,7 +1043,7 @@ export default function ReuniaoDetailPage() {
         {/* Sticky save bar */}
         {dirty && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="shadow-lg px-6">
+            <Button onClick={handleSave} disabled={saveMutation.isPending} className="shadow-lg px-6">
               {saveMutation.isPending ? 'A guardar...' : 'Guardar alterações'}
             </Button>
           </div>
