@@ -279,7 +279,9 @@ export default function PortalViewPage() {
 
   // Find next pending deliverable across all onboarding phases
   const nextStep = (() => {
+    // Skip phases already done (by status or because all deliverables are complete)
     for (const phase of onboarding) {
+      if (phase.status === 'concluido' || phase.status === 'concluida') continue;
       const dels = phase.deliverables || [];
       const pending = dels.find((d) => !isDeliverableDone(d));
       if (pending) return { ...pending, phase_name: phase.name };
