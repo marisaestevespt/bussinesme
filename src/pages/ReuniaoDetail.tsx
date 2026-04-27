@@ -388,7 +388,21 @@ export default function ReuniaoDetailPage() {
     if (!m) return;
     setLocalMeeting({ ...m, ...patch });
     setDirty(true);
+    setChangedFields(prev => {
+      const next = new Set(prev);
+      Object.keys(patch).forEach(k => next.add(k));
+      return next;
+    });
   };
+
+  // Fields that make sense to propagate across the whole series
+  const SERIES_PROPAGABLE_FIELDS = new Set([
+    'title', 'meeting_url', 'meeting_type', 'duration_minutes',
+    'department', 'client_id', 'client_name', 'project_id', 'project_name',
+    'product_id', 'product_name',
+  ]);
+  const hasPropagableChange = Array.from(changedFields).some(f => SERIES_PROPAGABLE_FIELDS.has(f));
+  const isInSeries = isSeriesParent || isSeriesChild;
 
   // Save
   const saveMutation = useMutation({
