@@ -11011,6 +11011,7 @@ export type Database = {
     }
     Functions: {
       accountant_access_enabled: { Args: never; Returns: boolean }
+      activate_renewal_project: { Args: { _project_id: string }; Returns: Json }
       apply_project_deliverable_tasks: {
         Args: { _project_id: string }
         Returns: number
