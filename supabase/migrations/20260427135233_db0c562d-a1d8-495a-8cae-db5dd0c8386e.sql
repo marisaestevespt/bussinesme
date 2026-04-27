@@ -1,0 +1,1 @@
+DELETE FROM public.meetings WHERE client_id='35f080a5-6e41-4a81-9fd4-ed81b10bea72' AND title LIKE '%mensal de equipa%' AND date_time > '2026-06-15';
