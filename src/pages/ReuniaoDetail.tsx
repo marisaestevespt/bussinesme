@@ -406,9 +406,9 @@ export default function ReuniaoDetailPage() {
 
   // Save
   const saveMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (mode: 'single' | 'series' = 'single') => {
       if (!m) return;
-      const { error } = await supabase.from('meetings').update({
+      const fullPatch = {
         title: m.title,
         date_time: m.date_time,
         status: m.status as any,
@@ -429,15 +429,39 @@ export default function ReuniaoDetailPage() {
         final_notes: m.final_notes as any,
         duration_minutes: m.duration_minutes,
         documents: m.documents as any,
-      }).eq('id', m.id);
+      } as Record<string, any>;
+      const { error } = await supabase.from('meetings').update(fullPatch).eq('id', m.id);
       if (error) throw error;
+
+      if (mode === 'series' && isInSeries) {
+        // Build a partial patch with only the propagable fields the user actually changed
+        const seriesPatch: Record<string, any> = {};
+        Array.from(changedFields)
+          .filter(f => SERIES_PROPAGABLE_FIELDS.has(f))
+          .forEach(f => { seriesPatch[f] = (m as any)[f]; });
+
+        if (Object.keys(seriesPatch).length > 0) {
+          const parentId = isSeriesParent ? m.id : m.parent_meeting_id!;
+          // Update the parent (when current is a child)
+          if (m.parent_meeting_id) {
+            await supabase.from('meetings').update(seriesPatch).eq('id', parentId);
+          }
+          // Update all siblings (other children of the same parent), excluding current
+          await supabase
+            .from('meetings')
+            .update(seriesPatch)
+            .eq('parent_meeting_id', parentId)
+            .neq('id', m.id);
+        }
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_data, mode) => {
       qc.invalidateQueries({ queryKey: ['meeting', id] });
       qc.invalidateQueries({ queryKey: ['meetings'] });
       setDirty(false);
+      setChangedFields(new Set());
       logAudit('updated', 'meeting', id, { title: m?.title });
-      toast.success('Reunião guardada');
+      toast.success(mode === 'series' ? 'Série atualizada' : 'Reunião guardada');
     },
     onError: () => toast.error('Não consegui guardar a reunião. Tenta novamente.'),
   });
