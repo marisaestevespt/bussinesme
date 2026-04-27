@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +16,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { format, parseISO } from 'date-fns';
 import {
   CollectionPage,
-  CollectionHeader,
   CollectionToolbar,
   CollectionEmpty,
 } from '@/components/layout/collection';
@@ -128,13 +128,8 @@ export default function ClientesPage() {
 
   return (
     <AppLayout>
+      <PageHeader title="Clientes" subtitle="Gestão de clientes, acompanhamento e satisfação." />
       <CollectionPage>
-        <CollectionHeader
-          title="Clientes"
-          icon={Users}
-          description="Gestão de clientes, acompanhamento e satisfação."
-          count={items.length}
-        />
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
             {[
