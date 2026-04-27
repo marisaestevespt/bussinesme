@@ -21,6 +21,7 @@ import { getMeetingTemplate } from '@/components/meeting/MEETING_TEMPLATES';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
+import { isHoliday } from '@/lib/holidays';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
@@ -277,8 +278,22 @@ function getAdvanceFn(frequency: string): (d: Date) => Date {
     case 'bimestral': return (d: Date) => addMonths(d, 2);
     case 'trimestral': return (d: Date) => addMonths(d, 3);
     case 'semestral': return (d: Date) => addMonths(d, 6);
+    case 'mensal_primeira_sexta': return (d: Date) => firstFridayOfMonth(addMonths(d, 1), d.getHours(), d.getMinutes());
     default: return (d: Date) => addWeeks(d, 1);
   }
+}
+
+/** Returns the 1st Friday of the month containing `d`. If that Friday is a Portuguese holiday,
+ *  shifts to the next non-holiday weekday (Monday by default). Hour/minute preserved. */
+export function firstFridayOfMonth(d: Date, hour = 0, minute = 0): Date {
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  const offset = (5 - first.getDay() + 7) % 7; // 5 = Friday
+  let target = new Date(first.getFullYear(), first.getMonth(), 1 + offset, hour, minute, 0, 0);
+  // If holiday, push forward to next non-holiday weekday
+  while (isHoliday(target) || target.getDay() === 0 || target.getDay() === 6) {
+    target = new Date(target.getFullYear(), target.getMonth(), target.getDate() + 1, hour, minute, 0, 0);
+  }
+  return target;
 }
 
 function generateRecurrenceDates(startDate: Date, frequency: string, endDate?: Date): Date[] {
