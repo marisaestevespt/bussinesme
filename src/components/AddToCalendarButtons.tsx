@@ -9,6 +9,11 @@ interface CalendarEvent {
   endDate?: string | null; // ISO string
   notes?: string | null;
   meetingUrl?: string | null;
+  /** When provided, exports the full recurring series instead of just this occurrence. */
+  recurrence?: {
+    frequency: 'diaria' | 'semanal' | 'quinzenal' | 'mensal' | string;
+    endDate?: string | null; // ISO date or datetime
+  } | null;
 }
 
 export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
@@ -21,7 +26,33 @@ export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
   const toGoogleFormat = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
   const toICSFormat = (d: Date) => format(d, "yyyyMMdd'T'HHmmss");
 
-  const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${toGoogleFormat(startDate)}/${toGoogleFormat(endDate)}&details=${details}&location=${location}`;
+  // Build RRULE if event is recurring
+  const buildRRule = (): string | null => {
+    if (!event.recurrence) return null;
+    const freqMap: Record<string, { freq: string; interval?: number }> = {
+      diaria: { freq: 'DAILY' },
+      semanal: { freq: 'WEEKLY' },
+      quinzenal: { freq: 'WEEKLY', interval: 2 },
+      mensal: { freq: 'MONTHLY' },
+    };
+    const cfg = freqMap[event.recurrence.frequency];
+    if (!cfg) return null;
+    const parts = [`FREQ=${cfg.freq}`];
+    if (cfg.interval) parts.push(`INTERVAL=${cfg.interval}`);
+    if (event.recurrence.endDate) {
+      const until = parseISO(event.recurrence.endDate);
+      // UNTIL must be in UTC with Z suffix
+      parts.push(`UNTIL=${format(until, "yyyyMMdd'T'235959'Z'")}`);
+    }
+    return parts.join(';');
+  };
+  const rrule = buildRRule();
+
+  const googleUrl =
+    `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}` +
+    `&dates=${toGoogleFormat(startDate)}/${toGoogleFormat(endDate)}` +
+    `&details=${details}&location=${location}` +
+    (rrule ? `&recur=${encodeURIComponent('RRULE:' + rrule)}` : '');
   const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${title}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${details}&location=${location}`;
 
   const downloadICS = () => {
@@ -33,6 +64,7 @@ export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
       `DTSTART:${toICSFormat(startDate)}`,
       `DTEND:${toICSFormat(endDate)}`,
       `SUMMARY:${event.title}`,
+      rrule ? `RRULE:${rrule}` : '',
       event.notes ? `DESCRIPTION:${event.notes.replace(/\n/g, '\\n')}` : '',
       event.meetingUrl ? `URL:${event.meetingUrl}` : '',
       event.meetingUrl ? `LOCATION:${event.meetingUrl}` : '',
@@ -51,7 +83,10 @@ export function AddToCalendarButtons({ event }: { event: CalendarEvent }) {
 
   return (
     <div className="space-y-2 pt-1">
-      <Label className="text-xs font-semibold flex items-center gap-2"><CalendarIcon className="h-3.5 w-3.5" /> Adicionar ao calendário</Label>
+      <Label className="text-xs font-semibold flex items-center gap-2">
+        <CalendarIcon className="h-3.5 w-3.5" /> Adicionar ao calendário
+        {rrule && <span className="text-[10px] font-normal text-muted-foreground">(série completa)</span>}
+      </Label>
       <div className="flex flex-wrap gap-2">
         <a href={googleUrl} target="_blank" rel="noopener noreferrer">
           <Button variant="outline" size="sm" className="h-7 text-xs gap-2">📅 Google Calendar</Button>

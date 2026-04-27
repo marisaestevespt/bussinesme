@@ -200,6 +200,23 @@ function useSeriesCount(parentId: string | null) {
   });
 }
 
+// Fetch recurrence info from parent (for child occurrences)
+function useParentRecurrence(parentId: string | null) {
+  return useQuery({
+    queryKey: ['parent_recurrence', parentId],
+    queryFn: async () => {
+      if (!parentId) return null;
+      const { data } = await supabase
+        .from('meetings')
+        .select('recurrence_frequency, recurrence_end_date')
+        .eq('id', parentId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!parentId,
+  });
+}
+
 // ─── Helpers ────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: MeetingStatus }) {
@@ -353,6 +370,16 @@ export default function ReuniaoDetailPage() {
   const isSeriesParent = m?.is_recurring === true;
   const isSeriesChild = !!m?.parent_meeting_id;
   const { data: seriesCount = 0 } = useSeriesCount(isSeriesParent ? m?.id ?? null : null);
+  const { data: parentRecurrence } = useParentRecurrence(isSeriesChild ? m?.parent_meeting_id ?? null : null);
+
+  // Build recurrence prop for AddToCalendarButtons (covers both parent and child occurrences)
+  const calendarRecurrence = isSeriesParent
+    ? (m?.recurrence_frequency
+        ? { frequency: m.recurrence_frequency, endDate: m?.recurrence_end_date ?? null }
+        : null)
+    : (parentRecurrence?.recurrence_frequency
+        ? { frequency: parentRecurrence.recurrence_frequency, endDate: parentRecurrence.recurrence_end_date ?? null }
+        : null);
 
   const update = (patch: Partial<MeetingFull>) => {
     if (!m) return;
@@ -813,7 +840,7 @@ export default function ReuniaoDetailPage() {
 
         {/* Action buttons — subtle, outside card */}
         <div className="flex items-center gap-2 flex-wrap">
-          <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url }} />
+          <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url, recurrence: calendarRecurrence }} />
           {m.meeting_url && (
             <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => {
               update({ meeting_url: null });
