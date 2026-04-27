@@ -45,7 +45,7 @@ import { getProductColorFromMap, useProductColors, useProductBrands, useClientPr
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; product_id: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; meeting_url: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; product_id: string | null; department: string | null; client_id?: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; meeting_url: string | null; }
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
