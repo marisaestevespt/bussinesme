@@ -644,6 +644,27 @@ export default function ReuniaoDetailPage() {
           </AlertDialogContent>
         </AlertDialog>
 
+        {/* Series save dialog */}
+        <AlertDialog open={seriesSaveDialogOpen} onOpenChange={setSeriesSaveDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Aplicar alterações à série?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta reunião faz parte de uma série recorrente. Alteraste campos que podem ser propagados (ex.: link Meet, título, duração, cliente). O que pretendes fazer?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { setSeriesSaveDialogOpen(false); saveMutation.mutate('single'); }}>
+                Só esta reunião
+              </AlertDialogAction>
+              <AlertDialogAction onClick={() => { setSeriesSaveDialogOpen(false); saveMutation.mutate('series'); }}>
+                Aplicar a toda a série
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Title */}
         <EntityTitle
           inlineMode
