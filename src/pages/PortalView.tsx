@@ -309,10 +309,19 @@ export default function PortalViewPage() {
     return upcoming[0]?.date_time || null;
   })();
 
+  // If the next step is a meeting deliverable linked to a meeting, prefer the meeting title
+  const nextStepMeetingTitle = (() => {
+    if (!nextStep) return null;
+    const linkedId = (nextStep as any).meeting_id;
+    if (!linkedId) return null;
+    const linked = (meetings || []).find((m) => m.id === linkedId);
+    return linked?.title || null;
+  })();
+
   // Override next step if questions need filling
   const effectiveNextStep = hasUnansweredQuestions
     ? { name: 'Preencher perguntas iniciais', phase_name: 'Perguntas', planned_end: null, _isQuestions: true }
-    : nextStep;
+    : (nextStep && nextStepMeetingTitle ? { ...nextStep, name: nextStepMeetingTitle } : nextStep);
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
@@ -784,7 +793,7 @@ export default function PortalViewPage() {
                       <Sparkles className="h-4 w-4" style={{ color: pc }} />
                       <span className="text-xs uppercase tracking-widest font-bold" style={{ color: pc }}>Próximo passo</span>
                     </div>
-                    <p className="text-base font-semibold">{nextStep.name}</p>
+                    <p className="text-base font-semibold">{nextStepMeetingTitle || nextStep.name}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-muted-foreground">{nextStep.phase_name}</span>
                       {(() => {
