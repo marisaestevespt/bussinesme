@@ -359,6 +359,9 @@ export default function ReuniaoDetailPage() {
   const [dirty, setDirty] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createTasksOpen, setCreateTasksOpen] = useState(false);
+  // Track which fields the user has changed in this session
+  const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
+  const [seriesSaveDialogOpen, setSeriesSaveDialogOpen] = useState(false);
 
   useEffect(() => {
     if (meeting && !localMeeting) setLocalMeeting(meeting);
