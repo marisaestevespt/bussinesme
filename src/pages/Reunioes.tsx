@@ -803,6 +803,91 @@ export function MeetingFormDialog({
                       <Label className="text-xs">Data de fim (opcional)</Label>
                       <DateTimePickerField date={recurrenceEndDate} onSelect={setRecurrenceEndDate} placeholder="Sem data de fim (12 meses)" />
                     </div>
+                    {recurrencePreview.length > 0 && (
+                      <div className="rounded-lg border border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                          <div className="text-xs">
+                            <p className="font-semibold text-amber-900 dark:text-amber-200">
+                              {recurrencePreview.length} ocorrência{recurrencePreview.length > 1 ? 's' : ''} cai{recurrencePreview.length > 1 ? 'em' : ''} em feriado
+                            </p>
+                            <p className="text-amber-800/80 dark:text-amber-200/70">Escolhe o que fazer com cada uma:</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          {recurrencePreview.map(c => {
+                            const adjusted = c.adjusted;
+                            const next = nextBusinessDay(c.original);
+                            return (
+                              <div key={c.key} className="flex flex-col gap-1.5 rounded-md bg-background/60 p-2 border border-amber-200/40">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="text-xs">
+                                    <span className="font-medium">{format(c.original, "dd MMM yyyy", { locale: pt })}</span>
+                                    {c.holidayName && <span className="text-muted-foreground"> · {c.holidayName}</span>}
+                                  </div>
+                                  {adjusted === 'skip' && <span className="text-[10px] font-medium text-destructive">Saltada</span>}
+                                  {adjusted instanceof Date && (
+                                    <span className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                                      → {format(adjusted, "dd MMM", { locale: pt })}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={adjusted === null ? 'secondary' : 'ghost'}
+                                    className="h-6 text-[10px] px-2"
+                                    onClick={() => setHolidayOverrides(prev => { const n = { ...prev }; delete n[c.key]; return n; })}
+                                  >
+                                    Manter
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={adjusted instanceof Date ? 'secondary' : 'ghost'}
+                                    className="h-6 text-[10px] px-2"
+                                    onClick={() => setHolidayOverrides(prev => ({ ...prev, [c.key]: next }))}
+                                  >
+                                    Próximo dia útil ({format(next, "dd MMM", { locale: pt })})
+                                  </Button>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] px-2">
+                                        Outro dia…
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                      <Calendar
+                                        mode="single"
+                                        selected={adjusted instanceof Date ? adjusted : c.original}
+                                        onSelect={d => {
+                                          if (!d) return;
+                                          const dt = new Date(d);
+                                          dt.setHours(c.original.getHours(), c.original.getMinutes(), 0, 0);
+                                          setHolidayOverrides(prev => ({ ...prev, [c.key]: dt }));
+                                        }}
+                                        locale={pt}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={adjusted === 'skip' ? 'secondary' : 'ghost'}
+                                    className="h-6 text-[10px] px-2 text-destructive hover:text-destructive"
+                                    onClick={() => setHolidayOverrides(prev => ({ ...prev, [c.key]: 'skip' }))}
+                                  >
+                                    Saltar
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
