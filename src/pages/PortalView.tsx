@@ -793,7 +793,7 @@ export default function PortalViewPage() {
                       <Sparkles className="h-4 w-4" style={{ color: pc }} />
                       <span className="text-xs uppercase tracking-widest font-bold" style={{ color: pc }}>Próximo passo</span>
                     </div>
-                    <p className="text-base font-semibold">{nextStep.name}</p>
+                    <p className="text-base font-semibold">{nextStepMeetingTitle || nextStep.name}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-xs text-muted-foreground">{nextStep.phase_name}</span>
                       {(() => {
