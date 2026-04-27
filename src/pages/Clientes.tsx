@@ -5,7 +5,9 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, BarChart3, Globe, MessageSquare, Users } from 'lucide-react';
+import { Plus, BarChart3, Globe, MessageSquare, Users, ChevronDown, Archive } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AddLegacyClientDialog } from '@/components/clients/AddLegacyClientDialog';
 import { useClients, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { ProductIcon } from '@/components/entity-icon';
@@ -36,12 +38,14 @@ export default function ClientesPage() {
   const navigate = useNavigate();
   const { clients } = useClients();
   const { products } = useProducts();
-  const [tab, setTab] = useState<'ativos' | 'arquivados'>('ativos');
+  const [tab, setTab] = useState<'ativos' | 'arquivados' | 'historico'>('ativos');
+  const [legacyDialogOpen, setLegacyDialogOpen] = useState(false);
 
   const items = clients.data || [];
-  const activeItems = useMemo(() => items.filter(c => ACTIVE_STATUSES.includes(c.status)), [items]);
-  const archivedItems = useMemo(() => items.filter(c => ARCHIVED_STATUSES.includes(c.status)), [items]);
-  const displayItems = tab === 'ativos' ? activeItems : archivedItems;
+  const legacyItems = useMemo(() => items.filter(c => (c as any).is_legacy === true), [items]);
+  const activeItems = useMemo(() => items.filter(c => !(c as any).is_legacy && ACTIVE_STATUSES.includes(c.status)), [items]);
+  const archivedItems = useMemo(() => items.filter(c => !(c as any).is_legacy && ARCHIVED_STATUSES.includes(c.status)), [items]);
+  const displayItems = tab === 'ativos' ? activeItems : tab === 'arquivados' ? archivedItems : legacyItems;
 
   const activeCount = activeItems.length;
 
@@ -128,9 +132,21 @@ export default function ClientesPage() {
           description="Gestão de clientes, acompanhamento e satisfação."
           count={items.length}
           actions={
-            <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Cliente
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-1" /> Novo Cliente <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate('/hub/clientes/novo')}>
+                  <Plus className="h-4 w-4 mr-2" /> Cliente novo (com projeto)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLegacyDialogOpen(true)}>
+                  <Archive className="h-4 w-4 mr-2" /> Cliente histórico (arquivo)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           }
         />
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
@@ -199,6 +215,7 @@ export default function ClientesPage() {
               <EntityTabsList>
                 <EntityTabsTrigger value="ativos">Ativos · {activeItems.length}</EntityTabsTrigger>
                 <EntityTabsTrigger value="arquivados">Arquivados · {archivedItems.length}</EntityTabsTrigger>
+                <EntityTabsTrigger value="historico">Histórico · {legacyItems.length}</EntityTabsTrigger>
               </EntityTabsList>
             </EntityTabs>
           }
@@ -219,8 +236,8 @@ export default function ClientesPage() {
             {displayItems.length === 0 ? (
               <CollectionEmpty
                 icon={Users}
-                title={tab === 'ativos' ? 'Sem clientes ativos' : 'Sem clientes arquivados'}
-                description={tab === 'ativos' ? 'Adiciona um novo cliente para começar.' : 'Quando arquivares clientes, aparecem aqui.'}
+                title={tab === 'ativos' ? 'Sem clientes ativos' : tab === 'arquivados' ? 'Sem clientes arquivados' : 'Sem clientes históricos'}
+                description={tab === 'ativos' ? 'Adiciona um novo cliente para começar.' : tab === 'arquivados' ? 'Quando arquivares clientes, aparecem aqui.' : 'Adiciona registos de clientes antigos para arquivo.'}
                 className="border-0"
               />
             ) : (
@@ -228,6 +245,7 @@ export default function ClientesPage() {
             )}
           </InfiniteScrollList>
         </div>
+        <AddLegacyClientDialog open={legacyDialogOpen} onOpenChange={setLegacyDialogOpen} />
       </CollectionPage>
     </AppLayout>
   );
