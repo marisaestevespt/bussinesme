@@ -1182,7 +1182,7 @@ export default function AgendaPage() {
   const { data: salesActionEvents = [] } = useSalesActionsAsEvents(fetchRange);
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
-  const { data: productColors } = useProductColors();
+  const { data: productColors, isLoading: productColorsLoading } = useProductColors();
   const { data: productBrands = [] } = useProductBrands();
 
   // ─── Calendars sidebar items (filters live inside AgendaCalendarView) ─────
@@ -1274,7 +1274,7 @@ export default function AgendaPage() {
           </div>
         </div>
 
-        {isLoading ? (
+        {isLoading || productColorsLoading ? (
           <div className="flex items-center justify-center py-24">
             <InlineLoader />
           </div>
