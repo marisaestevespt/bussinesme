@@ -1695,6 +1695,8 @@ export type Database = {
           full_name: string
           icon: Json | null
           id: string
+          is_legacy: boolean
+          legacy_product_description: string | null
           nif: string | null
           observations: string | null
           payment_method: string | null
@@ -1730,6 +1732,8 @@ export type Database = {
           full_name: string
           icon?: Json | null
           id?: string
+          is_legacy?: boolean
+          legacy_product_description?: string | null
           nif?: string | null
           observations?: string | null
           payment_method?: string | null
@@ -1765,6 +1769,8 @@ export type Database = {
           full_name?: string
           icon?: Json | null
           id?: string
+          is_legacy?: boolean
+          legacy_product_description?: string | null
           nif?: string | null
           observations?: string | null
           payment_method?: string | null
