@@ -253,189 +253,22 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const generateSales = useMutation({
     mutationFn: async () => {
       if (!billingStartDate) throw new Error('Projeto sem data de início definida');
-      const start = parseISO(billingStartDate);
-      const currentMonthStart = new Date();
-      currentMonthStart.setDate(1);
-      currentMonthStart.setHours(0, 0, 0, 0);
-      const entries: any[] = [];
       const product = productName || clientData?.current_product || '';
       const client = clientName || '';
       const vatRate = Number((productsList || []).find(p => p.name === product)?.vat_rate) || 0;
-      const applyVat = (base: number) => Math.round(base * (1 + vatRate / 100) * 100) / 100;
-      const year = new Date().getFullYear();
-      let saleCounter = 0;
-      const genSaleId = () => { saleCounter++; return `V${year}-${Date.now()}-${saleCounter}`; };
 
-      if (payMethod === 'pagamento_total') {
-        const val = parseFloat(totalValue);
-        if (!val || val <= 0) throw new Error('Valor inválido');
-        entries.push({
-          sale_id: genSaleId(),
-          status: 'aguarda_pagamento',
-          payment_date: format(start, 'yyyy-MM-dd'),
-          description: `Pagamento Total — ${product}`,
-          base_value: val,
-          invoice_total: applyVat(val),
-          product,
-          client,
-          source: 'projeto',
-          project_id: projectId,
-          sale_month: start.getMonth() + 1,
-          sale_year: start.getFullYear(),
-          sale_quarter: Math.ceil((start.getMonth() + 1) / 3),
-          created_by: user?.id || null,
-          payment_method: getMethodForEntry(false),
-        });
-      } else if (payMethod === 'entrada_prestacoes') {
-        const total = parseFloat(totalValue);
-        const entrada = parseFloat(entradaValue);
-        const nPrest = parseInt(numPrestacoes);
-        const day = parseInt(payDay);
-        if (!total || !entrada || !nPrest || !day) throw new Error('Preencha todos os campos');
-        if (entrada >= total) throw new Error('Valor de entrada deve ser inferior ao total');
-
-        // Entrada
-        entries.push({
-          sale_id: genSaleId(),
-          status: 'aguarda_pagamento',
-          payment_date: format(start, 'yyyy-MM-dd'),
-          description: `Entrada — ${product}`,
-          base_value: entrada,
-          invoice_total: applyVat(entrada),
-          product,
-          client,
-          source: 'projeto',
-          project_id: projectId,
-          sale_month: start.getMonth() + 1,
-          sale_year: start.getFullYear(),
-          sale_quarter: Math.ceil((start.getMonth() + 1) / 3),
-          created_by: user?.id || null,
-          payment_method: getMethodForEntry(true),
-        });
-
-        // Prestações
-        const restante = total - entrada;
-        const valorPrestacao = Math.round((restante / nPrest) * 100) / 100;
-        for (let i = 0; i < nPrest; i++) {
-          const prestDate = setDate(addMonths(start, i + 1), day);
-          entries.push({
-            sale_id: genSaleId(),
-            status: 'aguarda_pagamento',
-            payment_date: format(prestDate, 'yyyy-MM-dd'),
-            description: `Prestação ${i + 1}/${nPrest} — ${product}`,
-            base_value: i === nPrest - 1 ? Math.round((restante - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao,
-            invoice_total: applyVat(i === nPrest - 1 ? Math.round((restante - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao),
-            product,
-            client,
-            source: 'projeto',
-            project_id: projectId,
-            sale_month: prestDate.getMonth() + 1,
-            sale_year: prestDate.getFullYear(),
-            sale_quarter: Math.ceil((prestDate.getMonth() + 1) / 3),
-            created_by: user?.id || null,
-            payment_method: getMethodForEntry(false),
-          });
-        }
-      } else if (payMethod === 'prestacoes') {
-        const total = parseFloat(totalValue);
-        const nPrest = parseInt(numPrestacoes);
-        const day = parseInt(payDay);
-        if (!total || !nPrest || !day) throw new Error('Preencha todos os campos');
-
-        const valorPrestacao = Math.round((total / nPrest) * 100) / 100;
-        for (let i = 0; i < nPrest; i++) {
-          const prestDate = i === 0 ? start : setDate(addMonths(start, i), day);
-          entries.push({
-            sale_id: genSaleId(),
-            status: 'aguarda_pagamento',
-            payment_date: format(prestDate, 'yyyy-MM-dd'),
-            description: `Prestação ${i + 1}/${nPrest} — ${product}`,
-            base_value: i === nPrest - 1 ? Math.round((total - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao,
-            invoice_total: applyVat(i === nPrest - 1 ? Math.round((total - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao),
-            product,
-            client,
-            source: 'projeto',
-            project_id: projectId,
-            sale_month: prestDate.getMonth() + 1,
-            sale_year: prestDate.getFullYear(),
-            sale_quarter: Math.ceil((prestDate.getMonth() + 1) / 3),
-            created_by: user?.id || null,
-            payment_method: getMethodForEntry(false),
-          });
-        }
-      } else if (payMethod === 'avenca_mensal') {
-        const meses = parseInt(numMeses);
-        const day = parseInt(payDay);
-        const valor = parseFloat(avencaValue);
-        if (!meses || !day || !valor) throw new Error('Preencha todos os campos');
-
-        for (let i = 0; i < meses; i++) {
-          const avDate = i === 0 ? start : setDate(addMonths(start, i), day);
-          entries.push({
-            sale_id: genSaleId(),
-            status: 'aguarda_pagamento',
-            payment_date: format(avDate, 'yyyy-MM-dd'),
-            description: `Avença Mensal ${i + 1}/${meses} — ${product}`,
-            base_value: valor,
-            invoice_total: applyVat(valor),
-            product,
-            client,
-            source: 'projeto',
-            project_id: projectId,
-            sale_month: avDate.getMonth() + 1,
-            sale_year: avDate.getFullYear(),
-            sale_quarter: Math.ceil((avDate.getMonth() + 1) / 3),
-            created_by: user?.id || null,
-            payment_method: getMethodForEntry(false),
-          });
-        }
-
-        // Pro-rata: if deadline exists and ends after the last full payment period
-        if (deadline) {
-          const endDate = parseISO(deadline);
-          // The last full payment covers a month starting on `day` of that month
-          // Calculate the end of the last full payment's covered period
-          const lastPayDate = setDate(addMonths(start, meses - 1), day);
-          // The last payment covers from `day` of that month to `day-1` of next month
-          // If deadline is after lastPayDate, there may be extra days to bill
-          if (endDate > lastPayDate) {
-            // Pro-rata period: from `day` of the next month to endDate
-            const proRataStart = day; // day of month when billing cycle starts
-            const endDay = endDate.getDate();
-            const daysInEndMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate();
-            // Calculate days: from cycle start day to end date within that month
-            const proRataDays = endDay >= proRataStart
-              ? endDay - proRataStart + 1
-              : endDay; // if end is before the pay day, count from start of month
-            if (proRataDays > 0 && proRataDays < daysInEndMonth) {
-              const proRataValue = Math.round((valor / daysInEndMonth) * proRataDays * 100) / 100;
-              // Payment date = pay day of the pro-rata month (or the 1st if endDate is before pay day)
-              const proRataPayDate = new Date(endDate.getFullYear(), endDate.getMonth(), proRataStart);
-              entries.push({
-                sale_id: genSaleId(),
-                status: 'aguarda_pagamento',
-                payment_date: format(proRataPayDate, 'yyyy-MM-dd'),
-                description: `Avença Mensal (pro-rata ${proRataDays}d) — ${product}`,
-                base_value: proRataValue,
-                invoice_total: applyVat(proRataValue),
-                product,
-                client,
-                source: 'projeto',
-                project_id: projectId,
-                sale_month: proRataPayDate.getMonth() + 1,
-                sale_year: proRataPayDate.getFullYear(),
-                sale_quarter: Math.ceil((proRataPayDate.getMonth() + 1) / 3),
-                created_by: user?.id || null,
-                payment_method: getMethodForEntry(false),
-              });
-            }
-          }
-        }
-      }
-
-      if (entries.length === 0) throw new Error('Nenhuma entrada gerada');
-
-      const upcomingEntries = entries.filter((entry) => parseISO(entry.payment_date) >= currentMonthStart);
+      const upcomingEntries = buildPaymentEntries({
+        payMethod,
+        startDate: billingStartDate,
+        deadline: deadline || null,
+        totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue,
+        paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod,
+        product, client,
+        projectId,
+        vatRate,
+        createdBy: user?.id || null,
+        filterFromCurrentMonth: true,
+      });
       if (upcomingEntries.length === 0) {
         throw new Error('Não existem pagamentos por gerar a partir deste mês');
       }
