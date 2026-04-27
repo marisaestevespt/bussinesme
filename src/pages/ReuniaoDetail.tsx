@@ -217,6 +217,23 @@ function useParentRecurrence(parentId: string | null) {
   });
 }
 
+// Fetch client email for calendar invites
+function useClientEmail(clientId: string | null) {
+  return useQuery({
+    queryKey: ['client_email', clientId],
+    queryFn: async () => {
+      if (!clientId) return null;
+      const { data } = await supabase
+        .from('clients')
+        .select('email')
+        .eq('id', clientId)
+        .maybeSingle();
+      return data?.email ?? null;
+    },
+    enabled: !!clientId,
+  });
+}
+
 // ─── Helpers ────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: MeetingStatus }) {
