@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trg_auto_link_meeting_to_deliverable ON public.meetings;
