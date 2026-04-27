@@ -441,9 +441,9 @@ export default function ClientesAnalisePage() {
   if (selectedMonth !== null) {
     return (
       <AppLayout>
+        <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
         <div className="space-y-6">
           <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
-          <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
           <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
         </div>
       </AppLayout>
@@ -452,9 +452,9 @@ export default function ClientesAnalisePage() {
 
   return (
     <AppLayout>
+      <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
       <div className="space-y-6">
         <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
-        <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
 
         <YearSelector year={year} onChange={setYear} />
 
