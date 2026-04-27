@@ -19,7 +19,7 @@ interface CollectionPageProps {
  */
 export function CollectionPage({ children, className }: CollectionPageProps) {
   return (
-    <div className={cn('mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-6', className)}>
+    <div className={cn('w-full space-y-6', className)}>
       {children}
     </div>
   );
