@@ -493,9 +493,14 @@ export default function ClienteDetailPage() {
       if (!id) throw new Error('Cliente não guardado');
 
       const matchedProduct = productList.find(p => p.name === renewProduct);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const startDateObj = parseISO(renewStartDate);
+      const isFutureStart = startDateObj > today;
 
-      // 1. Optionally close active projects + snapshot to portal history
-      if (renewCloseActive && activeProjects.length > 0) {
+      // 1. Optionally close active projects NOW (only if start is today/past).
+      //    For future start, we keep current project active and let the cron
+      //    activate the scheduled project on its start date.
+      if (renewCloseActive && !isFutureStart && activeProjects.length > 0) {
         // Get portal id for snapshots
         const { data: portalRow } = await supabase.from('client_portals').select('id').eq('client_id', id).maybeSingle();
         const portalId = portalRow?.id;
@@ -551,12 +556,13 @@ export default function ClienteDetailPage() {
         deadline = format(end, 'yyyy-MM-dd');
       }
 
-      // 3. Create new project
+      // 3. Create new project (scheduled if future, em_onboarding if today/past)
       const isRecurringRenew = matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
+      const projStatus = isFutureStart ? 'agendado' : 'em_onboarding';
       const { data: newProject, error: projError } = await supabase.from('projects').insert({
         name: `${renewProduct} — ${form.full_name || 'Cliente'}`,
         type: isRecurringRenew ? 'cliente_servico_mensal' : 'cliente_projeto_unico',
-        status: 'em_onboarding',
+        status: projStatus,
         department: 'clientes',
         departments: ['clientes', 'operacao'],
         client_name: form.full_name || null,
@@ -568,14 +574,91 @@ export default function ClienteDetailPage() {
       }).select('id').single();
       if (projError) throw projError;
 
+      // 3.1 Generate payments for the new cycle (do NOT filter from current month — renewal can be in future)
+      try {
+        const vatRate = Number(matchedProduct?.vat_rate) || 0;
+        const entries = buildPaymentEntries({
+          payMethod: renewPayMethod,
+          startDate: renewStartDate,
+          deadline,
+          totalValue: renewTotalValue,
+          entradaValue: renewEntradaValue,
+          numPrestacoes: renewNumPrestacoes,
+          payDay: renewPayDay,
+          numMeses: renewNumMeses,
+          avencaValue: renewAvencaValue,
+          paymentMethodType: renewPaymentMethodType,
+          product: renewProduct,
+          client: form.full_name || '',
+          projectId: newProject.id,
+          vatRate,
+          createdBy: user?.id || null,
+          filterFromCurrentMonth: false,
+        });
+        if (entries.length > 0) {
+          // Add product_id for ficheiro/sales linkage
+          const enriched = entries.map(e => ({ ...e, product_id: matchedProduct?.id || null }));
+          const { error: salesErr } = await supabase.from('commercial_sales').insert(enriched);
+          if (salesErr) throw salesErr;
+        }
+      } catch (e: any) {
+        // Don't block renewal if payment generation fails — surface a soft warning
+        console.warn('Falha ao gerar pagamentos do novo ciclo:', e);
+        toast.warning(`Projeto criado, mas pagamentos não foram gerados: ${e.message || e}`);
+      }
+
+      // 3.2 Create renewal checklist from product_renewal_templates
+      const cycleNumber = (form.renewal_count || 0) + 1;
+      const { data: templates } = await (supabase as any)
+        .from('product_renewal_templates')
+        .select('*')
+        .eq('product_id', matchedProduct?.id)
+        .order('sort_order');
+
+      if (templates && templates.length > 0) {
+        const renewalRows = templates.map((t: any, i: number) => {
+          // Compute due_date from rule
+          let dueDate: string | null = null;
+          if (t.rule_days && deadline) {
+            const refDate = parseISO(deadline);
+            const offsetDays = (t.rule_unit === 'semanas' ? t.rule_days * 7 : t.rule_days) * (t.rule_trigger === 'apos_inicio_ciclo' ? 1 : -1);
+            const due = new Date(refDate);
+            due.setDate(due.getDate() + offsetDays);
+            dueDate = format(due, 'yyyy-MM-dd');
+          }
+          return {
+            client_id: id,
+            cycle_number: cycleNumber,
+            activity: t.name,
+            phase: t.notes || null,
+            responsible: t.responsible_type || null,
+            rule_days: t.rule_days,
+            rule_unit: t.rule_unit,
+            rule_trigger: t.rule_trigger,
+            due_date: dueDate,
+            sort_order: t.sort_order ?? i,
+            completed: false,
+          };
+        });
+        await (supabase as any).from('client_renewals').insert(renewalRows);
+      }
+
       // 4. Update client current_product, start_date and end_of_cycle
-      await supabase.from('clients').update({
-        current_product: renewProduct,
-        current_product_id: matchedProduct?.id || null,
-        start_date: renewStartDate,
-        end_of_cycle: deadline,
-        status: 'ativo',
-      }).eq('id', id);
+      if (isFutureStart) {
+        // Just mark the pending renewal — don't change current product yet
+        await (supabase as any).from('clients').update({
+          pending_renewal_project_id: newProject.id,
+        }).eq('id', id);
+      } else {
+        await (supabase as any).from('clients').update({
+          current_product: renewProduct,
+          current_product_id: matchedProduct?.id || null,
+          start_date: renewStartDate,
+          end_of_cycle: deadline,
+          status: 'ativo',
+          renewal_count: cycleNumber,
+        }).eq('id', id);
+      }
 
       // 5. Auto-create/reactivate portal if product type supports it
       if (matchedProduct?.product_type) {
@@ -628,7 +711,9 @@ export default function ClienteDetailPage() {
       await supabase.from('client_history').insert({
         client_id: id,
         entry_date: format(new Date(), 'yyyy-MM-dd'),
-        milestone: `Renovação/Novo ciclo: ${renewProduct}`,
+        milestone: isFutureStart
+          ? `Renovação agendada para ${renewStartDate}: ${renewProduct}`
+          : `Renovação/Novo ciclo: ${renewProduct}`,
         observations: renewCloseActive && activeProjects.length > 0
           ? `Projetos anteriores concluídos: ${activeProjects.map((p: any) => p.name).join(', ')}`
           : null,
@@ -640,8 +725,15 @@ export default function ClienteDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['projects', 'client'] });
       queryClient.invalidateQueries({ queryKey: ['client'] });
       setRenewDialogOpen(false);
-      setForm(prev => ({ ...prev, current_product: renewProduct, start_date: renewStartDate, status: 'ativo' }));
-      toast.success('Novo ciclo criado com sucesso!');
+      const startObj = parseISO(renewStartDate);
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (startObj > today) {
+        setForm(prev => ({ ...prev, pending_renewal_project_id: projectId } as any));
+        toast.success(`Renovação agendada para ${format(startObj, 'dd/MM/yyyy')}!`);
+      } else {
+        setForm(prev => ({ ...prev, current_product: renewProduct, start_date: renewStartDate, status: 'ativo' }));
+        toast.success('Novo ciclo criado com sucesso!');
+      }
       navigate(`/hub/projetos/${projectId}`);
     },
     onError: (err: any) => toast.error(err.message || 'Erro ao criar novo ciclo'),
