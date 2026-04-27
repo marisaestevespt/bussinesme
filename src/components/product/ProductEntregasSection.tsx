@@ -28,6 +28,7 @@ interface Template {
   responsible_type?: string;
   deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao';
   estimated_minutes?: number | null;
+  meeting_title_template?: string | null;
 }
 
 interface Phase {
