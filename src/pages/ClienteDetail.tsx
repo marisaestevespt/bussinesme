@@ -54,6 +54,9 @@ import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog
 import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { buildPaymentEntries } from '@/lib/paymentGenerator';
+import { useAuth } from '@/hooks/useAuth';
+import { PAYMENT_METHOD_OPTIONS } from '@/lib/salesConstants';
 
 // ─── Client Financial Health Card ────────────────────────────────
 function ClientFinancialHealthCard({ clientName }: { clientName: string }) {
