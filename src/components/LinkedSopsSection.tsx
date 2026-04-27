@@ -30,7 +30,7 @@ function calcDate(base: Date, days: number, unit?: string): string {
   return d.toISOString().split('T')[0];
 }
 
-/** Copy SOP steps → client_onboarding or client_offboarding */
+/** Copy SOP steps → client_onboarding, client_offboarding or client_renewals */
 async function copySopStepsToClient(sopId: string, clientId: string, projectStartDate?: string | null) {
   const { data: sop } = await supabase.from('sops').select('sop_type, name').eq('id', sopId).single();
   if (!sop) return;
@@ -44,13 +44,32 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
   const isOffboarding = sopType
     ? sopType === 'offboarding'
     : lname.includes('offboarding');
+  const isRenewal = sopType
+    ? sopType === 'renovacao'
+    : lname.includes('renovação') || lname.includes('renovacao');
 
-  if (!isOnboarding && !isOffboarding) return;
+  if (!isOnboarding && !isOffboarding && !isRenewal) return;
 
-  const targetTable = isOnboarding ? 'client_onboarding' : 'client_offboarding';
+  const targetTable = isOnboarding
+    ? 'client_onboarding'
+    : isOffboarding
+      ? 'client_offboarding'
+      : 'client_renewals';
 
-  const { data: existing } = await supabase.from(targetTable).select('id').eq('client_id', clientId).limit(1) as any;
-  if (existing?.length) return;
+  // For renewals, allow multiple cycles — only skip if there is already content for this cycle
+  let nextCycleNumber = 1;
+  if (isRenewal) {
+    const { data: maxCycle } = await supabase
+      .from('client_renewals')
+      .select('cycle_number')
+      .eq('client_id', clientId)
+      .order('cycle_number', { ascending: false })
+      .limit(1) as any;
+    if (maxCycle?.length) nextCycleNumber = (maxCycle[0].cycle_number || 0) + 1;
+  } else {
+    const { data: existing } = await supabase.from(targetTable).select('id').eq('client_id', clientId).limit(1) as any;
+    if (existing?.length) return;
+  }
 
   const { data: steps } = await supabase
     .from('sop_steps')
@@ -75,14 +94,17 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
         // Base on previous step's due date
         dueDate = calcDate(parseISO(prevDueDate), step.deadline_days, step.deadline_unit);
       } else {
-        // Base on project start date
-        dueDate = calcDate(baseDate, step.deadline_days, step.deadline_unit);
+        // For renewals "antes_fim_ciclo", subtract days from baseDate (which is the cycle end)
+        const offset = isRenewal && step.deadline_trigger === 'antes_fim_ciclo'
+          ? -Math.abs(step.deadline_days)
+          : step.deadline_days;
+        dueDate = calcDate(baseDate, offset, step.deadline_unit);
       }
     }
 
     prevDueDate = dueDate;
 
-    rows.push({
+    const row: any = {
       client_id: clientId,
       activity: step.description || '',
       responsible: step.responsible || null,
@@ -92,7 +114,9 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
       due_date: dueDate,
       sort_order: i,
       completed: false,
-    });
+    };
+    if (isRenewal) row.cycle_number = nextCycleNumber;
+    rows.push(row);
   }
 
   await supabase.from(targetTable).insert(rows);
@@ -104,7 +128,7 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
  * after a step is completed. Uses the actual completion date (today) as base.
  */
 export async function recalcCascadingDates(
-  table: 'client_onboarding' | 'client_offboarding',
+  table: 'client_onboarding' | 'client_offboarding' | 'client_renewals',
   clientId: string,
   completedItemSortOrder: number,
 ) {
@@ -215,7 +239,11 @@ export function LinkedSopsSection({ entityType, entityId, productId, clientId, p
       qc.invalidateQueries({ queryKey: ['linked-sops', entityType, entityId] });
       if (copied) {
         qc.invalidateQueries({ queryKey: [copied] });
-        const label = copied === 'client_onboarding' ? 'onboarding' : 'offboarding';
+        const label = copied === 'client_onboarding'
+          ? 'onboarding'
+          : copied === 'client_offboarding'
+            ? 'offboarding'
+            : 'renovação';
         toast.success(`Processo associado — checklist de ${label} copiada para o cliente`);
       } else {
         toast.success('Processo associado');

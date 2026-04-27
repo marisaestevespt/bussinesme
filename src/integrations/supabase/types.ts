@@ -1599,11 +1599,84 @@ export type Database = {
           },
         ]
       }
+      client_renewals: {
+        Row: {
+          activity: string
+          client_id: string
+          completed: boolean
+          created_at: string
+          cycle_number: number
+          documents_links: string | null
+          due_date: string | null
+          id: string
+          phase: string | null
+          responsible: string | null
+          rule: string | null
+          rule_days: number | null
+          rule_trigger: string | null
+          rule_unit: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          activity: string
+          client_id: string
+          completed?: boolean
+          created_at?: string
+          cycle_number?: number
+          documents_links?: string | null
+          due_date?: string | null
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          activity?: string
+          client_id?: string
+          completed?: boolean
+          created_at?: string
+          cycle_number?: number
+          documents_links?: string | null
+          due_date?: string | null
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_renewals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_renewals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           birthday: string | null
           client_files: Json | null
           client_id: string
+          client_since: string | null
           conversion_date: string | null
           cover_url: string | null
           created_at: string
@@ -1625,7 +1698,9 @@ export type Database = {
           nif: string | null
           observations: string | null
           payment_method: string | null
+          pending_renewal_project_id: string | null
           portal_deactivation_date: string | null
+          renewal_count: number
           start_date: string | null
           status: string
           updated_at: string
@@ -1636,6 +1711,7 @@ export type Database = {
           birthday?: string | null
           client_files?: Json | null
           client_id?: string
+          client_since?: string | null
           conversion_date?: string | null
           cover_url?: string | null
           created_at?: string
@@ -1657,7 +1733,9 @@ export type Database = {
           nif?: string | null
           observations?: string | null
           payment_method?: string | null
+          pending_renewal_project_id?: string | null
           portal_deactivation_date?: string | null
+          renewal_count?: number
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -1668,6 +1746,7 @@ export type Database = {
           birthday?: string | null
           client_files?: Json | null
           client_id?: string
+          client_since?: string | null
           conversion_date?: string | null
           cover_url?: string | null
           created_at?: string
@@ -1689,7 +1768,9 @@ export type Database = {
           nif?: string | null
           observations?: string | null
           payment_method?: string | null
+          pending_renewal_project_id?: string | null
           portal_deactivation_date?: string | null
+          renewal_count?: number
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -1702,6 +1783,13 @@ export type Database = {
             columns: ["current_product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_pending_renewal_project_id_fkey"
+            columns: ["pending_renewal_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -8032,6 +8120,80 @@ export type Database = {
           },
         ]
       }
+      product_renewal_templates: {
+        Row: {
+          activity: string | null
+          created_at: string
+          deliverable_type: string | null
+          description: string | null
+          documents_links: string | null
+          id: string
+          is_meeting: boolean
+          name: string | null
+          notes: string | null
+          phase: string | null
+          product_id: string
+          responsible: string | null
+          responsible_type: string | null
+          rule: string | null
+          rule_days: number | null
+          rule_trigger: string | null
+          rule_unit: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          activity?: string | null
+          created_at?: string
+          deliverable_type?: string | null
+          description?: string | null
+          documents_links?: string | null
+          id?: string
+          is_meeting?: boolean
+          name?: string | null
+          notes?: string | null
+          phase?: string | null
+          product_id: string
+          responsible?: string | null
+          responsible_type?: string | null
+          rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          activity?: string | null
+          created_at?: string
+          deliverable_type?: string | null
+          description?: string | null
+          documents_links?: string | null
+          id?: string
+          is_meeting?: boolean
+          name?: string | null
+          notes?: string | null
+          phase?: string | null
+          product_id?: string
+          responsible?: string | null
+          responsible_type?: string | null
+          rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_renewal_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_team_members: {
         Row: {
           created_at: string
@@ -9673,6 +9835,7 @@ export type Database = {
           recurrence_end: string | null
           recurrence_interval_days: number | null
           recurrence_type: string | null
+          renewal_id: string | null
           routine_id: string | null
           scheduled_time: string | null
           sop_id: string | null
@@ -9705,6 +9868,7 @@ export type Database = {
           recurrence_end?: string | null
           recurrence_interval_days?: number | null
           recurrence_type?: string | null
+          renewal_id?: string | null
           routine_id?: string | null
           scheduled_time?: string | null
           sop_id?: string | null
@@ -9737,6 +9901,7 @@ export type Database = {
           recurrence_end?: string | null
           recurrence_interval_days?: number | null
           recurrence_type?: string | null
+          renewal_id?: string | null
           routine_id?: string | null
           scheduled_time?: string | null
           sop_id?: string | null
@@ -9793,6 +9958,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_renewal_id_fkey"
+            columns: ["renewal_id"]
+            isOneToOne: false
+            referencedRelation: "client_renewals"
             referencedColumns: ["id"]
           },
           {

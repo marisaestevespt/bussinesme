@@ -165,6 +165,12 @@ export default function SopDetailPage() {
     return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && sop.name?.toLowerCase().includes('offboarding');
   }, [sop]);
 
+  const isRenewalSop = useMemo(() => {
+    if (!sop) return false;
+    const n = sop.name?.toLowerCase() || '';
+    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && (n.includes('renovação') || n.includes('renovacao'));
+  }, [sop]);
+
   const isPaymentSop = useMemo(() => {
     if (!sop) return false;
     return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
@@ -188,7 +194,13 @@ export default function SopDetailPage() {
     return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && n.includes('kpis');
   }, [sop]);
 
-  const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
+  const templateTable = isOnboardingSop
+    ? 'product_onboarding_templates'
+    : isOffboardingSop
+      ? 'product_offboarding_templates'
+      : isRenewalSop
+        ? 'product_renewal_templates'
+        : null;
   const linkedProductId = sop?.linked_entity_id;
 
   // Team members (used by NPS + Milestones sub-sections)
@@ -706,7 +718,7 @@ export default function SopDetailPage() {
             </Button>
           }
         >
-          {(isOnboardingSop || isOffboardingSop) && (
+          {(isOnboardingSop || isOffboardingSop || isRenewalSop) && (
             <p className="text-xs text-muted-foreground mb-3">
               Os passos marcados com 👁️ aparecerão no checklist do cliente no portal. Os restantes são apenas internos.
             </p>
