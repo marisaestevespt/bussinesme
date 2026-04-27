@@ -17,6 +17,7 @@ import { InvoiceUpload } from '../InvoiceUpload';
 import { VatPreview } from '../VatPreview';
 import { EXP_STATUS, VAT_OPTIONS, LOCATIONS, PERIODICITIES } from './constants';
 import type { ExpenseFormState, SupplierSelectOption } from '../types';
+import { buildExpenseFileName, useSupplierName } from '../expenseFileName';
 
 interface Props {
   open: boolean;
@@ -31,6 +32,12 @@ interface Props {
 }
 
 export function ExpenseDialog({ open, onOpenChange, form, setForm, ivaExempt, paymentMethods, onSupplierChange, onSave, onRequestDelete }: Props) {
+  const { data: supplierName } = useSupplierName(form.supplier_id || null);
+  const suggestedFileName = buildExpenseFileName({
+    expenseDate: form.expense_date,
+    supplierName,
+    expenseName: (form as any).expense_name || form.description,
+  });
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -155,6 +162,7 @@ export function ExpenseDialog({ open, onOpenChange, form, setForm, ivaExempt, pa
           <InvoiceUpload
             documents={Array.isArray(form.documents) ? form.documents : []}
             onChange={docs => setForm(f => ({ ...f, documents: docs }))}
+            suggestedName={suggestedFileName}
           />
           <div className="flex gap-2">
             <Button className="flex-1" onClick={onSave}>Guardar</Button>
