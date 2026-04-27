@@ -1070,19 +1070,19 @@ export default function ClienteDetailPage() {
                       </div>
                     </div>
                   )}
-                  <div className="rounded-lg border overflow-hidden">
-                    <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2">
+                  <div className="rounded-lg border overflow-hidden bg-card">
+                    <div className="bg-primary text-primary-foreground px-4 py-3 font-semibold text-xs uppercase tracking-wide grid grid-cols-[70px_1fr_140px_120px_110px] gap-3">
                       <span>Ciclo</span><span>Atividade</span><span>Responsável</span><span>Prazo</span><span>Estado</span>
                     </div>
                     {(renewalsQuery.data || []).length === 0 ? (
                       <EmptyHint>Sem renovações registadas</EmptyHint>
                     ) : (renewalsQuery.data || []).map((r: any) => (
-                      <div key={r.id} className="px-4 py-2 text-xs grid grid-cols-[60px_1fr_120px_120px_80px] gap-2 border-b items-center">
-                        <Badge variant="outline" className="text-xs w-fit">#{r.cycle_number}</Badge>
-                        <span>{r.activity}</span>
-                        <span className="text-muted-foreground">{r.responsible || '—'}</span>
+                      <div key={r.id} className="px-4 py-3 text-sm grid grid-cols-[70px_1fr_140px_120px_110px] gap-3 border-b last:border-b-0 items-center">
+                        <Badge variant="outline" className="bg-accent-violet/15 text-accent-violet border-accent-violet/30 w-fit">#{r.cycle_number}</Badge>
+                        <span className="font-medium truncate">{r.activity}</span>
+                        <span className="text-muted-foreground truncate">{r.responsible || '—'}</span>
                         <span className="text-muted-foreground">{r.due_date ? format(parseISO(r.due_date), 'dd/MM/yyyy') : '—'}</span>
-                        <Badge variant={r.completed ? 'default' : 'outline'} className={r.completed ? 'bg-success/15 text-success border-success/30' : ''}>
+                        <Badge variant="outline" className={`w-fit ${r.completed ? 'bg-success/15 text-success border-success/30' : 'bg-warning/15 text-warning border-warning/30'}`}>
                           {r.completed ? 'Concluída' : 'Pendente'}
                         </Badge>
                       </div>
