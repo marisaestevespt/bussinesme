@@ -196,9 +196,21 @@ export function FinAllDocuments() {
                     </TableCell>
                     <TableCell>
                       {d.documents && Array.isArray(d.documents) && d.documents.length > 0 ? (
-                        <a href={(d.documents[0] as any)?.url || '#'} target="_blank" rel="noopener" className="text-primary hover:underline">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
+                        <div className="flex flex-col gap-1">
+                          {d.documents.map((doc: any, i: number) => (
+                            <a
+                              key={i}
+                              href={doc?.url || '#'}
+                              target="_blank"
+                              rel="noopener"
+                              className="inline-flex items-center gap-1 text-primary hover:underline max-w-[260px]"
+                              title={doc?.name || 'Abrir ficheiro'}
+                            >
+                              <ExternalLink className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{doc?.name || 'ficheiro'}</span>
+                            </a>
+                          ))}
+                        </div>
                       ) : '—'}
                     </TableCell>
                   </TableRow>
