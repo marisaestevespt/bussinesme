@@ -30,16 +30,16 @@ Deno.serve(async (req) => {
     const today = new Date();
     const todayStr = today.toISOString().split("T")[0];
 
-    // Active clients with an end-of-cycle in the future. We exclude those who
-    // already have a renewal scheduled (pending_renewal_project_id) to avoid
-    // re-flagging clients whose renewal is already organized.
+    // Active clients with an end-of-cycle defined. We include clients whose
+    // cycle has already passed (overdue) so they don't fall through the cracks.
+    // We exclude those who already have a renewal scheduled
+    // (pending_renewal_project_id) to avoid re-flagging.
     const { data: clients, error: fetchError } = await supabase
       .from("clients")
       .select("id, full_name, end_of_cycle, status, current_product, current_product_id, renewal_count, pending_renewal_project_id")
       .eq("status", "ativo")
       .is("pending_renewal_project_id", null)
-      .not("end_of_cycle", "is", null)
-      .gte("end_of_cycle", todayStr);
+      .not("end_of_cycle", "is", null);
 
     if (fetchError) throw fetchError;
 
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         advanceDays = productByName[client.current_product];
       }
 
-      // Only process clients within the advance window
+      // Process clients within the advance window OR already overdue (negative days)
       if (daysUntilEnd > advanceDays) continue;
 
       // 1. Update client status to "altura_renovacao"
