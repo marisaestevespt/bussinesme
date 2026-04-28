@@ -251,6 +251,37 @@ function PriorityBadge({ priority }: { priority?: string | null }) {
   );
 }
 
+function PriorityCounts({ tasks }: { tasks: any[] }) {
+  const counts = { alta: 0, media: 0, baixa: 0 } as Record<string, number>;
+  for (const t of tasks) {
+    const p = (t.priority as string) || 'media';
+    if (counts[p] != null) counts[p]++;
+  }
+  const items: Array<{ key: string; n: number }> = [
+    { key: 'alta', n: counts.alta },
+    { key: 'media', n: counts.media },
+    { key: 'baixa', n: counts.baixa },
+  ].filter((x) => x.n > 0);
+  if (items.length === 0) return null;
+  return (
+    <div className="flex items-center gap-1">
+      {items.map((it) => {
+        const info = getTaskPriorityInfo(it.key);
+        return (
+          <Badge
+            key={it.key}
+            variant="outline"
+            className={cn('text-[10px] py-0 px-1.5 border gap-1', info.color)}
+            title={info.label}
+          >
+            {info.short} · {it.n}
+          </Badge>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * Fetch ALL items related to the scope (not just user's open tasks):
  * - tasks (any assignee, any status)
