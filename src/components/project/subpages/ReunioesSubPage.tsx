@@ -41,20 +41,20 @@ export function ReunioesSubPage({ meetings, projectMembers, profileMap, getPhoto
         ) : (
           <div className="border rounded-lg overflow-hidden divide-y divide-border">
             <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
+              <div className="col-span-2">Status</div>
               <div className="col-span-4">Reunião</div>
               <div className="col-span-3">Data / Hora</div>
-              <div className="col-span-2">Status</div>
               <div className="col-span-3">Participantes</div>
             </div>
             {meetings.map(m => {
               const ms = getMeetingStatusInfo(m.status);
               return (
                 <button key={m.id} onClick={() => navigate(`/hub/reunioes/${m.id}`)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
-                  <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
-                  <div className="col-span-3 text-muted-foreground">{format(new Date(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}</div>
                   <div className="col-span-2">
                     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${ms.color}20`, color: ms.color }}>{ms.label}</span>
                   </div>
+                  <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
+                  <div className="col-span-3 text-muted-foreground">{format(new Date(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}</div>
                   <div className="col-span-3">
                     <div className="flex -space-x-1">{projectMembers.slice(0, 5).map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}{projectMembers.length > 5 && <span className="text-xs text-muted-foreground ml-2">+{projectMembers.length - 5}</span>}</div>
                   </div>

@@ -986,9 +986,9 @@ export default function ReunioesPage() {
           >
             <div className="rounded-xl border border-border/60 bg-card overflow-hidden divide-y divide-border">
               <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-muted/40 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="col-span-2">Status</div>
                 <div className="col-span-4">Reunião</div>
                 <div className="col-span-3">Data / Hora</div>
-                <div className="col-span-2">Status</div>
                 <div className="col-span-3">Tipo / Contexto</div>
               </div>
               {filteredMeetings.map(m => (
@@ -997,11 +997,11 @@ export default function ReunioesPage() {
                   onClick={() => navigate(`/hub/reunioes/${m.id}`)}
                   className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm"
                 >
+                  <div className="col-span-2"><StatusBadge status={m.status} /></div>
                   <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
                   <div className="col-span-3 text-muted-foreground">
                     {format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
                   </div>
-                  <div className="col-span-2"><StatusBadge status={m.status} /></div>
                   <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
                     <MeetingTypeBadge type={m.meeting_type || 'recorrente'} />
                     <span className="truncate">
