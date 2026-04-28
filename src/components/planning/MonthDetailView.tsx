@@ -1303,37 +1303,41 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
       </Sheet>
 
       {/* Lead Detail Sheet */}
-      <LeadDetailSheet
-        open={leadSheetOpen}
-        onOpenChange={v => { setLeadSheetOpen(v); if (!v) setSelectedLead(null); }}
-        lead={selectedLead}
-        products={(commProdGoalQ.data || []).map((p) => p.product_name)}
-        profiles={[]}
-        onSave={(lead) => {
-          upsertLead.mutate(lead, {
-            onSuccess: () => {
-              setLeadSheetOpen(false);
-              setSelectedLead(null);
-              qc.invalidateQueries({ queryKey: ['md-leads'] });
-              qc.invalidateQueries({ queryKey: ['crm'] });
-              qc.invalidateQueries({ queryKey: ['crm_leads'] });
-              qc.invalidateQueries({ queryKey: ['commercial'] });
-            },
-          });
-        }}
-        onDelete={(id) => {
-          deleteLead.mutate(id, {
-            onSuccess: () => {
-              setLeadSheetOpen(false);
-              setSelectedLead(null);
-              qc.invalidateQueries({ queryKey: ['md-leads'] });
-              qc.invalidateQueries({ queryKey: ['crm'] });
-              qc.invalidateQueries({ queryKey: ['crm_leads'] });
-              qc.invalidateQueries({ queryKey: ['commercial'] });
-            },
-          });
-        }}
-      />
+      {leadSheetOpen && (
+        <Suspense fallback={null}>
+          <LeadDetailSheet
+            open={leadSheetOpen}
+            onOpenChange={v => { setLeadSheetOpen(v); if (!v) setSelectedLead(null); }}
+            lead={selectedLead}
+            products={(commProdGoalQ.data || []).map((p) => p.product_name)}
+            profiles={[]}
+            onSave={(lead) => {
+              upsertLead.mutate(lead, {
+                onSuccess: () => {
+                  setLeadSheetOpen(false);
+                  setSelectedLead(null);
+                  qc.invalidateQueries({ queryKey: ['md-leads'] });
+                  qc.invalidateQueries({ queryKey: ['crm'] });
+                  qc.invalidateQueries({ queryKey: ['crm_leads'] });
+                  qc.invalidateQueries({ queryKey: ['commercial'] });
+                },
+              });
+            }}
+            onDelete={(id) => {
+              deleteLead.mutate(id, {
+                onSuccess: () => {
+                  setLeadSheetOpen(false);
+                  setSelectedLead(null);
+                  qc.invalidateQueries({ queryKey: ['md-leads'] });
+                  qc.invalidateQueries({ queryKey: ['crm'] });
+                  qc.invalidateQueries({ queryKey: ['crm_leads'] });
+                  qc.invalidateQueries({ queryKey: ['commercial'] });
+                },
+              });
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* ═══ Inline Detail Sheet (events / content / sales / clients) ═══ */}
       <Sheet open={!!inlineDetail} onOpenChange={v => { if (!v) setInlineDetail(null); }}>
