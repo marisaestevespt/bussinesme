@@ -70,6 +70,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const { startTimer: globalStartTimer } = useActiveTimer();
   const { coverages: absenceCoverages } = useAbsenceCoverage();
   const { getPhotoUrl } = useTeamPhotos();
+  const { getBadgeClass: getDeptBadgeClass } = useDepartmentColors();
 
   // Form state
   const [name, setName] = useState('');
@@ -527,7 +528,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </EntityProperty>
               <EntityProperty icon={Building} label="Departamento">
                 <Select value={department} onValueChange={setDepartment}>
-                  <SelectTrigger className={cn(inlineTriggerClass, department && (getDeptInfo(department) as any)?.badgeColor)}>
+                  <SelectTrigger className={cn(inlineTriggerClass, department && getDeptBadgeClass(department))}>
                     {department ? (
                       <span className="inline-flex items-center gap-1">
                         <span>{getDeptInfo(department)?.icon}</span>
@@ -540,7 +541,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   <SelectContent>
                     {PROCESS_DEPARTMENTS.map(d => (
                       <SelectItem key={d.value} value={d.value}>
-                        <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-xs', (d as any).badgeColor)}>
+                        <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-xs', getDeptBadgeClass(d.value))}>
                           <span>{d.icon}</span>
                           <span>{d.label}</span>
                         </span>
