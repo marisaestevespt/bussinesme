@@ -57,26 +57,44 @@ export function PlanningObjectivesTab({
           {planning.allObjectives.map((obj: any) => {
             const prog = planning.objectiveProgress(obj);
             return (
-              <Card key={obj.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setDetailObj(obj)}>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-medium text-sm line-clamp-2">{obj.title}</h3>
-                    <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px] shrink-0">
-                      {planStatusLabel(obj.status)}
-                    </Badge>
-                  </div>
-                  <div className="flex gap-1 flex-wrap">
-                    <Badge variant="outline" className="text-[10px]">{planAreaLabel(obj.area)}</Badge>
-                    <Badge variant="outline" className="text-[10px]">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{prog}%</span>
-                      {obj.deadline && <span>Até {obj.deadline}</span>}
-                    </div>
-                    <Progress value={prog} className="h-2" />
-                  </div>
+              <Card
+                key={obj.id}
+                className="cursor-pointer hover:shadow-md hover:border-primary/40 hq-transition overflow-hidden flex flex-col"
+                onClick={() => setDetailObj(obj)}
+              >
+                {/* Faixa: área (esquerda) + status (direita) */}
+                <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {planAreaLabel(obj.area)}
+                  </span>
+                  <Badge
+                    variant={obj.status === 'atingido' ? 'default' : 'secondary'}
+                    className="text-[10px]"
+                  >
+                    {planStatusLabel(obj.status)}
+                  </Badge>
+                </div>
+
+                {/* Corpo: título + tipo */}
+                <CardContent className="p-4 pb-3 flex-1 flex flex-col gap-2">
+                  <h3 className="font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+                    {obj.title}
+                  </h3>
+                  <span className="text-[10px] text-muted-foreground">
+                    {obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}
+                  </span>
                 </CardContent>
+
+                {/* Rodapé: progresso destacado */}
+                <div className="px-4 pb-4 space-y-1.5">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-lg font-bold text-foreground tabular-nums">{prog}%</span>
+                    {obj.deadline && (
+                      <span className="text-[10px] text-muted-foreground">Até {obj.deadline}</span>
+                    )}
+                  </div>
+                  <Progress value={prog} className="h-1.5" />
+                </div>
               </Card>
             );
           })}
