@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { resolvePublicPortal } from '@/lib/portalAccess';
 
+type RpcFn = (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+
 export interface PortalBranding {
   business_name?: string | null;
   primary_color?: string | null;   // HSL like "351 56% 28%"
@@ -26,9 +28,10 @@ export function usePortalBranding(token: string | undefined | null) {
     let cancelled = false;
     if (!token) { setLoading(false); return; }
     (async () => {
-      const portal = await resolvePublicPortal(token, (fn, args) => (supabase as any).rpc(fn, args));
+      const rpc = (supabase.rpc as unknown) as RpcFn;
+      const portal = await resolvePublicPortal(token, (fn, args) => rpc(fn, args));
       const realToken = portal?.token ?? token;
-      const { data } = await (supabase as any).rpc('get_portal_branding', { _token: realToken });
+      const { data } = await rpc('get_portal_branding', { _token: realToken });
       if (!cancelled) {
         setBranding((data || {}) as PortalBranding);
         setLoading(false);

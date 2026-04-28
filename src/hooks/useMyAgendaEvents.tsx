@@ -237,7 +237,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
   const expandedEvents = useMemo(() => {
     const rangeStart = subMonths(cursor, 6);
     const rangeEnd = addMonths(cursor, 18);
-    return expandRecurringEvents(allEvents as unknown as Parameters<typeof expandRecurringEvents>[0], rangeStart, rangeEnd) as AgendaEvent[];
+    return expandRecurringEvents(allEvents as unknown as Parameters<typeof expandRecurringEvents>[0], rangeStart, rangeEnd) as unknown as AgendaEvent[];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allEvents, cursor.getFullYear(), cursor.getMonth()]);
 

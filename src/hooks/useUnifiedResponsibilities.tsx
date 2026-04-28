@@ -296,7 +296,7 @@ export function useUnifiedResponsibilities(userId?: string) {
 
     // 6. NPS
     (npsQ.data || []).forEach(n => {
-      const clientName = (n as any).clients?.full_name || 'Cliente';
+      const clientName = (n as { clients?: { full_name?: string | null } | null }).clients?.full_name || 'Cliente';
       result.push({
         id: `nps-${n.id}`,
         sourceId: n.id,
@@ -312,7 +312,7 @@ export function useUnifiedResponsibilities(userId?: string) {
 
     // 7. Milestones
     (milestonesQ.data || []).forEach(m => {
-      const clientName = (m as any).clients?.full_name || 'Cliente';
+      const clientName = (m as { clients?: { full_name?: string | null } | null }).clients?.full_name || 'Cliente';
       result.push({
         id: `marco-${m.id}`,
         sourceId: m.id,

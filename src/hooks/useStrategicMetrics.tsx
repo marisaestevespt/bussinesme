@@ -140,10 +140,11 @@ export function useStrategicMetrics(period: MetricPeriod): StrategicMetrics {
     const ltvEstimated = avgRetentionEstimated;
 
     // CAC: expenses with department = 'marketing' or 'comercial'
-    const cacExpenses = expenses.reduce((sum, e: any) => {
-      const dept = (e.department || '').toLowerCase();
+    const cacExpenses = expenses.reduce((sum, e) => {
+      const r = e as { department?: string | null; total_with_vat?: number | string | null };
+      const dept = (r.department || '').toLowerCase();
       if (dept === 'marketing' || dept === 'comercial') {
-        return sum + (Number(e.total_with_vat) || 0);
+        return sum + (Number(r.total_with_vat) || 0);
       }
       return sum;
     }, 0);

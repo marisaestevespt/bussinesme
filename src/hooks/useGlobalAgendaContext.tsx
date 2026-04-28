@@ -2,6 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, addMonths, parseISO } from 'date-fns';
 import type { AgendaEvent } from '@/components/agenda/AppleCalendarViews';
+import type { Tables } from '@/integrations/supabase/types';
+
+type GlobalEventRow = Pick<
+  Tables<'events'>,
+  'id' | 'title' | 'start_date' | 'end_date' | 'event_type_id' | 'product_id' | 'product_name'
+>;
 
 /**
  * Loads "global context" events that should be visible on every personal
@@ -35,9 +41,15 @@ export function useGlobalAgendaContext() {
         .gte('start_date', from + 'T00:00:00')
         .lte('start_date', to + 'T23:59:59');
 
-      return (events ?? []).map((e: any) => {
+      return ((events ?? []) as GlobalEventRow[]).map((e) => {
         const t = typeMap.get(e.event_type_id);
-        return {
+        const ev: AgendaEvent & {
+          _color?: string;
+          _source?: string;
+          _globalSlug?: string;
+          _originalId?: string;
+          _productId?: string | null;
+        } = {
           id: `global-${e.id}`,
           title: e.title,
           event_type_id: e.event_type_id,
@@ -56,7 +68,8 @@ export function useGlobalAgendaContext() {
           _globalSlug: t?.slug,
           _originalId: e.id,
           _productId: e.product_id ?? null,
-        } as any;
+        };
+        return ev;
       });
     },
   });

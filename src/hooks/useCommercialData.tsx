@@ -231,7 +231,9 @@ export function useCommercialData(year = currentYear) {
 
       // Always resolve product_id from the current product name so the
       // relational link is preserved even if the product is renamed later.
-      const productId = await resolveProductId((sale as any).product as string | null);
+      const productId = await resolveProductId(
+        (sale as { product?: string | null }).product ?? null,
+      );
 
       const record = {
         ...sale,
@@ -293,7 +295,7 @@ export function useCommercialData(year = currentYear) {
   const productTotals = (productGoals.data || []).map(pg => ({
     ...pg,
     totalInvoiced: yearSales
-      .filter(v => pg.product_id && (v as any).product_id === pg.product_id)
+      .filter(v => pg.product_id && (v as { product_id?: string | null }).product_id === pg.product_id)
       .reduce((s, v) => s + saleRevenue(v), 0),
   }));
 

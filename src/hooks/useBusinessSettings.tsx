@@ -35,7 +35,7 @@ function contrastForeground(bgHsl: string): string {
 
 function applyTheme(settings: BusinessSettings) {
   // If using system theme, only apply fonts — CSS tokens handle colors
-  const useSystem = (settings as any).use_system_theme ?? true;
+  const useSystem = settings.use_system_theme ?? true;
   const root = document.documentElement;
 
   if (!useSystem) {

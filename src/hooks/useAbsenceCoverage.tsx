@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isWithinInterval, parseISO, isBefore, isAfter, startOfDay } from 'date-fns';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export type AbsenceCoverage = {
   id: string;
@@ -31,13 +32,20 @@ export function useAbsenceCoverage() {
   });
 
   const upsertCoverage = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (
+      payload: (TablesInsert<'absence_coverage'> | TablesUpdate<'absence_coverage'>) & { id?: string },
+    ) => {
       if (payload.id) {
         const { id, ...rest } = payload;
-        const { error } = await supabase.from('absence_coverage').update(rest).eq('id', id);
+        const { error } = await supabase
+          .from('absence_coverage')
+          .update(rest as TablesUpdate<'absence_coverage'>)
+          .eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('absence_coverage').insert([payload]);
+        const { error } = await supabase
+          .from('absence_coverage')
+          .insert([payload as TablesInsert<'absence_coverage'>]);
         if (error) throw error;
       }
     },

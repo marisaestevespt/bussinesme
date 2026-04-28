@@ -97,9 +97,10 @@ export function filterByMonth<T extends { sale_year?: number | null; sale_month?
   year: number,
   month: number,
 ): T[] {
-  return items.filter((it: any) => {
-    const y = it.sale_year ?? it.expense_year;
-    const mo = it.sale_month ?? it.expense_month;
+  return items.filter((it) => {
+    const r = it as { sale_year?: number | null; sale_month?: number | null; expense_year?: number | null; expense_month?: number | null };
+    const y = r.sale_year ?? r.expense_year;
+    const mo = r.sale_month ?? r.expense_month;
     return y === year && mo === month;
   });
 }

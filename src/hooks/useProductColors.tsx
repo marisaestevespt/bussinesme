@@ -1,6 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+import type { Json } from '@/integrations/supabase/types';
+
+type ProductColorRow = { id: string; name: string; branding: Json | null; calendar_color: string | null };
+
+function readPrimaryColor(branding: Json | null): unknown {
+  if (branding && typeof branding === 'object' && !Array.isArray(branding)) {
+    return (branding as Record<string, Json>).primary_color;
+  }
+  return undefined;
+}
+
 const PRODUCT_FALLBACK_PALETTE = [
   'hsl(173 58% 34%)',
   'hsl(217 60% 45%)',
@@ -79,9 +90,9 @@ export function useProductColors() {
       const { data, error } = await supabase.from('products').select('id, name, branding, calendar_color');
       if (error) throw error;
       const map = new Map<string, string>();
-      for (const p of (data ?? []) as { id: string; name: string; branding: any; calendar_color: string | null }[]) {
+      for (const p of (data ?? []) as ProductColorRow[]) {
         // Prioridade: calendar_color (dedicada) → branding.primary_color → fallback determinístico
-        const raw = p.calendar_color ?? p?.branding?.primary_color;
+        const raw = p.calendar_color ?? readPrimaryColor(p.branding);
         const color = normalizeBrandColor(raw, `${p.id}:${p.name}`);
         map.set(p.id, color);
         map.set(`name:${normalizeProductKey(p.name)}`, color);
@@ -106,8 +117,8 @@ export function useProductBrands() {
         .order('name');
       if (error) throw error;
       const items: ProductBrand[] = [];
-      for (const p of (data ?? []) as { id: string; name: string; branding: any; calendar_color: string | null }[]) {
-        const raw = p.calendar_color ?? p?.branding?.primary_color;
+      for (const p of (data ?? []) as ProductColorRow[]) {
+        const raw = p.calendar_color ?? readPrimaryColor(p.branding);
         const color = normalizeBrandColor(raw, `${p.id}:${p.name}`);
         items.push({ id: p.id, name: p.name, color });
       }
