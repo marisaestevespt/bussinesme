@@ -87,9 +87,9 @@ export default function ExecutivePlaneamento() {
                 <CheckCircle2 className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Atingidos</p>
+                <p className="text-xs text-muted-foreground">Objetivos atingidos</p>
                 <p className="text-lg font-bold">{stats.achieved}<span className="text-sm font-normal text-muted-foreground">/{stats.totalObjs}</span></p>
-                <p className="text-[10px] text-muted-foreground">{stats.goalsAchieved} metas atingidas</p>
+                <p className="text-[10px] text-muted-foreground">{stats.totalObjs > 0 ? Math.round((stats.achieved / stats.totalObjs) * 100) : 0}% concluídos</p>
               </div>
             </CardContent>
           </Card>
