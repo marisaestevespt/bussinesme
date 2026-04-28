@@ -77,3 +77,10 @@ Validação: `bunx tsc --noEmit` clean, 105/105 testes a passar.
 Validação: `bunx tsc --noEmit` clean, 105/105 testes a passar.
 Total acumulado das 3 fases: **~232 `any` removidos em 35 ficheiros**.
 Restante: apenas 1 `any` intencional em `ai-assistant/index.ts` (`applyFilter(query: any)` por opacidade do query builder do Deno) e 11 em ficheiros de teste (`*.test.ts`).
+
+## Sessão (Out 2026): Fase 4 — Bug fix + testes
+✅ Completado:
+- **Bug fix `useMemberSave`**: insert em `financial_contractors` corrigido para usar colunas reais do schema (`contractor_name`, `value`, `location`) em vez de campos legados (`collaborator_name`, `invoice_value`, `vat_value`, `total_cost`). Agora usa `satisfies TablesInsert<>` (sem cast).
+- **Testes hardened**: removidos os 11 `any` em `vatCalculations.test.ts`, `salesCalculations.test.ts`, `FinMensal.test.ts` via tipos parciais locais (`SaleLike`, `ExpenseLike`, `SubscriptionLike`).
+
+Total final: **~243 `any` removidos em 38 ficheiros**. Resta apenas 1 `any` intencional em `ai-assistant` (query builder opaco). Build limpo, 105/105 testes a passar.

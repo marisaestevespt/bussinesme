@@ -256,14 +256,15 @@ export function useMemberSave() {
               // Create payroll/contractor entry linked to expense
               if (!expError && expData) {
                 if (isPrestacao) {
-                  // Note: schema uses contractor_name/value; legacy fields kept for compat via cast.
                   await supabase.from('financial_contractors').insert({
-                    collaborator_name: member.full_name,
-                    month: p.month, year: p.year,
-                    invoice_value: baseValue, vat_value: Math.round((totalWithVat - baseValue) * 100) / 100,
-                    total_cost: totalWithVat, status: 'por_pagar',
+                    contractor_name: member.full_name,
+                    month: p.month,
+                    year: p.year,
+                    value: totalWithVat,
+                    location: 'portugal',
+                    status: 'por_pagar',
                     expense_id: expData.id,
-                  } as unknown as TablesInsert<'financial_contractors'>);
+                  } satisfies TablesInsert<'financial_contractors'>);
                 } else {
                   await supabase.from('financial_payroll').insert({
                     collaborator_name: member.full_name,

@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
 
+interface SubscriptionLike {
+  expense_date?: string | null;
+  periodicity?: string | null;
+  status?: string | null;
+  recurrence_end_date?: string | null;
+  recurrence_day?: number | null;
+}
+
 // Inline the pure functions from FinMensal to test them
 function parseDateString(value: string | null | undefined) {
   if (!value) return null;
@@ -8,7 +16,7 @@ function parseDateString(value: string | null | undefined) {
   return new Date(year, month - 1, day);
 }
 
-function getSubscriptionDueDate(subscription: any, month: number, year: number) {
+function getSubscriptionDueDate(subscription: SubscriptionLike, month: number, year: number) {
   const startDate = parseDateString(subscription.expense_date);
   const fallbackDay = startDate?.getDate() ?? 15;
   const targetDay = subscription.recurrence_day || fallbackDay;
@@ -33,9 +41,9 @@ function getSubscriptionOccurrences(startDate: string | null, periodicity: strin
   }
 }
 
-function canRenderSubscriptionForMonth(subscription: any, month: number, year: number) {
+function canRenderSubscriptionForMonth(subscription: SubscriptionLike, month: number, year: number) {
   if (subscription.status === 'cancelado' || !subscription.periodicity) return false;
-  if (getSubscriptionOccurrences(subscription.expense_date, subscription.periodicity, month, year) <= 0) return false;
+  if (getSubscriptionOccurrences(subscription.expense_date ?? null, subscription.periodicity, month, year) <= 0) return false;
   if (!subscription.recurrence_end_date) return true;
   return getSubscriptionDueDate(subscription, month, year) <= subscription.recurrence_end_date;
 }

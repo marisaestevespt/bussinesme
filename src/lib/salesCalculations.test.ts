@@ -10,6 +10,13 @@ import {
   salesInQuarter,
 } from './salesCalculations';
 
+type SaleLike = {
+  invoice_total?: number | null;
+  base_value?: number;
+  sale_year?: number;
+  sale_month?: number;
+};
+
 describe('saleRevenue', () => {
   it('uses invoice_total when present', () => {
     expect(saleRevenue({ invoice_total: 123, base_value: 100 })).toBe(123);
@@ -18,7 +25,7 @@ describe('saleRevenue', () => {
     expect(saleRevenue({ invoice_total: null, base_value: 100 })).toBe(100);
   });
   it('returns 0 for empty sale', () => {
-    expect(saleRevenue({} as any)).toBe(0);
+    expect(saleRevenue({} as SaleLike as never)).toBe(0);
   });
 });
 
@@ -59,6 +66,6 @@ describe('aggregations', () => {
 
 describe('saleBase', () => {
   it('returns 0 when missing', () => {
-    expect(saleBase({} as any)).toBe(0);
+    expect(saleBase({} as SaleLike as never)).toBe(0);
   });
 });
