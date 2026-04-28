@@ -216,6 +216,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
         </div>
         <TacticalAreasGrid
           goals={goals}
+          objectives={objectives}
           periodMonths={q.monthNames}
           rangeStart={new Date(year, q.months[0], 1)}
           rangeEnd={endOfMonth(new Date(year, q.months[2], 1))}
