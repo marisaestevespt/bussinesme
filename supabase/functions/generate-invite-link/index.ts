@@ -72,36 +72,42 @@ Deno.serve(async (req) => {
 
     const appOrigin = req.headers.get("origin") || new URL(req.url).origin;
     const resetRedirectTo = `${appOrigin}/reset-password`;
-    const publicClient = createClient(supabaseUrl, anonKey);
 
-    const { error: inviteEmailError } = await publicClient.auth.resetPasswordForEmail(targetEmail, {
-      redirectTo: resetRedirectTo,
-    });
+    // Verifica se o utilizador já existe — define se é convite (24h) ou recovery
+    const { data: existing } = await supabase.auth.admin.listUsers();
+    const userExists = existing?.users?.some(
+      (u) => u.email?.toLowerCase() === targetEmail.toLowerCase()
+    );
 
-    const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
-      type: "recovery",
+    // Para utilizadores novos: 'invite' (link válido 24h, single-use mas mais tolerante)
+    // Para utilizadores existentes: 'recovery' (única opção viável para reset de password)
+    const linkType = userExists ? "recovery" : "invite";
+
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: linkType,
       email: targetEmail,
       options: {
         redirectTo: resetRedirectTo,
       },
     });
 
-    if (resetError && !resetData?.properties?.action_link && inviteEmailError) {
-      return new Response(JSON.stringify({ error: resetError.message || inviteEmailError.message }), {
+    if (linkError || !linkData?.properties?.action_link) {
+      return new Response(JSON.stringify({ error: linkError?.message || "Falha ao gerar link" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const inviteUrl = resetData?.properties?.action_link ?? null;
+    const inviteUrl = linkData.properties.action_link;
 
     return new Response(
       JSON.stringify({
         success: true,
         invite_url: inviteUrl,
         email: targetEmail,
-        email_sent: !inviteEmailError,
-        invite_error: inviteEmailError?.message ?? resetError?.message ?? null,
+        link_type: linkType,
+        expires_in_hours: 24,
+        invite_error: null,
       }),
       {
         status: 200,
