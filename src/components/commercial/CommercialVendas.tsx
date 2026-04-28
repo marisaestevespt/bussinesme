@@ -185,8 +185,8 @@ export function CommercialVendas() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="whitespace-nowrap">ID</TableHead>
+              <TableHead className="whitespace-nowrap">Status</TableHead>
               <TableHead>Data Pag.</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead className="text-right">Valor Base</TableHead>
@@ -209,8 +209,8 @@ export function CommercialVendas() {
               const docs = Array.isArray(s.documents) ? s.documents : [];
               return (
                 <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
-                  <TableCell className="font-mono text-sm">{s.sale_id}</TableCell>
-                  <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={docs.length > 0} /></TableCell>
+                  <TableCell className="font-mono text-sm whitespace-nowrap">{s.sale_id}</TableCell>
+                  <TableCell className="whitespace-nowrap" onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={docs.length > 0} /></TableCell>
                   <TableCell>{s.payment_date ? format(new Date(s.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{s.description || '—'}</TableCell>
                   <TableCell className="text-right">€{formatNumber(Number(s.base_value))}</TableCell>

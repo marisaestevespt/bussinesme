@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, BarChart3, Globe, MessageSquare, Users, ChevronDown, Archive } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AddLegacyClientDialog } from '@/components/clients/AddLegacyClientDialog';
@@ -66,64 +67,32 @@ export default function ClientesPage() {
     return Object.entries(map).map(([name, count]) => ({ name, count }));
   }, [activeItems]);
 
-  // Column template: Nome | ID | Status | Produto | Início | Fim ciclo | Email | Contacto
-  const gridColsStyle = {
-    gridTemplateColumns:
-      'minmax(180px,1.6fr) 90px 120px minmax(140px,1.3fr) 100px 100px minmax(160px,1.5fr) 120px',
-  } as React.CSSProperties;
-
   const renderClientRow = (c: Client) => (
-    <div
+    <TableRow
       key={c.id}
-      className="text-sm border-b hover:bg-muted/40 cursor-pointer transition-colors"
+      className="cursor-pointer"
       onClick={() => navigate(`/hub/clientes/${c.id}`)}
     >
-      {/* Desktop: single-row table layout */}
-      <div
-        className="hidden md:grid gap-3 items-center px-6 py-3"
-        style={gridColsStyle}
-      >
-        <span className="font-medium truncate" title={c.full_name}>{c.full_name}</span>
-        <span className="font-mono text-xs text-muted-foreground truncate">{c.client_id}</span>
-        <span>
-          <Badge variant="outline" className={`text-[10px] whitespace-nowrap ${getClientStatusInfo(c.status).color}`}>
-            {getClientStatusInfo(c.status).label}
-          </Badge>
-        </span>
+      <TableCell className="font-medium max-w-[220px] truncate" title={c.full_name}>{c.full_name}</TableCell>
+      <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">{c.client_id}</TableCell>
+      <TableCell className="whitespace-nowrap">
+        <Badge variant="outline" className={`whitespace-nowrap ${getClientStatusInfo(c.status).color}`}>
+          {getClientStatusInfo(c.status).label}
+        </Badge>
+      </TableCell>
+      <TableCell className="max-w-[200px]">
         <span className="inline-flex items-center gap-1.5 min-w-0">
           {(c.current_product_id || c.current_product) && (
             <ProductIcon productId={c.current_product_id as any} className="h-4 w-4 shrink-0" emojiClassName="text-xs" />
           )}
-          <span className="truncate text-xs">{c.current_product || '—'}</span>
+          <span className="truncate">{c.current_product || '—'}</span>
         </span>
-        <span className="text-xs text-muted-foreground tabular-nums">{fmtDate(c.start_date)}</span>
-        <span className="text-xs text-muted-foreground tabular-nums">{fmtDate(c.end_of_cycle)}</span>
-        <span className="text-xs text-muted-foreground truncate" title={c.email || ''}>{c.email || '—'}</span>
-        <span className="text-xs text-muted-foreground truncate">{c.whatsapp || '—'}</span>
-      </div>
-      {/* Mobile: stacked */}
-      <div className="md:hidden px-4 py-3 space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <span className="font-medium truncate">{c.full_name}</span>
-          <Badge variant="outline" className={`shrink-0 text-[10px] ${getClientStatusInfo(c.status).color}`}>
-            {getClientStatusInfo(c.status).label}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="font-mono">{c.client_id}</span>
-          {c.current_product && (
-            <span className="inline-flex items-center gap-1 truncate">
-              ·
-              <ProductIcon productId={c.current_product_id as any} className="h-3.5 w-3.5" emojiClassName="text-[10px]" />
-              <span className="truncate">{c.current_product}</span>
-            </span>
-          )}
-        </div>
-        <div className="text-[11px] text-muted-foreground truncate">
-          {c.email || '—'}{c.whatsapp ? ` · ${c.whatsapp}` : ''}
-        </div>
-      </div>
-    </div>
+      </TableCell>
+      <TableCell className="text-muted-foreground tabular-nums whitespace-nowrap">{fmtDate(c.start_date)}</TableCell>
+      <TableCell className="text-muted-foreground tabular-nums whitespace-nowrap">{fmtDate(c.end_of_cycle)}</TableCell>
+      <TableCell className="text-muted-foreground max-w-[220px] truncate" title={c.email || ''}>{c.email || '—'}</TableCell>
+      <TableCell className="text-muted-foreground whitespace-nowrap">{c.whatsapp || '—'}</TableCell>
+    </TableRow>
   );
 
   return (
@@ -228,19 +197,6 @@ export default function ClientesPage() {
             isFetchingNextPage={clients.isFetchingNextPage}
             fetchNextPage={clients.fetchNextPage}
           >
-            <div
-              className="hidden md:grid gap-3 items-center bg-gradient-to-r from-primary/15 via-primary/8 to-accent/10 px-6 py-3 font-semibold text-[10px] uppercase tracking-wider text-foreground/80 border-b border-primary/20"
-              style={gridColsStyle}
-            >
-              <span>Nome</span>
-              <span>ID</span>
-              <span>Status</span>
-              <span>Produto</span>
-              <span>Início</span>
-              <span>Fim ciclo</span>
-              <span>Email</span>
-              <span>Contacto</span>
-            </div>
             {displayItems.length === 0 ? (
               <CollectionEmpty
                 icon={Users}
@@ -249,7 +205,23 @@ export default function ClientesPage() {
                 className="border-0"
               />
             ) : (
-              displayItems.map(renderClientRow)
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Início</TableHead>
+                    <TableHead>Fim ciclo</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Contacto</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayItems.map(renderClientRow)}
+                </TableBody>
+              </Table>
             )}
           </InfiniteScrollList>
         </div>
