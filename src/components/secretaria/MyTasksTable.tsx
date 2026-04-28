@@ -10,6 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Calendar } from '@/components/ui/calendar';
+import { pt } from 'date-fns/locale';
+import { DepartmentBadge } from '@/components/shared/DepartmentBadge';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
+import { useQuery as useRQ } from '@tanstack/react-query';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
@@ -219,6 +225,15 @@ export function MyTasksTable({ scope = 'all' }: Props) {
     toast.success('Tarefa concluída');
   };
 
+  const updateTask = async (id: string, patch: Record<string, any>) => {
+    const { error } = await supabase.from('tasks')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) { toast.error('Erro ao atualizar'); return; }
+    qc.invalidateQueries({ queryKey: ['my-tasks'] });
+    qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+  };
+
   if (!active) return null;
 
   return (
@@ -275,6 +290,7 @@ export function MyTasksTable({ scope = 'all' }: Props) {
           projectName={projectName}
           onRowClick={setEditTaskId}
           onMarkDone={markDone}
+          onUpdateTask={updateTask}
           onContentClick={(cid) => navigate(`/hub/marketing/conteudos/${cid}`)}
         />
       )}
