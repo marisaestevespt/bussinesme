@@ -180,7 +180,7 @@ export function AreaPeriodDetail({
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Target className="h-4 w-4" /> Metas do período ({goals.length})
+            <Target className="h-4 w-4" /> Metas do período ligadas ao objetivo anual ({goals.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -190,7 +190,11 @@ export function AreaPeriodDetail({
             <ul className="space-y-1.5">
               {goals.map((g) => {
                 const target = Number(g.target_value || 0);
-                const actual = Number(g.actual_value || 0);
+                const linkedObj = g.objective_id ? objectives.find((o: any) => o.id === g.objective_id) : null;
+                const autoActual = linkedObj && typeof planning.goalAutoValue === 'function'
+                  ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0)
+                  : 0;
+                const actual = autoActual > 0 ? autoActual : Number(g.actual_value || 0);
                 const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : null;
                 return (
                   <li
