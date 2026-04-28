@@ -15,8 +15,8 @@ const AREA_META: Record<string, { label: string; icon: typeof Building2; color: 
   operacao:   { label: 'Operação',   icon: Cog, color: 'text-warning bg-warning/10' },
   clientes:   { label: 'Clientes',   icon: Users, color: 'text-info bg-info/10' },
   equipa:     { label: 'Equipa',     icon: UserCog, color: 'text-destructive bg-destructive/10' },
-  produto:    { label: 'Produto & Inovação', icon: Lightbulb, color: 'text-accent-orange bg-accent-orange/10' },
-  processos:  { label: 'Processos',  icon: Workflow, color: 'text-muted-foreground bg-muted' },
+  produto:    { label: 'Produto & Inovação', icon: Lightbulb, color: 'text-accent-violet bg-accent-violet/10' },
+  processos:  { label: 'Processos',  icon: Workflow, color: 'text-foreground bg-muted' },
 };
 
 // 8 áreas oficiais para análise de cobertura
