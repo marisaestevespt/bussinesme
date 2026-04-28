@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -20,12 +20,14 @@ import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
 import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
-import { ObjectiveDialog } from './ObjectiveDialog';
-import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
+import type { DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
+// Lazy: detail sheets/dialogs only mount when first opened (saves ~30-50KB on initial bundle)
+const ObjectiveDetailSheet = lazy(() => import('./ObjectiveDetailSheet').then(m => ({ default: m.ObjectiveDetailSheet })));
+const ObjectiveDialog = lazy(() => import('./ObjectiveDialog').then(m => ({ default: m.ObjectiveDialog })));
+const WeeklyAlignDetailSheet = lazy(() => import('@/components/executive/WeeklyAlignDetailSheet').then(m => ({ default: m.WeeklyAlignDetailSheet })));
+const LeadDetailSheet = lazy(() => import('@/components/commercial/crm/LeadDetailSheet').then(m => ({ default: m.LeadDetailSheet })));
 import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
-import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData, CRM_STATUSES } from '@/hooks/useCrmData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
@@ -1065,13 +1067,15 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           ...(t.completed_at ? [{ label: 'Concluída em', value: format(parseISO(t.completed_at), "d MMM yyyy 'às' HH:mm", { locale: pt }) }] : []),
         ];
         return (
-          <WeeklyAlignDetailSheet
-            open={!!selectedRoutineTask}
-            onOpenChange={(o) => !o && setSelectedRoutineTask(null)}
-            title={t.name}
-            subtitle="Tarefa de rotina"
-            fields={fields}
-          />
+          <Suspense fallback={null}>
+            <WeeklyAlignDetailSheet
+              open={!!selectedRoutineTask}
+              onOpenChange={(o) => !o && setSelectedRoutineTask(null)}
+              title={t.name}
+              subtitle="Tarefa de rotina"
+              fields={fields}
+            />
+          </Suspense>
         );
       })()}
 
@@ -1180,18 +1184,24 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
       })()}
 
       {/* ═══ DETAIL SHEETS ═══ */}
-      <ObjectiveDetailSheet
-        open={!!selectedObjective}
-        onClose={() => setSelectedObjective(null)}
-        objective={selectedObjective}
-        planning={planning}
-      />
-      <ObjectiveDialog
-        open={objDialogOpen}
-        onClose={() => setObjDialogOpen(false)}
-        initial={null}
-        onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
-      />
+      <Suspense fallback={null}>
+        {selectedObjective && (
+          <ObjectiveDetailSheet
+            open={!!selectedObjective}
+            onClose={() => setSelectedObjective(null)}
+            objective={selectedObjective}
+            planning={planning}
+          />
+        )}
+        {objDialogOpen && (
+          <ObjectiveDialog
+            open={objDialogOpen}
+            onClose={() => setObjDialogOpen(false)}
+            initial={null}
+            onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
+          />
+        )}
+      </Suspense>
 
       {/* Client time entries dialog */}
       <Dialog open={!!expandedClient} onOpenChange={(open) => { if (!open) setExpandedClient(null); }}>
@@ -1293,37 +1303,41 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
       </Sheet>
 
       {/* Lead Detail Sheet */}
-      <LeadDetailSheet
-        open={leadSheetOpen}
-        onOpenChange={v => { setLeadSheetOpen(v); if (!v) setSelectedLead(null); }}
-        lead={selectedLead}
-        products={(commProdGoalQ.data || []).map((p) => p.product_name)}
-        profiles={[]}
-        onSave={(lead) => {
-          upsertLead.mutate(lead, {
-            onSuccess: () => {
-              setLeadSheetOpen(false);
-              setSelectedLead(null);
-              qc.invalidateQueries({ queryKey: ['md-leads'] });
-              qc.invalidateQueries({ queryKey: ['crm'] });
-              qc.invalidateQueries({ queryKey: ['crm_leads'] });
-              qc.invalidateQueries({ queryKey: ['commercial'] });
-            },
-          });
-        }}
-        onDelete={(id) => {
-          deleteLead.mutate(id, {
-            onSuccess: () => {
-              setLeadSheetOpen(false);
-              setSelectedLead(null);
-              qc.invalidateQueries({ queryKey: ['md-leads'] });
-              qc.invalidateQueries({ queryKey: ['crm'] });
-              qc.invalidateQueries({ queryKey: ['crm_leads'] });
-              qc.invalidateQueries({ queryKey: ['commercial'] });
-            },
-          });
-        }}
-      />
+      {leadSheetOpen && (
+        <Suspense fallback={null}>
+          <LeadDetailSheet
+            open={leadSheetOpen}
+            onOpenChange={v => { setLeadSheetOpen(v); if (!v) setSelectedLead(null); }}
+            lead={selectedLead}
+            products={(commProdGoalQ.data || []).map((p) => p.product_name)}
+            profiles={[]}
+            onSave={(lead) => {
+              upsertLead.mutate(lead, {
+                onSuccess: () => {
+                  setLeadSheetOpen(false);
+                  setSelectedLead(null);
+                  qc.invalidateQueries({ queryKey: ['md-leads'] });
+                  qc.invalidateQueries({ queryKey: ['crm'] });
+                  qc.invalidateQueries({ queryKey: ['crm_leads'] });
+                  qc.invalidateQueries({ queryKey: ['commercial'] });
+                },
+              });
+            }}
+            onDelete={(id) => {
+              deleteLead.mutate(id, {
+                onSuccess: () => {
+                  setLeadSheetOpen(false);
+                  setSelectedLead(null);
+                  qc.invalidateQueries({ queryKey: ['md-leads'] });
+                  qc.invalidateQueries({ queryKey: ['crm'] });
+                  qc.invalidateQueries({ queryKey: ['crm_leads'] });
+                  qc.invalidateQueries({ queryKey: ['commercial'] });
+                },
+              });
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* ═══ Inline Detail Sheet (events / content / sales / clients) ═══ */}
       <Sheet open={!!inlineDetail} onOpenChange={v => { if (!v) setInlineDetail(null); }}>
