@@ -1182,18 +1182,24 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
       })()}
 
       {/* ═══ DETAIL SHEETS ═══ */}
-      <ObjectiveDetailSheet
-        open={!!selectedObjective}
-        onClose={() => setSelectedObjective(null)}
-        objective={selectedObjective}
-        planning={planning}
-      />
-      <ObjectiveDialog
-        open={objDialogOpen}
-        onClose={() => setObjDialogOpen(false)}
-        initial={null}
-        onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
-      />
+      <Suspense fallback={null}>
+        {selectedObjective && (
+          <ObjectiveDetailSheet
+            open={!!selectedObjective}
+            onClose={() => setSelectedObjective(null)}
+            objective={selectedObjective}
+            planning={planning}
+          />
+        )}
+        {objDialogOpen && (
+          <ObjectiveDialog
+            open={objDialogOpen}
+            onClose={() => setObjDialogOpen(false)}
+            initial={null}
+            onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
+          />
+        )}
+      </Suspense>
 
       {/* Client time entries dialog */}
       <Dialog open={!!expandedClient} onOpenChange={(open) => { if (!open) setExpandedClient(null); }}>
