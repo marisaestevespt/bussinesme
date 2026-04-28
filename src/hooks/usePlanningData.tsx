@@ -662,8 +662,15 @@ export function usePlanningData(year = currentYear) {
     const source = obj.value_source;
     const sf = obj.source_filter || {};
     const monthIdx = MONTH_NAMES.indexOf(goalPeriod);
-    if (monthIdx === -1) return null;
-    const month = monthIdx + 1;
+    const quarterMatch = goalPeriod.match(/^T([1-4])$/);
+    const periodMonths = monthIdx !== -1
+      ? [monthIdx + 1]
+      : quarterMatch
+        ? [0, 1, 2].map((offset) => (Number(quarterMatch[1]) - 1) * 3 + 1 + offset)
+        : [];
+    if (periodMonths.length === 0) return null;
+    const filterByPeriod = <T,>(rows: T[], dateField: string): T[] =>
+      rows.filter((row) => periodMonths.some((month) => filterByMonth([row], month, dateField).length > 0));
 
     if (source === 'bd_vendas' || source === 'commercial') {
       let rows = (autoSalesRaw.data || []) as AutoSalesRow[];
@@ -673,7 +680,7 @@ export function usePlanningData(year = currentYear) {
       } else if (obj.product_name) {
         rows = rows.filter((r) => r.product === obj.product_name);
       }
-      return sumRevenue(filterByMonth(rows, month, 'sale_month'));
+      return sumRevenue(filterByPeriod(rows, 'sale_month'));
     }
     if (source === 'bd_crm') {
       let rows = (autoCrmRaw.data || []) as AutoCrmRow[];
