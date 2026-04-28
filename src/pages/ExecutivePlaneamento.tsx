@@ -5,11 +5,7 @@ import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { BackNavigation } from '@/components/BackNavigation';
 import { Button } from '@/components/ui/button';
-import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
 import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
-import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
-import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
-import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -20,7 +16,6 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { excludeCancelled } from '@/lib/utils';
 
-type Granularity = 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
 type ViewMode = 'visao' | 'previsibilidade' | null;
 
 const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; desc: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
@@ -33,7 +28,6 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<ViewMode>('visao');
-  const [granularity, setGranularity] = useState<Granularity>(null);
   const planning = usePlanningData(year);
 
   const stats = useMemo(() => {
@@ -156,17 +150,7 @@ export default function ExecutivePlaneamento() {
 
         {viewMode === 'visao' && (
           <>
-            <PlanningOverviewView
-              planning={planning}
-              year={year}
-              stats={stats}
-              activeGranularity={granularity}
-              onGranularityChange={setGranularity}
-            />
-            {granularity === 'mensal' && <MonthlyGallery planning={planning} year={year} />}
-            {granularity === 'trimestral' && <QuarterlyGallery planning={planning} year={year} />}
-            {granularity === 'semestral' && <SemesterGallery planning={planning} year={year} />}
-            {granularity === 'metas' && <PlanningGoalsTab planning={planning} viewMode="metas" />}
+            <PlanningOverviewView planning={planning} year={year} stats={stats} />
             <div data-objectives-section>
               <PlanningObjectivesTab planning={planning} />
             </div>
