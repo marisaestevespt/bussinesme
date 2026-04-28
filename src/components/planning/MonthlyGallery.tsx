@@ -90,7 +90,7 @@ export function MonthlyGallery({ planning, year }: Props) {
                 {goalCount > 0 ? (
                   <>
                     <Progress value={progress} className="h-1.5" />
-                    <p className="text-[10px] text-muted-foreground">{progress}% das metas atingidas</p>
+                    <p className="text-[10px] text-muted-foreground">{progress}% concluído ({itemCount} {itemCount === 1 ? 'meta' : 'metas'})</p>
                   </>
                 ) : (
                   <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
