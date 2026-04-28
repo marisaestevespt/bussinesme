@@ -24,6 +24,15 @@ function RedirectClienteId() {
   return <Navigate to={`/hub/clientes/${id}`} replace />;
 }
 
+function RedirectTrafegoPagoLegacy() {
+  const { id } = useParams();
+  const target = id && id !== ':id'
+    ? `/hub/marketing/trafego-pago/criativo/${id}`
+    : '/hub/marketing/trafego-pago';
+
+  return <Navigate to={target} replace />;
+}
+
 // Lazy-loaded pages (code-splitting per route)
 const SecretariaPage = lazy(() => import("./pages/Secretaria"));
 const ComecaAquiPage = lazy(() => import("./pages/ComecaAqui"));
@@ -208,6 +217,7 @@ function AppRoutes() {
         <Route path="/hub/marketing/funis/:id" element={<MarketingFunilDetail />} />
         <Route path="/hub/marketing/analise" element={<MarketingAnalisePage />} />
         <Route path="/hub/marketing/trafego-pago" element={<MarketingTrafegoPago />} />
+        <Route path="/hub/marketing/trafego-pago/:id" element={<RedirectTrafegoPagoLegacy />} />
         <Route path="/hub/marketing/trafego-pago/report/:id" element={<TrafegoReportDetail />} />
         <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
