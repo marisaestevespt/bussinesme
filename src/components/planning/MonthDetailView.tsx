@@ -515,7 +515,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   {sales.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
                   ) : sales.map((sl) => (
-                    <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
+                    <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/comercial/vendas/${sl.id}`)}>
                       <TableCell className="">{sl.sale_id}</TableCell>
                       <TableCell className="text-sm">{sl.client || '—'}</TableCell>
                       <TableCell className="text-sm">{sl.product || '—'}</TableCell>
@@ -736,7 +736,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               {sales.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem recebimentos registados.</TableCell></TableRow>
               ) : sales.map((sl) => (
-                <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
+                <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/comercial/vendas/${sl.id}`)}>
                   <TableCell className="">{sl.sale_id}</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
                   <TableCell className="">{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
@@ -868,7 +868,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                           <> Os clientes fora do normal: <strong>{p.clientBreakdown.filter((cb) => cb.deviation > 2).map((cb) => cb.clientName).join(', ')}</strong>.</>
                         )}
                       </p>
-                      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => navigate(`/produtos/${p.id}`)}><ExternalLink className="h-3 w-3" /> Ver produto</Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => navigate(`/hub/produtos/${p.id}`)}><ExternalLink className="h-3 w-3" /> Ver produto</Button>
                     </div>
                   )}
                 </div>

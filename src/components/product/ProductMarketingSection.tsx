@@ -457,7 +457,7 @@ export function ProductMarketingSection({
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem funis</TableCell></TableRow>
               )}
               {funnels.map((f) => (
-                <TableRow key={f.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/marketing/funis/${f.id}`)}>
+                <TableRow key={f.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/marketing/funis/${f.id}`)}>
                   <TableCell><Badge variant="outline" className="text-xs">{((f.status as string) || '').replace('_', ' ') || '—'}</Badge></TableCell>
                   <TableCell className="font-medium">{f.name as string}</TableCell>
                   <TableCell className="text-sm">{(f.tipo_funil as string) || '—'}</TableCell>
@@ -502,7 +502,7 @@ export function ProductMarketingSection({
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem automações</TableCell></TableRow>
               )}
               {automations.map((a) => (
-                <TableRow key={a.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/marketing/automacoes/${a.id}`)}>
+                <TableRow key={a.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/marketing/automacoes/${a.id}`)}>
                   <TableCell><Badge variant="outline" className="text-xs">{((a.status as string) || '').replace('_', ' ') || '—'}</Badge></TableCell>
                   <TableCell className="font-medium">{a.name as string}</TableCell>
                   <TableCell className="text-sm">{(a.plataforma as string) || '—'}</TableCell>
