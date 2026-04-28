@@ -662,8 +662,16 @@ export function usePlanningData(year = currentYear) {
     const source = obj.value_source;
     const sf = obj.source_filter || {};
     const monthIdx = MONTH_NAMES.indexOf(goalPeriod);
-    if (monthIdx === -1) return null;
-    const month = monthIdx + 1;
+    const quarterMatch = goalPeriod.match(/^T([1-4])$/);
+    const periodMonths = monthIdx !== -1
+      ? [monthIdx + 1]
+      : quarterMatch
+        ? [0, 1, 2].map((offset) => (Number(quarterMatch[1]) - 1) * 3 + 1 + offset)
+        : [];
+    if (periodMonths.length === 0) return null;
+    const filterByPeriod = <T,>(rows: T[], dateField: string): T[] =>
+      rows.filter((row) => periodMonths.some((month) => filterByMonth([row], month, dateField).length > 0));
+    const periodEndMonth = Math.max(...periodMonths);
 
     if (source === 'bd_vendas' || source === 'commercial') {
       let rows = (autoSalesRaw.data || []) as AutoSalesRow[];
@@ -673,7 +681,7 @@ export function usePlanningData(year = currentYear) {
       } else if (obj.product_name) {
         rows = rows.filter((r) => r.product === obj.product_name);
       }
-      return sumRevenue(filterByMonth(rows, month, 'sale_month'));
+      return sumRevenue(filterByPeriod(rows, 'sale_month'));
     }
     if (source === 'bd_crm') {
       let rows = (autoCrmRaw.data || []) as AutoCrmRow[];
@@ -682,29 +690,29 @@ export function usePlanningData(year = currentYear) {
       } else if (obj.product_name) {
         rows = rows.filter((r) => r.potential_product === obj.product_name);
       }
-      return filterByMonth(rows, month, 'created_at').length;
+      return filterByPeriod(rows, 'created_at').length;
     }
     // Snapshot metrics — return current count for current/past months, null for future
     if (source === 'bd_clientes') {
       const now = new Date();
-      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
+      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && periodEndMonth <= now.getMonth() + 1);
       return isCurrentOrPast ? (autoActiveClients.data ?? null) : null;
     }
     if (source === 'bd_equipa') {
       const now = new Date();
-      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
+      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && periodEndMonth <= now.getMonth() + 1);
       return isCurrentOrPast ? (autoTeamMembers.data ?? null) : null;
     }
     if (source === 'bd_marketing') {
       const allData = (autoMarketingFollowersRaw.data || []) as AutoMarketingFollowersRow[];
       if (allData.length === 0) return 0;
       // Try to find data for this specific month
-      let monthData = allData.filter((d) => d.month === month);
+      let monthData = allData.filter((d) => d.month != null && periodMonths.includes(d.month));
       if (sf.channel_id) monthData = monthData.filter((d) => d.channel_id === sf.channel_id);
       if (monthData.length > 0) return monthData.reduce((s, d) => s + Number(d.followers || 0), 0);
       // Fall back to latest available
       const now = new Date();
-      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
+      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && periodEndMonth <= now.getMonth() + 1);
       if (!isCurrentOrPast) return null;
       const latestMonth = allData[0].month;
       let latest = allData.filter((d) => d.month === latestMonth);
@@ -715,12 +723,12 @@ export function usePlanningData(year = currentYear) {
       let rows = (autoTimeEntries.data || []) as AutoTimeEntryRow[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
-      return filterByMonth(rows, month, 'entry_month').reduce((s, r) => s + Number(r.duration || 0), 0);
+      return filterByPeriod(rows, 'entry_month').reduce((s, r) => s + Number(r.duration || 0), 0);
     }
     if (source === 'bd_tarefas') {
       let rows = (autoTasksCompleted.data || []) as AutoTaskRow[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
-      return filterByMonth(rows, month, 'updated_at').length;
+      return filterByPeriod(rows, 'updated_at').length;
     }
     if (source === 'bd_conteudos') {
       let rows = (autoContentRaw.data || []) as AutoContentItemRow[];
@@ -729,17 +737,17 @@ export function usePlanningData(year = currentYear) {
         const contentIds = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
         rows = rows.filter((r) => contentIds.has(r.id));
       }
-      return filterByMonth(rows, month, 'scheduled_at').length;
+      return filterByPeriod(rows, 'scheduled_at').length;
     }
     if (source === 'bd_reunioes') {
       let rows = (autoMeetingsRaw.data || []) as AutoMeetingRow[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
-      return filterByMonth(rows, month, 'date_time').length;
+      return filterByPeriod(rows, 'date_time').length;
     }
     if (source === 'bd_nps') {
       let rows = (autoNpsRaw.data || []) as AutoNpsRow[];
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
-      const monthRows = filterByMonth(rows, month, 'actual_date');
+      const monthRows = filterByPeriod(rows, 'actual_date');
       if (monthRows.length === 0) return null;
       const sum = monthRows.reduce((s, r) => s + Number(r.nps_score), 0);
       return Math.round((sum / monthRows.length) * 10) / 10;
@@ -747,12 +755,12 @@ export function usePlanningData(year = currentYear) {
     if (source === 'bd_despesas') {
       let rows = (autoExpensesRaw.data || []) as AutoExpenseRow[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
-      return filterByMonth(rows, month, 'expense_date').reduce((s, r) => s + Number(r.total_with_vat || 0), 0);
+      return filterByPeriod(rows, 'expense_date').reduce((s, r) => s + Number(r.total_with_vat || 0), 0);
     }
     if (source === 'bd_projetos') {
       let rows = (autoProjectsRaw.data || []) as AutoProjectRow[];
       if (sf.type) rows = rows.filter((r) => r.type === sf.type);
-      return filterByMonth(rows, month, 'updated_at').length;
+      return filterByPeriod(rows, 'updated_at').length;
     }
     return null;
   };

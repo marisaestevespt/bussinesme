@@ -72,7 +72,11 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
       if (g.status === 'atingido') { achieved++; return 100; }
       const target = Number(g.target_value || 0);
       if (target <= 0) return 0;
-      const actual = Number(g.actual_value || 0);
+      const linkedObj = g.objective_id ? (objectives as any[]).find((o) => o.id === g.objective_id) : null;
+      const autoActual = linkedObj && typeof planning.goalAutoValue === 'function'
+        ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0)
+        : 0;
+      const actual = autoActual > 0 ? autoActual : Number(g.actual_value || 0);
       const pct = Math.min(Math.round((actual / target) * 100), 100);
       if (pct >= 100) achieved++;
       return pct;
@@ -106,7 +110,11 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
     }
     const periodGoals = goals.filter(
       (g: any) => {
-        if (!period.monthNames.includes(g.period)) return false;
+        const periodMatches = period.monthNames.includes(g.period)
+          || g.period === period.key
+          || (period.key === 'S1' && ['T1', 'T2'].includes(g.period))
+          || (period.key === 'S2' && ['T3', 'T4'].includes(g.period));
+        if (!periodMatches) return false;
         return goalBelongsToDepartment(g, goalAreaById, area.key);
       },
     );
@@ -176,7 +184,12 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
         );
 
         const cells: AreaPeriodCell[] = periods.map((p) => {
-          const periodGoals = allAreaGoals.filter((g: any) => p.monthNames.includes(g.period));
+          const periodGoals = allAreaGoals.filter((g: any) => {
+            return p.monthNames.includes(g.period)
+              || g.period === p.key
+              || (p.key === 'S1' && ['T1', 'T2'].includes(g.period))
+              || (p.key === 'S2' && ['T3', 'T4'].includes(g.period));
+          });
           const periodStart = new Date(year, p.months[0], 1);
           const periodEnd = endOfMonth(new Date(year, p.months[p.months.length - 1], 1));
           const periodInits = allAreaInits.filter((pr: any) => {
@@ -184,21 +197,15 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
             const d = new Date(pr.deadline);
             return d >= periodStart && d <= periodEnd;
           });
-          const goalProg = computeProgress(periodGoals).pct;
-          // Objectives are annual — surface their average progress on every
-          // period. Combine with period goals (when present) using the same
-          // formula as the yearly total so quarterly cells stay consistent
-          // with the annual %.
+          const measurablePeriodGoals = periodGoals.filter((g: any) => Number(g.target_value || 0) > 0);
+          const goalProg = computeProgress(measurablePeriodGoals).pct;
+          // Period goals are the source of truth for the period. Annual
+          // objectives are only used as fallback when that period has no
+          // measurable target configured.
           const objAvg = objectiveProgresses.length
             ? Math.round(objectiveProgresses.reduce((a, b) => a + b, 0) / objectiveProgresses.length)
             : 0;
-          const progress = (() => {
-            if (periodGoals.length && objectiveProgresses.length) {
-              return Math.round((goalProg + objAvg) / 2);
-            }
-            if (periodGoals.length) return goalProg;
-            return objAvg;
-          })();
+          const progress = measurablePeriodGoals.length ? goalProg : objAvg;
           const isCurrent = p.months.includes(currentMonth);
           return {
             key: p.key,
@@ -212,16 +219,14 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
           };
         });
 
-        const goalsYearPct = computeProgress(allAreaGoals).pct;
+        const measurableYearGoals = allAreaGoals.filter((g: any) => Number(g.target_value || 0) > 0);
+        const goalsYearPct = computeProgress(measurableYearGoals).pct;
         const objYearPct = objectiveProgresses.length
           ? Math.round(objectiveProgresses.reduce((a, b) => a + b, 0) / objectiveProgresses.length)
           : 0;
         // Year progress = average of objectives & goals signals when both exist;
         // otherwise fall back to whichever has data.
         const yearProgress = (() => {
-          if (allAreaGoals.length && objectiveProgresses.length) {
-            return Math.round((goalsYearPct + objYearPct) / 2);
-          }
           if (objectiveProgresses.length) return objYearPct;
           return goalsYearPct;
         })();
