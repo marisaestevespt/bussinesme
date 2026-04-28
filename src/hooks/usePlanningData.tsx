@@ -34,7 +34,10 @@ export const PLAN_AREAS = [
   { value: 'comercial', label: 'Comercial' },
   { value: 'marketing', label: 'Marketing' },
   { value: 'operacao', label: 'Operação' },
+  { value: 'clientes', label: 'Clientes' },
   { value: 'equipa', label: 'Equipa' },
+  { value: 'produto', label: 'Produto & Inovação' },
+  { value: 'processos', label: 'Processos' },
   { value: 'inovacao', label: 'Inovação & Desenvolvimento' },
   { value: 'outro', label: 'Outro' },
 ];

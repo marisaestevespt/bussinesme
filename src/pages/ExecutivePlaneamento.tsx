@@ -10,18 +10,20 @@ import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
+import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle, LineChart } from 'lucide-react';
+import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle, LineChart, Compass } from 'lucide-react';
 import { YearSelector } from '@/components/YearSelector';
 import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { excludeCancelled } from '@/lib/utils';
 
-type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | 'previsibilidade' | null;
+type ViewMode = 'visao' | 'mensal' | 'trimestral' | 'semestral' | 'metas' | 'previsibilidade' | null;
 
 const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; desc: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
+  { key: 'visao', label: 'Visão Geral', desc: '3 horizontes + cobertura', icon: Compass, iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
   { key: 'mensal', label: 'Mensal', desc: '12 meses', icon: Calendar, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
   { key: 'trimestral', label: 'Trimestral', desc: '4 trimestres', icon: BarChart3, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
   { key: 'semestral', label: 'Semestral', desc: '2 semestres', icon: PieChart, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
@@ -33,7 +35,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
-  const [viewMode, setViewMode] = useState<ViewMode>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('visao');
   const planning = usePlanningData(year);
 
   const stats = useMemo(() => {
@@ -126,7 +128,7 @@ export default function ExecutivePlaneamento() {
         </div>
 
         {/* View mode cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {VIEW_CARDS.map(v => (
             <Card
               key={v.key}
@@ -147,16 +149,26 @@ export default function ExecutivePlaneamento() {
         </div>
 
         {/* Back button when a view is active */}
-        {viewMode !== null && (
+        {viewMode !== null && viewMode !== 'visao' && (
           <Button variant="ghost" size="sm" onClick={() => setViewMode(null)} className="gap-2 text-muted-foreground hover:text-foreground -mt-2">
             <ArrowLeft className="h-4 w-4" />
-            Voltar ao Planeamento
+            Voltar à Visão Geral
           </Button>
         )}
 
-        {/* Default: Objetivos */}
+        {viewMode === 'visao' && (
+          <>
+            <PlanningOverviewView planning={planning} year={year} stats={stats} />
+            <div data-objectives-section>
+              <PlanningObjectivesTab planning={planning} />
+            </div>
+          </>
+        )}
+
         {viewMode === null && (
-          <PlanningObjectivesTab planning={planning} />
+          <div data-objectives-section>
+            <PlanningObjectivesTab planning={planning} />
+          </div>
         )}
 
         {viewMode === 'mensal' && <MonthlyGallery planning={planning} year={year} />}
