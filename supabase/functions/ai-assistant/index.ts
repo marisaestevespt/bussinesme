@@ -1675,7 +1675,7 @@ Regras:
         try { fnArgs = JSON.parse(toolCall.function.arguments || "{}"); } catch { /* empty */ }
 
         console.log(`Executing tool: ${fnName}`, JSON.stringify(fnArgs).slice(0, 500));
-        const toolResult = await executeTool(fnName, fnArgs, supabaseAdmin);
+        const toolResult = await executeTool(fnName, fnArgs, supabaseAdmin, file as { name?: string; type?: string; base64?: string } | undefined);
 
         toolResults.push({
           role: "tool",
