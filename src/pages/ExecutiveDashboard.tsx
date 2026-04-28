@@ -9,7 +9,7 @@ import { RitualBanner } from '@/components/executive/cockpit/RitualBanner';
 import { ObjectivesBrainDump } from '@/components/executive/cockpit/ObjectivesBrainDump';
 
 /**
- * Sala do CEO — vista DIÁRIA (2 minutos) para o Owner/Admin.
+ * Executive Room — vista DIÁRIA (2 minutos) para o Owner/Admin.
  *
  * Filosofia: cada vista responde a UMA pergunta.
  * Esta responde: "O que está a arder hoje? Onde tenho de decidir?"
@@ -25,7 +25,7 @@ export default function ExecutiveDashboard() {
     <AppLayout>
       <div className="space-y-8">
         <PageHeader
-          title="Sala do CEO"
+          title="Executive Room"
           subtitle="Vista diária · pulso do negócio, alertas e atalhos estratégicos"
           department="executive"
         />
