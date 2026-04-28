@@ -16,7 +16,7 @@ async function fetchAll(): Promise<ColorMap> {
     return {};
   }
   const map: ColorMap = {};
-  (data || []).forEach((r: any) => { map[r.department_value] = r.color_key; });
+  (data || []).forEach((r) => { map[r.department_value] = r.color_key; });
   return map;
 }
 

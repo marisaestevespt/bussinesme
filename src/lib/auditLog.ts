@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 
 /**
  * Logs an action to the audit_logs table for observability.
@@ -20,7 +21,7 @@ export async function logAudit(
       _action: action,
       _entity_type: entityType,
       _entity_id: entityId ?? null,
-      _metadata: (metadata ?? {}) as any,
+      _metadata: (metadata ?? {}) as Json,
     });
   } catch {
     // Silently fail — audit should never break the app

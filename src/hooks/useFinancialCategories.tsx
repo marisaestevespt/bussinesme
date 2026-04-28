@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { EXPENSE_CATEGORIES } from '@/lib/financialCategories';
+import type { TablesInsert } from '@/integrations/supabase/types';
 
 export type CategoryType = 'expense' | 'subscription';
 
@@ -46,7 +47,7 @@ export function useFinancialCategories() {
         value,
         label,
         sort_order: 100,
-      } as any);
+      } as TablesInsert<'financial_categories'>);
       if (error) throw error;
     },
     onSuccess: () => {

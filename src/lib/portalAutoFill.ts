@@ -30,7 +30,7 @@ interface BusinessSetup {
 interface QuestionRow {
   question: string;
   answer_type?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 type MatchRule = {

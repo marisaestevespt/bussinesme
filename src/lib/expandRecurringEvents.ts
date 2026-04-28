@@ -6,7 +6,7 @@ type AnyEvent = {
   end_date: string | null;
   recurrence_type: string | null;
   recurrence_end: string | null;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 /**

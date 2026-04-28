@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
+import type { Json, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export interface PASection {
   id: string;
@@ -37,7 +37,7 @@ export function useUpdateSection() {
       const { id, ...rest } = patch;
       const { error } = await supabase
         .from('publico_alvo_sections')
-        .update(rest as any)
+        .update(rest as TablesUpdate<'publico_alvo_sections'>)
         .eq('id', id);
       if (error) throw error;
     },
@@ -65,7 +65,7 @@ export function useAddSection() {
     mutationFn: async (section: { section_key: string; title: string; subtitle?: string; nav_group: string; sort_order: number; content: Json }) => {
       const { error } = await supabase
         .from('publico_alvo_sections')
-        .insert(section as any);
+        .insert(section as TablesInsert<'publico_alvo_sections'>);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),

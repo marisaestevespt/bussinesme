@@ -24,7 +24,7 @@ export function useCrmLabels() {
     queryFn: async () => {
       const { data } = await supabase.from('crm_lead_labels').select('lead_id, label_id');
       const map: Record<string, string[]> = {};
-      (data || []).forEach((r: any) => {
+      (data || []).forEach((r) => {
         if (!map[r.lead_id]) map[r.lead_id] = [];
         map[r.lead_id].push(r.label_id);
       });

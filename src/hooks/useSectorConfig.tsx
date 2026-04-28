@@ -8,7 +8,7 @@ import { buildSectorConfig, type BusinessSector, type SectorConfig } from '@/lib
  */
 export function useSectorConfig(): SectorConfig {
   const { settings } = useBusinessSettings();
-  const sector = ((settings as any)?.business_sector as BusinessSector) || 'servicos_digitais';
+  const sector = (settings?.business_sector as BusinessSector | undefined) || 'servicos_digitais';
 
   return useMemo(() => buildSectorConfig(sector), [sector]);
 }

@@ -1,6 +1,20 @@
 import { useInfiniteQuery, type UseInfiniteQueryOptions } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+/** Loose Supabase query builder — `.from()` returns a deeply-typed builder
+ *  parameterised by the literal table name; we accept arbitrary table names
+ *  here, so we model the builder as `unknown` with a callable filter shape. */
+type SupabaseFilterBuilder = {
+  range: (from: number, to: number) => SupabaseFilterBuilder;
+  // Allow any chained filter methods used by callers (.eq, .in, .gte, etc.)
+  [k: string]: unknown;
+};
+type SupabaseFromFn = (table: string) => {
+  select: (sel: string, opts: { count: 'exact' }) => {
+    order: (col: string, opts: { ascending: boolean }) => SupabaseFilterBuilder;
+  };
+};
+
 export const PAGE_SIZE = 50;
 
 export type InfinitePageResult<T> = {
@@ -23,7 +37,7 @@ export function useInfiniteSupabaseQuery<T = Record<string, unknown>>(
     select?: string;
     orderBy?: string;
     ascending?: boolean;
-    filters?: (query: any) => any;
+    filters?: (query: SupabaseFilterBuilder) => SupabaseFilterBuilder;
     enabled?: boolean;
   } = {}
 ) {
@@ -42,7 +56,8 @@ export function useInfiniteSupabaseQuery<T = Record<string, unknown>>(
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      let query = (supabase.from as any)(tableName)
+      const fromFn = supabase.from as unknown as SupabaseFromFn;
+      let query: SupabaseFilterBuilder = fromFn(tableName)
         .select(select, { count: 'exact' })
         .order(orderBy, { ascending })
         .range(from, to);
@@ -51,7 +66,11 @@ export function useInfiniteSupabaseQuery<T = Record<string, unknown>>(
         query = filters(query);
       }
 
-      const { data, error, count } = await query;
+      const { data, error, count } = (await (query as unknown as Promise<{
+        data: T[] | null;
+        error: Error | null;
+        count: number | null;
+      }>)) as { data: T[] | null; error: Error | null; count: number | null };
       if (error) throw error;
 
       return {
