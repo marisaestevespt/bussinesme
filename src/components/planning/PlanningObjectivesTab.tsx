@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
+import { planningAreaMatches } from '@/lib/planningAreaFilters';
 import { ObjectiveDialog } from './ObjectiveDialog';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 
@@ -58,7 +59,7 @@ export function PlanningObjectivesTab({
 
       {(() => {
         const objs = areaFilter
-          ? planning.allObjectives.filter((o: any) => o.area === areaFilter)
+          ? planning.allObjectives.filter((o: any) => planningAreaMatches(o.area, areaFilter))
           : planning.allObjectives;
         return objs.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">
