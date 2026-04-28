@@ -158,7 +158,7 @@ The workflow will NOT execute yet — the user sees a summary and confirms once.
       parameters: {
         type: "object",
         properties: {
-          action_type: { type: "string", enum: ["create", "update", "delete", "send_email"] },
+          action_type: { type: "string", enum: ["create", "update", "delete", "send_email", "attach_file"] },
           details: {
             type: "object",
             properties: {
@@ -168,6 +168,8 @@ The workflow will NOT execute yet — the user sees a summary and confirms once.
               to: { type: "string" },
               subject: { type: "string" },
               body: { type: "string" },
+              column: { type: "string", description: "For attach_file: jsonb column name (default: documents)" },
+              document_label: { type: "string", description: "For attach_file: human-readable label/category for the document (e.g. 'Fatura', 'Recibo')" },
             },
           },
         },
