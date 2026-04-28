@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useMyTasks } from '@/components/secretaria/secretaria-shared';
@@ -19,7 +20,9 @@ type GroupKey = 'cliente' | 'projeto' | 'area';
 interface Batch {
   key: string;
   label: string;
-  tasks: any[];
+  scopeType: GroupKey;
+  scopeId: string | null; // null = "Sem contexto"
+  tasks: any[];           // user's open tasks in this scope
   totalMinutes: number;
   earliestDeadline: string | null;
   contextHref?: string;
@@ -93,12 +96,14 @@ export default function SecretariaBatches() {
       let key = '__sem_contexto__';
       let label = 'Sem contexto';
       let href: string | undefined;
+      let scopeId: string | null = null;
 
       if (groupBy === 'cliente') {
         if (t.client_id) {
           key = `c:${t.client_id}`;
           label = clients[t.client_id] || 'Cliente';
           href = `/hub/clientes/${t.client_id}`;
+          scopeId = t.client_id;
         } else {
           key = '__sem_cliente__';
           label = 'Sem cliente';
@@ -108,6 +113,7 @@ export default function SecretariaBatches() {
           key = `p:${t.project_id}`;
           label = projects[t.project_id] || 'Projeto';
           href = `/hub/projetos/${t.project_id}`;
+          scopeId = t.project_id;
         } else {
           key = '__sem_projeto__';
           label = 'Sem projeto';
@@ -117,11 +123,12 @@ export default function SecretariaBatches() {
         label = t.department
           ? t.department.charAt(0).toUpperCase() + t.department.slice(1)
           : 'Sem área';
+        scopeId = t.department || null;
       }
 
       let batch = map.get(key);
       if (!batch) {
-        batch = { key, label, tasks: [], totalMinutes: 0, earliestDeadline: null, contextHref: href };
+        batch = { key, label, scopeType: groupBy, scopeId, tasks: [], totalMinutes: 0, earliestDeadline: null, contextHref: href };
         map.set(key, batch);
       }
       batch.tasks.push(t);
@@ -219,9 +226,63 @@ export default function SecretariaBatches() {
   );
 }
 
+function priorityLabel(p?: string | null) {
+  return p === 'alta' ? 'P1' : p === 'media' ? 'P2' : p === 'baixa' ? 'P3' : '—';
+}
+
+/**
+ * Fetch ALL items related to the scope (not just user's open tasks):
+ * - tasks (any assignee, any status)
+ * - meetings (linked via project_id or client_id)
+ * - project deliverables (when scope = projeto)
+ */
+function useScopeFullContext(batch: Batch, enabled: boolean) {
+  return useQuery({
+    queryKey: ['batch-scope', batch.scopeType, batch.scopeId],
+    enabled: enabled && !!batch.scopeId,
+    queryFn: async () => {
+      const out: { tasks: any[]; meetings: any[]; deliverables: any[] } = { tasks: [], meetings: [], deliverables: [] };
+
+      // Tasks
+      let tQ = supabase.from('tasks').select('id, name, status, priority, deadline, assigned_to, project_id, client_id, department').order('deadline', { nullsFirst: false } as any);
+      if (batch.scopeType === 'cliente') tQ = tQ.eq('client_id', batch.scopeId!);
+      else if (batch.scopeType === 'projeto') tQ = tQ.eq('project_id', batch.scopeId!);
+      else tQ = tQ.eq('department', batch.scopeId!);
+      const { data: tasks } = await tQ;
+      out.tasks = tasks || [];
+
+      // Meetings (only meaningful for cliente / projeto)
+      if (batch.scopeType === 'cliente') {
+        const { data: meets } = await supabase.from('meetings').select('id, title, date_time, status').eq('client_id', batch.scopeId!).order('date_time', { ascending: false }).limit(50);
+        out.meetings = meets || [];
+      } else if (batch.scopeType === 'projeto') {
+        const { data: meets } = await supabase.from('meetings').select('id, title, date_time, status').eq('project_id', batch.scopeId!).order('date_time', { ascending: false }).limit(50);
+        out.meetings = meets || [];
+
+        // Deliverables for project
+        const { data: phases } = await supabase.from('project_phases').select('id, name').eq('project_id', batch.scopeId!);
+        const phaseIds = (phases || []).map((p: any) => p.id);
+        if (phaseIds.length > 0) {
+          const { data: dels } = await supabase.from('project_deliverables').select('id, name, status, planned_end, phase_id').in('phase_id', phaseIds).order('sort_order');
+          const phaseMap: Record<string, string> = {};
+          (phases || []).forEach((p: any) => { phaseMap[p.id] = p.name; });
+          out.deliverables = (dels || []).map((d: any) => ({ ...d, phase_name: phaseMap[d.phase_id] }));
+        }
+      }
+
+      return out;
+    },
+  });
+}
+
 function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const fullCtx = useScopeFullContext(batch, open);
+
+  const allTasks = fullCtx.data?.tasks || batch.tasks;
+  const meetings = fullCtx.data?.meetings || [];
+  const deliverables = fullCtx.data?.deliverables || [];
 
   return (
     <Card className="hq-card hq-transition">
@@ -230,11 +291,20 @@ function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base flex items-center gap-2">
               <Target className="h-4 w-4 text-primary shrink-0" />
-              <span className="truncate">{batch.label}</span>
+              {batch.contextHref ? (
+                <button
+                  className="truncate hover:underline text-left"
+                  onClick={() => navigate(batch.contextHref!)}
+                >
+                  {batch.label}
+                </button>
+              ) : (
+                <span className="truncate">{batch.label}</span>
+              )}
             </CardTitle>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <Badge variant="secondary" className="text-[10px]">
-                {batch.tasks.length} {batch.tasks.length === 1 ? 'tarefa' : 'tarefas'}
+                {batch.tasks.length} {batch.tasks.length === 1 ? 'tarefa minha' : 'tarefas minhas'}
               </Badge>
               <Badge variant="outline" className="text-[10px] gap-1">
                 <Clock className="h-3 w-3" />
@@ -258,31 +328,137 @@ function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 px-2">
               <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
-              {open ? 'Esconder tarefas' : 'Ver tarefas'}
+              {open ? 'Esconder contexto' : 'Expandir tudo deste contexto'}
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2 space-y-1">
-            {batch.tasks.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => navigate(`/hub/tarefas?task=${t.id}`)}
-                className="w-full flex items-center justify-between gap-2 text-left text-sm rounded-md px-2 py-1.5 hover:bg-muted/60 transition-colors"
-              >
-                <span className="truncate">{t.name}</span>
-                <div className="flex items-center gap-2 shrink-0">
-                  {t.priority && (
-                    <Badge variant="outline" className="text-[9px] py-0 px-1.5">
-                      {t.priority === 'alta' ? 'P1' : t.priority === 'media' ? 'P2' : 'P3'}
-                    </Badge>
-                  )}
-                  {t.deadline && (
-                    <span className="text-[10px] text-muted-foreground">
-                      {format(parseISO(t.deadline), 'd MMM', { locale: pt })}
-                    </span>
+          <CollapsibleContent className="mt-3 space-y-4">
+            {fullCtx.isLoading ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground py-3">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                A carregar contexto completo…
+              </div>
+            ) : (
+              <>
+                {/* Tasks table */}
+                <div>
+                  <p className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide">
+                    Tarefas ({allTasks.length})
+                  </p>
+                  {allTasks.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic">Sem tarefas.</p>
+                  ) : (
+                    <div className="rounded-md border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Tarefa</TableHead>
+                            <TableHead className="text-xs w-20">Estado</TableHead>
+                            <TableHead className="text-xs w-16">Prio</TableHead>
+                            <TableHead className="text-xs w-24">Deadline</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {allTasks.map((t: any) => (
+                            <TableRow
+                              key={t.id}
+                              className="cursor-pointer"
+                              onClick={() => navigate(`/hub/tarefas?task=${t.id}`)}
+                            >
+                              <TableCell className="text-sm font-medium">{t.name}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px]">
+                                  {t.status || '—'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px] py-0 px-1.5">
+                                  {priorityLabel(t.priority)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {t.deadline ? format(parseISO(t.deadline), 'd MMM yyyy', { locale: pt }) : '—'}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </div>
-              </button>
-            ))}
+
+                {/* Meetings */}
+                {meetings.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide">
+                      Reuniões ({meetings.length})
+                    </p>
+                    <div className="rounded-md border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Título</TableHead>
+                            <TableHead className="text-xs w-32">Data</TableHead>
+                            <TableHead className="text-xs w-24">Estado</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {meetings.map((m: any) => (
+                            <TableRow
+                              key={m.id}
+                              className="cursor-pointer"
+                              onClick={() => navigate(`/hub/reunioes/${m.id}`)}
+                            >
+                              <TableCell className="text-sm font-medium">{m.title}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {m.date_time ? format(parseISO(m.date_time), 'd MMM yyyy HH:mm', { locale: pt }) : '—'}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px]">{m.status || '—'}</Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Deliverables (project scope) */}
+                {deliverables.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide">
+                      Entregas ({deliverables.length})
+                    </p>
+                    <div className="rounded-md border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Entrega</TableHead>
+                            <TableHead className="text-xs w-32">Fase</TableHead>
+                            <TableHead className="text-xs w-24">Estado</TableHead>
+                            <TableHead className="text-xs w-24">Data</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {deliverables.map((d: any) => (
+                            <TableRow key={d.id}>
+                              <TableCell className="text-sm font-medium">{d.name}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">{d.phase_name || '—'}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px]">{d.status || '—'}</Badge>
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {d.planned_end ? format(parseISO(d.planned_end), 'd MMM', { locale: pt }) : '—'}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </CollapsibleContent>
         </Collapsible>
       </CardContent>

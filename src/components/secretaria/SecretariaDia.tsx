@@ -7,6 +7,7 @@ import { MyTasksTable } from './MyTasksTable';
 import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secretaria-shared';
 import { RoutineMonthCard } from './SecretariaRotinas';
 import { isToday, parseISO } from 'date-fns';
+import SecretariaBatches from './SecretariaBatches';
 
 export default function SecretariaDia() {
   const meetings = useMyMeetings();
@@ -29,6 +30,8 @@ export default function SecretariaDia() {
       </div>
 
       <MyTasksTable scope="today" />
+
+      <SecretariaBatches />
 
       {todayTime.length > 0 && (
         <Card>
