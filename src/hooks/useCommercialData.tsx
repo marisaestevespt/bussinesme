@@ -149,6 +149,28 @@ export function useCommercialData(year = currentYear) {
     } catch (e) { console.error('Sync monthly→planning failed', e); }
   };
 
+  const syncQuarterlyToPlanning = async (quarter: number, goalAmount: number) => {
+    try {
+      const objId = await getOrCreateCommercialObjective();
+      const period = `T${quarter}`;
+      const { data: existing } = await supabase
+        .from('planning_goals')
+        .select('id')
+        .eq('objective_id', objId)
+        .eq('period', period)
+        .eq('year', year)
+        .maybeSingle();
+      if (existing) {
+        await supabase.from('planning_goals').update({ target_value: String(goalAmount) } satisfies TablesUpdate<'planning_goals'>).eq('id', existing.id);
+      } else {
+        await supabase.from('planning_goals').insert({
+          objective_id: objId, period, period_type: 'trimestral', year,
+          target_value: String(goalAmount), status: 'por_iniciar',
+        } satisfies TablesInsert<'planning_goals'>);
+      }
+    } catch (e) { console.error('Sync quarterly→planning failed', e); }
+  };
+
   const upsertAnnualGoal = useMutation({
     mutationFn: async (goalAmount: number) => {
       const existing = annualGoal.data;
@@ -202,6 +224,7 @@ export function useCommercialData(year = currentYear) {
         const { error } = await supabase.from('commercial_quarterly_goals').insert({ year, quarter: qg.quarter, goal_amount: qg.goal_amount });
         if (error) throw error;
       }
+      await syncQuarterlyToPlanning(qg.quarter, qg.goal_amount);
     },
     onSuccess: invalidateAll,
   });
