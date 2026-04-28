@@ -31,6 +31,10 @@ import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { monthlyCapacity } from '@/lib/memberCapacity';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { getClientStatusInfo, getClientStatusColor, CLIENT_STATUSES } from '@/lib/clientStatus';
+import { getSaleStatusInfo, getEffectiveSaleStatus } from '@/lib/saleStatus';
+import { MonthDetailTasksCard } from './MonthDetailTasksCard';
+import { Search } from 'lucide-react';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -74,6 +78,19 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [generatingReport, setGeneratingReport] = useState(false);
   const { upsertLead, deleteLead } = useCrmData();
 
+  // Inline detail sheet (events / content / sales) — keep user on this page
+  const [inlineDetail, setInlineDetail] = useState<{
+    title: string;
+    kind: 'event' | 'meeting' | 'content' | 'sale' | 'client';
+    id: string;
+    fields: { label: string; value: React.ReactNode }[];
+    openHref?: string;
+  } | null>(null);
+
+  // CRM list/board view toggle
+  const [crmView, setCrmView] = useState<'board' | 'list'>('board');
+  const [crmSearch, setCrmSearch] = useState('');
+
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
   const salesActionsQ = useQuery({ queryKey: ['md-sales-actions', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales_actions').select('*'); return (data || []).filter((a) => { if (!a.start_date) return false; const d = parseISO(a.start_date); return d >= range.start && d <= range.end; }); }});
@@ -86,6 +103,8 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const productsQ = useQuery({ queryKey: ['md-products'], queryFn: async () => { const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client, ticket, status'); return data || []; }});
   const timeEntriesQ = useQuery({ queryKey: ['md-time', year, monthNum], queryFn: async () => { const { data } = await supabase.from('time_entries').select('*').eq('entry_year', year).eq('entry_month', monthNum); return data || []; }});
   const commMonthGoalQ = useQuery({ queryKey: ['md-comm-goal', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_monthly_goals').select('*').eq('year', year).eq('month', monthNum).maybeSingle(); return data; }});
+  const commQuarterGoalQ = useQuery({ queryKey: ['md-comm-q-goal', year, Math.ceil(monthNum/3)], queryFn: async () => { const { data } = await supabase.from('commercial_quarterly_goals').select('*').eq('year', year).eq('quarter', Math.ceil(monthNum/3)).maybeSingle(); return data; }});
+  const yearSalesQ = useQuery({ queryKey: ['md-year-sales', year], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('product, sale_month, invoice_total, base_value, status').eq('sale_year', year); return data || []; }});
   const commProdGoalQ = useQuery({ queryKey: ['md-comm-prod-goals', year], queryFn: async () => { const { data } = await supabase.from('commercial_product_goals').select('*').eq('year', year).order('sort_order'); return data || []; }});
   const npsQ = useQuery({ queryKey: ['md-nps', year, monthNum], queryFn: async () => { const { data } = await supabase.from('client_nps_records').select('*'); return data || []; }});
   const teamQ = useQuery({ queryKey: ['md-team'], queryFn: async () => { const { data } = await supabase.from('team_members').select('*').eq('status', 'ativo'); return data || []; }});
@@ -251,6 +270,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const prodSalesData = useMemo(() => {
     const activeProducts = products.filter((p) => p.status !== 'off');
     const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
+    const yearSales = yearSalesQ.data || [];
     return activeProducts.map((prod) => {
       const prodName = normalize(prod.name);
       const prodSales = sales.filter((s) => {
@@ -269,6 +289,14 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       const goalAmt = Number(pg?.goal_amount || 0);
       const pct = goalAmt > 0 ? Math.round((totalFat / goalAmt) * 100) : 0;
       const ticketValue = prod.ticket ? parseFloat(prod.ticket.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
+      // Mini sparkline data: revenue per month (1..12) for this product
+      const monthlySeries = Array.from({ length: 12 }, (_, i) => {
+        const m = i + 1;
+        return sumRevenue(yearSales.filter((s: any) => {
+          const sn = normalize(s.product || '');
+          return s.sale_month === m && (sn === prodName || sn.includes(prodName) || prodName.includes(sn));
+        }));
+      });
       return {
         product: prod.name,
         numVendas: prodSales.length,
@@ -276,9 +304,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         goalAmount: goalAmt,
         totalFat,
         pct,
+        monthlySeries,
       };
     });
-  }, [commProdGoals, sales, products]);
+  }, [commProdGoals, sales, products, yearSalesQ.data]);
 
   // ── Calendar helper ──
   function renderCalendarGrid(items: any[], getDate: (item: any) => Date | null, renderItem: (item: any) => React.ReactNode) {
@@ -348,7 +377,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <div className="flex gap-1 ml-auto">
               <Button size="sm" variant={objTab === 'metas' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('metas')}>Metas do mês</Button>
               <Button size="sm" variant={objTab === 'objetivos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('objetivos')}>Objetivos anuais</Button>
-              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setObjDialogOpen(true)}><Plus className="h-3 w-3" /> Novo objetivo</Button>
             </div>
           </div>
         </CardHeader>
@@ -417,14 +445,32 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Agenda ME & Calendários</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/agenda')}><Plus className="h-3 w-3" /> Novo Evento</Button>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setInlineDetail({
+              title: 'Novo Evento',
+              kind: 'event',
+              id: 'new',
+              fields: [{ label: 'Acção', value: 'Para criar um evento, abre a página da Agenda.' }],
+              openHref: '/hub/agenda',
+            })}><Plus className="h-3 w-3" /> Novo Evento</Button>
           </div>
         </CardHeader>
         <CardContent>
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-accent-violet/10 text-accent-violet hover:bg-accent-violet/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/hub/agenda`)}>{e.title}</div>
+            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-accent-violet/10 text-accent-violet hover:bg-accent-violet/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => setInlineDetail({
+              title: e.title || 'Sem título',
+              kind: e._type === 'meeting' ? 'meeting' : 'event',
+              id: e.id,
+              fields: [
+                { label: 'Data', value: e.start_date ? format(parseISO(e.start_date), "dd/MM/yyyy 'às' HH:mm") : '—' },
+                ...(e.status ? [{ label: 'Status', value: <Badge variant="secondary" className="text-[10px]">{e.status}</Badge> }] : []),
+                ...(e.location ? [{ label: 'Local', value: e.location }] : []),
+                ...(e.meeting_url ? [{ label: 'Link', value: <a href={e.meeting_url} target="_blank" rel="noreferrer" className="text-primary underline">Abrir reunião</a> }] : []),
+                ...(e.description ? [{ label: 'Descrição', value: <span className="text-xs whitespace-pre-wrap">{e.description}</span> }] : []),
+              ],
+              openHref: e._type === 'meeting' ? `/hub/reunioes/${e.id}` : '/hub/agenda',
+            })}>{e.title}</div>
           )}
         </CardContent>
       </Card>
@@ -435,25 +481,40 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardContent className="space-y-5">
           {/* Meta estabelecida */}
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2">Meta estabelecida</p>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Metas — Trimestre & Mês</p>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Trimestre</TableHead><TableHead>Mês</TableHead><TableHead>Intervalo</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Até agora</TableHead><TableHead>Análise</TableHead>
+                  <TableHead>Período</TableHead><TableHead>Intervalo</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Atual</TableHead><TableHead className="w-40">Progresso</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
+                  {(() => {
+                    const qGoal = Number(commQuarterGoalQ.data?.goal_amount || 0);
+                    const ys = yearSalesQ.data || [];
+                    const qStart = (quarter - 1) * 3 + 1;
+                    const qEnd = qStart + 2;
+                    const qActual = sumRevenue(ys.filter((s: any) => s.sale_month >= qStart && s.sale_month <= qEnd));
+                    const qPct = qGoal > 0 ? Math.round((qActual / qGoal) * 100) : 0;
+                    return (
+                      <TableRow>
+                        <TableCell className="font-medium">T{quarter}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{MONTHS[(quarter-1)*3]} → {MONTHS[(quarter-1)*3+2]}</TableCell>
+                        <TableCell className="text-right font-medium">{qGoal > 0 ? `${qGoal.toLocaleString('pt-PT')}€` : '—'}</TableCell>
+                        <TableCell className="text-right font-medium">{qActual.toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell><div className="flex items-center gap-2"><Progress value={Math.min(qPct, 100)} className="h-1.5 flex-1" /><span className="text-[10px] text-muted-foreground w-9 text-right">{qPct}%</span></div></TableCell>
+                      </TableRow>
+                    );
+                  })()}
                   <TableRow className="cursor-pointer hover:bg-muted/60" onClick={() => { setGoalEditValue(commGoal ? String(commGoal.goal_amount) : ''); setGoalEditOpen(true); }}>
-                    <TableCell className="">T{quarter}</TableCell>
-                    <TableCell className="">{monthName}</TableCell>
-                    <TableCell className="">{range.label}</TableCell>
+                    <TableCell className="font-medium">{monthName}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{range.label}</TableCell>
                     <TableCell className="text-right font-medium">{commGoal ? `${Number(commGoal.goal_amount).toLocaleString('pt-PT')}€` : '—'}</TableCell>
                     <TableCell className="text-right font-medium">{totalInvoiced.toLocaleString('pt-PT')}€</TableCell>
-                    <TableCell className="">
-                      {commGoal ? (
-                        <span className="text-muted-foreground">
-                          Progresso: {Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100)}% — Faturado: {totalInvoiced.toLocaleString('pt-PT')}€ de {Number(commGoal.goal_amount).toLocaleString('pt-PT')}€
-                        </span>
-                      ) : <span className="text-muted-foreground">Sem meta definida — clica para adicionar</span>}
+                    <TableCell>
+                      {commGoal ? (() => {
+                        const p = Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100);
+                        return <div className="flex items-center gap-2"><Progress value={Math.min(p, 100)} className="h-1.5 flex-1" /><span className="text-[10px] text-muted-foreground w-9 text-right">{p}%</span></div>;
+                      })() : <span className="text-[10px] text-muted-foreground">Clica para definir</span>}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -489,21 +550,39 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             {vendasTab === 'goal' ? (
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Produto</TableHead><TableHead className="text-right">Nº Vendas</TableHead><TableHead className="text-right">Preço</TableHead><TableHead className="text-right">Faturação prevista</TableHead><TableHead className="text-right">Faturação total</TableHead><TableHead>Análise</TableHead>
+                  <TableHead>Produto</TableHead><TableHead className="text-right">Nº</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Real</TableHead><TableHead className="w-40">Progresso</TableHead><TableHead>Tendência (ano)</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {prodSalesData.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem produtos ativos.</TableCell></TableRow>
-                  ) : prodSalesData.map(p => (
-                    <TableRow key={p.product}>
-                      <TableCell className="text-sm font-medium">{p.product}</TableCell>
-                      <TableCell className="text-right">{p.numVendas}</TableCell>
-                      <TableCell className="text-right">{Number(p.price).toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-right">{p.goalAmount.toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-right">{p.totalFat.toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-muted-foreground">{p.goalAmount > 0 ? `Em progresso (${p.pct}%)` : 'Sem previsão definida'}</TableCell>
-                    </TableRow>
-                  ))}
+                  ) : prodSalesData.map(p => {
+                    const max = Math.max(...p.monthlySeries, 1);
+                    return (
+                      <TableRow key={p.product}>
+                        <TableCell className="text-sm font-medium">{p.product}</TableCell>
+                        <TableCell className="text-right">{p.numVendas}</TableCell>
+                        <TableCell className="text-right">{p.goalAmount.toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell className="text-right font-medium">{p.totalFat.toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell>
+                          {p.goalAmount > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <Progress value={Math.min(p.pct, 100)} className="h-1.5 flex-1" />
+                              <span className="text-[10px] text-muted-foreground w-9 text-right">{p.pct}%</span>
+                            </div>
+                          ) : <span className="text-[10px] text-muted-foreground">Sem meta</span>}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-end gap-[2px] h-7" title="Vendas mensais (1-12)">
+                            {p.monthlySeries.map((v, i) => {
+                              const h = Math.max(2, Math.round((v / max) * 28));
+                              const isCur = i + 1 === monthNum;
+                              return <div key={i} className={cn('w-1.5 rounded-sm', isCur ? 'bg-primary' : v > 0 ? 'bg-primary/40' : 'bg-muted')} style={{ height: h }} />;
+                            })}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             ) : (
@@ -514,15 +593,30 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 <TableBody>
                   {sales.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
-                  ) : sales.map((sl) => (
-                    <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/comercial/vendas/${sl.id}`)}>
-                      <TableCell className="">{sl.sale_id}</TableCell>
-                      <TableCell className="text-sm">{sl.client || '—'}</TableCell>
-                      <TableCell className="text-sm">{sl.product || '—'}</TableCell>
-                      <TableCell className="text-sm text-right">{Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
-                    </TableRow>
-                  ))}
+                  ) : sales.map((sl) => {
+                    const eff = getEffectiveSaleStatus(sl.status, sl.payment_date);
+                    const info = getSaleStatusInfo(eff);
+                    return (
+                      <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setInlineDetail({
+                        title: `${sl.sale_id} — ${sl.client || ''}`,
+                        kind: 'sale', id: sl.id,
+                        fields: [
+                          { label: 'Cliente', value: sl.client || '—' },
+                          { label: 'Produto', value: sl.product || '—' },
+                          { label: 'Valor', value: `${Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€` },
+                          { label: 'Data pagamento', value: sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—' },
+                          { label: 'Status', value: <Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge> },
+                        ],
+                        openHref: `/hub/comercial/vendas/${sl.id}`,
+                      })}>
+                        <TableCell>{sl.sale_id}</TableCell>
+                        <TableCell className="text-sm">{sl.client || '—'}</TableCell>
+                        <TableCell className="text-sm">{sl.product || '—'}</TableCell>
+                        <TableCell className="text-sm text-right">{Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell><Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge></TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
@@ -575,7 +669,18 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             contentTab === 'calendario' ? allContent : allContent.filter((c) => c.content_channels?.some((cc) => cc.channel_id === contentTab)),
             (c: any) => c.scheduled_at ? parseISO(c.scheduled_at) : null,
-            (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => navigate(`/hub/marketing/conteudos/${c.id}`)}>{c.title}</div>
+            (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => setInlineDetail({
+              title: c.title || 'Sem título',
+              kind: 'content', id: c.id,
+              fields: [
+                { label: 'Agendado', value: c.scheduled_at ? format(parseISO(c.scheduled_at), 'dd/MM/yyyy HH:mm') : '—' },
+                ...(c.content_type ? [{ label: 'Tipo', value: c.content_type }] : []),
+                ...(c.status ? [{ label: 'Status', value: <Badge variant="secondary" className="text-[10px]">{c.status}</Badge> }] : []),
+                ...(c.product_name ? [{ label: 'Produto', value: c.product_name }] : []),
+                ...(c.notes ? [{ label: 'Notas', value: <span className="text-xs whitespace-pre-wrap">{c.notes}</span> }] : []),
+              ],
+              openHref: `/hub/marketing/conteudos/${c.id}`,
+            })}>{c.title}</div>
           )}
         </CardContent>
       </Card>
@@ -583,12 +688,48 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       {/* ═══ SECTION 5: CRM ═══ */}
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-sm">CRM</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/comercial/crm')}><Plus className="h-3 w-3" /> Nova Lead</Button>
+            <div className="flex gap-1 ml-auto items-center">
+              <div className="flex gap-1">
+                <Button size="sm" variant={crmView === 'board' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setCrmView('board')}>Board</Button>
+                <Button size="sm" variant={crmView === 'list' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setCrmView('list')}>Lista</Button>
+              </div>
+              {crmView === 'list' && (
+                <div className="relative">
+                  <Search className="h-3 w-3 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input value={crmSearch} onChange={e => setCrmSearch(e.target.value)} placeholder="Pesquisar..." className="h-6 text-[10px] pl-6 w-40" />
+                </div>
+              )}
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => { setSelectedLead({ id: null, status: 'novo', name: '' } as any); setLeadSheetOpen(true); }}><Plus className="h-3 w-3" /> Nova Lead</Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
+          {crmView === 'list' ? (
+            (() => {
+              const filtered = monthLeads.filter(l => !crmSearch || (l.name || '').toLowerCase().includes(crmSearch.toLowerCase()) || (l.email || '').toLowerCase().includes(crmSearch.toLowerCase()));
+              return filtered.length === 0 ? (
+                <EmptyHint>Sem leads correspondentes.</EmptyHint>
+              ) : (
+                <Table>
+                  <TableHeader><TableRow>
+                    <TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Status</TableHead><TableHead>Próximo follow-up</TableHead>
+                  </TableRow></TableHeader>
+                  <TableBody>
+                    {filtered.map(l => (
+                      <TableRow key={l.id} className="cursor-pointer hover:bg-muted/60" onClick={() => { setSelectedLead(l); setLeadSheetOpen(true); }}>
+                        <TableCell className="text-sm font-medium">{l.name}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{l.email || '—'}</TableCell>
+                        <TableCell><Badge variant="outline" className={cn('text-[10px]', CRM_COLORS[l.status])}>{CRM_LABELS[l.status] || l.status}</Badge></TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{l.next_followup ? format(parseISO(l.next_followup), 'dd/MM/yyyy') : '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              );
+            })()
+          ) : (
           <div className="overflow-x-auto pb-2">
             <div className="flex gap-2" style={{ minWidth: CRM_COLUMNS.length * 180 }}>
               {CRM_COLUMNS.map(col => {
@@ -636,6 +777,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               })}
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
 
@@ -644,7 +786,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2 flex-wrap">
             <CardTitle className="text-sm">Clientes Ativos & Renovações</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/clientes')}><Plus className="h-3 w-3" /> Novo Cliente</Button>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setInlineDetail({ title: 'Novo Cliente', kind: 'client', id: 'new', fields: [{ label: 'Acção', value: 'Para criar um cliente, abre a página Clientes.' }], openHref: '/hub/clientes' })}><Plus className="h-3 w-3" /> Novo Cliente</Button>
             <div className="flex gap-1 ml-auto">
               <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos ({activeClients.length})</Button>
               <Button size="sm" variant={clientTab === 'pausados' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('pausados')}>Em Pausa ({pausedClients.length})</Button>
@@ -653,68 +795,49 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           </div>
         </CardHeader>
         <CardContent>
-          {clientTab === 'ativos' ? (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {activeClients.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
-                ) : activeClients.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="">{c.client_id}</TableCell>
-                    <TableCell className="">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="default" className="text-xs">{c.status === 'em_onboarding' ? 'Em onboarding' : 'Ativo'}</Badge></TableCell>
-                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="">{c.email || '—'}</TableCell>
-                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : clientTab === 'pausados' ? (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {pausedClients.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes em pausa.</TableCell></TableRow>
-                ) : pausedClients.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="">{c.client_id}</TableCell>
-                    <TableCell className="">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="secondary" className="bg-warning/15 text-warning text-xs">Pausado</Badge></TableCell>
-                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="">{c.email || '—'}</TableCell>
-                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead><TableHead>Fim de Ciclo</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {endingClients.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem clientes a terminar este mês.</TableCell></TableRow>
-                ) : endingClients.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="">{c.client_id}</TableCell>
-                    <TableCell className="">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="secondary" className="text-xs">{c.status}</Badge></TableCell>
-                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="">{c.email || '—'}</TableCell>
-                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
-                    <TableCell><Badge variant="destructive" className="text-xs">{c.end_of_cycle}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          {(() => {
+            const list = clientTab === 'ativos' ? activeClients : clientTab === 'pausados' ? pausedClients : endingClients;
+            const showEnd = clientTab === 'terminar';
+            const emptyMsg = clientTab === 'ativos' ? 'Sem clientes ativos.' : clientTab === 'pausados' ? 'Sem clientes em pausa.' : 'Sem clientes a terminar este mês.';
+            return (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>{showEnd && <TableHead>Fim de Ciclo</TableHead>}
+                </TableRow></TableHeader>
+                <TableBody>
+                  {list.length === 0 ? (
+                    <TableRow><TableCell colSpan={showEnd ? 7 : 6} className="text-center text-sm text-muted-foreground py-4">{emptyMsg}</TableCell></TableRow>
+                  ) : list.map((c) => {
+                    const info = getClientStatusInfo(c.status);
+                    return (
+                      <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setInlineDetail({
+                        title: c.full_name,
+                        kind: 'client', id: c.id,
+                        fields: [
+                          { label: 'ID', value: c.client_id },
+                          { label: 'Status', value: <Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge> },
+                          { label: 'Email', value: c.email || '—' },
+                          { label: 'Whatsapp', value: c.whatsapp || '—' },
+                          { label: 'Produto atual', value: c.current_product || '—' },
+                          { label: 'Início', value: c.start_date || '—' },
+                          ...(c.end_of_cycle ? [{ label: 'Fim de Ciclo', value: c.end_of_cycle }] : []),
+                        ],
+                        openHref: `/hub/clientes/${c.id}`,
+                      })}>
+                        <TableCell>{c.client_id}</TableCell>
+                        <TableCell>{c.start_date || '—'}</TableCell>
+                        <TableCell><Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge></TableCell>
+                        <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                        <TableCell>{c.email || '—'}</TableCell>
+                        <TableCell>{c.whatsapp || '—'}</TableCell>
+                        {showEnd && <TableCell><Badge variant="outline" className="text-[10px] border-warning/40 text-warning">{c.end_of_cycle || '—'}</Badge></TableCell>}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            );
+          })()}
         </CardContent>
       </Card>
 
@@ -723,7 +846,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Pagamentos de Clientes</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/comercial/vendas')}><Plus className="h-3 w-3" /> Nova Venda</Button>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setInlineDetail({ title: 'Nova Venda', kind: 'sale', id: 'new', fields: [{ label: 'Acção', value: 'Para registar uma venda, abre o módulo Comercial.' }], openHref: '/hub/comercial/vendas' })}><Plus className="h-3 w-3" /> Nova Venda</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -735,77 +858,41 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <TableBody>
               {sales.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem recebimentos registados.</TableCell></TableRow>
-              ) : sales.map((sl) => (
-                <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/comercial/vendas/${sl.id}`)}>
-                  <TableCell className="">{sl.sale_id}</TableCell>
-                  <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
-                  <TableCell className="">{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                  <TableCell className="">{sl.description || '—'}</TableCell>
-                  <TableCell className="text-right">{Number(sl.base_value || 0).toLocaleString('pt-PT')}€</TableCell>
-                  <TableCell className="">{sl.product || '—'}</TableCell>
-                  <TableCell className="">{sl.client || '—'}</TableCell>
-                </TableRow>
-              ))}
+              ) : sales.map((sl) => {
+                const eff = getEffectiveSaleStatus(sl.status, sl.payment_date);
+                const info = getSaleStatusInfo(eff);
+                return (
+                  <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setInlineDetail({
+                    title: `${sl.sale_id} — ${sl.client || ''}`,
+                    kind: 'sale', id: sl.id,
+                    fields: [
+                      { label: 'Cliente', value: sl.client || '—' },
+                      { label: 'Produto', value: sl.product || '—' },
+                      { label: 'Valor base', value: `${Number(sl.base_value || 0).toLocaleString('pt-PT')}€` },
+                      { label: 'Total c/IVA', value: `${Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€` },
+                      { label: 'Data pagamento', value: sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—' },
+                      { label: 'Descrição', value: sl.description || '—' },
+                      { label: 'Status', value: <Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge> },
+                    ],
+                    openHref: `/hub/comercial/vendas/${sl.id}`,
+                  })}>
+                    <TableCell>{sl.sale_id}</TableCell>
+                    <TableCell><Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge></TableCell>
+                    <TableCell>{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                    <TableCell>{sl.description || '—'}</TableCell>
+                    <TableCell className="text-right">{Number(sl.base_value || 0).toLocaleString('pt-PT')}€</TableCell>
+                    <TableCell>{sl.product || '—'}</TableCell>
+                    <TableCell>{sl.client || '—'}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
       {/* ═══ SECTION 7B: Visão de Tarefas ═══ */}
-      {(() => {
-        const allTasks = (tasksQ.data || []) as any[];
-        const monthStart = `${year}-${String(monthNum).padStart(2,'0')}-01`;
-        const nextM = monthNum === 12 ? 1 : monthNum + 1;
-        const nextY = monthNum === 12 ? year + 1 : year;
-        const monthEnd = `${nextY}-${String(nextM).padStart(2,'0')}-01`;
-
-        const noDate = allTasks.filter(t => !t.deadline && isTaskOpen(t));
-        const thisMonth = allTasks.filter(t => t.deadline && t.deadline >= monthStart && t.deadline < monthEnd);
-        const pendingPrev = allTasks.filter(t => t.deadline && t.deadline < monthStart && isTaskOpen(t));
-
-        const renderList = (items: any[], emptyMsg: string) => items.length === 0
-          ? <p className="text-xs text-muted-foreground py-2">{emptyMsg}</p>
-          : (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Tarefa</TableHead><TableHead>Prioridade</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {items.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell><Badge variant={t.priority === 'alta' ? 'destructive' : 'secondary'} className="text-[10px]">{t.priority}</Badge></TableCell>
-                    <TableCell><Badge variant={isTaskDone(t) ? 'default' : 'outline'} className="text-[10px]">{t.status}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{t.deadline || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          );
-
-        return (
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Tarefas</CardTitle>
-                <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/tarefas')}><Plus className="h-3 w-3" /> Nova Tarefa</Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="month" className="w-full">
-                <TabsList className="mb-2">
-                  <TabsTrigger value="no-date">Sem Data ({noDate.length})</TabsTrigger>
-                  <TabsTrigger value="month">Do Mês ({thisMonth.length})</TabsTrigger>
-                  <TabsTrigger value="pending">Pendentes Anterior ({pendingPrev.length})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="no-date">{renderList(noDate, 'Nenhuma tarefa sem data.')}</TabsContent>
-                <TabsContent value="month">{renderList(thisMonth, 'Nenhuma tarefa para este mês.')}</TabsContent>
-                <TabsContent value="pending">{renderList(pendingPrev, 'Sem tarefas pendentes de meses anteriores.')}</TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        );
-      })()}
+      <MonthDetailTasksCard year={year} monthNum={monthNum} tasks={monthTasks} team={team} />
 
       {/* ═══ SECTION 8: Revisão Operacional ═══ */}
       <Card>
@@ -1214,6 +1301,34 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
           });
         }}
       />
+
+      {/* ═══ Inline Detail Sheet (events / content / sales / clients) ═══ */}
+      <Sheet open={!!inlineDetail} onOpenChange={v => { if (!v) setInlineDetail(null); }}>
+        <SheetContent side="right" className="overflow-y-auto sm:max-w-md">
+          {inlineDetail && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="text-base">{inlineDetail.title}</SheetTitle>
+                <SheetDescription className="text-[10px] uppercase tracking-wider">{inlineDetail.kind}</SheetDescription>
+              </SheetHeader>
+              <Separator className="my-4" />
+              <div className="space-y-3">
+                {inlineDetail.fields.map((f, i) => (
+                  <div key={i} className="flex items-start justify-between gap-3">
+                    <span className="text-xs text-muted-foreground">{f.label}</span>
+                    <span className="text-sm text-right font-medium">{f.value}</span>
+                  </div>
+                ))}
+                {inlineDetail.openHref && (
+                  <Button variant="outline" size="sm" className="w-full mt-4 gap-2" onClick={() => navigate(inlineDetail.openHref!)}>
+                    <ExternalLink className="h-3 w-3" /> Abrir página completa
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
