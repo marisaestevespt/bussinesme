@@ -1,4 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+type SupabaseAdmin = ReturnType<typeof createClient>;
+type Row = Record<string, unknown>;
+
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
 
 const corsHeaders = {
@@ -56,7 +60,7 @@ Deno.serve(async (req) => {
       const result = await fn();
       if (result) results.push(result);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err);
       results.push(`[ERROR] ${name}: ${msg}`);
       console.error(`Section "${name}" failed:`, msg);
     }
@@ -385,11 +389,11 @@ Deno.serve(async (req) => {
     if (activeClients && activeClients.length > 0) {
       const { data: allProducts } = await supabase.from("products").select("id, name");
       const prodNameToId = new Map<string, string>();
-      (allProducts || []).forEach((p: any) => prodNameToId.set(p.name, p.id));
+      (allProducts || []).forEach((p: Row) => prodNameToId.set(p.name, p.id));
       const productIds = [...new Set([...prodNameToId.values()])];
       const { data: npsConfigs } = await supabase.from("product_nps_config").select("product_id, cadence_days").in("product_id", productIds);
       const configMap = new Map<string, number>();
-      (npsConfigs || []).forEach((c: any) => configMap.set(c.product_id, c.cadence_days));
+      (npsConfigs || []).forEach((c: Row) => configMap.set(c.product_id, c.cadence_days));
       for (const client of activeClients) {
         const productId = prodNameToId.get(client.current_product || "");
         if (!productId) continue;
@@ -423,13 +427,13 @@ Deno.serve(async (req) => {
       .lt("date_time", tomorrowStr + "T00:00:00")
       .not("status", "eq", "terminada");
     if (!todayMeetings || todayMeetings.length === 0) return null;
-    const meetingIds = todayMeetings.map((m: any) => m.id);
+    const meetingIds = todayMeetings.map((m: Row) => m.id);
     const { data: participants } = await supabase.from("meeting_participants").select("meeting_id, profile_id").in("meeting_id", meetingIds);
-    const profileIds = [...new Set((participants || []).map((p: any) => p.profile_id))];
+    const profileIds = [...new Set((participants || []).map((p: Row) => p.profile_id))];
     const { data: profileUsers } = profileIds.length > 0
       ? await supabase.from("profiles").select("id, user_id").in("id", profileIds)
       : { data: [] };
-    const profileToUser = new Map((profileUsers || []).map((p: any) => [p.id, p.user_id]));
+    const profileToUser = new Map((profileUsers || []).map((p: Row) => [p.id, p.user_id]));
     let meetingNotifs = 0;
     for (const meeting of todayMeetings) {
       const meetingTime = new Date(meeting.date_time);
@@ -439,7 +443,7 @@ Deno.serve(async (req) => {
       const extra = meeting.client_name ? ` — ${meeting.client_name}` : meeting.project_name ? ` — ${meeting.project_name}` : "";
       const userIds = new Set<string>();
       if (ownerId) userIds.add(ownerId);
-      (participants || []).filter((p: any) => p.meeting_id === meeting.id).forEach((p: any) => {
+      (participants || []).filter((p: Row) => p.meeting_id === meeting.id).forEach((p: Row) => {
         const uid = profileToUser.get(p.profile_id);
         if (uid) userIds.add(uid);
       });
@@ -535,11 +539,11 @@ Deno.serve(async (req) => {
       .eq("deadline", todayStr)
       .not("status", "in", '("done","concluida","cancelada")');
     if (!missedRoutineTasks || missedRoutineTasks.length === 0) return null;
-    const routineIds = [...new Set(missedRoutineTasks.map((t: any) => t.routine_id).filter(Boolean))];
+    const routineIds = [...new Set(missedRoutineTasks.map((t: Row) => t.routine_id).filter(Boolean))];
     const { data: routines } = routineIds.length > 0
       ? await supabase.from("planning_routines").select("id, title, role_function, created_by").in("id", routineIds)
       : { data: [] };
-    const routineMap = new Map((routines || []).map((r: any) => [r.id, r]));
+    const routineMap = new Map((routines || []).map((r: Row) => [r.id, r]));
     let routineAlerts = 0;
     for (const t of missedRoutineTasks) {
       const routine = routineMap.get(t.routine_id);
@@ -597,13 +601,13 @@ Deno.serve(async (req) => {
     const { data: bsData } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt, has_accountant").limit(1).maybeSingle();
     if (!bsData) return null;
     // When there's an accountant, fiscal tasks are NOT auto-created — accountant manages them internally.
-    if ((bsData as any).has_accountant === true) return null;
+    if ((bsData as Row).has_accountant === true) return null;
     const fiscalConfig = {
-      taxIvaRegime: (bsData as any).tax_iva_regime || "trimestral",
-      taxIrsRegime: (bsData as any).tax_irs_regime || "simplificado",
-      ssExempt: (bsData as any).ss_exempt ?? false,
-      ivaExempt: (bsData as any).iva_exempt ?? false,
-      hasAccountant: (bsData as any).has_accountant ?? false,
+      taxIvaRegime: (bsData as Row).tax_iva_regime || "trimestral",
+      taxIrsRegime: (bsData as Row).tax_irs_regime || "simplificado",
+      ssExempt: (bsData as Row).ss_exempt ?? false,
+      ivaExempt: (bsData as Row).iva_exempt ?? false,
+      hasAccountant: (bsData as Row).has_accountant ?? false,
     };
     const deadlines = computeFiscalDeadlinesEdge(currentYear2, fiscalConfig);
     let fiscalTasksCreated = 0;

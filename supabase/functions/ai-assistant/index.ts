@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
+type SupabaseAdmin = ReturnType<typeof createClient>;
+type Row = Record<string, unknown>;
+
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -986,7 +990,7 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       }
 
       // Portal-specific activity from notifications
-      const portalActivity = (notifRes.data || []).filter((n: any) =>
+      const portalActivity = (notifRes.data || []).filter((n: Row) =>
         n.type?.includes("portal") ||
         n.title?.includes("portal") || n.title?.includes("Portal") ||
         n.title?.includes("submeteu") || n.title?.includes("Respostas") ||
@@ -1001,10 +1005,10 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       }
 
       // Meetings with portal notes (client requested changes)
-      const meetingsWithPortalNotes = (meetingsRes.data || []).filter((m: any) => m.portal_notes);
+      const meetingsWithPortalNotes = (meetingsRes.data || []).filter((m: Row) => m.portal_notes);
 
       // Meetings confirmed/changed during the period (from updated_at query)
-      const meetingStatusChanges = (meetingsUpdatedRes.data || []).map((m: any) => ({
+      const meetingStatusChanges = (meetingsUpdatedRes.data || []).map((m: Row) => ({
         titulo: m.title,
         status: m.status,
         cliente: m.client_name,
@@ -1033,13 +1037,13 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
           .select("id, client_id")
           .in("id", portalIds);
         if (portalClients && portalClients.length > 0) {
-          const clientIds = portalClients.map((p: any) => p.client_id);
+          const clientIds = portalClients.map((p: Row) => p.client_id);
           const { data: clients } = await supabaseAdmin
             .from("clients")
             .select("id, full_name")
             .in("id", clientIds);
-          const clientMap = Object.fromEntries((clients || []).map((c: any) => [c.id, c.full_name]));
-          const portalClientMap = Object.fromEntries((portalClients || []).map((p: any) => [p.id, p.client_id]));
+          const clientMap = Object.fromEntries((clients || []).map((c: Row) => [c.id, c.full_name]));
+          const portalClientMap = Object.fromEntries((portalClients || []).map((p: Row) => [p.id, p.client_id]));
           portalQuestionsSummary = portalIds.map(pid => ({
             portal_id: pid,
             cliente: clientMap[portalClientMap[pid]] || "Desconhecido",
@@ -1053,20 +1057,20 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       const portalVisits = portalVisitsRes.data || [];
       let portalVisitsSummary: Array<{ cliente: string; ultima_visita: string }> = [];
       if (portalVisits.length > 0) {
-        const visitClientIds = portalVisits.map((v: any) => v.client_id);
+        const visitClientIds = portalVisits.map((v: Row) => v.client_id);
         const { data: visitClients } = await supabaseAdmin
           .from("clients")
           .select("id, full_name")
           .in("id", visitClientIds);
-        const visitClientMap = Object.fromEntries((visitClients || []).map((c: any) => [c.id, c.full_name]));
-        portalVisitsSummary = portalVisits.map((v: any) => ({
+        const visitClientMap = Object.fromEntries((visitClients || []).map((c: Row) => [c.id, c.full_name]));
+        portalVisitsSummary = portalVisits.map((v: Row) => ({
           cliente: visitClientMap[v.client_id] || "Desconhecido",
           ultima_visita: v.last_visit_at,
         }));
       }
 
       // Overdue tasks with deadline before end of period
-      const overdueTasks = (tasksOverdueRes.data || []).filter((t: any) => t.deadline && new Date(t.deadline) < new Date(endExcl));
+      const overdueTasks = (tasksOverdueRes.data || []).filter((t: Row) => t.deadline && new Date(t.deadline) < new Date(endExcl));
       const newTasksCreated = routinesRes.data || [];
 
       // ═══════════════════════════════════════════════════════════════
@@ -1082,16 +1086,16 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         reunioes_agendadas_no_periodo: (meetingsRes.data || []).length,
         // Reuniões cujo STATUS mudou no período (confirmadas, reagendadas, etc - por updated_at)
         reunioes_atualizadas_no_periodo: meetingStatusChanges.length,
-        reunioes_confirmadas_no_periodo: meetingStatusChanges.filter((m: any) => m.status === "confirmada").map((m: any) => `${m.cliente} — "${m.titulo}" (atualizado ${m.atualizado_em})`),
-        reunioes_por_confirmar: (meetingsRes.data || []).filter((m: any) => m.status === "por_confirmar").length,
+        reunioes_confirmadas_no_periodo: meetingStatusChanges.filter((m: Row) => m.status === "confirmada").map((m: Row) => `${m.cliente} — "${m.titulo}" (atualizado ${m.atualizado_em})`),
+        reunioes_por_confirmar: (meetingsRes.data || []).filter((m: Row) => m.status === "por_confirmar").length,
         reunioes_com_pedido_alteracao: meetingsWithPortalNotes.length,
         // Vendas & Financeiro
         vendas_novas: (salesRes.data || []).length,
-        vendas_valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
+        vendas_valor_total: (salesRes.data || []).reduce((s: number, v: Row) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
         entradas_financeiras: (financialEntriesRes.data || []).length,
-        entradas_valor_total: (financialEntriesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+        entradas_valor_total: (financialEntriesRes.data || []).reduce((s: number, e: Row) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
         despesas_total: (expensesRes.data || []).length,
-        despesas_valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+        despesas_valor_total: (expensesRes.data || []).reduce((s: number, e: Row) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
         documentos_financeiros_carregados: (financialDocsRes.data || []).length,
         pagamentos_equipa: (memberPaymentsRes.data || []).length,
         // Portal dos Clientes
@@ -1114,10 +1118,10 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         onboarding_colaborador_steps: (memberOnbRes.data || []).length,
         contratos_carregados: (memberContractsRes.data || []).length,
         ausencias_registadas: (absencesRes.data || []).length,
-        horas_registadas: (timeEntriesRes.data || []).reduce((s: number, t: any) => s + (Number(t.hours) || 0), 0),
+        horas_registadas: (timeEntriesRes.data || []).reduce((s: number, t: Row) => s + (Number(t.hours) || 0), 0),
         // Conteúdos & Marketing
-        conteudos_publicados: (contentRes.data || []).filter((c: any) => c.status === "publicado").length,
-        conteudos_agendados: (contentRes.data || []).filter((c: any) => c.status === "agendado").length,
+        conteudos_publicados: (contentRes.data || []).filter((c: Row) => c.status === "publicado").length,
+        conteudos_agendados: (contentRes.data || []).filter((c: Row) => c.status === "agendado").length,
         // Mural
         publicacoes_mural: (muralRes.data || []).length,
         // SOPs & Processos
@@ -1130,76 +1134,76 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         periodo: `${startDate} a ${endDate}`,
         DESTAQUES_OBRIGATORIOS: destaques,
         resumo_acoes: auditSummary,
-        acoes_detalhadas: (auditRes.data || []).slice(0, 50).map((l: any) => ({
+        acoes_detalhadas: (auditRes.data || []).slice(0, 50).map((l: Row) => ({
           acao: l.action, tipo: l.entity_type, por: l.user_name, quando: l.created_at, detalhes: l.metadata,
         })),
         tarefas_concluidas: {
           total: (tasksRes.data || []).length,
-          lista: (tasksRes.data || []).map((t: any) => ({ nome: t.name, responsavel: t.assigned_to, departamento: t.department })),
+          lista: (tasksRes.data || []).map((t: Row) => ({ nome: t.name, responsavel: t.assigned_to, departamento: t.department })),
         },
         tarefas_criadas: {
           total: newTasksCreated.length,
-          lista: newTasksCreated.map((t: any) => ({ nome: t.name, status: t.status, responsavel: t.assigned_to, prazo: t.deadline })),
+          lista: newTasksCreated.map((t: Row) => ({ nome: t.name, status: t.status, responsavel: t.assigned_to, prazo: t.deadline })),
         },
         tarefas_atrasadas: {
           total: overdueTasks.length,
-          lista: overdueTasks.slice(0, 20).map((t: any) => ({ nome: t.name, prazo: t.deadline, responsavel: t.assigned_to, departamento: t.department })),
+          lista: overdueTasks.slice(0, 20).map((t: Row) => ({ nome: t.name, prazo: t.deadline, responsavel: t.assigned_to, departamento: t.department })),
         },
         reunioes: {
           total: (meetingsRes.data || []).length,
           por_status: meetingsByStatus,
-          lista: (meetingsRes.data || []).map((m: any) => ({ titulo: m.title, data: m.date_time, status: m.status, cliente: m.client_name, notas_portal: m.portal_notes || null })),
-          com_notas_portal: meetingsWithPortalNotes.map((m: any) => ({ titulo: m.title, cliente: m.client_name, notas_cliente: m.portal_notes })),
+          lista: (meetingsRes.data || []).map((m: Row) => ({ titulo: m.title, data: m.date_time, status: m.status, cliente: m.client_name, notas_portal: m.portal_notes || null })),
+          com_notas_portal: meetingsWithPortalNotes.map((m: Row) => ({ titulo: m.title, cliente: m.client_name, notas_cliente: m.portal_notes })),
           mudancas_status_no_periodo: meetingStatusChanges,
         },
         vendas: {
           total: (salesRes.data || []).length,
-          valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
-          lista: (salesRes.data || []).map((s: any) => ({ id: s.sale_id, cliente: s.client, produto: s.product, valor: Number(s.invoice_total) || Number(s.base_value) || 0, status: s.status, data_pagamento: s.payment_date })),
+          valor_total: (salesRes.data || []).reduce((s: number, v: Row) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
+          lista: (salesRes.data || []).map((s: Row) => ({ id: s.sale_id, cliente: s.client, produto: s.product, valor: Number(s.invoice_total) || Number(s.base_value) || 0, status: s.status, data_pagamento: s.payment_date })),
         },
         financeiro: {
           entradas: {
             total: (financialEntriesRes.data || []).length,
-            valor: (financialEntriesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
-            lista: (financialEntriesRes.data || []).map((e: any) => ({ id: e.entry_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+            valor: (financialEntriesRes.data || []).reduce((s: number, e: Row) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+            lista: (financialEntriesRes.data || []).map((e: Row) => ({ id: e.entry_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
           },
           despesas: {
             total: (expensesRes.data || []).length,
-            valor: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
-            lista: (expensesRes.data || []).map((e: any) => ({ id: e.expense_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+            valor: (expensesRes.data || []).reduce((s: number, e: Row) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+            lista: (expensesRes.data || []).map((e: Row) => ({ id: e.expense_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
           },
-          documentos_carregados: (financialDocsRes.data || []).map((d: any) => ({ ficheiro: d.file_name, tipo: d.document_type })),
-          pagamentos_equipa: (memberPaymentsRes.data || []).map((p: any) => ({ membro: p.member_id, valor: p.amount, status: p.status })),
+          documentos_carregados: (financialDocsRes.data || []).map((d: Row) => ({ ficheiro: d.file_name, tipo: d.document_type })),
+          pagamentos_equipa: (memberPaymentsRes.data || []).map((p: Row) => ({ membro: p.member_id, valor: p.amount, status: p.status })),
         },
         atividade_portal_clientes: {
           _instrucao: "IMPORTANTE: Reporta TODA a atividade dos portais.",
-          notificacoes: portalActivity.map((n: any) => ({ titulo: n.title, mensagem: n.message, quando: n.created_at })),
+          notificacoes: portalActivity.map((n: Row) => ({ titulo: n.title, mensagem: n.message, quando: n.created_at })),
           visitas: portalVisitsSummary,
           respostas_diagnostico: portalQuestionsSummary,
-          feedback: (portalFeedbackRes.data || []).map((f: any) => ({ rating: f.rating, comentario: f.comment })),
-          comentarios: (portalCommentsRes.data || []).map((c: any) => ({ conteudo: c.content, quando: c.created_at })),
+          feedback: (portalFeedbackRes.data || []).map((f: Row) => ({ rating: f.rating, comentario: f.comment })),
+          comentarios: (portalCommentsRes.data || []).map((c: Row) => ({ conteudo: c.content, quando: c.created_at })),
         },
         projetos: {
-          atualizados: (projectsRes.data || []).map((p: any) => ({ nome: p.name, status: p.status, progresso: p.progress })),
-          entregaveis_concluidos: (deliverableRes.data || []).map((d: any) => ({ nome: d.name, projeto: d.project_id })),
+          atualizados: (projectsRes.data || []).map((p: Row) => ({ nome: p.name, status: p.status, progresso: p.progress })),
+          entregaveis_concluidos: (deliverableRes.data || []).map((d: Row) => ({ nome: d.name, projeto: d.project_id })),
         },
         equipa: {
-          onboarding_colaborador: (memberOnbRes.data || []).map((o: any) => ({ membro: o.member_id, passo: o.step, concluido: o.completed })),
-          contratos_carregados: (memberContractsRes.data || []).map((c: any) => ({ membro: c.member_id, tipo: c.contract_type, ficheiro: c.file_name })),
-          ausencias: (absencesRes.data || []).map((a: any) => ({ membro: a.member_id, motivo: a.reason, de: a.start_date, ate: a.end_date, status: a.status })),
+          onboarding_colaborador: (memberOnbRes.data || []).map((o: Row) => ({ membro: o.member_id, passo: o.step, concluido: o.completed })),
+          contratos_carregados: (memberContractsRes.data || []).map((c: Row) => ({ membro: c.member_id, tipo: c.contract_type, ficheiro: c.file_name })),
+          ausencias: (absencesRes.data || []).map((a: Row) => ({ membro: a.member_id, motivo: a.reason, de: a.start_date, ate: a.end_date, status: a.status })),
           horas_registadas: {
-            total_horas: (timeEntriesRes.data || []).reduce((s: number, t: any) => s + (Number(t.hours) || 0), 0),
+            total_horas: (timeEntriesRes.data || []).reduce((s: number, t: Row) => s + (Number(t.hours) || 0), 0),
             total_entradas: (timeEntriesRes.data || []).length,
           },
         },
-        novos_clientes: (clientsRes.data || []).map((c: any) => ({ nome: c.full_name, status: c.status, produto: c.current_product, inicio: c.start_date })),
-        onboarding_clientes: (onboardingRes.data || []).map((o: any) => ({ cliente: o.client_id, atividade: o.activity })),
-        offboarding_clientes: (clientOffbRes.data || []).map((o: any) => ({ cliente: o.client_id, atividade: o.activity, concluido: o.completed })),
-        novos_leads: (leadsRes.data || []).map((l: any) => ({ nome: l.name, status: l.status, fonte: l.source, produto: l.potential_product, valor: l.estimated_value })),
-        conteudos: (contentRes.data || []).map((c: any) => ({ titulo: c.title, status: c.status, formato: c.format })),
-        mural: (muralRes.data || []).map((m: any) => ({ autor: m.author_name, conteudo: (m.content || "").slice(0, 200) })),
-        sops: (sopsRes.data || []).map((s: any) => ({ id: s.sop_id, titulo: s.title, departamento: s.department, status: s.status })),
-        planeamento: (planGoalsRes.data || []).map((g: any) => ({ titulo: g.title, status: g.status, departamento: g.department })),
+        novos_clientes: (clientsRes.data || []).map((c: Row) => ({ nome: c.full_name, status: c.status, produto: c.current_product, inicio: c.start_date })),
+        onboarding_clientes: (onboardingRes.data || []).map((o: Row) => ({ cliente: o.client_id, atividade: o.activity })),
+        offboarding_clientes: (clientOffbRes.data || []).map((o: Row) => ({ cliente: o.client_id, atividade: o.activity, concluido: o.completed })),
+        novos_leads: (leadsRes.data || []).map((l: Row) => ({ nome: l.name, status: l.status, fonte: l.source, produto: l.potential_product, valor: l.estimated_value })),
+        conteudos: (contentRes.data || []).map((c: Row) => ({ titulo: c.title, status: c.status, formato: c.format })),
+        mural: (muralRes.data || []).map((m: Row) => ({ autor: m.author_name, conteudo: (m.content || "").slice(0, 200) })),
+        sops: (sopsRes.data || []).map((s: Row) => ({ id: s.sop_id, titulo: s.title, departamento: s.department, status: s.status })),
+        planeamento: (planGoalsRes.data || []).map((g: Row) => ({ titulo: g.title, status: g.status, departamento: g.department })),
       };
     }
 

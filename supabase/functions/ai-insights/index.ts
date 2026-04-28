@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+type SupabaseAdmin = ReturnType<typeof createClient>;
+type Row = Record<string, unknown>;
+
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -88,7 +92,7 @@ serve(async (req) => {
 
 // ─── Data Gathering ────────────────────────────────────────────────
 
-async function gatherData(supabase: any, type: string) {
+async function gatherData(supabase: SupabaseAdmin, type: string) {
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
@@ -106,13 +110,13 @@ async function gatherData(supabase: any, type: string) {
         supabase.from("financial_expenses").select("id, base_value, total_with_vat, expense_date, category, status").gte("expense_date", monthStart).lt("expense_date", monthEnd).limit(500),
       ]);
 
-      const activeClients = (clients.data || []).filter((c: any) => c.status === "ativo").length;
+      const activeClients = (clients.data || []).filter((c: Row) => c.status === "ativo").length;
       const totalClients = (clients.data || []).length;
-      const monthSales = (sales.data || []).filter((s: any) => Number(s.sale_month) === month);
-      const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.base_value) || 0), 0);
-      const pendingTasks = (tasks.data || []).filter((t: any) => t.status !== "concluida" && t.status !== "cancelada");
-      const overdueTasks = pendingTasks.filter((t: any) => t.deadline && new Date(t.deadline) < now);
-      const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0);
+      const monthSales = (sales.data || []).filter((s: Row) => Number(s.sale_month) === month);
+      const totalRevenue = monthSales.reduce((sum: number, s: Row) => sum + (Number(s.invoice_total) || Number(s.base_value) || 0), 0);
+      const pendingTasks = (tasks.data || []).filter((t: Row) => t.status !== "concluida" && t.status !== "cancelada");
+      const overdueTasks = pendingTasks.filter((t: Row) => t.deadline && new Date(t.deadline) < now);
+      const totalExpenses = (expenses.data || []).reduce((sum: number, e: Row) => sum + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0);
 
       return {
         periodo: `${String(month).padStart(2, "0")}/${year}`,
@@ -131,22 +135,22 @@ async function gatherData(supabase: any, type: string) {
         supabase.from("client_nps_records").select("id, client_id, status, expected_date").eq("status", "pending").limit(200),
       ]);
 
-      const overdueTasks = (tasks.data || []).filter((t: any) => t.deadline && new Date(t.deadline) < now);
-      const nearEndClients = (clients.data || []).filter((c: any) => {
+      const overdueTasks = (tasks.data || []).filter((t: Row) => t.deadline && new Date(t.deadline) < now);
+      const nearEndClients = (clients.data || []).filter((c: Row) => {
         if (!c.end_of_cycle) return false;
         const days = Math.ceil((new Date(c.end_of_cycle).getTime() - now.getTime()) / 86400000);
         return days >= 0 && days <= 30;
       });
-      const pendingPayments = (sales.data || []).filter((s: any) => {
+      const pendingPayments = (sales.data || []).filter((s: Row) => {
         if (!s.payment_date) return false;
         return new Date(s.payment_date) < now;
       });
-      const overdueNps = (nps.data || []).filter((n: any) => new Date(n.expected_date) < now);
+      const overdueNps = (nps.data || []).filter((n: Row) => new Date(n.expected_date) < now);
 
       return {
-        tarefas_atrasadas: overdueTasks.map((t: any) => ({ titulo: t.name, vencimento: t.deadline })).slice(0, 10),
-        clientes_fim_ciclo: nearEndClients.map((c: any) => ({ nome: c.full_name, fim: c.end_of_cycle })),
-        pagamentos_pendentes: pendingPayments.map((s: any) => ({ cliente: s.client, valor: s.invoice_total || s.base_value, data: s.payment_date })).slice(0, 10),
+        tarefas_atrasadas: overdueTasks.map((t: Row) => ({ titulo: t.name, vencimento: t.deadline })).slice(0, 10),
+        clientes_fim_ciclo: nearEndClients.map((c: Row) => ({ nome: c.full_name, fim: c.end_of_cycle })),
+        pagamentos_pendentes: pendingPayments.map((s: Row) => ({ cliente: s.client, valor: s.invoice_total || s.base_value, data: s.payment_date })).slice(0, 10),
         nps_pendentes: overdueNps.length,
         total_tarefas_atrasadas: overdueTasks.length,
       };
@@ -158,7 +162,7 @@ async function gatherData(supabase: any, type: string) {
         supabase.from("commercial_sales").select("id, invoice_total, base_value, payment_date, client, product, status, sale_month").eq("sale_year", year).order("payment_date", { ascending: false }).limit(500),
       ]);
 
-      const byMonth = (items: any[], dateField: string, amountField: string) => {
+      const byMonth = (items: Row[], dateField: string, amountField: string) => {
         const grouped: Record<number, number> = {};
         for (const item of items) {
           const m = new Date(item[dateField]).getMonth() + 1;
@@ -227,7 +231,7 @@ async function gatherData(supabase: any, type: string) {
   }
 }
 
-function groupByCategory(items: any[]) {
+function groupByCategory(items: Row[]) {
   const grouped: Record<string, number> = {};
   for (const item of items) {
     const cat = item.category || "Sem categoria";
