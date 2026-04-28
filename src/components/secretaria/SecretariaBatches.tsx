@@ -241,8 +241,14 @@ export default function SecretariaBatches() {
   );
 }
 
-function priorityLabel(p?: string | null) {
-  return p === 'alta' ? 'P1' : p === 'media' ? 'P2' : p === 'baixa' ? 'P3' : '—';
+function PriorityBadge({ priority }: { priority?: string | null }) {
+  if (!priority) return <Badge variant="outline" className="text-[10px] py-0 px-1.5">—</Badge>;
+  const info = getTaskPriorityInfo(priority);
+  return (
+    <Badge variant="outline" className={cn('text-[10px] py-0 px-1.5 border', info.color)}>
+      {info.short}
+    </Badge>
+  );
 }
 
 /**
@@ -392,9 +398,7 @@ function BatchCard({ batch, onSchedule, onStartSession }: { batch: Batch; onSche
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="text-[10px] py-0 px-1.5">
-                                  {priorityLabel(t.priority)}
-                                </Badge>
+                                <PriorityBadge priority={t.priority} />
                               </TableCell>
                               <TableCell className="text-xs text-muted-foreground">
                                 {t.deadline ? format(parseISO(t.deadline), 'd MMM yyyy', { locale: pt }) : '—'}
@@ -585,7 +589,7 @@ function FocusSessionDialog({
               <p className="text-xs uppercase tracking-wide text-muted-foreground">A trabalhar em</p>
               <h3 className="text-2xl font-semibold leading-tight">{current.name}</h3>
               <div className="flex items-center justify-center gap-2 flex-wrap">
-                <Badge variant="outline" className="text-[10px]">{priorityLabel(current.priority)}</Badge>
+                <PriorityBadge priority={current.priority} />
                 {current.deadline && (
                   <Badge variant="outline" className="text-[10px]">
                     Deadline: {format(parseISO(current.deadline), 'd MMM', { locale: pt })}
