@@ -1,12 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
 import { logRun } from "../_shared/resilience.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
 
 function subtractBusinessDays(date: Date, days: number): Date {
   const result = new Date(date);
@@ -24,6 +19,7 @@ function toDateStr(d: Date) {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
