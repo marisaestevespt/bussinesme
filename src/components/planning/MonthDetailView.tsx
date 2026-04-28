@@ -78,6 +78,19 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [generatingReport, setGeneratingReport] = useState(false);
   const { upsertLead, deleteLead } = useCrmData();
 
+  // Inline detail sheet (events / content / sales) — keep user on this page
+  const [inlineDetail, setInlineDetail] = useState<{
+    title: string;
+    kind: 'event' | 'meeting' | 'content' | 'sale' | 'client';
+    id: string;
+    fields: { label: string; value: React.ReactNode }[];
+    openHref?: string;
+  } | null>(null);
+
+  // CRM list/board view toggle
+  const [crmView, setCrmView] = useState<'board' | 'list'>('board');
+  const [crmSearch, setCrmSearch] = useState('');
+
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
   const salesActionsQ = useQuery({ queryKey: ['md-sales-actions', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales_actions').select('*'); return (data || []).filter((a) => { if (!a.start_date) return false; const d = parseISO(a.start_date); return d >= range.start && d <= range.end; }); }});
