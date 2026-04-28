@@ -52,3 +52,28 @@ type: feature
 Validação: `bunx tsc --noEmit` clean, 105/105 testes a passar. Total acumulado: ~213 `any` removidos em 17 ficheiros.
 
 Validação: `bunx tsc --noEmit` clean, 105/105 testes a passar.
+
+## Sessão (Out 2026): Redução de `any` (Fase 3 — cauda longa)
+✅ Completado:
+- `src/hooks/useAbsenceCoverage.tsx` — payload tipado com `TablesInsert`/`TablesUpdate<'absence_coverage'>`
+- `src/hooks/useUnifiedResponsibilities.tsx` — narrowing dos joins `clients(full_name)` em NPS/milestones
+- `src/hooks/useDepartmentColors.ts` — forEach inferido do schema (sem cast)
+- `src/hooks/useProductColors.tsx` — `ProductColorRow` (Json para branding) + helper `readPrimaryColor`
+- `src/hooks/useBusinessSettings.tsx` — `use_system_theme` agora vem tipado do schema
+- `src/hooks/usePortalBranding.ts` — alias `RpcFn` substitui `(supabase as any).rpc`
+- `src/hooks/useInfiniteSupabaseQuery.tsx` — `SupabaseFilterBuilder`/`SupabaseFromFn` tipam o builder genérico
+- `src/hooks/useCrmLabels.tsx` — forEach inferido do schema
+- `src/hooks/useFinancialCategories.tsx` — TablesInsert
+- `src/hooks/useStrategicMetrics.tsx` — narrowing local da despesa em CAC
+- `src/hooks/useCommercialData.tsx` — narrowing `{ product?: string|null }` e `{ product_id? }`
+- `src/hooks/useGlobalAgendaContext.tsx` — `GlobalEventRow` (Pick<Tables<'events'>>)
+- `src/hooks/usePublicoAlvoData.tsx` — TablesInsert/Update
+- `src/hooks/useSectorConfig.tsx` — `business_sector` agora vem tipado
+- `src/lib/auditLog.ts` — `Json` para metadata RPC
+- `src/lib/vatCalculations.ts` — narrowing local em filterByMonth
+- `src/lib/expandRecurringEvents.ts` + `src/lib/portalAutoFill.ts` — `[key: string]: unknown`
+- `src/hooks/useMyAgendaEvents.tsx` — duplo cast via `unknown` no expandRecurringEvents (efeito colateral do AnyEvent ficar mais estrito)
+
+Validação: `bunx tsc --noEmit` clean, 105/105 testes a passar.
+Total acumulado das 3 fases: **~232 `any` removidos em 35 ficheiros**.
+Restante: apenas 1 `any` intencional em `ai-assistant/index.ts` (`applyFilter(query: any)` por opacidade do query builder do Deno) e 11 em ficheiros de teste (`*.test.ts`).
