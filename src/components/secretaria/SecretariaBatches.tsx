@@ -15,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useMyTasks } from '@/components/secretaria/secretaria-shared';
-import { isTaskOpen } from '@/lib/taskStatus';
+import { isTaskOpen, getTaskPriorityInfo } from '@/lib/taskStatus';
 import { cn } from '@/lib/utils';
 
 type GroupKey = 'cliente' | 'projeto' | 'area';
