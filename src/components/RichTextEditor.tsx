@@ -32,6 +32,9 @@ export function RichTextEditor({ content, onChange, editable = true }: RichTextE
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
+        // Underline já é incluído por StarterKit em versões recentes;
+        // desativamos aqui para evitar duplicação com a extensão dedicada abaixo.
+        underline: false,
       }),
       Underline,
       TextStyle,
