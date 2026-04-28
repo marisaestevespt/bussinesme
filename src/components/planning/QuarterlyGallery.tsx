@@ -217,6 +217,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
         <TacticalAreasGrid
           goals={goals}
           objectives={objectives}
+          isLoading={planning.goals?.isLoading || planning.objectives?.isLoading}
           periodMonths={q.monthNames}
           rangeStart={new Date(year, q.months[0], 1)}
           rangeEnd={endOfMonth(new Date(year, q.months[2], 1))}
