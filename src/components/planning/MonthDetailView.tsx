@@ -270,6 +270,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const prodSalesData = useMemo(() => {
     const activeProducts = products.filter((p) => p.status !== 'off');
     const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
+    const yearSales = yearSalesQ.data || [];
     return activeProducts.map((prod) => {
       const prodName = normalize(prod.name);
       const prodSales = sales.filter((s) => {
@@ -288,6 +289,14 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       const goalAmt = Number(pg?.goal_amount || 0);
       const pct = goalAmt > 0 ? Math.round((totalFat / goalAmt) * 100) : 0;
       const ticketValue = prod.ticket ? parseFloat(prod.ticket.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
+      // Mini sparkline data: revenue per month (1..12) for this product
+      const monthlySeries = Array.from({ length: 12 }, (_, i) => {
+        const m = i + 1;
+        return sumRevenue(yearSales.filter((s: any) => {
+          const sn = normalize(s.product || '');
+          return s.sale_month === m && (sn === prodName || sn.includes(prodName) || prodName.includes(sn));
+        }));
+      });
       return {
         product: prod.name,
         numVendas: prodSales.length,
@@ -295,9 +304,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         goalAmount: goalAmt,
         totalFat,
         pct,
+        monthlySeries,
       };
     });
-  }, [commProdGoals, sales, products]);
+  }, [commProdGoals, sales, products, yearSalesQ.data]);
 
   // ── Calendar helper ──
   function renderCalendarGrid(items: any[], getDate: (item: any) => Date | null, renderItem: (item: any) => React.ReactNode) {
