@@ -153,6 +153,7 @@ export default function SecretariaPage() {
             { value: 'reunioes', label: 'As Minhas Reuniões', icon: Users, iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
             { value: 'produtividade', label: 'Produtividade', icon: BarChart3, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
             { value: 'contrato', label: 'Contrato & Pagamentos', icon: FileText, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
+            { value: 'batches', label: 'Blocos de Foco', icon: Layers, iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
           ].map(s => (
             <Card
               key={s.value}
