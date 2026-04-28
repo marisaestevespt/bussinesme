@@ -41,6 +41,7 @@ const ExecutiveAnaliseEmpresarial = lazy(() => import("./pages/ExecutiveAnaliseE
 const ExecutivePage = lazy(() => import("./pages/Executive"));
 const ExecutiveRecommendations = lazy(() => import("./pages/ExecutiveRecommendations"));
 const ExecutiveProcessos = lazy(() => import("./pages/ExecutiveProcessos"));
+const ExecutiveBrainDump = lazy(() => import("./pages/ExecutiveBrainDump"));
 const DefinicoesPage = lazy(() => import("./pages/Definicoes"));
 const AgendaPage = lazy(() => import("./pages/Agenda"));
 const ReunioesPage = lazy(() => import("./pages/Reunioes"));
@@ -241,6 +242,7 @@ function AppRoutes() {
         <Route path="/executive/analise-empresarial" element={<ExecutiveAnaliseEmpresarial />} />
         <Route path="/executive/recommendations" element={<ExecutiveRecommendations />} />
         <Route path="/executive/processos" element={<ExecutiveProcessos />} />
+        <Route path="/executive/brain-dump" element={<ExecutiveBrainDump />} />
         <Route path="/executive/:section" element={<ExecutivePage />} />
         <Route path="/definicoes" element={<DefinicoesPage />} />
         <Route path="*" element={<NotFound />} />
