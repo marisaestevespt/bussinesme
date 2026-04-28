@@ -59,7 +59,7 @@ export default function ExecutivePlaneamento() {
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation />
-        <PageHeader title="Planeamento Anual" subtitle={String(year)} />
+        <PageHeader title="Planeamento" subtitle={String(year)} />
 
         <YearSelector year={year} onChange={setYear} />
 
