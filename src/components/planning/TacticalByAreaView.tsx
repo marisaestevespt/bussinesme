@@ -155,21 +155,31 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
   }
 
   // Main: list of areas with timeline rows
+  const visibleAreas = onlyAreaKey ? areas.filter((a) => a.key === onlyAreaKey) : areas;
+  if (onlyAreaKey && visibleAreas.length === 0) {
+    return (
+      <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">
+        Esta área não está configurada como área tática.
+      </CardContent></Card>
+    );
+  }
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-end">
-        <ToggleGroup
-          type="single"
-          value={view}
-          onValueChange={(v) => v && setView(v as 'trimestral' | 'semestral')}
-          size="sm"
-          variant="outline"
-        >
-          <ToggleGroupItem value="trimestral" className="text-xs h-7 px-3">Trimestre</ToggleGroupItem>
-          <ToggleGroupItem value="semestral" className="text-xs h-7 px-3">Semestre</ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-      {areas.map((area: TacticalArea) => {
+      {!hideViewToggle && (
+        <div className="flex items-center justify-end">
+          <ToggleGroup
+            type="single"
+            value={view}
+            onValueChange={(v) => v && setView(v as 'trimestral' | 'semestral')}
+            size="sm"
+            variant="outline"
+          >
+            <ToggleGroupItem value="trimestral" className="text-xs h-7 px-3">Trimestre</ToggleGroupItem>
+            <ToggleGroupItem value="semestral" className="text-xs h-7 px-3">Semestre</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      )}
+      {visibleAreas.map((area: TacticalArea) => {
         const planKey = planAreaKeyFor(area.key);
         const responsibles = membersByDept[area.key] || [];
         const allAreaGoals = goals.filter((g: any) => {
