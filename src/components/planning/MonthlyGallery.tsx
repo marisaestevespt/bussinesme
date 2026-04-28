@@ -48,7 +48,7 @@ export function MonthlyGallery({ planning, year }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
       {MONTHS.map((name, idx) => {
         const range = monthRange(idx, year);
         const progress = monthProgress[idx];
