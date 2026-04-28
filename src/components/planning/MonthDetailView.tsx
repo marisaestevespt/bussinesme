@@ -365,7 +365,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <div className="flex gap-1 ml-auto">
               <Button size="sm" variant={objTab === 'metas' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('metas')}>Metas do mês</Button>
               <Button size="sm" variant={objTab === 'objetivos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('objetivos')}>Objetivos anuais</Button>
-              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setObjDialogOpen(true)}><Plus className="h-3 w-3" /> Novo objetivo</Button>
             </div>
           </div>
         </CardHeader>
