@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import type { TablesInsert, TablesUpdate, Json } from '@/integrations/supabase/types';
 
 export interface DigestSettings {
   id: string;
@@ -93,7 +94,8 @@ export function useDigestSettings(isOwnerDigest: boolean, digestType: 'morning' 
         .eq('user_id', profileId!)
         .eq('is_owner_digest', isOwnerDigest);
       // Filter by digest_type in JS since it's a new column
-      const match = (data || []).find((d: any) => (d.digest_type || 'morning') === digestType);
+      type DigestRow = { digest_type?: string | null };
+      const match = (data || []).find((d: DigestRow) => (d.digest_type || 'morning') === digestType);
       return (match as DigestSettings | undefined) || null;
     },
   });
@@ -107,21 +109,27 @@ export function useDigestSettings(isOwnerDigest: boolean, digestType: 'morning' 
         : (digestType === 'eod' ? MEMBER_EOD_DEFAULT_SECTIONS : MEMBER_DEFAULT_SECTIONS);
 
       if (settingsQuery.data?.id) {
+        const patch: TablesUpdate<'digest_settings'> = {
+          ...updates,
+          ...(updates.sections !== undefined ? { sections: updates.sections as unknown as Json } : {}),
+        } as TablesUpdate<'digest_settings'>;
         const { error } = await supabase
           .from('digest_settings')
-          .update(updates as any)
+          .update(patch)
           .eq('id', settingsQuery.data.id);
         if (error) throw error;
       } else {
+        const insert: TablesInsert<'digest_settings'> = {
+          user_id: profileId,
+          is_owner_digest: isOwnerDigest,
+          digest_type: digestType,
+          sections: defaultSections as unknown as Json,
+          ...updates,
+          ...(updates.sections !== undefined ? { sections: updates.sections as unknown as Json } : {}),
+        } as TablesInsert<'digest_settings'>;
         const { error } = await supabase
           .from('digest_settings')
-          .insert({
-            user_id: profileId,
-            is_owner_digest: isOwnerDigest,
-            digest_type: digestType,
-            sections: defaultSections,
-            ...updates,
-          } as any);
+          .insert(insert);
         if (error) throw error;
       }
     },
