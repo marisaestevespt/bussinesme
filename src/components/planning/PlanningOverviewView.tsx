@@ -66,7 +66,7 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
           <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-stretch">
             {/* Estratégico */}
             <button
-              onClick={() => navigate('/executive/business-plan')}
+              onClick={() => navigate('/executive/planeamento/estrategico')}
               className="text-left group rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover:border-primary/60 hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-2 mb-2">
@@ -75,12 +75,12 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Estratégico</p>
-                  <p className="text-sm font-semibold">Business Plan</p>
+                  <p className="text-sm font-semibold">Define o negócio</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Visão, proposta de valor, segmentos, canais. Define o "porquê" e "para quem".</p>
+              <p className="text-xs text-muted-foreground mb-3">Plano de negócio, visão a longo prazo, missão, valores e SWOT.</p>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:gap-2 transition-all">
-                Abrir canvas <ChevronRight className="h-3 w-3" />
+                Definir negócio <ChevronRight className="h-3 w-3" />
               </span>
             </button>
 
@@ -97,12 +97,12 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-accent-violet">Tático</p>
-                  <p className="text-sm font-semibold">Planeamento {year}</p>
+                  <p className="text-sm font-semibold">Define o plano</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Objetivos anuais e metas mensais, trimestrais e semestrais.</p>
+              <p className="text-xs text-muted-foreground mb-3">Plano por área: objetivos anuais, metas e projetos de cada departamento.</p>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-accent-violet group-hover:gap-2 transition-all">
-                Aprofundar plano <ChevronRight className="h-3 w-3" />
+                Plano por área <ChevronRight className="h-3 w-3" />
               </span>
             </button>
 
@@ -110,7 +110,7 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
 
             {/* Operacional */}
             <button
-              onClick={() => navigate('/executive/weekly-align')}
+              onClick={() => navigate(`/executive/planeamento/operacional?ano=${year}`)}
               className="text-left group rounded-xl border-2 border-success/30 bg-gradient-to-br from-success/10 to-success/5 p-4 hover:border-success/60 hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-2 mb-2">
@@ -119,12 +119,12 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-success">Operacional</p>
-                  <p className="text-sm font-semibold">Weekly Align</p>
+                  <p className="text-sm font-semibold">Gere a operação</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Ritual semanal: KPIs, vendas, leads, NPS, decisões e bloqueios.</p>
+              <p className="text-xs text-muted-foreground mb-3">Trimestres do ano e gestão mês-a-mês: metas, capacidade e relatório.</p>
               <span className="inline-flex items-center gap-1 text-xs font-medium text-success group-hover:gap-2 transition-all">
-                Ir para a semana <ChevronRight className="h-3 w-3" />
+                Trimestral & mensal <ChevronRight className="h-3 w-3" />
               </span>
             </button>
           </div>
