@@ -101,16 +101,13 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mb-3">Objetivos anuais e metas mensais, trimestrais e semestrais.</p>
-              <div className="space-y-1.5 mb-3">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">{stats.totalObjs} objetivos</span>
                   <span className="font-medium">{stats.avgProgress}%</span>
                 </div>
                 <Progress value={stats.avgProgress} className="h-1.5" />
               </div>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-accent-violet group-hover:gap-2 transition-all">
-                Aprofundar plano <ChevronRight className="h-3 w-3" />
-              </span>
             </button>
 
             <div className="hidden lg:flex items-center justify-center text-muted-foreground"><ArrowRight className="h-5 w-5" /></div>
