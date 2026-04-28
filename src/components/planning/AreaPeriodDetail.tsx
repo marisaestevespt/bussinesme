@@ -15,8 +15,34 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { planStatusLabel } from '@/hooks/usePlanningData';
 import type { TacticalArea } from '@/hooks/useTacticalAreas';
+import type { GoalRow, ObjectiveRow } from '@/types/planning';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { planningAreaForDepartment, planningAreaMatches } from '@/lib/planningAreaFilters';
+
+type PlanningObjective = ObjectiveRow & {
+  product_name?: string | null;
+  source_filter?: Record<string, string> | null;
+};
+
+type PlanningGoal = GoalRow & {
+  actual_value?: number | null;
+  meta?: string | null;
+  name?: string | null;
+};
+
+type PlanningInitiative = {
+  id: string;
+  name: string;
+  client_name?: string | null;
+  progress?: number | null;
+};
+
+type PlanningApi = {
+  objectiveProgress?: (objective: PlanningObjective) => number;
+  objectiveCurrentValue?: (objective: PlanningObjective) => number | null;
+  goalAutoValue?: (objective: PlanningObjective, period: string) => number | null;
+  [key: string]: unknown;
+};
 
 interface Props {
   area: TacticalArea;
@@ -28,10 +54,10 @@ interface Props {
   /** Semester index 1..2 */
   semester?: number;
   year: number;
-  goals: any[];          // executive_goals already filtered by area+period
-  initiatives: any[];    // projects already filtered by department + range
-  planning: any;         // usePlanningData (for ObjectiveDetailSheet)
-  objectives: any[];     // executive_objectives list
+  goals: PlanningGoal[];          // executive_goals already filtered by area+period
+  initiatives: PlanningInitiative[];    // projects already filtered by department + range
+  planning: PlanningApi;         // usePlanningData (for ObjectiveDetailSheet)
+  objectives: PlanningObjective[];     // executive_objectives list
   onBack: () => void;
 }
 
@@ -45,13 +71,13 @@ export function AreaPeriodDetail({
 }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [selectedObjective, setSelectedObjective] = useState<any>(null);
+  const [selectedObjective, setSelectedObjective] = useState<PlanningObjective | null>(null);
   const hasOwner = responsibles.length > 0;
   const areaObjectives = useMemo(() => {
     const planAreaKey = planningAreaForDepartment(area.key);
-    return objectives.filter((o: any) => planningAreaMatches(o.area, planAreaKey));
+    return objectives.filter((o) => planningAreaMatches(o.area, planAreaKey));
   }, [area.key, objectives]);
-  const objectiveProgresses = areaObjectives.map((o: any) =>
+  const objectiveProgresses = areaObjectives.map((o) =>
     typeof planning.objectiveProgress === 'function' ? planning.objectiveProgress(o) : 0,
   );
   const annualObjectiveProgress = objectiveProgresses.length
@@ -61,11 +87,11 @@ export function AreaPeriodDetail({
   const progress = goals.length
     ? Math.round(
         goals
-          .map((g: any) => {
+          .map((g) => {
             if (g.status === 'atingido') { achieved++; return 100; }
             const target = Number(g.target_value || 0);
             if (target <= 0) return 0;
-            const linkedObj = g.objective_id ? objectives.find((o: any) => o.id === g.objective_id) : null;
+            const linkedObj = g.objective_id ? objectives.find((o) => o.id === g.objective_id) : null;
             const autoActual = linkedObj && typeof planning.goalAutoValue === 'function'
               ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0)
               : 0;
