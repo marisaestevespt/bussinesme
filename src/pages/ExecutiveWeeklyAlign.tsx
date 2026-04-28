@@ -149,7 +149,7 @@ export default function ExecutiveWeeklyAlign() {
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[260px] text-xs">
-              A Sala do CEO mostra um aviso neste dia para te lembrares de fazer a revisão semanal.
+              A Executive Room mostra um aviso neste dia para te lembrares de fazer a revisão semanal.
             </TooltipContent>
           </Tooltip>
         </div>
