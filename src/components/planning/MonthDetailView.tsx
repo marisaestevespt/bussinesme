@@ -892,60 +892,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       </Card>
 
       {/* ═══ SECTION 7B: Visão de Tarefas ═══ */}
-      {(() => {
-        const allTasks = (tasksQ.data || []) as any[];
-        const monthStart = `${year}-${String(monthNum).padStart(2,'0')}-01`;
-        const nextM = monthNum === 12 ? 1 : monthNum + 1;
-        const nextY = monthNum === 12 ? year + 1 : year;
-        const monthEnd = `${nextY}-${String(nextM).padStart(2,'0')}-01`;
-
-        const noDate = allTasks.filter(t => !t.deadline && isTaskOpen(t));
-        const thisMonth = allTasks.filter(t => t.deadline && t.deadline >= monthStart && t.deadline < monthEnd);
-        const pendingPrev = allTasks.filter(t => t.deadline && t.deadline < monthStart && isTaskOpen(t));
-
-        const renderList = (items: any[], emptyMsg: string) => items.length === 0
-          ? <p className="text-xs text-muted-foreground py-2">{emptyMsg}</p>
-          : (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Tarefa</TableHead><TableHead>Prioridade</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {items.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell><Badge variant={t.priority === 'alta' ? 'destructive' : 'secondary'} className="text-[10px]">{t.priority}</Badge></TableCell>
-                    <TableCell><Badge variant={isTaskDone(t) ? 'default' : 'outline'} className="text-[10px]">{t.status}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{t.deadline || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          );
-
-        return (
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Tarefas</CardTitle>
-                <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/tarefas')}><Plus className="h-3 w-3" /> Nova Tarefa</Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="month" className="w-full">
-                <TabsList className="mb-2">
-                  <TabsTrigger value="no-date">Sem Data ({noDate.length})</TabsTrigger>
-                  <TabsTrigger value="month">Do Mês ({thisMonth.length})</TabsTrigger>
-                  <TabsTrigger value="pending">Pendentes Anterior ({pendingPrev.length})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="no-date">{renderList(noDate, 'Nenhuma tarefa sem data.')}</TabsContent>
-                <TabsContent value="month">{renderList(thisMonth, 'Nenhuma tarefa para este mês.')}</TabsContent>
-                <TabsContent value="pending">{renderList(pendingPrev, 'Sem tarefas pendentes de meses anteriores.')}</TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        );
-      })()}
+      <MonthDetailTasksCard year={year} monthNum={monthNum} tasks={monthTasks} team={team} />
 
       {/* ═══ SECTION 8: Revisão Operacional ═══ */}
       <Card>
