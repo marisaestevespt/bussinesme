@@ -870,7 +870,12 @@ async function executeSingleAction(
   }
 }
 
-async function executeTool(toolName: string, args: Record<string, unknown>, supabaseAdmin: ReturnType<typeof createClient>) {
+async function executeTool(
+  toolName: string,
+  args: Record<string, unknown>,
+  supabaseAdmin: ReturnType<typeof createClient>,
+  pendingFile?: { name?: string; type?: string; base64?: string } | null
+) {
   switch (toolName) {
     case "list_tables": {
       if (args.table) {
