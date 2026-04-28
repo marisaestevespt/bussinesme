@@ -5,19 +5,19 @@ import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { usePlanningData } from '@/hooks/usePlanningData';
-import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
-import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
-import { SemesterGallery } from '@/components/planning/SemesterGallery';
+import { TacticalByAreaView } from '@/components/planning/TacticalByAreaView';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { Button } from '@/components/ui/button';
-import { Calendar, BarChart3, PieChart, Target, Plus } from 'lucide-react';
+import { BarChart3, PieChart, Target, Plus } from 'lucide-react';
 
-type Tab = 'mensal' | 'trimestral' | 'semestral' | 'metas';
+type Tab = 'trimestral' | 'semestral' | 'metas';
 
 export default function ExecutivePlaneamentoTatico() {
   const [params, setParams] = useSearchParams();
-  const initialTab = (params.get('vista') as Tab) || 'mensal';
+  const rawTab = (params.get('vista') as string) || 'trimestral';
+  // Backward compat: if URL still says 'mensal', redirect to 'trimestral'
+  const initialTab: Tab = (['trimestral', 'semestral', 'metas'].includes(rawTab) ? rawTab : 'trimestral') as Tab;
   const yearParam = parseInt(params.get('ano') || '', 10);
   const year = Number.isFinite(yearParam) && yearParam > 2000 ? yearParam : new Date().getFullYear();
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -63,10 +63,7 @@ export default function ExecutivePlaneamentoTatico() {
         </section>
 
         <Tabs value={tab} onValueChange={handleTab} className="space-y-6 pt-6 mt-4 border-t border-border/60">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl">
-            <TabsTrigger value="mensal" className="gap-2">
-              <Calendar className="h-4 w-4" /> Mensal
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 max-w-xl">
             <TabsTrigger value="trimestral" className="gap-2">
               <BarChart3 className="h-4 w-4" /> Trimestral
             </TabsTrigger>
@@ -78,9 +75,12 @@ export default function ExecutivePlaneamentoTatico() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="mensal"><MonthlyGallery planning={planning} year={year} /></TabsContent>
-          <TabsContent value="trimestral"><QuarterlyGallery planning={planning} year={year} /></TabsContent>
-          <TabsContent value="semestral"><SemesterGallery planning={planning} year={year} /></TabsContent>
+          <TabsContent value="trimestral">
+            <TacticalByAreaView planning={planning} year={year} view="trimestral" />
+          </TabsContent>
+          <TabsContent value="semestral">
+            <TacticalByAreaView planning={planning} year={year} view="semestral" />
+          </TabsContent>
           <TabsContent value="metas"><PlanningGoalsTab planning={planning} viewMode="metas" /></TabsContent>
         </Tabs>
       </div>
