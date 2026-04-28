@@ -129,7 +129,7 @@ export function WeekFocus({ derived }: { derived: Derived }) {
                 <EmptyHint>Sem tarefas prioritárias esta semana</EmptyHint>
               </div>
             ) : topTasks.map((t: any) => (
-              <Link key={t.id} to="/tarefas" className="flex items-start gap-2 py-1 hover:bg-muted/30 -mx-2 px-2 rounded transition-colors">
+              <Link key={t.id} to="/hub/tarefas" className="flex items-start gap-2 py-1 hover:bg-muted/30 -mx-2 px-2 rounded transition-colors">
                 <div className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${
                   t.priority === 'urgente' ? 'bg-destructive' :
                   t.priority === 'alta' ? 'bg-warning' :
