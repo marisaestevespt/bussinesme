@@ -1301,6 +1301,34 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
           });
         }}
       />
+
+      {/* ═══ Inline Detail Sheet (events / content / sales / clients) ═══ */}
+      <Sheet open={!!inlineDetail} onOpenChange={v => { if (!v) setInlineDetail(null); }}>
+        <SheetContent side="right" className="overflow-y-auto sm:max-w-md">
+          {inlineDetail && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="text-base">{inlineDetail.title}</SheetTitle>
+                <SheetDescription className="text-[10px] uppercase tracking-wider">{inlineDetail.kind}</SheetDescription>
+              </SheetHeader>
+              <Separator className="my-4" />
+              <div className="space-y-3">
+                {inlineDetail.fields.map((f, i) => (
+                  <div key={i} className="flex items-start justify-between gap-3">
+                    <span className="text-xs text-muted-foreground">{f.label}</span>
+                    <span className="text-sm text-right font-medium">{f.value}</span>
+                  </div>
+                ))}
+                {inlineDetail.openHref && (
+                  <Button variant="outline" size="sm" className="w-full mt-4 gap-2" onClick={() => navigate(inlineDetail.openHref!)}>
+                    <ExternalLink className="h-3 w-3" /> Abrir página completa
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
