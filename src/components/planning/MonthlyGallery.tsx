@@ -33,12 +33,24 @@ export function MonthlyGallery({ planning, year }: Props) {
       const monthGoals = goals.filter((g: any) => g.period === name);
       const linkedObjIds = [...new Set(monthGoals.map((g: any) => g.objective_id).filter(Boolean))];
       const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
-      const items = [...monthGoals, ...linkedObjectives];
-      if (items.length === 0) return { pct: 0, count: 0 };
-      const achieved = items.filter((i: any) => i.status === 'atingido').length;
-      return { pct: Math.round((achieved / items.length) * 100), count: items.length };
+      const totalCount = monthGoals.length + linkedObjectives.length;
+      if (totalCount === 0) return { pct: 0, count: 0 };
+
+      const goalPcts = monthGoals.map((g: any) => {
+        if (g.status === 'atingido') return 100;
+        const target = Number(g.target_value || 0);
+        const actual = Number(g.actual_value || 0);
+        if (target <= 0) return 0;
+        return Math.min(Math.round((actual / target) * 100), 100);
+      });
+      const objPcts = linkedObjectives.map((o: any) =>
+        o.status === 'atingido' ? 100 : Math.min(Math.max(Number(planning.objectiveProgress?.(o) ?? 0), 0), 100)
+      );
+      const all = [...goalPcts, ...objPcts];
+      const avg = Math.round(all.reduce((a: number, b: number) => a + b, 0) / all.length);
+      return { pct: avg, count: totalCount };
     });
-  }, [goals, objectives]);
+  }, [goals, objectives, planning]);
 
   if (selectedMonth !== null) {
     return (
@@ -78,7 +90,7 @@ export function MonthlyGallery({ planning, year }: Props) {
                 {goalCount > 0 ? (
                   <>
                     <Progress value={progress} className="h-1.5" />
-                    <p className="text-[10px] text-muted-foreground">{progress}% das metas atingidas</p>
+                    <p className="text-[10px] text-muted-foreground">{progress}% concluído ({itemCount} {itemCount === 1 ? 'meta' : 'metas'})</p>
                   </>
                 ) : (
                   <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
