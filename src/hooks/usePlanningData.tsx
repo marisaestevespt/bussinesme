@@ -5,6 +5,27 @@ import { toast } from 'sonner';
 // cleanPayload imported from utils — aliased as `clean` for minimal diff
 import { cleanPayload as clean } from '@/lib/utils';
 import { sumRevenue } from '@/lib/salesCalculations';
+import type {
+  PlanningFormPayload,
+  ObjectiveRow,
+  CriterionRow,
+  GoalRow,
+  MetricRow,
+  MetricHistoryRow,
+  ActionRow,
+  AutoSalesRow,
+  AutoCrmRow,
+  AutoTimeEntryRow,
+  AutoTaskRow,
+  AutoMarketingFollowersRow,
+  AutoContentItemRow,
+  AutoContentChannelRow,
+  AutoMeetingRow,
+  AutoNpsRow,
+  AutoExpenseRow,
+  AutoProjectRow,
+  ProductLite,
+} from '@/types/planning';
 
 const currentYear = new Date().getFullYear();
 
@@ -92,7 +113,7 @@ export function usePlanningData(year = currentYear) {
   const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
   // Sync commercial objective → commercial_annual_goals
-  const syncObjectiveToCommercial = async (obj: any) => {
+  const syncObjectiveToCommercial = async (obj: PlanningFormPayload) => {
     if (obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
     try {
       const targetValue = Number(obj.target_value) || 0;
@@ -110,16 +131,16 @@ export function usePlanningData(year = currentYear) {
   };
 
   // Sync planning goal → commercial_monthly_goals
-  const syncGoalToCommercial = async (rec: any) => {
+  const syncGoalToCommercial = async (rec: PlanningFormPayload) => {
     if (!rec.objective_id) return;
     try {
       const { data: obj } = await supabase
         .from('executive_objectives')
         .select('value_source, area')
-        .eq('id', rec.objective_id)
+        .eq('id', rec.objective_id as string)
         .maybeSingle();
       if (!obj || obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
-      const monthIdx = MONTH_NAMES.indexOf(rec.period);
+      const monthIdx = MONTH_NAMES.indexOf(String((rec as { period?: unknown }).period ?? ''));
       if (monthIdx === -1) return;
       const month = monthIdx + 1;
       const goalAmount = Number(rec.target_value) || 0;
@@ -148,20 +169,20 @@ export function usePlanningData(year = currentYear) {
   });
 
   const upsertObjective = useMutation({
-    mutationFn: async (raw: any) => {
+    mutationFn: async (raw: PlanningFormPayload) => {
       const obj = clean(raw);
       if (obj.id) {
-        const { error } = await supabase.from('executive_objectives').update(obj as any).eq('id', obj.id);
+        const { error } = await supabase.from('executive_objectives').update(obj as never).eq('id', obj.id as string);
         if (error) throw error;
       } else {
         delete obj.id;
-        const { error } = await supabase.from('executive_objectives').insert({ ...obj, year } as any);
+        const { error } = await supabase.from('executive_objectives').insert({ ...obj, year } as never);
         if (error) throw error;
       }
       await syncObjectiveToCommercial(obj);
     },
     onSuccess: invalidate,
-    onError: (e: any) => toast.error('Erro ao guardar objetivo: ' + (e.message || e)),
+    onError: (e: Error) => toast.error('Erro ao guardar objetivo: ' + (e.message || e)),
   });
 
   const deleteObjective = useMutation({
@@ -183,14 +204,14 @@ export function usePlanningData(year = currentYear) {
   });
 
   const upsertCriterion = useMutation({
-    mutationFn: async (raw: any) => {
+    mutationFn: async (raw: PlanningFormPayload) => {
       const rec = clean(raw);
       if (rec.id) {
-        const { error } = await supabase.from('objective_criteria').update(rec as any).eq('id', rec.id);
+        const { error } = await supabase.from('objective_criteria').update(rec as never).eq('id', rec.id as string);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('objective_criteria').insert(rec as any);
+        const { error } = await supabase.from('objective_criteria').insert(rec as never);
         if (error) throw error;
       }
     },
@@ -216,18 +237,18 @@ export function usePlanningData(year = currentYear) {
   });
 
   const upsertGoal = useMutation({
-    mutationFn: async (raw: any) => {
+    mutationFn: async (raw: PlanningFormPayload) => {
       const rec = clean(raw);
       // auto period_type
       if (rec.period && typeof rec.period === 'string') {
         rec.period_type = rec.period.startsWith('T') ? 'trimestral' : 'mensal';
       }
       if (rec.id) {
-        const { error } = await supabase.from('planning_goals').update(rec as any).eq('id', rec.id);
+        const { error } = await supabase.from('planning_goals').update(rec as never).eq('id', rec.id as string);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('planning_goals').insert({ ...rec, year } as any);
+        const { error } = await supabase.from('planning_goals').insert({ ...rec, year } as never);
         if (error) throw error;
       }
       await syncGoalToCommercial(rec);
@@ -255,14 +276,14 @@ export function usePlanningData(year = currentYear) {
   });
 
   const upsertMetric = useMutation({
-    mutationFn: async (raw: any) => {
+    mutationFn: async (raw: PlanningFormPayload) => {
       const rec = clean(raw);
       if (rec.id) {
-        const { error } = await supabase.from('objective_metrics').update(rec as any).eq('id', rec.id);
+        const { error } = await supabase.from('objective_metrics').update(rec as never).eq('id', rec.id as string);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('objective_metrics').insert(rec as any);
+        const { error } = await supabase.from('objective_metrics').insert(rec as never);
         if (error) throw error;
       }
     },
@@ -288,14 +309,17 @@ export function usePlanningData(year = currentYear) {
   });
 
   const addMetricRecord = useMutation({
-    mutationFn: async (raw: any) => {
+    mutationFn: async (raw: PlanningFormPayload) => {
       const rec = clean(raw);
       delete rec.id;
-      const { error } = await supabase.from('metric_history').insert(rec as any);
+      const { error } = await supabase.from('metric_history').insert(rec as never);
       if (error) throw error;
       // update current_value on the metric
       if (rec.metric_id && rec.value != null) {
-        await supabase.from('objective_metrics').update({ current_value: rec.value, last_updated_at: new Date().toISOString() } as any).eq('id', rec.metric_id);
+        await supabase
+          .from('objective_metrics')
+          .update({ current_value: rec.value as number, last_updated_at: new Date().toISOString() } as never)
+          .eq('id', rec.metric_id as string);
       }
     },
     onSuccess: invalidate,
@@ -312,14 +336,14 @@ export function usePlanningData(year = currentYear) {
   });
 
   const upsertAction = useMutation({
-    mutationFn: async (raw: any) => {
+    mutationFn: async (raw: PlanningFormPayload) => {
       const rec = clean(raw);
       if (rec.id) {
-        const { error } = await supabase.from('objective_actions').update(rec as any).eq('id', rec.id);
+        const { error } = await supabase.from('objective_actions').update(rec as never).eq('id', rec.id as string);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('objective_actions').insert(rec as any);
+        const { error } = await supabase.from('objective_actions').insert(rec as never);
         if (error) throw error;
       }
     },
@@ -335,17 +359,20 @@ export function usePlanningData(year = currentYear) {
   });
 
   const convertActionToTask = useMutation({
-    mutationFn: async (action: any) => {
+    mutationFn: async (action: ActionRow) => {
       // Create task
       const { data: task, error } = await supabase.from('tasks').insert({
         name: action.description,
         deadline: action.deadline || null,
         assigned_to: action.responsible_id || null,
         status: action.status === 'feito' ? 'done' : 'por_comecar',
-      } as any).select('id').single();
+      } as never).select('id').single();
       if (error) throw error;
       // Link task to action
-      await supabase.from('objective_actions').update({ task_id: task.id, action_type: 'tarefa' } as any).eq('id', action.id);
+      await supabase
+        .from('objective_actions')
+        .update({ task_id: task.id, action_type: 'tarefa' } as never)
+        .eq('id', action.id);
     },
     onSuccess: () => { invalidate(); toast.success('Ação convertida em tarefa'); },
     onError: () => toast.error('Erro ao converter ação'),
@@ -505,9 +532,9 @@ export function usePlanningData(year = currentYear) {
       return metric ? Number(metric.current_value || 0) : null;
     }
     if (source === 'bd_vendas' || source === 'commercial') {
-      const rows = autoSalesRaw.data || [];
+      const rows = (autoSalesRaw.data || []) as AutoSalesRow[];
       // Prefer relational match by product_id; fall back to name only if id can't be resolved.
-      const productId = productName ? (productsQuery.data || []).find((p) => p.name === productName)?.id : null;
+      const productId = productName ? ((productsQuery.data || []) as ProductLite[]).find((p) => p.name === productName)?.id : null;
       const filtered = productName
         ? (productId
             ? rows.filter((r) => r.product_id === productId)
@@ -516,8 +543,8 @@ export function usePlanningData(year = currentYear) {
       return sumRevenue(filtered);
     }
     if (source === 'bd_crm') {
-      const rows = autoCrmRaw.data || [];
-      const productId = productName ? (productsQuery.data || []).find((p) => p.name === productName)?.id : null;
+      const rows = (autoCrmRaw.data || []) as AutoCrmRow[];
+      const productId = productName ? ((productsQuery.data || []) as ProductLite[]).find((p) => p.name === productName)?.id : null;
       const filtered = productName
         ? (productId
             ? rows.filter((r) => r.potential_product_id === productId)
@@ -527,53 +554,53 @@ export function usePlanningData(year = currentYear) {
     }
     if (source === 'bd_clientes') return autoActiveClients.data ?? null;
     if (source === 'bd_tempo') {
-      let rows = autoTimeEntries.data || [];
+      let rows = (autoTimeEntries.data || []) as AutoTimeEntryRow[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
-      return rows.reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
+      return rows.reduce((s, r) => s + Number(r.duration || 0), 0);
     }
     if (source === 'bd_tarefas') {
-      let rows = autoTasksCompleted.data || [];
+      let rows = (autoTasksCompleted.data || []) as AutoTaskRow[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
     if (source === 'bd_equipa') return autoTeamMembers.data ?? null;
     if (source === 'bd_marketing') {
-      const allData = autoMarketingFollowersRaw.data || [];
+      const allData = (autoMarketingFollowersRaw.data || []) as AutoMarketingFollowersRow[];
       if (allData.length === 0) return 0;
       const latestMonth = allData[0].month;
       let latest = allData.filter((d) => d.month === latestMonth);
       if (sf.channel_id) latest = latest.filter((d) => d.channel_id === sf.channel_id);
-      return latest.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+      return latest.reduce((s, d) => s + Number(d.followers || 0), 0);
     }
     if (source === 'bd_conteudos') {
-      let rows = autoContentRaw.data || [];
+      let rows = (autoContentRaw.data || []) as AutoContentItemRow[];
       if (sf.channel_id) {
-        const links = autoContentChannels.data || [];
+        const links = (autoContentChannels.data || []) as AutoContentChannelRow[];
         const contentIds = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
         rows = rows.filter((r) => contentIds.has(r.id));
       }
       return rows.length;
     }
     if (source === 'bd_reunioes') {
-      let rows = autoMeetingsRaw.data || [];
+      let rows = (autoMeetingsRaw.data || []) as AutoMeetingRow[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
     if (source === 'bd_nps') {
-      let rows = autoNpsRaw.data || [];
+      let rows = (autoNpsRaw.data || []) as AutoNpsRow[];
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       if (rows.length === 0) return null;
-      const sum = rows.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
+      const sum = rows.reduce((s, r) => s + Number(r.nps_score), 0);
       return Math.round((sum / rows.length) * 10) / 10;
     }
     if (source === 'bd_despesas') {
-      let rows = autoExpensesRaw.data || [];
+      let rows = (autoExpensesRaw.data || []) as AutoExpenseRow[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
-      return rows.reduce((s: number, r: any) => s + Number(r.total_with_vat || 0), 0);
+      return rows.reduce((s, r) => s + Number(r.total_with_vat || 0), 0);
     }
     if (source === 'bd_projetos') {
-      let rows = autoProjectsRaw.data || [];
+      let rows = (autoProjectsRaw.data || []) as AutoProjectRow[];
       if (sf.type) rows = rows.filter((r) => r.type === sf.type);
       return rows.length;
     }
@@ -595,9 +622,9 @@ export function usePlanningData(year = currentYear) {
   };
 
   // Helper: filter rows by month (1-based) using various date fields
-  const filterByMonth = (rows: any[], month: number, dateField: string) => {
+  const filterByMonth = <T,>(rows: T[], month: number, dateField: string): T[] => {
     return rows.filter((r) => {
-      const val = r[dateField];
+      const val = (r as Record<string, unknown>)[dateField] as string | number | null | undefined;
       if (!val) return false;
       if (typeof val === 'number') return val === month;
       const d = new Date(val);
@@ -606,7 +633,7 @@ export function usePlanningData(year = currentYear) {
   };
 
   // Helper: get auto value for a goal (period-filtered version of getAutoValue)
-  const goalAutoValue = (obj: any, goalPeriod: string) => {
+  const goalAutoValue = (obj: ObjectiveRow & { product_name?: string | null; source_filter?: Record<string, string> | null }, goalPeriod: string) => {
     if (!obj || obj.value_source === 'manual' || obj.value_source === 'metrica') return null;
     const source = obj.value_source;
     const sf = obj.source_filter || {};
@@ -615,7 +642,7 @@ export function usePlanningData(year = currentYear) {
     const month = monthIdx + 1;
 
     if (source === 'bd_vendas' || source === 'commercial') {
-      let rows = autoSalesRaw.data || [];
+      let rows = (autoSalesRaw.data || []) as AutoSalesRow[];
       // Prefer product_id if available, else fall back to name match.
       if (obj.product_id) {
         rows = rows.filter((r) => r.product_id === obj.product_id);
@@ -625,7 +652,7 @@ export function usePlanningData(year = currentYear) {
       return sumRevenue(filterByMonth(rows, month, 'sale_month'));
     }
     if (source === 'bd_crm') {
-      let rows = autoCrmRaw.data || [];
+      let rows = (autoCrmRaw.data || []) as AutoCrmRow[];
       if (obj.product_id) {
         rows = rows.filter((r) => r.potential_product_id === obj.product_id);
       } else if (obj.product_name) {
@@ -645,12 +672,12 @@ export function usePlanningData(year = currentYear) {
       return isCurrentOrPast ? (autoTeamMembers.data ?? null) : null;
     }
     if (source === 'bd_marketing') {
-      const allData = autoMarketingFollowersRaw.data || [];
+      const allData = (autoMarketingFollowersRaw.data || []) as AutoMarketingFollowersRow[];
       if (allData.length === 0) return 0;
       // Try to find data for this specific month
       let monthData = allData.filter((d) => d.month === month);
       if (sf.channel_id) monthData = monthData.filter((d) => d.channel_id === sf.channel_id);
-      if (monthData.length > 0) return monthData.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+      if (monthData.length > 0) return monthData.reduce((s, d) => s + Number(d.followers || 0), 0);
       // Fall back to latest available
       const now = new Date();
       const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
@@ -658,48 +685,48 @@ export function usePlanningData(year = currentYear) {
       const latestMonth = allData[0].month;
       let latest = allData.filter((d) => d.month === latestMonth);
       if (sf.channel_id) latest = latest.filter((d) => d.channel_id === sf.channel_id);
-      return latest.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+      return latest.reduce((s, d) => s + Number(d.followers || 0), 0);
     }
     if (source === 'bd_tempo') {
-      let rows = autoTimeEntries.data || [];
+      let rows = (autoTimeEntries.data || []) as AutoTimeEntryRow[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
-      return filterByMonth(rows, month, 'entry_month').reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
+      return filterByMonth(rows, month, 'entry_month').reduce((s, r) => s + Number(r.duration || 0), 0);
     }
     if (source === 'bd_tarefas') {
-      let rows = autoTasksCompleted.data || [];
+      let rows = (autoTasksCompleted.data || []) as AutoTaskRow[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return filterByMonth(rows, month, 'updated_at').length;
     }
     if (source === 'bd_conteudos') {
-      let rows = autoContentRaw.data || [];
+      let rows = (autoContentRaw.data || []) as AutoContentItemRow[];
       if (sf.channel_id) {
-        const links = autoContentChannels.data || [];
+        const links = (autoContentChannels.data || []) as AutoContentChannelRow[];
         const contentIds = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
         rows = rows.filter((r) => contentIds.has(r.id));
       }
       return filterByMonth(rows, month, 'scheduled_at').length;
     }
     if (source === 'bd_reunioes') {
-      let rows = autoMeetingsRaw.data || [];
+      let rows = (autoMeetingsRaw.data || []) as AutoMeetingRow[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return filterByMonth(rows, month, 'date_time').length;
     }
     if (source === 'bd_nps') {
-      let rows = autoNpsRaw.data || [];
+      let rows = (autoNpsRaw.data || []) as AutoNpsRow[];
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       const monthRows = filterByMonth(rows, month, 'actual_date');
       if (monthRows.length === 0) return null;
-      const sum = monthRows.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
+      const sum = monthRows.reduce((s, r) => s + Number(r.nps_score), 0);
       return Math.round((sum / monthRows.length) * 10) / 10;
     }
     if (source === 'bd_despesas') {
-      let rows = autoExpensesRaw.data || [];
+      let rows = (autoExpensesRaw.data || []) as AutoExpenseRow[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
-      return filterByMonth(rows, month, 'expense_date').reduce((s: number, r: any) => s + Number(r.total_with_vat || 0), 0);
+      return filterByMonth(rows, month, 'expense_date').reduce((s, r) => s + Number(r.total_with_vat || 0), 0);
     }
     if (source === 'bd_projetos') {
-      let rows = autoProjectsRaw.data || [];
+      let rows = (autoProjectsRaw.data || []) as AutoProjectRow[];
       if (sf.type) rows = rows.filter((r) => r.type === sf.type);
       return filterByMonth(rows, month, 'updated_at').length;
     }
@@ -708,7 +735,7 @@ export function usePlanningData(year = currentYear) {
 
 
   // Helper: compute objective progress
-  const objectiveProgress = (obj: any) => {
+  const objectiveProgress = (obj: ObjectiveRow & { product_name?: string | null; source_filter?: Record<string, string> | null }) => {
     if (obj.objective_type === 'quantitativo') {
       const pName = obj.product_name ?? resolveProductName(obj.product_id);
       const sf = obj.source_filter || null;
@@ -724,7 +751,7 @@ export function usePlanningData(year = currentYear) {
   };
 
   // Helper: current value for objective
-  const objectiveCurrentValue = (obj: any) => {
+  const objectiveCurrentValue = (obj: ObjectiveRow & { product_name?: string | null; source_filter?: Record<string, string> | null }) => {
     if (obj.value_source === 'manual') return Number(obj.current_value || 0);
     const pName = obj.product_name ?? resolveProductName(obj.product_id);
     const sf = obj.source_filter || null;
@@ -732,11 +759,11 @@ export function usePlanningData(year = currentYear) {
   };
 
   // Helper: auto-compute goal status based on actual vs target
-  const computeGoalStatus = (goal: any) => {
+  const computeGoalStatus = (goal: GoalRow & { actual_value?: number | null }) => {
     const actual = Number(goal.actual_value || 0);
     const target = Number(goal.target_value || 0);
     if (!target) return goal.status;
-    const monthIdx = MONTH_NAMES.indexOf(goal.period);
+    const monthIdx = MONTH_NAMES.indexOf(goal.period ?? '');
     const monthEnded = monthIdx !== -1 && monthIdx < new Date().getMonth() && (goal.year || year) <= new Date().getFullYear();
     if (actual >= target) return 'atingido';
     if (monthEnded && actual < target) return 'nao_atingido';
@@ -746,11 +773,11 @@ export function usePlanningData(year = currentYear) {
 
   // Helper: get goals with deviation info for alerts
   const getGoalsWithDeviations = () => {
-    const allG = goals.data || [];
+    const allG = (goals.data || []) as Array<GoalRow & { actual_value?: number | null }>;
     const now = new Date();
     const currentMonthIdx = now.getMonth();
     return allG.filter((g) => {
-      const monthIdx = MONTH_NAMES.indexOf(g.period);
+      const monthIdx = MONTH_NAMES.indexOf(g.period ?? '');
       if (monthIdx === -1) return false;
       const target = Number(g.target_value || 0);
       const actual = Number(g.actual_value || 0);
@@ -762,7 +789,7 @@ export function usePlanningData(year = currentYear) {
   };
 
   // Computed: metrics with overdue check
-  const isMetricOverdue = (metric: any) => {
+  const isMetricOverdue = (metric: MetricRow) => {
     if (!metric.last_updated_at) return true;
     const last = new Date(metric.last_updated_at);
     const now = new Date();
@@ -773,7 +800,7 @@ export function usePlanningData(year = currentYear) {
     return false;
   };
 
-  const isMetricDueToday = (metric: any) => {
+  const isMetricDueToday = (metric: MetricRow) => {
     if (!metric.last_updated_at) return false;
     const last = new Date(metric.last_updated_at);
     const now = new Date();
@@ -786,7 +813,7 @@ export function usePlanningData(year = currentYear) {
 
   // Metric trend (comparing last 3 records)
   const getMetricTrend = (metricId: string): 'up' | 'stable' | 'down' => {
-    const records = (metricHistory.data || []).filter((r) => r.metric_id === metricId);
+    const records = ((metricHistory.data || []) as MetricHistoryRow[]).filter((r) => r.metric_id === metricId);
     if (records.length < 2) return 'stable';
     const last3 = records.slice(-3);
     const first = Number(last3[0].value);

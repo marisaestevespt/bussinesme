@@ -6,6 +6,15 @@ import { sumRevenue } from '@/lib/salesCalculations';
 import { calculateMRR } from '@/lib/financialHealth';
 import { teamMonthlyCapacitySummary } from '@/lib/memberCapacity';
 import { isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import type { Tables } from '@/integrations/supabase/types';
+
+type ExpenseLite = Pick<Tables<'financial_expenses'>, 'total_with_vat'> & Partial<Tables<'financial_expenses'>>;
+type SaleLite = Pick<Tables<'commercial_sales'>, 'id' | 'invoice_total' | 'sale_month' | 'status'>;
+type ProjectLite = Pick<Tables<'projects'>, 'id' | 'name' | 'status' | 'deadline' | 'department'>;
+type TaskLite = Pick<Tables<'tasks'>, 'id' | 'status' | 'deadline' | 'department'>;
+type LeadLite = Pick<Tables<'crm_leads'>, 'id' | 'name' | 'next_followup' | 'created_at' | 'status'>;
+type NpsLite = Pick<Tables<'client_nps_records'>, 'nps_score' | 'actual_date' | 'client_id'>;
+type ContentLite = Pick<Tables<'content_items'>, 'id' | 'title' | 'status' | 'scheduled_at'>;
 
 /**
  * Single batched hook powering the CEO Cockpit (ExecutiveDashboard).
@@ -49,7 +58,7 @@ export function useCeoCockpit() {
         supabase.from('time_entries').select('member_id, duration').gte('entry_date', monthStart).lte('entry_date', monthEnd),
         supabase.from('tasks').select('id, status, deadline, assigned_to, priority, name, project_id, department'),
         supabase.from('projects').select('id, name, status, deadline, department, type, project_mode, client_name, progress'),
-        supabase.from('crm_leads').select('id, name, last_contact_date, created_at, status'),
+        supabase.from('crm_leads').select('id, name, next_followup, created_at, status'),
         supabase.from('client_nps_records').select('nps_score, actual_date, client_id').gte('actual_date', ninetyDaysAgo).not('nps_score', 'is', null),
         supabase.from('meetings').select('id, title, date_time, status, project_id, client_name').gte('date_time', monthStart).lte('date_time', monthEnd).order('date_time', { ascending: true }),
         supabase.from('commercial_annual_goals').select('goal_amount').eq('year', currentYear).maybeSingle(),
@@ -90,24 +99,24 @@ export function useCeoCockpit() {
     const yearRevenue = sumRevenue(d.sales);
     const prevMonthRevenue = sumRevenue(d.sales.filter(s => s.sale_month === currentMonth - 1));
 
-    const monthExpenses = d.expensesM.reduce((s, e: any) => s + (Number(e.total_with_vat) || 0), 0);
-    const prevMonthExpenses = d.expensesPrevM.reduce((s, e: any) => s + (Number(e.total_with_vat) || 0), 0);
+    const monthExpenses = d.expensesM.reduce((s, e: ExpenseLite) => s + (Number(e.total_with_vat) || 0), 0);
+    const prevMonthExpenses = d.expensesPrevM.reduce((s, e: ExpenseLite) => s + (Number(e.total_with_vat) || 0), 0);
 
     // Burn rate: average monthly net cash out (last 90 days)
-    const burn90 = d.expenses90d.reduce((s, e: any) => s + (Number(e.total_with_vat) || 0), 0) / 3;
+    const burn90 = d.expenses90d.reduce((s, e: ExpenseLite) => s + (Number(e.total_with_vat) || 0), 0) / 3;
     const monthlyNet = monthRevenue - monthExpenses;
 
     const capacity = teamMonthlyCapacitySummary(d.members, d.timeEntries);
 
     // NPS average (90d)
-    const npsScores = d.npsRecords.map((r: any) => Number(r.nps_score)).filter(n => !isNaN(n));
+    const npsScores = d.npsRecords.map((r: NpsLite) => Number(r.nps_score)).filter(n => !isNaN(n));
     const avgNps = npsScores.length > 0 ? Math.round((npsScores.reduce((s, v) => s + v, 0) / npsScores.length) * 10) / 10 : null;
 
     // Annual goal progress
     const goalProgress = d.annualGoal > 0 ? Math.round((yearRevenue / d.annualGoal) * 100) : 0;
 
     // ── Alerts ───────────────────────────────────────────────────
-    const overdueSales = d.sales.filter((s: any) => s.status === 'em_atraso');
+    const overdueSales = d.sales.filter((s: SaleLite) => s.status === 'em_atraso');
     const renewalClients = d.clients.filter(c => c.status === 'altura_renovacao');
     const onboardingClients = d.clients.filter(c => c.status === 'em_onboarding');
 
@@ -117,24 +126,24 @@ export function useCeoCockpit() {
       return days >= 0 && days <= 30;
     });
 
-    const overdueProjects = d.projects.filter((p: any) =>
+    const overdueProjects = d.projects.filter((p: ProjectLite) =>
       ['em_curso', 'em_revisao', 'em_pausa'].includes(p.status) &&
       p.deadline && new Date(p.deadline) < today
     );
 
-    const overdueTasks = d.tasks.filter((t: any) => isTaskOverdue(t, today));
+    const overdueTasks = d.tasks.filter((t: TaskLite) => isTaskOverdue(t, today));
 
     const overloadedMembers = capacity ? capacity.overloadedCount : 0;
 
-    const staleLeads = d.leads.filter((l: any) => {
+    const staleLeads = d.leads.filter((l: LeadLite) => {
       if (l.status === 'ganho' || l.status === 'perdido') return false;
-      const ref = l.last_contact_date || l.created_at;
+      const ref = l.next_followup || l.created_at;
       if (!ref) return false;
       return differenceInDays(today, new Date(ref)) >= 14;
     });
 
     // Detractors (NPS ≤ 6) in last 90 days
-    const detractors = d.npsRecords.filter((r: any) => Number(r.nps_score) <= 6);
+    const detractors = d.npsRecords.filter((r: NpsLite) => Number(r.nps_score) <= 6);
 
     // Expenses up vs prev month?
     const expenseDeltaPct = prevMonthExpenses > 0
@@ -142,28 +151,28 @@ export function useCeoCockpit() {
       : 0;
 
     // ── Department health ────────────────────────────────────────
-    const tasksByDept = (dept: string) => (d.tasks || []).filter((t: any) => t.department === dept && isTaskOpen(t));
-    const projectsByDept = (dept: string) => (d.projects || []).filter((p: any) =>
+    const tasksByDept = (dept: string) => (d.tasks || []).filter((t: TaskLite) => t.department === dept && isTaskOpen(t));
+    const projectsByDept = (dept: string) => (d.projects || []).filter((p: ProjectLite) =>
       p.department === dept && ['em_curso', 'em_revisao', 'em_pausa'].includes(p.status)
     );
 
     const deptHealth = {
       comercial: {
-        openLeads: d.leads.filter((l: any) => l.status !== 'ganho' && l.status !== 'perdido').length,
+        openLeads: d.leads.filter((l: LeadLite) => l.status !== 'ganho' && l.status !== 'perdido').length,
         staleLeads: staleLeads.length,
         monthRevenue,
         prevMonthRevenue,
         revenueDelta: prevMonthRevenue > 0 ? Math.round(((monthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100) : 0,
       },
       marketing: {
-        publishedMonth: d.contentMonth.filter((c: any) => c.status === 'publicado').length,
-        scheduledMonth: d.contentMonth.filter((c: any) => c.status === 'agendado' || c.status === 'pronto').length,
-        draftMonth: d.contentMonth.filter((c: any) => c.status === 'rascunho' || c.status === 'em_producao').length,
+        publishedMonth: d.contentMonth.filter((c: ContentLite) => c.status === 'publicado').length,
+        scheduledMonth: d.contentMonth.filter((c: ContentLite) => c.status === 'agendado' || c.status === 'pronto').length,
+        draftMonth: d.contentMonth.filter((c: ContentLite) => c.status === 'rascunho' || c.status === 'em_producao').length,
         ideas: d.contentIdeas.length,
-        marketingProjects: d.projects.filter((p: any) => p.department === 'marketing' && ['em_curso', 'em_revisao'].includes(p.status)).length,
+        marketingProjects: d.projects.filter((p: ProjectLite) => p.department === 'marketing' && ['em_curso', 'em_revisao'].includes(p.status)).length,
       },
       operacao: {
-        activeProjects: d.projects.filter((p: any) => ['em_curso', 'em_revisao'].includes(p.status)).length,
+        activeProjects: d.projects.filter((p: ProjectLite) => ['em_curso', 'em_revisao'].includes(p.status)).length,
         overdueProjects: overdueProjects.length,
         openTasks: d.tasks.filter(isTaskOpen).length,
         overdueTasks: overdueTasks.length,
