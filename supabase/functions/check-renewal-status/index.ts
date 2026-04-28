@@ -41,16 +41,25 @@ Deno.serve(async (req) => {
 
     // Index products by id (primary) and by name (fallback for legacy rows
     // that never got current_product_id populated).
+    // We also need product_type / sales_type to distinguish recurring services
+    // (servico_mensal / avenca_mensal) from one-off projects (consultoria_individual etc.).
     const { data: products } = await supabase
       .from("products")
-      .select("id, name, renewal_advance_days");
+      .select("id, name, renewal_advance_days, product_type, sales_type");
 
-    const productById: Record<string, number> = {};
-    const productByName: Record<string, number> = {};
+    type ProdMeta = { advanceDays: number; isRecurring: boolean };
+    const isRecurring = (p: any) =>
+      p.product_type === "servico_mensal" || p.sales_type === "avenca_mensal";
+
+    const productById: Record<string, ProdMeta> = {};
+    const productByName: Record<string, ProdMeta> = {};
     for (const p of products || []) {
-      const days = p.renewal_advance_days ?? 30;
-      if (p.id) productById[p.id] = days;
-      if (p.name) productByName[p.name] = days;
+      const meta: ProdMeta = {
+        advanceDays: p.renewal_advance_days ?? 30,
+        isRecurring: isRecurring(p),
+      };
+      if (p.id) productById[p.id] = meta;
+      if (p.name) productByName[p.name] = meta;
     }
 
     // Get all owner user_ids — gap #4: notify every owner, not just the first.
@@ -81,13 +90,17 @@ Deno.serve(async (req) => {
         (endOfCycle.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Resolve advance days: prefer product_id (stable), fall back to name (legacy).
-      let advanceDays = 30;
-      if (client.current_product_id && productById[client.current_product_id] !== undefined) {
-        advanceDays = productById[client.current_product_id];
-      } else if (client.current_product && productByName[client.current_product] !== undefined) {
-        advanceDays = productByName[client.current_product];
-      }
+      // Resolve product metadata: prefer product_id (stable), fall back to name (legacy).
+      let meta: ProdMeta | undefined;
+      if (client.current_product_id) meta = productById[client.current_product_id];
+      if (!meta && client.current_product) meta = productByName[client.current_product];
+
+      // Skip one-off projects entirely — they are handled by check-project-ending.
+      // Without product metadata we err on the side of NOT flagging (better silence
+      // than a wrong "renewal" alert on a pontual project).
+      if (!meta || !meta.isRecurring) continue;
+
+      const advanceDays = meta.advanceDays;
 
       // Process clients within the advance window OR already overdue (negative days)
       if (daysUntilEnd > advanceDays) continue;
