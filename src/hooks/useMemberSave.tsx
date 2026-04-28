@@ -261,6 +261,7 @@ export function useMemberSave() {
                     month: p.month,
                     year: p.year,
                     value: totalWithVat,
+                    service: member.role_title || 'Prestação de serviços',
                     location: 'portugal',
                     status: 'por_pagar',
                     expense_id: expData.id,
