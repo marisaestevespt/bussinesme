@@ -15,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useMyTasks } from '@/components/secretaria/secretaria-shared';
-import { isTaskOpen } from '@/lib/taskStatus';
+import { isTaskOpen, getTaskPriorityInfo } from '@/lib/taskStatus';
 import { cn } from '@/lib/utils';
 
 type GroupKey = 'cliente' | 'projeto' | 'area';
@@ -241,8 +241,45 @@ export default function SecretariaBatches() {
   );
 }
 
-function priorityLabel(p?: string | null) {
-  return p === 'alta' ? 'P1' : p === 'media' ? 'P2' : p === 'baixa' ? 'P3' : '—';
+function PriorityBadge({ priority }: { priority?: string | null }) {
+  if (!priority) return <Badge variant="outline" className="text-[10px] py-0 px-1.5">—</Badge>;
+  const info = getTaskPriorityInfo(priority);
+  return (
+    <Badge variant="outline" className={cn('text-[10px] py-0 px-1.5 border', info.color)}>
+      {info.short}
+    </Badge>
+  );
+}
+
+function PriorityCounts({ tasks }: { tasks: any[] }) {
+  const counts = { alta: 0, media: 0, baixa: 0 } as Record<string, number>;
+  for (const t of tasks) {
+    const p = (t.priority as string) || 'media';
+    if (counts[p] != null) counts[p]++;
+  }
+  const items: Array<{ key: string; n: number }> = [
+    { key: 'alta', n: counts.alta },
+    { key: 'media', n: counts.media },
+    { key: 'baixa', n: counts.baixa },
+  ].filter((x) => x.n > 0);
+  if (items.length === 0) return null;
+  return (
+    <div className="flex items-center gap-1">
+      {items.map((it) => {
+        const info = getTaskPriorityInfo(it.key);
+        return (
+          <Badge
+            key={it.key}
+            variant="outline"
+            className={cn('text-[10px] py-0 px-1.5 border gap-1', info.color)}
+            title={info.label}
+          >
+            {info.short} · {it.n}
+          </Badge>
+        );
+      })}
+    </div>
+  );
 }
 
 /**
@@ -321,6 +358,7 @@ function BatchCard({ batch, onSchedule, onStartSession }: { batch: Batch; onSche
               <Badge variant="secondary" className="text-[10px]">
                 {batch.tasks.length} {batch.tasks.length === 1 ? 'tarefa minha' : 'tarefas minhas'}
               </Badge>
+              <PriorityCounts tasks={batch.tasks} />
               <Badge variant="outline" className="text-[10px] gap-1">
                 <Clock className="h-3 w-3" />
                 {formatDuration(batch.totalMinutes)}
@@ -392,9 +430,7 @@ function BatchCard({ batch, onSchedule, onStartSession }: { batch: Batch; onSche
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="text-[10px] py-0 px-1.5">
-                                  {priorityLabel(t.priority)}
-                                </Badge>
+                                <PriorityBadge priority={t.priority} />
                               </TableCell>
                               <TableCell className="text-xs text-muted-foreground">
                                 {t.deadline ? format(parseISO(t.deadline), 'd MMM yyyy', { locale: pt }) : '—'}
@@ -585,7 +621,7 @@ function FocusSessionDialog({
               <p className="text-xs uppercase tracking-wide text-muted-foreground">A trabalhar em</p>
               <h3 className="text-2xl font-semibold leading-tight">{current.name}</h3>
               <div className="flex items-center justify-center gap-2 flex-wrap">
-                <Badge variant="outline" className="text-[10px]">{priorityLabel(current.priority)}</Badge>
+                <PriorityBadge priority={current.priority} />
                 {current.deadline && (
                   <Badge variant="outline" className="text-[10px]">
                     Deadline: {format(parseISO(current.deadline), 'd MMM', { locale: pt })}
