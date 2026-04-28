@@ -2,10 +2,8 @@ import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { usePlanningData } from '@/hooks/usePlanningData';
-import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { BackNavigation } from '@/components/BackNavigation';
 import { Button } from '@/components/ui/button';
-import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -115,9 +113,6 @@ export default function ExecutivePlaneamento() {
         </div>
 
         <PlanningOverviewView planning={planning} year={year} stats={stats} />
-        <div data-objectives-section>
-          <PlanningObjectivesTab planning={planning} />
-        </div>
       </div>
     </AppLayout>
   );
