@@ -356,15 +356,32 @@ export function MyTasksTable({ scope = 'all' }: Props) {
 // ─── Layouts ──────────────────────────────────────────────────────────────────
 
 function TableLayout({
-  tasks, columns, groupBy, showCheckbox, projectName, onRowClick, onMarkDone, onContentClick,
+  tasks, columns, groupBy, showCheckbox, projectName, onRowClick, onMarkDone, onUpdateTask, onContentClick,
 }: {
   tasks: any[]; columns: ViewColumn[]; groupBy: ViewGroupBy;
   showCheckbox: boolean; projectName: (id: string | null) => string;
   onRowClick: (id: string) => void; onMarkDone: (id: string) => void;
+  onUpdateTask: (id: string, patch: Record<string, any>) => void;
   onContentClick: (cid: string) => void;
 }) {
   const groups = useMemo(() => groupTasks(tasks, groupBy, projectName), [tasks, groupBy, projectName]);
   const totalCols = (showCheckbox ? 1 : 0) + columns.length;
+  const { getPhotoUrl } = useTeamPhotos();
+  // Lightweight profiles list for inline assignee picker
+  const profilesQ = useRQ({
+    queryKey: ['profiles-mini'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name, avatar_url, user_id');
+      return data || [];
+    },
+  });
+  const profiles = profilesQ.data || [];
+  const getInitials = (name?: string | null) => {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || '?';
+  };
   return (
     <Table>
       <TableHeader>
@@ -391,6 +408,11 @@ function TableLayout({
             {g.items.map((t: any) => {
               const si = getTaskStatusInfo(t.status);
               const pi = getTaskPriorityInfo(t.priority);
+              const stop = (e: React.SyntheticEvent) => { e.stopPropagation(); };
+              const overdue = isTaskOverdue(t);
+              const responsibleProfile = profiles.find(p => p.id === t.assigned_to);
+              const responsibleName = responsibleProfile?.full_name || '';
+              const responsiblePhoto = getPhotoUrl(responsibleProfile || (t.assigned_to ? { id: t.assigned_to, full_name: responsibleName } : null));
               return (
                 <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onRowClick(t.id)}>
                   {showCheckbox && (
@@ -410,9 +432,87 @@ function TableLayout({
                         </div>
                       </TableCell>
                     );
-                    if (c === 'status') return <TableCell key={c}><Badge variant="outline" className={cn('text-[10px]', si.color)}>{si.label}</Badge></TableCell>;
-                    if (c === 'priority') return <TableCell key={c}><Badge variant="outline" className={cn('text-[10px]', pi.color)}>{pi.short}</Badge></TableCell>;
-                    if (c === 'deadline') return <TableCell key={c} className="text-sm">{t.deadline ? format(parseISO(t.deadline), 'dd/MM/yyyy') : '—'}</TableCell>;
+                    if (c === 'status') return (
+                      <TableCell key={c} onClick={stop} onPointerDown={stop}>
+                        <Select value={t.status} onValueChange={(v) => v !== t.status && onUpdateTask(t.id, { status: v })}>
+                          <SelectTrigger className={cn('h-7 px-2 text-xs gap-1 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 w-fit min-w-max [&>span]:whitespace-nowrap', si.color)}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TASK_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    );
+                    if (c === 'priority') return (
+                      <TableCell key={c} onClick={stop} onPointerDown={stop}>
+                        <Select value={t.priority} onValueChange={(v) => v !== t.priority && onUpdateTask(t.id, { priority: v })}>
+                          <SelectTrigger className={cn('h-7 px-2 text-xs gap-1 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 w-fit min-w-max [&>span]:whitespace-nowrap', pi.color)}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TASK_PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    );
+                    if (c === 'deadline') return (
+                      <TableCell key={c} onClick={stop} onPointerDown={stop}>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button type="button" className={cn('text-sm px-2 py-1 rounded hover:bg-muted/60 transition-colors', overdue && 'text-destructive font-semibold')}>
+                              {t.deadline ? format(parseISO(t.deadline), 'dd/MM/yyyy') : '—'}
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              locale={pt}
+                              selected={t.deadline ? parseISO(t.deadline) : undefined}
+                              onSelect={(d) => { if (d) onUpdateTask(t.id, { deadline: format(d, 'yyyy-MM-dd') }); }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </TableCell>
+                    );
+                    if (c === 'responsavel') return (
+                      <TableCell key={c} onClick={stop} onPointerDown={stop}>
+                        <Select
+                          value={t.assigned_to || '_none'}
+                          onValueChange={(v) => onUpdateTask(t.id, { assigned_to: v === '_none' ? null : v })}
+                        >
+                          <SelectTrigger className="h-8 px-1.5 gap-2 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 w-fit min-w-max [&>span]:whitespace-nowrap [&>svg]:opacity-0 [&>svg]:group-hover:opacity-100">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={responsiblePhoto || undefined} />
+                                <AvatarFallback className="text-[10px] font-semibold">{getInitials(responsibleName)}</AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm whitespace-nowrap">{responsibleName || 'Sem responsável'}</span>
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="_none">Sem responsável</SelectItem>
+                            {profiles.filter(p => p.full_name).map(p => (
+                              <SelectItem key={p.id} value={p.id}>
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-5 w-5">
+                                    <AvatarImage src={getPhotoUrl(p) || undefined} />
+                                    <AvatarFallback className="text-[9px] font-semibold">{getInitials(p.full_name)}</AvatarFallback>
+                                  </Avatar>
+                                  <span>{p.full_name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    );
+                    if (c === 'department') return (
+                      <TableCell key={c} onClick={stop} onPointerDown={stop}>
+                        {t.department ? <DepartmentBadge department={t.department} stopPropagation /> : <span className="text-muted-foreground text-xs">—</span>}
+                      </TableCell>
+                    );
                     if (c === 'project') return <TableCell key={c} className="text-sm text-muted-foreground">{projectName(t.project_id)}</TableCell>;
                     return null;
                   })}
