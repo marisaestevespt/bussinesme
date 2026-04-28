@@ -9,7 +9,7 @@ import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Target, CheckCircle2, Clock, AlertTriangle, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Target, TrendingUp, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -114,59 +114,11 @@ export default function ExecutivePlaneamento() {
           </Card>
         </div>
 
-        {/* View mode cards */}
-        <div className="grid grid-cols-2 gap-3">
-          {VIEW_CARDS.map(v => (
-            <Card
-              key={v.key}
-              className={`group cursor-pointer border-2 bg-gradient-to-br ${v.color} transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${viewMode === v.key ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : 'shadow-md'}`}
-              onClick={() => setViewMode(prev => prev === v.key ? null : v.key)}
-            >
-              <CardContent className="p-5 flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-xl bg-background flex items-center justify-center shadow shrink-0 ${v.iconColor}`}>
-                  <v.icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <span className="font-semibold text-sm text-foreground">{v.label}</span>
-                  <p className="text-[10px] text-muted-foreground">{v.desc}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <PlanningOverviewView planning={planning} year={year} stats={stats} />
+        <div data-objectives-section>
+          <PlanningObjectivesTab planning={planning} />
         </div>
-
-        {/* Back button when a view is active */}
-        {viewMode !== null && viewMode !== 'visao' && (
-          <Button variant="ghost" size="sm" onClick={() => setViewMode(null)} className="gap-2 text-muted-foreground hover:text-foreground -mt-2">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar à Visão Geral
-          </Button>
-        )}
-
-        {viewMode === 'visao' && (
-          <>
-            <PlanningOverviewView planning={planning} year={year} stats={stats} />
-            <div data-objectives-section>
-              <PlanningObjectivesTab planning={planning} />
-            </div>
-          </>
-        )}
-
-        {viewMode === null && (
-          <div data-objectives-section>
-            <PlanningObjectivesTab planning={planning} />
-          </div>
-        )}
-
-        {viewMode === 'previsibilidade' && <PrevisibilidadeView year={year} />}
       </div>
     </AppLayout>
   );
-}
-
-function PrevisibilidadeView({ year }: { year: number }) {
-  const fin = useFinancialData({ expenses: true, recurring: true, documents: false, payroll: true, contractors: true });
-  const com = useCommercialData(year);
-  const sales = excludeCancelled(com.sales.data || []);
-  return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
 }
