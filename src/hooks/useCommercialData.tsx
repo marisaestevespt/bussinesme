@@ -224,29 +224,44 @@ export function useCommercialData(year = currentYear) {
   const upsertSale = useMutation({
     mutationFn: async (raw: Partial<CommercialSale> & { sale_id?: string }) => {
       const sale = cleanPayload(raw);
-      const payDate = sale.payment_date ? new Date(sale.payment_date) : null;
-      const saleMonth = payDate ? payDate.getMonth() + 1 : null;
-      const saleQuarter = saleMonth ? Math.ceil(saleMonth / 3) : null;
-      const saleYear = payDate ? payDate.getFullYear() : null;
+      // Only recalculate month/quarter/year if payment_date was explicitly
+      // provided in this update (avoid wiping these fields on partial updates
+      // such as a status-only change from inline selects).
+      const paymentDateProvided = Object.prototype.hasOwnProperty.call(raw, 'payment_date');
+      const productProvided = Object.prototype.hasOwnProperty.call(raw, 'product');
 
-      // Always resolve product_id from the current product name so the
-      // relational link is preserved even if the product is renamed later.
-      const productId = await resolveProductId(
-        (sale as { product?: string | null }).product ?? null,
-      );
+      const record: Record<string, unknown> = { ...sale };
 
-      const record = {
-        ...sale,
-        sale_month: saleMonth,
-        sale_quarter: saleQuarter,
-        sale_year: saleYear,
-        product_id: productId,
-      };
+      if (paymentDateProvided) {
+        const payDate = sale.payment_date ? new Date(sale.payment_date) : null;
+        const saleMonth = payDate ? payDate.getMonth() + 1 : null;
+        const saleQuarter = saleMonth ? Math.ceil(saleMonth / 3) : null;
+        const saleYear = payDate ? payDate.getFullYear() : null;
+        record.sale_month = saleMonth;
+        record.sale_quarter = saleQuarter;
+        record.sale_year = saleYear;
+      }
+
+      if (productProvided || !sale.id) {
+        // Always resolve product_id from the current product name so the
+        // relational link is preserved even if the product is renamed later.
+        record.product_id = await resolveProductId(
+          (sale as { product?: string | null }).product ?? null,
+        );
+      }
 
       if (sale.id) {
         const { error } = await supabase.from('commercial_sales').update(record as TablesUpdate<'commercial_sales'>).eq('id', sale.id);
         if (error) throw error;
       } else {
+        // For inserts, ensure month/quarter/year are computed even if the
+        // payment_date key was omitted (defaults to null).
+        if (!paymentDateProvided) {
+          record.sale_month = null;
+          record.sale_quarter = null;
+          record.sale_year = null;
+        }
+        const saleYear = (record.sale_year as number | null) ?? null;
         const { data: countData } = await supabase.from('commercial_sales').select('id').eq('sale_year', saleYear || currentYear);
         const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
         const insertRecord = {
