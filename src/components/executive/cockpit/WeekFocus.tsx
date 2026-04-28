@@ -195,7 +195,7 @@ export function WeekFocus({ derived }: { derived: Derived }) {
                 <EmptyHint>Sem projetos críticos esta semana</EmptyHint>
               </div>
             ) : focusProjects.map((p: any) => (
-              <Link key={p.id} to={`/projetos/${p.id}`} className="flex items-start gap-2 py-1 hover:bg-muted/30 -mx-2 px-2 rounded transition-colors">
+              <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-start gap-2 py-1 hover:bg-muted/30 -mx-2 px-2 rounded transition-colors">
                 <div className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${p.overdue ? 'bg-destructive' : 'bg-warning'}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{p.name}</p>
