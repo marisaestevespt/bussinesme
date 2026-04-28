@@ -137,7 +137,7 @@ export function usePlanningData(year = currentYear) {
       const { data: obj } = await supabase
         .from('executive_objectives')
         .select('value_source, area')
-        .eq('id', rec.objective_id)
+        .eq('id', rec.objective_id as string)
         .maybeSingle();
       if (!obj || obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
       const monthIdx = MONTH_NAMES.indexOf(String((rec as { period?: unknown }).period ?? ''));
