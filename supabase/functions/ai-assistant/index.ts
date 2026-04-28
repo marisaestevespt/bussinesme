@@ -623,16 +623,21 @@ function formatExecutionSummary(confirmedAction: Record<string, unknown>, result
   switch (actionType) {
     case "create":
       return recordName
-        ? `✅ Feito! Criei "${recordName}" com sucesso.`
-        : `✅ Feito! Criei um novo registo em ${tableName}.`;
+        ? `Feito ✅ — criei "${recordName}".`
+        : `Feito ✅ — criei o registo.`;
     case "update":
-      return `✅ Feito! Atualizei ${tableName} com sucesso.`;
+      return `Feito ✅ — atualizado.`;
     case "delete":
-      return `✅ Feito! Eliminei o registo em ${tableName}.`;
+      return `Feito ✅ — eliminado.`;
     case "send_email":
-      return typeof result.message === "string" ? `✅ ${result.message}` : "✅ Email enviado com sucesso.";
+      return typeof result.message === "string" ? `✅ ${result.message}` : "Email enviado ✅";
+    case "attach_file": {
+      const file = result.file as Record<string, unknown> | undefined;
+      const label = (file?.name as string) || (file?.file_name as string) || "ficheiro";
+      return `Anexado ✅ — "${label}".`;
+    }
     default:
-      return "✅ A ação foi executada com sucesso.";
+      return "Feito ✅";
   }
 }
 
