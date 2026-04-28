@@ -570,6 +570,7 @@ export type Database = {
           login_bg_url: string | null
           logo_position_y: number
           logo_url: string | null
+          mission: string | null
           primary_color: string
           proposta_unica_valor: string | null
           secondary_color: string
@@ -583,6 +584,8 @@ export type Database = {
           text_color: string
           updated_at: string
           use_system_theme: boolean
+          values_list: Json
+          vision: string | null
           weekly_align_day: number
           welcome_text: string | null
           whatsapp_team_url: string | null
@@ -610,6 +613,7 @@ export type Database = {
           login_bg_url?: string | null
           logo_position_y?: number
           logo_url?: string | null
+          mission?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
@@ -623,6 +627,8 @@ export type Database = {
           text_color?: string
           updated_at?: string
           use_system_theme?: boolean
+          values_list?: Json
+          vision?: string | null
           weekly_align_day?: number
           welcome_text?: string | null
           whatsapp_team_url?: string | null
@@ -650,6 +656,7 @@ export type Database = {
           login_bg_url?: string | null
           logo_position_y?: number
           logo_url?: string | null
+          mission?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
@@ -663,6 +670,8 @@ export type Database = {
           text_color?: string
           updated_at?: string
           use_system_theme?: boolean
+          values_list?: Json
+          vision?: string | null
           weekly_align_day?: number
           welcome_text?: string | null
           whatsapp_team_url?: string | null
