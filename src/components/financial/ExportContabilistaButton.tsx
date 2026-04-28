@@ -119,15 +119,20 @@ export function ExportContabilistaButton({ year, month }: Props) {
   const totalPay = monthPayroll.reduce((s, v) => s + (v.total_cost || 0), 0);
   const totalCtr = monthContractors.reduce((s, v) => s + (v.value || 0), 0);
 
-  const handleExcel = () => {
-    exportContabilistaExcel({
-      businessName, label, period: { year, month },
-      business,
-      sales: monthSales, expenses: monthExpenses, documents: monthDocs,
-      payroll: monthPayroll, contractors: monthContractors,
-      clients: involvedClients, suppliers: involvedSuppliers,
-    });
-    toast.success('Excel exportado (.xlsx)');
+  const handleExcel = async () => {
+    try {
+      await exportContabilistaExcel({
+        businessName, label, period: { year, month },
+        business,
+        sales: monthSales, expenses: monthExpenses, documents: monthDocs,
+        payroll: monthPayroll, contractors: monthContractors,
+        clients: involvedClients, suppliers: involvedSuppliers,
+      });
+      toast.success('Excel exportado (.xlsx)');
+    } catch (err) {
+      console.error('Excel export error:', err);
+      toast.error('Falha ao gerar o Excel.');
+    }
   };
 
   const handlePdf = () => {
