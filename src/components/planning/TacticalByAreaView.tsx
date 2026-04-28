@@ -72,7 +72,11 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
       if (g.status === 'atingido') { achieved++; return 100; }
       const target = Number(g.target_value || 0);
       if (target <= 0) return 0;
-      const actual = Number(g.actual_value || 0);
+      const linkedObj = g.objective_id ? (objectives as any[]).find((o) => o.id === g.objective_id) : null;
+      const autoActual = linkedObj && typeof planning.goalAutoValue === 'function'
+        ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0)
+        : 0;
+      const actual = autoActual > 0 ? autoActual : Number(g.actual_value || 0);
       const pct = Math.min(Math.round((actual / target) * 100), 100);
       if (pct >= 100) achieved++;
       return pct;
@@ -106,7 +110,11 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
     }
     const periodGoals = goals.filter(
       (g: any) => {
-        if (!period.monthNames.includes(g.period)) return false;
+        const periodMatches = period.monthNames.includes(g.period)
+          || g.period === period.key
+          || (period.key === 'S1' && ['T1', 'T2'].includes(g.period))
+          || (period.key === 'S2' && ['T3', 'T4'].includes(g.period));
+        if (!periodMatches) return false;
         return goalBelongsToDepartment(g, goalAreaById, area.key);
       },
     );
@@ -176,7 +184,12 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
         );
 
         const cells: AreaPeriodCell[] = periods.map((p) => {
-          const periodGoals = allAreaGoals.filter((g: any) => p.monthNames.includes(g.period));
+          const periodGoals = allAreaGoals.filter((g: any) => {
+            return p.monthNames.includes(g.period)
+              || g.period === p.key
+              || (p.key === 'S1' && ['T1', 'T2'].includes(g.period))
+              || (p.key === 'S2' && ['T3', 'T4'].includes(g.period));
+          });
           const periodStart = new Date(year, p.months[0], 1);
           const periodEnd = endOfMonth(new Date(year, p.months[p.months.length - 1], 1));
           const periodInits = allAreaInits.filter((pr: any) => {
