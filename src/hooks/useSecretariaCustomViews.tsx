@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 export type ViewScope = 'today' | 'week' | 'tasks';
 export type ViewLayout = 'table' | 'list' | 'board';
-export type ViewColumn = 'task' | 'status' | 'priority' | 'deadline' | 'project';
+export type ViewColumn = 'task' | 'status' | 'priority' | 'deadline' | 'project' | 'department' | 'responsavel';
 export type ViewGroupBy = 'none' | 'status' | 'priority' | 'project' | 'deadline';
 export type ViewSort =
   | 'deadline_asc' | 'deadline_desc'
@@ -40,6 +40,8 @@ export const ALL_COLUMNS: { key: ViewColumn; label: string }[] = [
   { key: 'status', label: 'Status' },
   { key: 'priority', label: 'Prioridade' },
   { key: 'deadline', label: 'Data Limite' },
+  { key: 'responsavel', label: 'Responsável' },
+  { key: 'department', label: 'Departamento' },
   { key: 'project', label: 'Projeto' },
 ];
 
