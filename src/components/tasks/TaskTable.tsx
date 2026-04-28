@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
 import { ChevronRight, GitBranch, Repeat, Link2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -250,44 +248,3 @@ export function TaskTable({
   );
 }
 
-/** Inline name editor: click to edit, Enter / blur to commit, Esc to cancel. */
-function InlineNameEditor({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => { setDraft(value); }, [value]);
-  useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
-
-  if (!editing) {
-    return (
-      <span
-        className="font-medium cursor-text hover:bg-muted/60 rounded px-1 -mx-1 py-0.5 inline-block"
-        onClick={(e) => { e.stopPropagation(); setEditing(true); }}
-      >
-        {value}
-      </span>
-    );
-  }
-
-  const commit = () => {
-    const v = draft.trim();
-    setEditing(false);
-    if (v && v !== value) onCommit(v);
-    else setDraft(value);
-  };
-
-  return (
-    <Input
-      ref={inputRef}
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') { e.preventDefault(); commit(); }
-        else if (e.key === 'Escape') { setDraft(value); setEditing(false); }
-      }}
-      className="h-7 text-sm py-0 px-1"
-    />
-  );
-}
