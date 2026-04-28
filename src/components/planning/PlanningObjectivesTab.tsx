@@ -105,7 +105,8 @@ export function PlanningObjectivesTab({
             );
           })}
         </div>
-      )}
+      );
+      })()}
 
       {/* Dialog only for creating NEW objectives */}
       <ObjectiveDialog
