@@ -37,8 +37,11 @@ export function MonthlyGallery({ planning, year }: Props) {
         if (g.status === 'atingido') return 100;
         const target = Number(g.target_value || 0);
         if (target <= 0) return 0;
-        // Try auto-computed value first (e.g. commercial sales), fall back to manual actual_value
-        const autoVal = planning.goalAutoValue ? Number(planning.goalAutoValue(g) ?? 0) : 0;
+        // Try auto-computed value first (e.g. commercial sales via linked objective), fall back to manual actual_value
+        const linkedObj = g.objective_id ? objectives.find((o: any) => o.id === g.objective_id) : null;
+        const autoVal = linkedObj && planning.goalAutoValue
+          ? Number(planning.goalAutoValue(linkedObj, name) ?? 0)
+          : 0;
         const actual = autoVal > 0 ? autoVal : Number(g.actual_value || 0);
         return Math.min(Math.round((actual / target) * 100), 100);
       });
