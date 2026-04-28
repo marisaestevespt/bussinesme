@@ -20,6 +20,27 @@ Construído na Lovable Cloud com React + Vite + Tailwind + Supabase.
 | AI | Lovable AI Gateway (Gemini, GPT-5 — sem API keys do utilizador) |
 | Testes | Vitest (unit) + Playwright (e2e smoke) |
 
+## Validar antes de deploy
+
+Antes de publicar, corre o pipeline completo de validação:
+
+```bash
+bun run verify   # lint + check:types + test + build
+```
+
+Scripts individuais:
+- `bun run lint` — ESLint
+- `bun run check:types` — `tsc --noEmit` (sem emitir ficheiros)
+- `bun run test` — Vitest (unit)
+- `bun run build` — Vite build de produção
+
+### Variáveis de ambiente locais
+
+O `.env` é gerido pela Lovable Cloud e fica rastreado. Para overrides locais usa
+`.env.local` (ou `.env.development.local`, `.env.production.local`,
+`.env.test.local`) — estes ficheiros **não devem** ser commitados. Adiciona-os
+ao teu `.gitignore` local se ainda não estiverem.
+
 ## 2. Arquitetura geral
 
 ```
