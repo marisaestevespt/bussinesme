@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Json } from '@/integrations/supabase/types';
 
 export type AutoCalendarKey = 'meeting' | 'sales' | 'feriado';
 
@@ -35,7 +36,7 @@ export function useAutoCalendarLabels() {
         .select('auto_calendar_labels')
         .limit(1)
         .maybeSingle();
-      const raw = (data as any)?.auto_calendar_labels || {};
+      const raw = ((data as { auto_calendar_labels?: Partial<AutoCalendarLabels> } | null)?.auto_calendar_labels) || {};
       return {
         meeting: raw.meeting || DEFAULT_AUTO_LABELS.meeting,
         sales: raw.sales || DEFAULT_AUTO_LABELS.sales,
@@ -57,7 +58,7 @@ export function useAutoCalendarLabels() {
       if (!row?.id) throw new Error('business_settings row missing');
       const { error } = await supabase
         .from('business_settings')
-        .update({ auto_calendar_labels: next as any })
+        .update({ auto_calendar_labels: next as unknown as Json })
         .eq('id', row.id);
       if (error) throw error;
       return next;
@@ -66,7 +67,7 @@ export function useAutoCalendarLabels() {
       qc.setQueryData(['auto_calendar_labels'], next);
       toast.success('Nome atualizado');
     },
-    onError: (e: any) => toast.error(e?.message || 'Erro ao atualizar nome'),
+    onError: (e: Error) => toast.error(e?.message || 'Erro ao atualizar nome'),
   });
 
   return {

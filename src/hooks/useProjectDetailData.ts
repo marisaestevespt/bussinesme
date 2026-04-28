@@ -23,7 +23,7 @@ export interface ProjectFull {
   whatsapp_group_url: string | null;
   contract_documents: Array<{ name: string; url: string }> | null;
   payment_method: string | null;
-  payment_config: Record<string, any> | null;
+  payment_config: Record<string, unknown> | null;
 }
 
 export interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
@@ -41,7 +41,10 @@ export async function calcTotalTime(projectId: string): Promise<number> {
     taskTime = (data || []) as { duration: number }[];
   }
   const { data: meetingDurations } = await supabase.from('meetings').select('duration_minutes').eq('project_id', projectId);
-  const meetingTime = (meetingDurations || []).reduce((sum, m) => sum + ((m as any).duration_minutes || 0), 0);
+  const meetingTime = (meetingDurations || []).reduce(
+    (sum, m) => sum + ((m as { duration_minutes: number | null }).duration_minutes || 0),
+    0,
+  );
   const timeEntryTotal = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
   return timeEntryTotal + meetingTime;
 }
@@ -82,7 +85,10 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
 
   const projectMembersQ = useQuery({
     queryKey: ['project-members', id],
-    queryFn: async () => { const { data } = await supabase.from('project_members').select('profile_id').eq('project_id', id!); return (data || []).map((d: any) => d.profile_id as string); },
+    queryFn: async () => {
+      const { data } = await supabase.from('project_members').select('profile_id').eq('project_id', id!);
+      return (data || []).map((d: { profile_id: string }) => d.profile_id);
+    },
     enabled: !!id,
   });
 
@@ -114,7 +120,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
       let taskEntries: { duration: number; member_id: string | null }[] = [];
       if (taskIds && taskIds.length > 0) {
         const { data } = await supabase.from('time_entries').select('duration, member_id').in('task_id', taskIds.map(t => t.id));
-        taskEntries = (data || []) as any[];
+        taskEntries = (data || []) as { duration: number; member_id: string | null }[];
       }
       const allEntries = [...(directEntries || []), ...taskEntries] as { duration: number; member_id: string | null }[];
       if (allEntries.length === 0) return 0;
@@ -122,7 +128,9 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
       const { data: members } = memberIds.length > 0
         ? await supabase.from('team_members').select('id, hourly_cost').in('id', memberIds)
         : { data: [] };
-      const costMap = new Map((members || []).map((m: any) => [m.id, m.hourly_cost || 0]));
+      const costMap = new Map(
+        (members || []).map((m: { id: string; hourly_cost: number | null }) => [m.id, m.hourly_cost || 0]),
+      );
       return allEntries.reduce((sum, e) => {
         const hours = (e.duration || 0) / 60;
         const cost = e.member_id ? (costMap.get(e.member_id) || 0) : 0;
@@ -146,7 +154,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
   const projectPhasesQ = useQuery({
     queryKey: ['project-phases', id],
     queryFn: async () => {
-      const { data } = await (supabase as any).from('project_phases').select('*').eq('project_id', id!).order('sort_order');
+      const { data } = await supabase.from('project_phases').select('*').eq('project_id', id!).order('sort_order');
       return (data || []) as { status: string }[];
     },
     enabled: !!id,
@@ -155,7 +163,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
   const projectDeliverablesQ = useQuery({
     queryKey: ['project-deliverables', id],
     queryFn: async () => {
-      const { data } = await (supabase as any).from('project_deliverables').select('*').eq('project_id', id!).order('sort_order');
+      const { data } = await supabase.from('project_deliverables').select('*').eq('project_id', id!).order('sort_order');
       return (data || []) as { status: string }[];
     },
     enabled: !!id,
@@ -190,7 +198,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
       if (isMember) {
         await supabase.from('project_members').delete().eq('project_id', id!).eq('profile_id', profileId);
       } else {
-        await supabase.from('project_members').insert({ project_id: id!, profile_id: profileId } as any);
+        await supabase.from('project_members').insert({ project_id: id!, profile_id: profileId });
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-members', id] }),

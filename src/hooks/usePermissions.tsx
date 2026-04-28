@@ -62,13 +62,13 @@ export function usePermissions() {
           }
 
           // Use custom_role_id directly from team_members
-          var customRoleIdFromTM: string | null = (teamMember as any).custom_role_id ?? null;
+          // eslint-disable-next-line no-var
+          var customRoleIdFromTM: string | null = teamMember.custom_role_id ?? null;
         }
       }
 
       // Get user's custom role from team_members (set above)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let customRoleId: string | null = (typeof customRoleIdFromTM !== 'undefined' ? customRoleIdFromTM : null) as any;
+      let customRoleId: string | null = typeof customRoleIdFromTM !== 'undefined' ? customRoleIdFromTM : null;
 
       // Fallback: if no custom_role_id, auto-assign based on departments
       if (!customRoleId && depts.length > 0 && teamMemberId) {
@@ -82,7 +82,7 @@ export function usePermissions() {
         if (roleByName?.id) {
           customRoleId = roleByName.id;
           // Persist on team_members for next time
-          await supabase.from('team_members').update({ custom_role_id: roleByName.id } as any).eq('id', teamMemberId);
+          await supabase.from('team_members').update({ custom_role_id: roleByName.id }).eq('id', teamMemberId);
         }
       }
 

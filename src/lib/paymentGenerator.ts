@@ -2,6 +2,9 @@
 // Used by ProjectGestaoTab (manual generate) and ClienteDetail renewal flow.
 
 import { format, parseISO, addMonths, setDate } from 'date-fns';
+import type { TablesInsert } from '@/integrations/supabase/types';
+
+export type PaymentEntry = TablesInsert<'commercial_sales'>;
 
 export interface PaymentGenInput {
   payMethod: string; // 'pagamento_total' | 'entrada_prestacoes' | 'prestacoes' | 'avenca_mensal'
@@ -24,7 +27,7 @@ export interface PaymentGenInput {
   filterFromCurrentMonth?: boolean; // default true in ProjectGestaoTab — for renewals set false
 }
 
-export function buildPaymentEntries(input: PaymentGenInput): any[] {
+export function buildPaymentEntries(input: PaymentGenInput): PaymentEntry[] {
   const {
     payMethod, startDate, deadline,
     totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue,
@@ -47,7 +50,7 @@ export function buildPaymentEntries(input: PaymentGenInput): any[] {
     return paymentMethodType || null;
   };
 
-  const baseEntry = (overrides: any) => ({
+  const baseEntry = (overrides: Partial<PaymentEntry>): PaymentEntry => ({
     status: 'aguarda_pagamento',
     product,
     client,
@@ -55,9 +58,9 @@ export function buildPaymentEntries(input: PaymentGenInput): any[] {
     project_id: projectId,
     created_by: createdBy,
     ...overrides,
-  });
+  } as PaymentEntry);
 
-  const entries: any[] = [];
+  const entries: PaymentEntry[] = [];
 
   if (payMethod === 'pagamento_total') {
     const val = Number(totalValue);
@@ -188,7 +191,7 @@ export function buildPaymentEntries(input: PaymentGenInput): any[] {
     const currentMonthStart = new Date();
     currentMonthStart.setDate(1);
     currentMonthStart.setHours(0, 0, 0, 0);
-    return entries.filter((entry) => parseISO(entry.payment_date) >= currentMonthStart);
+    return entries.filter((entry) => entry.payment_date != null && parseISO(entry.payment_date) >= currentMonthStart);
   }
   return entries;
 }
