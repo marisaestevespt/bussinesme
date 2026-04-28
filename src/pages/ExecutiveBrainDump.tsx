@@ -101,7 +101,7 @@ export default function ExecutiveBrainDump() {
     const ok = await confirm({
       title: 'Eliminar ideia?',
       description: `"${item.task}" será removida permanentemente.`,
-      confirmLabel: 'Eliminar',
+      confirmText: 'Eliminar',
       variant: 'destructive',
     });
     if (ok) deleteItem.mutate(item.id);
@@ -357,7 +357,7 @@ export default function ExecutiveBrainDump() {
               const ok = await confirm({
                 title: 'Eliminar categoria?',
                 description: `"${name}" será removida. Ideias associadas ficam sem categoria.`,
-                confirmLabel: 'Eliminar',
+                confirmText: 'Eliminar',
                 variant: 'destructive',
               });
               if (ok) deleteCategory.mutate(id);
