@@ -8,32 +8,46 @@ import {
   filterByMonth,
 } from './vatCalculations';
 
+type ExpenseLike = {
+  total_with_vat?: number;
+  base_value?: number;
+  vat_deductible_amount?: number;
+  expense_year?: number;
+  expense_month?: number;
+};
+type SaleLike = {
+  invoice_total?: number | null;
+  base_value?: number;
+  sale_year?: number;
+  sale_month?: number;
+};
+
 describe('ivaPagoOf', () => {
   it('returns total - base', () => {
-    expect(ivaPagoOf({ total_with_vat: 123, base_value: 100 } as any)).toBe(23);
+    expect(ivaPagoOf({ total_with_vat: 123, base_value: 100 } as ExpenseLike as never)).toBe(23);
   });
   it('clamps to 0 when negative', () => {
-    expect(ivaPagoOf({ total_with_vat: 80, base_value: 100 } as any)).toBe(0);
+    expect(ivaPagoOf({ total_with_vat: 80, base_value: 100 } as ExpenseLike as never)).toBe(0);
   });
   it('handles missing fields', () => {
-    expect(ivaPagoOf({} as any)).toBe(0);
+    expect(ivaPagoOf({} as ExpenseLike as never)).toBe(0);
   });
 });
 
 describe('ivaDeduzirOf', () => {
   it('uses explicit deductible amount', () => {
-    expect(ivaDeduzirOf({ total_with_vat: 123, base_value: 100, vat_deductible_amount: 10 } as any)).toBe(10);
+    expect(ivaDeduzirOf({ total_with_vat: 123, base_value: 100, vat_deductible_amount: 10 } as ExpenseLike as never)).toBe(10);
   });
   it('falls back to full IVA when not specified', () => {
-    expect(ivaDeduzirOf({ total_with_vat: 123, base_value: 100 } as any)).toBe(23);
+    expect(ivaDeduzirOf({ total_with_vat: 123, base_value: 100 } as ExpenseLike as never)).toBe(23);
   });
 });
 
 describe('computeVatBalance', () => {
   it('balances IVA cobrado against IVA deduzir', () => {
-    const sales = [{ invoice_total: 1230, base_value: 1000 }];
-    const expenses = [{ total_with_vat: 246, base_value: 200 } as any];
-    const r = computeVatBalance(sales, expenses);
+    const sales: SaleLike[] = [{ invoice_total: 1230, base_value: 1000 }];
+    const expenses: ExpenseLike[] = [{ total_with_vat: 246, base_value: 200 }];
+    const r = computeVatBalance(sales as never, expenses as never);
     expect(r.ivaCobrado).toBe(230);
     expect(r.ivaDeduzir).toBe(46);
     expect(r.balanco).toBe(184);
@@ -41,8 +55,8 @@ describe('computeVatBalance', () => {
 
   it('returns negative balance when expenses VAT exceeds sales VAT', () => {
     const r = computeVatBalance(
-      [{ invoice_total: 100, base_value: 100 }],
-      [{ total_with_vat: 246, base_value: 200 } as any],
+      [{ invoice_total: 100, base_value: 100 }] as SaleLike[] as never,
+      [{ total_with_vat: 246, base_value: 200 }] as ExpenseLike[] as never,
     );
     expect(r.balanco).toBe(-46);
   });
@@ -50,20 +64,20 @@ describe('computeVatBalance', () => {
 
 describe('filterByMonth', () => {
   it('filters sales by year+month', () => {
-    const sales = [
+    const sales: SaleLike[] = [
       { sale_year: 2026, sale_month: 1 },
       { sale_year: 2026, sale_month: 2 },
       { sale_year: 2025, sale_month: 1 },
     ];
-    expect(filterByMonth(sales as any, 2026, 1)).toHaveLength(1);
+    expect(filterByMonth(sales as never, 2026, 1)).toHaveLength(1);
   });
 
   it('filters expenses by expense_year/month', () => {
-    const exp = [
+    const exp: ExpenseLike[] = [
       { expense_year: 2026, expense_month: 3 },
       { expense_year: 2026, expense_month: 4 },
     ];
-    expect(filterByMonth(exp as any, 2026, 3)).toHaveLength(1);
+    expect(filterByMonth(exp as never, 2026, 3)).toHaveLength(1);
   });
 });
 
