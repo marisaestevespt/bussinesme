@@ -9,8 +9,7 @@ import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle, LineChart, Compass } from 'lucide-react';
-import { YearSelector } from '@/components/YearSelector';
+import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle, LineChart, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
@@ -51,9 +50,18 @@ export default function ExecutivePlaneamento() {
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation />
-        <PageHeader title="Planeamento" subtitle={String(year)} />
-
-        <YearSelector year={year} onChange={setYear} />
+        <div className="flex items-start justify-between gap-4">
+          <PageHeader title="Planeamento" subtitle={String(year)} />
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano anterior" onClick={() => setYear(year - 1)}>
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Button>
+            <span className="text-xs font-medium tabular-nums w-10 text-center">{year}</span>
+            <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano seguinte" onClick={() => setYear(year + 1)}>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
 
         {/* Pulse — resumo rápido do ano */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
