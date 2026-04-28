@@ -17,8 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
-import { TASK_STATUSES, PRIORITIES, getStatusInfo } from '@/components/tasks/TaskTable';
+import { TASK_STATUSES, PRIORITIES, getStatusInfo, getPriorityInfo, getDeptInfo } from '@/components/tasks/TaskTable';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText } from 'lucide-react';
 import { User, Building, FolderOpen, Briefcase, Hash, Flag, ListTodo } from 'lucide-react';
 import {
@@ -66,6 +68,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const queryClient = useQueryClient();
   const { startTimer: globalStartTimer } = useActiveTimer();
   const { coverages: absenceCoverages } = useAbsenceCoverage();
+  const { getPhotoUrl } = useTeamPhotos();
 
   // Form state
   const [name, setName] = useState('');
