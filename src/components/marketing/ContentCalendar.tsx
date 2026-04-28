@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { TagBadge } from '@/components/shared/TagBadge';
 
 export interface ProfileInfo { id: string; full_name: string | null; avatar_url: string | null; }
 export interface AttachmentInfo { id: string; content_id: string; file_url: string; file_name: string; file_type: string; }
@@ -47,7 +48,14 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
           <p className="text-sm font-medium truncate text-foreground">{item.title}</p>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             {itemChannels.map(ch => (
-              <Badge key={ch.id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ch.name}</Badge>
+            <TagBadge
+              key={ch.id}
+              scope="marketing_channel"
+              value={ch.name}
+              label={ch.name}
+              className="text-[10px] px-1.5 py-0 h-4"
+              stopPropagation
+            />
             ))}
             {item.scheduled_at && (
               <span className="text-[10px] text-muted-foreground">{format(new Date(item.scheduled_at), 'dd MMM', { locale: pt })}</span>
@@ -90,9 +98,27 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
         {/* Canal + Formato */}
         <div className="flex items-center gap-1 w-full">
           {itemChannels.slice(0, 1).map(ch => (
-            <span key={ch.id} className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground flex-1 text-center">{ch.name}</span>
+            <div key={ch.id} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+              <TagBadge
+                scope="marketing_channel"
+                value={ch.name}
+                label={ch.name}
+                className="text-[10px] px-1 py-0 h-4 w-full justify-center truncate"
+                stopPropagation
+              />
+            </div>
           ))}
-          {formatLabel && <span className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground flex-1 text-center">{formatLabel}</span>}
+          {formatLabel && item.format && (
+            <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+              <TagBadge
+                scope="marketing_format"
+                value={item.format}
+                label={formatLabel}
+                className="text-[10px] px-1 py-0 h-4 w-full justify-center truncate"
+                stopPropagation
+              />
+            </div>
+          )}
         </div>
         {/* Tipo de conteúdo */}
         {typeLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
@@ -233,7 +259,14 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
                               <p className="text-xs font-medium text-foreground leading-tight truncate">{item.title}</p>
                               <div className="flex items-center gap-1 flex-wrap">
                                 {itemChannels.slice(0, 2).map(ch => (
-                                  <Badge key={ch.id} variant="outline" className="text-[9px] px-1 py-0 h-3.5">{ch.name}</Badge>
+                                  <TagBadge
+                                    key={ch.id}
+                                    scope="marketing_channel"
+                                    value={ch.name}
+                                    label={ch.name}
+                                    className="text-[9px] px-1 py-0 h-3.5"
+                                    stopPropagation
+                                  />
                                 ))}
                               </div>
                               {item.scheduled_at && (
@@ -263,7 +296,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
               <Collapsible key={channel.id} defaultOpen={channelItems.length > 0}>
                 <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-muted/50 hq-transition group">
                   <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90" />
-                  <Badge variant="outline">{channel.name}</Badge>
+                  <TagBadge scope="marketing_channel" value={channel.name} label={channel.name} stopPropagation />
                   <span className="text-xs text-muted-foreground">({channelItems.length})</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -297,10 +330,23 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
                     <p className="text-sm font-medium truncate text-foreground flex-1 min-w-0">{item.title}</p>
                     <div className="flex items-center gap-2 shrink-0">
                       {itemChannels.map(ch => (
-                        <Badge key={ch.id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ch.name}</Badge>
+                        <TagBadge
+                          key={ch.id}
+                          scope="marketing_channel"
+                          value={ch.name}
+                          label={ch.name}
+                          className="text-[10px] px-1.5 py-0 h-4"
+                          stopPropagation
+                        />
                       ))}
-                      {formatLabel && (
-                        <Badge className="text-[10px] px-1.5 py-0 h-4 bg-accent text-accent-foreground">{formatLabel}</Badge>
+                      {formatLabel && item.format && (
+                        <TagBadge
+                          scope="marketing_format"
+                          value={item.format}
+                          label={formatLabel}
+                          className="text-[10px] px-1.5 py-0 h-4"
+                          stopPropagation
+                        />
                       )}
                     </div>
                   </div>
