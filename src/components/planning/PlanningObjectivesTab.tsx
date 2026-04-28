@@ -14,12 +14,14 @@ export function PlanningObjectivesTab({
   newDialogOpen: controlledOpen,
   onNewDialogChange,
   layout = 'list',
+  areaFilter,
 }: {
   planning: any;
   showHeaderButton?: boolean;
   newDialogOpen?: boolean;
   onNewDialogChange?: (open: boolean) => void;
   layout?: 'list' | 'gallery';
+  areaFilter?: string;
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const newDialogOpen = controlledOpen ?? internalOpen;
@@ -48,13 +50,17 @@ export function PlanningObjectivesTab({
         </div>
       )}
 
-      {planning.allObjectives.length === 0 ? (
+      {(() => {
+        const objs = areaFilter
+          ? planning.allObjectives.filter((o: any) => o.area === areaFilter)
+          : planning.allObjectives;
+        return objs.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">
           Sem objetivos para {planning.year}. Comece por criar o primeiro objetivo.
         </CardContent></Card>
       ) : (
         <div className={gridClass}>
-          {planning.allObjectives.map((obj: any) => {
+          {objs.map((obj: any) => {
             const prog = planning.objectiveProgress(obj);
             return (
               <Card
@@ -99,7 +105,8 @@ export function PlanningObjectivesTab({
             );
           })}
         </div>
-      )}
+      );
+      })()}
 
       {/* Dialog only for creating NEW objectives */}
       <ObjectiveDialog

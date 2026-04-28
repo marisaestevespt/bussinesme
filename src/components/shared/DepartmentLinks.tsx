@@ -13,11 +13,12 @@ import {
 import { toast } from "sonner";
 import {
   MessageCircle, FolderOpen, FileText, Figma, Slack, Trello, Video,
-  Plus, Pencil, Trash2, ExternalLink, Link2,
+  Plus, Pencil, Trash2, ExternalLink, Link2, Target,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export type DepartmentKey =
-  | "comercial" | "marketing" | "trafego" | "conteudo"
+  | "comercial" | "marketing" | "trafego" | "conteudo" | "clientes"
   | "financeiro" | "executive" | "equipa" | "secretaria"
   | "produtos" | "operacao" | "hub";
 
@@ -118,8 +119,15 @@ export function DepartmentLinks({
     load();
   };
 
-  if (loading && links.length === 0 && !isOwner) return null;
-  if (!isOwner && links.length === 0) return null;
+  // Departments that have a dedicated planning page
+  const PLANNING_DEPTS: DepartmentKey[] = [
+    "comercial","marketing","financeiro","operacao","clientes",
+    "produtos","equipa",
+  ];
+  const showPlanningChip = PLANNING_DEPTS.includes(department);
+
+  if (loading && links.length === 0 && !isOwner && !showPlanningChip) return null;
+  if (!isOwner && links.length === 0 && !showPlanningChip) return null;
 
   const isInline = variant === "inline";
   const wrapperCls = isInline
@@ -136,6 +144,17 @@ export function DepartmentLinks({
           <Link2 className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Links rápidos:</span>
         </div>
+      )}
+
+      {showPlanningChip && (
+        <Link
+          to={`/planeamento/dep/${department}`}
+          className={chipCls}
+          title="Ver planeamento deste departamento"
+        >
+          <Target className={`${isInline ? "h-3 w-3" : "h-3.5 w-3.5"} text-primary`} />
+          <span>Planeamento</span>
+        </Link>
       )}
 
       {links.map((l) => {
