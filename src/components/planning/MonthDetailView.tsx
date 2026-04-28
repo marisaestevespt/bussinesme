@@ -786,7 +786,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2 flex-wrap">
             <CardTitle className="text-sm">Clientes Ativos & Renovações</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/clientes')}><Plus className="h-3 w-3" /> Novo Cliente</Button>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setInlineDetail({ title: 'Novo Cliente', kind: 'client', id: 'new', fields: [{ label: 'Acção', value: 'Para criar um cliente, abre a página Clientes.' }], openHref: '/hub/clientes' })}><Plus className="h-3 w-3" /> Novo Cliente</Button>
             <div className="flex gap-1 ml-auto">
               <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos ({activeClients.length})</Button>
               <Button size="sm" variant={clientTab === 'pausados' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('pausados')}>Em Pausa ({pausedClients.length})</Button>
@@ -795,68 +795,49 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           </div>
         </CardHeader>
         <CardContent>
-          {clientTab === 'ativos' ? (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {activeClients.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
-                ) : activeClients.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="">{c.client_id}</TableCell>
-                    <TableCell className="">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="default" className="text-xs">{c.status === 'em_onboarding' ? 'Em onboarding' : 'Ativo'}</Badge></TableCell>
-                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="">{c.email || '—'}</TableCell>
-                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : clientTab === 'pausados' ? (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {pausedClients.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes em pausa.</TableCell></TableRow>
-                ) : pausedClients.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="">{c.client_id}</TableCell>
-                    <TableCell className="">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="secondary" className="bg-warning/15 text-warning text-xs">Pausado</Badge></TableCell>
-                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="">{c.email || '—'}</TableCell>
-                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead><TableHead>Fim de Ciclo</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {endingClients.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem clientes a terminar este mês.</TableCell></TableRow>
-                ) : endingClients.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-                    <TableCell className="">{c.client_id}</TableCell>
-                    <TableCell className="">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="secondary" className="text-xs">{c.status}</Badge></TableCell>
-                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                    <TableCell className="">{c.email || '—'}</TableCell>
-                    <TableCell className="">{c.whatsapp || '—'}</TableCell>
-                    <TableCell><Badge variant="destructive" className="text-xs">{c.end_of_cycle}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          {(() => {
+            const list = clientTab === 'ativos' ? activeClients : clientTab === 'pausados' ? pausedClients : endingClients;
+            const showEnd = clientTab === 'terminar';
+            const emptyMsg = clientTab === 'ativos' ? 'Sem clientes ativos.' : clientTab === 'pausados' ? 'Sem clientes em pausa.' : 'Sem clientes a terminar este mês.';
+            return (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>{showEnd && <TableHead>Fim de Ciclo</TableHead>}
+                </TableRow></TableHeader>
+                <TableBody>
+                  {list.length === 0 ? (
+                    <TableRow><TableCell colSpan={showEnd ? 7 : 6} className="text-center text-sm text-muted-foreground py-4">{emptyMsg}</TableCell></TableRow>
+                  ) : list.map((c) => {
+                    const info = getClientStatusInfo(c.status);
+                    return (
+                      <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setInlineDetail({
+                        title: c.full_name,
+                        kind: 'client', id: c.id,
+                        fields: [
+                          { label: 'ID', value: c.client_id },
+                          { label: 'Status', value: <Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge> },
+                          { label: 'Email', value: c.email || '—' },
+                          { label: 'Whatsapp', value: c.whatsapp || '—' },
+                          { label: 'Produto atual', value: c.current_product || '—' },
+                          { label: 'Início', value: c.start_date || '—' },
+                          ...(c.end_of_cycle ? [{ label: 'Fim de Ciclo', value: c.end_of_cycle }] : []),
+                        ],
+                        openHref: `/hub/clientes/${c.id}`,
+                      })}>
+                        <TableCell>{c.client_id}</TableCell>
+                        <TableCell>{c.start_date || '—'}</TableCell>
+                        <TableCell><Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge></TableCell>
+                        <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                        <TableCell>{c.email || '—'}</TableCell>
+                        <TableCell>{c.whatsapp || '—'}</TableCell>
+                        {showEnd && <TableCell><Badge variant="outline" className="text-[10px] border-warning/40 text-warning">{c.end_of_cycle || '—'}</Badge></TableCell>}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            );
+          })()}
         </CardContent>
       </Card>
 
