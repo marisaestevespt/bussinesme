@@ -179,6 +179,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       qc.invalidateQueries({ queryKey: ['clients'] });
       qc.invalidateQueries({ queryKey: ['md-clients'] });
       qc.invalidateQueries({ queryKey: ['md-leads'] });
+      qc.invalidateQueries({ queryKey: ['crm'] });
+      qc.invalidateQueries({ queryKey: ['crm_leads'] });
+      qc.invalidateQueries({ queryKey: ['commercial'] });
+      qc.invalidateQueries({ queryKey: ['planning'] });
       setConvertLead(null);
       toast.success('Cliente criado com sucesso!');
       navigate(`/hub/clientes/${data.id}`);
