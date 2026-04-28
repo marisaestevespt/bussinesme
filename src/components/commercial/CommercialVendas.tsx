@@ -185,8 +185,8 @@ export function CommercialVendas() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="whitespace-nowrap">ID</TableHead>
+              <TableHead className="whitespace-nowrap">Status</TableHead>
               <TableHead>Data Pag.</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead className="text-right">Valor Base</TableHead>
