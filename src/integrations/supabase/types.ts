@@ -3210,6 +3210,30 @@ export type Database = {
         }
         Relationships: []
       }
+      department_colors: {
+        Row: {
+          color_key: string
+          created_at: string
+          department_value: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          color_key?: string
+          created_at?: string
+          department_value: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          color_key?: string
+          created_at?: string
+          department_value?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       department_links: {
         Row: {
           created_at: string
