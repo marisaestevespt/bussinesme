@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2 } from 'lucide-react';
 import { planStatusLabel, PERIODS, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { planningAreaLabel } from '@/lib/labelMaps';
-import { buildObjectiveAreaIndex, goalBelongsToPlanArea } from '@/lib/planningAreaFilters';
+import { buildObjectiveAreaIndex, goalBelongsToPlanArea, planningAreaMatches } from '@/lib/planningAreaFilters';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -272,7 +272,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
                 <SelectTrigger><SelectValue placeholder="Selecionar objetivo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">Sem objetivo</SelectItem>
-                  {(areaFilter ? objectives.filter((o: any) => o.area === areaFilter) : objectives).map((o: any) => <SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>)}
+                  {(areaFilter ? objectives.filter((o: any) => planningAreaMatches(o.area, areaFilter)) : objectives).map((o: any) => <SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
