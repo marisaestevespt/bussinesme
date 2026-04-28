@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local environment files (may contain secrets) — keep tracked .env (publishable keys only)
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+.env.test.local
