@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -20,12 +20,14 @@ import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
 import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
-import { ObjectiveDialog } from './ObjectiveDialog';
-import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
+import type { DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
+// Lazy: detail sheets/dialogs only mount when first opened (saves ~30-50KB on initial bundle)
+const ObjectiveDetailSheet = lazy(() => import('./ObjectiveDetailSheet').then(m => ({ default: m.ObjectiveDetailSheet })));
+const ObjectiveDialog = lazy(() => import('./ObjectiveDialog').then(m => ({ default: m.ObjectiveDialog })));
+const WeeklyAlignDetailSheet = lazy(() => import('@/components/executive/WeeklyAlignDetailSheet').then(m => ({ default: m.WeeklyAlignDetailSheet })));
+const LeadDetailSheet = lazy(() => import('@/components/commercial/crm/LeadDetailSheet').then(m => ({ default: m.LeadDetailSheet })));
 import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
-import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData, CRM_STATUSES } from '@/hooks/useCrmData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
