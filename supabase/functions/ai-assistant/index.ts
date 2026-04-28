@@ -1312,7 +1312,8 @@ async function executeTool(
       return await executeSingleAction(
         args.action_type as string,
         args.details as Record<string, unknown>,
-        supabaseAdmin
+        supabaseAdmin,
+        pendingFile
       );
     }
 
@@ -1333,7 +1334,7 @@ async function executeTool(
 
         console.log(`Workflow step ${i + 1}/${steps.length}: ${step.step_label}`, resolvedDetails);
 
-        const result = await executeSingleAction(step.action_type, resolvedDetails, supabaseAdmin);
+        const result = await executeSingleAction(step.action_type, resolvedDetails, supabaseAdmin, pendingFile);
 
         if (result.error) {
           return {
