@@ -103,8 +103,6 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
   const quarterNum = qIdx + 1;
 
   // State
-  const [metasView, setMetasView] = useState<'metas' | 'objetivos'>('metas');
-  const [calMonth, setCalMonth] = useState(new Date(year, q.months[0], 1));
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<number | null>(null);
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
@@ -114,19 +112,6 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
   const objectives = planning.allObjectives || [];
   const quarterGoals = goals.filter((g: any) => q.monthNames.includes(g.period));
   const { pct: progress, achievedCount: achieved } = planning.getPeriodProgress(q.monthNames);
-
-  // Linked objective IDs from quarter goals
-  const linkedObjIds = [...new Set(quarterGoals.map((g: any) => g.objective_id).filter(Boolean))];
-  const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
-
-  // Events for calendar
-  const eventsQ = useQuery({
-    queryKey: ['quarter-events', year, qIdx],
-    queryFn: async () => {
-      const { data } = await supabase.from('events').select('*');
-      return data || [];
-    },
-  });
 
   // Quarterly Analysis
   const analysisQ = useQuery({
@@ -177,49 +162,6 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
   const monthProgress = useMemo(() => {
     return q.months.map((mIdx) => planning.getPeriodProgress([MONTHS[mIdx]]).pct);
   }, [planning, q]);
-
-  // Calendar logic
-  const allEvents = eventsQ.data || [];
-
-  function renderCalendarGrid() {
-    const dm = getDaysInMonth(calMonth);
-    const firstDay = (getDay(startOfMonth(calMonth)) + 6) % 7;
-    const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-    const monthEvents = allEvents.filter((e: any) => {
-      if (!e.start_date) return false;
-      const d = parseISO(e.start_date);
-      return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear();
-    });
-    const cells: React.ReactNode[] = [];
-    for (let i = 0; i < firstDay; i++) cells.push(<div key={`e-${i}`} />);
-    for (let d = 1; d <= dm; d++) {
-      const dayItems = monthEvents.filter((e: any) => parseISO(e.start_date).getDate() === d);
-      const isToday = d === new Date().getDate() && calMonth.getMonth() === new Date().getMonth() && calMonth.getFullYear() === new Date().getFullYear();
-      cells.push(
-        <div key={d} className={cn('min-h-[60px] border border-border/30 rounded p-1', isToday && 'bg-primary/5 ring-1 ring-primary')}>
-          <span className="text-[10px] font-medium text-muted-foreground">{d}</span>
-          <div className="space-y-0.5 mt-0.5">
-            {dayItems.map((e: any) => (
-              <div key={e.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => navigate('/hub/agenda')}>{e.title}</div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(subMonths(calMonth, 1))}><ChevronLeft className="h-3.5 w-3.5" /></Button>
-          <span className="text-xs font-medium">{format(calMonth, 'MMMM yyyy', { locale: pt })}</span>
-          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(addMonths(calMonth, 1))}><ChevronRight className="h-3.5 w-3.5" /></Button>
-        </div>
-        <div className="grid grid-cols-7 gap-0.5">
-          {dayNames.map(dn => <div key={dn} className="text-center text-[10px] font-medium text-muted-foreground py-1">{dn}</div>)}
-          {cells}
-        </div>
-      </div>
-    );
-  }
 
   // If a month is selected, show MonthDetailView
   if (selectedMonthIdx !== null) {
