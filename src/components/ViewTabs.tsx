@@ -14,9 +14,11 @@ interface ViewTabsProps {
   onAdd: (label: string) => void;
   onRename: (id: string, label: string) => void;
   onDelete: (id: string) => void;
+  /** Optional element rendered to the right of the "Nova vista" button (e.g. filters trigger). */
+  trailing?: React.ReactNode;
 }
 
-export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete }: ViewTabsProps) {
+export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete, trailing }: ViewTabsProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -76,6 +78,7 @@ export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete
         <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground shrink-0" onClick={() => setAddOpen(true)}>
           <Plus className="h-3.5 w-3.5" /> Nova vista
         </Button>
+        {trailing}
       </div>
 
       {/* Add dialog */}
