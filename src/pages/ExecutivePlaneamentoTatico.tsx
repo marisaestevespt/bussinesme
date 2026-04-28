@@ -62,7 +62,7 @@ export default function ExecutivePlaneamentoTatico() {
           />
         </section>
 
-        <Tabs value={tab} onValueChange={handleTab} className="space-y-6">
+        <Tabs value={tab} onValueChange={handleTab} className="space-y-6 pt-6 mt-4 border-t border-border/60">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl">
             <TabsTrigger value="mensal" className="gap-2">
               <Calendar className="h-4 w-4" /> Mensal
