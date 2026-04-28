@@ -11504,6 +11504,7 @@ export type Database = {
         Returns: boolean
       }
       portal_token_active: { Args: { _token: string }; Returns: boolean }
+      profile_id_to_user_id: { Args: { _profile_id: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
