@@ -3772,22 +3772,66 @@ export type Database = {
       }
       executive_brain_dump: {
         Row: {
+          category_id: string | null
           completed: boolean
           created_at: string
           id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["brain_dump_status"]
           task: string
+          updated_at: string
         }
         Insert: {
+          category_id?: string | null
           completed?: boolean
           created_at?: string
           id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["brain_dump_status"]
           task: string
+          updated_at?: string
         }
         Update: {
+          category_id?: string | null
           completed?: boolean
           created_at?: string
           id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["brain_dump_status"]
           task?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "executive_brain_dump_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "executive_brain_dump_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      executive_brain_dump_categories: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -11468,6 +11512,7 @@ export type Database = {
         | "sales"
         | "team_member"
         | "viewer"
+      brain_dump_status: "em_ideia" | "aplicado" | "desconsiderado"
       deliverable_type: "tarefa" | "reuniao" | "documento" | "aprovacao"
       digest_frequency: "diario" | "semanal" | "mensal"
       google_calendar_scope:
@@ -11631,6 +11676,7 @@ export const Constants = {
         "team_member",
         "viewer",
       ],
+      brain_dump_status: ["em_ideia", "aplicado", "desconsiderado"],
       deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao"],
       digest_frequency: ["diario", "semanal", "mensal"],
       google_calendar_scope: [
