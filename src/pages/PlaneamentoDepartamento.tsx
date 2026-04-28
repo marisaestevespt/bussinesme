@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useSearchParams, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -6,9 +6,10 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Target, Building2, FolderKanban } from 'lucide-react';
+import { Target, Building2, FolderKanban, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePlanningData } from '@/hooks/usePlanningData';
+import { Button } from '@/components/ui/button';
 import { TacticalByAreaView } from '@/components/planning/TacticalByAreaView';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
@@ -39,6 +40,7 @@ export default function PlaneamentoDepartamento() {
   const areaKey = areaParam ? (DEPT_TO_AREA[areaParam] || areaParam) : '';
   const planning = usePlanningData(year);
   const { data: tacticalAreas = [] } = useTacticalAreas();
+  const [newObjectiveOpen, setNewObjectiveOpen] = useState(false);
 
   const yearStart = new Date(year, 0, 1);
   const yearEnd = endOfMonth(new Date(year, 11, 1));
@@ -69,20 +71,27 @@ export default function PlaneamentoDepartamento() {
 
         {/* Objetivos Anuais do dept */}
         <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Target className="h-4 w-4" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <Target className="h-4 w-4" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Objetivos Anuais</h2>
+                <p className="text-xs text-muted-foreground">Big goals do ano para {label}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-semibold">Objetivos Anuais</h2>
-              <p className="text-xs text-muted-foreground">Big goals do ano para {label}</p>
-            </div>
+            <Button size="sm" onClick={() => setNewObjectiveOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Objetivo
+            </Button>
           </div>
           <PlanningObjectivesTab
             planning={planning}
             showHeaderButton={false}
             layout="gallery"
             areaFilter={planAreaKey}
+            newDialogOpen={newObjectiveOpen}
+            onNewDialogChange={setNewObjectiveOpen}
           />
         </section>
 
