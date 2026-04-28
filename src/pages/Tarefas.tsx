@@ -260,6 +260,19 @@ export default function TarefasPage() {
     },
   });
 
+  // Inline update (name / status / priority / deadline / responsible)
+  const updateTaskInline = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, any> }) => {
+      const { error } = await supabase.from('tasks').update(patch).eq('id', id);
+      if (error) throw error;
+      return { id, patch };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+    onError: (e: any) => toast.error(e?.message || 'Erro ao atualizar tarefa'),
+  });
+
   function openNew() {
     setEditingTask(null);
     setName(''); setStatus('por_comecar'); setPriority('alta');
