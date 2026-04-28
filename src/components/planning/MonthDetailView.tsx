@@ -433,14 +433,32 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Agenda ME & Calendários</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/agenda')}><Plus className="h-3 w-3" /> Novo Evento</Button>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setInlineDetail({
+              title: 'Novo Evento',
+              kind: 'event',
+              id: 'new',
+              fields: [{ label: 'Acção', value: 'Para criar um evento, abre a página da Agenda.' }],
+              openHref: '/hub/agenda',
+            })}><Plus className="h-3 w-3" /> Novo Evento</Button>
           </div>
         </CardHeader>
         <CardContent>
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-accent-violet/10 text-accent-violet hover:bg-accent-violet/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/hub/agenda`)}>{e.title}</div>
+            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-accent-violet/10 text-accent-violet hover:bg-accent-violet/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => setInlineDetail({
+              title: e.title || 'Sem título',
+              kind: e._type === 'meeting' ? 'meeting' : 'event',
+              id: e.id,
+              fields: [
+                { label: 'Data', value: e.start_date ? format(parseISO(e.start_date), "dd/MM/yyyy 'às' HH:mm") : '—' },
+                ...(e.status ? [{ label: 'Status', value: <Badge variant="secondary" className="text-[10px]">{e.status}</Badge> }] : []),
+                ...(e.location ? [{ label: 'Local', value: e.location }] : []),
+                ...(e.meeting_url ? [{ label: 'Link', value: <a href={e.meeting_url} target="_blank" rel="noreferrer" className="text-primary underline">Abrir reunião</a> }] : []),
+                ...(e.description ? [{ label: 'Descrição', value: <span className="text-xs whitespace-pre-wrap">{e.description}</span> }] : []),
+              ],
+              openHref: e._type === 'meeting' ? `/hub/reunioes/${e.id}` : '/hub/agenda',
+            })}>{e.title}</div>
           )}
         </CardContent>
       </Card>
