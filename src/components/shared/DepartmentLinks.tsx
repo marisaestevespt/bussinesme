@@ -18,7 +18,7 @@ import {
 import { Link } from "react-router-dom";
 
 export type DepartmentKey =
-  | "comercial" | "marketing" | "trafego" | "conteudo"
+  | "comercial" | "marketing" | "trafego" | "conteudo" | "clientes"
   | "financeiro" | "executive" | "equipa" | "secretaria"
   | "produtos" | "operacao" | "hub";
 
@@ -121,7 +121,7 @@ export function DepartmentLinks({
 
   // Departments that have a dedicated planning page
   const PLANNING_DEPTS: DepartmentKey[] = [
-    "comercial","marketing","financeiro","operacao",
+    "comercial","marketing","financeiro","operacao","clientes",
     "produtos","equipa",
   ];
   const showPlanningChip = PLANNING_DEPTS.includes(department);
