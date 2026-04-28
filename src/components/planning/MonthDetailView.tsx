@@ -139,7 +139,13 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         if (error) throw error;
       }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['md-comm-goal', year, monthNum] }); setGoalEditOpen(false); toast.success('Meta atualizada'); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['md-comm-goal', year, monthNum] });
+      qc.invalidateQueries({ queryKey: ['planning'] });
+      qc.invalidateQueries({ queryKey: ['commercial'] });
+      setGoalEditOpen(false);
+      toast.success('Meta atualizada');
+    },
     onError: () => toast.error('Erro ao guardar meta'),
   });
 
