@@ -140,7 +140,7 @@ export function usePlanningData(year = currentYear) {
         .eq('id', rec.objective_id)
         .maybeSingle();
       if (!obj || obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
-      const monthIdx = MONTH_NAMES.indexOf(String(rec.period ?? ''));
+      const monthIdx = MONTH_NAMES.indexOf(String((rec as { period?: unknown }).period ?? ''));
       if (monthIdx === -1) return;
       const month = monthIdx + 1;
       const goalAmount = Number(rec.target_value) || 0;
@@ -622,9 +622,9 @@ export function usePlanningData(year = currentYear) {
   };
 
   // Helper: filter rows by month (1-based) using various date fields
-  const filterByMonth = <T extends Record<string, unknown>>(rows: T[], month: number, dateField: string): T[] => {
+  const filterByMonth = <T,>(rows: T[], month: number, dateField: string): T[] => {
     return rows.filter((r) => {
-      const val = r[dateField] as string | number | null | undefined;
+      const val = (r as Record<string, unknown>)[dateField] as string | number | null | undefined;
       if (!val) return false;
       if (typeof val === 'number') return val === month;
       const d = new Date(val);
