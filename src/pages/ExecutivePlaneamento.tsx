@@ -9,24 +9,12 @@ import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle, LineChart, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
-import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
-import { useFinancialData } from '@/hooks/useFinancialData';
-import { useCommercialData } from '@/hooks/useCommercialData';
-import { excludeCancelled } from '@/lib/utils';
-
-type ViewMode = 'visao' | 'previsibilidade' | null;
-
-const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; desc: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
-  { key: 'visao', label: 'Visão Geral', desc: 'Cascata + cobertura por área', icon: Compass, iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
-  { key: 'previsibilidade', label: 'Previsibilidade', desc: 'Cashflow anual projetado', icon: LineChart, iconColor: 'text-primary', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
-];
+import { Target, CheckCircle2, Clock, AlertTriangle, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
-  const [viewMode, setViewMode] = useState<ViewMode>('visao');
   const planning = usePlanningData(year);
 
   const stats = useMemo(() => {
