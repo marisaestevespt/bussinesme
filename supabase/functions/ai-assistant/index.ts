@@ -711,7 +711,8 @@ async function resolveMeetingWriteTarget(
 async function executeSingleAction(
   actionType: string,
   details: Record<string, unknown>,
-  supabaseAdmin: ReturnType<typeof createClient>
+  supabaseAdmin: ReturnType<typeof createClient>,
+  pendingFile?: { name?: string; type?: string; base64?: string } | null
 ): Promise<Record<string, unknown>> {
   const tableName = details.table as string;
 
@@ -730,6 +731,83 @@ async function executeSingleAction(
     } catch (e) {
       return { error: `Email não configurado ou erro: ${e instanceof Error ? e.message : "desconhecido"}` };
     }
+  }
+
+  if (actionType === "attach_file") {
+    if (!pendingFile?.base64 || !pendingFile?.name) {
+      return { error: "Não vejo nenhum ficheiro anexado a esta mensagem. Anexa o ficheiro primeiro." };
+    }
+    if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
+
+    const column = (details.column as string) || "documents";
+    const label = (details.document_label as string) || pendingFile.name;
+    const rawFilters = (details.filters as QueryFilter[]) || [];
+    const normalized = await normalizeFilters(tableName, rawFilters, supabaseAdmin, "write");
+    const filters = normalized.filters;
+    if (filters.length === 0) {
+      return { error: "Para anexar preciso de saber a que registo. Indica um filtro." };
+    }
+
+    // Bucket selection by table
+    const bucketByTable: Record<string, string> = {
+      financial_expenses: "financial-files",
+      financial_entries: "financial-files",
+      commercial_sales: "financial-files",
+      financial_subscriptions: "financial-files",
+      meetings: "meeting-files",
+      projects: "project-files",
+      products: "product-files",
+      events: "event-files",
+      content_items: "content-files",
+      mural_posts: "mural-files",
+      clients: "commercial-files",
+    };
+    const bucket = bucketByTable[tableName] || "financial-files";
+
+    // Find target row
+    let findQuery = supabaseAdmin.from(tableName).select(`id, ${column}`);
+    for (const f of filters) findQuery = applyFilter(findQuery, f);
+    const { data: rows, error: findErr } = await findQuery.limit(2);
+    if (findErr) return { error: findErr.message };
+    if (!rows || rows.length === 0) return { error: "Não encontrei nenhum registo com esses critérios." };
+    if (rows.length > 1) return { error: "Encontrei mais do que um registo. Sê mais específica nos filtros." };
+    const target = rows[0] as Record<string, unknown>;
+
+    // Upload to storage
+    const safeName = pendingFile.name.replace(/[^\w.\-]+/g, "_");
+    const path = `${tableName}/${target.id}/${Date.now()}_${safeName}`;
+    let bytes: Uint8Array;
+    try {
+      const bin = atob(pendingFile.base64);
+      bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    } catch {
+      return { error: "Ficheiro inválido (base64 corrompido)." };
+    }
+    const { error: upErr } = await supabaseAdmin.storage.from(bucket).upload(path, bytes, {
+      contentType: pendingFile.type || "application/octet-stream",
+      upsert: false,
+    });
+    if (upErr) return { error: `Não consegui guardar o ficheiro: ${upErr.message}` };
+    const { data: pub } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
+
+    // Append to jsonb array
+    const existing = Array.isArray(target[column]) ? (target[column] as unknown[]) : [];
+    const newDoc = {
+      name: label,
+      file_name: pendingFile.name,
+      url: pub.publicUrl,
+      bucket,
+      path,
+      mime_type: pendingFile.type || null,
+      uploaded_at: new Date().toISOString(),
+      uploaded_by: "atena",
+    };
+    const updated = [...existing, newDoc];
+    const { error: updErr } = await supabaseAdmin.from(tableName).update({ [column]: updated }).eq("id", target.id as string);
+    if (updErr) return { error: `Ficheiro guardado mas não consegui ligar ao registo: ${updErr.message}` };
+
+    return { success: true, attached: true, file: newDoc, record_id: target.id };
   }
 
   if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
