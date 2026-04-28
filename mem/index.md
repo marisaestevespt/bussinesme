@@ -47,6 +47,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Permissions system](mem://features/permissions-system.md) — Multi-dept, sensitive access, per-page grants
 - [Planning improvements](mem://features/planning-improvements.md) — Planning module improvements
 - [Planning overview](mem://features/planning-overview.md) — Cascata 3 horizontes + cobertura por 8 áreas no Planeamento
+- [Planning period progress](mem://features/planning-period-progress.md) — `planning.getPeriodProgress()` é a fonte única do cálculo de % por período (mês/trimestre/semestre)
 - [Product deliverable templates](mem://features/product-deliverable-templates.md) — Product deliverable templates
 - [Products](mem://features/produtos.md) — Product detail page structure and tab organization
 - [Routines system](mem://features/routines-system.md) — Routines auto-generate tasks via daily cron; managed in Tarefas > Rotinas tab
