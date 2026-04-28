@@ -552,6 +552,9 @@ export default function GestaoMarcaPage() {
                       </p>
                     )}
                   </div>
+
+                  {/* Missão / Visão / Valores — sync com Planeamento Estratégico */}
+                  <BrandIdentitySync settingsId={settings?.id} isOwner={isOwner} />
                 </div>
               </div>
             </CardContent>
