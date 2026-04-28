@@ -88,7 +88,7 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
 
             {/* Tático */}
             <button
-              onClick={() => navigate('/executive/planeamento/tatico')}
+              onClick={() => navigate(`/executive/planeamento/tatico?ano=${year}`)}
               className="text-left group rounded-xl border-2 border-accent-violet/30 bg-gradient-to-br from-accent-violet/10 to-accent-violet/5 p-4 hover:border-accent-violet/60 hover:shadow-md transition-all"
             >
               <div className="flex items-center gap-2 mb-2">

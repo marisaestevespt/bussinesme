@@ -3,13 +3,13 @@ import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
-import { YearSelector } from '@/components/YearSelector';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
+import { Badge } from '@/components/ui/badge';
 import { Calendar, BarChart3, PieChart, Target } from 'lucide-react';
 
 type Tab = 'mensal' | 'trimestral' | 'semestral' | 'metas';
@@ -17,7 +17,8 @@ type Tab = 'mensal' | 'trimestral' | 'semestral' | 'metas';
 export default function ExecutivePlaneamentoTatico() {
   const [params, setParams] = useSearchParams();
   const initialTab = (params.get('vista') as Tab) || 'mensal';
-  const [year, setYear] = useState(new Date().getFullYear());
+  const yearParam = parseInt(params.get('ano') || '', 10);
+  const year = Number.isFinite(yearParam) && yearParam > 2000 ? yearParam : new Date().getFullYear();
   const [tab, setTab] = useState<Tab>(initialTab);
   const planning = usePlanningData(year);
 
@@ -32,8 +33,10 @@ export default function ExecutivePlaneamentoTatico() {
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation />
-        <PageHeader title="Planeamento Tático" subtitle={`Aprofundar o plano · ${year}`} />
-        <YearSelector year={year} onChange={setYear} />
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano" />
+          <Badge variant="outline" className="text-sm font-medium px-3 py-1">{year}</Badge>
+        </div>
 
         <Tabs value={tab} onValueChange={handleTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl">
