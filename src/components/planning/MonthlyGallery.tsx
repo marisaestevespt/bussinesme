@@ -31,26 +31,21 @@ export function MonthlyGallery({ planning, year }: Props) {
   const monthProgress = useMemo(() => {
     return MONTHS.map((name) => {
       const monthGoals = goals.filter((g: any) => g.period === name);
-      const linkedObjIds = [...new Set(monthGoals.map((g: any) => g.objective_id).filter(Boolean))];
-      const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
-      const totalCount = monthGoals.length + linkedObjectives.length;
-      if (totalCount === 0) return { pct: 0, count: 0 };
+      if (monthGoals.length === 0) return { pct: 0, count: 0 };
 
       const goalPcts = monthGoals.map((g: any) => {
         if (g.status === 'atingido') return 100;
         const target = Number(g.target_value || 0);
-        const actual = Number(g.actual_value || 0);
         if (target <= 0) return 0;
+        // Try auto-computed value first (e.g. commercial sales), fall back to manual actual_value
+        const autoVal = planning.goalAutoValue ? Number(planning.goalAutoValue(g) ?? 0) : 0;
+        const actual = autoVal > 0 ? autoVal : Number(g.actual_value || 0);
         return Math.min(Math.round((actual / target) * 100), 100);
       });
-      const objPcts = linkedObjectives.map((o: any) =>
-        o.status === 'atingido' ? 100 : Math.min(Math.max(Number(planning.objectiveProgress?.(o) ?? 0), 0), 100)
-      );
-      const all = [...goalPcts, ...objPcts];
-      const avg = Math.round(all.reduce((a: number, b: number) => a + b, 0) / all.length);
-      return { pct: avg, count: totalCount };
+      const avg = Math.round(goalPcts.reduce((a: number, b: number) => a + b, 0) / goalPcts.length);
+      return { pct: avg, count: monthGoals.length };
     });
-  }, [goals, objectives, planning]);
+  }, [goals, planning]);
 
   if (selectedMonth !== null) {
     return (
