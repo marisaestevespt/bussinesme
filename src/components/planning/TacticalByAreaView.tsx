@@ -11,6 +11,7 @@ import { AreaPeriodDetail } from './AreaPeriodDetail';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { buildObjectiveAreaIndex, goalBelongsToDepartment } from '@/lib/planningAreaFilters';
 
 const MONTHS = [
   'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -28,13 +29,6 @@ const SEMESTERS = [
   { key: 'S1', label: 'S1', months: [0,1,2,3,4,5], monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho'] },
   { key: 'S2', label: 'S2', months: [6,7,8,9,10,11], monthNames: ['Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] },
 ];
-
-const DEPT_TO_PLAN_AREA: Record<string, string> = {
-  'recursos-humanos': 'equipa',
-  'produtos': 'produto',
-  'admin': 'outro',
-};
-const planAreaKeyFor = (k: string) => DEPT_TO_PLAN_AREA[k] || k;
 
 interface Props {
   planning: any;
@@ -65,16 +59,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
 
   // Goal area lives on the linked objective, not on the goal itself.
   // Build an index objectiveId → area so we can filter goals by department.
-  const goalAreaById = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const o of objectives as any[]) if (o?.id && o?.area) m.set(o.id, o.area);
-    return m;
-  }, [objectives]);
-
-  const goalArea = (g: any): string | undefined => {
-    if (g?.area) return g.area; // future-proof if column is added
-    return g?.objective_id ? goalAreaById.get(g.objective_id) : undefined;
-  };
+  const goalAreaById = useMemo(() => buildObjectiveAreaIndex(objectives as any[]), [objectives]);
 
   // Compute progress for a set of goals using the same logic as planning.getPeriodProgress:
   // - 'atingido' counts as 100%
@@ -118,12 +103,10 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
       setSelected(null);
       return null;
     }
-    const planKey = planAreaKeyFor(area.key);
     const periodGoals = goals.filter(
       (g: any) => {
         if (!period.monthNames.includes(g.period)) return false;
-        const a = goalArea(g);
-        return a === planKey || a === area.key;
+        return goalBelongsToDepartment(g, goalAreaById, area.key);
       },
     );
     const allInits = projectsByDept[area.key] || [];
@@ -180,12 +163,8 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
         </div>
       )}
       {visibleAreas.map((area: TacticalArea) => {
-        const planKey = planAreaKeyFor(area.key);
         const responsibles = membersByDept[area.key] || [];
-        const allAreaGoals = goals.filter((g: any) => {
-          const a = goalArea(g);
-          return a === planKey || a === area.key;
-        });
+        const allAreaGoals = goals.filter((g: any) => goalBelongsToDepartment(g, goalAreaById, area.key));
         const allAreaInits = projectsByDept[area.key] || [];
 
         const cells: AreaPeriodCell[] = periods.map((p) => {

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
 import { planStatusLabel, PERIODS, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { planningAreaLabel } from '@/lib/labelMaps';
+import { buildObjectiveAreaIndex, goalBelongsToPlanArea } from '@/lib/planningAreaFilters';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -34,7 +35,7 @@ function isPeriodEnded(period: string): boolean {
 
 export type GoalsViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas';
 
-export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: any; viewMode?: GoalsViewMode }) {
+export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: { planning: any; viewMode?: GoalsViewMode; areaFilter?: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
@@ -42,6 +43,11 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
 
   const allGoals = planning.allGoals;
   const objectives = planning.allObjectives;
+  const goalAreaById = useMemo(() => buildObjectiveAreaIndex(objectives), [objectives]);
+  const visibleGoals = useMemo(
+    () => (areaFilter ? allGoals.filter((g: any) => goalBelongsToPlanArea(g, goalAreaById, areaFilter)) : allGoals),
+    [allGoals, areaFilter, goalAreaById],
+  );
 
   useEffect(() => {
     if (editGoal) {
@@ -86,7 +92,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
   const getObjectiveDeadline = (id: string) => objectives.find((o: any) => o.id === id)?.deadline || null;
 
   // Monthly goals only
-  const monthlyGoals = useMemo(() => allGoals.filter((g: any) => MONTHS.includes(g.period)), [allGoals]);
+  const monthlyGoals = useMemo(() => visibleGoals.filter((g: any) => MONTHS.includes(g.period)), [visibleGoals]);
 
   // Build aggregated rows for a period map (quarters or semesters)
   const buildAggregatedRows = (periodMap: Record<string, string[]>) => {
@@ -136,12 +142,12 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
 
   // "Detalhe" view uses filters
   const filteredGoals = useMemo(() => {
-    let g = allGoals;
+    let g = visibleGoals;
     if (filter === 'com_desvio') g = g.filter((x: any) => x.actual_value && x.target_value && Number(x.actual_value) < Number(x.target_value));
     if (filter === 'atingidas') g = g.filter((x: any) => x.status === 'atingido');
     if (filter === 'por_iniciar') g = g.filter((x: any) => x.status === 'por_iniciar');
     return g;
-  }, [allGoals, filter]);
+  }, [visibleGoals, filter]);
 
   const detailGrouped = useMemo(() => {
     const map: Record<string, any[]> = {};
@@ -260,7 +266,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
                 <SelectTrigger><SelectValue placeholder="Selecionar objetivo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">Sem objetivo</SelectItem>
-                  {objectives.map((o: any) => <SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>)}
+                  {(areaFilter ? objectives.filter((o: any) => o.area === areaFilter) : objectives).map((o: any) => <SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
