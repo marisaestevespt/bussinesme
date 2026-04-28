@@ -104,16 +104,7 @@ export function TaskTable({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {task.parent_task_id && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-                    {editable ? (
-                      <Stop className="flex-1 min-w-0">
-                        <InlineNameEditor
-                          value={task.name}
-                          onCommit={(v) => v !== task.name && onUpdateTask!(task.id, { name: v })}
-                        />
-                      </Stop>
-                    ) : (
-                      <span className="font-medium">{task.name}</span>
-                    )}
+                    <span className="font-medium">{task.name}</span>
                     {subtaskCount > 0 && (
                       <Badge variant="secondary" className="text-[9px] px-1 py-0 gap-0.5">
                         <GitBranch className="h-2.5 w-2.5" />{subtaskCount}
