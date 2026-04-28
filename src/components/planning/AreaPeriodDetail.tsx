@@ -125,7 +125,7 @@ export function AreaPeriodDetail({
                     }}
                     className="flex items-center justify-between gap-2 text-sm cursor-pointer hover:bg-muted/40 rounded px-2 py-1.5 transition-colors"
                   >
-                    <span className="truncate flex-1">{g.name || 'Sem nome'}</span>
+                    <span className="truncate flex-1">{g.meta || g.name || 'Sem nome'}</span>
                     {pct !== null ? (
                       <Badge variant="secondary" className="tabular-nums shrink-0">{pct}%</Badge>
                     ) : (
