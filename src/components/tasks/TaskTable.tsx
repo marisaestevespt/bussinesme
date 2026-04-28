@@ -13,6 +13,7 @@ import { pt } from 'date-fns/locale';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { isTaskDone } from '@/lib/taskStatus';
 import { TASK_STATUSES, TASK_PRIORITIES, getTaskStatusInfo, getTaskPriorityInfo } from '@/lib/taskStatus';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 
 const PRIORITIES = TASK_PRIORITIES;
 
@@ -64,6 +65,7 @@ export function TaskTable({
   }
 
   const editable = !!onUpdateTask;
+  const { getPhotoUrl } = useTeamPhotos();
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -95,6 +97,7 @@ export function TaskTable({
             const subtaskCount = allTasks.filter((t: any) => t.parent_task_id === task.id).length;
             const responsibleProfile = profiles.find(p => p.id === task.assigned_to);
             const responsibleName = responsibleProfile?.full_name || getProfileName(task.assigned_to);
+            const responsiblePhoto = getPhotoUrl(responsibleProfile || (task.assigned_to ? { id: task.assigned_to, full_name: responsibleName } : null));
 
             return (
               <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onTaskClick(task)}>
@@ -126,7 +129,7 @@ export function TaskTable({
                   {editable ? (
                     <Stop>
                       <Select value={task.status} onValueChange={(v) => v !== task.status && onUpdateTask!(task.id, { status: v })}>
-                        <SelectTrigger className={cn('h-7 px-2 text-xs w-auto gap-1 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0', statusInfo.color)}>
+                        <SelectTrigger className={cn('h-7 px-2 text-xs gap-1 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 w-fit min-w-max [&>span]:whitespace-nowrap', statusInfo.color)}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -142,7 +145,7 @@ export function TaskTable({
                   {editable ? (
                     <Stop>
                       <Select value={task.priority} onValueChange={(v) => v !== task.priority && onUpdateTask!(task.id, { priority: v })}>
-                        <SelectTrigger className={cn('h-7 px-2 text-xs w-auto gap-1 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0', priorityInfo.color)}>
+                        <SelectTrigger className={cn('h-7 px-2 text-xs gap-1 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 w-fit min-w-max [&>span]:whitespace-nowrap', priorityInfo.color)}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -196,15 +199,15 @@ export function TaskTable({
                         value={task.assigned_to || '_none'}
                         onValueChange={(v) => onUpdateTask!(task.id, { assigned_to: v === '_none' ? null : v })}
                       >
-                        <SelectTrigger className="h-8 px-1.5 w-auto gap-2 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 [&>svg]:opacity-0 [&>svg]:group-hover:opacity-100">
+                        <SelectTrigger className="h-8 px-1.5 gap-2 border-0 bg-transparent hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 w-fit min-w-max [&>span]:whitespace-nowrap [&>svg]:opacity-0 [&>svg]:group-hover:opacity-100">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={responsibleProfile?.avatar_url || undefined} />
+                              <AvatarImage src={responsiblePhoto || undefined} />
                               <AvatarFallback className="text-[10px] font-semibold">
                                 {getInitials(responsibleName)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-sm truncate max-w-[140px]">
+                            <span className="text-sm whitespace-nowrap">
                               {responsibleName || 'Sem responsável'}
                             </span>
                           </div>
@@ -217,7 +220,7 @@ export function TaskTable({
                               <SelectItem key={p.id} value={p.id}>
                                 <div className="flex items-center gap-2">
                                   <Avatar className="h-5 w-5">
-                                    <AvatarImage src={p.avatar_url || undefined} />
+                                    <AvatarImage src={getPhotoUrl(p) || undefined} />
                                     <AvatarFallback className="text-[9px] font-semibold">
                                       {getInitials(p.full_name)}
                                     </AvatarFallback>
@@ -232,7 +235,7 @@ export function TaskTable({
                   ) : (
                     <div className="flex items-center gap-2 text-sm">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={responsibleProfile?.avatar_url || undefined} />
+                        <AvatarImage src={responsiblePhoto || undefined} />
                         <AvatarFallback className="text-[10px] font-semibold">
                           {getInitials(responsibleName)}
                         </AvatarFallback>
