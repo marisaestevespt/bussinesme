@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import type { TablesInsert, TablesUpdate, Json } from '@/integrations/supabase/types';
 
 export type ViewScope = 'today' | 'week' | 'tasks';
 export type ViewLayout = 'table' | 'list' | 'board';
@@ -68,20 +69,20 @@ export function useSecretariaCustomViews(scope: ViewScope) {
 
   const create = useMutation({
     mutationFn: async (v: Omit<CustomView, 'id' | 'user_id' | 'sort_order' | 'scope'> & { sort_order?: number }) => {
-      const payload = {
+      const payload: TablesInsert<'secretaria_custom_views'> = {
         user_id: user!.id,
         scope,
         name: v.name,
         layout: v.layout,
-        columns: v.columns as any,
-        filters: v.filters as any,
+        columns: v.columns as unknown as Json,
+        filters: v.filters as unknown as Json,
         group_by: v.group_by,
         sort_by: v.sort_by,
         sort_order: v.sort_order ?? (list.data?.length ?? 0),
       };
       const { data, error } = await supabase
         .from('secretaria_custom_views')
-        .insert(payload as any)
+        .insert(payload)
         .select()
         .single();
       if (error) throw error;
@@ -91,15 +92,20 @@ export function useSecretariaCustomViews(scope: ViewScope) {
       qc.invalidateQueries({ queryKey: ['secretaria-custom-views', user?.id, scope] });
       toast.success('Vista criada');
     },
-    onError: (e: any) => toast.error(e.message || 'Erro ao criar vista'),
+    onError: (e: Error) => toast.error(e.message || 'Erro ao criar vista'),
   });
 
   const update = useMutation({
     mutationFn: async (v: Partial<CustomView> & { id: string }) => {
       const { id, ...rest } = v;
+      const patch: TablesUpdate<'secretaria_custom_views'> = {
+        ...rest,
+        ...(rest.columns !== undefined ? { columns: rest.columns as unknown as Json } : {}),
+        ...(rest.filters !== undefined ? { filters: rest.filters as unknown as Json } : {}),
+      } as TablesUpdate<'secretaria_custom_views'>;
       const { error } = await supabase
         .from('secretaria_custom_views')
-        .update(rest as any)
+        .update(patch)
         .eq('id', id);
       if (error) throw error;
     },
@@ -107,7 +113,7 @@ export function useSecretariaCustomViews(scope: ViewScope) {
       qc.invalidateQueries({ queryKey: ['secretaria-custom-views', user?.id, scope] });
       toast.success('Vista atualizada');
     },
-    onError: (e: any) => toast.error(e.message || 'Erro ao atualizar vista'),
+    onError: (e: Error) => toast.error(e.message || 'Erro ao atualizar vista'),
   });
 
   const remove = useMutation({
@@ -119,7 +125,7 @@ export function useSecretariaCustomViews(scope: ViewScope) {
       qc.invalidateQueries({ queryKey: ['secretaria-custom-views', user?.id, scope] });
       toast.success('Vista removida');
     },
-    onError: (e: any) => toast.error(e.message || 'Erro ao remover vista'),
+    onError: (e: Error) => toast.error(e.message || 'Erro ao remover vista'),
   });
 
   return { views: list.data || [], isLoading: list.isLoading, create, update, remove };
