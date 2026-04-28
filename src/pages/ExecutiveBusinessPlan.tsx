@@ -147,9 +147,6 @@ export default function ExecutiveBusinessPlan() {
         <BackNavigation />
         <PageHeader title="Plano & Modelo de Negócio" subtitle="Business Model Canvas" />
 
-        {/* === Nível Estratégico — Identidade, SWOT, Diretrizes 3-5 anos === */}
-        <StrategicSection />
-
         {/* Header bar with Add column */}
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Canvas</h2>
@@ -206,6 +203,9 @@ export default function ExecutiveBusinessPlan() {
             </div>
           </>
         )}
+
+        {/* === Nível Estratégico — Identidade, SWOT, Diretrizes 3-5 anos === */}
+        <StrategicSection />
       </div>
     </AppLayout>
   );
