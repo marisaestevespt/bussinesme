@@ -133,7 +133,7 @@ export function usePlanningData(year = currentYear) {
     } catch (e) { console.error('Sync objective→commercial failed', e); }
   };
 
-  // Sync planning goal → commercial_monthly_goals
+  // Sync planning goal → commercial_monthly_goals OR commercial_quarterly_goals
   const syncGoalToCommercial = async (rec: PlanningFormPayload) => {
     if (!rec.objective_id) return;
     try {
@@ -143,10 +143,31 @@ export function usePlanningData(year = currentYear) {
         .eq('id', rec.objective_id as string)
         .maybeSingle();
       if (!obj || obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
-      const monthIdx = MONTH_NAMES.indexOf(String((rec as { period?: unknown }).period ?? ''));
+      const period = String((rec as { period?: unknown }).period ?? '');
+      const goalAmount = Number(rec.target_value) || 0;
+
+      // Trimestral: T1..T4 → commercial_quarterly_goals
+      const qMatch = period.match(/^T([1-4])$/);
+      if (qMatch) {
+        const quarter = Number(qMatch[1]);
+        const { data: existing } = await supabase
+          .from('commercial_quarterly_goals')
+          .select('id')
+          .eq('year', year)
+          .eq('quarter', quarter)
+          .maybeSingle();
+        if (existing) {
+          await supabase.from('commercial_quarterly_goals').update({ goal_amount: goalAmount }).eq('id', existing.id);
+        } else {
+          await supabase.from('commercial_quarterly_goals').insert({ year, quarter, goal_amount: goalAmount });
+        }
+        return;
+      }
+
+      // Mensal: nome do mês → commercial_monthly_goals
+      const monthIdx = MONTH_NAMES.indexOf(period);
       if (monthIdx === -1) return;
       const month = monthIdx + 1;
-      const goalAmount = Number(rec.target_value) || 0;
       const { data: existing } = await supabase
         .from('commercial_monthly_goals')
         .select('id')
