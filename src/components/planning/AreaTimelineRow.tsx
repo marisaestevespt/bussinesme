@@ -14,6 +14,7 @@ export interface AreaPeriodCell {
   progress: number;       // 0..100
   goalsCount: number;
   initiativesCount: number;
+  objectivesCount?: number;
   isCurrent?: boolean;
 }
 
@@ -122,6 +123,11 @@ export function AreaTimelineRow({ area, responsibles, cells, totalProgress, onSe
                 />
               </div>
               <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                {(c.objectivesCount ?? 0) > 0 && (
+                  <Badge variant="default" className="text-[9px] px-1.5 py-0 h-4 tabular-nums">
+                    {c.objectivesCount}o
+                  </Badge>
+                )}
                 <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 tabular-nums">
                   {c.goalsCount}m
                 </Badge>
