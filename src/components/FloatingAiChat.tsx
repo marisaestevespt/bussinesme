@@ -404,7 +404,7 @@ export function FloatingAiChat() {
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">Lyrata AI</p>
+              <p className="text-sm font-semibold">Atena</p>
               <p className="text-[11px] text-muted-foreground">Assistente inteligente</p>
             </div>
             <div className="flex items-center gap-0.5">
@@ -426,7 +426,7 @@ export function FloatingAiChat() {
                   <Bot className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Olá! Sou a Lyrata AI 👋</p>
+                  <p className="text-sm font-medium">Olá! Sou a Atena 👋</p>
                   <p className="text-xs text-muted-foreground mt-1 max-w-[260px]">
                     Posso consultar dados, criar registos, analisar ficheiros e muito mais.
                   </p>
