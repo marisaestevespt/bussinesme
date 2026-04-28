@@ -23,6 +23,7 @@ const FinGoals = lazy(() => import('@/components/financial/FinGoals').then(m => 
 const FinContabilidade = lazy(() => import('@/components/financial/FinContabilidade').then(m => ({ default: m.FinContabilidade })));
 const FinListaProdutos = lazy(() => import('@/components/financial/FinListaProdutos').then(m => ({ default: m.FinListaProdutos })));
 const FinAuditoriaPagamentos = lazy(() => import('@/components/financial/FinAuditoriaPagamentos').then(m => ({ default: m.FinAuditoriaPagamentos })));
+const FinPrevisibilidade = lazy(() => import('@/components/financial/FinPrevisibilidade').then(m => ({ default: m.FinPrevisibilidade })));
 
 const TITLES: Record<string, string> = {
   mensal: 'Mensal',
@@ -37,9 +38,10 @@ const TITLES: Record<string, string> = {
   'lista-produtos': 'Lista de Produtos',
   contabilidade: 'Prazos Fiscais',
   'auditoria-pagamentos': 'Auditoria de Pagamentos',
+  previsibilidade: 'Previsibilidade',
 };
 
-const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'contabilidade'];
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'contabilidade', 'previsibilidade'];
 
 /**
  * Per-section query requirements — only fetch what's actually needed.
@@ -59,6 +61,8 @@ function getFinancialOptions(section: string | undefined): FinancialDataOptions 
       return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
     case 'setup-financeiro':
       return { expenses: true, recurring: true, documents: true, payroll: true, contractors: true };
+    case 'previsibilidade':
+      return { expenses: true, recurring: true, documents: false, payroll: true, contractors: true };
     case 'entradas':
       return { expenses: false, recurring: false, documents: false, payroll: false, contractors: false };
     // contabilidade, ordenados, documentos — fetch their own data internally
@@ -68,7 +72,7 @@ function getFinancialOptions(section: string | undefined): FinancialDataOptions 
 }
 
 function needsCommercialData(section: string | undefined): boolean {
-  return ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'metas-financeiras', 'contabilidade'].includes(section || '');
+  return ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'metas-financeiras', 'contabilidade', 'previsibilidade'].includes(section || '');
 }
 
 function LoadingFallback() {
@@ -132,6 +136,8 @@ export default function FinanceiroSubPage() {
         return <FinListaProdutos />;
       case 'auditoria-pagamentos':
         return <FinAuditoriaPagamentos />;
+      case 'previsibilidade':
+        return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
       default:
         return <EmptyModulePage title={title} />;
     }
