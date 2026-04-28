@@ -1,10 +1,18 @@
 import { useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { getStatusInfo, getPriorityInfo, getDeptInfo } from './TaskTable';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
+
+function getInitials(name?: string | null) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || '?';
+}
 
 interface ResponsavelViewProps {
   tasks: any[];
@@ -19,6 +27,7 @@ interface ResponsavelViewProps {
 export function ResponsavelView({
   tasks, profiles, isOverdue, isDoneAfterDeadline, getProfileName, getProjectName, onTaskClick,
 }: ResponsavelViewProps) {
+  const { getPhotoUrl } = useTeamPhotos();
   const grouped = useMemo(() => {
     const map: Record<string, any[]> = {};
     tasks.forEach(t => {
@@ -44,10 +53,18 @@ export function ResponsavelView({
       {sortedKeys.map(key => {
         const personTasks = grouped[key];
         const personName = key === '__unassigned' ? 'Sem responsável' : getProfileName(key);
+        const personProfile = key === '__unassigned' ? null : profiles.find((p: any) => p.id === key);
+        const personPhoto = key === '__unassigned' ? '' : getPhotoUrl(personProfile || { id: key, full_name: personName });
 
         return (
           <div key={key} className="space-y-2">
             <div className="flex items-center gap-2">
+              <Avatar className="h-7 w-7">
+                {personPhoto && <AvatarImage src={personPhoto} />}
+                <AvatarFallback className="text-[10px] font-semibold">
+                  {key === '__unassigned' ? '—' : getInitials(personName)}
+                </AvatarFallback>
+              </Avatar>
               <h3 className="text-sm font-semibold text-foreground">{personName}</h3>
               <Badge variant="secondary" className="text-xs">{personTasks.length}</Badge>
             </div>
