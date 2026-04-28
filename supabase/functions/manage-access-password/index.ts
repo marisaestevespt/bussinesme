@@ -1,36 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// ────────────────────────────────────────────────────────────────────────────
-// CORS — allows production domain + Lovable preview subdomains
-// ────────────────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGIN_ENV = Deno.env.get("ALLOWED_ORIGIN") ?? "https://bussinesme.lovable.app";
-const ALLOWED_LIST = ALLOWED_ORIGIN_ENV.split(",").map((o) => o.trim()).filter(Boolean);
-
-function resolveOrigin(req: Request): string {
-  const origin = req.headers.get("Origin") ?? "";
-  // Exact match
-  if (ALLOWED_LIST.includes(origin)) return origin;
-  // Allow any *.lovable.app subdomain (preview environments)
-  try {
-    const url = new URL(origin);
-    if (url.hostname.endsWith(".lovable.app") || url.hostname === "lovable.app") {
-      return origin;
-    }
-  } catch {
-    // ignore
-  }
-  // Fallback to first allowed origin
-  return ALLOWED_LIST[0] ?? "https://bussinesme.lovable.app";
-}
-
-function buildCorsHeaders(req: Request) {
-  return {
-    "Access-Control-Allow-Origin": resolveOrigin(req),
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-    "Vary": "Origin",
-  };
-}
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Encryption (AES-GCM) — key MUST come from secret ACCESS_ENCRYPTION_KEY
@@ -108,7 +77,7 @@ async function logAudit(
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = buildCorsHeaders(req);
+  const corsHeaders = getCorsHeaders(req);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
