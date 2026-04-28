@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { FIXED_COLUMNS, getColumnIcon } from './business-plan/columns';
+import { StrategicSection } from '@/components/planning/StrategicSection';
 
 export default function ExecutiveBusinessPlan() {
   const qc = useQueryClient();
@@ -146,21 +147,8 @@ export default function ExecutiveBusinessPlan() {
         <BackNavigation />
         <PageHeader title="Plano & Modelo de Negócio" subtitle="Business Model Canvas" />
 
-        {/* Atalho para Gestão de Marca — identidade, SWOT, posicionamento */}
-        <button
-          onClick={() => navigate('/hub/marketing/gestao-marca')}
-          className="w-full flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 hq-transition px-4 py-2.5 text-left group"
-        >
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">
-              <span className="font-medium text-foreground">Identidade, Visão, SWOT e Posicionamento</span>
-              <span className="text-muted-foreground"> vivem na </span>
-              <span className="font-medium text-foreground">Gestão de Marca</span>
-            </span>
-          </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 hq-transition" />
-        </button>
+        {/* === Nível Estratégico — Identidade, SWOT, Diretrizes 3-5 anos === */}
+        <StrategicSection />
 
         {/* Header bar with Add column */}
         <div className="flex items-center justify-between">
