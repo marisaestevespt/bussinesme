@@ -1,10 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 // Calculate the next occurrence of a recurring deliverable in a given month
 function getOccurrenceInMonth(year: number, month: number, week: number, weekday: number): string | null {
@@ -36,6 +32,7 @@ function getOccurrenceInMonth(year: number, month: number, week: number, weekday
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   if (!isAuthorizedCronCall(req)) {
