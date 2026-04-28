@@ -28,7 +28,7 @@ export default function ExecutivePlaneamentoTatico() {
         {/* Áreas / Departamentos — única entrada do tático.
             Clicar numa área leva a /planeamento/dep/:area, que mostra
             objetivos anuais, metas e projetos só dessa área. */}
-        <section className="space-y-3">
+        <section className="space-y-6">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
