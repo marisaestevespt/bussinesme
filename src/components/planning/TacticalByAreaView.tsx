@@ -10,6 +10,7 @@ import { AreaTimelineRow, type AreaPeriodCell } from './AreaTimelineRow';
 import { AreaPeriodDetail } from './AreaPeriodDetail';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const MONTHS = [
   'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -38,10 +39,12 @@ const planAreaKeyFor = (k: string) => DEPT_TO_PLAN_AREA[k] || k;
 interface Props {
   planning: any;
   year: number;
-  view: 'trimestral' | 'semestral';
+  /** Default 'trimestral'. The view also has an internal toggle so the user can switch. */
+  defaultView?: 'trimestral' | 'semestral';
 }
 
-export function TacticalByAreaView({ planning, year, view }: Props) {
+export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' }: Props) {
+  const [view, setView] = useState<'trimestral' | 'semestral'>(defaultView);
   const periods = view === 'trimestral' ? QUARTERS : SEMESTERS;
   const [selected, setSelected] = useState<{ areaKey: string; periodKey: string } | null>(null);
 
@@ -114,6 +117,18 @@ export function TacticalByAreaView({ planning, year, view }: Props) {
   // Main: list of areas with timeline rows
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-end">
+        <ToggleGroup
+          type="single"
+          value={view}
+          onValueChange={(v) => v && setView(v as 'trimestral' | 'semestral')}
+          size="sm"
+          variant="outline"
+        >
+          <ToggleGroupItem value="trimestral" className="text-xs h-7 px-3">Trimestre</ToggleGroupItem>
+          <ToggleGroupItem value="semestral" className="text-xs h-7 px-3">Semestre</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       {areas.map((area: TacticalArea) => {
         const planKey = planAreaKeyFor(area.key);
         const responsibles = membersByDept[area.key] || [];

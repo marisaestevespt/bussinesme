@@ -3,41 +3,28 @@ import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { TacticalByAreaView } from '@/components/planning/TacticalByAreaView';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { Button } from '@/components/ui/button';
-import { BarChart3, PieChart, Target, Plus } from 'lucide-react';
-
-type Tab = 'trimestral' | 'semestral' | 'metas';
+import { Target, Plus, ChevronDown, ChevronUp, Building2 } from 'lucide-react';
 
 export default function ExecutivePlaneamentoTatico() {
-  const [params, setParams] = useSearchParams();
-  const rawTab = (params.get('vista') as string) || 'trimestral';
-  // Backward compat: if URL still says 'mensal', redirect to 'trimestral'
-  const initialTab: Tab = (['trimestral', 'semestral', 'metas'].includes(rawTab) ? rawTab : 'trimestral') as Tab;
+  const [params] = useSearchParams();
   const yearParam = parseInt(params.get('ano') || '', 10);
   const year = Number.isFinite(yearParam) && yearParam > 2000 ? yearParam : new Date().getFullYear();
-  const [tab, setTab] = useState<Tab>(initialTab);
   const planning = usePlanningData(year);
   const [newObjectiveOpen, setNewObjectiveOpen] = useState(false);
-
-  const handleTab = (v: string) => {
-    setTab(v as Tab);
-    const next = new URLSearchParams(params);
-    next.set('vista', v);
-    setParams(next, { replace: true });
-  };
+  const [showAllGoals, setShowAllGoals] = useState(false);
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <BackNavigation />
-        <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano" />
+        <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano por área" />
 
-        {/* Destaque: Objetivos Anuais — big goals do ano em foco */}
+        {/* Objetivos Anuais — big goals do ano em foco */}
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -62,27 +49,38 @@ export default function ExecutivePlaneamentoTatico() {
           />
         </section>
 
-        <Tabs value={tab} onValueChange={handleTab} className="space-y-6 pt-6 mt-4 border-t border-border/60">
-          <TabsList className="grid w-full grid-cols-3 max-w-xl">
-            <TabsTrigger value="trimestral" className="gap-2">
-              <BarChart3 className="h-4 w-4" /> Trimestral
-            </TabsTrigger>
-            <TabsTrigger value="semestral" className="gap-2">
-              <PieChart className="h-4 w-4" /> Semestral
-            </TabsTrigger>
-            <TabsTrigger value="metas" className="gap-2">
-              <Target className="h-4 w-4" /> Metas
-            </TabsTrigger>
-          </TabsList>
+        {/* Áreas / Departamentos — entrada principal do tático */}
+        <section className="space-y-3 pt-6 border-t border-border/60">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Building2 className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Áreas do negócio</h2>
+              <p className="text-xs text-muted-foreground">Cada departamento e o que entrega no ano. Click num bloco para ver o detalhe.</p>
+            </div>
+          </div>
+          <TacticalByAreaView planning={planning} year={year} />
+        </section>
 
-          <TabsContent value="trimestral">
-            <TacticalByAreaView planning={planning} year={year} view="trimestral" />
-          </TabsContent>
-          <TabsContent value="semestral">
-            <TacticalByAreaView planning={planning} year={year} view="semestral" />
-          </TabsContent>
-          <TabsContent value="metas"><PlanningGoalsTab planning={planning} viewMode="metas" /></TabsContent>
-        </Tabs>
+        {/* Metas — secção colapsável no fim */}
+        <section className="space-y-3 pt-6 border-t border-border/60">
+          <button
+            type="button"
+            onClick={() => setShowAllGoals((v) => !v)}
+            className="flex items-center gap-2 w-full text-left hq-transition hover:opacity-80"
+          >
+            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Target className="h-4 w-4" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-base font-semibold">Todas as Metas</h2>
+              <p className="text-xs text-muted-foreground">Vista plana de todas as metas do ano</p>
+            </div>
+            {showAllGoals ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {showAllGoals && <PlanningGoalsTab planning={planning} viewMode="metas" />}
+        </section>
       </div>
     </AppLayout>
   );
