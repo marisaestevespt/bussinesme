@@ -11,7 +11,7 @@ import { AreaPeriodDetail } from './AreaPeriodDetail';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { buildObjectiveAreaIndex, goalBelongsToDepartment } from '@/lib/planningAreaFilters';
+import { buildObjectiveAreaIndex, goalBelongsToDepartment, planningAreaForDepartment } from '@/lib/planningAreaFilters';
 
 const MONTHS = [
   'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -167,6 +167,13 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
         const responsibles = membersByDept[area.key] || [];
         const allAreaGoals = goals.filter((g: any) => goalBelongsToDepartment(g, goalAreaById, area.key));
         const allAreaInits = projectsByDept[area.key] || [];
+        const planAreaKey = planningAreaForDepartment(area.key);
+        const areaObjectives = (objectives as any[]).filter(
+          (o) => o.area === planAreaKey || o.area === area.key,
+        );
+        const objectiveProgresses = areaObjectives.map((o) =>
+          typeof planning.objectiveProgress === 'function' ? planning.objectiveProgress(o) : 0,
+        );
 
         const cells: AreaPeriodCell[] = periods.map((p) => {
           const periodGoals = allAreaGoals.filter((g: any) => p.monthNames.includes(g.period));
@@ -177,7 +184,14 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
             const d = new Date(pr.deadline);
             return d >= periodStart && d <= periodEnd;
           });
-          const { pct: progress } = computeProgress(periodGoals);
+          const goalProg = computeProgress(periodGoals).pct;
+          // Objectives are annual — surface their average progress on every
+          // period when there are no period-specific goals, so the area card
+          // doesn't read 0% just because metas haven't been created yet.
+          const objAvg = objectiveProgresses.length
+            ? Math.round(objectiveProgresses.reduce((a, b) => a + b, 0) / objectiveProgresses.length)
+            : 0;
+          const progress = periodGoals.length > 0 ? goalProg : objAvg;
           const isCurrent = p.months.includes(currentMonth);
           return {
             key: p.key,
@@ -186,11 +200,24 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
             progress,
             goalsCount: periodGoals.length,
             initiativesCount: periodInits.length,
+            objectivesCount: areaObjectives.length,
             isCurrent,
           };
         });
 
-        const { pct: yearProgress } = computeProgress(allAreaGoals);
+        const goalsYearPct = computeProgress(allAreaGoals).pct;
+        const objYearPct = objectiveProgresses.length
+          ? Math.round(objectiveProgresses.reduce((a, b) => a + b, 0) / objectiveProgresses.length)
+          : 0;
+        // Year progress = average of objectives & goals signals when both exist;
+        // otherwise fall back to whichever has data.
+        const yearProgress = (() => {
+          if (allAreaGoals.length && objectiveProgresses.length) {
+            return Math.round((goalsYearPct + objYearPct) / 2);
+          }
+          if (objectiveProgresses.length) return objYearPct;
+          return goalsYearPct;
+        })();
 
         return (
           <AreaTimelineRow
