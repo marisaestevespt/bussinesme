@@ -179,6 +179,10 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       qc.invalidateQueries({ queryKey: ['clients'] });
       qc.invalidateQueries({ queryKey: ['md-clients'] });
       qc.invalidateQueries({ queryKey: ['md-leads'] });
+      qc.invalidateQueries({ queryKey: ['crm'] });
+      qc.invalidateQueries({ queryKey: ['crm_leads'] });
+      qc.invalidateQueries({ queryKey: ['commercial'] });
+      qc.invalidateQueries({ queryKey: ['planning'] });
       setConvertLead(null);
       toast.success('Cliente criado com sucesso!');
       navigate(`/hub/clientes/${data.id}`);
@@ -659,6 +663,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               const { data, error } = await supabase.from('content_items').insert({ title: 'Novo Conteúdo' } as any).select('id').single() as any;
               if (error || !data) { toast.error('Erro ao criar conteúdo'); return; }
               qc.invalidateQueries({ queryKey: ['md-content'] });
+              qc.invalidateQueries({ queryKey: ['content_items'] });
+              qc.invalidateQueries({ queryKey: ['marketing'] });
+              qc.invalidateQueries({ queryKey: ['agenda'] });
               navigate(`/hub/marketing/conteudos/${data.id}`);
             }}><Plus className="h-3 w-3" /> Novo Conteúdo</Button>
           </div>
@@ -1294,6 +1301,9 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
               setLeadSheetOpen(false);
               setSelectedLead(null);
               qc.invalidateQueries({ queryKey: ['md-leads'] });
+              qc.invalidateQueries({ queryKey: ['crm'] });
+              qc.invalidateQueries({ queryKey: ['crm_leads'] });
+              qc.invalidateQueries({ queryKey: ['commercial'] });
             },
           });
         }}
@@ -1303,6 +1313,9 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
               setLeadSheetOpen(false);
               setSelectedLead(null);
               qc.invalidateQueries({ queryKey: ['md-leads'] });
+              qc.invalidateQueries({ queryKey: ['crm'] });
+              qc.invalidateQueries({ queryKey: ['crm_leads'] });
+              qc.invalidateQueries({ queryKey: ['commercial'] });
             },
           });
         }}
