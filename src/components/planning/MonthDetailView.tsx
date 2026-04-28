@@ -846,7 +846,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Pagamentos de Clientes</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/comercial/vendas')}><Plus className="h-3 w-3" /> Nova Venda</Button>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setInlineDetail({ title: 'Nova Venda', kind: 'sale', id: 'new', fields: [{ label: 'Acção', value: 'Para registar uma venda, abre o módulo Comercial.' }], openHref: '/hub/comercial/vendas' })}><Plus className="h-3 w-3" /> Nova Venda</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -858,17 +858,34 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <TableBody>
               {sales.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem recebimentos registados.</TableCell></TableRow>
-              ) : sales.map((sl) => (
-                <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/comercial/vendas/${sl.id}`)}>
-                  <TableCell className="">{sl.sale_id}</TableCell>
-                  <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
-                  <TableCell className="">{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                  <TableCell className="">{sl.description || '—'}</TableCell>
-                  <TableCell className="text-right">{Number(sl.base_value || 0).toLocaleString('pt-PT')}€</TableCell>
-                  <TableCell className="">{sl.product || '—'}</TableCell>
-                  <TableCell className="">{sl.client || '—'}</TableCell>
-                </TableRow>
-              ))}
+              ) : sales.map((sl) => {
+                const eff = getEffectiveSaleStatus(sl.status, sl.payment_date);
+                const info = getSaleStatusInfo(eff);
+                return (
+                  <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setInlineDetail({
+                    title: `${sl.sale_id} — ${sl.client || ''}`,
+                    kind: 'sale', id: sl.id,
+                    fields: [
+                      { label: 'Cliente', value: sl.client || '—' },
+                      { label: 'Produto', value: sl.product || '—' },
+                      { label: 'Valor base', value: `${Number(sl.base_value || 0).toLocaleString('pt-PT')}€` },
+                      { label: 'Total c/IVA', value: `${Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€` },
+                      { label: 'Data pagamento', value: sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—' },
+                      { label: 'Descrição', value: sl.description || '—' },
+                      { label: 'Status', value: <Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge> },
+                    ],
+                    openHref: `/hub/comercial/vendas/${sl.id}`,
+                  })}>
+                    <TableCell>{sl.sale_id}</TableCell>
+                    <TableCell><Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge></TableCell>
+                    <TableCell>{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                    <TableCell>{sl.description || '—'}</TableCell>
+                    <TableCell className="text-right">{Number(sl.base_value || 0).toLocaleString('pt-PT')}€</TableCell>
+                    <TableCell>{sl.product || '—'}</TableCell>
+                    <TableCell>{sl.client || '—'}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
