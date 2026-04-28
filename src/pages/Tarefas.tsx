@@ -573,29 +573,22 @@ export default function TarefasPage() {
           <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Tarefa</Button>
         </div>
 
-        {/* View switcher */}
-        <ViewTabs
-          views={allViews}
-          activeKey={view}
-          onSelect={setView}
-          onAdd={(label) => addView(label)}
-          onRename={(id, label) => renameView({ id, label })}
-          onDelete={(id) => { if (view.startsWith('custom_')) setView('todo'); deleteView(id); }}
-        />
-
-        {/* Dynamic filters */}
+        {/* View switcher + filters */}
         {(() => {
           const activeFilterCount = [filterDept, filterResponsible, filterPriority, filterProject, filterStatus].filter(Boolean).length;
-          return (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-8 text-xs gap-2">
-                    <Filter className="h-3.5 w-3.5" /> Filtros
-                    {activeFilterCount > 0 && <Badge variant="secondary" className="h-4 min-w-4 px-1 flex items-center justify-center text-[9px] rounded-full">{activeFilterCount}</Badge>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 space-y-3" align="start">
+          const filtersTrigger = (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground shrink-0">
+                  <Filter className="h-3.5 w-3.5" /> Filtros
+                  {activeFilterCount > 0 && (
+                    <Badge variant="secondary" className="h-4 min-w-4 px-1 ml-1 flex items-center justify-center text-[9px] rounded-full">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 space-y-3" align="start">
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Status (server-side)</Label>
                     <Select value={filterStatus} onValueChange={v => setFilterStatus(v === '_all' ? '' : v)}>
@@ -653,11 +646,29 @@ export default function TarefasPage() {
                   )}
                 </PopoverContent>
               </Popover>
-              {filterDept && <Badge variant="secondary" className="text-xs gap-1">{PROCESS_DEPARTMENTS.find(d => d.value === filterDept)?.label || filterDept} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
-              {filterResponsible && <Badge variant="secondary" className="text-xs gap-1">{profiles.find(p => p.id === filterResponsible)?.full_name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterResponsible('')} /></Badge>}
-              {filterPriority && <Badge variant="secondary" className="text-xs gap-1">{PRIORITIES.find(p => p.value === filterPriority)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterPriority('')} /></Badge>}
-              {filterProject && <Badge variant="secondary" className="text-xs gap-1">{projects.find(p => p.id === filterProject)?.name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterProject('')} /></Badge>}
-            </div>
+          );
+
+          return (
+            <>
+              <ViewTabs
+                views={allViews}
+                activeKey={view}
+                onSelect={setView}
+                onAdd={(label) => addView(label)}
+                onRename={(id, label) => renameView({ id, label })}
+                onDelete={(id) => { if (view.startsWith('custom_')) setView('todo'); deleteView(id); }}
+                trailing={filtersTrigger}
+              />
+              {activeFilterCount > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {filterStatus && <Badge variant="secondary" className="text-xs gap-1">{TASK_STATUSES.find(s => s.value === filterStatus)?.label || filterStatus} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterStatus('')} /></Badge>}
+                  {filterDept && <Badge variant="secondary" className="text-xs gap-1">{PROCESS_DEPARTMENTS.find(d => d.value === filterDept)?.label || filterDept} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
+                  {filterResponsible && <Badge variant="secondary" className="text-xs gap-1">{profiles.find(p => p.id === filterResponsible)?.full_name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterResponsible('')} /></Badge>}
+                  {filterPriority && <Badge variant="secondary" className="text-xs gap-1">{PRIORITIES.find(p => p.value === filterPriority)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterPriority('')} /></Badge>}
+                  {filterProject && <Badge variant="secondary" className="text-xs gap-1">{projects.find(p => p.id === filterProject)?.name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterProject('')} /></Badge>}
+                </div>
+              )}
+            </>
           );
         })()}
 
