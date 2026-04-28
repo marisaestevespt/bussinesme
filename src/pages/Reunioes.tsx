@@ -933,8 +933,10 @@ export default function ReunioesPage() {
   const { data: clients = [] } = useClientsList();
 
   const filteredMeetings = view === 'proximas'
-    ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'confirmada')
-    : meetings;
+    ? [...meetings]
+        .filter(m => m.status === 'por_confirmar' || m.status === 'confirmada')
+        .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())
+    : [...meetings].sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
 
   return (
     <AppLayout>
