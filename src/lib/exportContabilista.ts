@@ -1,26 +1,52 @@
 // Nota: exceljs é importado dinamicamente dentro da função para manter
 // fora do bundle inicial (lib pesada, só usada quando o utilizador exporta).
+import type { Workbook } from 'exceljs';
 
 const ML = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const LOC: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
 
-const num = (v: any) => {
+const num = (v: unknown) => {
   const n = Number(v);
   return isFinite(n) ? Math.round(n * 100) / 100 : 0;
 };
+
+// Loose row shapes — these come from heterogeneous DB queries shaped at the call site.
+// We keep them permissive (Record<string, unknown>) so that this exporter remains
+// tolerant to schema additions without breaking. Numeric helpers go through `num()`.
+type AnyRow = Record<string, unknown>;
+interface BusinessShape extends AnyRow {
+  business_legal_name?: string | null;
+  nif?: string | null;
+  niss?: string | null;
+  cae_principal?: string | null;
+  cae_secundarios?: string[] | string | null;
+  regime_fiscal?: string | null;
+  regime_iva?: string | null;
+  cirs_code?: string | null;
+  capital_social?: string | number | null;
+  morada_fiscal?: string | null;
+  business_email?: string | null;
+  business_phone?: string | null;
+  business_website?: string | null;
+  iban?: string | null;
+  banco?: string | null;
+  contabilista?: string | null;
+  contabilista_contacto?: string | null;
+  notas?: string | null;
+}
 
 export interface ContabilistaExportInput {
   businessName: string;
   label: string;
   period: { year: number; month?: number };
-  business: any;
-  sales: any[];
-  expenses: any[];
-  documents: any[];
-  payroll: any[];
-  contractors: any[];
-  clients: any[];
-  suppliers: any[];
+  business: BusinessShape | null;
+  sales: AnyRow[];
+  expenses: AnyRow[];
+  documents: AnyRow[];
+  payroll: AnyRow[];
+  contractors: AnyRow[];
+  clients: AnyRow[];
+  suppliers: AnyRow[];
 }
 
 export function getMonthLabel(year: number, month: number) {
@@ -30,7 +56,7 @@ export function getMonthLabel(year: number, month: number) {
 type Cell = string | number | null;
 
 function addSheet(
-  wb: any,
+  wb: Workbook,
   name: string,
   rows: Cell[][],
   widths: number[],
