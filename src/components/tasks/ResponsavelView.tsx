@@ -6,6 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { getStatusInfo, getPriorityInfo, getDeptInfo } from './TaskTable';
+import { DepartmentBadge } from '@/components/shared/DepartmentBadge';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 
 function getInitials(name?: string | null) {
@@ -106,8 +107,8 @@ export function ResponsavelView({
                             {task.deadline ? format(parseISO(task.deadline), 'dd/MM/yyyy') : '—'}
                           </span>
                         </TableCell>
-                        <TableCell>
-                          {deptInfo ? <Badge variant="outline" className={cn('text-xs', (deptInfo as any).badgeColor)}>{deptInfo.icon} {deptInfo.label}</Badge> : '—'}
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          {task.department ? <DepartmentBadge department={task.department} stopPropagation /> : '—'}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{getProjectName(task.project_id) || '—'}</TableCell>
                       </TableRow>

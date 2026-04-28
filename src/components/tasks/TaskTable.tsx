@@ -12,6 +12,7 @@ import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { isTaskDone } from '@/lib/taskStatus';
 import { TASK_STATUSES, TASK_PRIORITIES, getTaskStatusInfo, getTaskPriorityInfo } from '@/lib/taskStatus';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
+import { DepartmentBadge } from '@/components/shared/DepartmentBadge';
 
 const PRIORITIES = TASK_PRIORITIES;
 
@@ -233,9 +234,9 @@ export function TaskTable({
                     </div>
                   )}
                 </TableCell>
-                <TableCell>
-                  {deptInfo ? (
-                    <Badge variant="outline" className={cn('text-xs', (deptInfo as any).badgeColor)}>{deptInfo.icon} {deptInfo.label}</Badge>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {task.department ? (
+                    <DepartmentBadge department={task.department} stopPropagation />
                   ) : '—'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{getProjectName(task.project_id) || '—'}</TableCell>
