@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { resolveProductId } from '@/lib/productResolver';
+import { logAudit } from '@/lib/auditLog';
 
 export type Client = Tables<'clients'>;
 export type ClientHistory = Tables<'client_history'>;
@@ -58,8 +59,10 @@ export function useClients() {
 
   const deleteClient = useMutation({
     mutationFn: async (id: string) => {
+      const { data: snap } = await supabase.from('clients').select('full_name, client_id').eq('id', id).maybeSingle();
       const { error } = await supabase.from('clients').delete().eq('id', id);
       if (error) throw error;
+      logAudit('deleted', 'client', id, { name: snap?.full_name, client_id: snap?.client_id });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['clients'] }),
   });

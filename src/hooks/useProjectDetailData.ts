@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import type { ProjectOption } from '@/pages/Reunioes';
+import { logAudit } from '@/lib/auditLog';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -207,8 +208,10 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
+      const { data: snap } = await supabase.from('projects').select('name, client_id').eq('id', id!).maybeSingle();
       const { error } = await supabase.from('projects').delete().eq('id', id!);
       if (error) throw error;
+      logAudit('deleted', 'project', id, { name: snap?.name, client_id: snap?.client_id });
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['projects'] }); toast.success('Projeto eliminado'); navigate('/hub/projetos'); },
     onError: (e: Error) => toast.error(e.message),

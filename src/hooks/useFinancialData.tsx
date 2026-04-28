@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { computeSalary } from '@/lib/payrollCalculations';
+import { logAudit } from '@/lib/auditLog';
 
 export type Expense = Tables<'financial_expenses'>;
 export type FinancialDocument = Tables<'financial_documents'>;
@@ -218,9 +219,11 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
   const deleteExpense = useMutation({
     mutationFn: async (id: string) => {
+      const { data: snap } = await supabase.from('financial_expenses').select('expense_name, total_with_vat, expense_id').eq('id', id).maybeSingle();
       await supabase.from('financial_expenses').delete().eq('parent_expense_id', id);
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
       if (error) throw error;
+      logAudit('deleted', 'financial_expense', id, { name: snap?.expense_name, total: snap?.total_with_vat, expense_id: snap?.expense_id });
     },
     onSuccess: () => invalidate('financial-expenses'),
   });
