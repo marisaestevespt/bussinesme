@@ -688,12 +688,48 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       {/* ═══ SECTION 5: CRM ═══ */}
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="text-sm">CRM</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/comercial/crm')}><Plus className="h-3 w-3" /> Nova Lead</Button>
+            <div className="flex gap-1 ml-auto items-center">
+              <div className="flex gap-1">
+                <Button size="sm" variant={crmView === 'board' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setCrmView('board')}>Board</Button>
+                <Button size="sm" variant={crmView === 'list' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setCrmView('list')}>Lista</Button>
+              </div>
+              {crmView === 'list' && (
+                <div className="relative">
+                  <Search className="h-3 w-3 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input value={crmSearch} onChange={e => setCrmSearch(e.target.value)} placeholder="Pesquisar..." className="h-6 text-[10px] pl-6 w-40" />
+                </div>
+              )}
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => { setSelectedLead({ id: null, status: 'novo', name: '' } as any); setLeadSheetOpen(true); }}><Plus className="h-3 w-3" /> Nova Lead</Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
+          {crmView === 'list' ? (
+            (() => {
+              const filtered = monthLeads.filter(l => !crmSearch || (l.name || '').toLowerCase().includes(crmSearch.toLowerCase()) || (l.email || '').toLowerCase().includes(crmSearch.toLowerCase()));
+              return filtered.length === 0 ? (
+                <EmptyHint>Sem leads correspondentes.</EmptyHint>
+              ) : (
+                <Table>
+                  <TableHeader><TableRow>
+                    <TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Status</TableHead><TableHead>Próximo follow-up</TableHead>
+                  </TableRow></TableHeader>
+                  <TableBody>
+                    {filtered.map(l => (
+                      <TableRow key={l.id} className="cursor-pointer hover:bg-muted/60" onClick={() => { setSelectedLead(l); setLeadSheetOpen(true); }}>
+                        <TableCell className="text-sm font-medium">{l.name}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{l.email || '—'}</TableCell>
+                        <TableCell><Badge variant="outline" className={cn('text-[10px]', CRM_COLORS[l.status])}>{CRM_LABELS[l.status] || l.status}</Badge></TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{l.next_followup ? format(parseISO(l.next_followup), 'dd/MM/yyyy') : '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              );
+            })()
+          ) : (
           <div className="overflow-x-auto pb-2">
             <div className="flex gap-2" style={{ minWidth: CRM_COLUMNS.length * 180 }}>
               {CRM_COLUMNS.map(col => {
@@ -741,6 +777,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               })}
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
 
