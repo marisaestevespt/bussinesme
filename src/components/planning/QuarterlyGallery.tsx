@@ -5,21 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BackNavigation } from '@/components/BackNavigation';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
-import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
-import { pt } from 'date-fns/locale';
+import { format, endOfMonth } from 'date-fns';
 import { MonthDetailView } from './MonthDetailView';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { TacticalAreasGrid } from './TacticalAreasGrid';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -105,8 +103,6 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
   const quarterNum = qIdx + 1;
 
   // State
-  const [metasView, setMetasView] = useState<'metas' | 'objetivos'>('metas');
-  const [calMonth, setCalMonth] = useState(new Date(year, q.months[0], 1));
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<number | null>(null);
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
@@ -116,19 +112,6 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
   const objectives = planning.allObjectives || [];
   const quarterGoals = goals.filter((g: any) => q.monthNames.includes(g.period));
   const { pct: progress, achievedCount: achieved } = planning.getPeriodProgress(q.monthNames);
-
-  // Linked objective IDs from quarter goals
-  const linkedObjIds = [...new Set(quarterGoals.map((g: any) => g.objective_id).filter(Boolean))];
-  const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
-
-  // Events for calendar
-  const eventsQ = useQuery({
-    queryKey: ['quarter-events', year, qIdx],
-    queryFn: async () => {
-      const { data } = await supabase.from('events').select('*');
-      return data || [];
-    },
-  });
 
   // Quarterly Analysis
   const analysisQ = useQuery({
@@ -180,49 +163,6 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
     return q.months.map((mIdx) => planning.getPeriodProgress([MONTHS[mIdx]]).pct);
   }, [planning, q]);
 
-  // Calendar logic
-  const allEvents = eventsQ.data || [];
-
-  function renderCalendarGrid() {
-    const dm = getDaysInMonth(calMonth);
-    const firstDay = (getDay(startOfMonth(calMonth)) + 6) % 7;
-    const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-    const monthEvents = allEvents.filter((e: any) => {
-      if (!e.start_date) return false;
-      const d = parseISO(e.start_date);
-      return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear();
-    });
-    const cells: React.ReactNode[] = [];
-    for (let i = 0; i < firstDay; i++) cells.push(<div key={`e-${i}`} />);
-    for (let d = 1; d <= dm; d++) {
-      const dayItems = monthEvents.filter((e: any) => parseISO(e.start_date).getDate() === d);
-      const isToday = d === new Date().getDate() && calMonth.getMonth() === new Date().getMonth() && calMonth.getFullYear() === new Date().getFullYear();
-      cells.push(
-        <div key={d} className={cn('min-h-[60px] border border-border/30 rounded p-1', isToday && 'bg-primary/5 ring-1 ring-primary')}>
-          <span className="text-[10px] font-medium text-muted-foreground">{d}</span>
-          <div className="space-y-0.5 mt-0.5">
-            {dayItems.map((e: any) => (
-              <div key={e.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => navigate('/hub/agenda')}>{e.title}</div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(subMonths(calMonth, 1))}><ChevronLeft className="h-3.5 w-3.5" /></Button>
-          <span className="text-xs font-medium">{format(calMonth, 'MMMM yyyy', { locale: pt })}</span>
-          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(addMonths(calMonth, 1))}><ChevronRight className="h-3.5 w-3.5" /></Button>
-        </div>
-        <div className="grid grid-cols-7 gap-0.5">
-          {dayNames.map(dn => <div key={dn} className="text-center text-[10px] font-medium text-muted-foreground py-1">{dn}</div>)}
-          {cells}
-        </div>
-      </div>
-    );
-  }
-
   // If a month is selected, show MonthDetailView
   if (selectedMonthIdx !== null) {
     return (
@@ -261,123 +201,30 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
 
       <Separator />
 
-      {/* ─── 1. METAS ─── */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Metas</CardTitle>
-            <div className="flex gap-1">
-              <Button variant={metasView === 'metas' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setMetasView('metas')}>
-                Metas do trimestre
-              </Button>
-              <Button variant={metasView === 'objetivos' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setMetasView('objetivos')}>
-                Objetivos anuais
-              </Button>
-              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setObjDialogOpen(true)}>
-                <Plus className="h-3 w-3" /> Novo objetivo
-              </Button>
-            </div>
+      {/* ─── 1. ÁREAS DO TRIMESTRE ─── */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold">Áreas do trimestre</h3>
+            <p className="text-xs text-muted-foreground">
+              O que cada departamento está a entregar para atingir as metas anuais.
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          {metasView === 'metas' ? (
-            quarterGoals.length === 0 ? (
-              <EmptyHint>Sem metas definidas para este trimestre.</EmptyHint>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Área</TableHead>
-                    <TableHead>Meta</TableHead>
-                    <TableHead>Data meta</TableHead>
-                    <TableHead>Data atingida</TableHead>
-                    <TableHead>Mês</TableHead>
-                    <TableHead>Desvio</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {quarterGoals.map((g: any) => {
-                    const target = Number(g.target_value || 0);
-                    const actual = Number(g.actual_value || 0);
-                    const dev = target > 0 ? actual - target : null;
-                    const obj = objectives.find((o: any) => o.id === g.objective_id);
-                    return (
-                      <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => { const obj = objectives.find((o: any) => o.id === g.objective_id); if (obj) setSelectedObjective(obj); }}>
-                        <TableCell>
-                          <Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">
-                            {planStatusLabel(g.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
-                        <TableCell className="text-sm">{g.name || '—'}</TableCell>
-                        <TableCell className="">{g.target_date ? format(parseISO(g.target_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                        <TableCell className="">{g.achieved_date ? format(parseISO(g.achieved_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                        <TableCell className="">{g.period || '—'}</TableCell>
-                        <TableCell className="text-right">
-                          {dev !== null ? (
-                            <Badge variant={dev < 0 ? 'destructive' : 'secondary'} className="text-xs">
-                              {dev < 0 ? '' : '+'}{dev}
-                            </Badge>
-                          ) : '—'}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )
-          ) : (
-            linkedObjectives.length === 0 ? (
-              <EmptyHint>Sem objetivos anuais associados às metas deste trimestre.</EmptyHint>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Área</TableHead>
-                    <TableHead>Objetivo</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Valor alvo</TableHead>
-                    <TableHead className="text-right">Valor atual</TableHead>
-                    <TableHead>Prazo</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {linkedObjectives.map((o: any) => (
-                    <TableRow key={o.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedObjective(o)}>
-                      <TableCell>
-                        <Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">
-                          {planStatusLabel(o.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm">{planAreaLabel(o.area)}</TableCell>
-                      <TableCell className="text-sm font-medium">{o.title}</TableCell>
-                      <TableCell className="capitalize">{o.objective_type}</TableCell>
-                      <TableCell className="text-sm text-right">{o.target_value ?? '—'}</TableCell>
-                      <TableCell className="text-sm text-right">{o.current_value ?? '—'}</TableCell>
-                      <TableCell className="">{o.deadline ? format(parseISO(o.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ─── 2. AGENDA ─── */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Agenda ME & Calendários</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/agenda')}><Plus className="h-3 w-3" /> Novo Evento</Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {renderCalendarGrid()}
-        </CardContent>
-      </Card>
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => setObjDialogOpen(true)}>
+            <Plus className="h-3.5 w-3.5" /> Novo objetivo
+          </Button>
+        </div>
+        <TacticalAreasGrid
+          goals={goals}
+          periodMonths={q.monthNames}
+          rangeStart={new Date(year, q.months[0], 1)}
+          rangeEnd={endOfMonth(new Date(year, q.months[2], 1))}
+          onSelectGoal={(g) => {
+            const obj = objectives.find((o: any) => o.id === g.objective_id);
+            if (obj) setSelectedObjective(obj);
+          }}
+        />
+      </div>
 
 
 
