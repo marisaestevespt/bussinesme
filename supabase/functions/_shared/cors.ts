@@ -44,6 +44,10 @@ function isAllowedOrigin(origin: string): boolean {
     if (url.hostname === "lovable.app" || url.hostname.endsWith(".lovable.app")) {
       return true;
     }
+    // Lovable sandbox preview environments
+    if (url.hostname === "lovableproject.com" || url.hostname.endsWith(".lovableproject.com")) {
+      return true;
+    }
   } catch {
     // not a valid URL — fall through
   }
