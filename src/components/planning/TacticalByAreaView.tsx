@@ -11,7 +11,7 @@ import { AreaPeriodDetail } from './AreaPeriodDetail';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { buildObjectiveAreaIndex, goalBelongsToDepartment, planningAreaForDepartment } from '@/lib/planningAreaFilters';
+import { buildObjectiveAreaIndex, goalBelongsToDepartment, planningAreaForDepartment, planningAreaMatches } from '@/lib/planningAreaFilters';
 
 const MONTHS = [
   'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -169,7 +169,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
         const allAreaInits = projectsByDept[area.key] || [];
         const planAreaKey = planningAreaForDepartment(area.key);
         const areaObjectives = (objectives as any[]).filter(
-          (o) => o.area === planAreaKey || o.area === area.key,
+          (o) => planningAreaMatches(o.area, planAreaKey),
         );
         const objectiveProgresses = areaObjectives.map((o) =>
           typeof planning.objectiveProgress === 'function' ? planning.objectiveProgress(o) : 0,
