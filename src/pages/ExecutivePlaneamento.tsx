@@ -20,15 +20,12 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { excludeCancelled } from '@/lib/utils';
 
-type ViewMode = 'visao' | 'mensal' | 'trimestral' | 'semestral' | 'metas' | 'previsibilidade' | null;
+type Granularity = 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
+type ViewMode = 'visao' | 'previsibilidade' | null;
 
 const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; desc: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
-  { key: 'visao', label: 'Visão Geral', desc: '3 horizontes + cobertura', icon: Compass, iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
-  { key: 'mensal', label: 'Mensal', desc: '12 meses', icon: Calendar, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
-  { key: 'trimestral', label: 'Trimestral', desc: '4 trimestres', icon: BarChart3, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
-  { key: 'semestral', label: 'Semestral', desc: '2 semestres', icon: PieChart, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
-  { key: 'metas', label: 'Metas', desc: 'Todas as metas', icon: Target, iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
-  { key: 'previsibilidade', label: 'Previsibilidade', desc: 'Cashflow anual', icon: LineChart, iconColor: 'text-primary', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
+  { key: 'visao', label: 'Visão Geral', desc: 'Cascata + cobertura por área', icon: Compass, iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
+  { key: 'previsibilidade', label: 'Previsibilidade', desc: 'Cashflow anual projetado', icon: LineChart, iconColor: 'text-primary', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
 ];
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -36,6 +33,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [viewMode, setViewMode] = useState<ViewMode>('visao');
+  const [granularity, setGranularity] = useState<Granularity>(null);
   const planning = usePlanningData(year);
 
   const stats = useMemo(() => {
@@ -128,7 +126,7 @@ export default function ExecutivePlaneamento() {
         </div>
 
         {/* View mode cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {VIEW_CARDS.map(v => (
             <Card
               key={v.key}
@@ -158,7 +156,17 @@ export default function ExecutivePlaneamento() {
 
         {viewMode === 'visao' && (
           <>
-            <PlanningOverviewView planning={planning} year={year} stats={stats} />
+            <PlanningOverviewView
+              planning={planning}
+              year={year}
+              stats={stats}
+              activeGranularity={granularity}
+              onGranularityChange={setGranularity}
+            />
+            {granularity === 'mensal' && <MonthlyGallery planning={planning} year={year} />}
+            {granularity === 'trimestral' && <QuarterlyGallery planning={planning} year={year} />}
+            {granularity === 'semestral' && <SemesterGallery planning={planning} year={year} />}
+            {granularity === 'metas' && <PlanningGoalsTab planning={planning} viewMode="metas" />}
             <div data-objectives-section>
               <PlanningObjectivesTab planning={planning} />
             </div>
@@ -171,10 +179,6 @@ export default function ExecutivePlaneamento() {
           </div>
         )}
 
-        {viewMode === 'mensal' && <MonthlyGallery planning={planning} year={year} />}
-        {viewMode === 'trimestral' && <QuarterlyGallery planning={planning} year={year} />}
-        {viewMode === 'semestral' && <SemesterGallery planning={planning} year={year} />}
-        {viewMode === 'metas' && <PlanningGoalsTab planning={planning} viewMode="metas" />}
         {viewMode === 'previsibilidade' && <PrevisibilidadeView year={year} />}
       </div>
     </AppLayout>
