@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, X, Pencil, Check, Trash2, ArrowRight } from 'lucide-react';
+import { Plus, X, Pencil, Check, Trash2, ArrowRight, Sparkles } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -145,6 +145,22 @@ export default function ExecutiveBusinessPlan() {
       <div className="space-y-5">
         <BackNavigation />
         <PageHeader title="Plano & Modelo de Negócio" subtitle="Business Model Canvas" />
+
+        {/* Atalho para Gestão de Marca — identidade, SWOT, posicionamento */}
+        <button
+          onClick={() => navigate('/hub/marketing/gestao-marca')}
+          className="w-full flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 hq-transition px-4 py-2.5 text-left group"
+        >
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">
+              <span className="font-medium text-foreground">Identidade, Visão, SWOT e Posicionamento</span>
+              <span className="text-muted-foreground"> vivem na </span>
+              <span className="font-medium text-foreground">Gestão de Marca</span>
+            </span>
+          </div>
+          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 hq-transition" />
+        </button>
 
         {/* Header bar with Add column */}
         <div className="flex items-center justify-between">
