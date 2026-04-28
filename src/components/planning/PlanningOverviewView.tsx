@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ArrowRight, Compass, CalendarRange, CalendarCheck, Building2, TrendingUp, Megaphone, Users, Cog, UserCog, Lightbulb, Workflow, Target, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
+import { ArrowRight, Compass, CalendarRange, CalendarCheck, Building2, TrendingUp, Megaphone, Users, Cog, UserCog, Lightbulb, Workflow, Target, AlertTriangle, CheckCircle2, ChevronRight, Calendar, BarChart3, PieChart } from 'lucide-react';
 import { PLAN_AREAS } from '@/hooks/usePlanningData';
 
 const AREA_META: Record<string, { label: string; icon: typeof Building2; color: string }> = {
@@ -26,9 +26,11 @@ interface Props {
   planning: any;
   year: number;
   stats: { totalObjs: number; achieved: number; inProgress: number; avgProgress: number; deviationCount: number };
+  activeGranularity?: 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
+  onGranularityChange?: (g: 'mensal' | 'trimestral' | 'semestral' | 'metas' | null) => void;
 }
 
-export function PlanningOverviewView({ planning, year, stats }: Props) {
+export function PlanningOverviewView({ planning, year, stats, activeGranularity = null, onGranularityChange }: Props) {
   const navigate = useNavigate();
   const objectives = planning.allObjectives || [];
 
@@ -98,13 +100,39 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mb-3">Objetivos anuais, metas trimestrais e mensais. Estás aqui agora.</p>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 mb-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">{stats.totalObjs} objetivos</span>
                   <span className="font-medium">{stats.avgProgress}%</span>
                 </div>
                 <Progress value={stats.avgProgress} className="h-1.5" />
               </div>
+              {onGranularityChange && (
+                <div className="pt-2 border-t border-accent-violet/20">
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-accent-violet/80 mb-1.5">Aprofundar</p>
+                  <div className="flex flex-wrap gap-1">
+                    {([
+                      { key: 'mensal', label: 'Mensal', icon: Calendar },
+                      { key: 'trimestral', label: 'Trimestral', icon: BarChart3 },
+                      { key: 'semestral', label: 'Semestral', icon: PieChart },
+                      { key: 'metas', label: 'Metas', icon: Target },
+                    ] as const).map(g => {
+                      const Icon = g.icon;
+                      const active = activeGranularity === g.key;
+                      return (
+                        <button
+                          key={g.key}
+                          onClick={(e) => { e.stopPropagation(); onGranularityChange(active ? null : g.key); }}
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-all ${active ? 'bg-accent-violet text-accent-violet-foreground shadow' : 'bg-background/60 text-muted-foreground hover:bg-accent-violet/15 hover:text-accent-violet'}`}
+                        >
+                          <Icon className="h-3 w-3" />
+                          {g.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="hidden lg:flex items-center justify-center text-muted-foreground"><ArrowRight className="h-5 w-5" /></div>
