@@ -8,8 +8,25 @@ import { planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { ObjectiveDialog } from './ObjectiveDialog';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 
-export function PlanningObjectivesTab({ planning }: { planning: any }) {
-  const [newDialogOpen, setNewDialogOpen] = useState(false);
+export function PlanningObjectivesTab({
+  planning,
+  showHeaderButton = true,
+  newDialogOpen: controlledOpen,
+  onNewDialogChange,
+  layout = 'list',
+}: {
+  planning: any;
+  showHeaderButton?: boolean;
+  newDialogOpen?: boolean;
+  onNewDialogChange?: (open: boolean) => void;
+  layout?: 'list' | 'gallery';
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const newDialogOpen = controlledOpen ?? internalOpen;
+  const setNewDialogOpen = (v: boolean) => {
+    if (onNewDialogChange) onNewDialogChange(v);
+    else setInternalOpen(v);
+  };
   const [detailObj, setDetailObj] = useState<any>(null);
 
   const handleNewSave = (obj: any) => {
@@ -17,20 +34,26 @@ export function PlanningObjectivesTab({ planning }: { planning: any }) {
     setNewDialogOpen(false);
   };
 
+  const gridClass = layout === 'gallery'
+    ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+    : 'grid gap-4';
+
   return (
-    <div className="space-y-4 mt-4">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setNewDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" /> Novo Objetivo
-        </Button>
-      </div>
+    <div className="space-y-4">
+      {showHeaderButton && (
+        <div className="flex justify-end">
+          <Button size="sm" onClick={() => setNewDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Novo Objetivo
+          </Button>
+        </div>
+      )}
 
       {planning.allObjectives.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">
           Sem objetivos para {planning.year}. Comece por criar o primeiro objetivo.
         </CardContent></Card>
       ) : (
-        <div className="grid gap-4">
+        <div className={gridClass}>
           {planning.allObjectives.map((obj: any) => {
             const prog = planning.objectiveProgress(obj);
             return (
