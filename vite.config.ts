@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    exclude: ["react-dom/client"],
+    include: ["react", "react-dom", "react-dom/client", "react-router-dom"],
   },
   build: {
     rollupOptions: {
