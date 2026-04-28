@@ -327,6 +327,7 @@ function BatchCard({ batch, onSchedule, onStartSession }: { batch: Batch; onSche
               <Badge variant="secondary" className="text-[10px]">
                 {batch.tasks.length} {batch.tasks.length === 1 ? 'tarefa minha' : 'tarefas minhas'}
               </Badge>
+              <PriorityCounts tasks={batch.tasks} />
               <Badge variant="outline" className="text-[10px] gap-1">
                 <Clock className="h-3 w-3" />
                 {formatDuration(batch.totalMinutes)}
