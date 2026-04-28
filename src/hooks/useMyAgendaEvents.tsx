@@ -9,9 +9,21 @@ import type { CalendarItem } from '@/components/agenda/AgendaCalendarsSidebar';
 import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 import { expandRecurringEvents } from '@/lib/expandRecurringEvents';
 import { addMonths, subMonths } from 'date-fns';
+import type { Tables } from '@/integrations/supabase/types';
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 const MEETING_PSEUDO_COLOR = '#8B5CF6';
 const SALES_ACTION_PSEUDO_COLOR = '#F59E0B';
+
+type EventRow = Tables<'events'>;
+type MeetingLite = Pick<
+  Tables<'meetings'>,
+  'id' | 'title' | 'date_time' | 'status' | 'meeting_url' | 'client_name' | 'department' | 'project_name' | 'product_id' | 'product_name'
+>;
+type SalesActionLite = Pick<
+  Tables<'commercial_sales_actions'>,
+  'id' | 'action_name' | 'start_date' | 'end_date' | 'enrollment_open_date' | 'product_id' | 'product' | 'status'
+>;
 
 /**
  * Personal version of the business Agenda data pipeline. Produces the same
@@ -60,22 +72,22 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
         .in('profile_id', profileIds);
       const partIds = parts?.map(p => p.event_id) || [];
 
-      const inRange = (q: any) => q.or(
+      const inRange = <T extends { or: (filter: string) => T }>(q: T): T => q.or(
         `and(start_date.gte.${range.from},start_date.lte.${range.to}),and(end_date.gte.${range.from},end_date.lte.${range.to}),and(start_date.lte.${range.from},end_date.gte.${range.to}),and(recurrence_type.not.is.null,start_date.lte.${range.to})`
       );
 
       const { data: created = [] } = await inRange(
         supabase.from('events').select('*').eq('created_by', user!.id)
       );
-      let participant: any[] = [];
+      let participant: EventRow[] = [];
       if (partIds.length > 0) {
         const { data } = await inRange(
           supabase.from('events').select('*').in('id', partIds)
         );
-        participant = data || [];
+        participant = (data || []) as EventRow[];
       }
-      const map = new Map<string, any>();
-      for (const ev of [...(created || []), ...participant]) map.set(ev.id, ev);
+      const map = new Map<string, EventRow>();
+      for (const ev of [...((created || []) as EventRow[]), ...participant]) map.set(ev.id, ev);
       return Array.from(map.values());
     },
   });
@@ -92,7 +104,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
         .in('profile_id', profileIds);
       const partIds = Array.from(new Set((parts || []).map(p => p.meeting_id)));
 
-      let participated: any[] = [];
+      let participated: MeetingLite[] = [];
       if (partIds.length > 0) {
         const { data } = await supabase
           .from('meetings')
@@ -100,7 +112,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
           .in('id', partIds)
           .gte('date_time', range.from + 'T00:00:00')
           .lte('date_time', range.to + 'T23:59:59');
-        participated = data || [];
+        participated = (data || []) as MeetingLite[];
       }
       const { data: created = [] } = await supabase
         .from('meetings')
@@ -109,8 +121,8 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
         .gte('date_time', range.from + 'T00:00:00')
         .lte('date_time', range.to + 'T23:59:59');
 
-      const map = new Map<string, any>();
-      for (const m of [...participated, ...(created || [])]) map.set(m.id, m);
+      const map = new Map<string, MeetingLite>();
+      for (const m of [...participated, ...((created || []) as MeetingLite[])]) map.set(m.id, m);
       return Array.from(map.values());
     },
   });
@@ -133,11 +145,11 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
 
   // Merge into the shape AgendaCalendarView expects (mirrors src/pages/Agenda.tsx)
   const allEvents = useMemo<AgendaEvent[]>(() => {
-    const out: any[] = [];
+    const out: AgendaEvent[] = [];
 
-    for (const e of eventsQ.data || []) out.push(e);
+    for (const e of eventsQ.data || []) out.push(e as unknown as AgendaEvent);
 
-    for (const m of meetingsQ.data || []) {
+    for (const m of (meetingsQ.data || []) as MeetingLite[]) {
       out.push({
         id: `meeting_${m.id}`,
         _isMeeting: true,
@@ -155,10 +167,10 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
         recurrence_type: null,
         recurrence_end: null,
         meeting_url: m.meeting_url || null,
-      });
+      } as unknown as AgendaEvent);
     }
 
-    for (const a of salesQ.data || []) {
+    for (const a of (salesQ.data || []) as SalesActionLite[]) {
       if (a.start_date) {
         out.push({
           id: `sales_${a.id}`,
@@ -177,7 +189,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
           recurrence_type: null,
           recurrence_end: null,
           meeting_url: null,
-        });
+        } as unknown as AgendaEvent);
       }
       if (a.enrollment_open_date) {
         out.push({
@@ -197,31 +209,36 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
           recurrence_type: null,
           recurrence_end: null,
           meeting_url: null,
-        });
+        } as unknown as AgendaEvent);
       }
     }
 
     // Global context (Off, Datas Especiais, holidays)
-    out.push(...(globalContext || []));
+    out.push(...((globalContext || []) as unknown as AgendaEvent[]));
 
     // Apply product-colour override (product colour wins over type colour)
     return out.map(ev => {
-      const pid = ev.product_id as string | null | undefined;
-      const productName = ev.product_name as string | null | undefined;
+      const e = ev as AgendaEvent & {
+        product_id?: string | null;
+        product_name?: string | null;
+        _isSalesAction?: boolean;
+      };
+      const pid = e.product_id;
+      const productName = e.product_name;
       const productC = getProductColorFromMap(productColors, pid, productName);
-      const isSales = ev._isSalesAction;
+      const isSales = e._isSalesAction;
       const fallback = isSales ? SALES_ACTION_PSEUDO_COLOR : undefined;
       const c = productC ?? fallback;
       if (!c) return ev;
       return { ...ev, _color: c };
-    }) as AgendaEvent[];
+    });
   }, [eventsQ.data, meetingsQ.data, salesQ.data, globalContext, productColors]);
 
   // Expand recurring events around the cursor (same window as Agenda.tsx)
   const expandedEvents = useMemo(() => {
     const rangeStart = subMonths(cursor, 6);
     const rangeEnd = addMonths(cursor, 18);
-    return expandRecurringEvents(allEvents as any, rangeStart, rangeEnd) as AgendaEvent[];
+    return expandRecurringEvents(allEvents as unknown as Parameters<typeof expandRecurringEvents>[0], rangeStart, rangeEnd) as AgendaEvent[];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allEvents, cursor.getFullYear(), cursor.getMonth()]);
 
@@ -242,13 +259,19 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
     [productBrands],
   );
 
-  const isEventVisible = (ev: any, isVisible: (id: string) => boolean) => {
+  const isEventVisible = (ev: AgendaEvent, isVisible: (id: string) => boolean) => {
+    const e = ev as AgendaEvent & {
+      _isMeeting?: boolean;
+      _isSalesAction?: boolean;
+      event_type_id?: string | null;
+      product_id?: string | null;
+    };
     let typeKey: string | null = null;
-    if (ev._isMeeting) typeKey = 'meta:meeting';
-    else if (ev._isSalesAction) typeKey = 'meta:sales';
-    else if (ev.event_type_id) typeKey = `type:${ev.event_type_id}`;
+    if (e._isMeeting) typeKey = 'meta:meeting';
+    else if (e._isSalesAction) typeKey = 'meta:sales';
+    else if (e.event_type_id) typeKey = `type:${e.event_type_id}`;
     if (typeKey && !isVisible(typeKey)) return false;
-    const pid = ev.product_id as string | null | undefined;
+    const pid = e.product_id;
     if (pid && !isVisible(`product:${pid}`)) return false;
     return true;
   };
