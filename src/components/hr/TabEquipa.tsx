@@ -59,11 +59,18 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
     if (!offboardingDialog) return;
     const memberId = offboardingDialog.id;
 
+    // Batch task reassignments by target assignee (one UPDATE per group instead of one per task)
+    const groups: Record<string, string[]> = {};
     for (const [taskId, newAssignee] of Object.entries(reassignments)) {
       if (newAssignee) {
-        await supabase.from('tasks').update({ assigned_to: newAssignee }).eq('id', taskId);
+        (groups[newAssignee] ||= []).push(taskId);
       }
     }
+    await Promise.all(
+      Object.entries(groups).map(([assignee, ids]) =>
+        supabase.from('tasks').update({ assigned_to: assignee }).in('id', ids)
+      )
+    );
 
     const updates: any = {
       status: 'inativo',
@@ -90,8 +97,11 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
     }
 
     const memberContracts = (team.contracts.data || []).filter((c: any) => c.member_id === memberId && c.status === 'ativo');
-    for (const c of memberContracts) {
-      await supabase.from('member_contracts').update({ status: 'terminado' }).eq('id', c.id);
+    if (memberContracts.length > 0) {
+      await supabase
+        .from('member_contracts')
+        .update({ status: 'terminado' })
+        .in('id', memberContracts.map((c: any) => c.id));
     }
 
     const currentUser = (await supabase.auth.getUser()).data.user;

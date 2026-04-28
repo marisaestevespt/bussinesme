@@ -118,9 +118,11 @@ export function NewAbsenceDialog({ open, onClose, members }: { open: boolean; on
           if (reassign && sub && affectedTasks.length > 0) {
             const coverProfile = members.find(m => m.id === sub)?.profile_id;
             if (coverProfile) {
-              for (const task of affectedTasks) {
-                await supabase.from('tasks').update({ assigned_to: coverProfile }).eq('id', task.id);
-              }
+              // Batch: a single UPDATE for all affected tasks instead of N per-task updates
+              await supabase
+                .from('tasks')
+                .update({ assigned_to: coverProfile })
+                .in('id', affectedTasks.map(t => t.id));
             }
 
             // Send notification to owner

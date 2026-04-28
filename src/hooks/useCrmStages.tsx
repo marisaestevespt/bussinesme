@@ -37,11 +37,17 @@ export function useCrmStages() {
       const ganhoStage = stages.find(s => s.value === 'ganho');
       const sortOrder = ganhoStage ? ganhoStage.sort_order : maxOrder + 1;
 
-      // Shift ganho and perdido up
+      // Shift ganho and perdido up — batched via upsert
       if (ganhoStage) {
         const toShift = stages.filter(s => s.sort_order >= sortOrder);
-        for (const s of toShift) {
-          await supabase.from('crm_custom_stages').update({ sort_order: s.sort_order + 1 }).eq('id', s.id);
+        if (toShift.length > 0) {
+          const { error: shiftErr } = await supabase
+            .from('crm_custom_stages')
+            .upsert(
+              toShift.map(s => ({ ...s, sort_order: s.sort_order + 1 })),
+              { onConflict: 'id' }
+            );
+          if (shiftErr) throw shiftErr;
         }
       }
 
