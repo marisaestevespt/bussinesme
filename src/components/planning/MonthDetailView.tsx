@@ -92,27 +92,31 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [crmSearch, setCrmSearch] = useState('');
 
   // ── Data queries ──
-  const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
-  const salesActionsQ = useQuery({ queryKey: ['md-sales-actions', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales_actions').select('*'); return (data || []).filter((a) => { if (!a.start_date) return false; const d = parseISO(a.start_date); return d >= range.start && d <= range.end; }); }});
-  const leadsQ = useQuery({ queryKey: ['md-leads', year, monthNum], queryFn: async () => { const { data } = await supabase.from('crm_leads').select('*'); return data || []; }});
-  const clientsQ = useQuery({ queryKey: ['md-clients'], queryFn: async () => { const { data } = await supabase.from('clients').select('*'); return data || []; }});
-  const eventsQ = useQuery({ queryKey: ['md-events', year, monthNum], queryFn: async () => { const { data } = await supabase.from('events').select('*'); return data || []; }});
-  const meetingsQ = useQuery({ queryKey: ['md-meetings', year, monthNum], queryFn: async () => { const mStart = format(new Date(year, monthIdx, 1), 'yyyy-MM-dd'); const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd'); const { data } = await supabase.from('meetings').select('id, title, date_time, status, meeting_url').gte('date_time', mStart + 'T00:00:00').lte('date_time', mEnd + 'T23:59:59'); return data || []; }});
-  const contentQ = useQuery({ queryKey: ['md-content', year, monthNum], queryFn: async () => { const { data } = await supabase.from('content_items').select('*, content_channels(channel_id)'); return data || []; }});
-  const channelsQ = useQuery({ queryKey: ['md-channels'], queryFn: async () => { const { data } = await supabase.from('marketing_channels').select('*').eq('is_active', true).order('sort_order'); return data || []; }});
-  const productsQ = useQuery({ queryKey: ['md-products'], queryFn: async () => { const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client, ticket, status'); return data || []; }});
-  const timeEntriesQ = useQuery({ queryKey: ['md-time', year, monthNum], queryFn: async () => { const { data } = await supabase.from('time_entries').select('*').eq('entry_year', year).eq('entry_month', monthNum); return data || []; }});
-  const commMonthGoalQ = useQuery({ queryKey: ['md-comm-goal', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_monthly_goals').select('*').eq('year', year).eq('month', monthNum).maybeSingle(); return data; }});
-  const commQuarterGoalQ = useQuery({ queryKey: ['md-comm-q-goal', year, Math.ceil(monthNum/3)], queryFn: async () => { const { data } = await supabase.from('commercial_quarterly_goals').select('*').eq('year', year).eq('quarter', Math.ceil(monthNum/3)).maybeSingle(); return data; }});
-  const yearSalesQ = useQuery({ queryKey: ['md-year-sales', year], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('product, sale_month, invoice_total, base_value, status').eq('sale_year', year); return data || []; }});
-  const commProdGoalQ = useQuery({ queryKey: ['md-comm-prod-goals', year], queryFn: async () => { const { data } = await supabase.from('commercial_product_goals').select('*').eq('year', year).order('sort_order'); return data || []; }});
-  const npsQ = useQuery({ queryKey: ['md-nps', year, monthNum], queryFn: async () => { const { data } = await supabase.from('client_nps_records').select('*'); return data || []; }});
-  const teamQ = useQuery({ queryKey: ['md-team'], queryFn: async () => { const { data } = await supabase.from('team_members').select('*').eq('status', 'ativo'); return data || []; }});
-  const tasksQ = useQuery({ queryKey: ['md-tasks', year, monthNum], queryFn: async () => { const { data } = await supabase.from('tasks').select('*'); return data || []; }});
-  const reportQ = useQuery({ queryKey: ['md-report', year, monthNum], queryFn: async () => { const { data } = await supabase.from('monthly_reports').select('*').eq('year', year).eq('month', monthNum).eq('status', 'completed').maybeSingle(); return data; }});
+  // Performance: cache for 5 min and avoid refetch on focus to make month/quarter navigation instant.
+  const QOPTS = { staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000, refetchOnWindowFocus: false } as const;
+
+  const salesQ = useQuery({ ...QOPTS, queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
+  const salesActionsQ = useQuery({ ...QOPTS, queryKey: ['md-sales-actions', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales_actions').select('*'); return (data || []).filter((a) => { if (!a.start_date) return false; const d = parseISO(a.start_date); return d >= range.start && d <= range.end; }); }});
+  const leadsQ = useQuery({ ...QOPTS, queryKey: ['md-leads', year, monthNum], queryFn: async () => { const { data } = await supabase.from('crm_leads').select('*'); return data || []; }});
+  const clientsQ = useQuery({ ...QOPTS, queryKey: ['md-clients'], queryFn: async () => { const { data } = await supabase.from('clients').select('*'); return data || []; }});
+  const eventsQ = useQuery({ ...QOPTS, queryKey: ['md-events', year, monthNum], queryFn: async () => { const { data } = await supabase.from('events').select('*'); return data || []; }});
+  const meetingsQ = useQuery({ ...QOPTS, queryKey: ['md-meetings', year, monthNum], queryFn: async () => { const mStart = format(new Date(year, monthIdx, 1), 'yyyy-MM-dd'); const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd'); const { data } = await supabase.from('meetings').select('id, title, date_time, status, meeting_url').gte('date_time', mStart + 'T00:00:00').lte('date_time', mEnd + 'T23:59:59'); return data || []; }});
+  const contentQ = useQuery({ ...QOPTS, queryKey: ['md-content', year, monthNum], queryFn: async () => { const { data } = await supabase.from('content_items').select('*, content_channels(channel_id)'); return data || []; }});
+  const channelsQ = useQuery({ ...QOPTS, queryKey: ['md-channels'], queryFn: async () => { const { data } = await supabase.from('marketing_channels').select('*').eq('is_active', true).order('sort_order'); return data || []; }});
+  const productsQ = useQuery({ ...QOPTS, queryKey: ['md-products'], queryFn: async () => { const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client, ticket, status'); return data || []; }});
+  const timeEntriesQ = useQuery({ ...QOPTS, queryKey: ['md-time', year, monthNum], queryFn: async () => { const { data } = await supabase.from('time_entries').select('*').eq('entry_year', year).eq('entry_month', monthNum); return data || []; }});
+  const commMonthGoalQ = useQuery({ ...QOPTS, queryKey: ['md-comm-goal', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_monthly_goals').select('*').eq('year', year).eq('month', monthNum).maybeSingle(); return data; }});
+  const commQuarterGoalQ = useQuery({ ...QOPTS, queryKey: ['md-comm-q-goal', year, Math.ceil(monthNum/3)], queryFn: async () => { const { data } = await supabase.from('commercial_quarterly_goals').select('*').eq('year', year).eq('quarter', Math.ceil(monthNum/3)).maybeSingle(); return data; }});
+  const yearSalesQ = useQuery({ ...QOPTS, queryKey: ['md-year-sales', year], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('product, sale_month, invoice_total, base_value, status').eq('sale_year', year); return data || []; }});
+  const commProdGoalQ = useQuery({ ...QOPTS, queryKey: ['md-comm-prod-goals', year], queryFn: async () => { const { data } = await supabase.from('commercial_product_goals').select('*').eq('year', year).order('sort_order'); return data || []; }});
+  const npsQ = useQuery({ ...QOPTS, queryKey: ['md-nps', year, monthNum], queryFn: async () => { const { data } = await supabase.from('client_nps_records').select('*'); return data || []; }});
+  const teamQ = useQuery({ ...QOPTS, queryKey: ['md-team'], queryFn: async () => { const { data } = await supabase.from('team_members').select('*').eq('status', 'ativo'); return data || []; }});
+  const tasksQ = useQuery({ ...QOPTS, queryKey: ['md-tasks', year, monthNum], queryFn: async () => { const { data } = await supabase.from('tasks').select('*'); return data || []; }});
+  const reportQ = useQuery({ ...QOPTS, queryKey: ['md-report', year, monthNum], queryFn: async () => { const { data } = await supabase.from('monthly_reports').select('*').eq('year', year).eq('month', monthNum).eq('status', 'completed').maybeSingle(); return data; }});
 
   // Routine tasks for this month
   const routineTasksQ = useQuery({
+    ...QOPTS,
     queryKey: ['md-routine-tasks', year, monthNum],
     queryFn: async () => {
       const mStart = format(new Date(year, monthIdx, 1), 'yyyy-MM-dd');
