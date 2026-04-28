@@ -3,6 +3,45 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cleanPayloadStrip as cleanPayload } from '@/lib/utils';
 import { vatBreakdown, VAT_DEFAULT_RATE } from '@/lib/payrollCalculations';
+import type { TablesInsert } from '@/integrations/supabase/types';
+
+type MemberFormPayload = Record<string, unknown> & {
+  id?: string;
+  full_name?: string;
+  email?: string;
+  identification?: string | null;
+  whatsapp?: string | null;
+  iban?: string | null;
+  fiscal_address?: string | null;
+  payment_method?: string | null;
+  role_title?: string | null;
+  work_schedule?: string | null;
+  department?: string | null;
+  departments?: string[];
+  deptExtraPages?: Record<string, string[]>;
+  sensitiveAccess?: Record<string, boolean>;
+  system_role?: string;
+  profile_id?: string | null;
+};
+
+type ContractFormPayload = Record<string, unknown> & {
+  id?: string;
+  contract_type?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  status?: string;
+  monthly_value?: string | number;
+  contracted_hours?: string | number | null;
+  payment_day?: string | number;
+  document_url?: string | null;
+  notes?: string | null;
+  value_includes_vat?: boolean;
+  use_custom_payment_start?: boolean;
+  payment_start_date?: string | null;
+  duration?: string;
+};
+
+type ExpenseInsertPayload = TablesInsert<'financial_expenses'> & { supplier_id?: string };
 
 // Module keys that belong to each department
 const ALL_DEPT_MODULES = ['marketing', 'comercial', 'clientes', 'financeiro', 'operacao', 'produtos', 'recursos-humanos', 'equipa', 'planeamento', 'weekly-align', 'gestao-equipa-ceo'];
@@ -48,13 +87,13 @@ async function autoAssignPermissions(memberId: string, departments: string[]) {
     await supabase.from('role_permissions').insert(perms);
   }
 
-  await supabase.from('team_members').update({ custom_role_id: role.id } as any).eq('id', memberId);
+  await supabase.from('team_members').update({ custom_role_id: role.id } as Partial<TablesInsert<'team_members'>>).eq('id', memberId);
 }
 
 export function useMemberSave() {
   const qc = useQueryClient();
 
-  const saveMember = async ({ member, contract: contractData }: { member: any; contract: any }) => {
+  const saveMember = async ({ member, contract: contractData }: { member: MemberFormPayload; contract: ContractFormPayload | null }) => {
     try {
       const isNew = !member.id;
       let memberId = member.id;
@@ -66,12 +105,12 @@ export function useMemberSave() {
       if (isNew) {
         const payload = cleanPayload({ ...dbFields });
         delete payload.id;
-        const { data, error } = await supabase.from('team_members').insert(payload as any).select('id').single();
+        const { data, error } = await supabase.from('team_members').insert(payload as unknown as TablesInsert<'team_members'>).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
         const payload = cleanPayload(dbFields);
-        const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
+        const { error } = await supabase.from('team_members').update(payload as unknown as Partial<TablesInsert<'team_members'>>).eq('id', member.id!);
         if (error) throw error;
       }
 
@@ -85,8 +124,11 @@ export function useMemberSave() {
 
       // Handle contract: create for new, update for existing
       if (contractData && memberId) {
-        const monthlyVal = parseFloat(contractData.monthly_value) || 0;
-        const paymentDay = parseInt(contractData.payment_day) || 1;
+        const monthlyVal = parseFloat(String(contractData.monthly_value ?? '')) || 0;
+        const paymentDay = parseInt(String(contractData.payment_day ?? '')) || 1;
+        const contractedHoursStr = contractData.contracted_hours != null && contractData.contracted_hours !== ''
+          ? String(contractData.contracted_hours)
+          : null;
         const isPrestacao = contractData.contract_type === 'contrato_prestacao';
 
         // Block contract type change away from prestação if member is the configured accountant
@@ -112,10 +154,10 @@ export function useMemberSave() {
         if (isNew) {
           // Create contract + payments for new members
           await supabase.from('member_contracts').insert({
-            member_id: memberId, contract_type: contractData.contract_type,
+            member_id: memberId!, contract_type: contractData.contract_type,
             start_date: contractData.start_date || null, end_date: contractData.end_date || null,
             status: contractData.status, monthly_value: monthlyVal,
-            contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
+            contracted_hours: contractedHoursStr, payment_day: paymentDay,
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
             value_includes_vat: !!contractData.value_includes_vat,
@@ -140,7 +182,7 @@ export function useMemberSave() {
               contract_end_date: contractData.end_date || null,
               is_active: true,
               member_id: memberId,
-            } as any).select('id').single();
+            } as TablesInsert<'suppliers'>).select('id').single();
             if (!supplierErr && supplierData) {
               supplierId = supplierData.id;
             }
@@ -189,7 +231,7 @@ export function useMemberSave() {
               const expQuarter = Math.ceil(expMonth / 3);
               const expDate = `${p.year}-${String(p.month).padStart(2, '0')}-${String(paymentDay).padStart(2, '0')}`;
 
-              const expensePayload: any = {
+              const expensePayload: ExpenseInsertPayload = {
                 description: `Pagamento — ${member.full_name} — ${String(p.month).padStart(2, '0')}/${p.year}`,
                 category: isPrestacao ? 'prestadores' : 'ordenados',
                 base_value: isPrestacao ? baseValue : p.gross_value,
@@ -201,6 +243,7 @@ export function useMemberSave() {
                 expense_month: expMonth,
                 expense_quarter: expQuarter,
                 expense_year: p.year,
+                location: 'portugal',
                 ...(supplierId ? { supplier_id: supplierId } : {}),
               };
 
@@ -213,13 +256,14 @@ export function useMemberSave() {
               // Create payroll/contractor entry linked to expense
               if (!expError && expData) {
                 if (isPrestacao) {
-                  await supabase.from('financial_contractors' as any).insert({
+                  // Note: schema uses contractor_name/value; legacy fields kept for compat via cast.
+                  await supabase.from('financial_contractors').insert({
                     collaborator_name: member.full_name,
                     month: p.month, year: p.year,
                     invoice_value: baseValue, vat_value: Math.round((totalWithVat - baseValue) * 100) / 100,
                     total_cost: totalWithVat, status: 'por_pagar',
                     expense_id: expData.id,
-                  });
+                  } as unknown as TablesInsert<'financial_contractors'>);
                 } else {
                   await supabase.from('financial_payroll').insert({
                     collaborator_name: member.full_name,
@@ -242,7 +286,7 @@ export function useMemberSave() {
             end_date: contractData.end_date || null,
             status: contractData.status,
             monthly_value: monthlyVal,
-            contracted_hours: contractData.contracted_hours || null,
+            contracted_hours: contractedHoursStr,
             payment_day: paymentDay,
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
@@ -253,10 +297,10 @@ export function useMemberSave() {
         } else if (!isNew) {
           // No existing contract but editing — create one
           await supabase.from('member_contracts').insert({
-            member_id: memberId, contract_type: contractData.contract_type,
+            member_id: memberId!, contract_type: contractData.contract_type,
             start_date: contractData.start_date || null, end_date: contractData.end_date || null,
             status: contractData.status, monthly_value: monthlyVal,
-            contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
+            contracted_hours: contractedHoursStr, payment_day: paymentDay,
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
             value_includes_vat: !!contractData.value_includes_vat,
@@ -309,7 +353,7 @@ export function useMemberSave() {
               toast.success('Conta de acesso criada com sucesso!');
             }
           }
-        } catch (authErr: any) {
+        } catch (authErr: unknown) {
           console.error('Auth creation failed:', authErr);
           toast.error('Membro criado mas sem conta de acesso');
         }
@@ -341,21 +385,21 @@ export function useMemberSave() {
 
       // Save system role (RBAC) — só se conseguirmos descobrir o user_id ligado a este membro
       if (systemRole) {
-        let profileId: string | null = (member as any).profile_id || null;
+        let profileId: string | null = member.profile_id || null;
         if (!profileId && memberId) {
           const { data: tm } = await supabase.from('team_members').select('profile_id').eq('id', memberId).maybeSingle();
-          profileId = (tm as any)?.profile_id || null;
+          profileId = tm?.profile_id || null;
         }
         if (profileId) {
           const { data: prof } = await supabase.from('profiles').select('user_id').eq('id', profileId).maybeSingle();
-          const userId = (prof as any)?.user_id;
+          const userId = prof?.user_id;
           if (userId) {
             // Não tocar em owners — só substituir roles não-owner
             const { data: existing } = await supabase.from('user_roles').select('role').eq('user_id', userId);
-            const isOwner = (existing || []).some((r: any) => r.role === 'owner');
+            const isOwner = (existing || []).some((r) => r.role === 'owner');
             if (!isOwner) {
               await supabase.from('user_roles').delete().eq('user_id', userId).neq('role', 'owner');
-              await supabase.from('user_roles').insert({ user_id: userId, role: systemRole as any });
+              await supabase.from('user_roles').insert({ user_id: userId, role: systemRole as TablesInsert<'user_roles'>['role'] });
             }
           }
         }
@@ -363,8 +407,9 @@ export function useMemberSave() {
 
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
-    } catch (err: any) {
-      toast.error('Erro ao guardar: ' + (err.message || err));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error('Erro ao guardar: ' + msg);
     }
   };
 

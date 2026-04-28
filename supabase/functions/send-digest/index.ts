@@ -1,4 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+
+type SupabaseAdmin = ReturnType<typeof createClient>;
+type Row = Record<string, unknown>;
+
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
 
 const corsHeaders = {
@@ -159,8 +163,8 @@ Deno.serve(async (req) => {
         }
 
         results.push({ userId: digest.user_id, sent: true });
-      } catch (err: any) {
-        results.push({ userId: digest.user_id, sent: false, error: err.message });
+      } catch (err: unknown) {
+        results.push({ userId: digest.user_id, sent: false, error: (err instanceof Error ? err.message : String(err)) });
       }
     }
 
@@ -168,9 +172,9 @@ Deno.serve(async (req) => {
       JSON.stringify({ processed: results.length, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: (err instanceof Error ? err.message : String(err)) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
@@ -178,7 +182,7 @@ Deno.serve(async (req) => {
 
 // ─── Owner Digest Builder ─────────────────────────────────
 async function buildOwnerDigest(
-  supabase: any,
+  supabase: SupabaseAdmin,
   sections: Record<string, boolean>,
   todayStr: string,
   now: Date
@@ -361,8 +365,8 @@ async function buildOwnerDigest(
 
     if (routines?.length) {
       hasContent = true;
-      const done = routines.filter((r: any) => r.status === "done" || r.status === "concluida");
-      const todo = routines.filter((r: any) => r.status !== "done" && r.status !== "concluida");
+      const done = routines.filter((r: Row) => r.status === "done" || r.status === "concluida");
+      const todo = routines.filter((r: Row) => r.status !== "done" && r.status !== "concluida");
       html += sectionHeader("🔄 Rotinas do dia");
       html += `<p>${done.length} feitas de ${routines.length}</p>`;
       if (todo.length) {
@@ -386,7 +390,7 @@ async function buildOwnerDigest(
 
     if (sales?.length) {
       hasContent = true;
-      const total = sales.reduce((s: number, v: any) => s + (v.invoice_total || 0), 0);
+      const total = sales.reduce((s: number, v: Row) => s + (v.invoice_total || 0), 0);
       html += sectionHeader("💰 Vendas registadas hoje");
       html += `<p><strong>${sales.length}</strong> venda(s) · Total: <strong>${formatCurrency(total)}</strong></p>`;
     }
@@ -403,7 +407,7 @@ async function buildOwnerDigest(
     if (leads?.length) {
       hasContent = true;
       html += sectionHeader("🎯 Leads novas no CRM");
-      html += `<p><strong>${leads.length}</strong> lead(s): ${leads.map((l: any) => esc(l.name)).join(", ")}</p>`;
+      html += `<p><strong>${leads.length}</strong> lead(s): ${leads.map((l: Row) => esc(l.name)).join(", ")}</p>`;
     }
   }
 
@@ -421,7 +425,7 @@ async function buildOwnerDigest(
       html += sectionHeader("⭐ NPS recebidos");
       html += "<ul>";
       for (const n of nps) {
-        const clientName = (n as any).clients?.full_name || "—";
+        const clientName = (n as Row).clients?.full_name || "—";
         html += `<li>Score: ${n.nps_score} — ${esc(clientName)}</li>`;
       }
       html += "</ul>";
@@ -438,7 +442,7 @@ async function buildOwnerDigest(
 
     if (payments?.length) {
       hasContent = true;
-      const total = payments.reduce((s: number, p: any) => s + (p.invoice_total || 0), 0);
+      const total = payments.reduce((s: number, p: Row) => s + (p.invoice_total || 0), 0);
       html += sectionHeader("💳 Pagamentos recebidos hoje");
       html += `<p>Total: <strong>${formatCurrency(total)}</strong></p>`;
       html += "<ul>";
@@ -498,7 +502,7 @@ async function buildOwnerDigest(
 
     if (entries?.length) {
       hasContent = true;
-      const totalMin = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
+      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
       html += sectionHeader("⏱️ Tempo trabalhado hoje");
       html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
       const byMember: Record<string, number> = {};
@@ -569,10 +573,10 @@ async function buildOwnerDigest(
 
 // ─── Member Digest Builder ────────────────────────────────
 async function buildMemberDigest(
-  supabase: any,
+  supabase: SupabaseAdmin,
   sections: Record<string, boolean>,
-  digest: any,
-  profile: any,
+  digest: Row,
+  profile: Row,
   todayStr: string,
   now: Date
 ): Promise<string> {
@@ -644,7 +648,7 @@ async function buildMemberDigest(
       .eq("profile_id", profile.id);
 
     if (partRows?.length) {
-      const ids = partRows.map((r: any) => r.meeting_id);
+      const ids = partRows.map((r: Row) => r.meeting_id);
       const { data: meetings } = await supabase
         .from("meetings")
         .select("title, date_time, client_name, meeting_url")
@@ -779,8 +783,8 @@ async function buildMemberDigest(
 
     if (routines?.length) {
       hasContent = true;
-      const done = routines.filter((r: any) => r.status === "done" || r.status === "concluida");
-      const todo = routines.filter((r: any) => r.status !== "done" && r.status !== "concluida");
+      const done = routines.filter((r: Row) => r.status === "done" || r.status === "concluida");
+      const todo = routines.filter((r: Row) => r.status !== "done" && r.status !== "concluida");
       html += sectionHeader("🔄 Rotinas do dia");
       html += `<p>${done.length} feitas de ${routines.length}</p>`;
       if (todo.length) {
@@ -822,7 +826,7 @@ async function buildMemberDigest(
 
       if (entries?.length) {
         hasContent = true;
-        const totalHours = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
+        const totalHours = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
         html += sectionHeader("⏱️ Tempo registado");
         html += `<p>Total: <strong>${(totalHours / 60).toFixed(1)}h</strong></p>`;
       }
@@ -838,7 +842,7 @@ async function buildMemberDigest(
 
 // ─── Owner EOD Digest Builder ─────────────────────────────
 async function buildOwnerEodDigest(
-  supabase: any,
+  supabase: SupabaseAdmin,
   sections: Record<string, boolean>,
   todayStr: string,
   now: Date
@@ -878,8 +882,8 @@ async function buildOwnerEodDigest(
 
     if (routines?.length) {
       hasContent = true;
-      const done = routines.filter((r: any) => r.status === "done" || r.status === "concluida");
-      const todo = routines.filter((r: any) => r.status !== "done" && r.status !== "concluida");
+      const done = routines.filter((r: Row) => r.status === "done" || r.status === "concluida");
+      const todo = routines.filter((r: Row) => r.status !== "done" && r.status !== "concluida");
       const pct = Math.round((done.length / routines.length) * 100);
       html += sectionHeader("🔄 Rotinas do dia");
       html += `<p><strong>${done.length}/${routines.length}</strong> concluídas (${pct}%)</p>`;
@@ -904,7 +908,7 @@ async function buildOwnerEodDigest(
 
     if (entries?.length) {
       hasContent = true;
-      const totalMin = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
+      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
       html += sectionHeader("⏱️ Tempo trabalhado hoje");
       html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
       const byMember: Record<string, number> = {};
@@ -930,7 +934,7 @@ async function buildOwnerEodDigest(
 
     if (sales?.length) {
       hasContent = true;
-      const total = sales.reduce((s: number, v: any) => s + (v.invoice_total || 0), 0);
+      const total = sales.reduce((s: number, v: Row) => s + (v.invoice_total || 0), 0);
       html += sectionHeader("💰 Vendas do dia");
       html += `<p><strong>${sales.length}</strong> venda(s) · Total: <strong>${formatCurrency(total)}</strong></p>`;
     }
@@ -946,7 +950,7 @@ async function buildOwnerEodDigest(
 
     if (payments?.length) {
       hasContent = true;
-      const total = payments.reduce((s: number, p: any) => s + (p.invoice_total || 0), 0);
+      const total = payments.reduce((s: number, p: Row) => s + (p.invoice_total || 0), 0);
       html += sectionHeader("💳 Pagamentos recebidos");
       html += `<p>Total: <strong>${formatCurrency(total)}</strong> (${payments.length} pagamento(s))</p>`;
     }
@@ -1002,10 +1006,10 @@ async function buildOwnerEodDigest(
 
 // ─── Member EOD Digest Builder ────────────────────────────
 async function buildMemberEodDigest(
-  supabase: any,
+  supabase: SupabaseAdmin,
   sections: Record<string, boolean>,
-  digest: any,
-  profile: any,
+  digest: Row,
+  profile: Row,
   todayStr: string,
   now: Date
 ): Promise<string> {
@@ -1049,7 +1053,7 @@ async function buildMemberEodDigest(
 
     if (routines?.length) {
       hasContent = true;
-      const done = routines.filter((r: any) => r.status === "done" || r.status === "concluida");
+      const done = routines.filter((r: Row) => r.status === "done" || r.status === "concluida");
       const pct = Math.round((done.length / routines.length) * 100);
       html += sectionHeader("🔄 Rotinas do dia");
       html += `<p><strong>${done.length}/${routines.length}</strong> concluídas (${pct}%)</p>`;
@@ -1067,7 +1071,7 @@ async function buildMemberEodDigest(
 
     if (entries?.length) {
       hasContent = true;
-      const totalMin = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
+      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
       html += sectionHeader("⏱️ Tempo registado hoje");
       html += `<p>Total: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
     }
@@ -1242,7 +1246,7 @@ function computeDigestFiscalDeadlines(year: number, config: { taxIvaRegime: stri
   return dls.sort((a, b) => a.date.localeCompare(b.date));
 }
 
-async function buildFiscalDeadlinesSection(supabase: any, todayStr: string): Promise<string> {
+async function buildFiscalDeadlinesSection(supabase: SupabaseAdmin, todayStr: string): Promise<string> {
   const { data: bizSettings } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt").limit(1).single();
   if (!bizSettings) return "";
 
