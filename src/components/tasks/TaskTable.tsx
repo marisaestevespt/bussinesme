@@ -235,7 +235,7 @@ export function TaskTable({
                 </TableCell>
                 <TableCell>
                   {deptInfo ? (
-                    <Badge variant="outline" className="text-xs">{deptInfo.icon} {deptInfo.label}</Badge>
+                    <Badge variant="outline" className={cn('text-xs', (deptInfo as any).badgeColor)}>{deptInfo.icon} {deptInfo.label}</Badge>
                   ) : '—'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{getProjectName(task.project_id) || '—'}</TableCell>
