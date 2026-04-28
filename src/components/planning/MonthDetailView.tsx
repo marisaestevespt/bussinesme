@@ -1067,13 +1067,15 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           ...(t.completed_at ? [{ label: 'Concluída em', value: format(parseISO(t.completed_at), "d MMM yyyy 'às' HH:mm", { locale: pt }) }] : []),
         ];
         return (
-          <WeeklyAlignDetailSheet
-            open={!!selectedRoutineTask}
-            onOpenChange={(o) => !o && setSelectedRoutineTask(null)}
-            title={t.name}
-            subtitle="Tarefa de rotina"
-            fields={fields}
-          />
+          <Suspense fallback={null}>
+            <WeeklyAlignDetailSheet
+              open={!!selectedRoutineTask}
+              onOpenChange={(o) => !o && setSelectedRoutineTask(null)}
+              title={t.name}
+              subtitle="Tarefa de rotina"
+              fields={fields}
+            />
+          </Suspense>
         );
       })()}
 
