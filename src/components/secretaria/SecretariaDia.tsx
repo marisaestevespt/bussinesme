@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Layers, Eye } from 'lucide-react';
 import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
 import { MyTasksTable } from './MyTasksTable';
 import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secretaria-shared';
@@ -18,9 +21,26 @@ export default function SecretariaDia() {
   const todayMeetings = useMemo(() => (meetings.data || []).filter((m: any) => isToday(parseISO(m.date_time))), [meetings.data]);
   const todayTime = useMemo(() => (timeEntries.data || []).filter((e: any) => e.entry_date === todayStr), [timeEntries.data, todayStr]);
   const todayHours = useMemo(() => todayTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [todayTime]);
+  const [focusMode, setFocusMode] = useState(false);
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-end">
+        <Button
+          variant={focusMode ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFocusMode((v) => !v)}
+          className="gap-2"
+        >
+          {focusMode ? <Eye className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
+          {focusMode ? 'Voltar à vista normal' : 'Modo Foco (Batching)'}
+        </Button>
+      </div>
+
+      {focusMode ? (
+        <SecretariaBatches />
+      ) : (
+        <>
       <RoutineMonthCard tasks={routineTasks.data || []} />
 
       <div className="grid grid-cols-3 gap-4">
@@ -30,8 +50,6 @@ export default function SecretariaDia() {
       </div>
 
       <MyTasksTable scope="today" />
-
-      <SecretariaBatches />
 
       {todayTime.length > 0 && (
         <Card>
@@ -48,6 +66,8 @@ export default function SecretariaDia() {
             ))}
           </CardContent>
         </Card>
+      )}
+        </>
       )}
     </div>
   );

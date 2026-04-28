@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus, Loader2 } from 'lucide-react';
+import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus, Loader2, Play, X, Check, SkipForward } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useMyTasks } from '@/components/secretaria/secretaria-shared';
@@ -47,6 +49,7 @@ export default function SecretariaBatches() {
   const navigate = useNavigate();
   const tasksQ = useMyTasks();
   const [groupBy, setGroupBy] = useState<GroupKey>('cliente');
+  const [activeSession, setActiveSession] = useState<Batch | null>(null);
 
   // Open tasks only
   const openTasks = useMemo(
@@ -181,10 +184,10 @@ export default function SecretariaBatches() {
       <div>
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <Layers className="h-5 w-5 text-primary" />
-          Blocos de Foco (Batching)
+          Modo Foco — Batching
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Agrupa tarefas semelhantes em blocos contínuos para reduzir custo de troca de contexto.
+          Escolhe um contexto e entra em sessão de deep-work — uma tarefa de cada vez, sem distrações.
         </p>
       </div>
 
@@ -217,11 +220,22 @@ export default function SecretariaBatches() {
             </Card>
           ) : (
             batches.map((batch) => (
-              <BatchCard key={batch.key} batch={batch} onSchedule={() => scheduleBlock(batch)} />
+              <BatchCard
+                key={batch.key}
+                batch={batch}
+                onSchedule={() => scheduleBlock(batch)}
+                onStartSession={() => setActiveSession(batch)}
+              />
             ))
           )}
         </TabsContent>
       </Tabs>
+
+      <FocusSessionDialog
+        batch={activeSession}
+        open={!!activeSession}
+        onClose={() => setActiveSession(null)}
+      />
     </div>
   );
 }
@@ -275,7 +289,7 @@ function useScopeFullContext(batch: Batch, enabled: boolean) {
   });
 }
 
-function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void }) {
+function BatchCard({ batch, onSchedule, onStartSession }: { batch: Batch; onSchedule: () => void; onStartSession: () => void }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const fullCtx = useScopeFullContext(batch, open);
@@ -317,10 +331,16 @@ function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void
               )}
             </div>
           </div>
-          <Button size="sm" onClick={onSchedule} className="gap-1.5">
-            <CalendarPlus className="h-3.5 w-3.5" />
-            Agendar bloco
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={onSchedule} className="gap-1.5">
+              <CalendarPlus className="h-3.5 w-3.5" />
+              Agendar
+            </Button>
+            <Button size="sm" onClick={onStartSession} className="gap-1.5">
+              <Play className="h-3.5 w-3.5" />
+              Iniciar sessão
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -463,5 +483,128 @@ function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void
         </Collapsible>
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * Fullscreen deep-work session: shows ONE task at a time from the batch.
+ * Actions: Concluir | Saltar | Sair. Progress bar no topo.
+ */
+function FocusSessionDialog({
+  batch,
+  open,
+  onClose,
+}: {
+  batch: Batch | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+
+  // Reset when opening a new batch
+  useMemo(() => {
+    setIdx(0);
+    setCompletedIds(new Set());
+    setSkippedIds(new Set());
+  }, [batch?.key]);
+
+  const tasks = batch?.tasks || [];
+  const total = tasks.length;
+  const current = tasks[idx];
+
+  async function markDone(taskId: string) {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: 'done', completed_at: new Date().toISOString() } as any)
+      .eq('id', taskId);
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setCompletedIds((s) => new Set(s).add(taskId));
+    next();
+  }
+
+  function skip(taskId: string) {
+    setSkippedIds((s) => new Set(s).add(taskId));
+    next();
+  }
+
+  function next() {
+    if (idx + 1 < total) setIdx(idx + 1);
+    else setIdx(total); // finished
+  }
+
+  if (!batch) return null;
+  const finished = idx >= total;
+  const progressPct = total > 0 ? Math.round(((completedIds.size + skippedIds.size) / total) * 100) : 0;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-3 border-b">
+          <div className="flex items-center gap-2 min-w-0">
+            <Target className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-semibold truncate">{batch.label}</span>
+            <Badge variant="secondary" className="text-[10px]">
+              {Math.min(idx + 1, total)} / {total}
+            </Badge>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Progress value={progressPct} className="h-1 rounded-none" />
+
+        {/* Body */}
+        <div className="px-6 py-10 min-h-[280px] flex flex-col items-center justify-center text-center">
+          {finished ? (
+            <div className="space-y-3">
+              <div className="text-4xl">🎯</div>
+              <h3 className="text-xl font-semibold">Sessão concluída</h3>
+              <p className="text-sm text-muted-foreground">
+                {completedIds.size} concluídas · {skippedIds.size} saltadas
+              </p>
+              <Button onClick={onClose} className="mt-4">Fechar</Button>
+            </div>
+          ) : current ? (
+            <div className="space-y-4 w-full">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">A trabalhar em</p>
+              <h3 className="text-2xl font-semibold leading-tight">{current.name}</h3>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <Badge variant="outline" className="text-[10px]">{priorityLabel(current.priority)}</Badge>
+                {current.deadline && (
+                  <Badge variant="outline" className="text-[10px]">
+                    Deadline: {format(parseISO(current.deadline), 'd MMM', { locale: pt })}
+                  </Badge>
+                )}
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Clock className="h-3 w-3" />
+                  ~{formatDuration(estimateMinutes(current))}
+                </Badge>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Footer actions */}
+        {!finished && current && (
+          <div className="flex items-center justify-between gap-2 px-6 py-3 border-t bg-muted/30">
+            <Button variant="ghost" size="sm" onClick={() => skip(current.id)} className="gap-1.5">
+              <SkipForward className="h-4 w-4" />
+              Saltar
+            </Button>
+            <Button size="sm" onClick={() => markDone(current.id)} className="gap-1.5">
+              <Check className="h-4 w-4" />
+              Concluir e seguir
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
