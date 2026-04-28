@@ -485,3 +485,126 @@ function BatchCard({ batch, onSchedule, onStartSession }: { batch: Batch; onSche
     </Card>
   );
 }
+
+/**
+ * Fullscreen deep-work session: shows ONE task at a time from the batch.
+ * Actions: Concluir | Saltar | Sair. Progress bar no topo.
+ */
+function FocusSessionDialog({
+  batch,
+  open,
+  onClose,
+}: {
+  batch: Batch | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+
+  // Reset when opening a new batch
+  useMemo(() => {
+    setIdx(0);
+    setCompletedIds(new Set());
+    setSkippedIds(new Set());
+  }, [batch?.key]);
+
+  const tasks = batch?.tasks || [];
+  const total = tasks.length;
+  const current = tasks[idx];
+
+  async function markDone(taskId: string) {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: 'done', completed_at: new Date().toISOString() } as any)
+      .eq('id', taskId);
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setCompletedIds((s) => new Set(s).add(taskId));
+    next();
+  }
+
+  function skip(taskId: string) {
+    setSkippedIds((s) => new Set(s).add(taskId));
+    next();
+  }
+
+  function next() {
+    if (idx + 1 < total) setIdx(idx + 1);
+    else setIdx(total); // finished
+  }
+
+  if (!batch) return null;
+  const finished = idx >= total;
+  const progressPct = total > 0 ? Math.round(((completedIds.size + skippedIds.size) / total) * 100) : 0;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-3 border-b">
+          <div className="flex items-center gap-2 min-w-0">
+            <Target className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-semibold truncate">{batch.label}</span>
+            <Badge variant="secondary" className="text-[10px]">
+              {Math.min(idx + 1, total)} / {total}
+            </Badge>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Progress value={progressPct} className="h-1 rounded-none" />
+
+        {/* Body */}
+        <div className="px-6 py-10 min-h-[280px] flex flex-col items-center justify-center text-center">
+          {finished ? (
+            <div className="space-y-3">
+              <div className="text-4xl">🎯</div>
+              <h3 className="text-xl font-semibold">Sessão concluída</h3>
+              <p className="text-sm text-muted-foreground">
+                {completedIds.size} concluídas · {skippedIds.size} saltadas
+              </p>
+              <Button onClick={onClose} className="mt-4">Fechar</Button>
+            </div>
+          ) : current ? (
+            <div className="space-y-4 w-full">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">A trabalhar em</p>
+              <h3 className="text-2xl font-semibold leading-tight">{current.name}</h3>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <Badge variant="outline" className="text-[10px]">{priorityLabel(current.priority)}</Badge>
+                {current.deadline && (
+                  <Badge variant="outline" className="text-[10px]">
+                    Deadline: {format(parseISO(current.deadline), 'd MMM', { locale: pt })}
+                  </Badge>
+                )}
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Clock className="h-3 w-3" />
+                  ~{formatDuration(estimateMinutes(current))}
+                </Badge>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Footer actions */}
+        {!finished && current && (
+          <div className="flex items-center justify-between gap-2 px-6 py-3 border-t bg-muted/30">
+            <Button variant="ghost" size="sm" onClick={() => skip(current.id)} className="gap-1.5">
+              <SkipForward className="h-4 w-4" />
+              Saltar
+            </Button>
+            <Button size="sm" onClick={() => markDone(current.id)} className="gap-1.5">
+              <Check className="h-4 w-4" />
+              Concluir e seguir
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
