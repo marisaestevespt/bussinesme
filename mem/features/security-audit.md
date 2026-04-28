@@ -34,7 +34,21 @@ type: feature
 - `member_contracts.contracted_hours` é `text` na DB; agora convertido explicitamente via `String()`.
 
 ⏳ Pendente (próximas sessões):
-- Resto dos hooks (≤7 cada) e lib/
+- Phase 3: cauda longa (~36 `any` em 20 ficheiros, ≤7 cada) — hooks `useUnifiedResponsibilities`, `useGlobalAgendaContext`, `useCommercialData`, `usePortalBranding`, `useInfiniteSupabaseQuery`, etc.
 - Fix dos campos errados em `financial_contractors` insert (useMemberSave)
+
+## Sessão (Out 2026): Redução de `any` (Fase 2 — top hooks/lib restantes)
+✅ Completado:
+- `src/hooks/useSecretariaCustomViews.tsx` — 7 → 0 (TablesInsert/Update + Json para columns/filters)
+- `src/hooks/useProjectDetailData.ts` — 7 → 0 (Pick<> para time_entries; remoção de `(supabase as any)` em phases/deliverables)
+- `src/hooks/useMyAgendaEvents.tsx` — 6 → 0 (EventRow/MeetingLite/SalesActionLite + AgendaEvent narrowing)
+- `src/lib/exportContabilista.ts` — 10 → 0 (BusinessShape + AnyRow + helpers `cell()`/`s()`/`num()` para coerção segura de dados heterogéneos; tipo Workbook do exceljs)
+- `src/lib/paymentGenerator.ts` — 3 → 0 (TablesInsert<'commercial_sales'> como PaymentEntry)
+- `src/lib/paymentMethods.ts` — 3 → 0 (RawPaymentMethod interface)
+- `src/hooks/useAutoCalendarLabels.tsx` — 3 → 0 (Json + narrowing seguro)
+- `src/hooks/useDigestSettings.tsx` — 3 → 0 (TablesInsert/Update + Json)
+- `src/hooks/usePermissions.tsx` — 3 → 0 (custom_role_id agora vem tipado do schema)
+
+Validação: `bunx tsc --noEmit` clean, 105/105 testes a passar. Total acumulado: ~213 `any` removidos em 17 ficheiros.
 
 Validação: `bunx tsc --noEmit` clean, 105/105 testes a passar.
