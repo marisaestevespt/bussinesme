@@ -53,7 +53,7 @@ export function EntryStatusSelect({ saleId, currentStatus, paymentDate, hasDocum
     <>
       <Select value={effectiveStatus} onValueChange={handleChange}>
         <SelectTrigger className="h-7 w-auto min-w-[140px] border-0 bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground" onClick={e => e.stopPropagation()}>
-          <Badge variant="outline" className={sb.cls}>{sb.label}</Badge>
+          <Badge variant="outline" className={`${sb.cls} whitespace-nowrap`}>{sb.label}</Badge>
         </SelectTrigger>
         <SelectContent onClick={e => e.stopPropagation()}>
           {ENTRY_STATUSES.map(s => (
