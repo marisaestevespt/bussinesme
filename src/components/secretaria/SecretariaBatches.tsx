@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useMyTasks } from '@/components/secretaria/secretaria-shared';
@@ -19,7 +20,9 @@ type GroupKey = 'cliente' | 'projeto' | 'area';
 interface Batch {
   key: string;
   label: string;
-  tasks: any[];
+  scopeType: GroupKey;
+  scopeId: string | null; // null = "Sem contexto"
+  tasks: any[];           // user's open tasks in this scope
   totalMinutes: number;
   earliestDeadline: string | null;
   contextHref?: string;
@@ -93,12 +96,14 @@ export default function SecretariaBatches() {
       let key = '__sem_contexto__';
       let label = 'Sem contexto';
       let href: string | undefined;
+      let scopeId: string | null = null;
 
       if (groupBy === 'cliente') {
         if (t.client_id) {
           key = `c:${t.client_id}`;
           label = clients[t.client_id] || 'Cliente';
           href = `/hub/clientes/${t.client_id}`;
+          scopeId = t.client_id;
         } else {
           key = '__sem_cliente__';
           label = 'Sem cliente';
@@ -108,6 +113,7 @@ export default function SecretariaBatches() {
           key = `p:${t.project_id}`;
           label = projects[t.project_id] || 'Projeto';
           href = `/hub/projetos/${t.project_id}`;
+          scopeId = t.project_id;
         } else {
           key = '__sem_projeto__';
           label = 'Sem projeto';
@@ -117,11 +123,12 @@ export default function SecretariaBatches() {
         label = t.department
           ? t.department.charAt(0).toUpperCase() + t.department.slice(1)
           : 'Sem área';
+        scopeId = t.department || null;
       }
 
       let batch = map.get(key);
       if (!batch) {
-        batch = { key, label, tasks: [], totalMinutes: 0, earliestDeadline: null, contextHref: href };
+        batch = { key, label, scopeType: groupBy, scopeId, tasks: [], totalMinutes: 0, earliestDeadline: null, contextHref: href };
         map.set(key, batch);
       }
       batch.tasks.push(t);
