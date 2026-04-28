@@ -578,6 +578,7 @@ export type Database = {
           ss_exemption_end_date: string | null
           ss_type: string
           support_hours: string | null
+          tactical_areas: Json
           tax_irs_regime: string
           tax_iva_regime: string
           team_type: string
@@ -621,6 +622,7 @@ export type Database = {
           ss_exemption_end_date?: string | null
           ss_type?: string
           support_hours?: string | null
+          tactical_areas?: Json
           tax_irs_regime?: string
           tax_iva_regime?: string
           team_type?: string
@@ -664,6 +666,7 @@ export type Database = {
           ss_exemption_end_date?: string | null
           ss_type?: string
           support_hours?: string | null
+          tactical_areas?: Json
           tax_irs_regime?: string
           tax_iva_regime?: string
           team_type?: string
