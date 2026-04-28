@@ -84,3 +84,16 @@ Restante: apenas 1 `any` intencional em `ai-assistant/index.ts` (`applyFilter(qu
 - **Testes hardened**: removidos os 11 `any` em `vatCalculations.test.ts`, `salesCalculations.test.ts`, `FinMensal.test.ts` via tipos parciais locais (`SaleLike`, `ExpenseLike`, `SubscriptionLike`).
 
 Total final: **~243 `any` removidos em 38 ficheiros**. Resta apenas 1 `any` intencional em `ai-assistant` (query builder opaco). Build limpo, 105/105 testes a passar.
+
+## Final pre-launch state (2026-04-28)
+Linter: **100 warnings remaining, all accepted by design**:
+- 22× `get_portal_*` / `portal_*` SECURITY DEFINER funcs callable by anon — Portal de Cliente é público (token-based, sem auth). Revogar partia o portal.
+- ~15× helpers RLS (`has_role`, `is_owner`, `is_admin_or_owner`, `is_self_team_member`, `current_user_*`, `user_can_access_*`, `accountant_access_enabled`, `current_team_member_id`, `resolve_deliverable_assignee`, `portal_token_active`, `portal_email_allowed`) — devolvem vazio sem `auth.uid()` e são chamados pelas próprias políticas RLS. Revogar partia o sistema.
+- 3 buckets públicos (brand assets, materiais portal): intencionais.
+- `pg_net` em public: gerido pela plataforma.
+
+Funções sensíveis revogadas a anon (mantêm GRANT a authenticated): `log_audit_entry`, `get_profiles_basic`, `get_system_config_value` (além das ~120 da ronda anterior).
+
+E2E tests via `/admin/diagnostics` (Owner-only) — `run_e2e_tests()` corre `test_payment_sync_e2e` (8 asserts) e `test_product_rename_cascade` (16 tabelas).
+
+13 cron jobs ativos e validados: status update, renewals, NPS, birthdays, reminders, routines, digest, backup, email queue, project ending, scheduled renewals, monthly report, deliverable tasks.
