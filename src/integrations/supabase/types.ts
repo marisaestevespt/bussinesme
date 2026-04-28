@@ -11517,6 +11517,7 @@ export type Database = {
         Returns: string
       }
       rollback_renewal_project: { Args: { _project_id: string }; Returns: Json }
+      run_e2e_tests: { Args: never; Returns: Json }
       send_notification_to_user: {
         Args: {
           _link?: string

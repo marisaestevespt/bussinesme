@@ -37,6 +37,7 @@ function RedirectTrafegoPagoLegacy() {
 const SecretariaPage = lazy(() => import("./pages/Secretaria"));
 const ComecaAquiPage = lazy(() => import("./pages/ComecaAqui"));
 const HubPage = lazy(() => import("./pages/Hub"));
+const AdminDiagnosticsPage = lazy(() => import("./pages/AdminDiagnostics"));
 const ExecutiveDashboard = lazy(() => import("./pages/ExecutiveDashboard"));
 const ExecutivePlaneamento = lazy(() => import("./pages/ExecutivePlaneamento"));
 const ExecutivePlaneamentoTatico = lazy(() => import("./pages/ExecutivePlaneamentoTatico"));
@@ -245,6 +246,7 @@ function AppRoutes() {
         <Route path="/hub/recursos-humanos" element={<ExecutiveGestaoEquipa />} />
         <Route path="/hub/recursos-humanos/:section" element={<RecursosHumanosSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
+        <Route path="/admin/diagnostics" element={<AdminDiagnosticsPage />} />
         <Route path="/executive" element={<ExecutiveDashboard />} />
         <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
         <Route path="/executive/planeamento/estrategico" element={<ExecutivePlaneamentoEstrategico />} />
