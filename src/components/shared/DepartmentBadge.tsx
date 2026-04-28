@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { getDept } from '@/lib/departments';
 import { DEPARTMENT_COLOR_PALETTE } from '@/lib/departmentColorPalette';
 import { useDepartmentColors } from '@/hooks/useDepartmentColors';
-import { useUserRole } from '@/hooks/useUserRole';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   department: string;
@@ -24,8 +24,8 @@ interface Props {
 export function DepartmentBadge({ department, className, readOnly, stopPropagation }: Props) {
   const dept = getDept(department);
   const { getBadgeClass, getColorKey, setColor } = useDepartmentColors();
-  const { role } = useUserRole();
-  const canEdit = !readOnly && (role === 'owner' || role === 'admin');
+  const { isAdminOrOwner } = useAuth();
+  const canEdit = !readOnly && isAdminOrOwner;
   const [open, setOpen] = useState(false);
 
   if (!dept) return <span className="text-muted-foreground text-xs">—</span>;
