@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,34 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { planStatusLabel } from '@/hooks/usePlanningData';
 import type { TacticalArea } from '@/hooks/useTacticalAreas';
+import type { GoalRow, ObjectiveRow } from '@/types/planning';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
+import { planningAreaForDepartment, planningAreaMatches } from '@/lib/planningAreaFilters';
+
+type PlanningObjective = ObjectiveRow & {
+  product_name?: string | null;
+  source_filter?: Record<string, string> | null;
+};
+
+type PlanningGoal = GoalRow & {
+  actual_value?: number | null;
+  meta?: string | null;
+  name?: string | null;
+};
+
+type PlanningInitiative = {
+  id: string;
+  name: string;
+  client_name?: string | null;
+  progress?: number | null;
+};
+
+type PlanningApi = {
+  objectiveProgress?: (objective: PlanningObjective) => number;
+  objectiveCurrentValue?: (objective: PlanningObjective) => number | null;
+  goalAutoValue?: (objective: PlanningObjective, period: string) => number | null;
+  [key: string]: unknown;
+};
 
 interface Props {
   area: TacticalArea;
@@ -27,10 +54,10 @@ interface Props {
   /** Semester index 1..2 */
   semester?: number;
   year: number;
-  goals: any[];          // executive_goals already filtered by area+period
-  initiatives: any[];    // projects already filtered by department + range
-  planning: any;         // usePlanningData (for ObjectiveDetailSheet)
-  objectives: any[];     // executive_objectives list
+  goals: PlanningGoal[];          // executive_goals already filtered by area+period
+  initiatives: PlanningInitiative[];    // projects already filtered by department + range
+  planning: PlanningApi;         // usePlanningData (for ObjectiveDetailSheet)
+  objectives: PlanningObjective[];     // executive_objectives list
   onBack: () => void;
 }
 
@@ -44,17 +71,31 @@ export function AreaPeriodDetail({
 }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [selectedObjective, setSelectedObjective] = useState<any>(null);
+  const [selectedObjective, setSelectedObjective] = useState<PlanningObjective | null>(null);
   const hasOwner = responsibles.length > 0;
+  const areaObjectives = useMemo(() => {
+    const planAreaKey = planningAreaForDepartment(area.key);
+    return objectives.filter((o) => planningAreaMatches(o.area, planAreaKey));
+  }, [area.key, objectives]);
+  const objectiveProgresses = areaObjectives.map((o) =>
+    typeof planning.objectiveProgress === 'function' ? planning.objectiveProgress(o) : 0,
+  );
+  const annualObjectiveProgress = objectiveProgresses.length
+    ? Math.round(objectiveProgresses.reduce((a: number, b: number) => a + b, 0) / objectiveProgresses.length)
+    : 0;
   let achieved = 0;
   const progress = goals.length
     ? Math.round(
         goals
-          .map((g: any) => {
+          .map((g) => {
             if (g.status === 'atingido') { achieved++; return 100; }
             const target = Number(g.target_value || 0);
             if (target <= 0) return 0;
-            const actual = Number(g.actual_value || 0);
+            const linkedObj = g.objective_id ? objectives.find((o) => o.id === g.objective_id) : null;
+            const autoActual = linkedObj && typeof planning.goalAutoValue === 'function'
+              ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0)
+              : 0;
+            const actual = autoActual > 0 ? autoActual : Number(g.actual_value || 0);
             const pct = Math.min(Math.round((actual / target) * 100), 100);
             if (pct >= 100) achieved++;
             return pct;
@@ -114,11 +155,58 @@ export function AreaPeriodDetail({
 
       <Separator />
 
+      {/* Annual objectives */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <Target className="h-4 w-4" /> Objetivo anual da área ({areaObjectives.length})
+            </span>
+            {areaObjectives.length > 0 && (
+              <Badge variant="secondary" className="tabular-nums shrink-0">{annualObjectiveProgress}% no ano</Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {areaObjectives.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">Sem objetivo anual definido para esta área.</p>
+          ) : (
+            <ul className="space-y-2">
+              {areaObjectives.map((obj) => {
+                const pct = typeof planning.objectiveProgress === 'function' ? planning.objectiveProgress(obj) : 0;
+                const current = typeof planning.objectiveCurrentValue === 'function' ? planning.objectiveCurrentValue(obj) : obj.current_value;
+                const target = Number(obj.target_value || 0);
+                return (
+                  <li
+                    key={obj.id}
+                    onClick={() => setSelectedObjective(obj)}
+                    className="cursor-pointer rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5 hover:bg-muted/40 hq-transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="font-medium text-sm truncate">{obj.title || 'Objetivo sem título'}</div>
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <span className="tabular-nums">{Number(current || 0).toLocaleString('pt-PT')} / {target.toLocaleString('pt-PT')}</span>
+                          <span>·</span>
+                          <span>{planStatusLabel(obj.status)}</span>
+                        </div>
+                      </div>
+                      <Badge variant="default" className="tabular-nums shrink-0">{pct}%</Badge>
+                    </div>
+                    <Progress value={pct} className="h-1.5 mt-2" />
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Goals */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Target className="h-4 w-4" /> Metas do período ({goals.length})
+            <Target className="h-4 w-4" /> Metas do período ligadas ao objetivo anual ({goals.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -128,13 +216,17 @@ export function AreaPeriodDetail({
             <ul className="space-y-1.5">
               {goals.map((g) => {
                 const target = Number(g.target_value || 0);
-                const actual = Number(g.actual_value || 0);
+                const linkedObj = g.objective_id ? objectives.find((o) => o.id === g.objective_id) : null;
+                const autoActual = linkedObj && typeof planning.goalAutoValue === 'function'
+                  ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0)
+                  : 0;
+                const actual = autoActual > 0 ? autoActual : Number(g.actual_value || 0);
                 const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : null;
                 return (
                   <li
                     key={g.id}
                     onClick={() => {
-                      const obj = objectives.find((o: any) => o.id === g.objective_id);
+                      const obj = objectives.find((o) => o.id === g.objective_id);
                       if (obj) setSelectedObjective(obj);
                     }}
                     className="flex items-center justify-between gap-2 text-sm cursor-pointer hover:bg-muted/40 rounded px-2 py-1.5 transition-colors"
@@ -231,7 +323,7 @@ function QuarterRetro({ quarter, year }: { quarter: number; year: number }) {
   }, [analysis, loaded]);
 
   const upsert = useMutation({
-    mutationFn: async (vals: any) => {
+    mutationFn: async (vals: { went_well?: string | null; went_wrong?: string | null; lessons?: string | null; adjustments?: string | null }) => {
       const payload = { quarter, year, ...vals };
       if (analysis?.id) {
         const { error } = await supabase.from('executive_quarterly_analysis').update(payload).eq('id', analysis.id);
