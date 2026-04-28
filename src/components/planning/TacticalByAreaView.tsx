@@ -72,6 +72,25 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
     return g?.objective_id ? goalAreaById.get(g.objective_id) : undefined;
   };
 
+  // Compute progress for a set of goals using the same logic as planning.getPeriodProgress:
+  // - 'atingido' counts as 100%
+  // - otherwise, actual_value (or auto from linked objective) ÷ target_value, capped at 100
+  const computeProgress = (gs: any[]): { pct: number; achieved: number } => {
+    if (!gs.length) return { pct: 0, achieved: 0 };
+    let achieved = 0;
+    const pcts = gs.map((g) => {
+      if (g.status === 'atingido') { achieved++; return 100; }
+      const target = Number(g.target_value || 0);
+      if (target <= 0) return 0;
+      const actual = Number(g.actual_value || 0);
+      const pct = Math.min(Math.round((actual / target) * 100), 100);
+      if (pct >= 100) achieved++;
+      return pct;
+    });
+    const avg = Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length);
+    return { pct: avg, achieved };
+  };
+
   const today = new Date();
   const currentMonth = today.getFullYear() === year ? today.getMonth() : -1;
 
@@ -164,8 +183,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
             const d = new Date(pr.deadline);
             return d >= periodStart && d <= periodEnd;
           });
-          const achieved = periodGoals.filter((g: any) => g.status === 'atingido').length;
-          const progress = periodGoals.length ? Math.round((achieved / periodGoals.length) * 100) : 0;
+          const { pct: progress } = computeProgress(periodGoals);
           const isCurrent = p.months.includes(currentMonth);
           return {
             key: p.key,
@@ -178,8 +196,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
           };
         });
 
-        const yearAchieved = allAreaGoals.filter((g: any) => g.status === 'atingido').length;
-        const yearProgress = allAreaGoals.length ? Math.round((yearAchieved / allAreaGoals.length) * 100) : 0;
+        const { pct: yearProgress } = computeProgress(allAreaGoals);
 
         return (
           <AreaTimelineRow
