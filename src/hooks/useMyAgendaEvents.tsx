@@ -10,7 +10,6 @@ import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 import { expandRecurringEvents } from '@/lib/expandRecurringEvents';
 import { addMonths, subMonths } from 'date-fns';
 import type { Tables } from '@/integrations/supabase/types';
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 const MEETING_PSEUDO_COLOR = '#8B5CF6';
 const SALES_ACTION_PSEUDO_COLOR = '#F59E0B';
