@@ -5,7 +5,7 @@ import { Rocket, Lightbulb, Calculator, FileText, MessageSquareHeart, Crown, Cal
 const SHORTCUTS = [
   { to: '/executive/weekly-align', icon: CalendarCheck, label: 'Weekly Align', desc: 'Ritual semanal de revisão',
     iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
-  { to: '/executive/planeamento', icon: Target, label: 'Planeamento Anual', desc: 'Objetivos e metas do ano',
+  { to: '/executive/planeamento', icon: Target, label: 'Planeamento', desc: 'Objetivos e metas do ano',
     iconColor: 'text-accent', color: 'from-accent/15 to-accent/5 hover:from-accent/25 hover:to-accent/10' },
   { to: '/executive/business-plan', icon: Rocket, label: 'Plano & Modelo de Negócio', desc: 'Visão, oferta, estratégia',
     iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
