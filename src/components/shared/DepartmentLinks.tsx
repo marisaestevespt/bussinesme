@@ -121,7 +121,7 @@ export function DepartmentLinks({
 
   // Departments that have a dedicated planning page
   const PLANNING_DEPTS: DepartmentKey[] = [
-    "comercial","marketing","financeiro","operacao","clientes" as any,
+    "comercial","marketing","financeiro","operacao",
     "produtos","equipa",
   ];
   const showPlanningChip = PLANNING_DEPTS.includes(department);
