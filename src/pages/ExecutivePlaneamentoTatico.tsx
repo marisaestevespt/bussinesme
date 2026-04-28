@@ -9,7 +9,6 @@ import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
-import { Badge } from '@/components/ui/badge';
 import { Calendar, BarChart3, PieChart, Target } from 'lucide-react';
 
 type Tab = 'mensal' | 'trimestral' | 'semestral' | 'metas';
@@ -33,12 +32,7 @@ export default function ExecutivePlaneamentoTatico() {
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation />
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano" />
-          </div>
-          <Badge variant="outline" className="text-sm font-medium px-3 py-1 shrink-0 mt-1">{year}</Badge>
-        </div>
+        <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano" />
 
         <Tabs value={tab} onValueChange={handleTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl">
