@@ -54,7 +54,7 @@ export function TacticalByAreaView({ planning, year, view }: Props) {
   const { data: projectsByDept = {} } = useProjectsByDepartmentInRange(yearStart, yearEnd);
 
   const goals = planning.allGoals || [];
-  const objectives = planning.objectives || [];
+  const objectives = planning.allObjectives || [];
 
   const today = new Date();
   const currentMonth = today.getFullYear() === year ? today.getMonth() : -1;
