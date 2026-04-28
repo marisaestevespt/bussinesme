@@ -59,6 +59,19 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
   const goals = planning.allGoals || [];
   const objectives = planning.allObjectives || [];
 
+  // Goal area lives on the linked objective, not on the goal itself.
+  // Build an index objectiveId → area so we can filter goals by department.
+  const goalAreaById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const o of objectives as any[]) if (o?.id && o?.area) m.set(o.id, o.area);
+    return m;
+  }, [objectives]);
+
+  const goalArea = (g: any): string | undefined => {
+    if (g?.area) return g.area; // future-proof if column is added
+    return g?.objective_id ? goalAreaById.get(g.objective_id) : undefined;
+  };
+
   const today = new Date();
   const currentMonth = today.getFullYear() === year ? today.getMonth() : -1;
 
@@ -84,7 +97,11 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
     }
     const planKey = planAreaKeyFor(area.key);
     const periodGoals = goals.filter(
-      (g: any) => period.monthNames.includes(g.period) && (g.area === planKey || g.area === area.key),
+      (g: any) => {
+        if (!period.monthNames.includes(g.period)) return false;
+        const a = goalArea(g);
+        return a === planKey || a === area.key;
+      },
     );
     const allInits = projectsByDept[area.key] || [];
     const periodStart = new Date(year, period.months[0], 1);
@@ -132,7 +149,10 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
       {areas.map((area: TacticalArea) => {
         const planKey = planAreaKeyFor(area.key);
         const responsibles = membersByDept[area.key] || [];
-        const allAreaGoals = goals.filter((g: any) => g.area === planKey || g.area === area.key);
+        const allAreaGoals = goals.filter((g: any) => {
+          const a = goalArea(g);
+          return a === planKey || a === area.key;
+        });
         const allAreaInits = projectsByDept[area.key] || [];
 
         const cells: AreaPeriodCell[] = periods.map((p) => {
