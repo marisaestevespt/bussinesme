@@ -548,7 +548,7 @@ export function ProductMarketingSection({
                 <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-4">Sem criativos</TableCell></TableRow>
               )}
               {trafficAds.map((ad) => (
-                <TableRow key={ad.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/marketing/trafego-pago/criativo/${ad.id}`)}>
+                <TableRow key={ad.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/marketing/trafego-pago/criativo/${ad.id}`)}>
                   <TableCell className="text-sm">{ad.start_date ? format(new Date(ad.start_date as string), 'dd/MM/yyyy') : '—'}</TableCell>
                   <TableCell className="font-medium">{ad.name as string}</TableCell>
                   <TableCell><Badge variant="outline" className="text-xs">{((ad.status as string) || '').replace('_', ' ') || '—'}</Badge></TableCell>
