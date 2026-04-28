@@ -39,6 +39,7 @@ import type { KanbanItem } from '@/components/gestao-marca/types';
 
 import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/components/gestao-marca/types';
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
+import { BrandIdentitySync } from '@/components/gestao-marca/BrandIdentitySync';
 
 
 export default function GestaoMarcaPage() {
@@ -552,6 +553,9 @@ export default function GestaoMarcaPage() {
                       </p>
                     )}
                   </div>
+
+                  {/* Missão / Visão / Valores — sync com Planeamento Estratégico */}
+                  <BrandIdentitySync settingsId={settings?.id} isOwner={isOwner} />
                 </div>
               </div>
             </CardContent>
