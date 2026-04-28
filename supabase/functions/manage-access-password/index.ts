@@ -77,7 +77,7 @@ async function logAudit(
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = buildCorsHeaders(req);
+  const corsHeaders = getCorsHeaders(req);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
