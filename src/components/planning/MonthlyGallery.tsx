@@ -26,15 +26,19 @@ interface Props {
 export function MonthlyGallery({ planning, year }: Props) {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const goals = planning.allGoals || [];
+  const objectives = planning.allObjectives || [];
 
   const monthProgress = useMemo(() => {
     return MONTHS.map((name) => {
       const monthGoals = goals.filter((g: any) => g.period === name);
-      if (monthGoals.length === 0) return 0;
-      const achieved = monthGoals.filter((g: any) => g.status === 'atingido').length;
-      return Math.round((achieved / monthGoals.length) * 100);
+      const linkedObjIds = [...new Set(monthGoals.map((g: any) => g.objective_id).filter(Boolean))];
+      const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
+      const items = [...monthGoals, ...linkedObjectives];
+      if (items.length === 0) return { pct: 0, count: 0 };
+      const achieved = items.filter((i: any) => i.status === 'atingido').length;
+      return { pct: Math.round((achieved / items.length) * 100), count: items.length };
     });
-  }, [goals]);
+  }, [goals, objectives]);
 
   if (selectedMonth !== null) {
     return (
@@ -51,9 +55,9 @@ export function MonthlyGallery({ planning, year }: Props) {
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
       {MONTHS.map((name, idx) => {
         const range = monthRange(idx, year);
-        const progress = monthProgress[idx];
+        const { pct: progress, count: itemCount } = monthProgress[idx];
         const isCurrent = new Date().getMonth() === idx && new Date().getFullYear() === year;
-        const goalCount = goals.filter((g: any) => g.period === name).length;
+        const goalCount = itemCount;
 
         return (
           <Card
