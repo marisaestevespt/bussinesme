@@ -6,6 +6,7 @@ import { cleanPayload } from '@/lib/utils';
 import { useMemo } from 'react';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { resolveProductId } from '@/lib/productResolver';
+import { logAudit } from '@/lib/auditLog';
 
 type CrmLead = Tables<'crm_leads'>;
 type CrmInteraction = Tables<'crm_interactions'>;
@@ -123,8 +124,10 @@ export function useCrmData() {
 
   const deleteLead = useMutation({
     mutationFn: async (id: string) => {
+      const { data: snap } = await supabase.from('crm_leads').select('name, status').eq('id', id).maybeSingle();
       const { error } = await supabase.from('crm_leads').delete().eq('id', id);
       if (error) throw error;
+      logAudit('deleted', 'crm_lead', id, { name: snap?.name, status: snap?.status });
     },
     onSuccess: invalidate,
   });
