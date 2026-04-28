@@ -5,6 +5,7 @@ import { usePlanningData } from '@/hooks/usePlanningData';
 import { BackNavigation } from '@/components/BackNavigation';
 import { Button } from '@/components/ui/button';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
+import { StrategicSection } from '@/components/planning/StrategicSection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
@@ -111,6 +112,9 @@ export default function ExecutivePlaneamento() {
             </CardContent>
           </Card>
         </div>
+
+        {/* === Nível Estratégico (longo prazo · 3-5 anos) === */}
+        <StrategicSection />
 
         <PlanningOverviewView planning={planning} year={year} stats={stats} />
       </div>
