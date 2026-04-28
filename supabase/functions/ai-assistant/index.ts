@@ -1589,7 +1589,7 @@ Regras:
               const step = steps[i];
               const resolvedDetails = resolveRefs(step.details, stepResults) as Record<string, unknown>;
               console.log(`Auto-workflow step ${i + 1}/${steps.length}: ${step.step_label}`);
-              const stepResult = await executeSingleAction(step.action_type, resolvedDetails, supabaseAdmin);
+              const stepResult = await executeSingleAction(step.action_type, resolvedDetails, supabaseAdmin, file as { name?: string; type?: string; base64?: string } | undefined);
               if (stepResult.error) {
                 return new Response(JSON.stringify({
                   content: `❌ Erro no passo ${i + 1} (${step.step_label}): ${stepResult.error}`,
@@ -1604,7 +1604,8 @@ Regras:
             result = await executeSingleAction(
               confirmedAction.action_type as string,
               (confirmedAction.details as Record<string, unknown>) || {},
-              supabaseAdmin
+              supabaseAdmin,
+              file as { name?: string; type?: string; base64?: string } | undefined
             );
           }
 
