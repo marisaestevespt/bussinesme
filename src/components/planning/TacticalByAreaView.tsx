@@ -183,8 +183,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
             const d = new Date(pr.deadline);
             return d >= periodStart && d <= periodEnd;
           });
-          const achieved = periodGoals.filter((g: any) => g.status === 'atingido').length;
-          const progress = periodGoals.length ? Math.round((achieved / periodGoals.length) * 100) : 0;
+          const { pct: progress } = computeProgress(periodGoals);
           const isCurrent = p.months.includes(currentMonth);
           return {
             key: p.key,
@@ -197,8 +196,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' 
           };
         });
 
-        const yearAchieved = allAreaGoals.filter((g: any) => g.status === 'atingido').length;
-        const yearProgress = allAreaGoals.length ? Math.round((yearAchieved / allAreaGoals.length) * 100) : 0;
+        const { pct: yearProgress } = computeProgress(allAreaGoals);
 
         return (
           <AreaTimelineRow
