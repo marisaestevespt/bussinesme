@@ -31,6 +31,10 @@ import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone, isTaskOpen } from '@/lib/taskStatus';
 import { monthlyCapacity } from '@/lib/memberCapacity';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { getClientStatusInfo, getClientStatusColor, CLIENT_STATUSES } from '@/lib/clientStatus';
+import { getSaleStatusInfo, getEffectiveSaleStatus } from '@/lib/saleStatus';
+import { MonthDetailTasksCard } from './MonthDetailTasksCard';
+import { Search } from 'lucide-react';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
