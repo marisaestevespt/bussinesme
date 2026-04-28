@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useDeferredValue, lazy, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -214,11 +214,30 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const products = productsQ.data || [];
 
   const allLeads = leadsQ.data || [];
-  const monthLeads = allLeads.filter((l) => {
+  const monthLeads = useMemo(() => allLeads.filter((l) => {
     const added = l.added_at ? parseISO(l.added_at) : null;
     const updated = l.updated_at ? parseISO(l.updated_at) : null;
     return (added && added >= range.start && added <= range.end) || (updated && updated >= range.start && updated <= range.end);
-  });
+  }), [allLeads, range.start, range.end]);
+
+  // Defer search input so typing stays smooth even with hundreds of leads
+  const deferredCrmSearch = useDeferredValue(crmSearch);
+  const filteredLeads = useMemo(() => {
+    if (!deferredCrmSearch) return monthLeads;
+    const q = deferredCrmSearch.toLowerCase();
+    return monthLeads.filter(l =>
+      (l.name || '').toLowerCase().includes(q) || (l.email || '').toLowerCase().includes(q)
+    );
+  }, [monthLeads, deferredCrmSearch]);
+
+  // Pre-bucket leads per CRM column to avoid N filter passes on every render
+  const leadsByStatus = useMemo(() => {
+    const map: Record<string, typeof monthLeads> = {};
+    for (const l of monthLeads) {
+      (map[l.status] ||= []).push(l);
+    }
+    return map;
+  }, [monthLeads]);
 
   const CRM_COLUMNS = CRM_STATUSES.map(s => s.value);
   const CRM_LABELS: Record<string, string> = Object.fromEntries(CRM_STATUSES.map(s => [s.value, s.label]));
@@ -239,10 +258,16 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     return [...events, ...meetings];
   }, [eventsQ.data, meetingsQ.data, calMonth]);
 
-  const allContent = (contentQ.data || []).filter((c) => { if (!c.scheduled_at) return false; const d = parseISO(c.scheduled_at); return d >= range.start && d <= range.end; });
+  const allContent = useMemo(
+    () => (contentQ.data || []).filter((c) => { if (!c.scheduled_at) return false; const d = parseISO(c.scheduled_at); return d >= range.start && d <= range.end; }),
+    [contentQ.data, range.start, range.end]
+  );
   const channels = channelsQ.data || [];
 
-  const monthTasks = (tasksQ.data || []).filter((t) => { if (!t.deadline) return false; const d = parseISO(t.deadline); return d >= range.start && d <= range.end; });
+  const monthTasks = useMemo(
+    () => (tasksQ.data || []).filter((t) => { if (!t.deadline) return false; const d = parseISO(t.deadline); return d >= range.start && d <= range.end; }),
+    [tasksQ.data, range.start, range.end]
+  );
 
   const timeEntries = timeEntriesQ.data || [];
   const team = teamQ.data || [];
@@ -727,7 +752,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardContent>
           {crmView === 'list' ? (
             (() => {
-              const filtered = monthLeads.filter(l => !crmSearch || (l.name || '').toLowerCase().includes(crmSearch.toLowerCase()) || (l.email || '').toLowerCase().includes(crmSearch.toLowerCase()));
+              const filtered = filteredLeads;
               return filtered.length === 0 ? (
                 <EmptyHint>Sem leads correspondentes.</EmptyHint>
               ) : (
@@ -752,7 +777,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           <div className="overflow-x-auto pb-2">
             <div className="flex gap-2" style={{ minWidth: CRM_COLUMNS.length * 180 }}>
               {CRM_COLUMNS.map(col => {
-                const colLeads = monthLeads.filter((l) => l.status === col);
+                const colLeads = leadsByStatus[col] || [];
                 return (
                   <div key={col} className="w-44 shrink-0">
                     <div className={cn('text-[10px] font-medium mb-1.5 px-2 py-1 rounded-md', CRM_COLORS[col] || 'text-muted-foreground')}>{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
