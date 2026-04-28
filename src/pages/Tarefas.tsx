@@ -263,7 +263,7 @@ export default function TarefasPage() {
   // Inline update (name / status / priority / deadline / responsible)
   const updateTaskInline = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Record<string, any> }) => {
-      const { error } = await supabase.from('tasks').update(patch).eq('id', id);
+      const { error } = await supabase.from('tasks').update(patch as any).eq('id', id);
       if (error) throw error;
       return { id, patch };
     },
