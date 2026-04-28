@@ -11,7 +11,7 @@ import { AreaPeriodDetail } from './AreaPeriodDetail';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { buildObjectiveAreaIndex, goalBelongsToDepartment, planningAreaForDepartment } from '@/lib/planningAreaFilters';
+import { buildObjectiveAreaIndex, goalBelongsToDepartment } from '@/lib/planningAreaFilters';
 
 const MONTHS = [
   'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -103,7 +103,6 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
       setSelected(null);
       return null;
     }
-    const planKey = planningAreaForDepartment(area.key);
     const periodGoals = goals.filter(
       (g: any) => {
         if (!period.monthNames.includes(g.period)) return false;
