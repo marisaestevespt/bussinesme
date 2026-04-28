@@ -1,30 +1,18 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { differenceInDays } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Rocket, Zap, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Rocket, Zap, ArrowRight } from 'lucide-react';
 import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
-import { useExecutiveData } from '@/hooks/useExecutiveData';
+import { useBrainDump } from '@/hooks/useBrainDump';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 export function ObjectivesBrainDump() {
   const planning = usePlanningData(new Date().getFullYear());
-  const exec = useExecutiveData(new Date().getFullYear());
-  const [newTask, setNewTask] = useState('');
+  const brain = useBrainDump();
 
-  const handleAddTask = () => {
-    if (!newTask.trim()) return;
-    exec.addBrainDump.mutate(newTask.trim());
-    setNewTask('');
-  };
-
-  const brainDumpItems = exec.brainDump.data || [];
-  const pendingItems = brainDumpItems.filter(i => !i.completed);
+  const items = brain.items.data || [];
+  const pendingItems = items.filter(i => i.status === 'em_ideia');
 
   return (
     <section className="space-y-3">
@@ -80,61 +68,39 @@ export function ObjectivesBrainDump() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Zap className="h-4 w-4 text-warning" /> Brain Dump
-              {pendingItems.length > 0 && (
-                <Badge variant="secondary" className="text-[9px] ml-auto">{pendingItems.length}</Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ideia rápida..."
-                value={newTask}
-                onChange={e => setNewTask(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                className="h-8 text-sm"
-              />
-              <Button size="sm" variant="ghost" onClick={handleAddTask} className="h-8 px-2">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="space-y-1 max-h-44 overflow-y-auto">
-              {brainDumpItems.length === 0 ? (
-                <EmptyHint>Sem notas rápidas</EmptyHint>
-              ) : brainDumpItems.map(item => {
-                const daysOld = differenceInDays(new Date(), new Date(item.created_at));
-                const isStale = daysOld >= 30 && !item.completed;
-                return (
-                  <div key={item.id} className={`flex items-start gap-2 group rounded-md p-1.5 ${isStale ? 'bg-destructive/10' : ''}`}>
-                    <Checkbox
-                      checked={item.completed}
-                      onCheckedChange={(v) => exec.toggleBrainDump.mutate({ id: item.id, completed: !!v })}
-                      className="mt-0.5"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-xs ${item.completed ? 'line-through text-muted-foreground' : ''}`}>{item.task}</span>
-                      {isStale && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-destructive ml-1.5">
-                          <AlertTriangle className="h-2.5 w-2.5" /> +{daysOld}d
-                        </span>
-                      )}
+        <Link to="/executive/brain-dump" className="block group">
+          <Card className="h-full transition-all group-hover:shadow-sm group-hover:border-primary/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Zap className="h-4 w-4 text-warning" /> Brain Dump
+                {pendingItems.length > 0 && (
+                  <Badge variant="secondary" className="text-[9px] ml-auto">{pendingItems.length}</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {items.length === 0 ? (
+                <EmptyHint>Sem ideias registadas</EmptyHint>
+              ) : (
+                <div className="space-y-1.5 max-h-36 overflow-hidden">
+                  {items.slice(0, 4).map(item => (
+                    <div key={item.id} className="text-xs truncate text-foreground/80">
+                      • {item.task}
                     </div>
-                    <button
-                      onClick={() => exec.deleteBrainDump.mutate(item.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity mt-0.5"
-                    >
-                      <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  ))}
+                  {items.length > 4 && (
+                    <div className="text-[10px] text-muted-foreground">
+                      +{items.length - 4} mais…
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="flex items-center justify-end pt-1 text-[11px] text-primary">
+                Abrir Brain Dump <ArrowRight className="h-3 w-3 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </section>
   );
