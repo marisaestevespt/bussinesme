@@ -442,14 +442,30 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             <EntityProperties>
               <EntityProperty icon={ListTodo} label="Status">
                 <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
-                  <SelectContent>{TASK_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className={cn(inlineTriggerClass, getStatusInfo(status).color)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TASK_STATUSES.map(s => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <span className={cn('inline-flex items-center px-1.5 py-0.5 rounded border text-xs', s.color)}>{s.label}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </EntityProperty>
               <EntityProperty icon={Flag} label="Prioridade">
                 <Select value={priority} onValueChange={setPriority}>
-                  <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
-                  <SelectContent>{PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className={cn(inlineTriggerClass, getPriorityInfo(priority).color)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITIES.map(p => (
+                      <SelectItem key={p.value} value={p.value}>
+                        <span className={cn('inline-flex items-center px-1.5 py-0.5 rounded border text-xs', p.color)}>{p.label}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </EntityProperty>
               <EntityProperty icon={CalendarIcon} label="Prazo">
@@ -469,14 +485,67 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </EntityProperty>
               <EntityProperty icon={User} label="Responsável">
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
-                  <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className={inlineTriggerClass}>
+                    {assignedTo ? (() => {
+                      const p = profiles.find((x: any) => x.id === assignedTo);
+                      const name = p?.full_name || 'Sem nome';
+                      const photo = getPhotoUrl(p as any);
+                      return (
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-5 w-5">
+                            {photo && <AvatarImage src={photo} />}
+                            <AvatarFallback className="text-[9px] font-semibold">
+                              {name.split(/\s+/).map((s: string) => s[0]).slice(0, 2).join('').toUpperCase() || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{name}</span>
+                        </div>
+                      );
+                    })() : <SelectValue placeholder="—" />}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {profiles.map((p: any) => {
+                      const photo = getPhotoUrl(p);
+                      const name = p.full_name || 'Sem nome';
+                      return (
+                        <SelectItem key={p.id} value={p.id}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-5 w-5">
+                              {photo && <AvatarImage src={photo} />}
+                              <AvatarFallback className="text-[9px] font-semibold">
+                                {name.split(/\s+/).map((s: string) => s[0]).slice(0, 2).join('').toUpperCase() || '?'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{name}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
                 </Select>
               </EntityProperty>
               <EntityProperty icon={Building} label="Departamento">
                 <Select value={department} onValueChange={setDepartment}>
-                  <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className={cn(inlineTriggerClass, department && (getDeptInfo(department) as any)?.badgeColor)}>
+                    {department ? (
+                      <span className="inline-flex items-center gap-1">
+                        <span>{getDeptInfo(department)?.icon}</span>
+                        <span>{getDeptInfo(department)?.label}</span>
+                      </span>
+                    ) : (
+                      <SelectValue placeholder="—" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROCESS_DEPARTMENTS.map(d => (
+                      <SelectItem key={d.value} value={d.value}>
+                        <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-xs', (d as any).badgeColor)}>
+                          <span>{d.icon}</span>
+                          <span>{d.label}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </EntityProperty>
               <EntityProperty icon={FolderOpen} label="Projeto">
