@@ -659,6 +659,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               const { data, error } = await supabase.from('content_items').insert({ title: 'Novo Conteúdo' } as any).select('id').single() as any;
               if (error || !data) { toast.error('Erro ao criar conteúdo'); return; }
               qc.invalidateQueries({ queryKey: ['md-content'] });
+              qc.invalidateQueries({ queryKey: ['content_items'] });
+              qc.invalidateQueries({ queryKey: ['marketing'] });
+              qc.invalidateQueries({ queryKey: ['agenda'] });
               navigate(`/hub/marketing/conteudos/${data.id}`);
             }}><Plus className="h-3 w-3" /> Novo Conteúdo</Button>
           </div>
