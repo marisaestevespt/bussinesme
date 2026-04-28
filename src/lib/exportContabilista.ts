@@ -10,6 +10,19 @@ const num = (v: unknown) => {
   return isFinite(n) ? Math.round(n * 100) / 100 : 0;
 };
 
+/** Coerce an arbitrary cell value to the spreadsheet `Cell` shape (string | number | null). */
+const cell = (v: unknown): Cell => {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'number' || typeof v === 'string') return v;
+  if (typeof v === 'boolean') return v ? 'Sim' : 'Não';
+  return String(v);
+};
+/** Read a string field from a loose row, defaulting to ''. */
+const s = (row: AnyRow, key: string): string => {
+  const v = row[key];
+  return v == null ? '' : String(v);
+};
+
 // Loose row shapes — these come from heterogeneous DB queries shaped at the call site.
 // We keep them permissive (Record<string, unknown>) so that this exporter remains
 // tolerant to schema additions without breaking. Numeric helpers go through `num()`.
