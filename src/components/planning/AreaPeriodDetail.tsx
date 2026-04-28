@@ -172,7 +172,7 @@ export function AreaPeriodDetail({
             <p className="text-xs text-muted-foreground italic">Sem objetivo anual definido para esta área.</p>
           ) : (
             <ul className="space-y-2">
-              {areaObjectives.map((obj: any) => {
+              {areaObjectives.map((obj) => {
                 const pct = typeof planning.objectiveProgress === 'function' ? planning.objectiveProgress(obj) : 0;
                 const current = typeof planning.objectiveCurrentValue === 'function' ? planning.objectiveCurrentValue(obj) : obj.current_value;
                 const target = Number(obj.target_value || 0);
@@ -216,7 +216,7 @@ export function AreaPeriodDetail({
             <ul className="space-y-1.5">
               {goals.map((g) => {
                 const target = Number(g.target_value || 0);
-                const linkedObj = g.objective_id ? objectives.find((o: any) => o.id === g.objective_id) : null;
+                const linkedObj = g.objective_id ? objectives.find((o) => o.id === g.objective_id) : null;
                 const autoActual = linkedObj && typeof planning.goalAutoValue === 'function'
                   ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0)
                   : 0;
@@ -226,7 +226,7 @@ export function AreaPeriodDetail({
                   <li
                     key={g.id}
                     onClick={() => {
-                      const obj = objectives.find((o: any) => o.id === g.objective_id);
+                      const obj = objectives.find((o) => o.id === g.objective_id);
                       if (obj) setSelectedObjective(obj);
                     }}
                     className="flex items-center justify-between gap-2 text-sm cursor-pointer hover:bg-muted/40 rounded px-2 py-1.5 transition-colors"
@@ -323,7 +323,7 @@ function QuarterRetro({ quarter, year }: { quarter: number; year: number }) {
   }, [analysis, loaded]);
 
   const upsert = useMutation({
-    mutationFn: async (vals: any) => {
+    mutationFn: async (vals: { went_well?: string | null; went_wrong?: string | null; lessons?: string | null; adjustments?: string | null }) => {
       const payload = { quarter, year, ...vals };
       if (analysis?.id) {
         const { error } = await supabase.from('executive_quarterly_analysis').update(payload).eq('id', analysis.id);
