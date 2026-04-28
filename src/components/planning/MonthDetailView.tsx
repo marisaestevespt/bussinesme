@@ -481,25 +481,40 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardContent className="space-y-5">
           {/* Meta estabelecida */}
           <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2">Meta estabelecida</p>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Metas — Trimestre & Mês</p>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Trimestre</TableHead><TableHead>Mês</TableHead><TableHead>Intervalo</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Até agora</TableHead><TableHead>Análise</TableHead>
+                  <TableHead>Período</TableHead><TableHead>Intervalo</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Atual</TableHead><TableHead className="w-40">Progresso</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
+                  {(() => {
+                    const qGoal = Number(commQuarterGoalQ.data?.goal_amount || 0);
+                    const ys = yearSalesQ.data || [];
+                    const qStart = (quarter - 1) * 3 + 1;
+                    const qEnd = qStart + 2;
+                    const qActual = sumRevenue(ys.filter((s: any) => s.sale_month >= qStart && s.sale_month <= qEnd));
+                    const qPct = qGoal > 0 ? Math.round((qActual / qGoal) * 100) : 0;
+                    return (
+                      <TableRow>
+                        <TableCell className="font-medium">T{quarter}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{MONTHS[(quarter-1)*3]} → {MONTHS[(quarter-1)*3+2]}</TableCell>
+                        <TableCell className="text-right font-medium">{qGoal > 0 ? `${qGoal.toLocaleString('pt-PT')}€` : '—'}</TableCell>
+                        <TableCell className="text-right font-medium">{qActual.toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell><div className="flex items-center gap-2"><Progress value={Math.min(qPct, 100)} className="h-1.5 flex-1" /><span className="text-[10px] text-muted-foreground w-9 text-right">{qPct}%</span></div></TableCell>
+                      </TableRow>
+                    );
+                  })()}
                   <TableRow className="cursor-pointer hover:bg-muted/60" onClick={() => { setGoalEditValue(commGoal ? String(commGoal.goal_amount) : ''); setGoalEditOpen(true); }}>
-                    <TableCell className="">T{quarter}</TableCell>
-                    <TableCell className="">{monthName}</TableCell>
-                    <TableCell className="">{range.label}</TableCell>
+                    <TableCell className="font-medium">{monthName}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{range.label}</TableCell>
                     <TableCell className="text-right font-medium">{commGoal ? `${Number(commGoal.goal_amount).toLocaleString('pt-PT')}€` : '—'}</TableCell>
                     <TableCell className="text-right font-medium">{totalInvoiced.toLocaleString('pt-PT')}€</TableCell>
-                    <TableCell className="">
-                      {commGoal ? (
-                        <span className="text-muted-foreground">
-                          Progresso: {Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100)}% — Faturado: {totalInvoiced.toLocaleString('pt-PT')}€ de {Number(commGoal.goal_amount).toLocaleString('pt-PT')}€
-                        </span>
-                      ) : <span className="text-muted-foreground">Sem meta definida — clica para adicionar</span>}
+                    <TableCell>
+                      {commGoal ? (() => {
+                        const p = Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100);
+                        return <div className="flex items-center gap-2"><Progress value={Math.min(p, 100)} className="h-1.5 flex-1" /><span className="text-[10px] text-muted-foreground w-9 text-right">{p}%</span></div>;
+                      })() : <span className="text-[10px] text-muted-foreground">Clica para definir</span>}
                     </TableCell>
                   </TableRow>
                 </TableBody>
