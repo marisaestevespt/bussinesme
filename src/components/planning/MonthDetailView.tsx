@@ -550,21 +550,39 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             {vendasTab === 'goal' ? (
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Produto</TableHead><TableHead className="text-right">Nº Vendas</TableHead><TableHead className="text-right">Preço</TableHead><TableHead className="text-right">Faturação prevista</TableHead><TableHead className="text-right">Faturação total</TableHead><TableHead>Análise</TableHead>
+                  <TableHead>Produto</TableHead><TableHead className="text-right">Nº</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Real</TableHead><TableHead className="w-40">Progresso</TableHead><TableHead>Tendência (ano)</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {prodSalesData.length === 0 ? (
                     <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem produtos ativos.</TableCell></TableRow>
-                  ) : prodSalesData.map(p => (
-                    <TableRow key={p.product}>
-                      <TableCell className="text-sm font-medium">{p.product}</TableCell>
-                      <TableCell className="text-right">{p.numVendas}</TableCell>
-                      <TableCell className="text-right">{Number(p.price).toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-right">{p.goalAmount.toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-right">{p.totalFat.toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell className="text-muted-foreground">{p.goalAmount > 0 ? `Em progresso (${p.pct}%)` : 'Sem previsão definida'}</TableCell>
-                    </TableRow>
-                  ))}
+                  ) : prodSalesData.map(p => {
+                    const max = Math.max(...p.monthlySeries, 1);
+                    return (
+                      <TableRow key={p.product}>
+                        <TableCell className="text-sm font-medium">{p.product}</TableCell>
+                        <TableCell className="text-right">{p.numVendas}</TableCell>
+                        <TableCell className="text-right">{p.goalAmount.toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell className="text-right font-medium">{p.totalFat.toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell>
+                          {p.goalAmount > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <Progress value={Math.min(p.pct, 100)} className="h-1.5 flex-1" />
+                              <span className="text-[10px] text-muted-foreground w-9 text-right">{p.pct}%</span>
+                            </div>
+                          ) : <span className="text-[10px] text-muted-foreground">Sem meta</span>}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-end gap-[2px] h-7" title="Vendas mensais (1-12)">
+                            {p.monthlySeries.map((v, i) => {
+                              const h = Math.max(2, Math.round((v / max) * 28));
+                              const isCur = i + 1 === monthNum;
+                              return <div key={i} className={cn('w-1.5 rounded-sm', isCur ? 'bg-primary' : v > 0 ? 'bg-primary/40' : 'bg-muted')} style={{ height: h }} />;
+                            })}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             ) : (
@@ -575,15 +593,30 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 <TableBody>
                   {sales.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
-                  ) : sales.map((sl) => (
-                    <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/hub/comercial/vendas/${sl.id}`)}>
-                      <TableCell className="">{sl.sale_id}</TableCell>
-                      <TableCell className="text-sm">{sl.client || '—'}</TableCell>
-                      <TableCell className="text-sm">{sl.product || '—'}</TableCell>
-                      <TableCell className="text-sm text-right">{Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€</TableCell>
-                      <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
-                    </TableRow>
-                  ))}
+                  ) : sales.map((sl) => {
+                    const eff = getEffectiveSaleStatus(sl.status, sl.payment_date);
+                    const info = getSaleStatusInfo(eff);
+                    return (
+                      <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setInlineDetail({
+                        title: `${sl.sale_id} — ${sl.client || ''}`,
+                        kind: 'sale', id: sl.id,
+                        fields: [
+                          { label: 'Cliente', value: sl.client || '—' },
+                          { label: 'Produto', value: sl.product || '—' },
+                          { label: 'Valor', value: `${Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€` },
+                          { label: 'Data pagamento', value: sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—' },
+                          { label: 'Status', value: <Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge> },
+                        ],
+                        openHref: `/hub/comercial/vendas/${sl.id}`,
+                      })}>
+                        <TableCell>{sl.sale_id}</TableCell>
+                        <TableCell className="text-sm">{sl.client || '—'}</TableCell>
+                        <TableCell className="text-sm">{sl.product || '—'}</TableCell>
+                        <TableCell className="text-sm text-right">{Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€</TableCell>
+                        <TableCell><Badge variant="outline" className={cn('text-[10px]', info.color)}>{info.label}</Badge></TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
