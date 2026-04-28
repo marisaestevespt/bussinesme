@@ -6,6 +6,17 @@ import { useTeamData } from '@/hooks/useTeamData';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isTaskDone } from '@/lib/taskStatus';
 import { teamMonthlyCapacitySummary } from '@/lib/memberCapacity';
+import type { Tables } from '@/integrations/supabase/types';
+
+type WeekTaskRow = Pick<Tables<'tasks'>, 'id' | 'name' | 'status' | 'deadline' | 'assigned_to' | 'department'>;
+type LeadLite = Pick<Tables<'crm_leads'>, 'id' | 'name' | 'status' | 'next_followup' | 'estimated_value'>;
+type ClientLite = Pick<Tables<'clients'>, 'id' | 'full_name' | 'status' | 'start_date' | 'end_of_cycle' | 'current_product'>;
+type MonthExpenseLite = Pick<Tables<'financial_expenses'>, 'total_with_vat' | 'category' | 'status'>;
+type MonthPayrollLite = Pick<Tables<'financial_payroll'>, 'total_cost' | 'status'>;
+type ExpiringContract = Tables<'member_contracts'> & {
+  team_members: Pick<Tables<'team_members'>, 'id' | 'full_name' | 'role_title' | 'department'> | null;
+};
+type TeamMemberLite = Pick<Tables<'team_members'>, 'id' | 'full_name'>;
 
 const STALE = 2 * 60 * 1000;
 
@@ -61,12 +72,12 @@ export function useWeeklyAlignData(weekOffset: number) {
       ]);
       return {
         salesWeek: salesRes.data || [],
-        tasks: tasksRes.data || [],
+        tasks: (tasksRes.data || []) as WeekTaskRow[],
         meetings: meetingsRes.data || [],
         contents: contentsRes.data || [],
         routineTasksWeek: routinesRes.data || [],
-        npsWeek: (npsRes.data || []) as any[],
-        milestonesWeek: (milestonesRes.data || []) as any[],
+        npsWeek: (npsRes.data || []) as Array<Record<string, unknown>>,
+        milestonesWeek: (milestonesRes.data || []) as Array<Record<string, unknown>>,
       };
     },
   });
@@ -129,11 +140,11 @@ export function useWeeklyAlignData(weekOffset: number) {
       ]);
       return {
         salesActions: salesActionsRes.data || [],
-        leads: leadsRes.data || [],
-        clients: clientsRes.data || [],
+        leads: (leadsRes.data || []) as LeadLite[],
+        clients: (clientsRes.data || []) as ClientLite[],
         projects: projectsRes.data || [],
-        npsOverdue: (npsOverdueRes.data || []) as any[],
-        expiringContracts: (contractsRes.data || []) as any[],
+        npsOverdue: (npsOverdueRes.data || []) as Array<Record<string, unknown>>,
+        expiringContracts: (contractsRes.data || []) as ExpiringContract[],
         timeEntriesMonth: timeEntriesRes.data || [],
       };
     },
@@ -152,29 +163,35 @@ export function useWeeklyAlignData(weekOffset: number) {
   const prevSalesWeekTotal = useMemo(() => sumRevenue(prev?.prevSalesWeek || []), [prev?.prevSalesWeek]);
 
   const tasksWeekCount = (wk?.tasks || []).length;
-  const tasksWeekDone = (wk?.tasks || []).filter((t: any) => isTaskDone(t)).length;
+  const tasksWeekDone = (wk?.tasks || []).filter((t) => isTaskDone(t as { status: string | null })).length;
   const contentWeekCount = (wk?.contents || []).length;
   const meetingsWeekCount = (wk?.meetings || []).length;
 
-  const followUps = useMemo(() => (gl?.leads || []).filter((l: any) => l.next_followup && l.next_followup <= todayStr), [gl?.leads, todayStr]);
-  const onboardingClients = useMemo(() => (gl?.clients || []).filter((c: any) => c.start_date && c.start_date >= thirtyDaysAgo), [gl?.clients, thirtyDaysAgo]);
-  const renewalClients = useMemo(() => (gl?.clients || []).filter((c: any) => c.end_of_cycle && c.end_of_cycle <= thirtyDaysAhead && c.end_of_cycle >= todayStr), [gl?.clients, thirtyDaysAhead, todayStr]);
+  const followUps = useMemo(() => (gl?.leads || []).filter((l) => l.next_followup && l.next_followup <= todayStr), [gl?.leads, todayStr]);
+  const onboardingClients = useMemo(() => (gl?.clients || []).filter((c) => c.start_date && c.start_date >= thirtyDaysAgo), [gl?.clients, thirtyDaysAgo]);
+  const renewalClients = useMemo(() => (gl?.clients || []).filter((c) => c.end_of_cycle && c.end_of_cycle <= thirtyDaysAhead && c.end_of_cycle >= todayStr), [gl?.clients, thirtyDaysAhead, todayStr]);
 
   const expiringContractsList = useMemo(() => {
-    return (gl?.expiringContracts || []).map((c: any) => ({
-      ...c, daysLeft: differenceInDays(parseISO(c.end_date), now),
+    return (gl?.expiringContracts || []).map((c) => ({
+      ...c,
+      daysLeft: c.end_date ? differenceInDays(parseISO(c.end_date), now) : 0,
     }));
   }, [gl?.expiringContracts]);
 
   const capacityAlert = useMemo(() => {
-    return teamMonthlyCapacitySummary(teamMembers as any, (gl?.timeEntriesMonth || []) as any);
+    return teamMonthlyCapacitySummary(
+      teamMembers as Parameters<typeof teamMonthlyCapacitySummary>[0],
+      (gl?.timeEntriesMonth || []) as Parameters<typeof teamMonthlyCapacitySummary>[1],
+    );
   }, [teamMembers, gl?.timeEntriesMonth]);
 
   const financialSummary = useMemo(() => {
-    const totalExpenses = (mo?.monthExpenses || []).reduce((s, e: any) => s + Number(e.total_with_vat || 0), 0);
-    const pendingExpenses = (mo?.monthExpenses || []).filter((e: any) => e.status === 'por_pagar').reduce((s, e: any) => s + Number(e.total_with_vat || 0), 0);
-    const totalPayroll = (mo?.monthPayroll || []).reduce((s, p: any) => s + Number(p.total_cost || 0), 0);
-    const pendingPayroll = (mo?.monthPayroll || []).filter((p: any) => p.status === 'por_pagar').reduce((s, p: any) => s + Number(p.total_cost || 0), 0);
+    const expenses = (mo?.monthExpenses || []) as MonthExpenseLite[];
+    const payroll = (mo?.monthPayroll || []) as MonthPayrollLite[];
+    const totalExpenses = expenses.reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+    const pendingExpenses = expenses.filter((e) => e.status === 'por_pagar').reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+    const totalPayroll = payroll.reduce((s, p) => s + Number(p.total_cost || 0), 0);
+    const pendingPayroll = payroll.filter((p) => p.status === 'por_pagar').reduce((s, p) => s + Number(p.total_cost || 0), 0);
     const totalCosts = totalExpenses + totalPayroll;
     const totalPending = pendingExpenses + pendingPayroll;
     const balance = totalBilled - totalCosts;
@@ -183,7 +200,7 @@ export function useWeeklyAlignData(weekOffset: number) {
 
   const getMemberName = (id: string | null) => {
     if (!id) return '—';
-    return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
+    return (teamMembers as TeamMemberLite[]).find((t) => t.id === id)?.full_name || '—';
   };
 
   return {
