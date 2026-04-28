@@ -32,7 +32,13 @@ export function PlanningObjectivesTab({
   const [detailObj, setDetailObj] = useState<any>(null);
 
   const handleNewSave = (obj: any) => {
-    planning.upsertObjective.mutate(obj);
+    // When the tab is filtered by area, ensure new objectives inherit it
+    // (the dialog already pre-fills the field, but this guards against
+    // someone changing it back to 'outro' or empty).
+    const payload = areaFilter && (!obj.area || obj.area === 'outro')
+      ? { ...obj, area: areaFilter }
+      : obj;
+    planning.upsertObjective.mutate(payload);
     setNewDialogOpen(false);
   };
 
@@ -112,7 +118,7 @@ export function PlanningObjectivesTab({
       <ObjectiveDialog
         open={newDialogOpen}
         onClose={() => setNewDialogOpen(false)}
-        initial={null}
+        initial={areaFilter ? { area: areaFilter } : null}
         onSave={handleNewSave}
       />
 
