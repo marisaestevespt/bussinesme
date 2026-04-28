@@ -64,20 +64,22 @@ export function MonthlyGallery({ planning, year }: Props) {
             )}
             onClick={() => setSelectedMonth(idx)}
           >
-            <CardContent className="p-4 space-y-2">
+            <CardContent className="p-4 flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-sm">{name}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <p className="text-[11px] text-muted-foreground">{range.label}</p>
-              {goalCount > 0 ? (
-                <div className="space-y-1">
-                  <Progress value={progress} className="h-1.5" />
-                  <p className="text-[10px] text-muted-foreground">{progress}% das metas atingidas</p>
-                </div>
-              ) : (
-                <EmptyHint>Sem metas definidas</EmptyHint>
-              )}
+              <div className="mt-auto pt-2 space-y-1 min-h-[2.25rem]">
+                {goalCount > 0 ? (
+                  <>
+                    <Progress value={progress} className="h-1.5" />
+                    <p className="text-[10px] text-muted-foreground">{progress}% das metas atingidas</p>
+                  </>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>
+                )}
+              </div>
             </CardContent>
           </Card>
         );
