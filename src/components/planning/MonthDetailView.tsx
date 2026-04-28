@@ -752,7 +752,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardContent>
           {crmView === 'list' ? (
             (() => {
-              const filtered = monthLeads.filter(l => !crmSearch || (l.name || '').toLowerCase().includes(crmSearch.toLowerCase()) || (l.email || '').toLowerCase().includes(crmSearch.toLowerCase()));
+              const filtered = filteredLeads;
               return filtered.length === 0 ? (
                 <EmptyHint>Sem leads correspondentes.</EmptyHint>
               ) : (
@@ -777,7 +777,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           <div className="overflow-x-auto pb-2">
             <div className="flex gap-2" style={{ minWidth: CRM_COLUMNS.length * 180 }}>
               {CRM_COLUMNS.map(col => {
-                const colLeads = monthLeads.filter((l) => l.status === col);
+                const colLeads = leadsByStatus[col] || [];
                 return (
                   <div key={col} className="w-44 shrink-0">
                     <div className={cn('text-[10px] font-medium mb-1.5 px-2 py-1 rounded-md', CRM_COLORS[col] || 'text-muted-foreground')}>{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
