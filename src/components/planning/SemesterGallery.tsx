@@ -52,13 +52,8 @@ export function SemesterGallery({ planning, year }: Props) {
   const goals = planning.allGoals || [];
 
   const semesterProgress = useMemo(() => {
-    return SEMESTERS.map(s => {
-      const sGoals = goals.filter((g: any) => s.monthNames.includes(g.period));
-      if (sGoals.length === 0) return 0;
-      const achieved = sGoals.filter((g: any) => g.status === 'atingido').length;
-      return Math.round((achieved / sGoals.length) * 100);
-    });
-  }, [goals]);
+    return SEMESTERS.map(s => planning.getPeriodProgress(s.monthNames).pct);
+  }, [planning]);
 
   if (selectedS !== null) {
     return (
@@ -135,8 +130,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
   const goals = planning.allGoals || [];
   const objectives = planning.allObjectives || [];
   const semesterGoals = goals.filter((g: any) => s.monthNames.includes(g.period));
-  const achieved = semesterGoals.filter((g: any) => g.status === 'atingido').length;
-  const progress = semesterGoals.length > 0 ? Math.round((achieved / semesterGoals.length) * 100) : 0;
+  const { pct: progress, achievedCount: achieved } = planning.getPeriodProgress(s.monthNames);
 
   const linkedObjIds = [...new Set(semesterGoals.map((g: any) => g.objective_id).filter(Boolean))];
   const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
@@ -146,22 +140,19 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
   const q2 = QUARTER_META[s.quarterIndices[1]];
   const q1Goals = semesterGoals.filter((g: any) => q1.monthNames.includes(g.period));
   const q2Goals = semesterGoals.filter((g: any) => q2.monthNames.includes(g.period));
-  const q1Achieved = q1Goals.filter((g: any) => g.status === 'atingido').length;
-  const q2Achieved = q2Goals.filter((g: any) => g.status === 'atingido').length;
+  const q1Pp = planning.getPeriodProgress(q1.monthNames);
+  const q2Pp = planning.getPeriodProgress(q2.monthNames);
+  const q1Achieved = q1Pp.achievedCount;
+  const q2Achieved = q2Pp.achievedCount;
   const q1Deviation = q1Goals.filter((g: any) => Number(g.actual_value || 0) < Number(g.target_value || 0) && g.target_value > 0).length;
   const q2Deviation = q2Goals.filter((g: any) => Number(g.actual_value || 0) < Number(g.target_value || 0) && g.target_value > 0).length;
-  const q1Progress = q1Goals.length > 0 ? Math.round((q1Achieved / q1Goals.length) * 100) : 0;
-  const q2Progress = q2Goals.length > 0 ? Math.round((q2Achieved / q2Goals.length) * 100) : 0;
+  const q1Progress = q1Pp.pct;
+  const q2Progress = q2Pp.pct;
 
   // Quarter progress for cards
   const quarterProgress = useMemo(() => {
-    return s.quarterIndices.map(qi => {
-      const qm = QUARTER_META[qi];
-      const qGoals = goals.filter((g: any) => qm.monthNames.includes(g.period));
-      if (qGoals.length === 0) return 0;
-      return Math.round((qGoals.filter((g: any) => g.status === 'atingido').length / qGoals.length) * 100);
-    });
-  }, [goals, s]);
+    return s.quarterIndices.map(qi => planning.getPeriodProgress(QUARTER_META[qi].monthNames).pct);
+  }, [planning, s]);
 
   // Events
   const eventsQ = useQuery({
