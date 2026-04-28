@@ -11,9 +11,11 @@ import { Link } from 'react-router-dom';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { TacticalByAreaView } from '@/components/planning/TacticalByAreaView';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
+import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
 import { useTacticalAreas, useProjectsByDepartmentInRange } from '@/hooks/useTacticalAreas';
 import { endOfMonth } from 'date-fns';
 import { getDeptLabel } from '@/lib/departments';
+import { planningAreaForDepartment } from '@/lib/planningAreaFilters';
 
 // Map department key (used in DepartmentLinks / DEPARTMENTS) → tactical area key
 const DEPT_TO_AREA: Record<string, string> = {
@@ -27,14 +29,6 @@ const DEPT_TO_AREA: Record<string, string> = {
   'recursos-humanos': 'recursos-humanos',
   admin: 'admin',
 };
-
-// Mirror of TacticalByAreaView's mapping: dept key → planning_objective.area value
-const DEPT_TO_PLAN_AREA: Record<string, string> = {
-  'recursos-humanos': 'equipa',
-  'produtos': 'produto',
-  'admin': 'outro',
-};
-const planAreaKeyFor = (k: string) => DEPT_TO_PLAN_AREA[k] || k;
 
 export default function PlaneamentoDepartamento() {
   const { area: areaParam } = useParams<{ area: string }>();
@@ -55,7 +49,7 @@ export default function PlaneamentoDepartamento() {
     [tacticalAreas, areaKey],
   );
 
-  const planAreaKey = planAreaKeyFor(areaKey);
+  const planAreaKey = planningAreaForDepartment(areaKey);
   const initiatives = projectsByDept[areaKey] || [];
 
   if (!areaParam) {
@@ -90,6 +84,20 @@ export default function PlaneamentoDepartamento() {
             layout="gallery"
             areaFilter={planAreaKey}
           />
+        </section>
+
+        {/* Metas do dept */}
+        <section className="space-y-3 pt-6 border-t border-border/60">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Target className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Metas</h2>
+              <p className="text-xs text-muted-foreground">Só metas associadas a {label}</p>
+            </div>
+          </div>
+          <PlanningGoalsTab planning={planning} viewMode="metas" areaFilter={planAreaKey} />
         </section>
 
         {/* Tático filtrado a esta área */}
