@@ -9,6 +9,7 @@ import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
+import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { Calendar, BarChart3, PieChart, Target } from 'lucide-react';
 
 type Tab = 'mensal' | 'trimestral' | 'semestral' | 'metas';
@@ -33,6 +34,20 @@ export default function ExecutivePlaneamentoTatico() {
       <div className="space-y-6">
         <BackNavigation />
         <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano" />
+
+        {/* Destaque: Objetivos Anuais — big goals do ano em foco */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Target className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Objetivos Anuais</h2>
+              <p className="text-xs text-muted-foreground">Os big goals que definem o ano</p>
+            </div>
+          </div>
+          <PlanningObjectivesTab planning={planning} />
+        </section>
 
         <Tabs value={tab} onValueChange={handleTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-2xl">
