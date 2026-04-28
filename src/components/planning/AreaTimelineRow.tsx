@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, UserPlus } from 'lucide-react';
+import { AlertTriangle, UserPlus, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import type { TacticalArea } from '@/hooks/useTacticalAreas';
@@ -39,7 +39,13 @@ export function AreaTimelineRow({ area, responsibles, cells, totalProgress, onSe
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="space-y-1 min-w-0">
-              <h3 className="text-sm font-semibold tracking-tight truncate">{area.label}</h3>
+              <button
+                type="button"
+                onClick={() => navigate(`/planeamento/dep/${area.key}`)}
+                className="text-sm font-semibold tracking-tight truncate hover:text-primary hq-transition text-left"
+              >
+                {area.label}
+              </button>
               {hasOwner ? (
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-1.5">
@@ -70,8 +76,20 @@ export function AreaTimelineRow({ area, responsibles, cells, totalProgress, onSe
             </div>
           </div>
           <div className="text-right shrink-0">
-            <div className="text-lg font-bold tabular-nums leading-none">{totalProgress}%</div>
-            <div className="text-[10px] text-muted-foreground">no ano</div>
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <div className="text-lg font-bold tabular-nums leading-none">{totalProgress}%</div>
+                <div className="text-[10px] text-muted-foreground">no ano</div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 gap-1 text-xs"
+                onClick={() => navigate(`/planeamento/dep/${area.key}`)}
+              >
+                Abrir <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
 
