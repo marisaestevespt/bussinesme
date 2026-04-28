@@ -1301,6 +1301,9 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
               setLeadSheetOpen(false);
               setSelectedLead(null);
               qc.invalidateQueries({ queryKey: ['md-leads'] });
+              qc.invalidateQueries({ queryKey: ['crm'] });
+              qc.invalidateQueries({ queryKey: ['crm_leads'] });
+              qc.invalidateQueries({ queryKey: ['commercial'] });
             },
           });
         }}
@@ -1310,6 +1313,9 @@ ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="tex
               setLeadSheetOpen(false);
               setSelectedLead(null);
               qc.invalidateQueries({ queryKey: ['md-leads'] });
+              qc.invalidateQueries({ queryKey: ['crm'] });
+              qc.invalidateQueries({ queryKey: ['crm_leads'] });
+              qc.invalidateQueries({ queryKey: ['commercial'] });
             },
           });
         }}
