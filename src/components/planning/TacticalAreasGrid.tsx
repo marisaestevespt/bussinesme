@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTacticalAreas, useMembersByDepartment, useProjectsByDepartmentInRange } from '@/hooks/useTacticalAreas';
 import { TacticalAreaCard } from './TacticalAreaCard';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { buildObjectiveAreaIndex, goalBelongsToDepartment } from '@/lib/planningAreaFilters';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
   objectives?: any[];
   /** Month names that compose the period (e.g. ['Abril','Maio','Junho']) */
   periodMonths: string[];
+  isLoading?: boolean;
   /** Date range used to fetch projects whose deadline falls inside it */
   rangeStart: Date;
   rangeEnd: Date;
@@ -25,8 +27,8 @@ function pct(arr: any[]): number {
   return Math.round((achieved / arr.length) * 100);
 }
 
-export function TacticalAreasGrid({ goals, objectives = [], periodMonths, rangeStart, rangeEnd, compareTo, onSelectGoal }: Props) {
-  const { data: areas = [] } = useTacticalAreas();
+export function TacticalAreasGrid({ goals, objectives = [], periodMonths, rangeStart, rangeEnd, compareTo, onSelectGoal, isLoading = false }: Props) {
+  const { data: areas = [], isLoading: loadingAreas } = useTacticalAreas();
   const { data: membersByDept = {} } = useMembersByDepartment();
   const { data: projectsByDept = {} } = useProjectsByDepartmentInRange(rangeStart, rangeEnd);
   const goalAreaById = useMemo(() => buildObjectiveAreaIndex(objectives), [objectives]);
@@ -39,6 +41,10 @@ export function TacticalAreasGrid({ goals, objectives = [], periodMonths, rangeS
     () => (compareTo ? goals.filter((g: any) => compareTo.months.includes(g.period)) : []),
     [goals, compareTo]
   );
+
+  if (loadingAreas || isLoading) {
+    return <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 w-full" />)}</div>;
+  }
 
   if (!areas.length) {
     return (

@@ -54,8 +54,9 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
   const yearEnd = endOfMonth(new Date(year, 11, 1));
   const { data: projectsByDept = {} } = useProjectsByDepartmentInRange(yearStart, yearEnd);
 
-  const goals = planning.allGoals || [];
-  const objectives = planning.allObjectives || [];
+  const goals = useMemo(() => planning.allGoals || [], [planning.allGoals]);
+  const objectives = useMemo(() => planning.allObjectives || [], [planning.allObjectives]);
+  const loadingPlanning = planning.goals?.isLoading || planning.objectives?.isLoading;
 
   // Goal area lives on the linked objective, not on the goal itself.
   // Build an index objectiveId → area so we can filter goals by department.
@@ -83,7 +84,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
   const today = new Date();
   const currentMonth = today.getFullYear() === year ? today.getMonth() : -1;
 
-  if (loadingAreas) {
+  if (loadingAreas || loadingPlanning) {
     return <div className="space-y-3">{[1,2,3,4].map((i) => <Skeleton key={i} className="h-28 w-full" />)}</div>;
   }
 

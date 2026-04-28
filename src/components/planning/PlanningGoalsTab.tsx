@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2 } from 'lucide-react';
 import { planStatusLabel, PERIODS, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { planningAreaLabel } from '@/lib/labelMaps';
@@ -43,6 +44,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
 
   const allGoals = planning.allGoals;
   const objectives = planning.allObjectives;
+  const loadingPlanning = planning.goals?.isLoading || planning.objectives?.isLoading;
   const goalAreaById = useMemo(() => buildObjectiveAreaIndex(objectives), [objectives]);
   const visibleGoals = useMemo(
     () => (areaFilter ? allGoals.filter((g: any) => goalBelongsToPlanArea(g, goalAreaById, areaFilter)) : allGoals),
@@ -233,6 +235,10 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
       </Card>
     ));
   };
+
+  if (loadingPlanning) {
+    return <div className="space-y-3 mt-4">{[1, 2].map((i) => <Skeleton key={i} className="h-28 w-full" />)}</div>;
+  }
 
   return (
     <div className="space-y-4 mt-4">
