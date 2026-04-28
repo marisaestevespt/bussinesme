@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus, Loader2 } from 'lucide-react';
+import { ChevronDown, Clock, Layers, Target, AlertTriangle, CalendarPlus, Loader2, Play, X, Check, SkipForward } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useMyTasks } from '@/components/secretaria/secretaria-shared';
@@ -47,6 +49,7 @@ export default function SecretariaBatches() {
   const navigate = useNavigate();
   const tasksQ = useMyTasks();
   const [groupBy, setGroupBy] = useState<GroupKey>('cliente');
+  const [activeSession, setActiveSession] = useState<Batch | null>(null);
 
   // Open tasks only
   const openTasks = useMemo(
@@ -181,10 +184,10 @@ export default function SecretariaBatches() {
       <div>
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <Layers className="h-5 w-5 text-primary" />
-          Blocos de Foco (Batching)
+          Modo Foco — Batching
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Agrupa tarefas semelhantes em blocos contínuos para reduzir custo de troca de contexto.
+          Escolhe um contexto e entra em sessão de deep-work — uma tarefa de cada vez, sem distrações.
         </p>
       </div>
 
@@ -217,11 +220,22 @@ export default function SecretariaBatches() {
             </Card>
           ) : (
             batches.map((batch) => (
-              <BatchCard key={batch.key} batch={batch} onSchedule={() => scheduleBlock(batch)} />
+              <BatchCard
+                key={batch.key}
+                batch={batch}
+                onSchedule={() => scheduleBlock(batch)}
+                onStartSession={() => setActiveSession(batch)}
+              />
             ))
           )}
         </TabsContent>
       </Tabs>
+
+      <FocusSessionDialog
+        batch={activeSession}
+        open={!!activeSession}
+        onClose={() => setActiveSession(null)}
+      />
     </div>
   );
 }
@@ -275,7 +289,7 @@ function useScopeFullContext(batch: Batch, enabled: boolean) {
   });
 }
 
-function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void }) {
+function BatchCard({ batch, onSchedule, onStartSession }: { batch: Batch; onSchedule: () => void; onStartSession: () => void }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const fullCtx = useScopeFullContext(batch, open);
@@ -317,10 +331,16 @@ function BatchCard({ batch, onSchedule }: { batch: Batch; onSchedule: () => void
               )}
             </div>
           </div>
-          <Button size="sm" onClick={onSchedule} className="gap-1.5">
-            <CalendarPlus className="h-3.5 w-3.5" />
-            Agendar bloco
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={onSchedule} className="gap-1.5">
+              <CalendarPlus className="h-3.5 w-3.5" />
+              Agendar
+            </Button>
+            <Button size="sm" onClick={onStartSession} className="gap-1.5">
+              <Play className="h-3.5 w-3.5" />
+              Iniciar sessão
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
