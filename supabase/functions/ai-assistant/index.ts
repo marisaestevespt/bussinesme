@@ -90,7 +90,7 @@ The action will NOT be executed yet — the user will see a confirmation prompt.
       parameters: {
         type: "object",
         properties: {
-          action_type: { type: "string", enum: ["create", "update", "delete", "send_email"], description: "Type of action" },
+          action_type: { type: "string", enum: ["create", "update", "delete", "send_email", "attach_file"], description: "Type of action. Use attach_file to attach the user-uploaded file to a record's jsonb documents column." },
           description: { type: "string", description: "Human-readable description in Portuguese of what will be done" },
           details: {
             type: "object",
@@ -102,6 +102,8 @@ The action will NOT be executed yet — the user will see a confirmation prompt.
               to: { type: "string" },
               subject: { type: "string" },
               body: { type: "string" },
+              column: { type: "string", description: "For attach_file: jsonb column name (default: documents)" },
+              document_label: { type: "string", description: "For attach_file: human-readable label (e.g. 'Fatura Systeme.io Janeiro')" },
             },
           },
         },
