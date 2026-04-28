@@ -46,8 +46,22 @@ export function AreaPeriodDetail({
   const qc = useQueryClient();
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const hasOwner = responsibles.length > 0;
-  const achieved = goals.filter((g) => g.status === 'atingido').length;
-  const progress = goals.length ? Math.round((achieved / goals.length) * 100) : 0;
+  let achieved = 0;
+  const progress = goals.length
+    ? Math.round(
+        goals
+          .map((g: any) => {
+            if (g.status === 'atingido') { achieved++; return 100; }
+            const target = Number(g.target_value || 0);
+            if (target <= 0) return 0;
+            const actual = Number(g.actual_value || 0);
+            const pct = Math.min(Math.round((actual / target) * 100), 100);
+            if (pct >= 100) achieved++;
+            return pct;
+          })
+          .reduce((a: number, b: number) => a + b, 0) / goals.length
+      )
+    : 0;
 
   // Quarter retrospective (shared across areas of the quarter for now).
   // For semester we show both quarters' retros.
