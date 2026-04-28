@@ -43,13 +43,8 @@ export function QuarterlyGallery({ planning, year }: Props) {
   const goals = planning.allGoals || [];
 
   const quarterProgress = useMemo(() => {
-    return QUARTERS.map(q => {
-      const qGoals = goals.filter((g: any) => q.monthNames.includes(g.period));
-      if (qGoals.length === 0) return 0;
-      const achieved = qGoals.filter((g: any) => g.status === 'atingido').length;
-      return Math.round((achieved / qGoals.length) * 100);
-    });
-  }, [goals]);
+    return QUARTERS.map(q => planning.getPeriodProgress(q.monthNames).pct);
+  }, [planning]);
 
   if (selectedQ !== null) {
     return (
@@ -120,8 +115,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
   const goals = planning.allGoals || [];
   const objectives = planning.allObjectives || [];
   const quarterGoals = goals.filter((g: any) => q.monthNames.includes(g.period));
-  const achieved = quarterGoals.filter((g: any) => g.status === 'atingido').length;
-  const progress = quarterGoals.length > 0 ? Math.round((achieved / quarterGoals.length) * 100) : 0;
+  const { pct: progress, achievedCount: achieved } = planning.getPeriodProgress(q.monthNames);
 
   // Linked objective IDs from quarter goals
   const linkedObjIds = [...new Set(quarterGoals.map((g: any) => g.objective_id).filter(Boolean))];
@@ -183,14 +177,8 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
 
   // Monthly progress for month cards
   const monthProgress = useMemo(() => {
-    return q.months.map((mIdx) => {
-      const monthName = MONTHS[mIdx];
-      const monthGoals = goals.filter((g: any) => g.period === monthName);
-      if (monthGoals.length === 0) return 0;
-      const ach = monthGoals.filter((g: any) => g.status === 'atingido').length;
-      return Math.round((ach / monthGoals.length) * 100);
-    });
-  }, [goals, q]);
+    return q.months.map((mIdx) => planning.getPeriodProgress([MONTHS[mIdx]]).pct);
+  }, [planning, q]);
 
   // Calendar logic
   const allEvents = eventsQ.data || [];

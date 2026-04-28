@@ -25,30 +25,11 @@ interface Props {
 
 export function MonthlyGallery({ planning, year }: Props) {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const goals = planning.allGoals || [];
-  const objectives = planning.allObjectives || [];
 
-  const monthProgress = useMemo(() => {
-    return MONTHS.map((name) => {
-      const monthGoals = goals.filter((g: any) => g.period === name);
-      if (monthGoals.length === 0) return { pct: 0, count: 0 };
-
-      const goalPcts = monthGoals.map((g: any) => {
-        if (g.status === 'atingido') return 100;
-        const target = Number(g.target_value || 0);
-        if (target <= 0) return 0;
-        // Try auto-computed value first (e.g. commercial sales via linked objective), fall back to manual actual_value
-        const linkedObj = g.objective_id ? objectives.find((o: any) => o.id === g.objective_id) : null;
-        const autoVal = linkedObj && planning.goalAutoValue
-          ? Number(planning.goalAutoValue(linkedObj, name) ?? 0)
-          : 0;
-        const actual = autoVal > 0 ? autoVal : Number(g.actual_value || 0);
-        return Math.min(Math.round((actual / target) * 100), 100);
-      });
-      const avg = Math.round(goalPcts.reduce((a: number, b: number) => a + b, 0) / goalPcts.length);
-      return { pct: avg, count: monthGoals.length };
-    });
-  }, [goals, planning]);
+  const monthProgress = useMemo(
+    () => MONTHS.map((name) => planning.getPeriodProgress([name])),
+    [planning]
+  );
 
   if (selectedMonth !== null) {
     return (
@@ -88,7 +69,7 @@ export function MonthlyGallery({ planning, year }: Props) {
                 {goalCount > 0 ? (
                   <>
                     <Progress value={progress} className="h-1.5" />
-                    <p className="text-[10px] text-muted-foreground">{progress}% concluído ({itemCount} {itemCount === 1 ? 'meta' : 'metas'})</p>
+                    <p className="text-[10px] text-muted-foreground">{progress}% • {itemCount} {itemCount === 1 ? 'meta' : 'metas'}</p>
                   </>
                 ) : (
                   <p className="text-[10px] text-muted-foreground italic">Sem metas definidas</p>

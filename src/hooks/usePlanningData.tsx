@@ -774,6 +774,34 @@ export function usePlanningData(year = currentYear) {
     return goal.status;
   };
 
+  // ════════════════════════════════════════════════════════════════
+  // SINGLE SOURCE OF TRUTH for period progress (month / quarter / semester / year)
+  // Used by MonthlyGallery, QuarterlyGallery, SemesterGallery, MonthDetailView.
+  // Aggregates ONLY monthly goals whose `period` matches one of `periodMonths`.
+  // For each goal: pct = atingido ? 100 : auto/actual ÷ target, capped at 100.
+  // ════════════════════════════════════════════════════════════════
+  const getPeriodProgress = (periodMonths: string[]): { pct: number; count: number; achievedCount: number } => {
+    const allG = (goals.data || []) as Array<GoalRow & { actual_value?: number | null; objective_id?: string | null }>;
+    const allObj = (objectives.data || []) as ObjectiveRow[];
+    const periodGoals = allG.filter((g) => periodMonths.includes(g.period ?? ''));
+    if (periodGoals.length === 0) return { pct: 0, count: 0, achievedCount: 0 };
+
+    let achievedCount = 0;
+    const pcts = periodGoals.map((g) => {
+      if (g.status === 'atingido') { achievedCount++; return 100; }
+      const target = Number(g.target_value || 0);
+      if (target <= 0) return 0;
+      const linkedObj = g.objective_id ? allObj.find((o) => o.id === g.objective_id) : null;
+      const autoVal = linkedObj ? Number(goalAutoValue(linkedObj as any, g.period ?? '') ?? 0) : 0;
+      const actual = autoVal > 0 ? autoVal : Number(g.actual_value || 0);
+      const pct = Math.min(Math.round((actual / target) * 100), 100);
+      if (pct >= 100) achievedCount++;
+      return pct;
+    });
+    const avg = Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length);
+    return { pct: avg, count: periodGoals.length, achievedCount };
+  };
+
   // Helper: get goals with deviation info for alerts
   const getGoalsWithDeviations = () => {
     const allG = (goals.data || []) as Array<GoalRow & { actual_value?: number | null }>;
@@ -838,7 +866,7 @@ export function usePlanningData(year = currentYear) {
     actions, allActions: actions.data || [],
     upsertAction, deleteAction, convertActionToTask,
     getAutoValue, goalAutoValue, objectiveProgress, objectiveCurrentValue,
-    computeGoalStatus, getGoalsWithDeviations,
+    computeGoalStatus, getGoalsWithDeviations, getPeriodProgress,
     isMetricOverdue, isMetricDueToday, getMetricTrend,
     invalidate, year,
   };

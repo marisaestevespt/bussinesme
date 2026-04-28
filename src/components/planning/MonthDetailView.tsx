@@ -165,7 +165,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const goals = planning.allGoals || [];
   const objectives = planning.allObjectives || [];
   const monthGoals = goals.filter((g) => g.period === monthName);
-  const progress = monthGoals.length > 0 ? Math.round(monthGoals.filter((g) => g.status === 'atingido').length / monthGoals.length * 100) : 0;
+  const progress = planning.getPeriodProgress([monthName]).pct;
 
   // Objectives linked to this month's goals
   const linkedObjIds = [...new Set(monthGoals.map((g) => g.objective_id).filter(Boolean))];
