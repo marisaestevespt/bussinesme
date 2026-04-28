@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import {
   CheckSquare, AlertTriangle, Users, FolderKanban,
-  CalendarIcon, FileText, BarChart3, ListTodo, ArrowLeft, Mail,
+  CalendarIcon, FileText, BarChart3, ListTodo, ArrowLeft, Mail, Layers,
 } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -38,6 +38,7 @@ const SecretariaReunioes = lazy(() => import('@/components/secretaria/Secretaria
 const SecretariaProdutividade = lazy(() => import('@/components/secretaria/SecretariaProdutividade'));
 const SecretariaContrato = lazy(() => import('@/components/secretaria/SecretariaContrato'));
 const SecretariaConteudos = lazy(() => import('@/components/secretaria/SecretariaConteudos'));
+const SecretariaBatches = lazy(() => import('@/components/secretaria/SecretariaBatches'));
 
 const today = startOfDay(new Date());
 
@@ -128,6 +129,7 @@ export default function SecretariaPage() {
       case 'reunioes': return <SecretariaReunioes />;
       case 'produtividade': return <SecretariaProdutividade />;
       case 'contrato': return <SecretariaContrato />;
+      case 'batches': return <SecretariaBatches />;
       case 'recomendacoes': return <RecommendationWidget memberName={firstName} />;
       case 'resumo_email': return <MemberDigestSettings />;
       default: return null;
