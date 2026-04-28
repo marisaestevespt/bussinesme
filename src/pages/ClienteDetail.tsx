@@ -584,30 +584,41 @@ export default function ClienteDetailPage() {
         const { data: portalRow } = await supabase.from('client_portals').select('id').eq('client_id', id).maybeSingle();
         const portalId = portalRow?.id;
 
-        for (const proj of activeProjects) {
-          await supabase.from('projects').update({ status: 'concluido' }).eq('id', proj.id);
+        const projIds = activeProjects.map((p: any) => p.id);
 
-          // Save snapshot of project data to portal history
-          if (portalId) {
-            // Fetch project full details
-            const { data: projDetail } = await supabase.from('projects')
-              .select('name, product_name, start_date, deadline, notes')
-              .eq('id', proj.id).maybeSingle();
+        // Batch close all active projects in a single UPDATE
+        await supabase.from('projects').update({ status: 'concluido' }).in('id', projIds);
 
-            // Fetch project phases from project_phases
-            const { data: projPhases } = await (supabase as any).from('project_phases')
-              .select('name, status, sort_order')
-              .eq('project_id', proj.id)
-              .order('sort_order');
-
-            // Fetch monthly summaries if any
-            const { data: projSummaries } = await supabase.from('portal_monthly_summaries' as any)
+        if (portalId) {
+          // Pre-fetch details + phases + summaries in parallel via .in() / single read
+          const [detailsRes, phasesRes, summariesRes] = await Promise.all([
+            supabase.from('projects')
+              .select('id, name, product_name, start_date, deadline, notes')
+              .in('id', projIds),
+            (supabase as any).from('project_phases')
+              .select('project_id, name, status, sort_order')
+              .in('project_id', projIds)
+              .order('sort_order'),
+            supabase.from('portal_monthly_summaries' as any)
               .select('month, year, content')
               .eq('portal_id', portalId)
               .order('year', { ascending: false })
-              .order('month', { ascending: false });
+              .order('month', { ascending: false }),
+          ]);
 
-            await supabase.from('portal_project_history' as any).insert({
+          const detailsMap: Record<string, any> = {};
+          (detailsRes.data || []).forEach((d: any) => { detailsMap[d.id] = d; });
+          const phasesMap: Record<string, any[]> = {};
+          ((phasesRes as any).data || []).forEach((p: any) => {
+            (phasesMap[p.project_id] ||= []).push(p);
+          });
+          const summaries = summariesRes.data || [];
+
+          // Bulk insert snapshots
+          const historyRows = activeProjects.map((proj: any) => {
+            const projDetail = detailsMap[proj.id];
+            const projPhases = phasesMap[proj.id] || [];
+            return {
               portal_id: portalId,
               project_id: proj.id,
               project_name: projDetail?.name || proj.name,
@@ -615,14 +626,15 @@ export default function ClienteDetailPage() {
               start_date: projDetail?.start_date || null,
               end_date: format(new Date(), 'yyyy-MM-dd'),
               status: 'concluido',
-              timeline_phases: (projPhases || []).map((p: any) => ({ title: p.name, status: p.status, sort_order: p.sort_order })),
-              monthly_summaries: projSummaries || [],
+              timeline_phases: projPhases.map((p: any) => ({ title: p.name, status: p.status, sort_order: p.sort_order })),
+              monthly_summaries: summaries,
               notes: projDetail?.notes || null,
-            });
+            };
+          });
+          await supabase.from('portal_project_history' as any).insert(historyRows);
 
-            // Clear current summaries for the new cycle
-            await supabase.from('portal_monthly_summaries' as any).delete().eq('portal_id', portalId);
-          }
+          // Clear current summaries for the new cycle (only once)
+          await supabase.from('portal_monthly_summaries' as any).delete().eq('portal_id', portalId);
         }
       }
 
