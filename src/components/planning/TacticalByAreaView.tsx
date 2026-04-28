@@ -41,9 +41,13 @@ interface Props {
   year: number;
   /** Default 'trimestral'. The view also has an internal toggle so the user can switch. */
   defaultView?: 'trimestral' | 'semestral';
+  /** When set, only render this single area row (used by per-department planning page). */
+  onlyAreaKey?: string;
+  /** Hide the period view toggle (Trimestre/Semestre). */
+  hideViewToggle?: boolean;
 }
 
-export function TacticalByAreaView({ planning, year, defaultView = 'trimestral' }: Props) {
+export function TacticalByAreaView({ planning, year, defaultView = 'trimestral', onlyAreaKey, hideViewToggle = false }: Props) {
   const [view, setView] = useState<'trimestral' | 'semestral'>(defaultView);
   const periods = view === 'trimestral' ? QUARTERS : SEMESTERS;
   const [selected, setSelected] = useState<{ areaKey: string; periodKey: string } | null>(null);
