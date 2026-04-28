@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Trash2, Settings2, Pencil, Lightbulb } from 'lucide-react';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
-import { useDialogs } from '@/components/ui/confirm-dialog';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   useBrainDump,
   BRAIN_DUMP_STATUS_LABEL,
@@ -55,7 +55,7 @@ const STATUS_VARIANT: Record<BrainDumpStatus, 'secondary' | 'default' | 'outline
 };
 
 export default function ExecutiveBrainDump() {
-  const { confirm } = useDialogs();
+  const confirm = useConfirm();
   const {
     items,
     categories,
