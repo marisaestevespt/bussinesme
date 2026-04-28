@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -499,6 +500,7 @@ function FocusSessionDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const queryClient = useQueryClient();
   const [idx, setIdx] = useState(0);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
@@ -521,9 +523,16 @@ function FocusSessionDialog({
       .eq('id', taskId);
     if (error) {
       console.error(error);
+      toast.error('Não foi possível marcar como concluída');
       return;
     }
     setCompletedIds((s) => new Set(s).add(taskId));
+    // Invalidate all task-related queries so tables/KPIs/deliverables refresh
+    queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['unified-responsibilities'] });
+    queryClient.invalidateQueries({ queryKey: ['batch-scope'] });
+    queryClient.invalidateQueries({ queryKey: ['project-deliverables'] });
     next();
   }
 
