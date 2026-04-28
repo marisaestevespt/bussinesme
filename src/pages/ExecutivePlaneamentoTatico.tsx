@@ -33,9 +33,11 @@ export default function ExecutivePlaneamentoTatico() {
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation />
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano" />
-          <Badge variant="outline" className="text-sm font-medium px-3 py-1">{year}</Badge>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <PageHeader title="Planeamento Tático" subtitle="Aprofundar o plano" />
+          </div>
+          <Badge variant="outline" className="text-sm font-medium px-3 py-1 shrink-0 mt-1">{year}</Badge>
         </div>
 
         <Tabs value={tab} onValueChange={handleTab} className="space-y-6">
