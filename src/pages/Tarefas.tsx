@@ -730,6 +730,8 @@ export default function TarefasPage() {
             onTaskClick={openEdit}
             taskDependencies={taskDependencies}
             allTasks={tasks}
+            profiles={profiles}
+            onUpdateTask={(id, patch) => updateTaskInline.mutate({ id, patch })}
           />
         )}
         <InfiniteScrollList
