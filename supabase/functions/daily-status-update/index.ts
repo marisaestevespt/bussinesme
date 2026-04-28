@@ -83,6 +83,16 @@ Deno.serve(async (req) => {
     }
   } catch { /* no owner */ }
 
+  async function resolveNotificationUserId(id: string | null | undefined): Promise<string | null> {
+    if (!id) return null;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("id", id)
+      .maybeSingle();
+    return profile?.user_id || id;
+  }
+
   // ── 1. Sales: mark overdue ──
   await runSection("sales-overdue", "sales_overdue", async () => {
     const { data: overdueSales } = await supabase
@@ -487,7 +497,7 @@ Deno.serve(async (req) => {
       .not("status", "in", '("done","cancelada")');
     let taskAlerts = 0;
     for (const t of overdueTasks || []) {
-      const recipients = [ownerId, t.assigned_to].filter(Boolean);
+      const recipients = (await Promise.all([ownerId, t.assigned_to].map(resolveNotificationUserId))).filter(Boolean);
       for (const uid of new Set(recipients)) {
         if (!uid) continue;
         const dedupKey = `task-overdue-${t.id}-${todayStr}`;
@@ -511,7 +521,7 @@ Deno.serve(async (req) => {
       .not("status", "in", '("ganho","perdido")');
     let followUpAlerts = 0;
     for (const lead of overdueLeads || []) {
-      const recipients = [ownerId, lead.responsible_id].filter(Boolean);
+      const recipients = (await Promise.all([ownerId, lead.responsible_id].map(resolveNotificationUserId))).filter(Boolean);
       for (const uid of new Set(recipients)) {
         if (!uid) continue;
         const dedupKey = `followup-overdue-${lead.id}-${todayStr}`;
@@ -543,7 +553,7 @@ Deno.serve(async (req) => {
     let routineAlerts = 0;
     for (const t of missedRoutineTasks) {
       const routine = routineMap.get(t.routine_id);
-      const recipients = [ownerId, t.assigned_to, routine?.created_by].filter(Boolean);
+      const recipients = (await Promise.all([ownerId, t.assigned_to, routine?.created_by].map(resolveNotificationUserId))).filter(Boolean);
       for (const uid of new Set(recipients)) {
         if (!uid) continue;
         const dedupKey = `routine-missed-${t.id}-${todayStr}`;
