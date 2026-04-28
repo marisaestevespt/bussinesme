@@ -50,17 +50,16 @@ export default function ExecutivePlaneamento() {
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation />
-        <div className="flex items-start justify-between gap-4">
-          <PageHeader title="Planeamento" subtitle={String(year)} />
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano anterior" onClick={() => setYear(year - 1)}>
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </Button>
-            <span className="text-xs font-medium tabular-nums w-10 text-center">{year}</span>
-            <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano seguinte" onClick={() => setYear(year + 1)}>
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+        <PageHeader title="Planeamento" subtitle={String(year)} />
+
+        <div className="flex items-center justify-end gap-1 text-muted-foreground -mt-2">
+          <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano anterior" onClick={() => setYear(year - 1)}>
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </Button>
+          <span className="text-xs font-medium tabular-nums w-10 text-center">{year}</span>
+          <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano seguinte" onClick={() => setYear(year + 1)}>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
         </div>
 
         {/* Pulse — resumo rápido do ano */}
