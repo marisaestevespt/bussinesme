@@ -18,6 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { TASK_STATUSES, PRIORITIES, getStatusInfo, getPriorityInfo, getDeptInfo } from '@/components/tasks/TaskTable';
+import { useDepartmentColors } from '@/hooks/useDepartmentColors';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
