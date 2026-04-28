@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -542,7 +542,7 @@ function FocusSessionDialog({
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
 
   // Reset when opening a new batch
-  useMemo(() => {
+  useEffect(() => {
     setIdx(0);
     setCompletedIds(new Set());
     setSkippedIds(new Set());
@@ -555,7 +555,7 @@ function FocusSessionDialog({
   async function markDone(taskId: string) {
     const { error } = await supabase
       .from('tasks')
-      .update({ status: 'done', completed_at: new Date().toISOString() } as any)
+      .update({ status: 'done' } as any)
       .eq('id', taskId);
     if (error) {
       console.error(error);
