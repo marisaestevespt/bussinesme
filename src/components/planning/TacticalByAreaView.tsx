@@ -186,12 +186,19 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
           });
           const goalProg = computeProgress(periodGoals).pct;
           // Objectives are annual — surface their average progress on every
-          // period when there are no period-specific goals, so the area card
-          // doesn't read 0% just because metas haven't been created yet.
+          // period. Combine with period goals (when present) using the same
+          // formula as the yearly total so quarterly cells stay consistent
+          // with the annual %.
           const objAvg = objectiveProgresses.length
             ? Math.round(objectiveProgresses.reduce((a, b) => a + b, 0) / objectiveProgresses.length)
             : 0;
-          const progress = periodGoals.length > 0 ? goalProg : objAvg;
+          const progress = (() => {
+            if (periodGoals.length && objectiveProgresses.length) {
+              return Math.round((goalProg + objAvg) / 2);
+            }
+            if (periodGoals.length) return goalProg;
+            return objAvg;
+          })();
           const isCurrent = p.months.includes(currentMonth);
           return {
             key: p.key,
