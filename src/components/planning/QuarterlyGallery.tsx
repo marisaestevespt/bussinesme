@@ -5,21 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { BackNavigation } from '@/components/BackNavigation';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
-import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
-import { pt } from 'date-fns/locale';
+import { format, endOfMonth } from 'date-fns';
 import { MonthDetailView } from './MonthDetailView';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { TacticalAreasGrid } from './TacticalAreasGrid';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
