@@ -124,8 +124,11 @@ export function useMemberSave() {
 
       // Handle contract: create for new, update for existing
       if (contractData && memberId) {
-        const monthlyVal = parseFloat(contractData.monthly_value) || 0;
-        const paymentDay = parseInt(contractData.payment_day) || 1;
+        const monthlyVal = parseFloat(String(contractData.monthly_value ?? '')) || 0;
+        const paymentDay = parseInt(String(contractData.payment_day ?? '')) || 1;
+        const contractedHoursStr = contractData.contracted_hours != null && contractData.contracted_hours !== ''
+          ? String(contractData.contracted_hours)
+          : null;
         const isPrestacao = contractData.contract_type === 'contrato_prestacao';
 
         // Block contract type change away from prestação if member is the configured accountant
@@ -151,10 +154,10 @@ export function useMemberSave() {
         if (isNew) {
           // Create contract + payments for new members
           await supabase.from('member_contracts').insert({
-            member_id: memberId, contract_type: contractData.contract_type,
+            member_id: memberId!, contract_type: contractData.contract_type,
             start_date: contractData.start_date || null, end_date: contractData.end_date || null,
             status: contractData.status, monthly_value: monthlyVal,
-            contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
+            contracted_hours: contractedHoursStr, payment_day: paymentDay,
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
             value_includes_vat: !!contractData.value_includes_vat,
@@ -253,13 +256,14 @@ export function useMemberSave() {
               // Create payroll/contractor entry linked to expense
               if (!expError && expData) {
                 if (isPrestacao) {
+                  // Note: schema uses contractor_name/value; legacy fields kept for compat via cast.
                   await supabase.from('financial_contractors').insert({
                     collaborator_name: member.full_name,
                     month: p.month, year: p.year,
                     invoice_value: baseValue, vat_value: Math.round((totalWithVat - baseValue) * 100) / 100,
                     total_cost: totalWithVat, status: 'por_pagar',
                     expense_id: expData.id,
-                  });
+                  } as unknown as TablesInsert<'financial_contractors'>);
                 } else {
                   await supabase.from('financial_payroll').insert({
                     collaborator_name: member.full_name,
@@ -282,7 +286,7 @@ export function useMemberSave() {
             end_date: contractData.end_date || null,
             status: contractData.status,
             monthly_value: monthlyVal,
-            contracted_hours: contractData.contracted_hours || null,
+            contracted_hours: contractedHoursStr,
             payment_day: paymentDay,
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
@@ -293,10 +297,10 @@ export function useMemberSave() {
         } else if (!isNew) {
           // No existing contract but editing — create one
           await supabase.from('member_contracts').insert({
-            member_id: memberId, contract_type: contractData.contract_type,
+            member_id: memberId!, contract_type: contractData.contract_type,
             start_date: contractData.start_date || null, end_date: contractData.end_date || null,
             status: contractData.status, monthly_value: monthlyVal,
-            contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
+            contracted_hours: contractedHoursStr, payment_day: paymentDay,
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
             value_includes_vat: !!contractData.value_includes_vat,
