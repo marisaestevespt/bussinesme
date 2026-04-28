@@ -51,7 +51,10 @@ export function useExecutiveData(year = currentYear) {
 
   const toggleBrainDump = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const { error } = await supabase.from('executive_brain_dump').update({ completed }).eq('id', id);
+      const { error } = await supabase
+        .from('executive_brain_dump')
+        .update({ completed, status: completed ? 'aplicado' : 'em_ideia' })
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: invalidate,
