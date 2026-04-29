@@ -613,6 +613,96 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Pré-visualização ao vivo do portal */}
+            <div className="rounded-lg border border-border overflow-hidden bg-background">
+              <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-b border-border">
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                  Pré-visualização do Portal (login)
+                </span>
+                <span className="text-[10px] text-muted-foreground">Atualiza em tempo real</span>
+              </div>
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 min-h-[260px]"
+                style={{
+                  fontFamily: previewFontBody,
+                  color: `hsl(${previewText})`,
+                }}
+              >
+                {/* Hero / painel lateral */}
+                <div
+                  className="relative p-5 flex flex-col justify-end min-h-[180px]"
+                  style={{
+                    backgroundColor: `hsl(${previewPrimary})`,
+                    backgroundImage: previewHeroImage ? `url(${previewHeroImage})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                >
+                  {previewHeroImage && (
+                    <div className="absolute inset-0" style={{ backgroundColor: `hsl(${previewPrimary} / 0.55)` }} />
+                  )}
+                  <div className="relative z-10 text-white">
+                    <div
+                      className="text-xl leading-tight"
+                      style={{ fontFamily: previewFontDisplay }}
+                    >
+                      {previewHeroTitle}
+                    </div>
+                    <div className="text-xs opacity-90 mt-1">{previewHeroSubtitle}</div>
+                  </div>
+                </div>
+                {/* Painel de login */}
+                <div className="p-5 flex flex-col gap-3 bg-background">
+                  <div className="flex items-center gap-2">
+                    {previewLogo ? (
+                      <img src={previewLogo} alt="" className="h-7 object-contain" />
+                    ) : (
+                      <div
+                        className="h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold text-white"
+                        style={{ backgroundColor: `hsl(${previewPrimary})` }}
+                      >
+                        {previewName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span
+                      className="text-sm font-medium"
+                      style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
+                    >
+                      {previewName}
+                    </span>
+                  </div>
+                  <div>
+                    <div
+                      className="text-lg leading-tight"
+                      style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
+                    >
+                      {previewLoginTitle}
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: `hsl(${previewText} / 0.7)` }}>
+                      {previewLoginSubtitle}
+                    </div>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: `hsl(${previewText} / 0.8)` }}>
+                    {previewWelcome}
+                  </p>
+                  <div className="mt-auto space-y-2">
+                    <div
+                      className="h-7 rounded-md border px-2 flex items-center text-[11px]"
+                      style={{ borderColor: `hsl(${previewText} / 0.15)`, color: `hsl(${previewText} / 0.5)` }}
+                    >
+                      email@exemplo.com
+                    </div>
+                    <div
+                      className="h-7 rounded-md flex items-center justify-center text-[11px] font-medium text-white"
+                      style={{ backgroundColor: `hsl(${previewAccent})` }}
+                    >
+                      Entrar
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Cores (HSL para combinar com o sistema) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
