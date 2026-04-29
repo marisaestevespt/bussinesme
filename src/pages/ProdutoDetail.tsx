@@ -573,7 +573,7 @@ export default function ProdutoDetailPage() {
         <EntitySection title="Sobre o Produto" icon={Info} className="pt-2">
           <div className="space-y-4">
             <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
-            <div>
+            <div className="pb-4">
               <h4 className="text-sm font-semibold mb-2">O que está incluído</h4>
               {includedItems.map((item, i) => (
                 <div key={i} className="flex gap-2 mb-1">
@@ -583,7 +583,7 @@ export default function ProdutoDetailPage() {
               ))}
               {isOwner && <Button variant="outline" size="sm" className="mt-1" onClick={() => update('included_items', [...includedItems, ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar item</Button>}
             </div>
-            <div>
+            <div className="pt-4 border-t">
               <h4 className="text-sm font-semibold mb-2">FAQs (cliente final / portal)</h4>
               <p className="text-xs text-muted-foreground mb-2">Visíveis ao cliente — usadas no portal e materiais públicos. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
               <Accordion type="multiple" className="w-full">
