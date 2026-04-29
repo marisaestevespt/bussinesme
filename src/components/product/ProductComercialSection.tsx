@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, X } from 'lucide-react';
+import { Plus, Trash2, X, UserCircle, Zap, Swords } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
@@ -74,7 +74,12 @@ export function ProductComercialSection({
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
       <Card>
-        <CardHeader><CardTitle className="text-base">Cliente do Produto</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <UserCircle className="h-4 w-4 text-primary" />
+            Cliente do Produto
+          </CardTitle>
+        </CardHeader>
         <CardContent className="space-y-4">
           {profileGroups.map((group, i) => (
             <div key={i}>{renderProfileGroup(group)}</div>
@@ -105,7 +110,10 @@ export function ProductComercialSection({
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-base">Ações de Venda</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Zap className="h-4 w-4 text-warning" />
+            Ações de Venda
+          </CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={onAddSalesAction}>
               <Plus className="h-3 w-3 mr-1" /> Nova Ação
@@ -140,7 +148,12 @@ export function ProductComercialSection({
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Produtos Concorrentes</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Swords className="h-4 w-4 text-destructive" />
+            Produtos Concorrentes
+          </CardTitle>
+        </CardHeader>
         <CardContent>
           <Accordion type="multiple" className="w-full">
             {competitors.map((c, i) => (
