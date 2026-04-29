@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { BrandFontPicker } from '@/components/shared/BrandFontPicker';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { ImageIcon } from 'lucide-react';
 
 /* ── color helpers (HEX <-> HSL triplet "H S% L%") ── */
 
@@ -160,6 +162,8 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [applyingColors, setApplyingColors] = useState(false);
   const qc = useQueryClient();
+  const { settings: globalSettings } = useBusinessSettings();
+  const globalHeroFallback = (globalSettings as any)?.login_bg_url as string | undefined;
 
   // ---- Portal preview helpers --------------------------------------------------
   // Falls back to the global brand identity (b.*) when a portal field is empty,
@@ -174,7 +178,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   const previewLoginTitle = pb.login_title?.trim() || 'Olá! 👋';
   const previewLoginSubtitle = pb.login_subtitle?.trim() || 'O teu espaço. A tua jornada.';
   const previewWelcome = pb.welcome_text?.trim() || 'Bem-vinda ao teu espaço pessoal.';
-  const previewHeroImage = pb.hero_image_url;
+  const previewHeroImage = pb.hero_image_url || globalHeroFallback;
   const previewHeroTitle = pb.hero_title?.trim() || 'O teu espaço.';
   const previewHeroSubtitle = pb.hero_subtitle?.trim() || 'A tua jornada.';
 
