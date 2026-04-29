@@ -106,10 +106,10 @@ export function NotificationBell() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="unread" className="mt-0">
-            <ScrollArea className="max-h-72">{renderList(unread)}</ScrollArea>
+            <ScrollArea className="h-80">{renderList(unread)}</ScrollArea>
           </TabsContent>
           <TabsContent value="read" className="mt-0">
-            <ScrollArea className="max-h-72">{renderList(read)}</ScrollArea>
+            <ScrollArea className="h-80">{renderList(read)}</ScrollArea>
           </TabsContent>
         </Tabs>
       </PopoverContent>
