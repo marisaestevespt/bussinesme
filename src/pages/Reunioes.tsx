@@ -994,15 +994,22 @@ export default function ReunioesPage() {
                 <div className="col-span-3">Tipo / Contexto</div>
               </div>
               {filteredMeetings.map(m => (
-                <button
+                <div
                   key={m.id}
-                  onClick={() => navigate(`/hub/reunioes/${m.id}`)}
-                  className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm"
+                  className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm items-center"
                 >
-                  <div className="col-span-2"><StatusBadge status={m.status} /></div>
-                  <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
-                  <div className="col-span-3 text-muted-foreground">
-                    {format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+                  <div className="col-span-2">
+                    <InlineStatusEditor meetingId={m.id} status={m.status} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/hub/reunioes/${m.id}`)}
+                    className="col-span-4 font-medium text-foreground truncate text-left hover:underline"
+                  >
+                    {m.title}
+                  </button>
+                  <div className="col-span-3">
+                    <InlineDateTimeEditor meetingId={m.id} dateTime={m.date_time} />
                   </div>
                   <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
                     <MeetingTypeBadge type={m.meeting_type || 'recorrente'} />
@@ -1010,7 +1017,7 @@ export default function ReunioesPage() {
                       {m.client_name || m.project_name || (m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : '') || ''}
                     </span>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </InfiniteScrollList>
