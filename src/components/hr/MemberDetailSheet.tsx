@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText, Link2, Loader2, CheckCircle2, Crown, UserMinus } from 'lucide-react';
+import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText, Link2, Loader2, CheckCircle2, Crown, UserMinus, Eye } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,6 +27,9 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
 import { MemberQuickLinks } from './MemberQuickLinks';
 import { Progress } from '@/components/ui/progress';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 function MemberIconBlock({ member }: { member: any }) {
   const qc = useQueryClient();
@@ -58,6 +61,21 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
   const [vacNotes, setVacNotes] = useState('');
   const [generatingLink, setGeneratingLink] = useState(false);
   const qc = useQueryClient();
+  const { isOwner } = useAuth();
+  const { startImpersonation, impersonating } = useImpersonation();
+  const navigate = useNavigate();
+
+  const handleImpersonate = async () => {
+    if (!member?.id) return;
+    try {
+      await startImpersonation(member.id);
+      toast.success(`A pré-visualizar como ${member.full_name}`);
+      onClose?.();
+      navigate('/hub/secretaria');
+    } catch (e: any) {
+      toast.error('Falha ao iniciar pré-visualização', { description: e?.message });
+    }
+  };
 
   const handleCopyInviteLink = async () => {
     if (!member?.email) {
@@ -221,6 +239,17 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
                 >
                   <UserMinus className="h-3 w-3" />
                   Iniciar offboarding
+                </Button>
+              )}
+              {isOwner && member.status === 'ativo' && !impersonating && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-2"
+                  onClick={handleImpersonate}
+                >
+                  <Eye className="h-3 w-3" />
+                  Ver como este membro
                 </Button>
               )}
             </div>
