@@ -57,6 +57,7 @@ const ExecutiveRecommendations = lazy(() => import("./pages/ExecutiveRecommendat
 const ExecutiveProcessos = lazy(() => import("./pages/ExecutiveProcessos"));
 const ExecutiveBrainDump = lazy(() => import("./pages/ExecutiveBrainDump"));
 const DefinicoesPage = lazy(() => import("./pages/Definicoes"));
+const AjudaPage = lazy(() => import("./pages/Ajuda"));
 const AgendaPage = lazy(() => import("./pages/Agenda"));
 const ReunioesPage = lazy(() => import("./pages/Reunioes"));
 const ReuniaoDetailPage = lazy(() => import("./pages/ReuniaoDetail"));
@@ -265,6 +266,7 @@ function AppRoutes() {
         <Route path="/executive/brain-dump" element={<ExecutiveBrainDump />} />
         <Route path="/executive/:section" element={<ExecutivePage />} />
         <Route path="/definicoes" element={<DefinicoesPage />} />
+        <Route path="/ajuda" element={<AjudaPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

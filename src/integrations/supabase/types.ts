@@ -8442,8 +8442,15 @@ export type Database = {
           portal_branding: Json
           product_type: string | null
           renewal_advance_days: number | null
+          sales_benefits: Json
+          sales_case_studies: Json
+          sales_faqs: Json
+          sales_materials: Json
+          sales_objections: Json
           sales_page: Json
           sales_page_url: string | null
+          sales_pitch: string | null
+          sales_presentation_url: string | null
           sales_type: string | null
           status: string
           task_mode: string
@@ -8483,8 +8490,15 @@ export type Database = {
           portal_branding?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
+          sales_benefits?: Json
+          sales_case_studies?: Json
+          sales_faqs?: Json
+          sales_materials?: Json
+          sales_objections?: Json
           sales_page?: Json
           sales_page_url?: string | null
+          sales_pitch?: string | null
+          sales_presentation_url?: string | null
           sales_type?: string | null
           status?: string
           task_mode?: string
@@ -8524,8 +8538,15 @@ export type Database = {
           portal_branding?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
+          sales_benefits?: Json
+          sales_case_studies?: Json
+          sales_faqs?: Json
+          sales_materials?: Json
+          sales_objections?: Json
           sales_page?: Json
           sales_page_url?: string | null
+          sales_pitch?: string | null
+          sales_presentation_url?: string | null
           sales_type?: string | null
           status?: string
           task_mode?: string
