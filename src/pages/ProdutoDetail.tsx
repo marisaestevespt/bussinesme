@@ -722,7 +722,7 @@ export default function ProdutoDetailPage() {
             <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductSalesTab productName={form.name || ''} />
               {!isNew && id && (
-                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
+                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} productMeetings={productMeetings} />
               )}
             </div>
           )}
