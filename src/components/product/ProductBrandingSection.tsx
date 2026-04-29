@@ -73,6 +73,23 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   const [applyingColors, setApplyingColors] = useState(false);
   const qc = useQueryClient();
 
+  // ---- Portal preview helpers --------------------------------------------------
+  // Falls back to the global brand identity (b.*) when a portal field is empty,
+  // mirroring the actual portal rendering logic.
+  const previewPrimary = pb.primary_color?.trim() || (b.primary_color?.startsWith('#') ? null : b.primary_color) || '351 56% 28%';
+  const previewAccent = pb.accent_color?.trim() || '26 40% 39%';
+  const previewText = pb.text_color?.trim() || '0 0% 16%';
+  const previewFontDisplay = pb.font_display?.trim() || 'Lora';
+  const previewFontBody = pb.font_body?.trim() || 'DM Sans';
+  const previewLogo = pb.logo_url || b.logo_url;
+  const previewName = pb.business_name?.trim() || 'O teu negócio';
+  const previewLoginTitle = pb.login_title?.trim() || 'Olá! 👋';
+  const previewLoginSubtitle = pb.login_subtitle?.trim() || 'O teu espaço. A tua jornada.';
+  const previewWelcome = pb.welcome_text?.trim() || 'Bem-vinda ao teu espaço pessoal.';
+  const previewHeroImage = pb.hero_image_url;
+  const previewHeroTitle = pb.hero_title?.trim() || 'O teu espaço.';
+  const previewHeroSubtitle = pb.hero_subtitle?.trim() || 'A tua jornada.';
+
   const applyProductColors = async () => {
     if (!productId) return;
     if (!b.primary_color && !b.secondary_color && !b.accent_color) {
