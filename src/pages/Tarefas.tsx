@@ -112,18 +112,27 @@ export default function TarefasPage() {
   const [filterStatus, setFilterStatus] = useState('');
 
   const { data: myProfileId } = useQuery({
-    queryKey: ['my-profile-id', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-profile-id', effectiveUserId],
+    enabled: !!effectiveUserId,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user!.id)
+        .eq('user_id', effectiveUserId!)
         .maybeSingle();
       return data?.id as string | null;
     },
   });
+
+  function canAccessTask(task: any): boolean {
+    if (realIsOwner) return true;
+    if (!task) return false;
+    if (effectiveUserId && task.created_by === effectiveUserId) return true;
+    if (myProfileId && task.assigned_to === myProfileId) return true;
+    if (myProfileId && task.original_assignee === myProfileId) return true;
+    return false;
+  }
 
   const tasksQuery = useInfiniteQuery<InfinitePageResult<any>>({
     queryKey: ['tasks', filterStatus],
