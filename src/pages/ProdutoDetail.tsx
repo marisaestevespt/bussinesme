@@ -700,16 +700,16 @@ export default function ProdutoDetailPage() {
         {/* ═══ SECTION BUTTONS ═══ */}
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <SectionButton sectionKey="clientes-vendas" label="Clientes e Vendas" />
-            <SectionButton sectionKey="entregas" label="Entregas" />
-            <SectionButton sectionKey="comercial" label="Comercial" />
-            <SectionButton sectionKey="marketing" label="Marketing" />
-            <SectionButton sectionKey="branding" label="Branding" />
-            <SectionButton sectionKey="contabilidade" label="Contabilidade" />
-            <SectionButton sectionKey="processos" label="Processos" />
-            <SectionButton sectionKey="backoffice" label="Backoffice" />
-            <SectionButton sectionKey="metricas" label="Métricas" />
-            <SectionButton sectionKey="arquivo" label="Arquivo" />
+            {canSeeSection('clientes-vendas') && <SectionButton sectionKey="clientes-vendas" label="Clientes e Vendas" />}
+            {canSeeSection('entregas') && <SectionButton sectionKey="entregas" label="Entregas" />}
+            {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
+            {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
+            {canSeeSection('branding') && <SectionButton sectionKey="branding" label="Branding" />}
+            {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade" />}
+            {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
+            {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
+            {canSeeSection('metricas') && <SectionButton sectionKey="metricas" label="Métricas" />}
+            {canSeeSection('arquivo') && <SectionButton sectionKey="arquivo" label="Arquivo" />}
           </div>
 
           {openSection === 'clientes-vendas' && (
