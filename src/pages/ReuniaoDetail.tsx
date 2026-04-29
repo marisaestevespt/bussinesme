@@ -835,7 +835,19 @@ export default function ReuniaoDetailPage() {
             <EntityProperty icon={FolderOpen} label="Projeto">
               <Select value={m.project_id ?? ''} onValueChange={v => {
                 const proj = projectsList.find(p => p.id === v);
-                update({ project_id: v || null, project_name: proj?.name || null });
+                const patch: Partial<MeetingFull> = { project_id: v || null, project_name: proj?.name || null };
+                // Cascata: ao escolher projeto, herda produto e cliente automaticamente
+                if (proj) {
+                  if (proj.product_id) {
+                    patch.product_id = proj.product_id;
+                    patch.product_name = proj.product_name;
+                  }
+                  if (proj.client_id) {
+                    patch.client_id = proj.client_id;
+                    patch.client_name = proj.client_name;
+                  }
+                }
+                update(patch);
               }}>
                 <SelectTrigger className={cn(inlineTriggerClass, 'min-w-[140px]')}>
                   <SelectValue placeholder="Sem projeto" />
