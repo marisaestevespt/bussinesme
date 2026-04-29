@@ -18,6 +18,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
@@ -148,11 +149,16 @@ function NavSection({
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const { isOwner, isAdminOrOwner, signOut } = useAuth();
+  const { isOwner: realIsOwner, isAdminOrOwner: realIsAdminOrOwner, signOut } = useAuth();
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
   const { favorites } = useFavorites();
   const sectorConfig = useSectorConfig();
+  // While impersonating a member, suppress owner/admin-only sections so the preview
+  // matches what the member would actually see.
+  const { impersonating } = useImpersonation();
+  const isOwner = realIsOwner && !impersonating;
+  const isAdminOrOwner = realIsAdminOrOwner && !impersonating;
 
   return (
     <Sidebar collapsible="icon">
