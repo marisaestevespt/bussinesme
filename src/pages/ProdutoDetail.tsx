@@ -719,7 +719,7 @@ export default function ProdutoDetailPage() {
           </div>
 
           {openSection === 'clientes-vendas' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductSalesTab productName={form.name || ''} />
               {!isNew && id && (
                 <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
@@ -740,7 +740,7 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'comercial' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductComercialSection
                 clientProfile={clientProfile}
                 competitors={competitors}
@@ -837,7 +837,7 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'metricas' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductMetricsTab productId={id!} productName={form.name || ''} isOwner={isOwner} />
             </div>
           )}

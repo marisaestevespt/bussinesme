@@ -325,7 +325,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       <div className="pt-2">
         <h3 className="text-sm font-semibold text-foreground">Estratégia da Marca</h3>
         <p className="text-xs text-muted-foreground">O que esta marca representa antes de qualquer desenho.</p>

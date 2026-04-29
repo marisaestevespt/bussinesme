@@ -111,7 +111,7 @@ export function ProductMarketingSection({
   const editingInspirations = editing?.inspirations || [];
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       {/* Páginas */}
       <Card>
         <CardHeader className="flex-row items-center justify-between">
