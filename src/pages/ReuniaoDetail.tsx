@@ -96,7 +96,7 @@ interface MeetingFull {
   documents: MeetingDocument[];
 }
 
-interface ProjectOption { id: string; name: string; }
+interface ProjectOption { id: string; name: string; product_id: string | null; product_name: string | null; client_id: string | null; client_name: string | null; }
 
 interface Profile {
   id: string;
@@ -157,7 +157,7 @@ function useProjectsList() {
   return useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('id, name').order('name');
+      const { data, error } = await supabase.from('projects').select('id, name, product_id, product_name, client_id, client_name').order('name');
       if (error) throw error;
       return data as ProjectOption[];
     },
