@@ -69,9 +69,23 @@ export function RouteGuard({ children }: { children: ReactNode }) {
 
   const { moduleKey, ownerOnly } = resolveAccess(location.pathname);
 
-  // Real Owner without impersonation has unrestricted access
-  if (isOwner && !impersonating) return <>{children}</>;
+  const isUnrestrictedOwner = isOwner && !impersonating;
+  const denied = !isUnrestrictedOwner && !loading && (
+    !!ownerOnly ||
+    (!!moduleKey && !canAccess(moduleKey as any) && !hasPageAccess(location.pathname))
+  );
 
+  useEffect(() => {
+    if (denied) {
+      toast.error('Sem acesso', {
+        description: impersonating
+          ? 'Este membro não tem acesso a esta página.'
+          : 'Não tens permissão para aceder a esta página.',
+      });
+    }
+  }, [denied, impersonating]);
+
+  if (isUnrestrictedOwner) return <>{children}</>;
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -79,25 +93,6 @@ export function RouteGuard({ children }: { children: ReactNode }) {
       </div>
     );
   }
-
-  const denied =
-    ownerOnly ||
-    (moduleKey && !canAccess(moduleKey as any) && !hasPageAccess(location.pathname));
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffect(() => {
-    if (denied) {
-      toast.error('Sem acesso', {
-        description: impersonating
-          ? `Este membro não tem acesso a esta página.`
-          : 'Não tens permissão para aceder a esta página.',
-      });
-    }
-  }, [denied, impersonating]);
-
-  if (denied) {
-    return <Navigate to="/secretaria" replace />;
-  }
-
+  if (denied) return <Navigate to="/secretaria" replace />;
   return <>{children}</>;
 }
