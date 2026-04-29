@@ -138,26 +138,33 @@ Deno.serve(async (req) => {
       .not("end_of_cycle", "is", null);
     const { data: products } = await supabase
       .from("products")
-      .select("name, renewal_advance_days");
-    const productMap = new Map<string, number>();
-    (products || []).forEach((p: { name: string; renewal_advance_days: number | null }) => {
-      productMap.set(p.name, p.renewal_advance_days ?? 30);
+      .select("name, renewal_advance_days, product_type, sales_type");
+    type ProdMeta = { advanceDays: number; isRecurring: boolean };
+    const productMap = new Map<string, ProdMeta>();
+    (products || []).forEach((p: { name: string; renewal_advance_days: number | null; product_type: string | null; sales_type: string | null }) => {
+      productMap.set(p.name, {
+        advanceDays: p.renewal_advance_days ?? 30,
+        isRecurring: p.product_type === "servico_mensal" || p.sales_type === "avenca_mensal",
+      });
     });
     let renewalCount = 0;
     for (const client of clients || []) {
       if (!client.end_of_cycle) continue;
-      const advanceDays = productMap.get(client.current_product || "") ?? 30;
+      const meta = productMap.get(client.current_product || "");
+      // Skip one-off projects entirely — they are handled by check-project-ending.
+      if (!meta || !meta.isRecurring) continue;
+      const advanceDays = meta.advanceDays;
       const endDate = new Date(client.end_of_cycle + "T00:00:00");
       const diffDays = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       if (diffDays <= advanceDays && diffDays >= 0) {
         await supabase.from("clients").update({ status: "altura_renovacao" }).eq("id", client.id).eq("status", "ativo");
         const notifKey = `renewal-auto-${client.id}-${todayStr}`;
-        const { data: existingNotif } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("message", notifKey).limit(1);
+        const { data: existingNotif } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("dedup_key", notifKey).limit(1);
         if (!existingNotif || existingNotif.length === 0) {
           await supabase.from("notifications").insert({
             user_id: ownerId, type: "client_renewal",
             title: `📅 Renovação — ${client.full_name} (${diffDays} dias)`,
-            message: notifKey, link: `/hub/clientes/${client.id}`,
+            dedup_key: notifKey, link: `/hub/clientes/${client.id}`,
           });
         }
         const { data: existingTask } = await supabase.from("tasks").select("id").eq("name", `Renovação — ${client.full_name}`).limit(1);
@@ -191,14 +198,14 @@ Deno.serve(async (req) => {
       const daysLeft = Math.ceil((new Date(contract.end_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       const memberName = (contract.team_members as Row | null)?.full_name as string | undefined || "Membro";
       const notifKey = `contract-expiry-${contract.id}-${todayStr}`;
-      const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("type", "contract_expiry").eq("message", notifKey).limit(1);
+      const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("type", "contract_expiry").eq("dedup_key", notifKey).limit(1);
       if (!existing || existing.length === 0) {
         const emoji = daysLeft <= 0 ? "⚠️" : daysLeft <= 7 ? "🔴" : "🟡";
         const title = daysLeft <= 0
           ? `${emoji} Contrato de ${memberName} expirou`
           : `${emoji} Contrato de ${memberName} expira em ${daysLeft} dias`;
         await supabase.from("notifications").insert({
-          user_id: ownerId, type: "contract_expiry", title, message: notifKey, link: "/hub-equipa",
+          user_id: ownerId, type: "contract_expiry", title, dedup_key: notifKey, link: "/hub-equipa",
         });
         contractCount++;
       }
@@ -235,12 +242,12 @@ Deno.serve(async (req) => {
       const occupancy = weeklyCapacity > 0 ? (hoursUsed / weeklyCapacity) * 100 : 0;
       if (occupancy >= 90) {
         const weekKey = `capacity-alert-${member.id}-${weekStartStr}`;
-        const { data: existingAlert } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("type", "capacity_alert").eq("message", weekKey).limit(1);
+        const { data: existingAlert } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("type", "capacity_alert").eq("dedup_key", weekKey).limit(1);
         if (!existingAlert || existingAlert.length === 0) {
           await supabase.from("notifications").insert({
             user_id: ownerId, type: "capacity_alert",
             title: `🔴 ${member.full_name} está a ${Math.round(occupancy)}% de capacidade esta semana. Considera realocar tarefas.`,
-            message: weekKey, link: "/hub/recursos-humanos",
+            dedup_key: weekKey, link: "/hub/recursos-humanos",
           });
           capacityAlerts++;
         }
@@ -454,10 +461,10 @@ Deno.serve(async (req) => {
         if (uid) userIds.add(uid);
       });
       for (const uid of userIds) {
-        const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", uid).eq("type", "meeting_reminder").eq("message", notifKey).limit(1);
+        const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", uid).eq("type", "meeting_reminder").eq("dedup_key", notifKey).limit(1);
         if (existing && existing.length > 0) continue;
         await supabase.from("notifications").insert({
-          user_id: uid, type: "meeting_reminder", title: title + extra, message: notifKey, link: `/hub/reunioes/${meeting.id}`,
+          user_id: uid, type: "meeting_reminder", title: title + extra, dedup_key: notifKey, link: `/hub/reunioes/${meeting.id}`,
         });
         meetingNotifs++;
       }
@@ -476,12 +483,12 @@ Deno.serve(async (req) => {
     let deadlineNotifs = 0;
     for (const proj of overdueProjects || []) {
       const notifKey = `project-deadline-${proj.id}-${todayStr}`;
-      const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("type", "project_deadline").eq("message", notifKey).limit(1);
+      const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("type", "project_deadline").eq("dedup_key", notifKey).limit(1);
       if (existing && existing.length > 0) continue;
       await supabase.from("notifications").insert({
         user_id: ownerId, type: "project_deadline",
         title: `⚠️ Projeto "${proj.name}" está com deadline em atraso${proj.client_name ? ` (${proj.client_name})` : ""}`,
-        message: notifKey, link: `/hub/projetos/${proj.id}`,
+        dedup_key: notifKey, link: `/hub/projetos/${proj.id}`,
       });
       deadlineNotifs++;
     }
@@ -501,10 +508,10 @@ Deno.serve(async (req) => {
       for (const uid of new Set(recipients)) {
         if (!uid) continue;
         const dedupKey = `task-overdue-${t.id}-${todayStr}`;
-        const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("message", dedupKey);
+        const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("dedup_key", dedupKey);
         if ((existing || 0) > 0) continue;
         await supabase.from("notifications").insert({
-          user_id: uid, type: "task", title: `Tarefa em atraso: ${t.name}`, message: dedupKey, link: "/hub/tarefas",
+          user_id: uid, type: "task", title: `Tarefa em atraso: ${t.name}`, dedup_key: dedupKey, link: "/hub/tarefas",
         });
         taskAlerts++;
       }
@@ -525,10 +532,10 @@ Deno.serve(async (req) => {
       for (const uid of new Set(recipients)) {
         if (!uid) continue;
         const dedupKey = `followup-overdue-${lead.id}-${todayStr}`;
-        const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("message", dedupKey);
+        const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("dedup_key", dedupKey);
         if ((existing || 0) > 0) continue;
         await supabase.from("notifications").insert({
-          user_id: uid, type: "crm", title: `📞 Follow-up em atraso: ${lead.name}`, message: dedupKey, link: "/hub/comercial/crm",
+          user_id: uid, type: "crm", title: `📞 Follow-up em atraso: ${lead.name}`, dedup_key: dedupKey, link: "/hub/comercial/crm",
         });
         followUpAlerts++;
       }
@@ -557,11 +564,11 @@ Deno.serve(async (req) => {
       for (const uid of new Set(recipients)) {
         if (!uid) continue;
         const dedupKey = `routine-missed-${t.id}-${todayStr}`;
-        const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("message", dedupKey);
+        const { count: existing } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("dedup_key", dedupKey);
         if ((existing || 0) > 0) continue;
         const roleLabel = routine?.role_function ? ` (${routine.role_function})` : "";
         await supabase.from("notifications").insert({
-          user_id: uid, type: "task", title: `⚠️ Rotina não concluída: ${t.name}${roleLabel}`, message: dedupKey, link: "/hub/tarefas",
+          user_id: uid, type: "task", title: `⚠️ Rotina não concluída: ${t.name}${roleLabel}`, dedup_key: dedupKey, link: "/hub/tarefas",
         });
         routineAlerts++;
       }
@@ -650,9 +657,14 @@ Deno.serve(async (req) => {
       // We intentionally keep the profile row so historical references (tasks, sales, etc.) remain readable.
       if (ownerId) {
         const dedupKey = `access-revoked-${member.id}`;
-        const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("message", dedupKey).maybeSingle();
+        const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("dedup_key", dedupKey).maybeSingle();
         if (!existing) {
-          await supabase.from("notifications").insert({ user_id: ownerId, message: dedupKey, type: "team" });
+          await supabase.from("notifications").insert({
+            user_id: ownerId,
+            dedup_key: dedupKey,
+            type: "team",
+            title: `Acessos revogados: ${member.full_name}`,
+          });
         }
       }
       results.push(`Access revoked for: ${member.full_name}`);

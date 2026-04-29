@@ -6262,6 +6262,7 @@ export type Database = {
       notifications: {
         Row: {
           created_at: string
+          dedup_key: string | null
           id: string
           link: string | null
           message: string | null
@@ -6272,6 +6273,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dedup_key?: string | null
           id?: string
           link?: string | null
           message?: string | null
@@ -6282,6 +6284,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dedup_key?: string | null
           id?: string
           link?: string | null
           message?: string | null

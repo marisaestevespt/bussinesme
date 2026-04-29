@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
             type: "birthday",
             title: `${check.prefix} de ${person.name} ${label}`,
             link: person.link,
-            message: `birthday-${person.source}-${person.birthday}-${todayStr}`,
+            dedup_key: `birthday-${person.source}-${person.birthday}-${todayStr}`,
           });
         }
       }
@@ -170,16 +170,16 @@ Deno.serve(async (req) => {
     // Deduplicate
     const { data: existing } = await supabase
       .from("notifications")
-      .select("message")
+      .select("dedup_key")
       .eq("user_id", ownerId)
       .eq("type", "birthday")
       .gte("created_at", todayStr);
 
-    const existingMessages = new Set(
-      (existing || []).map((n: { message: string }) => n.message)
+    const existingKeys = new Set(
+      (existing || []).map((n: { dedup_key: string }) => n.dedup_key)
     );
     const toInsert = notifications.filter(
-      (n) => !existingMessages.has(n.message)
+      (n) => !existingKeys.has(n.dedup_key)
     );
 
     if (toInsert.length > 0) {
