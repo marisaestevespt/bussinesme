@@ -109,6 +109,7 @@ export function BrandFontPicker({ label, value, onChange, variant = 'display', p
 
   const primary = variant === 'body' ? BODY_FONTS : DISPLAY_FONTS;
   const secondary = variant === 'body' ? DISPLAY_FONTS : BODY_FONTS;
+  const [showAll, setShowAll] = useState(false);
 
   return (
     <div className="space-y-2">
@@ -140,22 +141,30 @@ export function BrandFontPicker({ label, value, onChange, variant = 'display', p
                 ))}
               </>
             )}
-            <div className="px-2 py-1 text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
-              {variant === 'body' ? 'Para corpo de texto' : 'Para títulos'}
-            </div>
             {primary.map(f => (
               <SelectItem key={f} value={f}>
                 <span style={{ fontFamily: `'${f}', sans-serif` }}>{f}</span>
               </SelectItem>
             ))}
-            <div className="px-2 py-1 text-[10px] uppercase text-muted-foreground font-semibold tracking-wider">
-              {variant === 'body' ? 'Para títulos' : 'Para corpo'}
-            </div>
-            {secondary.map(f => (
-              <SelectItem key={f} value={f}>
-                <span style={{ fontFamily: `'${f}', sans-serif` }}>{f}</span>
-              </SelectItem>
-            ))}
+            {showAll && (
+              <>
+                <div className="px-2 py-1 mt-1 text-[10px] uppercase text-muted-foreground font-semibold tracking-wider border-t">
+                  {variant === 'body' ? 'Outras (normalmente para títulos)' : 'Outras (normalmente para corpo)'}
+                </div>
+                {secondary.map(f => (
+                  <SelectItem key={f} value={f}>
+                    <span style={{ fontFamily: `'${f}', sans-serif` }}>{f}</span>
+                  </SelectItem>
+                ))}
+              </>
+            )}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAll(s => !s); }}
+              className="w-full text-left px-2 py-1.5 mt-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-accent border-t"
+            >
+              {showAll ? '— Mostrar só recomendadas' : '+ Mostrar todas as fontes'}
+            </button>
           </SelectContent>
         </Select>
         {!disabled && (
