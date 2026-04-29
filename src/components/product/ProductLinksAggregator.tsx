@@ -1,62 +1,68 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ExternalLink, Link2, Copy } from 'lucide-react';
+import { ExternalLink, Link2, Copy, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct } from '@/hooks/useProducts';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 interface AggregatedLink {
+  id?: string;
   label: string;
   url: string;
   origin: string;
+  editable?: boolean;
 }
 
 interface Props {
   productId: string;
-  /** Links manuais já carregados em product_useful_links (para incluir na agregação). */
   manualLinks: Array<Record<string, unknown>>;
+  isOwner?: boolean;
+  onAddManual?: () => void;
+  onUpdateManual?: (id: string, data: Record<string, unknown>) => void;
+  onDeleteManual?: (id: string) => void;
 }
 
 /**
- * Agregador de todos os links espalhados pela ficha do produto:
- * sales_page_url, drive_url, branding.folders, branding.visual_assets,
- * sales_presentation_url, sales_materials e os manuais de product_useful_links.
- * Tudo read-only — para editar, vai à secção de origem.
+ * Card único de "Todos os Links do Produto":
+ * - Recolhe automaticamente links de outras secções (Geral, Branding, Comercial) — read-only.
+ * - Permite criar / editar / remover links manuais inline.
  */
-export function ProductLinksAggregator({ productId, manualLinks }: Props) {
+export function ProductLinksAggregator({
+  productId, manualLinks, isOwner = false, onAddManual, onUpdateManual, onDeleteManual,
+}: Props) {
   const { data: product } = useProduct(productId);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<{ name: string; url: string }>({ name: '', url: '' });
 
   const aggregated = useMemo<AggregatedLink[]>(() => {
     if (!product) return [];
     const out: AggregatedLink[] = [];
-    const push = (label: string, url: unknown, origin: string) => {
-      if (typeof url === 'string' && url.trim()) out.push({ label: label || url, url: url.trim(), origin });
+    const push = (label: string, url: unknown, origin: string, opts?: { id?: string; editable?: boolean }) => {
+      if (typeof url === 'string' && url.trim()) {
+        out.push({ label: label || url, url: url.trim(), origin, ...(opts || {}) });
+      }
     };
 
-    // Header / Geral
     push('Página de Vendas', (product as any).sales_page_url, 'Geral');
     push('Drive', (product as any).drive_url, 'Geral');
 
-    // Branding
     const branding: any = (product as any).branding || {};
     (branding.folders || []).forEach((l: any) =>
       push(l?.label || 'Pasta', l?.url, 'Branding · Pastas'));
     (branding.visual_assets || []).forEach((l: any) =>
       push(l?.label || 'Asset visual', l?.url, 'Branding · Assets'));
 
-    // Sales kit
     push('Apresentação de Vendas', (product as any).sales_presentation_url, 'Comercial · Sales Kit');
     ((product as any).sales_materials || []).forEach((m: any) =>
       push(m?.name || 'Material', m?.url, 'Comercial · Materiais'));
 
-    // Links manuais (Backoffice)
     manualLinks.forEach(l =>
-      push((l.name as string) || 'Link', l.url, 'Backoffice · Manual'));
+      push((l.name as string) || 'Link', l.url, 'Manual', { id: l.id as string, editable: true }));
 
-    // Dedupe por URL mantendo primeira origem
     const seen = new Set<string>();
     return out.filter(l => {
       const k = l.url.toLowerCase();
@@ -72,6 +78,19 @@ export function ProductLinksAggregator({ productId, manualLinks }: Props) {
     toast.success(`${aggregated.length} links copiados`);
   };
 
+  const startEdit = (l: AggregatedLink) => {
+    if (!l.id) return;
+    setEditingId(l.id);
+    setDraft({ name: l.label === l.url ? '' : l.label, url: l.url });
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !onUpdateManual) return;
+    if (!draft.url.trim()) { toast.error('URL obrigatório'); return; }
+    onUpdateManual(editingId, { name: draft.name.trim() || null, url: draft.url.trim() });
+    setEditingId(null);
+  };
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
@@ -81,14 +100,21 @@ export function ProductLinksAggregator({ productId, manualLinks }: Props) {
             Todos os Links do Produto
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Vista agregada (read-only). Para editar, vai à secção de origem.
+            Recolhe automaticamente links de outras secções (Geral, Branding, Comercial). Podes também adicionar manuais aqui.
           </p>
         </div>
-        {aggregated.length > 0 && (
-          <Button size="sm" variant="outline" onClick={copyAll}>
-            <Copy className="h-3.5 w-3.5 mr-1" /> Copiar todos
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {aggregated.length > 0 && (
+            <Button size="sm" variant="outline" onClick={copyAll}>
+              <Copy className="h-3.5 w-3.5 mr-1" /> Copiar todos
+            </Button>
+          )}
+          {isOwner && onAddManual && (
+            <Button size="sm" variant="outline" onClick={onAddManual}>
+              <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar manual
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {aggregated.length === 0 ? (
@@ -100,26 +126,56 @@ export function ProductLinksAggregator({ productId, manualLinks }: Props) {
                 <TableHead>Nome</TableHead>
                 <TableHead>URL</TableHead>
                 <TableHead>Origem</TableHead>
-                <TableHead className="w-10" />
+                <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {aggregated.map((l, i) => (
                 <TableRow key={`${l.url}-${i}`}>
-                  <TableCell className="font-medium text-sm">{l.label}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-[280px] truncate">
-                    <a href={l.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {l.url}
-                    </a>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-[10px] font-normal">{l.origin}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <a href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex p-1 rounded hover:bg-muted">
-                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                    </a>
-                  </TableCell>
+                  {editingId && editingId === l.id ? (
+                    <>
+                      <TableCell>
+                        <Input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+                          placeholder="Nome (opcional)" className="h-8 text-sm" />
+                      </TableCell>
+                      <TableCell colSpan={2}>
+                        <Input value={draft.url} onChange={e => setDraft(d => ({ ...d, url: e.target.value }))}
+                          placeholder="https://..." className="h-8 text-sm" autoFocus
+                          onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingId(null); }} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={saveEdit} aria-label="Guardar"><Check className="h-3.5 w-3.5" /></Button>
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(null)} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell className="font-medium text-sm">{l.label}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-[280px] truncate">
+                        <a href={l.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          {l.url}
+                        </a>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] font-normal">{l.origin}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 justify-end">
+                          <a href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex p-1 rounded hover:bg-muted" aria-label="Abrir">
+                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                          </a>
+                          {isOwner && l.editable && l.id && (
+                            <>
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(l)} aria-label="Editar"><Pencil className="h-3 w-3" /></Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onDeleteManual?.(l.id!)} aria-label="Eliminar"><Trash2 className="h-3 w-3" /></Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
