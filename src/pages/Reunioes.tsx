@@ -1126,7 +1126,7 @@ export default function ReunioesPage() {
                     <InlineDateTimeEditor meetingId={m.id} dateTime={m.date_time} />
                   </div>
                   <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
-                    <MeetingTypeBadge type={m.meeting_type || 'recorrente'} />
+                    {m.meeting_type && <MeetingTypeBadge type={m.meeting_type} />}
                     <span className="truncate">
                       {m.client_name || m.project_name || (m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : '') || ''}
                     </span>
