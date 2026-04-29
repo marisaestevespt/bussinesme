@@ -312,91 +312,17 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
     key: 'visual_assets' | 'folders',
     title: string,
     placeholder: string,
-  ) => {
-    const items = (b[key] || []) as Array<{ label: string; url: string }>;
-    return (
-      <div className="space-y-3 pt-2">
-        <Label className="text-sm font-semibold block">{title}</Label>
-        {items.map((item, i) => (
-          <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center p-3 rounded-lg border border-border bg-muted/30">
-            <Input
-              value={item.label}
-              onChange={(e) => {
-                const next = [...items];
-                next[i] = { ...next[i], label: e.target.value };
-                updateList(key, next);
-              }}
-              placeholder="Nome"
-              className="h-9 text-sm sm:w-1/3"
-              readOnly={!isOwner}
-            />
-            <Input
-              value={item.url}
-              onChange={(e) => {
-                const next = [...items];
-                next[i] = { ...next[i], url: e.target.value };
-                updateList(key, next);
-              }}
-              placeholder={placeholder}
-              className="h-9 text-sm flex-1"
-              readOnly={!isOwner}
-            />
-            <div className="flex gap-1 items-center self-end sm:self-auto">
-              {item.url && (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-2 hover:bg-primary/10 rounded-md">
-                  <ExternalLink className="h-4 w-4 text-primary" />
-                </a>
-              )}
-              {isOwner && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 shrink-0"
-                  onClick={() => updateList(key, items.filter((_, j) => j !== i))}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
-        {isOwner && (
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => updateList(key, [...items, { label: '', url: '' }])}
-            >
-              <Plus className="h-3 w-3 mr-1" /> Adicionar link
-            </Button>
-            <label>
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleUpload(key, f, items);
-                  e.target.value = '';
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploadingKey === key}
-                asChild
-              >
-                <span className="cursor-pointer">
-                  <Upload className="h-3 w-3 mr-1" />
-                  {uploadingKey === key ? 'A carregar...' : 'Carregar ficheiro'}
-                </span>
-              </Button>
-            </label>
-          </div>
-        )}
-      </div>
-    );
-  };
+  ) => (
+    <LinkList
+      title={title}
+      placeholder={placeholder}
+      isOwner={isOwner}
+      items={(b[key] || []) as Array<{ label: string; url: string }>}
+      onChange={(next) => updateList(key, next)}
+      onUploadFile={(file, items) => handleUpload(key, file, items)}
+      uploading={uploadingKey === key}
+    />
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
