@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, ExternalLink, FileText, MessageCircle, Shield, Sparkles, Quote, Megaphone } from 'lucide-react';
+import { Plus, Trash2, ExternalLink } from 'lucide-react';
 import { useDeleteWithConfirm } from '@/hooks/useDeleteWithConfirm';
 
 type Benefit       = { title: string; description: string };
@@ -41,10 +41,7 @@ export function ProductSalesKitSection({
       {/* ─── Apresentação + Pitch ──────────────────────────────── */}
       <Card className="hq-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Megaphone className="h-4 w-4 text-primary" />
-            Apresentação Comercial
-          </CardTitle>
+          <CardTitle className="text-base">Apresentação Comercial</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -81,10 +78,7 @@ export function ProductSalesKitSection({
       {/* ─── Benefícios ────────────────────────────────────────── */}
       <Card className="hq-card">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Sparkles className="h-4 w-4 text-success" />
-            Benefícios para destacar
-          </CardTitle>
+          <CardTitle className="text-base">Benefícios para destacar</CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_benefits', [...benefits, { title: '', description: '' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
@@ -114,10 +108,7 @@ export function ProductSalesKitSection({
       {/* ─── Materiais (links/PDFs) ────────────────────────────── */}
       <Card className="hq-card">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="h-4 w-4 text-primary" />
-            Materiais de apoio
-          </CardTitle>
+          <CardTitle className="text-base">Materiais de apoio</CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_materials', [...materials, { name: '', url: '', type: 'link' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
@@ -154,10 +145,7 @@ export function ProductSalesKitSection({
       {/* ─── FAQs ──────────────────────────────────────────────── */}
       <Card className="hq-card">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MessageCircle className="h-4 w-4 text-primary" />
-            FAQs (perguntas frequentes do cliente)
-          </CardTitle>
+          <CardTitle className="text-base">FAQs (perguntas frequentes do cliente)</CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_faqs', [...faqs, { question: '', answer: '' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
@@ -189,10 +177,7 @@ export function ProductSalesKitSection({
       {/* ─── Objeções ──────────────────────────────────────────── */}
       <Card className="hq-card">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Shield className="h-4 w-4 text-warning" />
-            Objeções e respostas
-          </CardTitle>
+          <CardTitle className="text-base">Objeções e respostas</CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_objections', [...objections, { objection: '', response: '' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
@@ -224,10 +209,7 @@ export function ProductSalesKitSection({
       {/* ─── Casos de sucesso ──────────────────────────────────── */}
       <Card className="hq-card">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Quote className="h-4 w-4 text-accent-violet" />
-            Casos de sucesso / testemunhos
-          </CardTitle>
+          <CardTitle className="text-base">Casos de sucesso / testemunhos</CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_case_studies', [...caseStudies, { client: '', result: '', description: '' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
