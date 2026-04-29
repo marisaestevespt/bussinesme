@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { getProductColorFromMap, useProductColors, useProductBrands } from '@/hooks/useProductColors';
 import { useGlobalAgendaContext } from '@/hooks/useGlobalAgendaContext';
 import type { AgendaEvent, AgendaEventType } from '@/components/agenda/AppleCalendarViews';
@@ -33,6 +34,10 @@ type SalesActionLite = Pick<
  */
 export function useMyAgendaEvents(range: { from: string; to: string }, cursor: Date) {
   const { user } = useAuth();
+  const { impersonating } = useImpersonation();
+  // When impersonating, treat the impersonated member's user_id as the "current user"
+  // for all agenda/meeting filters. Falls back to the real user otherwise.
+  const effectiveUserId = impersonating?.user_id || user?.id;
 
   const { data: types = [] } = useQuery({
     queryKey: ['event_types'],
@@ -49,11 +54,11 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
 
   // Resolve profile.id once
   const profileQ = useQuery({
-    queryKey: ['my-profile-id', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-profile-id', effectiveUserId],
+    enabled: !!effectiveUserId,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', effectiveUserId!).maybeSingle();
       return data?.id as string | null;
     },
   });
@@ -61,10 +66,10 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
 
   // 1. Events the user created or is a participant of
   const eventsQ = useQuery({
-    queryKey: ['my-agenda-events', user?.id, profileId, range.from, range.to],
-    enabled: !!user?.id && !!profileId,
+    queryKey: ['my-agenda-events', effectiveUserId, profileId, range.from, range.to],
+    enabled: !!effectiveUserId && !!profileId,
     queryFn: async () => {
-      const profileIds = [user!.id, profileId!].filter(Boolean) as string[];
+      const profileIds = [effectiveUserId!, profileId!].filter(Boolean) as string[];
       const { data: parts } = await supabase
         .from('event_members')
         .select('event_id')
@@ -76,7 +81,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
       );
 
       const { data: created = [] } = await inRange(
-        supabase.from('events').select('*').eq('created_by', user!.id)
+        supabase.from('events').select('*').eq('created_by', effectiveUserId!)
       );
       let participant: EventRow[] = [];
       if (partIds.length > 0) {
@@ -93,10 +98,10 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
 
   // 2. Meetings where the user is a participant or creator
   const meetingsQ = useQuery({
-    queryKey: ['my-agenda-meetings', user?.id, profileId, range.from, range.to],
+    queryKey: ['my-agenda-meetings', effectiveUserId, profileId, range.from, range.to],
     enabled: !!profileId,
     queryFn: async () => {
-      const profileIds = [user!.id, profileId!].filter(Boolean) as string[];
+      const profileIds = [effectiveUserId!, profileId!].filter(Boolean) as string[];
       const { data: parts } = await supabase
         .from('meeting_participants')
         .select('meeting_id')
@@ -116,7 +121,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
       const { data: created = [] } = await supabase
         .from('meetings')
         .select('id,title,date_time,status,meeting_url,client_name,department,project_name,product_id,product_name')
-        .eq('created_by', user!.id)
+        .eq('created_by', effectiveUserId!)
         .gte('date_time', range.from + 'T00:00:00')
         .lte('date_time', range.to + 'T23:59:59');
 
