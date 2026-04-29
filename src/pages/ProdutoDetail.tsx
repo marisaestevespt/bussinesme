@@ -691,7 +691,6 @@ export default function ProdutoDetailPage() {
             <SectionButton sectionKey="clientes-vendas" label="Clientes e Vendas" />
             <SectionButton sectionKey="entregas" label="Entregas" />
             <SectionButton sectionKey="comercial" label="Comercial" />
-            <SectionButton sectionKey="materiais-comerciais" label="Materiais Comerciais" />
             <SectionButton sectionKey="marketing" label="Marketing" />
             <SectionButton sectionKey="branding" label="Branding" />
             <SectionButton sectionKey="contabilidade" label="Contabilidade" />
@@ -723,30 +722,29 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'comercial' && (
-            <ProductComercialSection
-              clientProfile={clientProfile}
-              competitors={competitors}
-              salesActions={salesActions}
-              isOwner={isOwner}
-              productName={form.name || ''}
-              onUpdateClientProfile={(key, val) => update('client_profile', { ...(clientProfile as Record<string, unknown>), [key]: val })}
-              onUpdateCompetitors={(c) => update('competitors', c)}
-              onAddSalesAction={() => addRow.mutate({ table: 'commercial_sales_actions', data: { action_name: `Nova Ação — ${form.name}`, product: form.name, status: 'planeada', action_type: 'campanha' } })}
-            />
-          )}
-
-          {openSection === 'materiais-comerciais' && (
-            <ProductSalesKitSection
-              presentationUrl={(form as any).sales_presentation_url || ''}
-              pitch={(form as any).sales_pitch || ''}
-              benefits={((form as any).sales_benefits || []) as Array<{ title: string; description: string }>}
-              materials={((form as any).sales_materials || []) as Array<{ name: string; url: string; type: string }>}
-              faqs={((form as any).sales_faqs || []) as Array<{ question: string; answer: string }>}
-              objections={((form as any).sales_objections || []) as Array<{ objection: string; response: string }>}
-              caseStudies={((form as any).sales_case_studies || []) as Array<{ client: string; result: string; description: string }>}
-              isOwner={isOwner}
-              onUpdate={update}
-            />
+            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductComercialSection
+                clientProfile={clientProfile}
+                competitors={competitors}
+                salesActions={salesActions}
+                isOwner={isOwner}
+                productName={form.name || ''}
+                onUpdateClientProfile={(key, val) => update('client_profile', { ...(clientProfile as Record<string, unknown>), [key]: val })}
+                onUpdateCompetitors={(c) => update('competitors', c)}
+                onAddSalesAction={() => addRow.mutate({ table: 'commercial_sales_actions', data: { action_name: `Nova Ação — ${form.name}`, product: form.name, status: 'planeada', action_type: 'campanha' } })}
+              />
+              <ProductSalesKitSection
+                presentationUrl={(form as any).sales_presentation_url || ''}
+                pitch={(form as any).sales_pitch || ''}
+                benefits={((form as any).sales_benefits || []) as Array<{ title: string; description: string }>}
+                materials={((form as any).sales_materials || []) as Array<{ name: string; url: string; type: string }>}
+                faqs={((form as any).sales_faqs || []) as Array<{ question: string; answer: string }>}
+                objections={((form as any).sales_objections || []) as Array<{ objection: string; response: string }>}
+                caseStudies={((form as any).sales_case_studies || []) as Array<{ client: string; result: string; description: string }>}
+                isOwner={isOwner}
+                onUpdate={update}
+              />
+            </div>
           )}
 
           {openSection === 'marketing' && (
