@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { BrandFontPicker } from '@/components/shared/BrandFontPicker';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { ImageIcon } from 'lucide-react';
 
 /* ── color helpers (HEX <-> HSL triplet "H S% L%") ── */
 
@@ -160,6 +162,8 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [applyingColors, setApplyingColors] = useState(false);
   const qc = useQueryClient();
+  const { settings: globalSettings } = useBusinessSettings();
+  const globalHeroFallback = (globalSettings as any)?.login_bg_url as string | undefined;
 
   // ---- Portal preview helpers --------------------------------------------------
   // Falls back to the global brand identity (b.*) when a portal field is empty,
@@ -174,7 +178,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   const previewLoginTitle = pb.login_title?.trim() || 'Olá! 👋';
   const previewLoginSubtitle = pb.login_subtitle?.trim() || 'O teu espaço. A tua jornada.';
   const previewWelcome = pb.welcome_text?.trim() || 'Bem-vinda ao teu espaço pessoal.';
-  const previewHeroImage = pb.hero_image_url;
+  const previewHeroImage = pb.hero_image_url || globalHeroFallback;
   const previewHeroTitle = pb.hero_title?.trim() || 'O teu espaço.';
   const previewHeroSubtitle = pb.hero_subtitle?.trim() || 'A tua jornada.';
 
@@ -836,6 +840,123 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
               </div>
             </div>
 
+            {/* Hero / imagem de fundo — DESTAQUE no topo */}
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold block flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-primary" />
+                  Painel lateral do login (imagem de fundo)
+                </Label>
+                {pb.hero_image_url && isOwner && (
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => setPB({ hero_image_url: '' })}>
+                    Remover
+                  </Button>
+                )}
+              </div>
+
+              {/* Preview grande + uploader */}
+              <div
+                className="relative w-full h-44 rounded-lg overflow-hidden border border-dashed border-border bg-muted/20 group"
+                style={previewHeroImage ? { backgroundImage: `url(${previewHeroImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+              >
+                {!previewHeroImage && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                    <p className="text-xs text-muted-foreground">Sem imagem — usa cor sólida da marca como fundo.</p>
+                  </div>
+                )}
+                {previewHeroImage && (
+                  <div className="absolute inset-0" style={{ background: `linear-gradient(to top, hsl(${previewPrimary}) 0%, hsl(${previewPrimary} / 0.5) 60%, transparent 100%)` }} />
+                )}
+                {previewHeroImage && (
+                  <div className="absolute bottom-3 left-4 right-4 text-white">
+                    <p className="text-lg font-bold leading-tight" style={{ fontFamily: `"${previewFontDisplay}", sans-serif` }}>
+                      {previewHeroTitle} <br />{previewHeroSubtitle}
+                    </p>
+                  </div>
+                )}
+                {isOwner && (
+                  <label className="absolute top-3 right-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        setUploadingKey('portal_hero');
+                        try {
+                          const ext = f.name.split('.').pop();
+                          const path = `portal-branding/hero-${Date.now()}.${ext}`;
+                          const { error } = await supabase.storage.from('brand-files').upload(path, f);
+                          if (error) { toast.error('Erro ao carregar imagem'); return; }
+                          const { data: urlData } = supabase.storage.from('brand-files').getPublicUrl(path);
+                          setPB({ hero_image_url: urlData.publicUrl });
+                          toast.success('Imagem carregada');
+                        } finally {
+                          setUploadingKey(null);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    <Button type="button" variant="secondary" size="sm" disabled={uploadingKey === 'portal_hero'} asChild className="shadow-md">
+                      <span className="cursor-pointer">
+                        <Upload className="h-3 w-3 mr-1" />
+                        {uploadingKey === 'portal_hero' ? 'A carregar…' : (previewHeroImage ? 'Mudar imagem' : 'Carregar imagem')}
+                      </span>
+                    </Button>
+                  </label>
+                )}
+              </div>
+
+              {/* URL alternativa + nota de fallback */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Ou cola um URL</Label>
+                <Input
+                  value={pb.hero_image_url || ''}
+                  onChange={(e) => setPB({ hero_image_url: e.target.value })}
+                  placeholder="https://..."
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+              </div>
+
+              {!pb.hero_image_url && globalHeroFallback && (
+                <p className="text-[11px] text-muted-foreground bg-muted/40 rounded-md px-2 py-1.5 border border-border/50">
+                  ℹ️ A usar a imagem global das <strong>Definições</strong> como fallback. Carrega aqui uma imagem para personalizar só este produto.
+                </p>
+              )}
+              {!pb.hero_image_url && !globalHeroFallback && (
+                <p className="text-[11px] text-muted-foreground">
+                  Dica: também podes definir uma imagem global em <strong>Definições</strong> que será usada por defeito em todos os produtos.
+                </p>
+              )}
+
+              {/* Títulos do hero */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Título do hero</Label>
+                  <Input
+                    value={pb.hero_title || ''}
+                    onChange={(e) => setPB({ hero_title: e.target.value })}
+                    placeholder="O teu espaço."
+                    className="h-9 text-sm"
+                    readOnly={!isOwner}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Subtítulo do hero</Label>
+                  <Input
+                    value={pb.hero_subtitle || ''}
+                    onChange={(e) => setPB({ hero_subtitle: e.target.value })}
+                    placeholder="A tua jornada."
+                    className="h-9 text-sm"
+                    readOnly={!isOwner}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Textos do login */}
             <div className="space-y-3 pt-2 border-t">
               <Label className="text-sm font-semibold block">Login do portal</Label>
@@ -870,80 +991,6 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                   className="min-h-[70px] text-sm"
                   readOnly={!isOwner}
                 />
-              </div>
-            </div>
-
-            {/* Hero / imagem de fundo */}
-            <div className="space-y-3 pt-2 border-t">
-              <Label className="text-sm font-semibold block">Painel lateral (hero)</Label>
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Imagem de fundo (URL)</Label>
-                <div className="flex gap-2 items-center">
-                  <Input
-                    value={pb.hero_image_url || ''}
-                    onChange={(e) => setPB({ hero_image_url: e.target.value })}
-                    placeholder="https://..."
-                    className="h-9 text-sm flex-1"
-                    readOnly={!isOwner}
-                  />
-                  {isOwner && (
-                    <label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const f = e.target.files?.[0];
-                          if (!f) return;
-                          setUploadingKey('portal_hero');
-                          try {
-                            const ext = f.name.split('.').pop();
-                            const path = `portal-branding/hero-${Date.now()}.${ext}`;
-                            const { error } = await supabase.storage.from('brand-files').upload(path, f);
-                            if (error) { toast.error('Erro ao carregar imagem'); return; }
-                            const { data: urlData } = supabase.storage.from('brand-files').getPublicUrl(path);
-                            setPB({ hero_image_url: urlData.publicUrl });
-                            toast.success('Imagem carregada');
-                          } finally {
-                            setUploadingKey(null);
-                            e.target.value = '';
-                          }
-                        }}
-                      />
-                      <Button type="button" variant="outline" size="sm" disabled={uploadingKey === 'portal_hero'} asChild>
-                        <span className="cursor-pointer">
-                          <Upload className="h-3 w-3 mr-1" />
-                          {uploadingKey === 'portal_hero' ? '...' : 'Enviar'}
-                        </span>
-                      </Button>
-                    </label>
-                  )}
-                </div>
-                {pb.hero_image_url && (
-                  <img src={pb.hero_image_url} alt="Hero" className="h-24 w-full object-cover rounded-md mt-2" />
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Título do hero</Label>
-                  <Input
-                    value={pb.hero_title || ''}
-                    onChange={(e) => setPB({ hero_title: e.target.value })}
-                    placeholder="O teu espaço."
-                    className="h-9 text-sm"
-                    readOnly={!isOwner}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Subtítulo do hero</Label>
-                  <Input
-                    value={pb.hero_subtitle || ''}
-                    onChange={(e) => setPB({ hero_subtitle: e.target.value })}
-                    placeholder="A tua jornada."
-                    className="h-9 text-sm"
-                    readOnly={!isOwner}
-                  />
-                </div>
               </div>
             </div>
           </CardContent>
