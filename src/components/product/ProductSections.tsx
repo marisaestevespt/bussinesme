@@ -278,7 +278,7 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
         </CardHeader>
         <CardContent>
           {productMeetings.length === 0 ? (
-            <EmptyHint>Sem reuniões associadas a este produto.</EmptyHint>
+            <EmptyHint>Sem reuniões associadas a este produto. (Esta lista também aparece em <strong>Clientes e Vendas</strong>.)</EmptyHint>
           ) : (
             <Table>
               <TableHeader>
