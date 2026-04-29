@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import type { ModuleKey } from '@/lib/modules';
 
 export function usePermissions() {
   const { user, isOwner } = useAuth();
+  const { impersonating } = useImpersonation();
   const [allowedModules, setAllowedModules] = useState<Set<string>>(new Set());
   const [grantedPages, setGrantedPages] = useState<Set<string>>(new Set());
   const [userDepartments, setUserDepartments] = useState<string[]>([]);
@@ -21,7 +23,9 @@ export function usePermissions() {
       return;
     }
 
-    if (isOwner) {
+    // When impersonating, compute permissions as the target member.
+    // Otherwise, the real Owner sees everything.
+    if (isOwner && !impersonating) {
       setAllowedModules(new Set(['*']));
       setGrantedPages(new Set());
       setUserDepartments(['admin']);
@@ -31,16 +35,31 @@ export function usePermissions() {
     }
 
     const fetchPermissions = async () => {
+      setLoading(true);
       let depts: string[] = [];
 
       let teamMemberId: string | null = null;
-      const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
-      if (profile) {
-        const { data: teamMember } = await supabase
+      let teamMember: any = null;
+
+      if (impersonating) {
+        // Look up team_member directly by impersonated member id
+        const { data: tm } = await supabase
           .from('team_members')
           .select('id, department, departments, role_title, custom_role_id')
-          .eq('profile_id', profile.id)
+          .eq('id', impersonating.member_id)
           .maybeSingle();
+        teamMember = tm;
+      } else {
+        const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
+        if (profile) {
+          const { data: tm } = await supabase
+            .from('team_members')
+            .select('id, department, departments, role_title, custom_role_id')
+            .eq('profile_id', profile.id)
+            .maybeSingle();
+          teamMember = tm;
+        }
+      }
 
         if (teamMember) {
           teamMemberId = teamMember.id;
@@ -53,11 +72,15 @@ export function usePermissions() {
           if (depts.includes('admin')) {
             setAllowedModules(new Set(['*']));
             setLoading(false);
-            const { data: grants } = await supabase
-              .from('page_access_grants')
-              .select('page_path')
-              .eq('user_id', user.id);
-            setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
+            if (!impersonating) {
+              const { data: grants } = await supabase
+                .from('page_access_grants')
+                .select('page_path')
+                .eq('user_id', user.id);
+              setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
+            } else {
+              setGrantedPages(new Set());
+            }
             return;
           }
 
@@ -65,13 +88,12 @@ export function usePermissions() {
           // eslint-disable-next-line no-var
           var customRoleIdFromTM: string | null = teamMember.custom_role_id ?? null;
         }
-      }
 
       // Get user's custom role from team_members (set above)
       let customRoleId: string | null = typeof customRoleIdFromTM !== 'undefined' ? customRoleIdFromTM : null;
 
       // Fallback: if no custom_role_id, auto-assign based on departments
-      if (!customRoleId && depts.length > 0 && teamMemberId) {
+      if (!customRoleId && depts.length > 0 && teamMemberId && !impersonating) {
         const deptRoleName = `dept_${[...depts].sort().join('_')}`;
         const { data: roleByName } = await supabase
           .from('custom_roles')
@@ -99,27 +121,36 @@ export function usePermissions() {
       }
 
       // Fetch per-page exceptional access grants
-      const { data: grants } = await supabase
-        .from('page_access_grants')
-        .select('page_path')
-        .eq('user_id', user.id);
-
-      setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
+      if (impersonating?.user_id) {
+        const { data: grants } = await supabase
+          .from('page_access_grants')
+          .select('page_path')
+          .eq('user_id', impersonating.user_id);
+        setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
+      } else if (!impersonating) {
+        const { data: grants } = await supabase
+          .from('page_access_grants')
+          .select('page_path')
+          .eq('user_id', user.id);
+        setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
+      } else {
+        setGrantedPages(new Set());
+      }
       setLoading(false);
     };
 
     fetchPermissions();
-  }, [user, isOwner]);
+  }, [user, isOwner, impersonating]);
 
   const canAccess = (moduleKey: ModuleKey | string): boolean => {
     if (moduleKey === 'hub-equipa') return true;
-    if (isOwner) return true;
+    if (isOwner && !impersonating) return true;
     if (allowedModules.has('*')) return true;
     return allowedModules.has(moduleKey);
   };
 
   const hasPageAccess = (pagePath: string): boolean => {
-    if (isOwner) return true;
+    if (isOwner && !impersonating) return true;
     if (allowedModules.has('*')) return true;
     return grantedPages.has(pagePath);
   };
