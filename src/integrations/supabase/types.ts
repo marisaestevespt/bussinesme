@@ -7931,9 +7931,11 @@ export type Database = {
           estimated_sales: number | null
           id: string
           is_default: boolean
+          last_test_price: number | null
           lifetime_months: number | null
           name: string
           notes: string | null
+          price_breakdown: Json | null
           product_id: string
           sort_order: number | null
           ss_rate: number
@@ -7948,9 +7950,11 @@ export type Database = {
           estimated_sales?: number | null
           id?: string
           is_default?: boolean
+          last_test_price?: number | null
           lifetime_months?: number | null
           name: string
           notes?: string | null
+          price_breakdown?: Json | null
           product_id: string
           sort_order?: number | null
           ss_rate?: number
@@ -7965,9 +7969,11 @@ export type Database = {
           estimated_sales?: number | null
           id?: string
           is_default?: boolean
+          last_test_price?: number | null
           lifetime_months?: number | null
           name?: string
           notes?: string | null
+          price_breakdown?: Json | null
           product_id?: string
           sort_order?: number | null
           ss_rate?: number
