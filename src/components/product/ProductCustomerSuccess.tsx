@@ -9,7 +9,7 @@ import { useTeamData } from '@/hooks/useTeamData';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays, isPast, isFuture } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { AlertTriangle, CheckCircle2, Clock, User } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, User, Video } from 'lucide-react';
 
 const NPS_STATUS_OPTIONS = [
   { value: 'por_fazer', label: 'Por fazer' },
@@ -23,9 +23,10 @@ interface Props {
   productId: string;
   productName: string;
   isOwner: boolean;
+  productMeetings?: Array<Record<string, unknown>>;
 }
 
-export function ProductCustomerSuccess({ productId, productName, isOwner }: Props) {
+export function ProductCustomerSuccess({ productId, productName, isOwner, productMeetings = [] }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { members } = useTeamData({ members: true });
@@ -245,6 +246,47 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
                     </TableRow>
                   );
                 })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Reuniões do Produto */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Video className="h-4 w-4 text-primary" /> Reuniões deste Produto
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {productMeetings.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              Sem reuniões associadas a este produto.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productMeetings.map((mt) => (
+                  <TableRow
+                    key={mt.id as string}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => navigate(`/hub/reunioes/${mt.id}`)}
+                  >
+                    <TableCell className="font-medium">{mt.title as string}</TableCell>
+                    <TableCell>{mt.date_time ? format(new Date(mt.date_time as string), 'dd/MM/yyyy HH:mm') : '—'}</TableCell>
+                    <TableCell>{(mt.client_name as string) || '—'}</TableCell>
+                    <TableCell><Badge variant="outline">{mt.status as string}</Badge></TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}

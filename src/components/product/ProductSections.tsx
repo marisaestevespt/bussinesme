@@ -269,40 +269,6 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
           )}
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Video className="h-4 w-4" /> Reuniões
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {productMeetings.length === 0 ? (
-            <EmptyHint>Sem reuniões associadas a este produto.</EmptyHint>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {productMeetings.map((mt) => (
-                  <TableRow key={mt.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/reunioes/${mt.id}`)}>
-                    <TableCell className="font-medium">{mt.title as string}</TableCell>
-                    <TableCell>{mt.date_time ? format(new Date(mt.date_time as string), 'dd/MM/yyyy HH:mm') : '—'}</TableCell>
-                    <TableCell>{(mt.client_name as string) || '—'}</TableCell>
-                    <TableCell><Badge variant="outline">{mt.status as string}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
