@@ -176,7 +176,7 @@ function InlineStatusEditor({ meetingId, status }: { meetingId: string; status: 
   const qc = useQueryClient();
   const mutation = useMutation({
     mutationFn: async (next: MeetingStatus) => {
-      const { error } = await supabase.from('meetings').update({ status: next }).eq('id', meetingId);
+      const { error } = await supabase.from('meetings').update({ status: next as any }).eq('id', meetingId);
       if (error) throw error;
     },
     onSuccess: () => {
