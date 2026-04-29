@@ -23,8 +23,8 @@ export interface MeetingStatusInfo {
 export const MEETING_STATUSES: MeetingStatusInfo[] = [
   { value: 'por_confirmar', label: 'Por confirmar', color: 'bg-warning/15 text-warning border-warning/30',           dotColor: 'hsl(var(--warning))' },
   { value: 'confirmada',    label: 'Confirmada',    color: 'bg-success/15 text-success border-success/30',           dotColor: 'hsl(var(--success))' },
-  { value: 'por_organizar', label: 'Por organizar', color: 'bg-info/15 text-info border-info/30',                    dotColor: 'hsl(var(--info))' },
   { value: 'realizada',     label: 'Realizada',     color: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30', dotColor: 'hsl(var(--accent-violet))' },
+  { value: 'por_organizar', label: 'Por organizar', color: 'bg-info/15 text-info border-info/30',                    dotColor: 'hsl(var(--info))' },
   { value: 'terminada',     label: 'Terminada',     color: 'bg-muted text-muted-foreground border-border',           dotColor: 'hsl(var(--muted-foreground))' },
   { value: 'cancelada',     label: 'Cancelada',     color: 'bg-destructive/15 text-destructive border-destructive/30', dotColor: 'hsl(var(--destructive))' },
 ];

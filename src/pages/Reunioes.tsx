@@ -179,11 +179,29 @@ function InlineStatusEditor({ meetingId, status }: { meetingId: string; status: 
       const { error } = await supabase.from('meetings').update({ status: next as any }).eq('id', meetingId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['meetings'] });
-      toast.success('Status atualizado');
+    onMutate: async (next: MeetingStatus) => {
+      await qc.cancelQueries({ queryKey: ['meetings'] });
+      const prev = qc.getQueriesData({ queryKey: ['meetings'] });
+      qc.setQueriesData<any>({ queryKey: ['meetings'] }, (old: any) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((pg: any) => ({
+            ...pg,
+            data: pg.data.map((m: MeetingRow) => m.id === meetingId ? { ...m, status: next } : m),
+          })),
+        };
+      });
+      return { prev };
     },
-    onError: () => toast.error('Não consegui atualizar o status'),
+    onSuccess: () => {
+      toast.success('Status atualizado');
+      qc.invalidateQueries({ queryKey: ['meetings'] });
+    },
+    onError: (_e, _v, ctx: any) => {
+      ctx?.prev?.forEach(([key, data]: any) => qc.setQueryData(key, data));
+      toast.error('Não consegui atualizar o status');
+    },
   });
   const current = STATUSES.find(s => s.value === status) ?? STATUSES[0];
   return (
