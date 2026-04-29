@@ -71,6 +71,27 @@ const DEFAULT_VIEWS: DefaultView[] = [
 export default function TarefasPage() {
   const { user, isOwner } = useAuth();
   const { impersonating } = useImpersonation();
+  const effectiveUserId = impersonating?.user_id || user?.id;
+  const realIsOwner = isOwner && !impersonating;
+  const myProfileQ = useQuery({
+    queryKey: ['my-profile-id-tarefas', effectiveUserId],
+    enabled: !!effectiveUserId,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', effectiveUserId!).maybeSingle();
+      return data?.id ?? null;
+    },
+  });
+  const myProfileId = myProfileQ.data;
+
+  function canAccessTask(task: any): boolean {
+    if (realIsOwner) return true;
+    if (!task) return false;
+    if (effectiveUserId && task.created_by === effectiveUserId) return true;
+    if (myProfileId && task.assigned_to === myProfileId) return true;
+    if (myProfileId && task.original_assignee === myProfileId) return true;
+    return false;
+  }
   const queryClient = useQueryClient();
   const { startTimer: globalStartTimer } = useActiveTimer();
   const { allViews, addView, renameView, deleteView } = useUserViews('tarefas', DEFAULT_VIEWS);
