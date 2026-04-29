@@ -9,6 +9,8 @@ import { BusinessSettingsProvider, useBusinessSettings } from "@/hooks/useBusine
 import { ActiveTimerProvider } from "@/hooks/useActiveTimer";
 import { KpiSettingsProvider } from "@/hooks/useKpiSettings";
 import { FloatingTimer } from "@/components/FloatingTimer";
+import { ImpersonationProvider } from "@/contexts/ImpersonationContext";
+import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
 import NotFound from "./pages/NotFound";
@@ -279,18 +281,21 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <BusinessSettingsProvider>
-            <ActiveTimerProvider>
-              <KpiSettingsProvider>
-                <AppTabsProvider>
-                  <DialogsProvider>
-                    <FloatingTimer />
-                    <AppRoutes />
-                  </DialogsProvider>
-                </AppTabsProvider>
-              </KpiSettingsProvider>
-            </ActiveTimerProvider>
-          </BusinessSettingsProvider>
+          <ImpersonationProvider>
+            <BusinessSettingsProvider>
+              <ActiveTimerProvider>
+                <KpiSettingsProvider>
+                  <AppTabsProvider>
+                    <DialogsProvider>
+                      <ImpersonationBanner />
+                      <FloatingTimer />
+                      <AppRoutes />
+                    </DialogsProvider>
+                  </AppTabsProvider>
+                </KpiSettingsProvider>
+              </ActiveTimerProvider>
+            </BusinessSettingsProvider>
+          </ImpersonationProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
