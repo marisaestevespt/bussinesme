@@ -175,10 +175,8 @@ interface BackofficeSectionProps {
   onDeleteRow: (table: string, id: string) => void;
 }
 
-export function ProductBackofficeSection({ usefulLinks, improvements, productMeetings, isOwner, onAddLink, onAddImprovement, onUpdateRow, onDeleteRow }: BackofficeSectionProps) {
+export function ProductBackofficeSection({ usefulLinks, improvements, productMeetings, isOwner, productId, onAddLink, onAddImprovement, onUpdateRow, onDeleteRow }: BackofficeSectionProps) {
   const navigate = useNavigate();
-  // productId vem implícito via usefulLinks (todos têm o mesmo product_id)
-  const productId = (usefulLinks[0]?.product_id as string) || '';
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
