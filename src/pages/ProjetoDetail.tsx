@@ -31,6 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { toast } from 'sonner';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -89,6 +90,9 @@ export default function ProjetoDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isOwner } = useAuth();
+  const { impersonating } = useImpersonation();
+  const effectiveUserId = impersonating?.user_id || user?.id;
   const { getPhotoUrl } = useTeamPhotos();
 
   const [subPage, setSubPage] = useState<SubPage>(null);
@@ -343,6 +347,25 @@ export default function ProjetoDetailPage() {
   });
 
   if (isLoading || !local) return <AppLayout><div className="space-y-6"><div className="h-8 w-48 animate-pulse rounded bg-muted" /><div className="grid gap-4 md:grid-cols-2"><div className="h-32 animate-pulse rounded-lg bg-muted" /><div className="h-32 animate-pulse rounded-lg bg-muted" /></div><div className="h-64 animate-pulse rounded-lg bg-muted" /></div></AppLayout>;
+
+  // Access gate: Owner real (sem impersonação), criador, ou membro do projeto.
+  const realIsOwner = isOwner && !impersonating;
+  const myProfileId = profiles.find((p: any) => p.user_id === effectiveUserId)?.id ?? null;
+  const isCreator = !!effectiveUserId && (local as any).created_by === effectiveUserId;
+  const isProjectMember = !!myProfileId && projectMembers.includes(myProfileId);
+  if (!realIsOwner && !isCreator && !isProjectMember) {
+    return (
+      <AppLayout>
+        <div className="max-w-xl mx-auto mt-12 rounded-xl border border-border/60 bg-card p-8 text-center space-y-3 shadow-subtle">
+          <h2 className="text-lg font-semibold text-foreground">Sem acesso ao projeto</h2>
+          <p className="text-sm text-muted-foreground">
+            Só os membros e o criador do projeto podem ver o detalhe e editar.
+          </p>
+          <Button variant="outline" onClick={() => navigate('/hub/projetos')}>← Voltar aos projetos</Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const typeI = getTypeInfo(local.type);
   const statusI = getStatusInfo(local.status);
