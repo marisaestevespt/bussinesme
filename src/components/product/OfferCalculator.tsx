@@ -363,7 +363,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
   const updateScenario = useMutation({
     mutationFn: async (data: Partial<Scenario>) => {
-      const { error } = await supabase.from('product_offer_scenarios').update(data).eq('id', scenario.id);
+      const { error } = await supabase.from('product_offer_scenarios').update(data as any).eq('id', scenario.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['product-offer-scenarios', productId] }),
