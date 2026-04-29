@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, ChevronDown, ChevronRight, Settings, ClipboardList } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, Settings, ClipboardList, Pencil, Check, X } from 'lucide-react';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { toast } from 'sonner';
 
 interface Props {
   productId: string;
@@ -57,14 +58,167 @@ function isConfigGroup(group: string) {
   return group.startsWith('Config. Sistema');
 }
 
-function GroupCard({ group, questions, isCollapsed, isOwner, onToggle, onAdd, onUpdate, onDelete }: {
+function QuestionRow({
+  q,
+  idx,
+  isOwner,
+  startInEdit,
+  onSave,
+  onDelete,
+}: {
+  q: Question;
+  idx: number;
+  isOwner: boolean;
+  startInEdit: boolean;
+  onSave: (id: string, data: Record<string, unknown>) => Promise<void> | void;
+  onDelete: (id: string) => void;
+}) {
+  const [editing, setEditing] = useState(startInEdit);
+  const [draft, setDraft] = useState({
+    question: q.question || '',
+    internal_note: q.internal_note || '',
+    answer_type: q.answer_type || 'text',
+  });
+
+  // Sincroniza com servidor quando q muda externamente e não estamos a editar.
+  useEffect(() => {
+    if (!editing) {
+      setDraft({
+        question: q.question || '',
+        internal_note: q.internal_note || '',
+        answer_type: q.answer_type || 'text',
+      });
+    }
+  }, [q.question, q.internal_note, q.answer_type, editing]);
+
+  const typeLabel = ANSWER_TYPES.find(t => t.value === q.answer_type)?.label || q.answer_type;
+
+  const handleSave = async () => {
+    await onSave(q.id, {
+      question: draft.question,
+      internal_note: draft.internal_note || null,
+      answer_type: draft.answer_type,
+    });
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setDraft({
+      question: q.question || '',
+      internal_note: q.internal_note || '',
+      answer_type: q.answer_type || 'text',
+    });
+    setEditing(false);
+  };
+
+  if (!editing) {
+    return (
+      <div className="flex gap-2 items-start group rounded-md hover:bg-muted/40 px-2 py-1.5 -mx-2 transition-colors">
+        <span className="text-xs text-muted-foreground mt-1 w-5 shrink-0">{idx + 1}.</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start gap-2">
+            <p className="text-sm text-foreground flex-1 min-w-0 break-words">
+              {q.question || <span className="italic text-muted-foreground">Sem texto</span>}
+            </p>
+            <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">{typeLabel}</Badge>
+          </div>
+          {q.internal_note && (
+            <p className="text-xs text-muted-foreground italic mt-0.5">{q.internal_note}</p>
+          )}
+        </div>
+        {isOwner && (
+          <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              aria-label="Editar"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              aria-label="Eliminar"
+              onClick={() => onDelete(q.id)}
+            >
+              <Trash2 className="h-3 w-3 text-destructive" />
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-2 items-start rounded-md bg-muted/30 px-2 py-2 -mx-2">
+      <span className="text-xs text-muted-foreground mt-2.5 w-5 shrink-0">{idx + 1}.</span>
+      <div className="flex-1 space-y-1.5 min-w-0">
+        <Input
+          value={draft.question}
+          onChange={e => setDraft(d => ({ ...d, question: e.target.value }))}
+          placeholder="Pergunta..."
+          className="text-sm h-8"
+          autoFocus
+        />
+        <div className="flex gap-2 items-center">
+          <Input
+            value={draft.internal_note}
+            onChange={e => setDraft(d => ({ ...d, internal_note: e.target.value }))}
+            placeholder="Nota interna (opcional)"
+            className="text-xs h-7 flex-1 italic"
+          />
+          <Select
+            value={draft.answer_type}
+            onValueChange={v => setDraft(d => ({ ...d, answer_type: v }))}
+          >
+            <SelectTrigger className="h-7 w-[110px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ANSWER_TYPES.map(t => (
+                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="flex gap-1 shrink-0">
+        <Button
+          size="icon"
+          variant="default"
+          className="h-7 w-7"
+          aria-label="Guardar"
+          onClick={handleSave}
+          disabled={!draft.question.trim()}
+        >
+          <Check className="h-3 w-3" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7"
+          aria-label="Cancelar"
+          onClick={handleCancel}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function GroupCard({ group, questions, isCollapsed, isOwner, justAddedId, onToggle, onAdd, onSave, onDelete }: {
   group: string;
   questions: Question[];
   isCollapsed: boolean;
   isOwner: boolean;
+  justAddedId: string | null;
   onToggle: () => void;
   onAdd: () => void;
-  onUpdate: (id: string, data: Record<string, unknown>) => void;
+  onSave: (id: string, data: Record<string, unknown>) => Promise<void> | void;
   onDelete: (id: string) => void;
 }) {
   const displayName = group.replace('Config. Sistema — ', '');
@@ -84,54 +238,20 @@ function GroupCard({ group, questions, isCollapsed, isOwner, onToggle, onAdd, on
         )}
       </CardHeader>
       {!isCollapsed && (
-        <CardContent className="pt-0 px-4 pb-3 space-y-2">
+        <CardContent className="pt-0 px-4 pb-3 space-y-1">
           {questions.length === 0 && (
             <EmptyHint>Sem perguntas neste grupo</EmptyHint>
           )}
           {questions.map((q, idx) => (
-            <div key={q.id} className="flex gap-2 items-start group">
-              <span className="text-xs text-muted-foreground mt-2.5 w-5 shrink-0">{idx + 1}.</span>
-              <div className="flex-1 space-y-1">
-                <Input
-                  defaultValue={q.question}
-                  placeholder="Pergunta..."
-                  className="text-sm h-8"
-                  onBlur={e => {
-                    if (e.target.value !== q.question) onUpdate(q.id, { question: e.target.value });
-                  }}
-                  readOnly={!isOwner}
-                />
-                <div className="flex gap-2 items-center">
-                  <Input
-                    defaultValue={q.internal_note || ''}
-                    placeholder="Nota interna (opcional)"
-                    className="text-xs h-7 flex-1 text-muted-foreground italic"
-                    onBlur={e => {
-                      if (e.target.value !== (q.internal_note || '')) onUpdate(q.id, { internal_note: e.target.value || null });
-                    }}
-                    readOnly={!isOwner}
-                  />
-                  {isOwner && (
-                    <Select
-                      value={q.answer_type}
-                      onValueChange={v => onUpdate(q.id, { answer_type: v })}
-                    >
-                      <SelectTrigger className="h-7 w-[110px] text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ANSWER_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </div>
-              {isOwner && (
-                <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" onClick={() => onDelete(q.id)}>
-                  <Trash2 className="h-3 w-3 text-destructive" />
-                </Button>
-              )}
-            </div>
+            <QuestionRow
+              key={q.id}
+              q={q}
+              idx={idx}
+              isOwner={isOwner}
+              startInEdit={q.id === justAddedId || !q.question}
+              onSave={onSave}
+              onDelete={onDelete}
+            />
           ))}
         </CardContent>
       )}
@@ -144,6 +264,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
   const key = ['product_diagnostic_questions', productId];
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [collapsedInitialized, setCollapsedInitialized] = useState(false);
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: key,
@@ -173,15 +294,22 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
       const maxOrder = questions.filter(q => q.question_group === group).reduce((max, q) => Math.max(max, q.sort_order), -1);
       const allGroups = [...DIAGNOSTIC_GROUPS, ...CONFIG_GROUPS];
       const groupSortOrder = allGroups.indexOf(group);
-      const { error } = await (supabase as any).from('product_diagnostic_questions').insert({
+      const { data, error } = await (supabase as any).from('product_diagnostic_questions').insert({
         product_id: productId,
         question_group: group,
         question: '',
         answer_type: 'text',
         sort_order: maxOrder + 1,
         group_sort_order: groupSortOrder >= 0 ? groupSortOrder : 99,
-      });
+      }).select().single();
       if (error) throw error;
+      // Abre o grupo onde a pergunta foi criada para ela ficar visível em modo edit.
+      setCollapsedGroups(prev => {
+        const next = new Set(prev);
+        next.delete(group);
+        return next;
+      });
+      setJustAddedId((data as Question).id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
@@ -191,7 +319,12 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
       const { error } = await (supabase as any).from('product_diagnostic_questions').update(data).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: key });
+      if (justAddedId && vars.id === justAddedId) setJustAddedId(null);
+      toast.success('Pergunta guardada');
+    },
+    onError: () => toast.error('Erro ao guardar pergunta'),
   });
 
   const deleteQuestion = useMutation({
@@ -215,7 +348,8 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
     });
   };
 
-  const handleUpdate = (id: string, data: Record<string, unknown>) => updateQuestion.mutate({ id, ...data });
+  const handleSave = (id: string, data: Record<string, unknown>) =>
+    updateQuestion.mutateAsync({ id, ...data });
   const handleDelete = (id: string) => deleteQuestion.mutate(id);
 
   if (isLoading) return <div className="text-sm text-muted-foreground">A carregar...</div>;
@@ -256,9 +390,10 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
           questions={questions.filter(q => q.question_group === group)}
           isCollapsed={collapsedGroups.has(group)}
           isOwner={isOwner}
+          justAddedId={justAddedId}
           onToggle={() => toggleGroup(group)}
           onAdd={() => addQuestion.mutate(group)}
-          onUpdate={handleUpdate}
+          onSave={handleSave}
           onDelete={handleDelete}
         />
       ))}
