@@ -296,6 +296,10 @@ export default function TarefasPage() {
   }
 
   function openEdit(task: any) {
+    if (!canAccessTask(task)) {
+      toast.error('Sem acesso', { description: 'Só o responsável ou criador da tarefa pode abrir o detalhe.' });
+      return;
+    }
     setEditingTask(task);
     setName(task.name); setStatus(task.status); setPriority(task.priority);
     setDeadline(task.deadline ? parseISO(task.deadline) : undefined);
