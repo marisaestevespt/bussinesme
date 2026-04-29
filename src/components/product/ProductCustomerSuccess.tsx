@@ -123,7 +123,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
   const activeClients = productClients.filter((c: any) => c.status === 'ativo' || c.status === 'em_onboarding');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* NPS History */}
       <Card>
         <CardHeader>

@@ -313,7 +313,7 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
     red: 'bg-destructive',
   };
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* ─── Auto KPI cards ─── */}

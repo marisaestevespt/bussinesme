@@ -72,7 +72,7 @@ export function ProductComercialSection({
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">

@@ -69,7 +69,7 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
   ).sort((a: any, b: any) => b.total - a.total);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>

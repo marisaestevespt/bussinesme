@@ -40,7 +40,7 @@ export function ProductProcessosSection({ productSops, projectTemplate, isOwner,
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       <Card>
         <CardHeader><CardTitle className="text-base">Processos (SOPs)</CardTitle></CardHeader>
         <CardContent>
@@ -180,7 +180,7 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       {productId && (
         <ProductLinksAggregator
           productId={productId}
@@ -394,7 +394,7 @@ interface ContabilidadeSectionProps {
 
 export function ProductContabilidadeSection({ form, costs, isOwner, productId, onUpdateField, onAddCost, onUpdateCost, onDeleteCost }: ContabilidadeSectionProps) {
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       <Card>
         <CardHeader><CardTitle className="text-base">Dados de Faturação</CardTitle></CardHeader>
         <CardContent className="space-y-4">
