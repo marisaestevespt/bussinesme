@@ -170,6 +170,102 @@ function initials(name: string | null) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
+// ─── Inline editors (status + date/time) ────────────────────────
+
+function InlineStatusEditor({ meetingId, status }: { meetingId: string; status: MeetingStatus }) {
+  const qc = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (next: MeetingStatus) => {
+      const { error } = await supabase.from('meetings').update({ status: next }).eq('id', meetingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['meetings'] });
+      toast.success('Status atualizado');
+    },
+    onError: () => toast.error('Não consegui atualizar o status'),
+  });
+  const current = STATUSES.find(s => s.value === status) ?? STATUSES[0];
+  return (
+    <Select value={status} onValueChange={(v) => mutation.mutate(v as MeetingStatus)}>
+      <SelectTrigger
+        className="h-7 w-fit min-w-[110px] border-0 bg-transparent px-2 py-0 text-xs font-medium rounded-full hover:bg-muted/60 focus:ring-1 focus:ring-ring"
+        style={{ backgroundColor: `${current.color}20`, color: current.color }}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {STATUSES.map(s => (
+          <SelectItem key={s.value} value={s.value}>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+              {s.label}
+            </span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function InlineDateTimeEditor({ meetingId, dateTime }: { meetingId: string; dateTime: string }) {
+  const qc = useQueryClient();
+  const initial = parseISO(dateTime);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<Date>(initial);
+
+  useEffect(() => { setDraft(parseISO(dateTime)); }, [dateTime]);
+
+  const mutation = useMutation({
+    mutationFn: async (next: Date) => {
+      const { error } = await supabase.from('meetings').update({ date_time: next.toISOString() }).eq('id', meetingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['meetings'] });
+      toast.success('Data atualizada');
+      setOpen(false);
+    },
+    onError: () => toast.error('Não consegui atualizar a data'),
+  });
+
+  const handleDay = (day: Date | undefined) => {
+    if (!day) return;
+    const n = new Date(day);
+    n.setHours(draft.getHours(), draft.getMinutes(), 0, 0);
+    setDraft(n);
+  };
+  const handleTime = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [h, mi] = e.target.value.split(':').map(Number);
+    const n = new Date(draft);
+    n.setHours(h || 0, mi || 0, 0, 0);
+    setDraft(n);
+  };
+  const timeValue = `${String(draft.getHours()).padStart(2, '0')}:${String(draft.getMinutes()).padStart(2, '0')}`;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="text-muted-foreground hover:text-foreground hover:underline text-left"
+        >
+          {format(initial, "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar mode="single" selected={draft} onSelect={handleDay} initialFocus className="p-3 pointer-events-auto" />
+        <div className="flex items-center gap-2 border-t p-2">
+          <Input type="time" value={timeValue} onChange={handleTime} className="h-8 text-sm" />
+          <Button size="sm" onClick={() => mutation.mutate(draft)} disabled={mutation.isPending}>
+            Guardar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ─── Date Time Picker ───────────────────────────────────────────
 
 function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onSelect: (d: Date | undefined) => void; placeholder: string }) {
