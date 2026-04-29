@@ -972,3 +972,196 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
     </div>
   );
 }
+
+/* ── LinkList: itens estáticos, edição explícita por linha ── */
+
+interface LinkItem { label: string; url: string }
+
+function isLikelyFile(url: string): boolean {
+  return /\.(pdf|docx?|xlsx?|pptx?|png|jpe?g|gif|webp|svg|zip|rar|csv|ai|psd|fig|sketch|mp4|mov)(\?|$)/i.test(url);
+}
+
+function LinkList({
+  title, placeholder, isOwner, items, onChange, onUploadFile, uploading,
+}: {
+  title: string;
+  placeholder: string;
+  isOwner: boolean;
+  items: LinkItem[];
+  onChange: (next: LinkItem[]) => void;
+  onUploadFile: (file: File, items: LinkItem[]) => void;
+  uploading: boolean;
+}) {
+  // Indices currently in edit mode (newly added items start in edit mode automatically).
+  const [editing, setEditing] = useState<Set<number>>(new Set());
+  const [drafts, setDrafts] = useState<Record<number, LinkItem>>({});
+
+  const startEdit = (i: number) => {
+    setDrafts((d) => ({ ...d, [i]: { ...items[i] } }));
+    setEditing((e) => new Set(e).add(i));
+  };
+
+  const cancelEdit = (i: number) => {
+    // If it's an empty new row, remove it; otherwise just revert.
+    if (!items[i]?.label && !items[i]?.url) {
+      onChange(items.filter((_, j) => j !== i));
+    }
+    setDrafts((d) => { const { [i]: _, ...rest } = d; return rest; });
+    setEditing((e) => { const next = new Set(e); next.delete(i); return next; });
+  };
+
+  const saveEdit = (i: number) => {
+    const draft = drafts[i] ?? items[i];
+    if (!draft?.url?.trim()) {
+      toast.error('Adiciona um link ou ficheiro antes de guardar.');
+      return;
+    }
+    const next = [...items];
+    next[i] = {
+      label: draft.label?.trim() || draft.url.split('/').pop() || 'Sem nome',
+      url: draft.url.trim(),
+    };
+    onChange(next);
+    setDrafts((d) => { const { [i]: _, ...rest } = d; return rest; });
+    setEditing((e) => { const n = new Set(e); n.delete(i); return n; });
+    toast.success('Guardado');
+  };
+
+  const addRow = () => {
+    const newIndex = items.length;
+    onChange([...items, { label: '', url: '' }]);
+    setDrafts((d) => ({ ...d, [newIndex]: { label: '', url: '' } }));
+    setEditing((e) => new Set(e).add(newIndex));
+  };
+
+  return (
+    <div className="space-y-3 pt-2">
+      <Label className="text-sm font-semibold block">{title}</Label>
+
+      {items.length === 0 && (
+        <p className="text-xs text-muted-foreground italic">Ainda não há nada aqui.</p>
+      )}
+
+      <div className="space-y-2">
+        {items.map((item, i) => {
+          const isEditing = editing.has(i);
+          const draft = drafts[i] ?? item;
+
+          if (!isEditing) {
+            // Static (saved) view — chip-like row
+            const Icon = isLikelyFile(item.url) ? FileText : Link2;
+            return (
+              <div
+                key={i}
+                className="group flex items-center gap-3 p-2.5 rounded-lg border border-border bg-card hover:border-primary/40 transition-colors"
+              >
+                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">{item.label || 'Sem nome'}</div>
+                  <div className="text-[11px] text-muted-foreground truncate">{item.url}</div>
+                </div>
+                {item.url && (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 p-1.5 hover:bg-primary/10 rounded-md text-primary"
+                    title="Abrir"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {isOwner && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => startEdit(i)}
+                      title="Editar"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                      onClick={() => onChange(items.filter((_, j) => j !== i))}
+                      title="Remover"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            );
+          }
+
+          // Edit mode
+          return (
+            <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center p-3 rounded-lg border border-primary/40 bg-primary/5">
+              <Input
+                value={draft.label}
+                onChange={(e) => setDrafts((d) => ({ ...d, [i]: { ...draft, label: e.target.value } }))}
+                placeholder="Nome"
+                className="h-9 text-sm sm:w-1/3"
+                autoFocus
+              />
+              <Input
+                value={draft.url}
+                onChange={(e) => setDrafts((d) => ({ ...d, [i]: { ...draft, url: e.target.value } }))}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(i); if (e.key === 'Escape') cancelEdit(i); }}
+                placeholder={placeholder}
+                className="h-9 text-sm flex-1"
+              />
+              <div className="flex gap-1 items-center self-end sm:self-auto">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => saveEdit(i)}
+                >
+                  <Check className="h-3.5 w-3.5 mr-1" /> Guardar
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => cancelEdit(i)}
+                  title="Cancelar"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {isOwner && (
+        <div className="flex gap-2 flex-wrap pt-1">
+          <Button variant="outline" size="sm" onClick={addRow}>
+            <Plus className="h-3 w-3 mr-1" /> Adicionar link
+          </Button>
+          <label>
+            <input
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onUploadFile(f, items);
+                e.target.value = '';
+              }}
+            />
+            <Button type="button" variant="outline" size="sm" disabled={uploading} asChild>
+              <span className="cursor-pointer">
+                <Upload className="h-3 w-3 mr-1" />
+                {uploading ? 'A carregar...' : 'Carregar ficheiro'}
+              </span>
+            </Button>
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
