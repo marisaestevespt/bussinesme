@@ -809,45 +809,24 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
 
             {/* Cores (HSL para combinar com o sistema) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Cor Primária (HSL)</Label>
-                <Input
-                  value={pb.primary_color || ''}
-                  onChange={(e) => setPB({ primary_color: e.target.value })}
-                  placeholder="Ex: 351 56% 28%"
-                  className="h-9 text-sm"
-                  readOnly={!isOwner}
-                />
-                {pb.primary_color && (
-                  <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.primary_color})` }} />
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Cor de Destaque (HSL)</Label>
-                <Input
-                  value={pb.accent_color || ''}
-                  onChange={(e) => setPB({ accent_color: e.target.value })}
-                  placeholder="Ex: 26 40% 39%"
-                  className="h-9 text-sm"
-                  readOnly={!isOwner}
-                />
-                {pb.accent_color && (
-                  <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.accent_color})` }} />
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Cor de Texto (HSL)</Label>
-                <Input
-                  value={pb.text_color || ''}
-                  onChange={(e) => setPB({ text_color: e.target.value })}
-                  placeholder="Ex: 0 0% 16%"
-                  className="h-9 text-sm"
-                  readOnly={!isOwner}
-                />
-                {pb.text_color && (
-                  <div className="h-2 rounded" style={{ backgroundColor: `hsl(${pb.text_color})` }} />
-                )}
-              </div>
+              <PortalColorField
+                label="Cor Primária"
+                value={pb.primary_color}
+                onChange={(v) => setPB({ primary_color: v })}
+                disabled={!isOwner}
+              />
+              <PortalColorField
+                label="Cor de Destaque"
+                value={pb.accent_color}
+                onChange={(v) => setPB({ accent_color: v })}
+                disabled={!isOwner}
+              />
+              <PortalColorField
+                label="Cor de Texto"
+                value={pb.text_color}
+                onChange={(v) => setPB({ text_color: v })}
+                disabled={!isOwner}
+              />
             </div>
 
             {/* Tipografia */}
