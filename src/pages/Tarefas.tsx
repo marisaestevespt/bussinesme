@@ -69,6 +69,7 @@ const DEFAULT_VIEWS: DefaultView[] = [
 
 export default function TarefasPage() {
   const { user, isOwner } = useAuth();
+  const { impersonating } = (require('@/contexts/ImpersonationContext') as typeof import('@/contexts/ImpersonationContext')).useImpersonation();
   const queryClient = useQueryClient();
   const { startTimer: globalStartTimer } = useActiveTimer();
   const { allViews, addView, renameView, deleteView } = useUserViews('tarefas', DEFAULT_VIEWS);
