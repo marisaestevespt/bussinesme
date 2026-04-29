@@ -614,90 +614,106 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
-            {/* Pré-visualização ao vivo do portal */}
-            <div className="rounded-lg border border-border overflow-hidden bg-background">
-              <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-b border-border">
-                <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
-                  Pré-visualização do Portal (login)
-                </span>
-                <span className="text-[10px] text-muted-foreground">Atualiza em tempo real</span>
-              </div>
-              <div
-                className="grid grid-cols-1 md:grid-cols-2 min-h-[260px]"
-                style={{
-                  fontFamily: previewFontBody,
-                  color: `hsl(${previewText})`,
-                }}
-              >
-                {/* Hero / painel lateral */}
+            {/* Pré-visualização ao vivo do portal — generosa, sticky enquanto preenches */}
+            <div className="lg:sticky lg:top-4 z-10 -mx-2 sm:mx-0">
+              <div className="rounded-xl border border-border overflow-hidden bg-muted/30 shadow-sm">
+                {/* Browser chrome */}
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/60 border-b border-border">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
+                  </div>
+                  <div className="flex-1 mx-3 h-6 rounded-md bg-background border border-border/50 flex items-center px-3 text-[11px] text-muted-foreground truncate">
+                    portal.{(previewName || 'negocio').toLowerCase().replace(/\s+/g, '')}.com
+                  </div>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Pré-visualização ao vivo</span>
+                </div>
+                {/* Conteúdo do portal — proporção alta, cheia */}
                 <div
-                  className="relative p-5 flex flex-col justify-end min-h-[180px]"
+                  className="grid grid-cols-1 md:grid-cols-2 aspect-[16/9] md:aspect-[16/8] min-h-[420px]"
                   style={{
-                    backgroundColor: `hsl(${previewPrimary})`,
-                    backgroundImage: previewHeroImage ? `url(${previewHeroImage})` : undefined,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
+                    fontFamily: previewFontBody,
+                    color: `hsl(${previewText})`,
                   }}
                 >
-                  {previewHeroImage && (
-                    <div className="absolute inset-0" style={{ backgroundColor: `hsl(${previewPrimary} / 0.55)` }} />
-                  )}
-                  <div className="relative z-10 text-white">
-                    <div
-                      className="text-xl leading-tight"
-                      style={{ fontFamily: previewFontDisplay }}
-                    >
-                      {previewHeroTitle}
-                    </div>
-                    <div className="text-xs opacity-90 mt-1">{previewHeroSubtitle}</div>
-                  </div>
-                </div>
-                {/* Painel de login */}
-                <div className="p-5 flex flex-col gap-3 bg-background">
-                  <div className="flex items-center gap-2">
-                    {previewLogo ? (
-                      <img src={previewLogo} alt="" className="h-7 object-contain" />
-                    ) : (
-                      <div
-                        className="h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold text-white"
-                        style={{ backgroundColor: `hsl(${previewPrimary})` }}
-                      >
-                        {previewName.charAt(0).toUpperCase()}
-                      </div>
+                  {/* Hero / painel lateral */}
+                  <div
+                    className="relative p-8 flex flex-col justify-end min-h-[260px]"
+                    style={{
+                      backgroundColor: `hsl(${previewPrimary})`,
+                      backgroundImage: previewHeroImage ? `url(${previewHeroImage})` : undefined,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  >
+                    {previewHeroImage && (
+                      <div className="absolute inset-0" style={{ backgroundColor: `hsl(${previewPrimary} / 0.5)` }} />
                     )}
-                    <span
-                      className="text-sm font-medium"
-                      style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
-                    >
-                      {previewName}
-                    </span>
-                  </div>
-                  <div>
-                    <div
-                      className="text-lg leading-tight"
-                      style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
-                    >
-                      {previewLoginTitle}
-                    </div>
-                    <div className="text-xs mt-0.5" style={{ color: `hsl(${previewText} / 0.7)` }}>
-                      {previewLoginSubtitle}
+                    <div className="relative z-10 text-white space-y-2">
+                      <div
+                        className="text-3xl md:text-4xl leading-tight font-medium"
+                        style={{ fontFamily: previewFontDisplay }}
+                      >
+                        {previewHeroTitle}
+                      </div>
+                      <div className="text-sm md:text-base opacity-90 max-w-sm">
+                        {previewHeroSubtitle}
+                      </div>
                     </div>
                   </div>
-                  <p className="text-xs leading-relaxed" style={{ color: `hsl(${previewText} / 0.8)` }}>
-                    {previewWelcome}
-                  </p>
-                  <div className="mt-auto space-y-2">
-                    <div
-                      className="h-7 rounded-md border px-2 flex items-center text-[11px]"
-                      style={{ borderColor: `hsl(${previewText} / 0.15)`, color: `hsl(${previewText} / 0.5)` }}
-                    >
-                      email@exemplo.com
+                  {/* Painel de login */}
+                  <div className="p-8 md:p-10 flex flex-col gap-5 bg-background">
+                    <div className="flex items-center gap-3">
+                      {previewLogo ? (
+                        <img src={previewLogo} alt="" className="h-10 object-contain" />
+                      ) : (
+                        <div
+                          className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold text-white"
+                          style={{ backgroundColor: `hsl(${previewPrimary})` }}
+                        >
+                          {previewName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <span
+                        className="text-base font-medium"
+                        style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
+                      >
+                        {previewName}
+                      </span>
                     </div>
-                    <div
-                      className="h-7 rounded-md flex items-center justify-center text-[11px] font-medium text-white"
-                      style={{ backgroundColor: `hsl(${previewAccent})` }}
-                    >
-                      Entrar
+                    <div className="space-y-1">
+                      <div
+                        className="text-2xl md:text-3xl leading-tight"
+                        style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
+                      >
+                        {previewLoginTitle}
+                      </div>
+                      <div className="text-sm" style={{ color: `hsl(${previewText} / 0.65)` }}>
+                        {previewLoginSubtitle}
+                      </div>
+                    </div>
+                    <p className="text-sm leading-relaxed" style={{ color: `hsl(${previewText} / 0.8)` }}>
+                      {previewWelcome}
+                    </p>
+                    <div className="mt-auto space-y-3">
+                      <div className="space-y-1.5">
+                        <div className="text-[11px] uppercase tracking-wider" style={{ color: `hsl(${previewText} / 0.5)` }}>
+                          Email
+                        </div>
+                        <div
+                          className="h-11 rounded-md border px-3 flex items-center text-sm"
+                          style={{ borderColor: `hsl(${previewText} / 0.18)`, color: `hsl(${previewText} / 0.55)` }}
+                        >
+                          email@exemplo.com
+                        </div>
+                      </div>
+                      <div
+                        className="h-11 rounded-md flex items-center justify-center text-sm font-medium text-white"
+                        style={{ backgroundColor: `hsl(${previewAccent})` }}
+                      >
+                        Entrar no portal
+                      </div>
                     </div>
                   </div>
                 </div>
