@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb } from 'lucide-react';
+import { SharedMeetingsList, type SharedMeetingItem } from '@/components/shared/SharedMeetingsList';
 
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -191,7 +192,7 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
         />
       )}
 
-      {/* Reuniões do produto (operacional) */}
+      {/* Reuniões do produto (operacional) — usa o mesmo UI da página Reuniões */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -200,30 +201,10 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
           <p className="text-xs text-muted-foreground">Inclui reuniões com clientes e internas.</p>
         </CardHeader>
         <CardContent>
-          {productMeetings.length === 0 ? (
-            <EmptyHint>Sem reuniões associadas a este produto.</EmptyHint>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Cliente / Contexto</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {productMeetings.map((mt) => (
-                  <TableRow key={mt.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/reunioes/${mt.id}`)}>
-                    <TableCell className="font-medium">{mt.title as string}</TableCell>
-                    <TableCell>{mt.date_time ? format(new Date(mt.date_time as string), 'dd/MM/yyyy HH:mm') : '—'}</TableCell>
-                    <TableCell>{(mt.client_name as string) || <span className="text-muted-foreground italic text-xs">Interna</span>}</TableCell>
-                    <TableCell><Badge variant="outline">{mt.status as string}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <SharedMeetingsList
+            items={productMeetings as unknown as SharedMeetingItem[]}
+            emptyLabel="Sem reuniões associadas a este produto."
+          />
         </CardContent>
       </Card>
 

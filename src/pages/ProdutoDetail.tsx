@@ -176,7 +176,7 @@ export default function ProdutoDetailPage() {
     queryKey: ['product-meetings', id],
     queryFn: async () => {
       if (!id) return [];
-      const { data } = await supabase.from('meetings').select('id, title, date_time, status, client_name, project_name').eq('product_id', id).order('date_time', { ascending: false });
+      const { data } = await supabase.from('meetings').select('id, title, date_time, status, client_name, project_name, meeting_type, department').eq('product_id', id).order('date_time', { ascending: false });
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !!id,
