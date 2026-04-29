@@ -25,6 +25,7 @@ import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { toast } from 'sonner';
@@ -353,6 +354,9 @@ export default function ReuniaoDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isOwner } = useAuth();
+  const { user } = useAuth();
+  const { impersonating } = useImpersonation();
+  const effectiveUserId = impersonating?.user_id || user?.id;
   const { settings } = useBusinessSettings();
 
   const { data: meeting, isLoading } = useMeeting(id!);
@@ -571,6 +575,30 @@ export default function ReuniaoDetailPage() {
       <AppLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <InlineLoader />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // ── Access gate ────────────────────────────────────────────────
+  // Owner real (sem impersonação) vê tudo.
+  // Caso contrário, só vê quem é criador OU participante da reunião.
+  const realIsOwner = isOwner && !impersonating;
+  const myProfileId = profiles.find(p => p.user_id === effectiveUserId)?.id ?? null;
+  const isCreator = !!effectiveUserId && m.created_by === effectiveUserId;
+  const isParticipant = !!myProfileId && participants.some(pp => pp.profile_id === myProfileId);
+  const canViewDetail = realIsOwner || isCreator || isParticipant;
+  const canEdit = canViewDetail; // mesmas regras: só quem participa edita
+
+  if (!canViewDetail) {
+    return (
+      <AppLayout>
+        <div className="max-w-xl mx-auto mt-12 rounded-xl border border-border/60 bg-card p-8 text-center space-y-3 shadow-subtle">
+          <h2 className="text-lg font-semibold text-foreground">Sem acesso ao detalhe</h2>
+          <p className="text-sm text-muted-foreground">
+            Esta reunião está marcada para outras pessoas. Só os participantes ou o criador podem ver o detalhe e editar.
+          </p>
+          <Button variant="outline" onClick={() => navigate('/hub/reunioes')}>← Voltar às reuniões</Button>
         </div>
       </AppLayout>
     );
