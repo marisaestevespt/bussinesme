@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -143,6 +143,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
   const qc = useQueryClient();
   const key = ['product_diagnostic_questions', productId];
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [collapsedInitialized, setCollapsedInitialized] = useState(false);
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: key,
@@ -157,6 +158,15 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
       return data as Question[];
     },
   });
+
+  // Inicializa todos os grupos como FECHADOS por defeito (uma única vez).
+  useEffect(() => {
+    if (collapsedInitialized || isLoading) return;
+    const groups = Array.from(new Set(questions.map(q => q.question_group)));
+    const all = new Set<string>([...DIAGNOSTIC_GROUPS, ...CONFIG_GROUPS, ...groups]);
+    setCollapsedGroups(all);
+    setCollapsedInitialized(true);
+  }, [questions, isLoading, collapsedInitialized]);
 
   const addQuestion = useMutation({
     mutationFn: async (group: string) => {
