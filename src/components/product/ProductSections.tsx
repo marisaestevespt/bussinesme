@@ -181,51 +181,49 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
       {productId && (
-        <ProductLinksAggregator productId={productId} manualLinks={usefulLinks} />
+        <ProductLinksAggregator
+          productId={productId}
+          manualLinks={usefulLinks}
+          isOwner={isOwner}
+          onAddManual={onAddLink}
+          onUpdateManual={(id, data) => onUpdateRow('product_useful_links', id, data)}
+          onDeleteManual={(id) => onDeleteRow('product_useful_links', id)}
+        />
       )}
 
+      {/* Reuniões do produto (operacional) */}
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-base">Links Úteis (manuais)</CardTitle>
-            <p className="text-xs text-muted-foreground">Adiciona aqui links que não pertencem a outra secção. Aparecem também na vista agregada acima.</p>
-          </div>
-          {isOwner && (
-            <Button size="sm" variant="outline" onClick={onAddLink}>
-              <Plus className="h-3 w-3 mr-1" /> Adicionar
-            </Button>
-          )}
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Video className="h-4 w-4 text-primary" /> Reuniões deste Produto
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Inclui reuniões com clientes e internas.</p>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Link</TableHead>
-                {isOwner && <TableHead className="w-10" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usefulLinks.length === 0 && (
-                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem links</TableCell></TableRow>
-              )}
-              {usefulLinks.map((l) => (
-                <TableRow key={l.id as string}>
-                  <TableCell>
-                    <Input defaultValue={l.name as string} onBlur={e => onUpdateRow('product_useful_links', l.id as string, { name: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                  </TableCell>
-                  <TableCell>
-                    <Input defaultValue={l.url as string} onBlur={e => onUpdateRow('product_useful_links', l.id as string, { url: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                  </TableCell>
-                  {isOwner && (
-                    <TableCell>
-                      <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => onDeleteRow('product_useful_links', l.id as string)}><Trash2 className="h-3 w-3" /></Button>
-                    </TableCell>
-                  )}
+          {productMeetings.length === 0 ? (
+            <EmptyHint>Sem reuniões associadas a este produto.</EmptyHint>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Cliente / Contexto</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {productMeetings.map((mt) => (
+                  <TableRow key={mt.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/reunioes/${mt.id}`)}>
+                    <TableCell className="font-medium">{mt.title as string}</TableCell>
+                    <TableCell>{mt.date_time ? format(new Date(mt.date_time as string), 'dd/MM/yyyy HH:mm') : '—'}</TableCell>
+                    <TableCell>{(mt.client_name as string) || <span className="text-muted-foreground italic text-xs">Interna</span>}</TableCell>
+                    <TableCell><Badge variant="outline">{mt.status as string}</Badge></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
