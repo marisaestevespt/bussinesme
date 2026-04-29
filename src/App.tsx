@@ -57,6 +57,7 @@ const ExecutiveRecommendations = lazy(() => import("./pages/ExecutiveRecommendat
 const ExecutiveProcessos = lazy(() => import("./pages/ExecutiveProcessos"));
 const ExecutiveBrainDump = lazy(() => import("./pages/ExecutiveBrainDump"));
 const DefinicoesPage = lazy(() => import("./pages/Definicoes"));
+const AjudaPage = lazy(() => import("./pages/Ajuda"));
 const AgendaPage = lazy(() => import("./pages/Agenda"));
 const ReunioesPage = lazy(() => import("./pages/Reunioes"));
 const ReuniaoDetailPage = lazy(() => import("./pages/ReuniaoDetail"));
