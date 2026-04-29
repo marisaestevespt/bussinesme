@@ -73,6 +73,23 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   const [applyingColors, setApplyingColors] = useState(false);
   const qc = useQueryClient();
 
+  // ---- Portal preview helpers --------------------------------------------------
+  // Falls back to the global brand identity (b.*) when a portal field is empty,
+  // mirroring the actual portal rendering logic.
+  const previewPrimary = pb.primary_color?.trim() || (b.primary_color?.startsWith('#') ? null : b.primary_color) || '351 56% 28%';
+  const previewAccent = pb.accent_color?.trim() || '26 40% 39%';
+  const previewText = pb.text_color?.trim() || '0 0% 16%';
+  const previewFontDisplay = pb.font_display?.trim() || 'Lora';
+  const previewFontBody = pb.font_body?.trim() || 'DM Sans';
+  const previewLogo = pb.logo_url;
+  const previewName = pb.business_name?.trim() || 'O teu negócio';
+  const previewLoginTitle = pb.login_title?.trim() || 'Olá! 👋';
+  const previewLoginSubtitle = pb.login_subtitle?.trim() || 'O teu espaço. A tua jornada.';
+  const previewWelcome = pb.welcome_text?.trim() || 'Bem-vinda ao teu espaço pessoal.';
+  const previewHeroImage = pb.hero_image_url;
+  const previewHeroTitle = pb.hero_title?.trim() || 'O teu espaço.';
+  const previewHeroSubtitle = pb.hero_subtitle?.trim() || 'A tua jornada.';
+
   const applyProductColors = async () => {
     if (!productId) return;
     if (!b.primary_color && !b.secondary_color && !b.accent_color) {
@@ -596,6 +613,96 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Pré-visualização ao vivo do portal */}
+            <div className="rounded-lg border border-border overflow-hidden bg-background">
+              <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-b border-border">
+                <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                  Pré-visualização do Portal (login)
+                </span>
+                <span className="text-[10px] text-muted-foreground">Atualiza em tempo real</span>
+              </div>
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 min-h-[260px]"
+                style={{
+                  fontFamily: previewFontBody,
+                  color: `hsl(${previewText})`,
+                }}
+              >
+                {/* Hero / painel lateral */}
+                <div
+                  className="relative p-5 flex flex-col justify-end min-h-[180px]"
+                  style={{
+                    backgroundColor: `hsl(${previewPrimary})`,
+                    backgroundImage: previewHeroImage ? `url(${previewHeroImage})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                >
+                  {previewHeroImage && (
+                    <div className="absolute inset-0" style={{ backgroundColor: `hsl(${previewPrimary} / 0.55)` }} />
+                  )}
+                  <div className="relative z-10 text-white">
+                    <div
+                      className="text-xl leading-tight"
+                      style={{ fontFamily: previewFontDisplay }}
+                    >
+                      {previewHeroTitle}
+                    </div>
+                    <div className="text-xs opacity-90 mt-1">{previewHeroSubtitle}</div>
+                  </div>
+                </div>
+                {/* Painel de login */}
+                <div className="p-5 flex flex-col gap-3 bg-background">
+                  <div className="flex items-center gap-2">
+                    {previewLogo ? (
+                      <img src={previewLogo} alt="" className="h-7 object-contain" />
+                    ) : (
+                      <div
+                        className="h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold text-white"
+                        style={{ backgroundColor: `hsl(${previewPrimary})` }}
+                      >
+                        {previewName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span
+                      className="text-sm font-medium"
+                      style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
+                    >
+                      {previewName}
+                    </span>
+                  </div>
+                  <div>
+                    <div
+                      className="text-lg leading-tight"
+                      style={{ fontFamily: previewFontDisplay, color: `hsl(${previewText})` }}
+                    >
+                      {previewLoginTitle}
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: `hsl(${previewText} / 0.7)` }}>
+                      {previewLoginSubtitle}
+                    </div>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: `hsl(${previewText} / 0.8)` }}>
+                    {previewWelcome}
+                  </p>
+                  <div className="mt-auto space-y-2">
+                    <div
+                      className="h-7 rounded-md border px-2 flex items-center text-[11px]"
+                      style={{ borderColor: `hsl(${previewText} / 0.15)`, color: `hsl(${previewText} / 0.5)` }}
+                    >
+                      email@exemplo.com
+                    </div>
+                    <div
+                      className="h-7 rounded-md flex items-center justify-center text-[11px] font-medium text-white"
+                      style={{ backgroundColor: `hsl(${previewAccent})` }}
+                    >
+                      Entrar
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Cores (HSL para combinar com o sistema) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
