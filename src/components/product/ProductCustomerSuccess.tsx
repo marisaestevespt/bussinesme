@@ -6,10 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useTeamData } from '@/hooks/useTeamData';
-import { useNavigate } from 'react-router-dom';
-import { format, differenceInDays, isPast, isFuture } from 'date-fns';
-import { pt } from 'date-fns/locale';
-import { AlertTriangle, CheckCircle2, Clock, User } from 'lucide-react';
+import { format } from 'date-fns';
+import { User } from 'lucide-react';
+import { SharedClientsList, type SharedClientItem } from '@/components/shared/SharedClientsList';
 
 const NPS_STATUS_OPTIONS = [
   { value: 'por_fazer', label: 'Por fazer' },
@@ -26,7 +25,6 @@ interface Props {
 }
 
 export function ProductCustomerSuccess({ productId, productName, isOwner }: Props) {
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const { members } = useTeamData({ members: true });
   const teamMembers = members.data || [];
@@ -95,7 +93,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
       if (!productName) return [];
       const { data } = await supabase
         .from('clients')
-        .select('id, full_name, status, start_date, end_of_cycle, email')
+        .select('id, full_name, client_id, status, current_product, current_product_id, start_date, end_of_cycle, email, whatsapp')
         .eq('current_product', productName)
         .order('end_of_cycle', { ascending: true, nullsFirst: false });
       return (data || []) as any[];
@@ -122,19 +120,6 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
         ? 'bg-destructive/15 text-destructive'
         : 'bg-warning/15 text-warning';
     return <Badge variant="outline" className={cls}>{label}</Badge>;
-  };
-
-  const getRenewalInfo = (endOfCycle: string | null) => {
-    if (!endOfCycle) return { label: 'Sem data definida', icon: <Clock className="h-3.5 w-3.5 text-muted-foreground" />, className: 'text-muted-foreground' };
-    const date = new Date(endOfCycle);
-    const days = differenceInDays(date, new Date());
-    if (isPast(date)) {
-      return { label: `Expirou há ${Math.abs(days)} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-destructive" />, className: 'text-destructive font-medium' };
-    }
-    if (days <= 30) {
-      return { label: `Faltam ${days} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-warning" />, className: 'text-warning font-medium' };
-    }
-    return { label: `Faltam ${days} dias`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-success" />, className: 'text-success' };
   };
 
   const activeClients = productClients.filter((c: any) => c.status === 'ativo' || c.status === 'em_onboarding');
@@ -193,61 +178,20 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-4 w-4" />
-              Clientes — Visão de Renovação
+              Clientes deste Produto
             </CardTitle>
             <div className="text-sm text-muted-foreground">
               {activeClients.length} cliente{activeClients.length !== 1 ? 's' : ''} ativo{activeClients.length !== 1 ? 's' : ''}
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">A coluna <strong>Fim ciclo</strong> indica a próxima renovação.</p>
         </CardHeader>
         <CardContent>
-          {productClients.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              Nenhum cliente associado a este produto.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Data de Início</TableHead>
-                  <TableHead>Data de Renovação</TableHead>
-                  <TableHead>Tempo até Renovação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {productClients.map((c: any) => {
-                  const renewal = getRenewalInfo(c.end_of_cycle);
-                  const st = getClientStatusInfo(c.status);
-                  return (
-                    <TableRow
- key={c.id}
- className="cursor-pointer hover:bg-muted/50"
- onClick={() => navigate(`/hub/clientes/${c.id}`)}
-                    >
-                      <TableCell className="font-medium">{c.full_name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={st.color}>{st.label}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}
-                      </TableCell>
-                      <TableCell>
-                        <div className={`flex items-center gap-2 ${renewal.className}`}>
-                          {renewal.icon}
-                          <span className="text-sm">{renewal.label}</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
+          <SharedClientsList
+            items={productClients as unknown as SharedClientItem[]}
+            hideProductColumn
+            emptyLabel="Nenhum cliente associado a este produto."
+          />
         </CardContent>
       </Card>
     </div>
