@@ -20,6 +20,7 @@ import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
 import { useSuspensionCheck } from '@/hooks/useSuspensionCheck';
 import { SuspensionScreen } from '@/components/SuspensionScreen';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { RouteGuard } from '@/components/RouteGuard';
 
 function RedirectClienteId() {
   const { id } = useParams();
@@ -185,6 +186,7 @@ function AppRoutes() {
 
   return (
     <Suspense fallback={<PageLoader />}>
+      <RouteGuard>
       <Routes>
         <Route path="/portal/:token" element={<PortalAuthPage />} />
         <Route path="/portal/:token/view" element={<PortalViewPage />} />
@@ -271,6 +273,7 @@ function AppRoutes() {
         <Route path="/ajuda" element={<AjudaPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </RouteGuard>
     </Suspense>
   );
 }
