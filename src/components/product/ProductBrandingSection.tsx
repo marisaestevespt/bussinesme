@@ -748,26 +748,22 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
 
             {/* Tipografia */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Fonte Display / Títulos</Label>
-                <Input
-                  value={pb.font_display || ''}
-                  onChange={(e) => setPB({ font_display: e.target.value })}
-                  placeholder="Ex: Lora"
-                  className="h-9 text-sm"
-                  readOnly={!isOwner}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Fonte Corpo</Label>
-                <Input
-                  value={pb.font_body || ''}
-                  onChange={(e) => setPB({ font_body: e.target.value })}
-                  placeholder="Ex: DM Sans"
-                  className="h-9 text-sm"
-                  readOnly={!isOwner}
-                />
-              </div>
+              <BrandFontPicker
+                label="Fonte Display / Títulos"
+                value={pb.font_display}
+                onChange={(v) => setPB({ font_display: v })}
+                onClear={() => setPB({ font_display: '' })}
+                variant="display"
+                disabled={!isOwner}
+              />
+              <BrandFontPicker
+                label="Fonte Corpo"
+                value={pb.font_body}
+                onChange={(v) => setPB({ font_body: v })}
+                onClear={() => setPB({ font_body: '' })}
+                variant="body"
+                disabled={!isOwner}
+              />
             </div>
 
             {/* Logo + nome */}
