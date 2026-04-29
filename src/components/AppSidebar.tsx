@@ -148,11 +148,17 @@ function NavSection({
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const { isOwner, isAdminOrOwner, signOut } = useAuth();
+  const { isOwner: realIsOwner, isAdminOrOwner: realIsAdminOrOwner, signOut } = useAuth();
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
   const { favorites } = useFavorites();
   const sectorConfig = useSectorConfig();
+  // While impersonating a member, suppress owner/admin-only sections so the preview
+  // matches what the member would actually see.
+  const { useImpersonation } = require('@/contexts/ImpersonationContext') as typeof import('@/contexts/ImpersonationContext');
+  const { impersonating } = useImpersonation();
+  const isOwner = realIsOwner && !impersonating;
+  const isAdminOrOwner = realIsAdminOrOwner && !impersonating;
 
   return (
     <Sidebar collapsible="icon">
