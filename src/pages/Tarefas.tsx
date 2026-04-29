@@ -28,6 +28,7 @@ import { sendNotification } from '@/hooks/useNotifications';
 import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbsenceCoverage';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { useAuth } from '@/hooks/useAuth';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { weeklyHours as memberWeeklyHours } from '@/lib/memberCapacity';
