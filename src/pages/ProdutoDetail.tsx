@@ -573,7 +573,7 @@ export default function ProdutoDetailPage() {
         <EntitySection title="Sobre o Produto" icon={Info} className="pt-2">
           <div className="space-y-4">
             <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
-            <div className="pb-4">
+            <div className="pt-4 pb-4 border-t">
               <h4 className="text-sm font-semibold mb-2">O que está incluído</h4>
               {includedItems.map((item, i) => (
                 <div key={i} className="flex gap-2 mb-1">
