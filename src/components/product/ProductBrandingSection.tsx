@@ -10,6 +10,93 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { BrandFontPicker } from '@/components/shared/BrandFontPicker';
 
+/* ── color helpers (HEX <-> HSL triplet "H S% L%") ── */
+
+function hexToHslTriplet(hex: string): string {
+  const h = hex.replace('#', '');
+  const m = h.length === 3 ? h.split('').map(c => c + c).join('') : h.length === 6 ? h : null;
+  if (!m) return '';
+  const r = parseInt(m.slice(0, 2), 16) / 255;
+  const g = parseInt(m.slice(2, 4), 16) / 255;
+  const b = parseInt(m.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let hue = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: hue = ((g - b) / d + (g < b ? 6 : 0)); break;
+      case g: hue = ((b - r) / d + 2); break;
+      case b: hue = ((r - g) / d + 4); break;
+    }
+    hue *= 60;
+  }
+  return `${Math.round(hue)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+function hslTripletToHex(triplet?: string): string {
+  if (!triplet) return '#000000';
+  const parts = triplet.trim().split(/\s+/).map(p => parseFloat(p));
+  if (parts.length < 3 || parts.some(isNaN)) return '#000000';
+  const h = parts[0], s = parts[1] / 100, l = parts[2] / 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function PortalColorField({
+  label, value, onChange, disabled,
+}: { label: string; value?: string; onChange: (hslTriplet: string) => void; disabled?: boolean }) {
+  const hex = value ? hslTripletToHex(value) : '';
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <div className="flex items-center gap-2">
+        <label className="relative h-10 w-10 cursor-pointer overflow-hidden rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+          <input
+            type="color"
+            value={hex || '#000000'}
+            onChange={(e) => onChange(hexToHslTriplet(e.target.value))}
+            disabled={disabled}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+          <div
+            className="h-full w-full rounded-lg"
+            style={{ backgroundColor: hex || 'transparent', backgroundImage: !hex ? 'repeating-conic-gradient(hsl(var(--muted)) 0% 25%, transparent 0% 50%) 50% / 10px 10px' : undefined }}
+          />
+        </label>
+        <Input
+          value={hex}
+          onChange={(e) => {
+            const v = e.target.value.trim();
+            if (!v) { onChange(''); return; }
+            const triplet = hexToHslTriplet(v.startsWith('#') ? v : `#${v}`);
+            if (triplet) onChange(triplet);
+          }}
+          placeholder="#______"
+          maxLength={7}
+          disabled={disabled}
+          className="h-10 font-mono text-xs w-28"
+        />
+        {value && !disabled && (
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="text-[10px] text-muted-foreground hover:text-foreground"
+          >
+            limpar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface BrandingData {
   // Identidade visual
   primary_color?: string;
