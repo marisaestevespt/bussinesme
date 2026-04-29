@@ -81,7 +81,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
   const previewText = pb.text_color?.trim() || '0 0% 16%';
   const previewFontDisplay = pb.font_display?.trim() || 'Lora';
   const previewFontBody = pb.font_body?.trim() || 'DM Sans';
-  const previewLogo = pb.logo_url || b.logo_url;
+  const previewLogo = pb.logo_url;
   const previewName = pb.business_name?.trim() || 'O teu negócio';
   const previewLoginTitle = pb.login_title?.trim() || 'Olá! 👋';
   const previewLoginSubtitle = pb.login_subtitle?.trim() || 'O teu espaço. A tua jornada.';
