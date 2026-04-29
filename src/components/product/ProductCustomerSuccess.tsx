@@ -9,7 +9,7 @@ import { useTeamData } from '@/hooks/useTeamData';
 import { useNavigate } from 'react-router-dom';
 import { format, differenceInDays, isPast, isFuture } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { AlertTriangle, CheckCircle2, Clock, User, Video } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, User } from 'lucide-react';
 
 const NPS_STATUS_OPTIONS = [
   { value: 'por_fazer', label: 'Por fazer' },
@@ -23,10 +23,9 @@ interface Props {
   productId: string;
   productName: string;
   isOwner: boolean;
-  productMeetings?: Array<Record<string, unknown>>;
 }
 
-export function ProductCustomerSuccess({ productId, productName, isOwner, productMeetings = [] }: Props) {
+export function ProductCustomerSuccess({ productId, productName, isOwner }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { members } = useTeamData({ members: true });
