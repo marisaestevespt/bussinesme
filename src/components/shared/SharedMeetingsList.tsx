@@ -108,7 +108,7 @@ export function SharedMeetingsList({ items, emptyLabel }: { items: SharedMeeting
               {m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}
             </div>
             <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
-              <MeetingTypeBadge type={m.meeting_type || 'recorrente'} />
+              {m.meeting_type && <MeetingTypeBadge type={m.meeting_type} />}
               <span className="truncate">{ctx}</span>
             </div>
           </div>
