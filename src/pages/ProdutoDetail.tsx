@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
 import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
@@ -42,6 +43,17 @@ export default function ProdutoDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isOwner, user } = useAuth();
+  const { canAccess } = usePermissions();
+  // Sales-only: tem acesso ao módulo Comercial mas não é Owner nem tem acesso a Produtos no menu.
+  // Esconde secções operacionais/sensíveis na página do produto.
+  const isSalesOnly = !isOwner && canAccess('comercial') && !canAccess('produtos');
+  const canSeeSection = (key: string) => {
+    if (!isSalesOnly) return true;
+    const allowed = new Set([
+      'clientes-vendas', 'comercial', 'marketing', 'branding', 'backoffice', 'metricas', 'arquivo',
+    ]);
+    return allowed.has(key);
+  };
   const isNew = id === 'novo';
   const confirm = useConfirm();
 
