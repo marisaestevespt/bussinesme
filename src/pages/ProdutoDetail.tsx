@@ -488,7 +488,7 @@ export default function ProdutoDetailPage() {
                       </SelectContent>
                     </Select>
                   </Row>
-                  <Row icon={Settings2} label="Modo Operacional">
+                  <Row icon={Settings2} label="Modo Operacional (Entregas)">
                     <Select value={(form as any).task_mode || 'fases'} onValueChange={v => update('task_mode', v)} disabled={!isOwner}>
                       <SelectTrigger className={inlineTrigger}><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -531,10 +531,10 @@ export default function ProdutoDetailPage() {
                   <Row icon={Wallet} label={ticketType === 'fixo' ? 'Ticket (€)' : 'Ticket Médio (€)'}>
                     <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder={ticketType === 'fixo' ? 'Ex: 480€' : 'Ex: 400-480€'} className={inlineInput} readOnly={!isOwner} />
                   </Row>
-                  <Row icon={Clock} label="Horas/mês por cliente">
+                  <Row icon={Clock} label="Horas/mês por cliente (Métricas)">
                     <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className={inlineInput} readOnly={!isOwner} />
                   </Row>
-                  <Row icon={Users} label="Máx. clientes simultâneos">
+                  <Row icon={Users} label="Máx. clientes simultâneos (Métricas)">
                     <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
                   </Row>
                   <Row icon={Timer} label="Tempo de Acesso">
@@ -558,6 +558,11 @@ export default function ProdutoDetailPage() {
                       {form.drive_url && <a href={form.drive_url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 rounded hover:bg-muted"><ExternalLink className="h-3.5 w-3.5 text-muted-foreground" /></a>}
                     </div>
                   </Row>
+                  <div className="md:col-span-2 pt-1 pb-2">
+                    <p className="text-[11px] text-muted-foreground/80">
+                      💡 Estes links aparecem agregados na vista <strong>Backoffice · Todos os Links do Produto</strong>.
+                    </p>
+                  </div>
                 </div>
               </div>
             );
