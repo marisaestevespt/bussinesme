@@ -23,6 +23,7 @@ import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { ProductEntregasSection } from '@/components/product/ProductEntregasSection';
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
+import { ProductSalesKitSection } from '@/components/product/ProductSalesKitSection';
 import { ProductMarketingSection } from '@/components/product/ProductMarketingSection';
 import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSection, ProductContabilidadeSection } from '@/components/product/ProductSections';
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
