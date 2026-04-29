@@ -39,7 +39,7 @@ export function ProductSalesKitSection({
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
 
       {/* ─── Apresentação + Pitch ──────────────────────────────── */}
-      <Card className="hq-card">
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">Apresentação Comercial</CardTitle>
         </CardHeader>
@@ -76,7 +76,7 @@ export function ProductSalesKitSection({
       </Card>
 
       {/* ─── Benefícios ────────────────────────────────────────── */}
-      <Card className="hq-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Benefícios para destacar</CardTitle>
           {isOwner && (
@@ -106,7 +106,7 @@ export function ProductSalesKitSection({
       </Card>
 
       {/* ─── Materiais (links/PDFs) ────────────────────────────── */}
-      <Card className="hq-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Materiais de apoio</CardTitle>
           {isOwner && (
@@ -143,7 +143,7 @@ export function ProductSalesKitSection({
       </Card>
 
       {/* ─── FAQs ──────────────────────────────────────────────── */}
-      <Card className="hq-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">FAQs (perguntas frequentes do cliente)</CardTitle>
           {isOwner && (
@@ -175,7 +175,7 @@ export function ProductSalesKitSection({
       </Card>
 
       {/* ─── Objeções ──────────────────────────────────────────── */}
-      <Card className="hq-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Objeções e respostas</CardTitle>
           {isOwner && (
@@ -207,7 +207,7 @@ export function ProductSalesKitSection({
       </Card>
 
       {/* ─── Casos de sucesso ──────────────────────────────────── */}
-      <Card className="hq-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Casos de sucesso / testemunhos</CardTitle>
           {isOwner && (
