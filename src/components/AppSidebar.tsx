@@ -18,6 +18,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
@@ -155,7 +156,6 @@ export function AppSidebar() {
   const sectorConfig = useSectorConfig();
   // While impersonating a member, suppress owner/admin-only sections so the preview
   // matches what the member would actually see.
-  const { useImpersonation } = require('@/contexts/ImpersonationContext') as typeof import('@/contexts/ImpersonationContext');
   const { impersonating } = useImpersonation();
   const isOwner = realIsOwner && !impersonating;
   const isAdminOrOwner = realIsAdminOrOwner && !impersonating;
