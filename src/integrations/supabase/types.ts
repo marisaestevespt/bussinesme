@@ -4832,6 +4832,45 @@ export type Database = {
         }
         Relationships: []
       }
+      impersonation_sessions: {
+        Row: {
+          ended_at: string | null
+          id: string
+          owner_user_id: string
+          started_at: string
+          target_member_id: string
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          owner_user_id: string
+          started_at?: string
+          target_member_id: string
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          owner_user_id?: string
+          started_at?: string
+          target_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impersonation_sessions_target_member_id_fkey"
+            columns: ["target_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "impersonation_sessions_target_member_id_fkey"
+            columns: ["target_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       innovation_docs: {
         Row: {
           content: string | null
