@@ -295,7 +295,148 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-      {/* Identidade Visual */}
+      <div className="pt-2">
+        <h3 className="text-sm font-semibold text-foreground">Estratégia da Marca</h3>
+        <p className="text-xs text-muted-foreground">O que esta marca representa antes de qualquer desenho.</p>
+      </div>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Posicionamento & Mensagem</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Tagline</Label>
+            <Input
+              value={b.tagline || ''}
+              onChange={(e) => set({ tagline: e.target.value })}
+              placeholder="Frase curta e memorável"
+              className="h-9 text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Posicionamento</Label>
+            <Textarea
+              value={b.positioning || ''}
+              onChange={(e) => set({ positioning: e.target.value })}
+              placeholder="Para [público], que [necessidade], somos [categoria] que [diferenciador]."
+              className="min-h-[80px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Promessa</Label>
+            <Textarea
+              value={b.promise || ''}
+              onChange={(e) => set({ promise: e.target.value })}
+              placeholder="O que prometemos entregar ao cliente."
+              className="min-h-[80px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Manifesto</Label>
+            <Textarea
+              value={b.manifesto || ''}
+              onChange={(e) => set({ manifesto: e.target.value })}
+              placeholder="A declaração de princípios e propósito desta marca."
+              className="min-h-[120px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Tom de Voz</Label>
+            <Textarea
+              value={b.tone_of_voice || ''}
+              onChange={(e) => set({ tone_of_voice: e.target.value })}
+              placeholder="Ex: próximo, direto, com humor leve. Evitar jargão técnico."
+              className="min-h-[80px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Símbolos & Linguagem</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Emojis da Marca</Label>
+            <Input
+              value={b.emojis || ''}
+              onChange={(e) => set({ emojis: e.target.value })}
+              placeholder="✨ 🎯 💡"
+              className="h-9 text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Palavras a Utilizar</Label>
+            <Textarea
+              value={b.words_to_use || ''}
+              onChange={(e) => set({ words_to_use: e.target.value })}
+              placeholder="Vocabulário, expressões e termos que representam a marca"
+              className="min-h-[80px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Palavras a NÃO Dizer</Label>
+            <Textarea
+              value={b.words_to_avoid || ''}
+              onChange={(e) => set({ words_to_avoid: e.target.value })}
+              placeholder="Termos, jargão ou expressões a evitar"
+              className="min-h-[80px] text-sm"
+              readOnly={!isOwner}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Dores</Label>
+              <Textarea
+                value={b.pains || ''}
+                onChange={(e) => set({ pains: e.target.value })}
+                placeholder="Principais dores do público"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Dificuldades</Label>
+              <Textarea
+                value={b.difficulties || ''}
+                onChange={(e) => set({ difficulties: e.target.value })}
+                placeholder="Obstáculos que enfrentam"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Desejos</Label>
+              <Textarea
+                value={b.desires || ''}
+                onChange={(e) => set({ desires: e.target.value })}
+                placeholder="O que querem alcançar"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Sonhos</Label>
+              <Textarea
+                value={b.dreams || ''}
+                onChange={(e) => set({ dreams: e.target.value })}
+                placeholder="Aspirações maiores e visão de futuro"
+                className="min-h-[100px] text-sm"
+                readOnly={!isOwner}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="pt-2">
+        <h3 className="text-sm font-semibold text-foreground">Identidade Visual</h3>
+        <p className="text-xs text-muted-foreground">Como a marca se mostra: cores, tipografia, logos, assets.</p>
+      </div>
       <Card>
         <CardHeader><CardTitle className="text-base">Identidade Visual</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -442,7 +583,10 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
         </CardContent>
       </Card>
 
-      {/* Portal do Cliente — branding específico deste produto */}
+      <div className="pt-2">
+        <h3 className="text-sm font-semibold text-foreground">Aplicações & Recursos</h3>
+        <p className="text-xs text-muted-foreground">Onde a marca vive — portal do cliente, pastas e notas internas.</p>
+      </div>
       {onUpdatePortalBranding && (
         <Card>
           <CardHeader>
@@ -694,143 +838,6 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
         </Card>
       )}
 
-      {/* Posicionamento */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Posicionamento & Mensagem</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Tagline</Label>
-            <Input
-              value={b.tagline || ''}
-              onChange={(e) => set({ tagline: e.target.value })}
-              placeholder="Frase curta e memorável"
-              className="h-9 text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Posicionamento</Label>
-            <Textarea
-              value={b.positioning || ''}
-              onChange={(e) => set({ positioning: e.target.value })}
-              placeholder="Para [público], que [necessidade], somos [categoria] que [diferenciador]."
-              className="min-h-[80px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Promessa</Label>
-            <Textarea
-              value={b.promise || ''}
-              onChange={(e) => set({ promise: e.target.value })}
-              placeholder="O que prometemos entregar ao cliente."
-              className="min-h-[80px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Manifesto</Label>
-            <Textarea
-              value={b.manifesto || ''}
-              onChange={(e) => set({ manifesto: e.target.value })}
-              placeholder="A declaração de princípios e propósito desta marca."
-              className="min-h-[120px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Tom de Voz</Label>
-            <Textarea
-              value={b.tone_of_voice || ''}
-              onChange={(e) => set({ tone_of_voice: e.target.value })}
-              placeholder="Ex: próximo, direto, com humor leve. Evitar jargão técnico."
-              className="min-h-[80px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Símbolos & Linguagem */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Símbolos & Linguagem</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Emojis da Marca</Label>
-            <Input
-              value={b.emojis || ''}
-              onChange={(e) => set({ emojis: e.target.value })}
-              placeholder="✨ 🎯 💡"
-              className="h-9 text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Palavras a Utilizar</Label>
-            <Textarea
-              value={b.words_to_use || ''}
-              onChange={(e) => set({ words_to_use: e.target.value })}
-              placeholder="Vocabulário, expressões e termos que representam a marca"
-              className="min-h-[80px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Palavras a NÃO Dizer</Label>
-            <Textarea
-              value={b.words_to_avoid || ''}
-              onChange={(e) => set({ words_to_avoid: e.target.value })}
-              placeholder="Termos, jargão ou expressões a evitar"
-              className="min-h-[80px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Dores</Label>
-              <Textarea
-                value={b.pains || ''}
-                onChange={(e) => set({ pains: e.target.value })}
-                placeholder="Principais dores do público"
-                className="min-h-[100px] text-sm"
-                readOnly={!isOwner}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Dificuldades</Label>
-              <Textarea
-                value={b.difficulties || ''}
-                onChange={(e) => set({ difficulties: e.target.value })}
-                placeholder="Obstáculos que enfrentam"
-                className="min-h-[100px] text-sm"
-                readOnly={!isOwner}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Desejos</Label>
-              <Textarea
-                value={b.desires || ''}
-                onChange={(e) => set({ desires: e.target.value })}
-                placeholder="O que querem alcançar"
-                className="min-h-[100px] text-sm"
-                readOnly={!isOwner}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Sonhos</Label>
-              <Textarea
-                value={b.dreams || ''}
-                onChange={(e) => set({ dreams: e.target.value })}
-                placeholder="Aspirações maiores e visão de futuro"
-                className="min-h-[100px] text-sm"
-                readOnly={!isOwner}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pastas & Recursos */}
       <Card>
         <CardHeader><CardTitle className="text-base">Pastas & Recursos Externos</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -838,7 +845,6 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
         </CardContent>
       </Card>
 
-      {/* Notas livres */}
       <Card>
         <CardHeader><CardTitle className="text-base">Notas de Branding</CardTitle></CardHeader>
         <CardContent>
