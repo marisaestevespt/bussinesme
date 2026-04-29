@@ -1,0 +1,1 @@
+ALTER TABLE public.custom_roles ADD COLUMN IF NOT EXISTS is_sales boolean NOT NULL DEFAULT false;
