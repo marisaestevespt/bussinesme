@@ -50,7 +50,7 @@ export function useSystemNotifications() {
           .select('id')
           .eq('user_id', user.id)
           .eq('type', 'lead_followup')
-          .eq('message', notifKey)
+          .eq('dedup_key', notifKey)
           .limit(1);
 
         if (existing && existing.length > 0) continue;
@@ -65,9 +65,9 @@ export function useSystemNotifications() {
           user_id: user.id,
           type: 'lead_followup',
           title,
-          message: notifKey,
+          dedup_key: notifKey,
           link: '/hub/comercial/crm',
-        });
+        } as any);
       }
     };
 
