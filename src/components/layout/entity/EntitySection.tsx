@@ -18,10 +18,14 @@ interface EntitySectionProps {
  */
 export function EntitySection({ title, icon: Icon, description, action, children, className, compact }: EntitySectionProps) {
   return (
-    <section className={cn('space-y-3', className)}>
-      <header className="flex items-end justify-between gap-3 pb-2 border-b border-border/40">
+    <section className={cn('hq-card rounded-xl p-5 md:p-6 space-y-4', className)}>
+      <header className="flex items-end justify-between gap-3 pb-3 border-b border-border/60">
         <div className="flex items-center gap-2 min-w-0">
-          {Icon && <Icon className={cn(compact ? 'h-4 w-4' : 'h-4 w-4', 'text-muted-foreground shrink-0')} strokeWidth={1.5} />}
+          {Icon && (
+            <span className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-muted/60 shrink-0">
+              <Icon className="h-4 w-4 text-foreground/70" strokeWidth={1.75} />
+            </span>
+          )}
           <div className="min-w-0">
             <h2 className={cn('font-semibold tracking-tight truncate', compact ? 'text-sm' : 'text-base')}>{title}</h2>
             {description && <p className="text-xs text-muted-foreground truncate">{description}</p>}
