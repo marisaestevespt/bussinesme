@@ -579,7 +579,8 @@ export default function ProdutoDetailPage() {
               {isOwner && <Button variant="outline" size="sm" className="mt-1" onClick={() => update('included_items', [...includedItems, ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar item</Button>}
             </div>
             <div>
-              <h4 className="text-sm font-semibold mb-2">FAQ's</h4>
+              <h4 className="text-sm font-semibold mb-2">FAQs (cliente final / portal)</h4>
+              <p className="text-xs text-muted-foreground mb-2">Visíveis ao cliente — usadas no portal e materiais públicos. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
               <Accordion type="multiple" className="w-full">
                 {faqs.map((faq, i) => (
                   <AccordionItem key={i} value={`faq-${i}`}>
