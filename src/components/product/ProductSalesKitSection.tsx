@@ -156,7 +156,7 @@ export function ProductSalesKitSection({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <MessageCircle className="h-4 w-4 text-primary" />
-            FAQs (perguntas frequentes do cliente)
+            FAQs comerciais (para o vendedor responder)
           </CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_faqs', [...faqs, { question: '', answer: '' }])}>

@@ -20,6 +20,7 @@ import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnosticQuestions';
 import { ArchiveDocumentsView } from '@/components/product/archive/ArchiveDocumentsView';
 import { RichEditor } from '@/components/product/archive/RichEditor';
+import { ProductLinksAggregator } from '@/components/product/ProductLinksAggregator';
 
 // ─── Processos Section ─────────────────────────────────────────
 import { getSopStatusInfo } from '@/lib/sopStatus';
@@ -174,14 +175,21 @@ interface BackofficeSectionProps {
   onDeleteRow: (table: string, id: string) => void;
 }
 
-export function ProductBackofficeSection({ usefulLinks, improvements, productMeetings, isOwner, onAddLink, onAddImprovement, onUpdateRow, onDeleteRow }: BackofficeSectionProps) {
+export function ProductBackofficeSection({ usefulLinks, improvements, productMeetings, isOwner, productId, onAddLink, onAddImprovement, onUpdateRow, onDeleteRow }: BackofficeSectionProps) {
   const navigate = useNavigate();
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+      {productId && (
+        <ProductLinksAggregator productId={productId} manualLinks={usefulLinks} />
+      )}
+
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-base">Links Úteis</CardTitle>
+          <div className="space-y-1">
+            <CardTitle className="text-base">Links Úteis (manuais)</CardTitle>
+            <p className="text-xs text-muted-foreground">Adiciona aqui links que não pertencem a outra secção. Aparecem também na vista agregada acima.</p>
+          </div>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={onAddLink}>
               <Plus className="h-3 w-3 mr-1" /> Adicionar
