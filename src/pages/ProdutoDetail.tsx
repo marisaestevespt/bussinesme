@@ -283,7 +283,7 @@ export default function ProdutoDetailPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 w-full">
+      <div className="space-y-10 w-full">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <BackNavigation parentRoute="/hub/produtos" parentLabel="Produtos" />
@@ -570,7 +570,7 @@ export default function ProdutoDetailPage() {
         </div>
 
         {/* Sobre o Produto */}
-        <EntitySection title="Sobre o Produto" icon={Info}>
+        <EntitySection title="Sobre o Produto" icon={Info} className="pt-2">
           <div className="space-y-4">
             <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
             <div>
@@ -608,6 +608,7 @@ export default function ProdutoDetailPage() {
         <EntitySection
           title="Feedbacks"
           icon={MessageSquare}
+          className="pt-2"
           action={isOwner && <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_feedbacks', data: { product_id: id, feedback: '', client_name: '' } })}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
         >
           <div className="space-y-4">
@@ -657,6 +658,7 @@ export default function ProdutoDetailPage() {
         <EntitySection
           title="Datas Importantes"
           icon={CalendarClock}
+          className="pt-2"
           action={isOwner && <Button size="sm" variant="outline" onClick={() => setShowEventDialog(true)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar Evento</Button>}
         >
             {productEvents.length === 0 ? (
