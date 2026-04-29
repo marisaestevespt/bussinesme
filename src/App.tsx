@@ -266,6 +266,7 @@ function AppRoutes() {
         <Route path="/executive/brain-dump" element={<ExecutiveBrainDump />} />
         <Route path="/executive/:section" element={<ExecutivePage />} />
         <Route path="/definicoes" element={<DefinicoesPage />} />
+        <Route path="/ajuda" element={<AjudaPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
