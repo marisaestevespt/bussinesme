@@ -11231,6 +11231,7 @@ export type Database = {
         Args: { _category: string }
         Returns: boolean
       }
+      current_user_is_suspended: { Args: never; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
