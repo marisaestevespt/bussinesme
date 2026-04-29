@@ -16,8 +16,6 @@ const NPS_STATUS_OPTIONS = [
   { value: 'em_atraso', label: 'Em atraso' },
 ];
 
-import { getClientStatusInfo } from '@/lib/clientStatus';
-
 interface Props {
   productId: string;
   productName: string;
