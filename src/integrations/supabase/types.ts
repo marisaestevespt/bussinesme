@@ -7258,12 +7258,15 @@ export type Database = {
           created_at: string
           deliverable_type: Database["public"]["Enums"]["deliverable_type"]
           description: string | null
+          document_file_path: string | null
+          document_url: string | null
           duration_days: number | null
           duration_unit: string
           estimated_minutes: number | null
           id: string
           is_meeting: boolean
           is_recurring: boolean
+          link_url: string | null
           linked_sop_id: string | null
           meeting_title_template: string | null
           name: string
@@ -7280,12 +7283,15 @@ export type Database = {
           created_at?: string
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
+          document_file_path?: string | null
+          document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
+          link_url?: string | null
           linked_sop_id?: string | null
           meeting_title_template?: string | null
           name?: string
@@ -7302,12 +7308,15 @@ export type Database = {
           created_at?: string
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
+          document_file_path?: string | null
+          document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
+          link_url?: string | null
           linked_sop_id?: string | null
           meeting_title_template?: string | null
           name?: string
@@ -8684,12 +8693,15 @@ export type Database = {
           deadline: string | null
           deliverable_type: Database["public"]["Enums"]["deliverable_type"]
           description: string | null
+          document_file_path: string | null
+          document_url: string | null
           duration_days: number | null
           duration_unit: string
           estimated_minutes: number | null
           id: string
           is_meeting: boolean
           is_recurring: boolean
+          link_url: string | null
           linked_sop_id: string | null
           meeting_id: string | null
           name: string
@@ -8717,12 +8729,15 @@ export type Database = {
           deadline?: string | null
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
+          document_file_path?: string | null
+          document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
+          link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
           name?: string
@@ -8750,12 +8765,15 @@ export type Database = {
           deadline?: string | null
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
+          document_file_path?: string | null
+          document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
           is_recurring?: boolean
+          link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
           name?: string
@@ -11657,7 +11675,12 @@ export type Database = {
         | "team_member"
         | "viewer"
       brain_dump_status: "em_ideia" | "aplicado" | "desconsiderado"
-      deliverable_type: "tarefa" | "reuniao" | "documento" | "aprovacao"
+      deliverable_type:
+        | "tarefa"
+        | "reuniao"
+        | "documento"
+        | "aprovacao"
+        | "link"
       digest_frequency: "diario" | "semanal" | "mensal"
       google_calendar_scope:
         | "produto"
@@ -11821,7 +11844,7 @@ export const Constants = {
         "viewer",
       ],
       brain_dump_status: ["em_ideia", "aplicado", "desconsiderado"],
-      deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao"],
+      deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao", "link"],
       digest_frequency: ["diario", "semanal", "mensal"],
       google_calendar_scope: [
         "produto",
