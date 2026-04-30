@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2, Video, Flag } from 'lucide-react';
+import { CheckCircle2, CheckSquare, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2, Video, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -979,7 +979,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                         <span className="flex items-center gap-1"><CalendarDays className="h-2.5 w-2.5" /> Para fazer</span>
                         <span className="flex items-center gap-1"><Flag className="h-2.5 w-2.5" /> Deadline</span>
                         <span>Status</span>
-                        <span>Reunião</span>
+                        <span>Formato</span>
                         <span className="text-right">Ações</span>
                       </div>
                       {phaseDeliverables.map((d, di) => {
@@ -1114,7 +1114,14 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                           </button>
                                         </NewMeetingButton>
                                       )
-                                    ) : null}
+                                    ) : (
+                                      <span
+                                        className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+                                        title="Esta entrega gera uma tarefa"
+                                      >
+                                        <CheckSquare className="h-3 w-3" /> Tarefa
+                                      </span>
+                                    )}
                                   </div>
                                   {/* Ações */}
                                   <div className="opacity-0 group-hover/del:opacity-100 flex items-center justify-end gap-0.5 transition-opacity">
