@@ -979,7 +979,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                         <span className="flex items-center gap-1"><CalendarDays className="h-2.5 w-2.5" /> Para fazer</span>
                         <span className="flex items-center gap-1"><Flag className="h-2.5 w-2.5" /> Deadline</span>
                         <span>Status</span>
-                        <span>Reunião</span>
+                        <span>Formato</span>
                         <span className="text-right">Ações</span>
                       </div>
                       {phaseDeliverables.map((d, di) => {
