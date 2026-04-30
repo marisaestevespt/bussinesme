@@ -435,6 +435,18 @@ export default function ProjetoDetailPage() {
       />
     );
   }
+  if (subPage === 'brainstorming') {
+    return (
+      <BrainstormingSubPage
+        value={(local as any).brainstorming || ''}
+        onChange={(html) => updateField('brainstorming' as any, html)}
+        onSave={() => saveMutation.mutate()}
+        saving={saveMutation.isPending}
+        dirty={dirty}
+        onBack={() => setSubPage(null)}
+      />
+    );
+  }
 
   // ─── Entregáveis sub-page (file upload + list) ────────────────
   if (subPage === 'entregaveis') {
