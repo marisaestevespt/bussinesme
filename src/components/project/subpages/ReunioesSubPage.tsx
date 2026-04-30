@@ -9,7 +9,6 @@ import type { Meeting, Profile } from '@/hooks/useProjectDetailData';
 import { getMeetingStatusInfo as canonGetMeetingStatusInfo } from '@/lib/meetingStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntitySection } from '@/components/layout/entity/EntitySection';
-import { ProjectAssetGallery } from '@/components/project/ProjectAssetGallery';
 import { SubPageShell } from './SubPageShell';
 
 const getMeetingStatusInfo = (s: string) => {
@@ -68,10 +67,6 @@ export function ReunioesSubPage({ projectId, meetings, projectMembers, profileMa
             })}
           </div>
         )}
-      </EntitySection>
-
-      <EntitySection title="Documentos das reuniões" icon={Paperclip} description="Atas em PDF, decks de apresentação, gravações partilhadas">
-        <ProjectAssetGallery projectId={projectId} pageKey="reunioes" categories={['Ata', 'Apresentação', 'Gravação']} emptyTitle="Sem documentos" emptyDescription="Arrasta atas, decks ou anexa links de gravações." />
       </EntitySection>
     </SubPageShell>
   );
