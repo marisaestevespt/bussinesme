@@ -468,18 +468,28 @@ export default function ProjetoDetailPage() {
       objetivo: {
         field: 'objetivo',
         title: 'Objetivo e Definição',
-        description: 'O objetivo do projeto e a sua definição/escopo.',
+        description: local.type === 'interno'
+          ? 'Que problema interno resolve este projeto e qual o resultado esperado.'
+          : 'O objetivo do projeto e a sua definição/escopo.',
         icon: Target,
         textLabel: 'Definição do projeto',
-        textPlaceholder: 'Escopo, resultados esperados, restrições...',
-        assetsLabel: 'Briefings e referências',
-        assetsDescription: 'Documentos que fundamentam o objetivo (briefing, RFP, propostas).',
-        assetCategories: ['Briefing', 'Proposta', 'Contexto'],
+        textPlaceholder: local.type === 'interno'
+          ? 'Problema a resolver, resultado esperado, KPI / impacto...'
+          : 'Escopo, resultados esperados, restrições...',
+        assetsLabel: local.type === 'interno' ? 'Referências e contexto' : 'Briefings e referências',
+        assetsDescription: local.type === 'interno'
+          ? 'Documentos, dados ou referências que fundamentam o objetivo deste projeto interno.'
+          : 'Documentos que fundamentam o objetivo (briefing, RFP, propostas).',
+        assetCategories: local.type === 'interno'
+          ? ['Contexto', 'Dados', 'Referência']
+          : ['Briefing', 'Proposta', 'Contexto'],
       },
       diretrizes: {
         field: 'diretrizes',
         title: 'Diretrizes Iniciais',
-        description: 'Princípios, regras e direções acordadas com o cliente / equipa.',
+        description: local.type === 'interno'
+          ? 'Princípios, regras e direções acordadas com a equipa.'
+          : 'Princípios, regras e direções acordadas com o cliente / equipa.',
         icon: BookOpen,
         textLabel: 'Diretrizes',
         textPlaceholder: 'Tom, restrições, princípios, do/don\'t...',
