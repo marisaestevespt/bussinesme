@@ -444,7 +444,7 @@ export default function ProjetoDetailPage() {
       objetivo: {
         field: 'objetivo',
         title: 'Objetivo e Definição',
-        description: 'O que se vai fazer, para quê e qual o resultado esperado.',
+        description: 'O objetivo do projeto e a sua definição/escopo.',
         icon: Target,
         textLabel: 'Definição do projeto',
         textPlaceholder: 'Objetivo, escopo, resultados esperados, restrições...',
