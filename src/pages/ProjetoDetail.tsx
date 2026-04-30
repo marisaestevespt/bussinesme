@@ -17,7 +17,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2 } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
