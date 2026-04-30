@@ -740,7 +740,7 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Produto */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-              <span className="flex items-center gap-2 text-sm text-muted-foreground w-28 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
               <div className="flex-1 min-w-0">
                 <Select
                   value={local.product_id || '__none__'}
