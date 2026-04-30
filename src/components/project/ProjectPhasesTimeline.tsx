@@ -896,7 +896,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                     <>
                       <div className={cn(
                         "flex items-center gap-3 flex-wrap",
-                        focusPhaseId && "mb-5"
+                        focusPhaseId && "justify-center mb-5"
                       )}>
                         {!focusPhaseId && (
                           <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
@@ -905,7 +905,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                           <SelectTrigger className={cn(
                             "gap-1.5",
                             focusPhaseId
-                              ? "h-8 text-sm font-medium w-auto px-0 border-none shadow-none"
+                              ? "h-9 text-sm font-medium w-auto min-w-[140px] px-3 border-none shadow-none [&>svg:last-child]:ml-1"
                               : "h-7 text-xs w-28 border-none shadow-none px-2"
                           )}>
                             {focusPhaseId && <Icon className={cn('h-4 w-4', si.color)} />}
@@ -917,10 +917,15 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                             ))}
                           </SelectContent>
                         </Select>
+                        {focusPhaseId && (phase.planned_start || phase.planned_end) && (
+                          <span className="h-6 w-px bg-border" aria-hidden />
+                        )}
                         {(phase.planned_start || phase.planned_end) && (
                           <span className={cn(
                             "flex items-center gap-1.5 text-foreground",
-                            focusPhaseId ? "text-sm font-medium" : "text-xs text-muted-foreground"
+                            focusPhaseId
+                              ? "text-sm font-medium rounded-md border bg-card px-3 py-1.5"
+                              : "text-xs text-muted-foreground"
                           )}>
                             <CalendarDays className={cn(focusPhaseId ? "h-4 w-4 text-muted-foreground" : "h-3.5 w-3.5")} />
                             {phase.planned_start ? format(new Date(phase.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
