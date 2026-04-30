@@ -8659,6 +8659,65 @@ export type Database = {
         }
         Relationships: []
       }
+      project_assets: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          kind: string
+          mime_type: string | null
+          page_key: string
+          project_id: string
+          size_bytes: number | null
+          storage_path: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind: string
+          mime_type?: string | null
+          page_key: string
+          project_id: string
+          size_bytes?: number | null
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          page_key?: string
+          project_id?: string
+          size_bytes?: number | null
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_deliverables: {
         Row: {
           assigned_to: string | null
@@ -8944,7 +9003,6 @@ export type Database = {
           deadline: string | null
           department: string | null
           departments: Json | null
-          dependencias: string | null
           diretrizes: string | null
           entregaveis: string | null
           icon: Json | null
@@ -8983,7 +9041,6 @@ export type Database = {
           deadline?: string | null
           department?: string | null
           departments?: Json | null
-          dependencias?: string | null
           diretrizes?: string | null
           entregaveis?: string | null
           icon?: Json | null
@@ -9022,7 +9079,6 @@ export type Database = {
           deadline?: string | null
           department?: string | null
           departments?: Json | null
-          dependencias?: string | null
           diretrizes?: string | null
           entregaveis?: string | null
           icon?: Json | null
