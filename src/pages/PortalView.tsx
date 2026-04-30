@@ -34,7 +34,7 @@ import type {
   PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
   PortalPayment, PortalPhase, PortalDeliverable,
-  PortalMaterial, PortalContractDocument, PortalProjectHistoryEntry,
+  PortalContractDocument, PortalProjectHistoryEntry,
 } from '@/types/portal';
 
 const isClientStep = (o: { responsible?: string | null }) =>
@@ -65,7 +65,6 @@ export default function PortalViewPage() {
   const [phases, setPhases] = useState<PortalPhase[]>([]);
 
   const [projectHistory, setProjectHistory] = useState<PortalProjectHistoryEntry[]>([]);
-  const [portalMaterials, setPortalMaterials] = useState<PortalMaterial[]>([]);
   const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
 
   const [commentText, setCommentText] = useState('');
@@ -103,7 +102,7 @@ export default function PortalViewPage() {
     if (clientCtxRes.error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
     setClient(clientData);
     setSettings(settingsRes.data || {});
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, contractR] = await Promise.all([
       supabase.rpc('get_portal_faqs', { _token: realToken }),
       supabase.rpc('get_portal_initial_questions', { _token: realToken }),
       supabase.rpc('get_portal_comments', { _token: realToken }),
@@ -114,7 +113,6 @@ export default function PortalViewPage() {
       // get_portal_phases not yet in generated types
       (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_phases', { _token: realToken }),
       supabase.rpc('get_portal_project_history', { _token: realToken }),
-      supabase.rpc('get_portal_materials', { _token: realToken }),
       supabase.rpc('get_portal_contract_documents', { _token: realToken }),
     ]);
     const faqsList = (faqsR.data || []) as unknown as PortalFaq[];
@@ -137,8 +135,6 @@ export default function PortalViewPage() {
     // Show all phases in the onboarding/timeline section
     setOnboarding(allPhases);
     setProjectHistory((historyR.data || []) as unknown as PortalProjectHistoryEntry[]);
-    const materialsList = (materialsR.data || []) as unknown as PortalMaterial[];
-    setPortalMaterials(materialsList.slice().sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()));
     setContractDocs((contractR.data || []) as unknown as PortalContractDocument[]);
     setLoading(false);
   };
@@ -766,7 +762,7 @@ export default function PortalViewPage() {
           <PortalWorkspaceSection
             phases={phases}
             client={client}
-            portalMaterials={portalMaterials}
+            portalMaterials={[]}
             tasks={tasks}
             faqs={faqs}
             pc={pc}
