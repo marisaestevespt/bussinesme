@@ -27,6 +27,9 @@ import {
   DELIVERABLE_STATUSES,
   getDeliverableStatusInfo,
 } from '@/lib/projectProgress';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
+import { Video } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const WEEK_OPTIONS = [
   { value: '1', label: '1ª semana' },
