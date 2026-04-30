@@ -303,13 +303,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       {/* Detail dialog — reuses the full timeline component */}
       <Dialog open={!!openPhaseId} onOpenChange={open => !open && setOpenPhaseId(null)}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Layers className="h-4 w-4" />
-              Detalhe da Fase
-            </DialogTitle>
+          <DialogHeader className="sr-only">
+            <DialogTitle>Detalhe da fase</DialogTitle>
           </DialogHeader>
-          <div className="mt-2">
+          <div>
             <ProjectPhasesTimeline
               projectId={projectId}
               projectStartDate={projectStartDate}
