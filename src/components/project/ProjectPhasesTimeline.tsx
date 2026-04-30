@@ -107,6 +107,35 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const confirm = useConfirm();
   const phaseKey = ['project-phases', projectId];
   const delKey = ['project-deliverables', projectId];
+  const navigate = useNavigate();
+
+  // Project context (client_id, name) for pre-filling meeting dialog
+  const { data: projectCtx } = useQuery({
+    queryKey: ['project-meeting-ctx', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, client_id, clients ( id, full_name )')
+        .eq('id', projectId)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+
+  const linkMeetingMutation = useMutation({
+    mutationFn: async ({ deliverableId, meetingId }: { deliverableId: string; meetingId: string }) => {
+      const { error } = await (supabase as any)
+        .from('project_deliverables')
+        .update({ meeting_id: meetingId })
+        .eq('id', deliverableId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: delKey });
+      toast.success('Reunião ligada à entrega');
+    },
+    onError: (e: any) => toast.error(e?.message || 'Falha ao ligar reunião'),
+  });
 
   const [editingPhase, setEditingPhase] = useState<string | null>(null);
   const [editingDel, setEditingDel] = useState<string | null>(null);
