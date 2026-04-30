@@ -755,10 +755,10 @@ export default function ProjetoDetailPage() {
                     }
                   }}
                 >
-                  <SelectTrigger className="h-8 w-full max-w-3xl justify-start gap-2 px-2 [&>svg]:ml-auto [&>span]:line-clamp-none">
+                  <SelectTrigger className="h-8 w-full justify-start gap-2 px-2 [&>svg]:ml-auto [&>span]:line-clamp-none">
                     <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
                       {local.product_id && (
-                        <ProductIcon productId={local.product_id as any} icon={selectedProduct?.icon} logoUrl={selectedProduct?.logo_url} className="h-5 w-5 shrink-0" emojiClassName="text-sm" />
+                        <ProductIcon productId={local.product_id as any} icon={selectedProduct?.icon} logoUrl={selectedProduct?.logo_url} className="h-6 w-6 shrink-0" emojiClassName="text-lg" />
                       )}
                       <span className={cn("min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left", !local.product_id && "text-muted-foreground")}>
                         {selectedProduct?.name || local.product_name || 'Sem produto associado'}
