@@ -140,6 +140,8 @@ export default function ProjetoDetailPage() {
     deleteMutation,
   } = useProjectDetailData(id, { isRecorrenteMensal, monthStart, monthEnd });
   const resolvedClientId = clientForProject?.id;
+  const { products: productsQ } = useProducts();
+  const productsList = productsQ.data || [];
 
   // Suggested meeting title from the next pending meeting-deliverable's template
   const suggestedMeetingTitle = useMemo(() => {
