@@ -979,7 +979,25 @@ export default function ProjetoDetailPage() {
               />
             </EntityTabsContent>
 
-            {/* ─── TAB 3: GESTÃO ───────────────────────────── */}
+            {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
+            {resolvedClientId && local.client_name && (
+              <EntityTabsContent value="portal" className="mt-4 space-y-8">
+                <EntitySection title="Portal do Cliente" icon={Users}>
+                  <ClientPortalSection
+                    clientId={resolvedClientId}
+                    clientName={local.client_name}
+                    currentProduct={local.product_name || null}
+                    productId={local.product_id}
+                  />
+                </EntitySection>
+
+                <EntitySection title="Feedback Recebido" icon={MessageCircle}>
+                  <ClientPortalFeedbackSection clientId={resolvedClientId} />
+                </EntitySection>
+              </EntityTabsContent>
+            )}
+
+            {/* ─── TAB 4: GESTÃO ───────────────────────────── */}
             <EntityTabsContent value="gestao" className="mt-4">
               <ProjectGestaoTab
                 projectId={id!}
