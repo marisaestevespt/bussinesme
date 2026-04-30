@@ -55,6 +55,7 @@ const DEPARTMENTS = [
   { value: 'comercial', label: 'Comercial e Vendas', color: 'bg-info/15 text-info border-info' },
   { value: 'clientes', label: 'Clientes', color: 'bg-accent-violet/15 text-accent-violet border-accent-violet' },
   { value: 'equipa', label: 'Equipa', color: 'bg-success/15 text-success border-success' },
+  { value: 'produtos', label: 'Produtos', color: 'bg-info/15 text-info border-info/30' },
   { value: 'operacao', label: 'Operação', color: 'bg-warning/15 text-warning border-warning/30' },
 ];
 
