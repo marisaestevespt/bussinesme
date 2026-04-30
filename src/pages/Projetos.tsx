@@ -692,7 +692,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                 </TableCell>
                 <TableCell className="font-medium whitespace-nowrap">{p.name}</TableCell>
                 <TableCell className="whitespace-nowrap"><Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge></TableCell>
-                <TableCell>{p.department ? <DeptBadge dept={p.department} /> : <span className="text-muted-foreground">—</span>}</TableCell>
+                <TableCell><ProjectDeptBadges project={p} /></TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type, p.project_mode)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type, p.project_mode)}%</span></div></TableCell>
@@ -728,7 +728,12 @@ function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }
                 <StatusBadge status={p.status} className="text-[10px]" />
               </div>
               <h3 className="font-semibold mb-1">{p.name}</h3>
-              {p.department && <div className="mb-2"><DeptBadge dept={p.department} /></div>}
+              {(() => {
+                const depts = getEntityDepartments(p);
+                return depts.length > 0 ? (
+                  <div className="mb-2 flex flex-wrap gap-1">{depts.map(d => <DeptBadge key={d} dept={d} />)}</div>
+                ) : null;
+              })()}
               <div className="flex items-center gap-2 mb-3">
                 <Progress value={getTaskProgress(p.id, p.type, p.project_mode)} className="h-2 flex-1" />
                 <span className="text-xs text-muted-foreground">{getTaskProgress(p.id, p.type, p.project_mode)}%</span>
