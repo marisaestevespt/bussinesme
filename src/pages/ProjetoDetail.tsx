@@ -468,18 +468,28 @@ export default function ProjetoDetailPage() {
       objetivo: {
         field: 'objetivo',
         title: 'Objetivo e Definição',
-        description: 'O objetivo do projeto e a sua definição/escopo.',
+        description: local.type === 'interno'
+          ? 'Que problema interno resolve este projeto e qual o resultado esperado.'
+          : 'O objetivo do projeto e a sua definição/escopo.',
         icon: Target,
         textLabel: 'Definição do projeto',
-        textPlaceholder: 'Escopo, resultados esperados, restrições...',
-        assetsLabel: 'Briefings e referências',
-        assetsDescription: 'Documentos que fundamentam o objetivo (briefing, RFP, propostas).',
-        assetCategories: ['Briefing', 'Proposta', 'Contexto'],
+        textPlaceholder: local.type === 'interno'
+          ? 'Problema a resolver, resultado esperado, KPI / impacto...'
+          : 'Escopo, resultados esperados, restrições...',
+        assetsLabel: local.type === 'interno' ? 'Referências e contexto' : 'Briefings e referências',
+        assetsDescription: local.type === 'interno'
+          ? 'Documentos, dados ou referências que fundamentam o objetivo deste projeto interno.'
+          : 'Documentos que fundamentam o objetivo (briefing, RFP, propostas).',
+        assetCategories: local.type === 'interno'
+          ? ['Contexto', 'Dados', 'Referência']
+          : ['Briefing', 'Proposta', 'Contexto'],
       },
       diretrizes: {
         field: 'diretrizes',
         title: 'Diretrizes Iniciais',
-        description: 'Princípios, regras e direções acordadas com o cliente / equipa.',
+        description: local.type === 'interno'
+          ? 'Princípios, regras e direções acordadas com a equipa.'
+          : 'Princípios, regras e direções acordadas com o cliente / equipa.',
         icon: BookOpen,
         textLabel: 'Diretrizes',
         textPlaceholder: 'Tom, restrições, princípios, do/don\'t...',
@@ -815,7 +825,8 @@ export default function ProjetoDetailPage() {
                 )}
               </div>
             </div>
-            {/* Contrato */}
+            {/* Contrato — não aplicável a projetos internos */}
+            {local.type !== 'interno' && (
             <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-1"><FileText className="h-4 w-4" /> Contrato</span>
               <div className="flex items-center gap-3 flex-wrap flex-1">
@@ -864,6 +875,7 @@ export default function ProjetoDetailPage() {
                 </label>
               </div>
             </div>
+            )}
             {/* Custo */}
             {projectCost > 0 && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
@@ -901,13 +913,15 @@ export default function ProjetoDetailPage() {
                   Portal de Cliente
                 </EntityTabsTrigger>
               )}
-              <EntityTabsTrigger
-                value="gestao"
-                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
-              >
-                <Settings2 className="h-4 w-4" />
-                Gestão
-              </EntityTabsTrigger>
+              {local.type !== 'interno' && (
+                <EntityTabsTrigger
+                  value="gestao"
+                  className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+                >
+                  <Settings2 className="h-4 w-4" />
+                  Gestão
+                </EntityTabsTrigger>
+              )}
               <EntityTabsTrigger
                 value="fecho"
                 className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
