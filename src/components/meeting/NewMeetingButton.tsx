@@ -61,7 +61,12 @@ export function NewMeetingButton({
     }
   };
 
-  const trigger = children ?? (
+  const trigger = children ? (
+    // Wrap custom children so we own the click handler when there is no Popover
+    <span onClick={skipPicker ? triggerClick : undefined} className="contents">
+      {children}
+    </span>
+  ) : (
     <Button size={size} variant={variant} className={className} onClick={triggerClick}>
       <Plus className="h-4 w-4 mr-1.5" /> {label}
     </Button>
