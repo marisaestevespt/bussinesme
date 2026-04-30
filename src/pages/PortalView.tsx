@@ -34,7 +34,7 @@ import type {
   PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
   PortalPayment, PortalPhase, PortalDeliverable,
-  PortalMaterial, PortalContractDocument, PortalProjectHistoryEntry,
+  PortalContractDocument, PortalProjectHistoryEntry,
 } from '@/types/portal';
 
 const isClientStep = (o: { responsible?: string | null }) =>
