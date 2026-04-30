@@ -18,6 +18,7 @@ import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, 
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { DeliverableFormatCell } from '@/components/project/DeliverableFormatCell';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
