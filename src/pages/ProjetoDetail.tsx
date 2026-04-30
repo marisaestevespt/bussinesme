@@ -689,7 +689,7 @@ export default function ProjetoDetailPage() {
                       {(() => {
                         const depts: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
                         if (depts.length === 0) return <span className="text-muted-foreground text-xs">Selecionar departamentos…</span>;
-                        return <div className="flex flex-wrap gap-1">{depts.map(v => { const d = DEPARTMENTS.find(x => x.value === v); return d ? <Badge key={v} variant="secondary" className="text-xs">{d.label}</Badge> : null; })}</div>;
+                        return <div className="flex flex-wrap gap-1.5">{depts.map(v => { const d = DEPARTMENTS.find(x => x.value === v); return d ? <Badge key={v} variant="outline" className={cn("text-xs font-medium border", d.color)}>{d.label}</Badge> : null; })}</div>;
                       })()}
                     </Button>
                   </PopoverTrigger>
