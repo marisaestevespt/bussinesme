@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CalendarDays, ChevronRight, Layers, Users as UsersIcon } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, Layers, Plus, Users as UsersIcon, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -46,6 +49,9 @@ interface Deliverable {
 
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
+  const [addingPhase, setAddingPhase] = useState(false);
+  const [newName, setNewName] = useState('');
+  const queryClient = useQueryClient();
   const { getPhotoUrl } = useTeamPhotos();
 
   const { data: phases = [], isLoading: phasesLoading } = useQuery({
@@ -90,27 +96,73 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   });
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
+  const addPhase = useMutation({
+    mutationFn: async (name: string) => {
+      const nextOrder = phases.length;
+      const { error } = await supabase.from('project_phases').insert({
+        project_id: projectId,
+        name,
+        sort_order: nextOrder,
+        status: 'pendente',
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-phases', projectId] });
+      setAddingPhase(false);
+      setNewName('');
+      toast.success('Fase adicionada');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (phasesLoading) {
     return <div className="text-sm text-muted-foreground">A carregar fases…</div>;
   }
 
-  if (phases.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
-        <Layers className="h-9 w-9 text-muted-foreground/30 mb-3" />
-        <p className="text-sm text-muted-foreground">
-          Ainda não há fases definidas para este projeto.
-        </p>
-        <p className="text-xs text-muted-foreground/70 mt-1">
-          Abre o detalhe (na tab "Tarefas & Responsabilidades") para configurar a estrutura.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      {/* Toolbar: Nova fase */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs text-muted-foreground">
+          {phases.length > 0 ? `${phases.length} ${phases.length === 1 ? 'fase' : 'fases'}` : ''}
+        </div>
+        {addingPhase ? (
+          <div className="flex items-center gap-2">
+            <Input
+              autoFocus
+              placeholder="Nome da fase"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              className="h-8 text-xs w-56"
+              onKeyDown={e => e.key === 'Enter' && newName.trim() && addPhase.mutate(newName.trim())}
+            />
+            <Button size="sm" className="h-8" onClick={() => newName.trim() && addPhase.mutate(newName.trim())} disabled={!newName.trim() || addPhase.isPending}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="sm" variant="ghost" className="h-8" onClick={() => { setAddingPhase(false); setNewName(''); }}>
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" onClick={() => setAddingPhase(true)}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" /> Nova fase
+          </Button>
+        )}
+      </div>
+
+      {phases.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
+          <Layers className="h-9 w-9 text-muted-foreground/30 mb-3" />
+          <p className="text-sm text-muted-foreground">
+            Ainda não há fases definidas para este projeto.
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1">
+            Usa o botão "Nova fase" acima para começar.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {phases.map(phase => {
           const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
           const total = phaseDeliverables.length;
@@ -245,7 +297,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </button>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Detail dialog — reuses the full timeline component */}
       <Dialog open={!!openPhaseId} onOpenChange={open => !open && setOpenPhaseId(null)}>
