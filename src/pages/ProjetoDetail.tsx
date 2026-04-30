@@ -815,7 +815,8 @@ export default function ProjetoDetailPage() {
                 )}
               </div>
             </div>
-            {/* Contrato */}
+            {/* Contrato — não aplicável a projetos internos */}
+            {local.type !== 'interno' && (
             <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-1"><FileText className="h-4 w-4" /> Contrato</span>
               <div className="flex items-center gap-3 flex-wrap flex-1">
@@ -864,6 +865,7 @@ export default function ProjetoDetailPage() {
                 </label>
               </div>
             </div>
+            )}
             {/* Custo */}
             {projectCost > 0 && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
