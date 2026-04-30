@@ -352,13 +352,13 @@ export default function ProdutoDetailPage() {
 
             {/* Name */}
             {editingName || isNew ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <Input
                           autoFocus={!isNew}
                           value={isNew ? (form.name || '') : nameDraft}
                           onChange={e => isNew ? update('name', e.target.value) : setNameDraft(e.target.value)}
                           placeholder="Nome do produto"
-                          className="text-3xl md:text-4xl font-bold border-input/60 shadow-none px-1 h-auto py-1 leading-tight tracking-tight bg-background"
+                          className="flex-1 min-w-0 w-full text-3xl md:text-4xl font-bold border-input/60 shadow-none px-1 h-auto py-1 leading-tight tracking-tight bg-background"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && !isNew) {
                               e.preventDefault();
