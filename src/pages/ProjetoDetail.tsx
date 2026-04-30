@@ -57,12 +57,13 @@ import { EntregaveisSubPage } from '@/components/project/subpages/EntregaveisSub
 import { CronogramaSubPage } from '@/components/project/subpages/CronogramaSubPage';
 import { OutrasInfoSubPage } from '@/components/project/subpages/OutrasInfoSubPage';
 import { ReunioesSubPage } from '@/components/project/subpages/ReunioesSubPage';
+import { TextWithAssetsSubPage } from '@/components/project/subpages/TextWithAssetsSubPage';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
-type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'dependencias' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
+type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
 
 const TASK_PRIORITIES = [
   { value: 'baixa', label: 'Baixa', color: 'bg-muted text-muted-foreground' },
