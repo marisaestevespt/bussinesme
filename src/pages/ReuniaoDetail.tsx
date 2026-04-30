@@ -397,6 +397,41 @@ export default function ReuniaoDetailPage() {
   const { data: parentRecurrence } = useParentRecurrence(isSeriesChild ? m?.parent_meeting_id ?? null : null);
   const { data: clientEmail } = useClientEmail(m?.client_id ?? null);
 
+  // Linked deliverable + its phase — used to warn when meeting date_time
+  // would push the deliverable outside the phase window.
+  const { data: linkedDeliverable } = useQuery({
+    queryKey: ['meeting-linked-deliverable', m?.id],
+    enabled: !!m?.id,
+    queryFn: async () => {
+      const { data: del } = await (supabase as any)
+        .from('project_deliverables')
+        .select('id, name, phase_id, planned_start, planned_end')
+        .eq('meeting_id', m!.id)
+        .maybeSingle();
+      if (!del?.phase_id) return del ? { ...del, phase: null } : null;
+      const { data: phase } = await (supabase as any)
+        .from('project_phases')
+        .select('id, name, planned_start, planned_end')
+        .eq('id', del.phase_id)
+        .maybeSingle();
+      return { ...del, phase };
+    },
+  });
+
+  // Compute window-conflict warning (date only, ignores time component).
+  const meetingWindowWarning = (() => {
+    if (!m?.date_time || !linkedDeliverable?.phase) return null;
+    const phase = linkedDeliverable.phase as { name: string; planned_start: string | null; planned_end: string | null };
+    const dateOnly = m.date_time.slice(0, 10); // YYYY-MM-DD
+    if (phase.planned_end && dateOnly > phase.planned_end) {
+      return `A nova data está depois do fim da fase "${phase.name}" (${format(parseISO(phase.planned_end), 'dd MMM', { locale: pt })}). Ao guardar, a entrega ligada ficará fora da janela.`;
+    }
+    if (phase.planned_start && dateOnly < phase.planned_start) {
+      return `A nova data está antes do início da fase "${phase.name}" (${format(parseISO(phase.planned_start), 'dd MMM', { locale: pt })}). Ao guardar, a entrega ligada ficará fora da janela.`;
+    }
+    return null;
+  })();
+
   // Build recurrence prop for AddToCalendarButtons (covers both parent and child occurrences)
   const calendarRecurrence = isSeriesParent
     ? (m?.recurrence_frequency
@@ -771,6 +806,13 @@ export default function ReuniaoDetailPage() {
               />
             </div>
           </EntityProperty>
+
+          {meetingWindowWarning && (
+            <div className="px-3 py-2 rounded-md border border-warning/40 bg-warning/10 text-warning text-xs flex items-start gap-2">
+              <span className="font-semibold shrink-0">⚠ Conflito:</span>
+              <span>{meetingWindowWarning}</span>
+            </div>
+          )}
 
           <EntityProperty icon={Clock} label="Status">
             <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
