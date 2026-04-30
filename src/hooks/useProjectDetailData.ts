@@ -195,15 +195,42 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
   const projectMembers = projectMembersQ.data || [];
   const toggleMember = useMutation({
     mutationFn: async (profileId: string) => {
-      const isMember = projectMembers.includes(profileId);
-      if (isMember) {
-        await supabase.from('project_members').delete().eq('project_id', id!).eq('profile_id', profileId);
+      // Re-check server-side to avoid stale cache races on rapid clicks
+      const { data: existing, error: checkErr } = await supabase
+        .from('project_members')
+        .select('profile_id')
+        .eq('project_id', id!)
+        .eq('profile_id', profileId)
+        .maybeSingle();
+      if (checkErr) throw checkErr;
+      if (existing) {
+        const { error } = await supabase
+          .from('project_members')
+          .delete()
+          .eq('project_id', id!)
+          .eq('profile_id', profileId);
+        if (error) throw error;
       } else {
-        await supabase.from('project_members').insert({ project_id: id!, profile_id: profileId });
+        const { error } = await supabase
+          .from('project_members')
+          .insert({ project_id: id!, profile_id: profileId });
+        if (error) throw error;
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-members', id] }),
-    onError: (e: Error) => toast.error(e.message),
+    onMutate: async (profileId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['project-members', id] });
+      const previous = queryClient.getQueryData<string[]>(['project-members', id]) || [];
+      const next = previous.includes(profileId)
+        ? previous.filter(p => p !== profileId)
+        : [...previous, profileId];
+      queryClient.setQueryData(['project-members', id], next);
+      return { previous };
+    },
+    onError: (e: Error, _profileId, context) => {
+      if (context?.previous) queryClient.setQueryData(['project-members', id], context.previous);
+      toast.error(e.message);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['project-members', id] }),
   });
 
   const deleteMutation = useMutation({
