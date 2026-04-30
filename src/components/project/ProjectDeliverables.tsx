@@ -173,12 +173,45 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
-        .select('id, name, client_id, clients ( id, full_name )')
+        .select('id, name, client_id, department, departments, clients ( id, full_name )')
         .eq('id', projectId)
         .maybeSingle();
       return data as any;
     },
   });
+
+  // All team profiles (id + department) — used to resolve which members to
+  // pre-select as participants when creating a meeting from a deliverable.
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ['profiles-with-department'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, department');
+      return (data || []) as { id: string; department: string | null }[];
+    },
+  });
+
+  /**
+   * Compute the default participant set when creating a meeting from a deliverable:
+   * - the deliverable assignee (if any)
+   * - all team members whose `department` matches the project's main department
+   *   or any department listed in `projects.departments` (jsonb array).
+   */
+  const computeMeetingMembers = (d: any): string[] => {
+    const ids = new Set<string>();
+    if (d?.assigned_to) ids.add(d.assigned_to);
+    const projectDepts = new Set<string>();
+    if (projectCtx?.department) projectDepts.add(projectCtx.department);
+    if (Array.isArray(projectCtx?.departments)) {
+      projectCtx.departments.forEach((dep: any) => { if (typeof dep === 'string' && dep) projectDepts.add(dep); });
+    }
+    if (projectDepts.size > 0) {
+      allProfiles.forEach(p => { if (p.department && projectDepts.has(p.department)) ids.add(p.id); });
+    }
+    return Array.from(ids);
+  };
+
+  const projectDefaultDepartment = projectCtx?.department
+    || (Array.isArray(projectCtx?.departments) && projectCtx.departments[0]) || undefined;
 
   const linkMeetingMutation = useMutation({
     mutationFn: async ({ deliverableId, meetingId }: { deliverableId: string; meetingId: string }) => {
