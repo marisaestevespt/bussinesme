@@ -738,7 +738,7 @@ export default function ProjetoDetailPage() {
               </button>
             </div>
             {/* Produto */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
+            <div className="flex items-center gap-2 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
               <Select
                 value={local.product_id || '__none__'}
@@ -753,19 +753,26 @@ export default function ProjetoDetailPage() {
                   }
                 }}
               >
-                <SelectTrigger className="w-64 h-8">
-                  <SelectValue placeholder="Sem produto associado" />
+                <SelectTrigger className="w-72 h-8 justify-start gap-2 px-2 [&>svg]:ml-auto">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    {local.product_id && (
+                      <ProductIcon productId={local.product_id as any} className="h-5 w-5 shrink-0" emojiClassName="text-sm" />
+                    )}
+                    <SelectValue placeholder="Sem produto associado" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">— Sem produto —</SelectItem>
                   {productsList.map((p: any) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    <SelectItem key={p.id} value={p.id}>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <ProductIcon productId={p.id as any} icon={p.icon} logoUrl={p.logo_url} className="h-4 w-4 shrink-0" emojiClassName="text-xs" />
+                        <span className="truncate">{p.name}</span>
+                      </span>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {local.product_id && (
-                <ProductIcon productId={local.product_id as any} className="h-5 w-5 ml-1" emojiClassName="text-sm" />
-              )}
             </div>
             {/* Datas */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
