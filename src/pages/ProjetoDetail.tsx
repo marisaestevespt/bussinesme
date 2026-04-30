@@ -741,36 +741,38 @@ export default function ProjetoDetailPage() {
             {/* Produto */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-28 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
-              <Select
-                value={local.product_id || '__none__'}
-                onValueChange={v => {
-                  if (v === '__none__') {
-                    updateField('product_id', null);
-                    updateField('product_name', null);
-                  } else {
-                    const p = productsList.find((x: any) => x.id === v);
-                    updateField('product_id', v);
-                    updateField('product_name', p?.name || null);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-80 h-8 justify-start gap-2 px-2 [&>svg]:ml-auto">
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    {local.product_id && (
-                      <ProductIcon productId={local.product_id as any} icon={selectedProduct?.icon} logoUrl={selectedProduct?.logo_url} className="h-5 w-5 shrink-0" emojiClassName="text-sm" />
-                    )}
-                    <span className={cn("min-w-0 flex-1 truncate text-left", !local.product_id && "text-muted-foreground")}>
-                      {selectedProduct?.name || local.product_name || 'Sem produto associado'}
-                    </span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">— Sem produto —</SelectItem>
-                  {productsList.map((p: any) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex-1 min-w-0">
+                <Select
+                  value={local.product_id || '__none__'}
+                  onValueChange={v => {
+                    if (v === '__none__') {
+                      updateField('product_id', null);
+                      updateField('product_name', null);
+                    } else {
+                      const p = productsList.find((x: any) => x.id === v);
+                      updateField('product_id', v);
+                      updateField('product_name', p?.name || null);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-full justify-start gap-2 px-2 [&>svg]:ml-auto [&>span]:line-clamp-none">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                      {local.product_id && (
+                        <ProductIcon productId={local.product_id as any} icon={selectedProduct?.icon} logoUrl={selectedProduct?.logo_url} className="h-6 w-6 shrink-0" emojiClassName="text-lg" />
+                      )}
+                      <span className={cn("min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left", !local.product_id && "text-muted-foreground")}>
+                        {selectedProduct?.name || local.product_name || 'Sem produto associado'}
+                      </span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="max-w-[min(48rem,calc(100vw-2rem))]">
+                    <SelectItem value="__none__">— Sem produto —</SelectItem>
+                    {productsList.map((p: any) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             {/* Datas */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
