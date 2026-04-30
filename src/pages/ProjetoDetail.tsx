@@ -499,7 +499,6 @@ export default function ProjetoDetailPage() {
       />
     );
   }
-  }
 
   // ─── Launch project ────────────────────────────────────────────
   if (local.type === 'lancamento') {
