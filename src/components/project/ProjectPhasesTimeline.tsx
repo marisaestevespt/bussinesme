@@ -896,7 +896,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                     <>
                       <div className={cn(
                         "flex items-center gap-3 flex-wrap",
-                        focusPhaseId && "justify-center mb-5"
+                        focusPhaseId && "justify-center mb-8 mt-1"
                       )}>
                         {!focusPhaseId && (
                           <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
