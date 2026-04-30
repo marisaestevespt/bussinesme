@@ -114,7 +114,7 @@ export function useProjects() {
   return useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('id, name, client_id, client_name, department, type').order('name');
+      const { data, error } = await supabase.from('projects').select('id, name, client_id, client_name, department, type').order('name').is('archived_at', null);
       if (error) throw error;
       return (data || []) as ProjectOption[];
     },

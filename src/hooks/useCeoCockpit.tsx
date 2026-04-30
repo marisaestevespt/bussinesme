@@ -57,7 +57,7 @@ export function useCeoCockpit() {
         supabase.from('team_members').select('id, status, expected_weekly_hours, full_name'),
         supabase.from('time_entries').select('member_id, duration').gte('entry_date', monthStart).lte('entry_date', monthEnd),
         supabase.from('tasks').select('id, status, deadline, assigned_to, priority, name, project_id, department'),
-        supabase.from('projects').select('id, name, status, deadline, department, type, project_mode, client_name, progress'),
+        supabase.from('projects').select('id, name, status, deadline, department, type, project_mode, client_name, progress').is('archived_at', null),
         supabase.from('crm_leads').select('id, name, next_followup, created_at, status'),
         supabase.from('client_nps_records').select('nps_score, actual_date, client_id').gte('actual_date', ninetyDaysAgo).not('nps_score', 'is', null),
         supabase.from('meetings').select('id, title, date_time, status, project_id, client_name').gte('date_time', monthStart).lte('date_time', monthEnd).order('date_time', { ascending: true }),

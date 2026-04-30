@@ -158,7 +158,7 @@ function useProjectsList() {
   return useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('id, name, product_id, product_name, client_id, client_name').order('name');
+      const { data, error } = await supabase.from('projects').select('id, name, product_id, product_name, client_id, client_name').order('name').is('archived_at', null);
       if (error) throw error;
       return data as ProjectOption[];
     },

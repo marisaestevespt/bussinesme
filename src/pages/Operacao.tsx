@@ -55,7 +55,7 @@ export default function OperacaoPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['op-projects'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at,cover_url,project_mode,task_mode,client_id').order('deadline', { ascending: true });
+      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at,cover_url,project_mode,task_mode,client_id').order('deadline', { ascending: true }).is('archived_at', null);
       return (data || []) as (Project & { project_mode: string | null; task_mode: string | null })[];
     },
   });

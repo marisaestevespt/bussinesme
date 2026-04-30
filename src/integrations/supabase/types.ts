@@ -8969,6 +8969,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          archived_at: string | null
           budgeted_minutes: number | null
           client_id: string | null
           client_name: string | null
@@ -9008,6 +9009,7 @@ export type Database = {
           whatsapp_group_url: string | null
         }
         Insert: {
+          archived_at?: string | null
           budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null
@@ -9047,6 +9049,7 @@ export type Database = {
           whatsapp_group_url?: string | null
         }
         Update: {
+          archived_at?: string | null
           budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null

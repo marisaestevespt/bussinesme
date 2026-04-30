@@ -461,7 +461,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
   const { data: projectsList = [] } = useQuery({
     queryKey: ['projects-list-names'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name').order('name');
+      const { data } = await supabase.from('projects').select('id, name').order('name').is('archived_at', null);
       return data || [];
     },
   });

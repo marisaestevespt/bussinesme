@@ -63,7 +63,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
   const { data: projects = [] } = useQuery({
     queryKey: ['projects-list-simple'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name').order('name');
+      const { data } = await supabase.from('projects').select('id, name').order('name').is('archived_at', null);
       return data || [];
     },
   });

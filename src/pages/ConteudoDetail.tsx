@@ -106,7 +106,7 @@ export default function ConteudoDetailPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects-list'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name');
+      const { data } = await supabase.from('projects').select('id, name').is('archived_at', null);
       return data || [];
     },
   });

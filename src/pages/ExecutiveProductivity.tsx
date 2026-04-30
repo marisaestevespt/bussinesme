@@ -58,7 +58,7 @@ export default function ExecutiveProductivity() {
   const projects = useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name, client_name, type');
+      const { data } = await supabase.from('projects').select('id, name, client_name, type').is('archived_at', null);
       return (data || []) as any[];
     },
   });

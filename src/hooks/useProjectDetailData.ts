@@ -58,7 +58,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
 
   const allProjectsForMeetingQ = useQuery({
     queryKey: ['projects-for-meetings'],
-    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name'); return (data || []) as ProjectOption[]; },
+    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name').is('archived_at', null); return (data || []) as ProjectOption[]; },
   });
 
   const projectQ = useQuery({
@@ -209,11 +209,12 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { data: snap } = await supabase.from('projects').select('name, client_id').eq('id', id!).maybeSingle();
-      const { error } = await supabase.from('projects').delete().eq('id', id!);
+      // Soft-delete: archive instead of hard delete to preserve history & avoid FK issues
+      const { error } = await supabase.from('projects').update({ archived_at: new Date().toISOString() } as any).eq('id', id!);
       if (error) throw error;
-      logAudit('deleted', 'project', id, { name: snap?.name, client_id: snap?.client_id });
+      logAudit('archived', 'project', id, { name: snap?.name, client_id: snap?.client_id });
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['projects'] }); toast.success('Projeto eliminado'); navigate('/hub/projetos'); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['projects'] }); toast.success('Projeto arquivado. Podes restaurá-lo na lista de Arquivados.'); navigate('/hub/projetos'); },
     onError: (e: Error) => toast.error(e.message),
   });
 

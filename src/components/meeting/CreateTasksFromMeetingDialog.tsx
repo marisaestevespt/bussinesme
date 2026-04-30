@@ -61,7 +61,7 @@ export function CreateTasksFromMeetingDialog({
   const { data: projects = [] } = useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name').order('name');
+      const { data } = await supabase.from('projects').select('id, name').order('name').is('archived_at', null);
       return data || [];
     },
   });

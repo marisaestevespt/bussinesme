@@ -165,7 +165,7 @@ export default function TarefasPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects-list-with-client'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name, client_id, client_name');
+      const { data } = await supabase.from('projects').select('id, name, client_id, client_name').is('archived_at', null);
       return data || [];
     },
   });

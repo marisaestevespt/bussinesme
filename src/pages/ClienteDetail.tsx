@@ -450,7 +450,7 @@ export default function ClienteDetailPage() {
   const { data: meetingProjectOptions = [] } = useQuery({
     queryKey: ['projects-for-meetings'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name, client_id, client_name, department, type');
+      const { data } = await supabase.from('projects').select('id, name, client_id, client_name, department, type').is('archived_at', null);
       return (data || []) as { id: string; name: string; client_id: string | null; client_name: string | null; department: string | null; type: string | null }[];
     },
   });

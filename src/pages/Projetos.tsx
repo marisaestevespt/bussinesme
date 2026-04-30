@@ -16,7 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
-import { Plus, LayoutList, LayoutGrid, CalendarIcon, ChevronLeft, ChevronRight, FolderKanban } from 'lucide-react';
+import { Plus, LayoutList, LayoutGrid, CalendarIcon, ChevronLeft, ChevronRight, FolderKanban, Archive, ArchiveRestore, Trash2, Eye } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
@@ -149,6 +150,7 @@ export default function ProjetosPage() {
   const { allViews, addView, renameView, deleteView } = useUserViews('projetos', PROJETOS_DEFAULT_VIEWS);
   const { isAreaEnabled: areaOn } = useKpiSettings();
   const [view, setView] = useState<string>('table');
+  const [showArchived, setShowArchived] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
 
@@ -179,12 +181,14 @@ export default function ProjetosPage() {
   }
 
   const projectsQuery = useInfiniteQuery<InfinitePageResult<Project>>({
-    queryKey: ['projects'],
+    queryKey: ['projects', { archived: showArchived }],
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('projects').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+      let q = supabase.from('projects').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+      q = showArchived ? q.not('archived_at', 'is', null) : q.is('archived_at', null);
+      const { data, error, count } = await q.range(from, to);
       if (error) throw error;
       return { data: (data || []) as Project[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
@@ -342,6 +346,30 @@ export default function ProjetosPage() {
     },
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase.from('projects').update({ archived_at: null } as any).eq('id', projectId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Projeto restaurado');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const hardDeleteMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase.from('projects').delete().eq('id', projectId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Projeto eliminado definitivamente');
+    },
+    onError: (e: Error) => toast.error('Não foi possível eliminar: ' + e.message + '. Verifica se ainda existem tarefas, reuniões ou vendas associadas.'),
+  });
+
   function resetForm() {
     setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual'); setFProduct('');
     setDialogOpen(false);
@@ -427,7 +455,17 @@ export default function ProjetosPage() {
         })()}
 
         <div className="flex items-center justify-between">
-          <div />
+          <div>
+            <Button
+              variant={showArchived ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowArchived(v => !v)}
+              className="gap-2"
+            >
+              <Archive className="h-3.5 w-3.5" />
+              {showArchived ? 'A ver arquivados' : 'Arquivados'}
+            </Button>
+          </div>
           <div className="flex items-center gap-2">
             <ViewTabs
               views={allViews}
@@ -444,9 +482,18 @@ export default function ProjetosPage() {
           <div className="flex justify-center py-12"><InlineLoader /></div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-            <EmptyHint>Nenhum projeto registado</EmptyHint>
-            <Button variant="outline" className="mt-4 gap-2" onClick={() => openWithTemplate(PROJECT_TEMPLATES[0])}><Plus className="h-4 w-4" /> Criar primeiro projeto</Button>
+            <EmptyHint>{showArchived ? 'Nenhum projeto arquivado' : 'Nenhum projeto registado'}</EmptyHint>
+            {!showArchived && (
+              <Button variant="outline" className="mt-4 gap-2" onClick={() => openWithTemplate(PROJECT_TEMPLATES[0])}><Plus className="h-4 w-4" /> Criar primeiro projeto</Button>
+            )}
           </div>
+        ) : showArchived ? (
+          <ArchivedTable
+            projects={projects}
+            onOpen={(id) => navigate(`/hub/projetos/${id}`)}
+            onRestore={(id) => restoreMutation.mutate(id)}
+            onHardDelete={(id) => hardDeleteMutation.mutate(id)}
+          />
         ) : (
           <>
             {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} onStatusChange={(id, s) => updateStatusMutation.mutate({ projectId: id, status: s })} getTaskProgress={getTaskProgress} />}
@@ -764,3 +811,78 @@ function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Pr
 }
 
 export { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials };
+
+function ArchivedTable({
+  projects,
+  onOpen,
+  onRestore,
+  onHardDelete,
+}: {
+  projects: Project[];
+  onOpen: (id: string) => void;
+  onRestore: (id: string) => void;
+  onHardDelete: (id: string) => void;
+}) {
+  return (
+    <div className="rounded-lg border border-border/60 overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/40">
+            <TableHead className="text-foreground">Projeto</TableHead>
+            <TableHead className="text-foreground">Cliente</TableHead>
+            <TableHead className="text-foreground w-[160px]">Arquivado em</TableHead>
+            <TableHead className="text-right w-[280px]">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {projects.map((p) => {
+            const archivedAt = (p as any).archived_at as string | null;
+            return (
+              <TableRow key={p.id}>
+                <TableCell className="font-medium">{p.name}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{p.client_name || '—'}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {archivedAt ? format(parseISO(archivedAt), "d MMM yyyy", { locale: pt }) : '—'}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" className="gap-1" onClick={() => onOpen(p.id)}>
+                      <Eye className="h-3.5 w-3.5" /> Abrir
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-1" onClick={() => onRestore(p.id)}>
+                      <ArchiveRestore className="h-3.5 w-3.5" /> Restaurar
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Eliminar definitivamente?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação é irreversível. Tudo o que está em cascata (fases, entregas, anexos, membros) será apagado. Tarefas e reuniões só serão eliminadas se não tiverem dependências externas — caso contrário o sistema impede a eliminação.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onHardDelete(p.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Eliminar para sempre
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
