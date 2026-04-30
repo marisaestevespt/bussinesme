@@ -965,22 +965,29 @@ export default function ProjetoDetailPage() {
               {/* ── Section: Desenvolvimento ──────────────── */}
               <EntitySection title="Desenvolvimento" icon={FileText}>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {[
-                    local.type === 'interno'
-                      ? { key: 'brainstorming' as SubPage, icon: Lightbulb, label: 'Brainstorming' }
-                      : { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing' },
-                    { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
-                    { key: 'reunioes' as SubPage, icon: Users, label: 'Reuniões' },
-                    { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais' },
-                  ].map(({ key, icon: Icon, label }) => (
-                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-                      <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
-                      <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
-                    </button>
-                  ))}
+                  {(() => {
+                    const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
+                    const tiles = [
+                      local.type === 'interno'
+                        ? { key: 'brainstorming' as SubPage, icon: Lightbulb, label: 'Brainstorming', filled: hasText((local as any).brainstorming) }
+                        : { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing', filled: false },
+                      { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis', filled: hasText(local.entregaveis) },
+                      { key: 'reunioes' as SubPage, icon: Users, label: 'Reuniões', filled: meetings.length > 0 },
+                      { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais', filled: hasText(local.recursos) },
+                    ];
+                    return tiles.map(({ key, icon: Icon, label, filled }) => (
+                      <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+                        <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground leading-tight flex items-center gap-2">
+                          {label}
+                          {filled && <span className="h-1.5 w-1.5 rounded-full bg-success" title="Já tem conteúdo" />}
+                        </span>
+                        <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
+                      </button>
+                    ));
+                  })()}
                 </div>
               </EntitySection>
 
