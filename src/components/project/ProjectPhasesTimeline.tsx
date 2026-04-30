@@ -519,6 +519,137 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     },
   });
 
+  /**
+   * Check if a date change would push a deliverable outside its phase window
+   * or a phase outside the project window. Returns conflict info or null.
+   */
+  function checkWindowConflict(args: {
+    sourceTable: 'project_phases' | 'project_deliverables';
+    sourceId: string;
+    field: 'planned_start' | 'planned_end';
+    newValue: string;
+  }): NonNullable<typeof conflictPrompt> | null {
+    const { sourceTable, sourceId, field, newValue } = args;
+    if (sourceTable === 'project_deliverables') {
+      const del = deliverables.find(d => d.id === sourceId);
+      if (!del?.phase_id) return null;
+      const phase = phases.find(p => p.id === del.phase_id);
+      if (!phase) return null;
+      const phaseStart = phase.planned_start;
+      const phaseEnd = phase.planned_end;
+      if (field === 'planned_end' && phaseEnd && newValue > phaseEnd) {
+        return {
+          kind: 'del_outside_phase',
+          message: `A data de fim (${format(parseISO(newValue), 'dd MMM yyyy', { locale: pt })}) é depois do fim da fase "${phase.name}" (${format(parseISO(phaseEnd), 'dd MMM yyyy', { locale: pt })}).`,
+          targetId: phase.id,
+          field,
+          newValue,
+          originalValue: (del as any)[field] ?? null,
+          sourceTable,
+          sourceId,
+          extendLabel: `Estender fim da fase para ${format(parseISO(newValue), 'dd MMM', { locale: pt })}`,
+          extendDate: newValue,
+          canExtend: true,
+        };
+      }
+      if (field === 'planned_start' && phaseStart && newValue < phaseStart) {
+        return {
+          kind: 'del_outside_phase',
+          message: `A data de início (${format(parseISO(newValue), 'dd MMM yyyy', { locale: pt })}) é antes do início da fase "${phase.name}" (${format(parseISO(phaseStart), 'dd MMM yyyy', { locale: pt })}).`,
+          targetId: phase.id,
+          field,
+          newValue,
+          originalValue: (del as any)[field] ?? null,
+          sourceTable,
+          sourceId,
+          extendLabel: `Antecipar início da fase para ${format(parseISO(newValue), 'dd MMM', { locale: pt })}`,
+          extendDate: newValue,
+          canExtend: true,
+        };
+      }
+    } else {
+      // phase vs project
+      const phase = phases.find(p => p.id === sourceId);
+      if (!phase) return null;
+      const projDeadline = projectCtx?.deadline as string | null | undefined;
+      const projStart = projectStartDate ?? null;
+      if (field === 'planned_end' && projDeadline && newValue > projDeadline) {
+        return {
+          kind: 'phase_outside_project',
+          message: `A data de fim da fase (${format(parseISO(newValue), 'dd MMM yyyy', { locale: pt })}) é depois do prazo do projeto (${format(parseISO(projDeadline), 'dd MMM yyyy', { locale: pt })}).`,
+          targetId: projectId,
+          field,
+          newValue,
+          originalValue: (phase as any)[field] ?? null,
+          sourceTable,
+          sourceId,
+          extendLabel: 'Ajustar prazo do projeto manualmente',
+          extendDate: newValue,
+          canExtend: false,
+        };
+      }
+      if (field === 'planned_start' && projStart && newValue < projStart) {
+        return {
+          kind: 'phase_outside_project',
+          message: `A data de início da fase (${format(parseISO(newValue), 'dd MMM yyyy', { locale: pt })}) é antes do início do projeto (${format(parseISO(projStart), 'dd MMM yyyy', { locale: pt })}).`,
+          targetId: projectId,
+          field,
+          newValue,
+          originalValue: (phase as any)[field] ?? null,
+          sourceTable,
+          sourceId,
+          extendLabel: 'Ajustar início do projeto manualmente',
+          extendDate: newValue,
+          canExtend: false,
+        };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Wrapper used by inputs: intercepts date changes and shows the conflict
+   * dialog before persisting. If no conflict, proceeds with the mutation.
+   */
+  function tryUpdateWithConflictCheck(args: {
+    sourceTable: 'project_phases' | 'project_deliverables';
+    sourceId: string;
+    field: 'planned_start' | 'planned_end';
+    newValue: string | null;
+  }) {
+    const { sourceTable, sourceId, field, newValue } = args;
+    if (newValue) {
+      const conflict = checkWindowConflict({ sourceTable, sourceId, field, newValue });
+      if (conflict) {
+        setConflictPrompt(conflict);
+        return;
+      }
+    }
+    if (sourceTable === 'project_phases') {
+      updatePhase.mutate({ id: sourceId, [field]: newValue });
+    } else {
+      updateDeliverable.mutate({ id: sourceId, [field]: newValue });
+    }
+  }
+
+  async function applyConflictResolution(action: 'accept' | 'extend') {
+    if (!conflictPrompt) return;
+    const c = conflictPrompt;
+    if (action === 'extend' && c.canExtend) {
+      // Extend the parent phase first, then save the source change.
+      await (supabase as any)
+        .from('project_phases')
+        .update({ [c.field]: c.extendDate })
+        .eq('id', c.targetId);
+    }
+    if (c.sourceTable === 'project_phases') {
+      updatePhase.mutate({ id: c.sourceId, [c.field]: c.newValue });
+    } else {
+      updateDeliverable.mutate({ id: c.sourceId, [c.field]: c.newValue });
+    }
+    setConflictPrompt(null);
+  }
+
   const addDeliverable = useMutation({
     mutationFn: async ({ phaseId, name }: { phaseId: string; name: string }) => {
       const phaseDels = deliverables.filter(d => d.phase_id === phaseId);
