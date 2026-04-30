@@ -50,6 +50,7 @@ import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUplo
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
 import { useProjectDetailData, calcTotalTime, type ProjectFull, type Profile, type Task, type Meeting } from '@/hooks/useProjectDetailData';
+import { useProducts } from '@/hooks/useProducts';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EntregaveisSubPage } from '@/components/project/subpages/EntregaveisSubPage';
 import { CronogramaSubPage } from '@/components/project/subpages/CronogramaSubPage';
