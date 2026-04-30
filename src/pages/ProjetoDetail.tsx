@@ -414,6 +414,17 @@ export default function ProjetoDetailPage() {
       />
     );
   }
+  if (subPage === 'briefing') {
+    return (
+      <BriefingSubPage
+        projectId={id!}
+        clientId={local.client_id}
+        clientName={local.client_name}
+        projectName={local.name}
+        onBack={() => setSubPage(null)}
+      />
+    );
+  }
 
   // ─── Entregáveis sub-page (file upload + list) ────────────────
   if (subPage === 'entregaveis') {
