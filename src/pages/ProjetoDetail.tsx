@@ -472,8 +472,8 @@ export default function ProjetoDetailPage() {
         textLabel: 'Notas de recursos',
         textPlaceholder: 'Listas de ferramentas, acessos, observações...',
         assetsLabel: 'Galeria de recursos',
-        assetsDescription: 'Ferramentas, contas, ficheiros de apoio, links externos.',
-        assetCategories: ['Ferramenta', 'Acesso', 'Referência', 'Inspiração'],
+        assetsDescription: 'Ferramentas, contas, ficheiros de apoio, anexos internos da equipa, links externos. Não é partilhado com o cliente.',
+        assetCategories: ['Anexo interno', 'Ferramenta', 'Acesso', 'Referência', 'Inspiração'],
       },
       notas: {
         field: 'project_notes',
