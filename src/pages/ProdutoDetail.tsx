@@ -30,6 +30,7 @@ import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSectio
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
+import { ProductPortalTemplateSection } from '@/components/product/ProductPortalTemplateSection';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -713,6 +714,7 @@ export default function ProdutoDetailPage() {
             {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
             {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
             {canSeeSection('branding') && <SectionButton sectionKey="branding" label="Branding" />}
+            {canSeeSection('branding') && <SectionButton sectionKey="portal-template" label="Portal Template" />}
             {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade" />}
             {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
             {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
@@ -835,6 +837,16 @@ export default function ProdutoDetailPage() {
               productId={id!}
               calendarColor={(form as any).calendar_color ?? null}
               onUpdateCalendarColor={(next) => update('calendar_color', next)}
+            />
+          )}
+
+          {openSection === 'portal-template' && (
+            <ProductPortalTemplateSection
+              faqs={((form as any).portal_faqs_template || []) as any[]}
+              materials={((form as any).portal_materials_template || []) as any[]}
+              timeline={((form as any).portal_timeline_template || []) as any[]}
+              isOwner={isOwner}
+              onUpdate={(field, value) => update(field, value)}
             />
           )}
 
