@@ -8970,6 +8970,7 @@ export type Database = {
       projects: {
         Row: {
           archived_at: string | null
+          brainstorming: string | null
           budgeted_minutes: number | null
           client_id: string | null
           client_name: string | null
@@ -9010,6 +9011,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          brainstorming?: string | null
           budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null
@@ -9050,6 +9052,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          brainstorming?: string | null
           budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null
