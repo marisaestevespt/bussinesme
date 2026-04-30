@@ -980,8 +980,8 @@ export default function ProjetoDetailPage() {
                   {(() => {
                     const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
                     const base = local.type === 'cliente_servico_mensal' ? [
-                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais', filled: hasText(local.diretrizes) },
-                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral', filled: hasText(local.cronograma) },
+                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes da Avença', filled: hasText(local.diretrizes) },
+                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Calendário Editorial', filled: hasText(local.cronograma) },
                       { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
                     ] : [
                       { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição', filled: hasText(local.objetivo) },
