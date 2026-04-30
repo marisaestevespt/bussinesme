@@ -866,7 +866,7 @@ export default function ProjetoDetailPage() {
                   {(local.type === 'cliente_servico_mensal' ? [
                     { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
                     { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
-                    { key: 'outras_info' as SubPage, icon: StickyNote, label: 'Outras Informações' },
+                    { key: 'outras_info' as SubPage, icon: ClipboardList, label: 'Outras Informações' },
                     { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
                   ] : [
                     { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
