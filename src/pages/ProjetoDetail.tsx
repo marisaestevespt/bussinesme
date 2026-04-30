@@ -809,7 +809,7 @@ export default function ProjetoDetailPage() {
           </div>
 
 
-          {/* ─── 3 Tabs ──────────────────────────────────────── */}
+          {/* ─── Tabs ──────────────────────────────────────── */}
           <div className="mt-6">
           <EntityTabs defaultValue="projeto" className="w-full">
             <EntityTabsList className="!rounded-xl !p-1.5 bg-muted/70 shadow-sm w-full sm:w-auto">
@@ -827,6 +827,15 @@ export default function ProjetoDetailPage() {
                 <Workflow className="h-4 w-4" />
                 Fases &amp; Entregas
               </EntityTabsTrigger>
+              {resolvedClientId && local.client_name && (
+                <EntityTabsTrigger
+                  value="portal"
+                  className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+                >
+                  <Users className="h-4 w-4" />
+                  Portal de Cliente
+                </EntityTabsTrigger>
+              )}
               <EntityTabsTrigger
                 value="gestao"
                 className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
@@ -930,24 +939,6 @@ export default function ProjetoDetailPage() {
                 )}
               </EntitySection>
 
-              {/* ── Section: Portal de Cliente ────────────── */}
-              {resolvedClientId && local.client_name && (
-                <>
-                  <EntitySection title="Portal do Cliente" icon={Users}>
-                    <ClientPortalSection
-                      clientId={resolvedClientId}
-                      clientName={local.client_name}
-                      currentProduct={local.product_name || null}
-                      productId={local.product_id}
-                    />
-                  </EntitySection>
-
-                  <EntitySection title="Feedback Recebido" icon={MessageCircle}>
-                    <ClientPortalFeedbackSection clientId={resolvedClientId} />
-                  </EntitySection>
-                </>
-              )}
-
               {/* ── Section: Fecho de Projeto ────────────── */}
               <EntitySection title="Fecho de Projeto" icon={Flag}>
                 <div className="space-y-2">
@@ -988,7 +979,25 @@ export default function ProjetoDetailPage() {
               />
             </EntityTabsContent>
 
-            {/* ─── TAB 3: GESTÃO ───────────────────────────── */}
+            {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
+            {resolvedClientId && local.client_name && (
+              <EntityTabsContent value="portal" className="mt-4 space-y-8">
+                <EntitySection title="Portal do Cliente" icon={Users}>
+                  <ClientPortalSection
+                    clientId={resolvedClientId}
+                    clientName={local.client_name}
+                    currentProduct={local.product_name || null}
+                    productId={local.product_id}
+                  />
+                </EntitySection>
+
+                <EntitySection title="Feedback Recebido" icon={MessageCircle}>
+                  <ClientPortalFeedbackSection clientId={resolvedClientId} />
+                </EntitySection>
+              </EntityTabsContent>
+            )}
+
+            {/* ─── TAB 4: GESTÃO ───────────────────────────── */}
             <EntityTabsContent value="gestao" className="mt-4">
               <ProjectGestaoTab
                 projectId={id!}
