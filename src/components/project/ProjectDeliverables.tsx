@@ -478,6 +478,37 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                       <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
                     )}
 
+                    {d.is_meeting && (
+                      d.meeting_id ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
+                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                          title="Abrir reunião"
+                        >
+                          <Video className="h-3 w-3" /> Reunião
+                        </button>
+                      ) : (
+                        <NewMeetingButton
+                          skipPicker
+                          forcedType={'recorrente' as any}
+                          defaultProjectId={projectId}
+                          defaultProjectName={projectCtx?.name}
+                          defaultClientId={projectCtx?.client_id ?? undefined}
+                          defaultClientName={projectCtx?.clients?.name ?? undefined}
+                          onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
+                        >
+                          <button
+                            type="button"
+                            className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+                            title="Criar reunião pré-preenchida"
+                          >
+                            <Plus className="h-3 w-3" /> Criar reunião
+                          </button>
+                        </NewMeetingButton>
+                      )
+                    )}
+
                     {(() => {
                       const linkedTask = taskByDeliverable.get(d.id);
                       const realMin = linkedTask ? (timeByTask[linkedTask.id] || 0) : 0;
