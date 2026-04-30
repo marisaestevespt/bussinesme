@@ -314,75 +314,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
         </CardContent>
       </Card>
 
-      {/* Materials */}
-      {(portalData as any).show_materials && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-muted/30 border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center">
-                  <FileText className="h-4.5 w-4.5 text-success" />
-                </div>
-                <CardTitle className="text-base">Entregáveis</CardTitle>
-              </div>
-              <label>
-                <input
-                  type="file"
-                  className="hidden"
-                  multiple
-                  onChange={async (e) => {
-                    if (!e.target.files?.length || !portalId) return;
-                    setUploadingMaterial(true);
-                    for (const file of Array.from(e.target.files)) {
-                      const path = `${portalId}/${Date.now()}-${file.name}`;
-                      const { error } = await supabase.storage.from('project-files').upload(path, file);
-                      if (error) { toast.error(`Erro: ${file.name}`); continue; }
-                      const { data: { publicUrl } } = supabase.storage.from('project-files').getPublicUrl(path);
-                      await supabase.from('portal_materials').insert({
-                        portal_id: portalId,
-                        file_url: publicUrl,
-                        file_name: file.name,
-                        file_type: file.type.startsWith('image') ? 'image' : 'file',
-                      } as any);
-                    }
-                    refetchMaterials();
-                    setUploadingMaterial(false);
-                    toast.success('Ficheiro(s) carregado(s)');
-                    e.target.value = '';
-                  }}
-                />
-                <Button size="sm" variant="outline" asChild disabled={uploadingMaterial}>
-                  <span className="cursor-pointer"><Upload className="h-3 w-3 mr-1.5" />{uploadingMaterial ? 'A carregar...' : 'Carregar'}</span>
-                </Button>
-              </label>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-2">
-            {portalMaterials.map((m: any) => (
-              <div key={m.id} className="flex items-center justify-between gap-3 rounded-lg border p-3 bg-background group hover:bg-muted/20 transition-colors">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center shrink-0">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline truncate">{m.file_name}</a>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={async () => {
-                  await supabase.from('portal_materials').delete().eq('id', m.id);
-                  refetchMaterials();
-                }}>
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ))}
-            {portalMaterials.length === 0 && (
-              <div className="text-center py-6">
-                <FileText className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
-                <EmptyHint>Sem entregáveis. Carrega ficheiros para partilhar com o cliente.</EmptyHint>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {/* Materials card removed — entregáveis são geridos exclusivamente na subpágina interna "Entregáveis". */}
     </div>
   );
 }
