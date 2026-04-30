@@ -373,19 +373,11 @@ export default function ProjetoDetailPage() {
 
   // ─── Render sub-page ──────────────────────────────────────────
   if (subPage) {
-    const fieldMap: Record<string, keyof ProjectFull> = {
-      objetivo: 'objetivo', diretrizes: 'diretrizes', cronograma: 'cronograma',
-      dependencias: 'dependencias', entregaveis: 'entregaveis', recursos: 'recursos', notas: 'project_notes',
-    };
-    const titleMap: Record<string, string> = {
-      objetivo: 'Objetivo e Definição', diretrizes: 'Diretrizes Iniciais', cronograma: 'Cronograma Geral',
-      dependencias: 'Dependências e Pré-requisitos', entregaveis: 'Entregáveis', recursos: 'Recursos', notas: 'Notas',
-    };
-
   // ─── Cronograma sub-page (table with Macro + Prazo) ──────────
   if (subPage === 'cronograma') {
     return (
       <CronogramaSubPage
+        projectId={id!}
         cronogramaJson={local.cronograma}
         onChange={v => updateField('cronograma', v)}
         onBack={() => setSubPage(null)}
@@ -398,6 +390,7 @@ export default function ProjetoDetailPage() {
   if (subPage === 'outras_info') {
     return (
       <OutrasInfoSubPage
+        projectId={id!}
         value={(local.project_notes as string) || ''}
         onChange={v => updateField('project_notes', v)}
         onBack={() => setSubPage(null)}
@@ -410,6 +403,7 @@ export default function ProjetoDetailPage() {
   if (subPage === 'reunioes') {
     return (
       <ReunioesSubPage
+        projectId={id!}
         meetings={meetings}
         projectMembers={projectMembers}
         profileMap={profileMap}
@@ -425,20 +419,86 @@ export default function ProjetoDetailPage() {
     return <EntregaveisSubPage projectId={id!} entregaveisText={local.entregaveis || ''} onTextChange={v => updateField('entregaveis', v)} onSave={() => saveMutation.mutate()} saving={saveMutation.isPending} dirty={dirty} onBack={() => setSubPage(null)} />;
   }
 
-    const field = fieldMap[subPage];
-    if (!field) return null;
+    const textPagesConfig: Record<string, {
+      field: keyof ProjectFull;
+      title: string;
+      description: string;
+      icon: React.ElementType;
+      textLabel: string;
+      textPlaceholder: string;
+      assetsLabel: string;
+      assetsDescription: string;
+      assetCategories: string[];
+    }> = {
+      objetivo: {
+        field: 'objetivo',
+        title: 'Objetivo e Definição',
+        description: 'O que se vai fazer, para quê e qual o resultado esperado.',
+        icon: Target,
+        textLabel: 'Definição do projeto',
+        textPlaceholder: 'Objetivo, escopo, resultados esperados, restrições...',
+        assetsLabel: 'Briefings e referências',
+        assetsDescription: 'Documentos que fundamentam o objetivo (briefing, RFP, propostas).',
+        assetCategories: ['Briefing', 'Proposta', 'Contexto'],
+      },
+      diretrizes: {
+        field: 'diretrizes',
+        title: 'Diretrizes Iniciais',
+        description: 'Princípios, regras e direções acordadas com o cliente / equipa.',
+        icon: BookOpen,
+        textLabel: 'Diretrizes',
+        textPlaceholder: 'Tom, restrições, princípios, do/don\'t...',
+        assetsLabel: 'Manuais e guias',
+        assetsDescription: 'Brand guidelines, manuais, templates de referência.',
+        assetCategories: ['Manual', 'Guideline', 'Template'],
+      },
+      recursos: {
+        field: 'recursos',
+        title: 'Recursos',
+        description: 'Ferramentas, contas, materiais e referências usadas no projeto.',
+        icon: Lightbulb,
+        textLabel: 'Notas de recursos',
+        textPlaceholder: 'Listas de ferramentas, acessos, observações...',
+        assetsLabel: 'Galeria de recursos',
+        assetsDescription: 'Ferramentas, contas, ficheiros de apoio, links externos.',
+        assetCategories: ['Ferramenta', 'Acesso', 'Referência', 'Inspiração'],
+      },
+      notas: {
+        field: 'project_notes',
+        title: 'Notas',
+        description: 'Notas livres, decisões, comentários ao longo do projeto.',
+        icon: StickyNote,
+        textLabel: 'Notas livres',
+        textPlaceholder: 'Escreve... usa @ para mencionar membros.',
+        assetsLabel: 'Anexos das notas',
+        assetsDescription: 'Imagens, prints, PDFs anexados às notas.',
+        assetCategories: ['Decisão', 'Print', 'Comentário'],
+      },
+    };
+
+    const cfg = textPagesConfig[subPage];
+    if (!cfg) return null;
     return (
-      <AppLayout>
-        <div className="space-y-4 max-w-3xl">
-          <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-          <h2 className="text-xl font-bold">{titleMap[subPage]}</h2>
-          <MentionTextarea
-            value={(local[field] as string) || ''}
-            onChange={v => updateField(field, v)}
-            rows={12}
-            placeholder="Escreve aqui... usa @ para mencionar membros"
-          />
-          {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+      <TextWithAssetsSubPage
+        projectId={id!}
+        pageKey={subPage}
+        title={cfg.title}
+        description={cfg.description}
+        icon={cfg.icon}
+        textLabel={cfg.textLabel}
+        textPlaceholder={cfg.textPlaceholder}
+        assetsLabel={cfg.assetsLabel}
+        assetsDescription={cfg.assetsDescription}
+        assetCategories={cfg.assetCategories}
+        value={(local[cfg.field] as string) || ''}
+        onChange={v => updateField(cfg.field, v)}
+        onBack={() => setSubPage(null)}
+        onSave={() => saveMutation.mutate()}
+        saving={saveMutation.isPending}
+        dirty={dirty}
+      />
+    );
+  }
         </div>
       </AppLayout>
     );
