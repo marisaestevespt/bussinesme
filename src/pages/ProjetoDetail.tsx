@@ -48,6 +48,7 @@ import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
+import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
@@ -931,14 +932,20 @@ export default function ProjetoDetailPage() {
 
               {/* ── Section: Portal de Cliente ────────────── */}
               {resolvedClientId && local.client_name && (
-                <EntitySection title="Portal do Cliente" icon={Users}>
-                  <ClientPortalSection
-                    clientId={resolvedClientId}
-                    clientName={local.client_name}
-                    currentProduct={local.product_name || null}
-                    productId={local.product_id}
-                  />
-                </EntitySection>
+                <>
+                  <EntitySection title="Portal do Cliente" icon={Users}>
+                    <ClientPortalSection
+                      clientId={resolvedClientId}
+                      clientName={local.client_name}
+                      currentProduct={local.product_name || null}
+                      productId={local.product_id}
+                    />
+                  </EntitySection>
+
+                  <EntitySection title="Feedback Recebido" icon={MessageCircle}>
+                    <ClientPortalFeedbackSection clientId={resolvedClientId} />
+                  </EntitySection>
+                </>
               )}
 
               {/* ── Section: Fecho de Projeto ────────────── */}
