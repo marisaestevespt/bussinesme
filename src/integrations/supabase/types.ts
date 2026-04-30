@@ -8967,6 +8967,50 @@ export type Database = {
           },
         ]
       }
+      project_responsibilities: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          notes: string | null
+          party: string
+          project_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          party?: string
+          project_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          party?: string
+          project_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_responsibilities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           archived_at: string | null
@@ -11510,6 +11554,32 @@ export type Database = {
           start_date: string
           status: string
           timeline_phases: Json
+        }[]
+      }
+      get_portal_responsibilities: {
+        Args: { _token: string }
+        Returns: {
+          description: string
+          id: string
+          notes: string
+          party: string
+          project_id: string
+          project_name: string
+          sort_order: number
+        }[]
+      }
+      get_portal_routines: {
+        Args: { _token: string }
+        Returns: {
+          estimated_time: number
+          hour_time: string
+          id: string
+          month_day: number
+          project_id: string
+          project_name: string
+          recurrence_type: string
+          title: string
+          weekday: number
         }[]
       }
       get_portal_timeline_phases: {

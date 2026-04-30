@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2 } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
@@ -44,6 +44,8 @@ import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
+import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
+import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
@@ -217,7 +219,24 @@ export default function ProjetoDetailPage() {
   }, [autoProgress, project?.progress, local?.id]);
 
   // Deadline overdue check
-  const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date();
+  const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date()
+    // Don't show overdue banner for recurring monthly services (deadline is not meaningful there)
+    && !(local?.type === 'cliente_servico_mensal' && (local as any)?.project_mode === 'recorrente');
+
+  // Fetch end_of_cycle for recurring monthly service clients
+  const clientCycleQ = useQuery({
+    queryKey: ['client-cycle', resolvedClientId],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('end_of_cycle, status, renewal_count').eq('id', resolvedClientId!).maybeSingle();
+      return data as { end_of_cycle: string | null; status: string; renewal_count: number } | null;
+    },
+    enabled: !!resolvedClientId && isServicoMensal,
+  });
+  const endOfCycle = clientCycleQ.data?.end_of_cycle ? new Date(clientCycleQ.data.end_of_cycle) : null;
+  const daysToRenewal = endOfCycle ? Math.ceil((endOfCycle.getTime() - now.getTime()) / 86400000) : null;
+  const clientStatus = clientCycleQ.data?.status;
+  // Encerramento da Avença só faz sentido se cliente está cancelado/pausado/altura_renovacao
+  const canCloseAvenca = isServicoMensal && clientStatus && ['cancelado', 'pausado', 'inativo'].includes(clientStatus);
 
   const formatCost = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k €` : `${v.toFixed(0)} €`;
 
@@ -644,6 +663,23 @@ export default function ProjetoDetailPage() {
                 Projeto Interno
               </Badge>
             )}
+            {isServicoMensal && (
+              <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-[11px] font-medium border-info/30 bg-info/5 text-info">
+                <Repeat className="h-3 w-3" />
+                Avença Mensal
+              </Badge>
+            )}
+            {isServicoMensal && endOfCycle && daysToRenewal !== null && (
+              <Badge variant="outline" className={cn(
+                "shrink-0 gap-1.5 px-2.5 py-1 text-[11px] font-medium",
+                daysToRenewal <= 7 ? "border-warning/40 bg-warning/10 text-warning" : "border-border bg-muted text-muted-foreground"
+              )}>
+                <CalendarIcon className="h-3 w-3" />
+                {daysToRenewal > 0
+                  ? `Renova em ${daysToRenewal} ${daysToRenewal === 1 ? 'dia' : 'dias'}`
+                  : daysToRenewal === 0 ? 'Renova hoje' : `Em renovação há ${Math.abs(daysToRenewal)} dias`}
+              </Badge>
+            )}
           </div>
 
           {/* Notion-style property rows */}
@@ -927,13 +963,15 @@ export default function ProjetoDetailPage() {
                   Gestão
                 </EntityTabsTrigger>
               )}
-              <EntityTabsTrigger
-                value="fecho"
-                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
-              >
-                <Flag className="h-4 w-4" />
-                Fecho de Projeto
-              </EntityTabsTrigger>
+              {(!isServicoMensal || canCloseAvenca) && (
+                <EntityTabsTrigger
+                  value="fecho"
+                  className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+                >
+                  <Flag className="h-4 w-4" />
+                  {isServicoMensal ? 'Encerramento da Avença' : 'Fecho de Projeto'}
+                </EntityTabsTrigger>
+              )}
             </EntityTabsList>
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
@@ -944,8 +982,8 @@ export default function ProjetoDetailPage() {
                   {(() => {
                     const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
                     const base = local.type === 'cliente_servico_mensal' ? [
-                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais', filled: hasText(local.diretrizes) },
-                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral', filled: hasText(local.cronograma) },
+                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes da Avença', filled: hasText(local.diretrizes) },
+                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Calendário Editorial', filled: hasText(local.cronograma) },
                       { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
                     ] : [
                       { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição', filled: hasText(local.objetivo) },
@@ -977,7 +1015,7 @@ export default function ProjetoDetailPage() {
                     const tiles = [
                       local.type === 'interno'
                         ? { key: 'brainstorming' as SubPage, icon: Lightbulb, label: 'Brainstorming', filled: hasText((local as any).brainstorming) }
-                        : { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing', filled: false },
+                        : { key: 'briefing' as SubPage, icon: ClipboardList, label: local.type === 'cliente_servico_mensal' ? 'Âmbito da Avença' : 'Briefing', filled: false },
                       { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis', filled: hasText(local.entregaveis) },
                       { key: 'reunioes' as SubPage, icon: Users, label: 'Reuniões', filled: meetings.length > 0 },
                       { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais', filled: hasText(local.recursos) },
@@ -1064,6 +1102,18 @@ export default function ProjetoDetailPage() {
                 productId={local.product_id}
                 projectStartDate={local.start_date}
               />
+
+              {/* Avença Mensal: Rotinas + Responsabilidades acordadas */}
+              {isServicoMensal && (
+                <>
+                  <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
+                    <ProjectRoutines projectId={id!} />
+                  </EntitySection>
+                  <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
+                    <ProjectResponsibilities projectId={id!} />
+                  </EntitySection>
+                </>
+              )}
             </EntityTabsContent>
 
             {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
