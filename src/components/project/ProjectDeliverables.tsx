@@ -405,7 +405,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     queryFn: async () => {
       const { data: products } = await supabase.from('products').select('id, name').order('name');
       if (!products?.length) return [];
-      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring, estimated_minutes, deliverable_type, is_meeting, meeting_title_template');
+      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring, estimated_minutes, deliverable_type, is_meeting, meeting_title_template, responsible_type, link_url, document_url, document_file_path');
       const templatesByProduct = new Map<string, any[]>();
       ((templates || []) as any[]).forEach((t: any) => {
         if (!templatesByProduct.has(t.product_id)) templatesByProduct.set(t.product_id, []);
@@ -434,6 +434,10 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         deliverable_type: t.deliverable_type || 'tarefa',
         is_meeting: !!t.is_meeting || t.deliverable_type === 'reuniao',
         meeting_title_template: t.meeting_title_template ?? null,
+        responsible_type: t.responsible_type || 'equipa',
+        link_url: t.link_url ?? null,
+        document_url: t.document_url ?? null,
+        document_file_path: t.document_file_path ?? null,
       }));
       const { error } = await supabase.from('project_deliverables').insert(inserts as any);
       if (error) throw error;
