@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Upload, Trash2, Loader2 } from "lucide-react";
 import { EntityIconDisplay } from "./EntityIconDisplay";
 import { parseIcon, type EntityIcon } from "./types";
+import { CUSTOM_EMOJI_CATEGORIES } from "./customEmojis";
 
 // Lazy emoji picker — heavy dataset (~270 KB) loaded only when popover opens
 const EmojiPickerLazy = lazy(async () => {
@@ -16,7 +17,9 @@ const EmojiPickerLazy = lazy(async () => {
   ]);
   const data = (dataMod as any).default ?? dataMod;
   return {
-    default: (props: any) => <Picker data={data} {...props} />,
+    default: (props: any) => (
+      <Picker data={data} custom={CUSTOM_EMOJI_CATEGORIES} {...props} />
+    ),
   };
 });
 
