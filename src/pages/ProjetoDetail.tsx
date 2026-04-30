@@ -843,6 +843,13 @@ export default function ProjetoDetailPage() {
                 <Settings2 className="h-4 w-4" />
                 Gestão
               </EntityTabsTrigger>
+              <EntityTabsTrigger
+                value="fecho"
+                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+              >
+                <Flag className="h-4 w-4" />
+                Fecho de Projeto
+              </EntityTabsTrigger>
             </EntityTabsList>
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
