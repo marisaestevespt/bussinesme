@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Package, CalendarIcon, Trash2, Download, Clock } from 'lucide-react';
+import { Plus, Package, CalendarIcon, Trash2, Download, Clock, Video } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, isAfter } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -28,7 +28,6 @@ import {
   getDeliverableStatusInfo,
 } from '@/lib/projectProgress';
 import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
-import { Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const WEEK_OPTIONS = [
