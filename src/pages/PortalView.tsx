@@ -809,6 +809,56 @@ export default function PortalViewPage() {
           />
         )}
 
+        {/* ═══ AVENÇA: Rotinas + Responsabilidades ═══ */}
+        {activeSection === 'avenca' && (
+          <div className="space-y-6">
+            {routines.length > 0 && (
+              <section className="rounded-2xl border bg-card p-5 sm:p-6">
+                <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><Repeat className="h-5 w-5" style={{ color: pc }} /> Rotinas</h2>
+                <p className="text-xs text-muted-foreground mb-4">Tarefas fixas e recorrentes deste serviço.</p>
+                <div className="space-y-2">
+                  {routines.map((r: any) => {
+                    const desc = r.recurrence_type === 'diaria' ? 'Todos os dias'
+                      : r.recurrence_type === 'semanal' ? `Semanal${r.weekday !== null ? ` · ${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][r.weekday]}` : ''}`
+                      : r.recurrence_type === 'mensal' ? (r.month_day ? `Dia ${r.month_day} de cada mês` : 'Mensal')
+                      : r.recurrence_type;
+                    return (
+                      <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                        <Repeat className="h-4 w-4 shrink-0" style={{ color: pc }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{r.title}</p>
+                          <p className="text-xs text-muted-foreground">{desc}{r.hour_time ? ` · ${String(r.hour_time).slice(0,5)}` : ''}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {responsibilities.length > 0 && (
+              <section className="rounded-2xl border bg-card p-5 sm:p-6">
+                <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><Handshake className="h-5 w-5" style={{ color: pc }} /> Responsabilidades Acordadas</h2>
+                <p className="text-xs text-muted-foreground mb-4">O que ficou definido entre cliente e equipa.</p>
+                <div className="space-y-2">
+                  {responsibilities.map((r: any) => {
+                    const Icon = r.party === 'cliente' ? User : r.party === 'equipa' ? Users : Handshake;
+                    const label = r.party === 'cliente' ? 'Cliente' : r.party === 'equipa' ? 'Equipa' : 'Partilhada';
+                    return (
+                      <div key={r.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium shrink-0" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
+                          <Icon className="h-3 w-3" /> {label}
+                        </span>
+                        <p className="text-sm flex-1">{r.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+
         {/* ═══ ONBOARDING ═══ */}
         {activeSection === 'onboarding' && (
           <div className="space-y-5">
