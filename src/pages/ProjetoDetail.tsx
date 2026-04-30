@@ -867,7 +867,7 @@ export default function ProjetoDetailPage() {
                     { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing' },
                     { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
                     { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
-                    { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos &amp; Materiais' },
+                    { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais' },
                     { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
                   ].map(({ key, icon: Icon, label }) => (
                     <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
@@ -1188,7 +1188,7 @@ export default function ProjetoDetailPage() {
                 { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing' },
                 { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
                 { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
-                { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos &amp; Materiais' },
+                { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais' },
                 { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
               ].map(({ key, icon: Icon, label }) => (
                 <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
