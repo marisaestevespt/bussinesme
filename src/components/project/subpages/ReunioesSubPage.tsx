@@ -27,11 +27,6 @@ interface Props {
   onNewMeeting: () => void;
 }
 
-const getMeetingStatusInfo = (s: string) => {
-  const info = canonGetMeetingStatusInfo(s);
-  return { value: info.value, label: info.label, color: info.dotColor };
-};
-
 export function ReunioesSubPage({ projectId, meetings, projectMembers, profileMap, getPhotoUrl, onBack, onNewMeeting }: Props) {
   const navigate = useNavigate();
   return (
