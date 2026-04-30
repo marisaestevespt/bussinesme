@@ -47,17 +47,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
   const { feedback } = usePortalFeedback(portalId);
   const { comments, addComment } = usePortalComments(portalId);
 
-  const [uploadingMaterial, setUploadingMaterial] = useState(false);
-
-  const { data: portalMaterials = [], refetch: refetchMaterials } = useQuery({
-    queryKey: ['portal-materials', portalId],
-    enabled: !!portalId,
-    queryFn: async () => {
-      const { data } = await supabase.from('portal_materials').select('*').eq('portal_id', portalId!).order('created_at', { ascending: false });
-      return (data || []) as any[];
-    },
-  });
-
   const slug = (portalData as any)?.slug as string | null;
   const portalUrl = portalData ? `${window.location.origin}/portal/${slug || portalData.token}` : '';
 
