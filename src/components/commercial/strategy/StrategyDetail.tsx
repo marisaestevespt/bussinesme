@@ -106,6 +106,7 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
       const { data } = await supabase
         .from('projects')
         .select('id, name, client_name, status')
+        .is('archived_at', null)
         .order('created_at', { ascending: false })
         .limit(200);
       return data || [];

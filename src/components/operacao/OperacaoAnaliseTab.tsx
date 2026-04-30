@@ -36,6 +36,7 @@ export function OperacaoAnaliseTab() {
         .from('projects')
         .select('id, name, status, client_id, clients(full_name)')
         .not('status', 'in', '(concluido,cancelado)')
+        .is('archived_at', null)
         .limit(200);
       if (!projects?.length) return [];
       const projectIds = projects.map((p: any) => p.id);

@@ -420,6 +420,7 @@ function WeeklySummary() {
         .from('projects')
         .select('id, name, status')
         .eq('status', 'em_curso')
+        .is('archived_at', null)
         .order('name')
         .limit(10);
       return data || [];

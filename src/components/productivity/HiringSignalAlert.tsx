@@ -27,6 +27,7 @@ export function HiringSignalAlert({ overallUsage }: Props) {
         .from('projects')
         .select('id')
         .not('status', 'in', '(concluido,cancelado)')
+        .is('archived_at', null)
         .limit(200);
       if (!projects?.length) return { overBudget: 0 };
       const ids = projects.map((p: any) => p.id);
