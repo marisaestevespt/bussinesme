@@ -21,7 +21,7 @@ import {
 import { useProducts } from '@/hooks/useProducts';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ApplyPortalTemplateButton } from './ApplyPortalTemplateButton';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   clientId: string;
