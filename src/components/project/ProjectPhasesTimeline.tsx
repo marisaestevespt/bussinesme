@@ -828,12 +828,12 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                           <CalendarDays className="h-3 w-3 text-muted-foreground" />
                           <span className="text-[10px] text-muted-foreground">Início:</span>
                           <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_start || ''}
-                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_start || null)) updatePhase.mutate({ id: phase.id, planned_start: v }); }} />
+                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_start || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_phases', sourceId: phase.id, field: 'planned_start', newValue: v }); }} />
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-muted-foreground">Fim:</span>
                           <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_end || ''}
-                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_end || null)) updatePhase.mutate({ id: phase.id, planned_end: v }); }} />
+                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_end || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_phases', sourceId: phase.id, field: 'planned_end', newValue: v }); }} />
                         </div>
                       </div>
                     </div>
@@ -1017,10 +1017,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                                 <CalendarDays className="h-2.5 w-2.5 text-muted-foreground" />
                                 <span className="text-[9px] text-muted-foreground">Início:</span>
                                 <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_start || ''}
-                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_start || null)) updateDeliverable.mutate({ id: d.id, planned_start: v }); }} />
+                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_start || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_deliverables', sourceId: d.id, field: 'planned_start', newValue: v }); }} />
                                 <span className="text-[9px] text-muted-foreground">Fim:</span>
                                 <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_end || ''}
-                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_end || null)) updateDeliverable.mutate({ id: d.id, planned_end: v }); }} />
+                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_end || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_deliverables', sourceId: d.id, field: 'planned_end', newValue: v }); }} />
                               </div>
                             )}
                           </div>
