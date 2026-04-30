@@ -8488,6 +8488,9 @@ export type Database = {
           monthly_hours_per_client: number | null
           name: string
           portal_branding: Json
+          portal_faqs_template: Json
+          portal_materials_template: Json
+          portal_timeline_template: Json
           product_type: string | null
           renewal_advance_days: number | null
           sales_benefits: Json
@@ -8536,6 +8539,9 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name: string
           portal_branding?: Json
+          portal_faqs_template?: Json
+          portal_materials_template?: Json
+          portal_timeline_template?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
@@ -8584,6 +8590,9 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name?: string
           portal_branding?: Json
+          portal_faqs_template?: Json
+          portal_materials_template?: Json
+          portal_timeline_template?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
@@ -11219,6 +11228,15 @@ export type Database = {
     Functions: {
       accountant_access_enabled: { Args: never; Returns: boolean }
       activate_renewal_project: { Args: { _project_id: string }; Returns: Json }
+      apply_product_portal_template: {
+        Args: {
+          _mode?: string
+          _portal_id: string
+          _product_id: string
+          _sections?: string[]
+        }
+        Returns: Json
+      }
       apply_project_deliverable_tasks: {
         Args: { _project_id: string }
         Returns: number
