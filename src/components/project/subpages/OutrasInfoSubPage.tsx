@@ -1,9 +1,11 @@
-import { AppLayout } from '@/components/AppLayout';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save } from 'lucide-react';
+import { StickyNote, Paperclip } from 'lucide-react';
 import { MentionTextarea } from '@/components/MentionTextarea';
+import { EntitySection } from '@/components/layout/entity/EntitySection';
+import { ProjectAssetGallery } from '@/components/project/ProjectAssetGallery';
+import { SubPageShell } from './SubPageShell';
 
 interface Props {
+  projectId: string;
   value: string;
   onChange: (v: string) => void;
   onBack: () => void;
@@ -12,15 +14,24 @@ interface Props {
   dirty: boolean;
 }
 
-export function OutrasInfoSubPage({ value, onChange, onBack, onSave, saving, dirty }: Props) {
+export function OutrasInfoSubPage({ projectId, value, onChange, onBack, onSave, saving, dirty }: Props) {
   return (
-    <AppLayout>
-      <div className="space-y-4 max-w-3xl">
-        <Button variant="ghost" size="sm" onClick={onBack} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-        <h2 className="text-xl font-bold">Outras Informações</h2>
+    <SubPageShell
+      title="Outras Informações"
+      description="Notas livres, contexto adicional e ficheiros soltos do projeto."
+      icon={StickyNote}
+      onBack={onBack}
+      onSave={onSave}
+      saving={saving}
+      dirty={dirty}
+    >
+      <EntitySection title="Notas" icon={StickyNote} description="Texto livre — usa @ para mencionar membros">
         <MentionTextarea value={value} onChange={onChange} rows={12} placeholder="Informações adicionais sobre o projeto..." />
-        {dirty && <Button onClick={onSave} disabled={saving} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
-      </div>
-    </AppLayout>
+      </EntitySection>
+
+      <EntitySection title="Anexos" icon={Paperclip} description="Documentos avulsos que não pertencem a outra secção">
+        <ProjectAssetGallery projectId={projectId} pageKey="outras_info" emptyTitle="Sem anexos" emptyDescription="Arrasta ficheiros ou adiciona links externos." />
+      </EntitySection>
+    </SubPageShell>
   );
 }
