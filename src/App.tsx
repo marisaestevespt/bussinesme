@@ -121,8 +121,8 @@ const queryClient = new QueryClient({
       gcTime: 5 * 60 * 1000,
       // 1 retry em vez de 3 (failures são geralmente rede ou RLS, não vale a pena martelar)
       retry: 1,
-      // Evita refetch agressivo ao mudar de tab — utilizadores ficam frustrados com loaders constantes
-      refetchOnWindowFocus: false,
+      // Refetch ao voltar à janela — combinado com realtime garante dados frescos sem refresh manual
+      refetchOnWindowFocus: true,
       // Refetch ao reconectar mantém-se ligado (default: true)
     },
     mutations: {
