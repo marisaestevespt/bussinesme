@@ -1,0 +1,253 @@
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CalendarDays, ChevronRight, Layers, Users as UsersIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format, parseISO } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import {
+  getPhaseStatusInfo,
+  isDeliverableDone,
+  isPhaseDone,
+} from '@/lib/projectProgress';
+import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
+import { getInitials } from '@/pages/Projetos';
+
+interface Props {
+  projectId: string;
+  projectStartDate?: string | null;
+}
+
+interface Phase {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  sort_order: number;
+  planned_start: string | null;
+  planned_end: string | null;
+  completed_at: string | null;
+  started_at: string | null;
+}
+
+interface Deliverable {
+  id: string;
+  name: string;
+  status: string;
+  phase_id: string | null;
+  assigned_to: string | null;
+  planned_end: string | null;
+}
+
+export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
+  const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
+  const { getPhotoUrl } = useTeamPhotos();
+
+  const { data: phases = [], isLoading: phasesLoading } = useQuery({
+    queryKey: ['project-phases', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_phases')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('sort_order', { ascending: true });
+      return (data || []) as Phase[];
+    },
+  });
+
+  const { data: deliverables = [] } = useQuery({
+    queryKey: ['project-deliverables', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_deliverables')
+        .select('id, name, status, phase_id, assigned_to, planned_end')
+        .eq('project_id', projectId)
+        .order('sort_order', { ascending: true });
+      return (data || []) as Deliverable[];
+    },
+  });
+
+  // Profiles for responsibles
+  const assigneeIds = useMemo(
+    () => Array.from(new Set(deliverables.map(d => d.assigned_to).filter(Boolean) as string[])),
+    [deliverables]
+  );
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['phase-gallery-profiles', assigneeIds.sort().join(',')],
+    enabled: assigneeIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', assigneeIds);
+      return (data || []) as { id: string; full_name: string | null; avatar_url: string | null }[];
+    },
+  });
+  const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
+
+  if (phasesLoading) {
+    return <div className="text-sm text-muted-foreground">A carregar fases…</div>;
+  }
+
+  if (phases.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
+        <Layers className="h-9 w-9 text-muted-foreground/30 mb-3" />
+        <p className="text-sm text-muted-foreground">
+          Ainda não há fases definidas para este projeto.
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-1">
+          Abre o detalhe (na tab "Tarefas & Responsabilidades") para configurar a estrutura.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {phases.map(phase => {
+          const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
+          const total = phaseDeliverables.length;
+          const done = phaseDeliverables.filter(isDeliverableDone).length;
+          const pct = total > 0 ? Math.round((done / total) * 100) : (isPhaseDone(phase) ? 100 : 0);
+          const statusInfo = getPhaseStatusInfo(phase.status);
+          const responsibles = Array.from(
+            new Set(phaseDeliverables.map(d => d.assigned_to).filter(Boolean) as string[])
+          );
+
+          return (
+            <button
+              key={phase.id}
+              type="button"
+              onClick={() => setOpenPhaseId(phase.id)}
+              className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
+            >
+              {/* Header: name + status */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-muted-foreground/70">
+                      #{phase.sort_order + 1}
+                    </span>
+                    <h3 className="text-sm font-semibold leading-tight truncate">
+                      {phase.name}
+                    </h3>
+                  </div>
+                  {phase.description && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {phase.description}
+                    </p>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary shrink-0" />
+              </div>
+
+              {/* Status badge */}
+              <Badge className={cn(statusInfo.color, 'border self-start text-[10px]')}>
+                {statusInfo.label}
+              </Badge>
+
+              {/* Progress */}
+              <div>
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                  <span>{done}/{total} entregas</span>
+                  <span className="font-semibold text-foreground">{pct}%</span>
+                </div>
+                <Progress value={pct} className="h-1.5" />
+              </div>
+
+              {/* Dates */}
+              {(phase.planned_start || phase.planned_end) && (
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <CalendarDays className="h-3 w-3 shrink-0" />
+                  <span className="truncate">
+                    {phase.planned_start ? format(parseISO(phase.planned_start), 'd MMM', { locale: pt }) : '—'}
+                    {' → '}
+                    {phase.planned_end ? format(parseISO(phase.planned_end), 'd MMM', { locale: pt }) : '—'}
+                  </span>
+                </div>
+              )}
+
+              {/* Responsibles */}
+              {responsibles.length > 0 && (
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <UsersIcon className="h-3 w-3 shrink-0" />
+                  <div className="flex -space-x-1">
+                    {responsibles.slice(0, 4).map(pid => {
+                      const p = profileMap.get(pid);
+                      if (!p) return null;
+                      return (
+                        <Avatar key={pid} className="h-5 w-5 border border-background">
+                          <AvatarImage src={getPhotoUrl(p as any)} />
+                          <AvatarFallback className="text-[8px]">
+                            {getInitials(p.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      );
+                    })}
+                    {responsibles.length > 4 && (
+                      <span className="ml-2 text-[10px]">+{responsibles.length - 4}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Deliverables preview */}
+              {phaseDeliverables.length > 0 && (
+                <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
+                  {phaseDeliverables.slice(0, 3).map(d => (
+                    <div key={d.id} className="flex items-center gap-2 text-[11px]">
+                      <span
+                        className={cn(
+                          'h-1.5 w-1.5 rounded-full shrink-0',
+                          isDeliverableDone(d) ? 'bg-success' : 'bg-muted-foreground/30'
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          'truncate',
+                          isDeliverableDone(d) ? 'line-through text-muted-foreground' : 'text-foreground'
+                        )}
+                      >
+                        {d.name}
+                      </span>
+                    </div>
+                  ))}
+                  {phaseDeliverables.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground/70 pl-3.5">
+                      +{phaseDeliverables.length - 3} entregas…
+                    </div>
+                  )}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Detail dialog — reuses the full timeline component */}
+      <Dialog open={!!openPhaseId} onOpenChange={open => !open && setOpenPhaseId(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              Detalhe da Fase
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2">
+            <ProjectPhasesTimeline
+              projectId={projectId}
+              projectStartDate={projectStartDate}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

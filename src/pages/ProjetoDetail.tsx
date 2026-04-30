@@ -38,12 +38,11 @@ import { cn } from '@/lib/utils';
 import { ProductIcon } from '@/components/entity-icon';
 import { isTaskDone } from '@/lib/taskStatus';
 import { MentionTextarea } from '@/components/MentionTextarea';
-import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
-import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
+import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
@@ -829,7 +828,7 @@ export default function ProjetoDetailPage() {
                 className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
               >
                 <Workflow className="h-4 w-4" />
-                Fases &amp; Entregas
+                Tarefas &amp; Responsabilidades
               </EntityTabsTrigger>
               {resolvedClientId && local.client_name && (
                 <EntityTabsTrigger
@@ -903,7 +902,17 @@ export default function ProjetoDetailPage() {
                 </div>
               </EntitySection>
 
-              {/* ── Section: Tarefas / Estado e Prioridades ── */}
+              {/* ── Section: Fases do Projeto (galeria) ── */}
+              {taskMode === 'fases' && (
+                <EntitySection title="Fases do Projeto" icon={Workflow}>
+                  <ProjectPhasesGallery projectId={id!} projectStartDate={local.start_date} />
+                </EntitySection>
+              )}
+
+            </EntityTabsContent>
+
+            {/* ─── TAB 2: TAREFAS & RESPONSABILIDADES ─────── */}
+            <EntityTabsContent value="processos" className="mt-4 space-y-8">
               <EntitySection
                 title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
                 icon={CheckSquare}
@@ -952,14 +961,7 @@ export default function ProjetoDetailPage() {
                 )}
               </EntitySection>
 
-              {/* ── Linked SOPs ──────────────────────────── */}
-              {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
-
-            </EntityTabsContent>
-
-            {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
-            <EntityTabsContent value="processos" className="mt-4 space-y-6">
-              {taskMode === 'fases' && <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />}
+              {/* SOPs ligados ao projeto */}
               <ProjectProcessosTab
                 projectId={id!}
                 clientId={resolvedClientId}
