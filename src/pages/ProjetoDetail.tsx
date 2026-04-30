@@ -663,6 +663,23 @@ export default function ProjetoDetailPage() {
                 Projeto Interno
               </Badge>
             )}
+            {isServicoMensal && (
+              <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-[11px] font-medium border-info/30 bg-info/5 text-info">
+                <Repeat className="h-3 w-3" />
+                Avença Mensal
+              </Badge>
+            )}
+            {isServicoMensal && endOfCycle && daysToRenewal !== null && (
+              <Badge variant="outline" className={cn(
+                "shrink-0 gap-1.5 px-2.5 py-1 text-[11px] font-medium",
+                daysToRenewal <= 7 ? "border-warning/40 bg-warning/10 text-warning" : "border-border bg-muted text-muted-foreground"
+              )}>
+                <CalendarIcon className="h-3 w-3" />
+                {daysToRenewal > 0
+                  ? `Renova em ${daysToRenewal} ${daysToRenewal === 1 ? 'dia' : 'dias'}`
+                  : daysToRenewal === 0 ? 'Renova hoje' : `Em renovação há ${Math.abs(daysToRenewal)} dias`}
+              </Badge>
+            )}
           </div>
 
           {/* Notion-style property rows */}
