@@ -851,20 +851,22 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
             return (
               <div key={phase.id} className="flex gap-4 relative group/phase">
-                <div className="flex flex-col items-center">
-                  <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 border-2',
-                    phase.status === 'concluida' ? 'border-success bg-success/10' :
-                    phase.status === 'em_curso' ? 'border-info bg-info/10' :
-                    'border-muted bg-muted/30'
-                  )}>
-                    <Icon className={cn('h-4 w-4', si.color)} />
+                {!focusPhaseId && (
+                  <div className="flex flex-col items-center">
+                    <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 border-2',
+                      phase.status === 'concluida' ? 'border-success bg-success/10' :
+                      phase.status === 'em_curso' ? 'border-info bg-info/10' :
+                      'border-muted bg-muted/30'
+                    )}>
+                      <Icon className={cn('h-4 w-4', si.color)} />
+                    </div>
+                    {!isLast && (
+                      <div className={cn('w-0.5 flex-1 min-h-[32px]',
+                        phase.status === 'concluida' ? 'bg-success/40' : 'bg-border'
+                      )} />
+                    )}
                   </div>
-                  {!isLast && (
-                    <div className={cn('w-0.5 flex-1 min-h-[32px]',
-                      phase.status === 'concluida' ? 'bg-success/40' : 'bg-border'
-                    )} />
-                  )}
-                </div>
+                )}
 
                 <div className={cn('pb-5 flex-1 min-w-0', isLast && 'pb-0')}>
                   {isEditing ? (
@@ -897,7 +899,18 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                           <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
                         )}
                         <Select value={phase.status} onValueChange={(v) => updatePhase.mutate({ id: phase.id, status: v })}>
-                          <SelectTrigger className="h-7 text-xs w-28 border-none shadow-none px-2">
+                          <SelectTrigger className={cn(
+                            "h-7 text-xs gap-1.5",
+                            focusPhaseId
+                              ? cn(
+                                  "w-auto px-2.5 rounded-full border",
+                                  phase.status === 'concluida' ? 'border-success/40 bg-success/10' :
+                                  phase.status === 'em_curso' ? 'border-info/40 bg-info/10' :
+                                  'border-muted bg-muted/30'
+                                )
+                              : "w-28 border-none shadow-none px-2"
+                          )}>
+                            {focusPhaseId && <Icon className={cn('h-3.5 w-3.5', si.color)} />}
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
