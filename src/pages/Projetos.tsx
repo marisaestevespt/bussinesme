@@ -346,6 +346,30 @@ export default function ProjetosPage() {
     },
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase.from('projects').update({ archived_at: null } as any).eq('id', projectId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Projeto restaurado');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const hardDeleteMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase.from('projects').delete().eq('id', projectId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Projeto eliminado definitivamente');
+    },
+    onError: (e: Error) => toast.error('Não foi possível eliminar: ' + e.message + '. Verifica se ainda existem tarefas, reuniões ou vendas associadas.'),
+  });
+
   function resetForm() {
     setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual'); setFProduct('');
     setDialogOpen(false);
