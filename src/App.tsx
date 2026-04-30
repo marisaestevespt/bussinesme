@@ -10,6 +10,7 @@ import { ActiveTimerProvider } from "@/hooks/useActiveTimer";
 import { KpiSettingsProvider } from "@/hooks/useKpiSettings";
 import { FloatingTimer } from "@/components/FloatingTimer";
 import { ImpersonationProvider } from "@/contexts/ImpersonationContext";
+import { GlobalRealtimeProvider } from "@/providers/GlobalRealtimeProvider";
 import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
@@ -284,6 +285,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <GlobalRealtimeProvider>
           <ImpersonationProvider>
             <BusinessSettingsProvider>
               <ActiveTimerProvider>
@@ -299,6 +301,7 @@ const App = () => (
               </ActiveTimerProvider>
             </BusinessSettingsProvider>
           </ImpersonationProvider>
+          </GlobalRealtimeProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
