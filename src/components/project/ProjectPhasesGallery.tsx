@@ -260,6 +260,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             <ProjectPhasesTimeline
               projectId={projectId}
               projectStartDate={projectStartDate}
+              focusPhaseId={openPhaseId}
             />
           </div>
         </DialogContent>
