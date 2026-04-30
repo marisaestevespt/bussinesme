@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Package, CalendarIcon, Trash2, Download, Clock } from 'lucide-react';
+import { Plus, Package, CalendarIcon, Trash2, Download, Clock, Video } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, isAfter } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,8 @@ import {
   DELIVERABLE_STATUSES,
   getDeliverableStatusInfo,
 } from '@/lib/projectProgress';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
+import { useNavigate } from 'react-router-dom';
 
 const WEEK_OPTIONS = [
   { value: '1', label: '1ª semana' },
@@ -163,6 +165,35 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const [recurrenceWeekday, setRecurrenceWeekday] = useState('');
   const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
   const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  // Project context (client_id, name) for pre-filling meeting dialog
+  const { data: projectCtx } = useQuery({
+    queryKey: ['project-meeting-ctx', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, client_id, clients ( id, name )')
+        .eq('id', projectId)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+
+  const linkMeetingMutation = useMutation({
+    mutationFn: async ({ deliverableId, meetingId }: { deliverableId: string; meetingId: string }) => {
+      const { error } = await supabase
+        .from('project_deliverables')
+        .update({ meeting_id: meetingId })
+        .eq('id', deliverableId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      toast.success('Reunião ligada à entrega');
+    },
+    onError: (e: any) => toast.error(e?.message || 'Falha ao ligar reunião'),
+  });
 
   const { data: deliverables = [] } = useQuery({
     queryKey: ['project-deliverables', projectId],
@@ -444,6 +475,38 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                     )}
                     {d.is_recurring && d.recurrence_label && d.recurrence_week == null && (
                       <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
+                    )}
+
+                    {d.is_meeting && (
+                      d.meeting_id ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
+                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                          title="Abrir reunião"
+                        >
+                          <Video className="h-3 w-3" /> Reunião
+                        </button>
+                      ) : (
+                        <NewMeetingButton
+                          skipPicker
+                          forcedType={'recorrente' as any}
+                          defaultProjectId={projectId}
+                          defaultProjectName={projectCtx?.name}
+                          defaultClientId={projectCtx?.client_id ?? undefined}
+                          defaultClientName={projectCtx?.clients?.name ?? undefined}
+                          defaultTitle={d.name}
+                          onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
+                        >
+                          <button
+                            type="button"
+                            className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+                            title="Criar reunião pré-preenchida"
+                          >
+                            <Plus className="h-3 w-3" /> Criar reunião
+                          </button>
+                        </NewMeetingButton>
+                      )
                     )}
 
                     {(() => {

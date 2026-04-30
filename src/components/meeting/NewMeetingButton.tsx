@@ -11,6 +11,7 @@ interface Props {
   defaultClientName?: string;
   defaultProjectId?: string;
   defaultProjectName?: string;
+  defaultTitle?: string;
   /** When true, renders nothing visible — caller controls the trigger via children */
   children?: ReactNode;
   /** Button props for the default trigger */
@@ -34,6 +35,7 @@ interface Props {
  */
 export function NewMeetingButton({
   defaultClientId, defaultClientName, defaultProjectId, defaultProjectName,
+  defaultTitle,
   children, size = 'sm', variant = 'default', label = 'Nova Reunião', className,
   skipPicker, forcedType,
   onMeetingCreated, navigateAfterCreate,
@@ -61,7 +63,12 @@ export function NewMeetingButton({
     }
   };
 
-  const trigger = children ?? (
+  const trigger = children ? (
+    // Wrap custom children so we own the click handler when there is no Popover
+    <span onClick={skipPicker ? triggerClick : undefined} className="contents">
+      {children}
+    </span>
+  ) : (
     <Button size={size} variant={variant} className={className} onClick={triggerClick}>
       <Plus className="h-4 w-4 mr-1.5" /> {label}
     </Button>
@@ -112,6 +119,7 @@ export function NewMeetingButton({
         defaultClientName={defaultClientName}
         defaultProjectId={defaultProjectId}
         defaultProjectName={defaultProjectName}
+        defaultTitle={defaultTitle}
         initialMeetingType={pickedType as any}
         onMeetingCreated={onMeetingCreated}
         navigateAfterCreate={navigateAfterCreate}
