@@ -903,10 +903,9 @@ export default function ProjetoDetailPage() {
                 </div>
               </EntitySection>
 
-              {/* ── Section: Tarefas (escondida em modo "fases" — está na tab Fases & Entregas) ── */}
-              {taskMode !== 'fases' && (
+              {/* ── Section: Tarefas / Estado e Prioridades ── */}
               <EntitySection
-                title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : 'Tarefas'}
+                title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
                 icon={CheckSquare}
                 action={
                   <div className="flex gap-2 items-center">
@@ -952,7 +951,6 @@ export default function ProjetoDetailPage() {
                   </div>
                 )}
               </EntitySection>
-              )}
 
               {/* ── Linked SOPs ──────────────────────────── */}
               {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
