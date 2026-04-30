@@ -944,14 +944,14 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                         const delStatusConfig = { bg: _delInfo.color, label: _delInfo.label };
                         return (
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
-                            <div className="flex items-center gap-2">
+                            <div className="grid items-center gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 170px 130px 110px 80px' }}>
                               {isEditingThis ? (
-                                <>
+                                <div className="col-span-6 flex items-center gap-2">
                                   <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
                                     onKeyDown={e => e.key === 'Enter' && saveEditDel(d.id)} />
                                   <Button size="sm" className="h-5 px-1" onClick={() => saveEditDel(d.id)}><Check className="h-2.5 w-2.5" /></Button>
                                   <Button size="sm" variant="ghost" className="h-5 px-1" onClick={() => setEditingDel(null)}><X className="h-2.5 w-2.5" /></Button>
-                                </>
+                                </div>
                               ) : (
                                 <>
                                   {d.status === 'concluido' ? (
@@ -972,7 +972,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                           else startEditDel(d);
                                         }}
                                         className={cn(
-                                          'text-sm flex-1 font-medium text-left truncate hover:text-primary transition-colors',
+                                          'text-sm font-medium text-left truncate hover:text-primary transition-colors min-w-0',
                                           clickable && 'cursor-pointer',
                                           d.status === 'concluido' && 'text-muted-foreground line-through'
                                         )}
@@ -982,60 +982,72 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                       </button>
                                     );
                                   })()}
-                                  {(d.planned_start || d.planned_end) && (
-                                    <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
-                                      <CalendarDays className="h-3 w-3" />
-                                      {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
-                                      {' → '}
-                                      {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
-                                    </span>
-                                  )}
-                                  <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
-                                    <SelectTrigger className="h-auto border-none shadow-none p-0 w-auto [&>svg]:hidden focus:ring-0">
-                                      <Badge className={`text-[10px] font-semibold px-2 py-0.5 cursor-pointer hover:opacity-80 transition-opacity ${delStatusConfig.bg}`}>
-                                        {delStatusConfig.label}
-                                      </Badge>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {DELIVERABLE_STATUS.map(s => (
-                                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  {d.is_meeting && (
-                                    d.meeting_id ? (
-                                      <button
-                                        type="button"
-                                        onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
-                                        className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
-                                        title="Abrir reunião"
-                                      >
-                                        <Video className="h-3 w-3" /> Reunião
-                                      </button>
+                                  {/* Datas (coluna fixa) */}
+                                  <div className="text-[11px] text-muted-foreground flex items-center justify-end gap-1 tabular-nums">
+                                    {(d.planned_start || d.planned_end) ? (
+                                      <span className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5 whitespace-nowrap">
+                                        <CalendarDays className="h-3 w-3" />
+                                        {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
+                                        {' → '}
+                                        {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
+                                      </span>
                                     ) : (
-                                      <NewMeetingButton
-                                        skipPicker
-                                        forcedType={'recorrente' as any}
-                                        defaultProjectId={projectId}
-                                        defaultProjectName={projectCtx?.name}
-                                        defaultClientId={projectCtx?.client_id ?? undefined}
-                                        defaultClientName={projectCtx?.clients?.full_name ?? undefined}
-                                        defaultTitle={d.name}
-                                        defaultMemberIds={computeMeetingMembers(d)}
-                                        defaultDepartment={projectDefaultDepartment}
-                                        onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
-                                      >
+                                      <span className="text-muted-foreground/40">—</span>
+                                    )}
+                                  </div>
+                                  {/* Status (coluna fixa) */}
+                                  <div className="flex justify-start">
+                                    <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
+                                      <SelectTrigger className="h-auto border-none shadow-none p-0 w-auto [&>svg]:hidden focus:ring-0">
+                                        <Badge className={`text-[10px] font-semibold px-2 py-0.5 cursor-pointer hover:opacity-80 transition-opacity ${delStatusConfig.bg}`}>
+                                          {delStatusConfig.label}
+                                        </Badge>
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {DELIVERABLE_STATUS.map(s => (
+                                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  {/* Reunião (coluna fixa) */}
+                                  <div className="flex justify-start">
+                                    {d.is_meeting ? (
+                                      d.meeting_id ? (
                                         <button
                                           type="button"
-                                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
-                                          title="Criar reunião pré-preenchida"
+                                          onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
+                                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                                          title="Abrir reunião"
                                         >
-                                          <Plus className="h-3 w-3" /> Criar reunião
+                                          <Video className="h-3 w-3" /> Reunião
                                         </button>
-                                      </NewMeetingButton>
-                                    )
-                                  )}
-                                  <div className="opacity-0 group-hover/del:opacity-100 flex items-center gap-0.5 transition-opacity">
+                                      ) : (
+                                        <NewMeetingButton
+                                          skipPicker
+                                          forcedType={'recorrente' as any}
+                                          defaultProjectId={projectId}
+                                          defaultProjectName={projectCtx?.name}
+                                          defaultClientId={projectCtx?.client_id ?? undefined}
+                                          defaultClientName={projectCtx?.clients?.full_name ?? undefined}
+                                          defaultTitle={d.name}
+                                          defaultMemberIds={computeMeetingMembers(d)}
+                                          defaultDepartment={projectDefaultDepartment}
+                                          onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
+                                        >
+                                          <button
+                                            type="button"
+                                            className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+                                            title="Criar reunião pré-preenchida"
+                                          >
+                                            <Plus className="h-3 w-3" /> Criar
+                                          </button>
+                                        </NewMeetingButton>
+                                      )
+                                    ) : null}
+                                  </div>
+                                  {/* Ações */}
+                                  <div className="opacity-0 group-hover/del:opacity-100 flex items-center justify-end gap-0.5 transition-opacity">
                                     <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => startEditDel(d)}>
                                       <Pencil className="h-2.5 w-2.5" />
                                     </Button>
