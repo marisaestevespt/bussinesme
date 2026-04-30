@@ -455,7 +455,17 @@ export default function ProjetosPage() {
         })()}
 
         <div className="flex items-center justify-between">
-          <div />
+          <div>
+            <Button
+              variant={showArchived ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowArchived(v => !v)}
+              className="gap-2"
+            >
+              <Archive className="h-3.5 w-3.5" />
+              {showArchived ? 'A ver arquivados' : 'Arquivados'}
+            </Button>
+          </div>
           <div className="flex items-center gap-2">
             <ViewTabs
               views={allViews}
