@@ -3,6 +3,7 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { Input } from '@/components/ui/input';
 import { EntitySection } from '@/components/layout/entity/EntitySection';
 import { ProjectAssetGallery } from '@/components/project/ProjectAssetGallery';
+import { ProjectAssetTable } from '@/components/project/ProjectAssetTable';
 import { SubPageShell } from './SubPageShell';
 
 interface Props {
@@ -72,13 +73,23 @@ export function TextWithAssetsSubPage({
         />
       </EntitySection>
       <EntitySection title={assetsLabel} icon={Paperclip} description={assetsDescription}>
-        <ProjectAssetGallery
-          projectId={projectId}
-          pageKey={pageKey}
-          categories={assetCategories}
-          emptyTitle="Sem ficheiros nem links"
-          emptyDescription="Carrega documentos ou adiciona links externos relacionados."
-        />
+        {pageKey === 'recursos' ? (
+          <ProjectAssetTable
+            projectId={projectId}
+            pageKey={pageKey}
+            categories={assetCategories}
+            emptyTitle="Sem ficheiros nem links"
+            emptyDescription="Carrega documentos ou adiciona links externos relacionados."
+          />
+        ) : (
+          <ProjectAssetGallery
+            projectId={projectId}
+            pageKey={pageKey}
+            categories={assetCategories}
+            emptyTitle="Sem ficheiros nem links"
+            emptyDescription="Carrega documentos ou adiciona links externos relacionados."
+          />
+        )}
       </EntitySection>
     </SubPageShell>
   );
