@@ -392,3 +392,9 @@
     top: 0.5rem;
   }
 }
+
+/* RichTextEditor — altura mínima dinâmica via CSS var */
+.ProseMirror {
+  min-height: var(--rte-min-h, 200px);
+  height: auto;
+}
