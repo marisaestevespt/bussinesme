@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2 } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -15,6 +15,8 @@ import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO 
 import { pt } from 'date-fns/locale';
 import { addBusinessDays } from '@/lib/holidays';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
+import { useNavigate } from 'react-router-dom';
 import {
   isDeliverableDone,
   isPhaseDone,
@@ -55,6 +57,8 @@ interface ProjectDeliverable {
   offset_trigger: string;
   planned_start: string | null;
   planned_end: string | null;
+  is_meeting?: boolean;
+  meeting_id?: string | null;
 }
 
 import {
@@ -103,6 +107,35 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const confirm = useConfirm();
   const phaseKey = ['project-phases', projectId];
   const delKey = ['project-deliverables', projectId];
+  const navigate = useNavigate();
+
+  // Project context (client_id, name) for pre-filling meeting dialog
+  const { data: projectCtx } = useQuery({
+    queryKey: ['project-meeting-ctx', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, client_id, clients ( id, full_name )')
+        .eq('id', projectId)
+        .maybeSingle();
+      return data as any;
+    },
+  });
+
+  const linkMeetingMutation = useMutation({
+    mutationFn: async ({ deliverableId, meetingId }: { deliverableId: string; meetingId: string }) => {
+      const { error } = await (supabase as any)
+        .from('project_deliverables')
+        .update({ meeting_id: meetingId })
+        .eq('id', deliverableId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: delKey });
+      toast.success('Reunião ligada à entrega');
+    },
+    onError: (e: any) => toast.error(e?.message || 'Falha ao ligar reunião'),
+  });
 
   const [editingPhase, setEditingPhase] = useState<string | null>(null);
   const [editingDel, setEditingDel] = useState<string | null>(null);
@@ -781,6 +814,37 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                                       ))}
                                     </SelectContent>
                                   </Select>
+                                  {d.is_meeting && (
+                                    d.meeting_id ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
+                                        className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                                        title="Abrir reunião"
+                                      >
+                                        <Video className="h-3 w-3" /> Reunião
+                                      </button>
+                                    ) : (
+                                      <NewMeetingButton
+                                        skipPicker
+                                        forcedType={'recorrente' as any}
+                                        defaultProjectId={projectId}
+                                        defaultProjectName={projectCtx?.name}
+                                        defaultClientId={projectCtx?.client_id ?? undefined}
+                                        defaultClientName={projectCtx?.clients?.full_name ?? undefined}
+                                        defaultTitle={d.name}
+                                        onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
+                                      >
+                                        <button
+                                          type="button"
+                                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+                                          title="Criar reunião pré-preenchida"
+                                        >
+                                          <Plus className="h-3 w-3" /> Criar reunião
+                                        </button>
+                                      </NewMeetingButton>
+                                    )
+                                  )}
                                   <div className="opacity-0 group-hover/del:opacity-100 flex items-center gap-0.5 transition-opacity">
                                     <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => startEditDel(d)}>
                                       <Pencil className="h-2.5 w-2.5" />

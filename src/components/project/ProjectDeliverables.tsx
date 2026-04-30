@@ -173,7 +173,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
-        .select('id, name, client_id, clients ( id, name )')
+        .select('id, name, client_id, clients ( id, full_name )')
         .eq('id', projectId)
         .maybeSingle();
       return data as any;
@@ -494,7 +494,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                           defaultProjectId={projectId}
                           defaultProjectName={projectCtx?.name}
                           defaultClientId={projectCtx?.client_id ?? undefined}
-                          defaultClientName={projectCtx?.clients?.name ?? undefined}
+                          defaultClientName={projectCtx?.clients?.full_name ?? undefined}
                           defaultTitle={d.name}
                           onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
                         >
