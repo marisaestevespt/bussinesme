@@ -107,7 +107,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     queryKey: ['projects-list-with-client'],
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name, client_id, client_name');
+      const { data } = await supabase.from('projects').select('id, name, client_id, client_name').is('archived_at', null);
       return data || [];
     },
   });

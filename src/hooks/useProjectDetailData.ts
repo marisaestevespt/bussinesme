@@ -58,7 +58,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
 
   const allProjectsForMeetingQ = useQuery({
     queryKey: ['projects-for-meetings'],
-    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name'); return (data || []) as ProjectOption[]; },
+    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name').is('archived_at', null); return (data || []) as ProjectOption[]; },
   });
 
   const projectQ = useQuery({

@@ -69,7 +69,7 @@ export default function CrmPipelines() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects-list-pipelines'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name').order('name');
+      const { data } = await supabase.from('projects').select('id, name').order('name').is('archived_at', null);
       return (data || []).map(p => ({ id: p.id, name: p.name }));
     },
   });
