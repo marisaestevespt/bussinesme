@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Users, Paperclip } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import { getInitials } from '@/pages/Projetos';
 import type { Meeting, Profile } from '@/hooks/useProjectDetailData';
 import { getMeetingStatusInfo as canonGetMeetingStatusInfo } from '@/lib/meetingStatus';
