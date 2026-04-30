@@ -905,15 +905,17 @@ export default function ProjetoDetailPage() {
                 </div>
               </EntitySection>
 
-              {/* ── Section: Estado e Prioridades (moved after Desenvolvimento) ── */}
+              {/* ── Section: Tarefas (escondida em modo "fases" — está na tab Fases & Entregas) ── */}
+              {taskMode !== 'fases' && (
               <EntitySection
-                title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
+                title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : 'Tarefas'}
                 icon={CheckSquare}
                 action={
                   <div className="flex gap-2 items-center">
                     <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
                     {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar</Button>}
                     <Button size="sm" variant="outline" className="gap-1" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
                   </div>
                 }
               >
@@ -952,6 +954,10 @@ export default function ProjetoDetailPage() {
                   </div>
                 )}
               </EntitySection>
+              )}
+
+              {/* ── Linked SOPs ──────────────────────────── */}
+              {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
 
             </EntityTabsContent>
 
