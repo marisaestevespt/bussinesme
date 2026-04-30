@@ -812,8 +812,8 @@ export default function ProjetoDetailPage() {
           <div className="mt-6">
           <EntityTabs defaultValue="projeto" className="w-full">
             <EntityTabsList>
-              <EntityTabsTrigger value="projeto">Projeto</EntityTabsTrigger>
-              <EntityTabsTrigger value="processos">Processos</EntityTabsTrigger>
+              <EntityTabsTrigger value="projeto">Overview de Projeto</EntityTabsTrigger>
+              <EntityTabsTrigger value="processos">Fases & Entregas</EntityTabsTrigger>
               <EntityTabsTrigger value="gestao">Gestão</EntityTabsTrigger>
             </EntityTabsList>
 
