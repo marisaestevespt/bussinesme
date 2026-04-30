@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Mail, ArrowRight } from 'lucide-react';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 
@@ -19,6 +20,8 @@ export default function PortalAuthPage() {
   const [submitting, setSubmitting] = useState(false);
   const { branding } = usePortalBranding(token);
   const settings = branding;
+
+  useDocumentTitle(`${settings?.business_name || 'Portal'} · Acesso ao Portal`);
 
   useEffect(() => {
     loadPortal();
