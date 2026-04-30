@@ -17,7 +17,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
@@ -58,12 +58,13 @@ import { CronogramaSubPage } from '@/components/project/subpages/CronogramaSubPa
 import { OutrasInfoSubPage } from '@/components/project/subpages/OutrasInfoSubPage';
 import { ReunioesSubPage } from '@/components/project/subpages/ReunioesSubPage';
 import { TextWithAssetsSubPage } from '@/components/project/subpages/TextWithAssetsSubPage';
+import { BriefingSubPage } from '@/components/project/subpages/BriefingSubPage';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
-type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
+type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
 
 const TASK_PRIORITIES = [
   { value: 'baixa', label: 'Baixa', color: 'bg-muted text-muted-foreground' },
@@ -410,6 +411,17 @@ export default function ProjetoDetailPage() {
         getPhotoUrl={getPhotoUrl}
         onBack={() => setSubPage(null)}
         onNewMeeting={() => setMeetingDialogOpen(true)}
+      />
+    );
+  }
+  if (subPage === 'briefing') {
+    return (
+      <BriefingSubPage
+        projectId={id!}
+        clientId={local.client_id}
+        clientName={local.client_name}
+        projectName={local.name}
+        onBack={() => setSubPage(null)}
       />
     );
   }
@@ -837,6 +849,7 @@ export default function ProjetoDetailPage() {
               <EntitySection title="Desenvolvimento" icon={FileText}>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
+                    { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing' },
                     { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
                     { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
                     { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
@@ -1165,6 +1178,7 @@ export default function ProjetoDetailPage() {
           <EntitySection title="Desenvolvimento" icon={FileText}>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
+                { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing' },
                 { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
                 { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
                 { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
