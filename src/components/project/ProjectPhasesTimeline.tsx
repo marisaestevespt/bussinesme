@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2 } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw, Wand2, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -15,6 +15,8 @@ import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO 
 import { pt } from 'date-fns/locale';
 import { addBusinessDays } from '@/lib/holidays';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
+import { useNavigate } from 'react-router-dom';
 import {
   isDeliverableDone,
   isPhaseDone,
@@ -55,6 +57,8 @@ interface ProjectDeliverable {
   offset_trigger: string;
   planned_start: string | null;
   planned_end: string | null;
+  is_meeting?: boolean;
+  meeting_id?: string | null;
 }
 
 import {
