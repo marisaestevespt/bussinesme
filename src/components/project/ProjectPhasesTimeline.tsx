@@ -800,6 +800,11 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   const completedPhases = countDonePhases(phases);
   const progress = computeProjectProgress(deliverables, phases);
   const progressLabel = computeProgressLabel(deliverables, phases, { deliverables: 'points', phases: 'fases' });
+  const focusedPhase = focusPhaseId ? phases.find(p => p.id === focusPhaseId) : null;
+  // Progress scoped to focused phase when in dialog mode
+  const focusedDeliverables = focusedPhase ? deliverables.filter(d => d.phase_id === focusedPhase.id) : [];
+  const focusedProgress = focusedPhase ? computeProjectProgress(focusedDeliverables, [focusedPhase]) : 0;
+  const focusedProgressLabel = focusedPhase ? computeProgressLabel(focusedDeliverables, [focusedPhase], { deliverables: 'points', phases: 'fases' }) : '';
 
   return (
     <>
@@ -811,20 +816,25 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
               <Layers className="h-4.5 w-4.5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base">Fases do Projeto</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">{progress}% concluído · {progressLabel}</p>
+              <CardTitle className="text-base">
+                {focusedPhase ? focusedPhase.name : 'Fases do Projeto'}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {focusedPhase
+                  ? `${focusedProgress}% concluído · ${focusedProgressLabel}`
+                  : `${progress}% concluído · ${progressLabel}`}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={recalculateDates} disabled={recalculating || !projectStartDate}>
               <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", recalculating && "animate-spin")} /> Recalcular datas
             </Button>
-            <Button variant="outline" size="sm" onClick={() => applyDeliverables.mutate()} disabled={applyDeliverables.isPending}>
-              <Wand2 className={cn("h-3.5 w-3.5 mr-1.5", applyDeliverables.isPending && "animate-pulse")} /> Aplicar entregas
-            </Button>
-            <Button size="sm" onClick={() => { setAddingPhase(true); setNewName(''); }}>
-              <Plus className="h-3.5 w-3.5 mr-1.5" /> Fase
-            </Button>
+            {!focusPhaseId && (
+              <Button size="sm" onClick={() => { setAddingPhase(true); setNewName(''); }}>
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Fase
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
