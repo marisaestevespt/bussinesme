@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useKpiSettings } from '@/hooks/useKpiSettings';
+import { getEntityDepartments } from '@/lib/departments';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
@@ -71,6 +72,7 @@ interface Project {
   type: string;
   status: string;
   department: string | null;
+  departments?: string[] | null;
   client_name: string | null;
   start_date: string | null;
   deadline: string | null;
@@ -132,6 +134,16 @@ function DeptBadge({ dept }: { dept: string }) {
   const info = getDeptInfo(dept);
   if (!info) return <span className="text-sm text-muted-foreground">—</span>;
   return <Badge className={cn(`${info.color} border font-medium text-xs`)}>{info.label}</Badge>;
+}
+
+function ProjectDeptBadges({ project }: { project: Project }) {
+  const depts = getEntityDepartments(project);
+  if (depts.length === 0) return <span className="text-sm text-muted-foreground">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {depts.map(d => <DeptBadge key={d} dept={d} />)}
+    </div>
+  );
 }
 
 // ─── Main Page ──────────────────────────────────────────────────
