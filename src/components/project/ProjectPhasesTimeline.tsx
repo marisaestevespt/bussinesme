@@ -100,9 +100,10 @@ function getStatusInfo(status: string) {
 interface Props {
   projectId: string;
   projectStartDate?: string | null;
+  focusPhaseId?: string | null;
 }
 
-export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
+export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseId }: Props) {
   const qc = useQueryClient();
   const confirm = useConfirm();
   const phaseKey = ['project-phases', projectId];
