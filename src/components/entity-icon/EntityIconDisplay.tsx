@@ -1,6 +1,7 @@
 import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseIcon, type EntityIcon } from "./types";
+import lyreEmojiUrl from "@/assets/emoji-lyre.svg";
 
 interface Props {
   icon: EntityIcon | unknown;
@@ -49,18 +50,13 @@ export function EntityIconDisplay({
           className,
         )}
       >
-        <span className={cn("inline-flex items-center justify-center", emojiClassName ?? "text-[1.6em]")}> 
-          {isLyre ? (
-            <svg viewBox="0 0 64 64" aria-hidden="true" className="h-[1em] w-[1em]" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 10c-4 7-6 15-6 23 0 11 8 19 18 19s18-8 18-19c0-8-2-16-6-23" />
-              <path d="M20 10c6 5 18 5 24 0" />
-              <path d="M26 16v32" />
-              <path d="M32 17v35" />
-              <path d="M38 16v32" />
-              <path d="M18 38c7 5 21 5 28 0" />
-            </svg>
-          ) : parsed.value}
-        </span>
+        {isLyre ? (
+          <img src={lyreEmojiUrl} alt="🪉" className="h-[82%] w-[82%] object-contain" />
+        ) : (
+          <span className={cn("inline-flex items-center justify-center font-emoji", emojiClassName ?? "text-[1.6em]")}> 
+            {parsed.value}
+          </span>
+        )}
       </div>
     );
   }
