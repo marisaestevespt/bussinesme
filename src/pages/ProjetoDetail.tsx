@@ -58,12 +58,13 @@ import { OutrasInfoSubPage } from '@/components/project/subpages/OutrasInfoSubPa
 import { ReunioesSubPage } from '@/components/project/subpages/ReunioesSubPage';
 import { TextWithAssetsSubPage } from '@/components/project/subpages/TextWithAssetsSubPage';
 import { BriefingSubPage } from '@/components/project/subpages/BriefingSubPage';
+import { BrainstormingSubPage } from '@/components/project/subpages/BrainstormingSubPage';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
-type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
+type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
 
 const TASK_PRIORITIES = [
   { value: 'baixa', label: 'Baixa', color: 'bg-muted text-muted-foreground' },
@@ -280,6 +281,7 @@ export default function ProjetoDetailPage() {
         payment_method: local.payment_method || null, payment_config: local.payment_config || null,
         project_mode: (local as any).project_mode || 'pontual',
         task_mode: (local as any).task_mode || 'fases',
+        brainstorming: (local as any).brainstorming ?? null,
       };
       // Auto-calculate total time when marking as concluded
       if (local.status === 'concluido' && project?.status !== 'concluido') {
