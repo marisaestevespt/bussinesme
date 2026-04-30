@@ -499,9 +499,6 @@ export default function ProjetoDetailPage() {
       />
     );
   }
-        </div>
-      </AppLayout>
-    );
   }
 
   // ─── Launch project ────────────────────────────────────────────
