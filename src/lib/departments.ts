@@ -23,3 +23,15 @@ export function getDept(val: string) {
 export function getDeptLabel(val: string) {
   return getDept(val)?.label || val;
 }
+
+/**
+ * Returns the list of departments for an entity that may have either
+ * the legacy singular `department` field or the multi `departments` array.
+ * Always returns a unique array (may be empty).
+ */
+export function getEntityDepartments(entity: { department?: string | null; departments?: unknown } | null | undefined): string[] {
+  if (!entity) return [];
+  const arr = Array.isArray(entity.departments) ? (entity.departments as unknown[]).filter((v): v is string => typeof v === 'string' && !!v) : [];
+  if (arr.length > 0) return Array.from(new Set(arr));
+  return entity.department ? [entity.department] : [];
+}
