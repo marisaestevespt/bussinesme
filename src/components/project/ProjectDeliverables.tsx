@@ -489,98 +489,90 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               Nenhuma entrega definida. Adiciona milestones para acompanhar o progresso.
             </p>
           ) : (
-            <div className="space-y-1">
-              {enrichedDeliverables.map(d => {
-                const si = getStatusInfo(d.status);
-                const assignee = d.assigned_to ? profiles.find(p => p.id === d.assigned_to) : null;
-                const displayDeadline = d.computed_deadline;
-                const isOverdue = displayDeadline && d.status !== 'entregue' && new Date(displayDeadline) < new Date();
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40%]">Nome</TableHead>
+                  <TableHead>Anexo</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Tempo</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead className="w-[40px]"></TableHead>
+                  <TableHead className="w-[40px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {enrichedDeliverables.map(d => {
+                  const si = getStatusInfo(d.status);
+                  const assignee = d.assigned_to ? profiles.find(p => p.id === d.assigned_to) : null;
+                  const displayDeadline = d.computed_deadline;
+                  const isOverdue = displayDeadline && d.status !== 'entregue' && new Date(displayDeadline) < new Date();
+                  const linkedTask = taskByDeliverable.get(d.id);
+                  const realMin = linkedTask ? (timeByTask[linkedTask.id] || 0) : 0;
+                  const estMin = (d as any).estimated_minutes ?? null;
+                  const hasReal = realMin > 0;
+                  const hasEst = estMin != null && estMin > 0;
+                  const overBudget = hasEst && hasReal && realMin > estMin * 1.1;
+                  const onTrack = hasEst && hasReal && realMin <= estMin;
 
-                return (
-                  <div key={d.id} className="flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-muted/40 transition-colors group">
-                    <Select value={d.status} onValueChange={v => updateStatus.mutate({ id: d.id, status: v })}>
-                      <SelectTrigger className="w-auto h-6 border-0 p-0 shadow-none focus:ring-0">
-                        <Badge className={`${si.color} border-0 text-[10px] cursor-pointer`}>{si.label}</Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DELIVERABLE_STATUSES.map(s => (
-                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {(() => {
-                      const linkedTask = taskByDeliverable.get(d.id);
-                      return (
-                        <button
-                          type="button"
-                          onClick={() => { if (linkedTask) setTaskDetailId(linkedTask.id); }}
-                          disabled={!linkedTask}
-                          className={cn(
-                            'flex-1 text-sm font-medium truncate text-left',
-                            linkedTask ? 'cursor-pointer hover:text-primary transition-colors' : 'cursor-default'
+                  return (
+                    <TableRow key={d.id} className="group">
+                      <TableCell className="py-2 px-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => { if (linkedTask) setTaskDetailId(linkedTask.id); }}
+                            disabled={!linkedTask}
+                            className={cn(
+                              'text-sm font-medium truncate text-left',
+                              linkedTask ? 'cursor-pointer hover:text-primary transition-colors' : 'cursor-default'
+                            )}
+                            title={linkedTask ? 'Abrir detalhes da tarefa' : undefined}
+                          >
+                            {d.name}
+                          </button>
+                          {d.is_recurring && d.recurrence_week != null && d.recurrence_weekday != null && (
+                            <Badge variant="outline" className="text-[9px] shrink-0">
+                              🔄 {formatRecurrenceRule(d.recurrence_week, d.recurrence_weekday)}
+                            </Badge>
                           )}
-                          title={linkedTask ? 'Abrir detalhes da tarefa' : undefined}
-                        >
-                          {d.name}
-                        </button>
-                      );
-                    })()}
-
-                    {d.is_recurring && d.recurrence_week != null && d.recurrence_weekday != null && (
-                      <Badge variant="outline" className="text-[9px] shrink-0">
-                        🔄 {formatRecurrenceRule(d.recurrence_week, d.recurrence_weekday)}
-                      </Badge>
-                    )}
-                    {d.is_recurring && d.recurrence_label && d.recurrence_week == null && (
-                      <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
-                    )}
-
-                    <DeliverableFormatCell
-                      deliverable={d as any}
-                      projectId={projectId}
-                      projectName={projectCtx?.name}
-                      clientId={projectCtx?.client_id ?? null}
-                      clientName={projectCtx?.clients?.full_name ?? null}
-                      defaultDepartment={projectDefaultDepartment}
-                      defaultMemberIds={computeMeetingMembers(d)}
-                    />
-
-                    {(() => {
-                      const linkedTask = taskByDeliverable.get(d.id);
-                      const realMin = linkedTask ? (timeByTask[linkedTask.id] || 0) : 0;
-                      const estMin = (d as any).estimated_minutes ?? null;
-                      const hasReal = realMin > 0;
-                      const hasEst = estMin != null && estMin > 0;
-                      if (!hasReal && !hasEst) {
-                        return (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button
-                                className="text-[10px] shrink-0 text-muted-foreground/60 hover:text-primary inline-flex items-center gap-1"
-                                title="Definir tempo estimado"
-                              >
-                                <Clock className="h-3 w-3" /> —
-                              </button>
-                            </PopoverTrigger>
-                            <EstimatedTimePopover
-                              currentMinutes={null}
-                              onSave={(m) => updateEstimated.mutate({ id: d.id, estimated_minutes: m })}
-                            />
-                          </Popover>
-                        );
-                      }
-                      const overBudget = hasEst && hasReal && realMin > estMin * 1.1;
-                      const onTrack = hasEst && hasReal && realMin <= estMin;
-                      return (
+                          {d.is_recurring && d.recurrence_label && d.recurrence_week == null && (
+                            <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2 px-3">
+                        <DeliverableFormatCell
+                          deliverable={d as any}
+                          projectId={projectId}
+                          projectName={projectCtx?.name}
+                          clientId={projectCtx?.client_id ?? null}
+                          clientName={projectCtx?.clients?.full_name ?? null}
+                          defaultDepartment={projectDefaultDepartment}
+                          defaultMemberIds={computeMeetingMembers(d)}
+                        />
+                      </TableCell>
+                      <TableCell className="py-2 px-3">
+                        <Select value={d.status} onValueChange={v => updateStatus.mutate({ id: d.id, status: v })}>
+                          <SelectTrigger className="w-auto h-6 border-0 p-0 shadow-none focus:ring-0">
+                            <Badge className={`${si.color} border-0 text-[10px] cursor-pointer`}>{si.label}</Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DELIVERABLE_STATUSES.map(s => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="py-2 px-3">
                         <Popover>
                           <PopoverTrigger asChild>
                             <button
                               className={cn(
-                                'text-[10px] shrink-0 inline-flex items-center gap-1 hover:underline tabular-nums',
+                                'text-[11px] inline-flex items-center gap-1 hover:underline tabular-nums',
                                 overBudget ? 'text-destructive font-semibold' : onTrack ? 'text-success' : 'text-muted-foreground'
                               )}
-                              title={hasEst && hasReal ? `${formatMin(realMin)} usados de ${formatMin(estMin)} estimados` : hasEst ? `Estimado: ${formatMin(estMin)}` : `Real: ${formatMin(realMin)}`}
+                              title={hasEst && hasReal ? `${formatMin(realMin)} de ${formatMin(estMin)}` : hasEst ? `Estimado: ${formatMin(estMin)}` : hasReal ? `Real: ${formatMin(realMin)}` : 'Definir tempo'}
                             >
                               <Clock className="h-3 w-3" />
                               {hasReal ? formatMin(realMin) : '—'}{hasEst ? ` / ${formatMin(estMin)}` : ''}
@@ -591,49 +583,67 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                             onSave={(m) => updateEstimated.mutate({ id: d.id, estimated_minutes: m })}
                           />
                         </Popover>
-                      );
-                    })()}
-
-                    {displayDeadline && (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button className={cn(
-                            "text-[10px] shrink-0 hover:underline",
-                            isOverdue ? "text-destructive font-semibold" : "text-muted-foreground"
-                          )}>
-                            {format(new Date(displayDeadline), 'dd MMM', { locale: pt })}
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                          <Calendar
-                            mode="single"
-                            selected={new Date(displayDeadline)}
-                            onSelect={date => {
-                              if (date) updateDeadline.mutate({ id: d.id, deadline: format(date, 'yyyy-MM-dd') });
-                            }}
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    )}
-
-                    {assignee && (
-                      <Avatar className="h-5 w-5 shrink-0">
-                        <AvatarImage src={getPhotoUrl(assignee)} />
-                        <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
-                      </Avatar>
-                    )}
-
-                    <button
-                      onClick={() => deleteMutation.mutate(d.id)}
-                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity shrink-0"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                      </TableCell>
+                      <TableCell className="py-2 px-3">
+                        {displayDeadline ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className={cn(
+                                'text-[11px] hover:underline',
+                                isOverdue ? 'text-destructive font-semibold' : 'text-muted-foreground'
+                              )}>
+                                {format(new Date(displayDeadline), 'dd MMM', { locale: pt })}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                              <Calendar
+                                mode="single"
+                                selected={new Date(displayDeadline)}
+                                onSelect={date => {
+                                  if (date) updateDeadline.mutate({ id: d.id, deadline: format(date, 'yyyy-MM-dd') });
+                                }}
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="text-[11px] text-muted-foreground/60 hover:text-primary">—</button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                              <Calendar
+                                mode="single"
+                                onSelect={date => {
+                                  if (date) updateDeadline.mutate({ id: d.id, deadline: format(date, 'yyyy-MM-dd') });
+                                }}
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-2 px-2">
+                        {assignee && (
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={getPhotoUrl(assignee)} />
+                            <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
+                          </Avatar>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-2 px-2">
+                        <button
+                          onClick={() => deleteMutation.mutate(d.id)}
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
