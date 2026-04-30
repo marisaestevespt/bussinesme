@@ -81,6 +81,7 @@ export function useProjectsByDepartmentInRange(start: Date, end: Date) {
         .gte('deadline', startStr)
         .lte('deadline', endStr)
         .not('status', 'in', '(cancelado)')
+        .is('archived_at', null)
         .order('deadline', { ascending: true });
       const map: Record<string, any[]> = {};
       (data || []).forEach((p: any) => {

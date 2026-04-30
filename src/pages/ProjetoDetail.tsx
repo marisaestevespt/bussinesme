@@ -200,11 +200,16 @@ export default function ProjetoDetailPage() {
   }
 
   const autoProgress = getProjectProgress();
+  // Persist computed progress when it diverges, but debounced and only when DB value
+  // (project.progress) is out of sync — avoids a write on every render/keypress.
   useEffect(() => {
-    if (local && autoProgress !== local.progress) {
+    if (!local || !project) return;
+    if (autoProgress === project.progress) return;
+    const t = setTimeout(() => {
       supabase.from('projects').update({ progress: autoProgress }).eq('id', local.id);
-    }
-  }, [autoProgress, local?.id, local?.progress]);
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [autoProgress, project?.progress, local?.id]);
 
   // Deadline overdue check
   const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date();

@@ -474,7 +474,7 @@ export default function ClienteDetailPage() {
     queryKey: ['projects', 'client', form.full_name],
     queryFn: async () => {
       if (!form.full_name) return [];
-      const { data } = await supabase.from('projects').select('id, name, status, created_at').eq('client_name', form.full_name).order('created_at', { ascending: false });
+      const { data } = await supabase.from('projects').select('id, name, status, created_at, archived_at').eq('client_name', form.full_name).is('archived_at', null).order('created_at', { ascending: false });
       return data || [];
     },
     enabled: !!form.full_name && !isNew,
