@@ -830,10 +830,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       </CardHeader>
       <CardContent className="pt-2">
         <div className="relative">
-          {phases.map((phase, i) => {
+          {(focusPhaseId ? phases.filter(p => p.id === focusPhaseId) : phases).map((phase, i, arr) => {
             const si = getStatusInfo(phase.status);
             const Icon = si.icon;
-            const isLast = i === phases.length - 1 && !addingPhase;
+            const isLast = i === arr.length - 1 && !addingPhase;
             const phaseDeliverables = deliverables
               .filter(d => d.phase_id === phase.id)
               .sort((a, b) => a.sort_order - b.sort_order);
