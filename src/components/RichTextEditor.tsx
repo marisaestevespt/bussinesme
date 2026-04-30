@@ -5,11 +5,17 @@ import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import Placeholder from '@tiptap/extension-placeholder';
+import Mention from '@tiptap/extension-mention';
+import { mentionSuggestion } from './rich-editor/mentionSuggestion';
 import { Button } from '@/components/ui/button';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
   Heading1, Heading2, Heading3, Palette, Highlighter, Undo, Redo,
+  ListChecks, Quote,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -25,9 +31,12 @@ interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   editable?: boolean;
+  placeholder?: string;
+  enableMentions?: boolean;
+  minHeight?: number;
 }
 
-export function RichTextEditor({ content, onChange, editable = true }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, editable = true, placeholder, enableMentions = false, minHeight = 200 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -41,6 +50,15 @@ export function RichTextEditor({ content, onChange, editable = true }: RichTextE
       Color,
       Highlight.configure({ multicolor: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      Placeholder.configure({ placeholder: placeholder || '' }),
+      ...(enableMentions
+        ? [Mention.configure({
+            HTMLAttributes: { class: 'mention' },
+            suggestion: mentionSuggestion,
+          })]
+        : []),
     ],
     content,
     editable,
@@ -100,6 +118,12 @@ export function RichTextEditor({ content, onChange, editable = true }: RichTextE
           </ToolBtn>
           <ToolBtn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Lista Numerada">
             <ListOrdered className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('taskList')} onClick={() => editor.chain().focus().toggleTaskList().run()} title="Checklist">
+            <ListChecks className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Citação">
+            <Quote className="h-3.5 w-3.5" />
           </ToolBtn>
 
           <div className="w-px h-5 bg-border mx-1" />
@@ -184,7 +208,8 @@ export function RichTextEditor({ content, onChange, editable = true }: RichTextE
       )}
       <EditorContent
         editor={editor}
-        className="prose prose-sm max-w-none p-3 min-h-[200px] focus-within:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[180px]"
+        className="prose prose-sm max-w-none p-3 focus-within:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_ul[data-type=taskList]]:list-none [&_.ProseMirror_ul[data-type=taskList]_li]:flex [&_.ProseMirror_ul[data-type=taskList]_li]:gap-2 [&_.ProseMirror_ul[data-type=taskList]_li>label]:mt-1 [&_.mention]:bg-primary/10 [&_.mention]:text-primary [&_.mention]:rounded [&_.mention]:px-1 [&_.mention]:py-0.5"
+        style={{ minHeight: `${minHeight}px` }}
       />
     </div>
   );
