@@ -420,7 +420,9 @@ export default function ProjetosPage() {
           const monthStart = startOfMonth(now);
           const monthEnd = endOfMonth(now);
           const active = projects.filter(p => p.status === 'em_curso' || p.status === 'em_revisao');
-          const overdue = projects.filter(p => p.deadline && parseISO(p.deadline) < now && p.status !== 'concluido' && p.status !== 'cancelado' && p.status !== 'arquivo');
+          // Compare against today at 00:00 local to avoid timezone-induced false positives
+          const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const overdue = projects.filter(p => p.deadline && parseISO(p.deadline) < todayMidnight && p.status !== 'concluido' && p.status !== 'cancelado' && p.status !== 'arquivo');
           const completedThisMonth = projects.filter(p => {
             if (p.status !== 'concluido') return false;
             // Use deadline as proxy for completion date
@@ -429,8 +431,12 @@ export default function ProjetosPage() {
             return d >= monthStart && d <= monthEnd;
           });
           const completed = projects.filter(p => p.status === 'concluido' && p.start_date && p.deadline);
+          // Tempo médio de entrega = média dos dias planeados (start → deadline) para projetos concluídos
           const avgDays = completed.length > 0
-            ? Math.round(completed.reduce((sum, p) => sum + differenceInDays(parseISO(p.deadline!), parseISO(p.start_date!)), 0) / completed.length)
+            ? Math.round(completed.reduce((sum, p) => {
+                const days = differenceInDays(parseISO(p.deadline!), parseISO(p.start_date!));
+                return sum + Math.max(0, days);
+              }, 0) / completed.length)
             : null;
 
           const metrics = [
