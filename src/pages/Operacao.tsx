@@ -658,7 +658,7 @@ export default function OperacaoPage() {
                     <DialogTitle className="flex items-center gap-2 text-base">
                       <span className={healthColor}>●</span> {p.name}
                     </DialogTitle>
-                    <p className="text-xs text-muted-foreground">{p.client_name || p.department || ''} · <span className={healthColor}>{healthLabel}</span></p>
+                    <p className="text-xs text-muted-foreground">{p.client_name || (Array.isArray((p as any).departments) && (p as any).departments.length > 0 ? (p as any).departments.join(', ') : p.department) || ''} · <span className={healthColor}>{healthLabel}</span></p>
                   </DialogHeader>
 
                   {!hasIssues && (

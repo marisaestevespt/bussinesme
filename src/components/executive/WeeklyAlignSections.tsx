@@ -568,7 +568,11 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
               <TableRow key={p.id} className={clickableRow} onClick={() => navigate(`/hub/projetos/${p.id}`)}>
                 <TableCell><Badge variant="secondary" className="text-[10px]">{p.status}</Badge></TableCell>
                 <TableCell className="text-sm">{p.name}</TableCell>
-                <TableCell className="">{p.department || '—'}</TableCell>
+                <TableCell className="">{(() => {
+                  const arr = Array.isArray((p as any).departments) ? (p as any).departments.filter(Boolean) : [];
+                  if (arr.length > 0) return arr.join(', ');
+                  return p.department || '—';
+                })()}</TableCell>
                 <TableCell className="">{p.deadline || '—'}</TableCell>
               </TableRow>
             ))}</TableBody></Table>

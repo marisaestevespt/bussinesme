@@ -40,7 +40,11 @@ export default function SecretariaProjetos() {
                 <TableCell><Badge className={cn('text-[10px]', si.color)}>{si.label}</Badge></TableCell>
                 <TableCell><div className="flex items-center gap-2"><Progress value={p.progress || 0} className="h-1.5 w-16" /><span className="text-xs">{p.progress || 0}%</span></div></TableCell>
                 <TableCell className="text-sm">{p.deadline ? format(parseISO(p.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
-                <TableCell className="text-sm text-muted-foreground capitalize">{p.department || '—'}</TableCell>
+                <TableCell className="text-sm text-muted-foreground capitalize">{(() => {
+                  const arr = Array.isArray((p as any).departments) ? (p as any).departments.filter(Boolean) : [];
+                  if (arr.length > 0) return arr.join(', ');
+                  return p.department || '—';
+                })()}</TableCell>
               </TableRow>
             );
           })}
