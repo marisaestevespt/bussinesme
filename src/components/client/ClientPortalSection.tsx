@@ -265,18 +265,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
         </CardContent>
       </Card>
 
-      {/* Initial Questions */}
-      <QuestionsCollapsible
-        portalId={portalId}
-        questions={questions}
-        addQuestion={addQuestion}
-        updateQuestion={updateQuestion}
-        deleteQuestion={deleteQuestion}
-        seedQuestionsFromProduct={seedQuestionsFromProduct}
-        clientId={clientId}
-        clientName={clientName}
-      />
-
       {/* Feedback */}
       <Card className="overflow-hidden">
         <CardHeader className="pb-3 bg-muted/30 border-b">
