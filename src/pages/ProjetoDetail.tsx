@@ -17,7 +17,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
@@ -811,10 +811,28 @@ export default function ProjetoDetailPage() {
           {/* ─── 3 Tabs ──────────────────────────────────────── */}
           <div className="mt-6">
           <EntityTabs defaultValue="projeto" className="w-full">
-            <EntityTabsList>
-              <EntityTabsTrigger value="projeto">Overview de Projeto</EntityTabsTrigger>
-              <EntityTabsTrigger value="processos">Fases & Entregas</EntityTabsTrigger>
-              <EntityTabsTrigger value="gestao">Gestão</EntityTabsTrigger>
+            <EntityTabsList className="!rounded-xl !p-1.5 bg-muted/70 shadow-sm w-full sm:w-auto">
+              <EntityTabsTrigger
+                value="projeto"
+                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Overview de Projeto
+              </EntityTabsTrigger>
+              <EntityTabsTrigger
+                value="processos"
+                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+              >
+                <Workflow className="h-4 w-4" />
+                Fases &amp; Entregas
+              </EntityTabsTrigger>
+              <EntityTabsTrigger
+                value="gestao"
+                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+              >
+                <Settings2 className="h-4 w-4" />
+                Gestão
+              </EntityTabsTrigger>
             </EntityTabsList>
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
