@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -424,6 +424,21 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
     },
   });
 
+  // Count active projects using this product — alterações estruturais ao
+  // template propagam-se para estes projetos via trigger sync_product_phase_to_projects
+  // (datas planeadas manualmente NÃO são sobrescritas).
+  const { data: activeProjectsCount = 0 } = useQuery({
+    queryKey: ['active-projects-using-product', productId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('projects')
+        .select('id', { count: 'exact', head: true })
+        .eq('product_id', productId)
+        .not('status', 'in', '(concluido,cancelado,arquivado)');
+      return count ?? 0;
+    },
+  });
+
   const addPhase = useMutation({
     mutationFn: async () => {
       await supabase.from('product_phases' as any).insert({ product_id: productId, name: '', sort_order: phases.length } as any);
@@ -488,6 +503,18 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
           </Button>
         )}
       </div>
+
+      {isOwner && activeProjectsCount > 0 && (
+        <div className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
+          <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <div>
+            <span className="font-semibold">
+              {activeProjectsCount} projeto{activeProjectsCount === 1 ? '' : 's'} ativo{activeProjectsCount === 1 ? '' : 's'}
+            </span>{' '}
+            herda{activeProjectsCount === 1 ? '' : 'm'} desta estrutura. Adicionar/remover/renomear fases ou entregas propaga-se automaticamente; datas planeadas manualmente nesses projetos não são sobrescritas.
+          </div>
+        </div>
+      )}
 
       {sortedPhases.length === 0 && (
         <Card>
