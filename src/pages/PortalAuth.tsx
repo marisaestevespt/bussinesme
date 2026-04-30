@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Mail, ArrowRight } from 'lucide-react';
+import { Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -18,6 +18,7 @@ export default function PortalAuthPage() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const { branding } = usePortalBranding(token);
   const settings = branding;
 
@@ -64,6 +65,7 @@ export default function PortalAuthPage() {
   const handleSubmit = async () => {
     if (!email.trim() || !token || !portal) return;
     const inputEmail = email.trim().toLowerCase();
+    setEmailError(null);
 
     const { data: emailAllowed, error: emailCheckError } = await (supabase as any).rpc('portal_email_allowed', {
       _token: portal.token,
@@ -71,12 +73,12 @@ export default function PortalAuthPage() {
     });
 
     if (emailCheckError) {
-      toast.error('Erro ao validar email. Tenta novamente.');
+      setEmailError('Não foi possível validar agora. Tenta novamente.');
       return;
     }
 
     if (!emailAllowed) {
-      toast.error('Email não reconhecido.');
+      setEmailError('Este email não tem acesso a este portal.');
       return;
     }
 
@@ -101,13 +103,44 @@ export default function PortalAuthPage() {
   const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`; // with alpha
   const logoUrl = settings?.logo_url;
   const businessName = settings?.business_name || '';
-  const welcomeText = settings?.welcome_text || `Bem-vinda ao teu espaço pessoal${businessName ? ` com a ${businessName}` : ''}.`;
+  const firstName = settings?.client_first_name || '';
+  const productName = settings?.product_name || '';
+  const welcomeText = settings?.welcome_text
+    || (productName
+      ? `Acesso ao acompanhamento ${productName}${businessName ? ` · ${businessName}` : ''}.`
+      : `O teu espaço de acompanhamento${businessName ? ` com a ${businessName}` : ''}.`);
   const loginBgUrl = settings?.hero_image_url;
-  const heroTitle = settings?.hero_title || 'O teu espaço.';
-  const heroSubtitle = settings?.hero_subtitle || 'A tua jornada.';
-  const loginTitle = settings?.login_title || 'Olá! 👋';
+  const heroTitle = settings?.hero_title
+    || (firstName ? `Olá, ${firstName}.` : 'Bem-vindo.');
+  const heroSubtitle = settings?.hero_subtitle
+    || (productName ? productName : 'O teu espaço de acompanhamento.');
+  const loginTitle = settings?.login_title
+    || (firstName ? `Olá, ${firstName}` : 'Aceder ao portal');
   const loginSubtitle = settings?.login_subtitle;
   const fontDisplay = settings?.font_display ? `"${settings.font_display}", sans-serif` : 'var(--font-display, "Plus Jakarta Sans", sans-serif)';
+
+  const ErrorShell = ({ title, message }: { title: string; message: string }) => (
+    <div className="flex min-h-screen items-center justify-center p-6" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center space-y-4">
+        {logoUrl ? (
+          <img src={logoUrl} alt={businessName || 'Logo'} className="h-10 mx-auto object-contain" />
+        ) : (
+          <div className="h-10 w-10 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: pcAlpha(0.12) }}>
+            <AlertCircle className="h-5 w-5" style={{ color: pc }} />
+          </div>
+        )}
+        <div className="space-y-1">
+          <h1 className="text-lg font-semibold" style={{ fontFamily: fontDisplay, color: pc }}>{title}</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">{message}</p>
+        </div>
+        {businessName && (
+          <p className="text-[11px] text-muted-foreground/60 pt-2 border-t">
+            Em caso de dúvida, contacta a equipa {businessName}.
+          </p>
+        )}
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -118,23 +151,11 @@ export default function PortalAuthPage() {
   }
 
   if (!portal) {
-    return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
-        <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-lg p-8 text-center">
-          <p className="text-sm text-muted-foreground">Portal não encontrado.</p>
-        </div>
-      </div>
-    );
+    return <ErrorShell title="Portal não encontrado" message="Verifica o link que recebeste. Se o problema persistir, fala com a tua equipa de gestão." />;
   }
 
   if (!portal.is_active) {
-    return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
-        <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-lg p-8 text-center">
-          <p className="text-sm text-muted-foreground">Este portal não está disponível de momento.</p>
-        </div>
-      </div>
-    );
+    return <ErrorShell title="Portal indisponível" message="Este portal está temporariamente fechado. Vai estar disponível novamente em breve." />;
   }
 
   return (
@@ -190,11 +211,17 @@ export default function PortalAuthPage() {
                 type="email"
                 placeholder="O teu email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                className="pl-10 h-12 rounded-xl border-border/60 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-offset-0"
+                className={`pl-10 h-12 rounded-xl bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-offset-0 ${emailError ? 'border-destructive/60' : 'border-border/60'}`}
                 style={{ '--tw-ring-color': `${pcAlpha(0.25)}` } as any}
               />
+              {emailError && (
+                <p className="mt-2 text-xs text-destructive flex items-center gap-1.5">
+                  <AlertCircle className="h-3 w-3 shrink-0" />
+                  {emailError}
+                </p>
+              )}
             </div>
             <Button
               className="w-full h-12 rounded-xl text-sm font-semibold shadow-md transition-all hover:shadow-lg active:scale-[0.98] text-white"
@@ -216,9 +243,15 @@ export default function PortalAuthPage() {
             </Button>
           </div>
 
-          <p className="text-center text-[11px] text-muted-foreground/60">
-            Acesso exclusivo para clientes{businessName ? ` da ${businessName}` : ''}.
-          </p>
+          <div className="space-y-2 pt-2">
+            <p className="text-center text-[11px] text-muted-foreground/60">
+              Acesso exclusivo para clientes{businessName ? ` da ${businessName}` : ''}.
+            </p>
+            <p className="text-center text-[10px] text-muted-foreground/50 flex items-center justify-center gap-1">
+              <ShieldCheck className="h-3 w-3" />
+              Acesso seguro · Lirah
+            </p>
+          </div>
         </div>
       </div>
     </div>

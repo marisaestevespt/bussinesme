@@ -18,6 +18,9 @@ export interface PortalBranding {
   hero_image_url?: string | null;
   hero_title?: string | null;
   hero_subtitle?: string | null;
+  client_first_name?: string | null;
+  client_name?: string | null;
+  product_name?: string | null;
 }
 
 export function usePortalBranding(token: string | undefined | null) {
