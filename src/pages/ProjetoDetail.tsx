@@ -44,6 +44,7 @@ import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
+import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
