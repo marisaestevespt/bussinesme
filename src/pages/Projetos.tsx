@@ -811,3 +811,78 @@ function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Pr
 }
 
 export { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials };
+
+function ArchivedTable({
+  projects,
+  onOpen,
+  onRestore,
+  onHardDelete,
+}: {
+  projects: Project[];
+  onOpen: (id: string) => void;
+  onRestore: (id: string) => void;
+  onHardDelete: (id: string) => void;
+}) {
+  return (
+    <div className="rounded-lg border border-border/60 overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/40">
+            <TableHead className="text-foreground">Projeto</TableHead>
+            <TableHead className="text-foreground">Cliente</TableHead>
+            <TableHead className="text-foreground w-[160px]">Arquivado em</TableHead>
+            <TableHead className="text-right w-[280px]">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {projects.map((p) => {
+            const archivedAt = (p as any).archived_at as string | null;
+            return (
+              <TableRow key={p.id}>
+                <TableCell className="font-medium">{p.name}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{p.client_name || '—'}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {archivedAt ? format(parseISO(archivedAt), "d MMM yyyy", { locale: pt }) : '—'}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" className="gap-1" onClick={() => onOpen(p.id)}>
+                      <Eye className="h-3.5 w-3.5" /> Abrir
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-1" onClick={() => onRestore(p.id)}>
+                      <ArchiveRestore className="h-3.5 w-3.5" /> Restaurar
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Eliminar definitivamente?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação é irreversível. Tudo o que está em cascata (fases, entregas, anexos, membros) será apagado. Tarefas e reuniões só serão eliminadas se não tiverem dependências externas — caso contrário o sistema impede a eliminação.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onHardDelete(p.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Eliminar para sempre
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
