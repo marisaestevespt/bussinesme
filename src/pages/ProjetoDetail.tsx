@@ -1165,14 +1165,6 @@ export default function ProjetoDetailPage() {
 
         <Separator />
 
-        {/* Deliverables - only for recorrente projects */}
-        {isRecorrente && taskMode === 'fases' && (
-          <>
-            <ProjectDeliverables projectId={id!} profiles={profiles} />
-            <Separator />
-          </>
-        )}
-
         {/* Section 1: Menu Inicial */}
           <EntitySection title="Menu Inicial" icon={Target}>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
