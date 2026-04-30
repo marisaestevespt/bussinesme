@@ -8990,6 +8990,7 @@ export type Database = {
           name: string
           notes: string | null
           objetivo: string | null
+          objetivo_curto: string | null
           payment_config: Json | null
           payment_method: string | null
           product_id: string | null
@@ -9028,6 +9029,7 @@ export type Database = {
           name: string
           notes?: string | null
           objetivo?: string | null
+          objetivo_curto?: string | null
           payment_config?: Json | null
           payment_method?: string | null
           product_id?: string | null
@@ -9066,6 +9068,7 @@ export type Database = {
           name?: string
           notes?: string | null
           objetivo?: string | null
+          objetivo_curto?: string | null
           payment_config?: Json | null
           payment_method?: string | null
           product_id?: string | null
