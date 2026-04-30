@@ -10,6 +10,7 @@ import { ActiveTimerProvider } from "@/hooks/useActiveTimer";
 import { KpiSettingsProvider } from "@/hooks/useKpiSettings";
 import { FloatingTimer } from "@/components/FloatingTimer";
 import { ImpersonationProvider } from "@/contexts/ImpersonationContext";
+import { GlobalRealtimeProvider } from "@/providers/GlobalRealtimeProvider";
 import { ImpersonationBanner } from "@/components/ImpersonationBanner";
 import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
@@ -121,8 +122,8 @@ const queryClient = new QueryClient({
       gcTime: 5 * 60 * 1000,
       // 1 retry em vez de 3 (failures são geralmente rede ou RLS, não vale a pena martelar)
       retry: 1,
-      // Evita refetch agressivo ao mudar de tab — utilizadores ficam frustrados com loaders constantes
-      refetchOnWindowFocus: false,
+      // Refetch ao voltar à janela — combinado com realtime garante dados frescos sem refresh manual
+      refetchOnWindowFocus: true,
       // Refetch ao reconectar mantém-se ligado (default: true)
     },
     mutations: {
@@ -284,6 +285,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <GlobalRealtimeProvider>
           <ImpersonationProvider>
             <BusinessSettingsProvider>
               <ActiveTimerProvider>
@@ -299,6 +301,7 @@ const App = () => (
               </ActiveTimerProvider>
             </BusinessSettingsProvider>
           </ImpersonationProvider>
+          </GlobalRealtimeProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
