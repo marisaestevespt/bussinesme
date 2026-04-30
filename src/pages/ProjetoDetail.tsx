@@ -496,6 +496,10 @@ export default function ProjetoDetailPage() {
         title={cfg.title}
         description={cfg.description}
         icon={cfg.icon}
+        shortLabel={subPage === 'objetivo' ? 'Objetivo' : undefined}
+        shortPlaceholder={subPage === 'objetivo' ? 'Numa frase: o que se vai alcançar com este projeto?' : undefined}
+        shortValue={subPage === 'objetivo' ? ((local as any).objetivo_curto || '') : undefined}
+        onShortChange={subPage === 'objetivo' ? (v) => updateField('objetivo_curto' as any, v) : undefined}
         textLabel={cfg.textLabel}
         textPlaceholder={cfg.textPlaceholder}
         assetsLabel={cfg.assetsLabel}
