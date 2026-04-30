@@ -759,7 +759,9 @@ export default function ProjetoDetailPage() {
                     {local.product_id && (
                       <ProductIcon productId={local.product_id as any} icon={selectedProduct?.icon} logoUrl={selectedProduct?.logo_url} className="h-5 w-5 shrink-0" emojiClassName="text-sm" />
                     )}
-                    <SelectValue placeholder="Sem produto associado" />
+                    <span className={cn("min-w-0 flex-1 truncate text-left", !local.product_id && "text-muted-foreground")}>
+                      {selectedProduct?.name || local.product_name || 'Sem produto associado'}
+                    </span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
