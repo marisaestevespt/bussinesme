@@ -447,7 +447,7 @@ export default function ProjetoDetailPage() {
         description: 'O objetivo do projeto e a sua definição/escopo.',
         icon: Target,
         textLabel: 'Definição do projeto',
-        textPlaceholder: 'Objetivo, escopo, resultados esperados, restrições...',
+        textPlaceholder: 'Escopo, resultados esperados, restrições...',
         assetsLabel: 'Briefings e referências',
         assetsDescription: 'Documentos que fundamentam o objetivo (briefing, RFP, propostas).',
         assetCategories: ['Briefing', 'Proposta', 'Contexto'],
