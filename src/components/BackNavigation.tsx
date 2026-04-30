@@ -22,13 +22,25 @@ export function BackNavigation({ parentRoute, parentLabel, onBack }: BackNavigat
   // If no parent could be determined, don't render
   if (!route || !label) return null;
 
+  const handleBack = () => {
+    if (onBack) return onBack();
+    // If there's no usable history (direct load, refresh, or first entry),
+    // fall back to the parent route so the button is never a no-op.
+    const idx = (window.history.state && (window.history.state as any).idx) ?? 0;
+    if (idx > 0) {
+      navigate(-1);
+    } else if (route) {
+      navigate(route);
+    }
+  };
+
   return (
     <div className="flex items-center gap-1">
       <Button
         variant="ghost"
         size="sm"
         className="gap-2 text-muted-foreground hover:text-foreground"
-        onClick={onBack || (() => navigate(-1))}
+        onClick={handleBack}
       >
         <ArrowLeft className="h-4 w-4" /> Voltar
       </Button>
