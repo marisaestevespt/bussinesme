@@ -840,6 +840,16 @@ export default function ProdutoDetailPage() {
             />
           )}
 
+          {openSection === 'portal-template' && (
+            <ProductPortalTemplateSection
+              faqs={((form as any).portal_faqs_template || []) as any[]}
+              materials={((form as any).portal_materials_template || []) as any[]}
+              timeline={((form as any).portal_timeline_template || []) as any[]}
+              isOwner={isOwner}
+              onUpdate={(field, value) => update(field, value)}
+            />
+          )}
+
           {openSection === 'metricas' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductMetricsTab productId={id!} productName={form.name || ''} isOwner={isOwner} />
