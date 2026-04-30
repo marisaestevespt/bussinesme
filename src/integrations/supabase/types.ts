@@ -11556,6 +11556,32 @@ export type Database = {
           timeline_phases: Json
         }[]
       }
+      get_portal_responsibilities: {
+        Args: { _token: string }
+        Returns: {
+          description: string
+          id: string
+          notes: string
+          party: string
+          project_id: string
+          project_name: string
+          sort_order: number
+        }[]
+      }
+      get_portal_routines: {
+        Args: { _token: string }
+        Returns: {
+          estimated_time: number
+          hour_time: string
+          id: string
+          month_day: number
+          project_id: string
+          project_name: string
+          recurrence_type: string
+          title: string
+          weekday: number
+        }[]
+      }
       get_portal_timeline_phases: {
         Args: { _token: string }
         Returns: {
