@@ -1,5 +1,5 @@
 import { LucideIcon, MessageSquare, Paperclip, Target } from 'lucide-react';
-import { MentionTextarea } from '@/components/MentionTextarea';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { Input } from '@/components/ui/input';
 import { EntitySection } from '@/components/layout/entity/EntitySection';
 import { ProjectAssetGallery } from '@/components/project/ProjectAssetGallery';
@@ -63,7 +63,13 @@ export function TextWithAssetsSubPage({
         </EntitySection>
       )}
       <EntitySection title={textLabel} icon={MessageSquare}>
-        <MentionTextarea value={value} onChange={onChange} rows={10} placeholder={textPlaceholder} />
+        <RichTextEditor
+          content={value}
+          onChange={onChange}
+          placeholder={textPlaceholder}
+          enableMentions
+          minHeight={240}
+        />
       </EntitySection>
       <EntitySection title={assetsLabel} icon={Paperclip} description={assetsDescription}>
         <ProjectAssetGallery
