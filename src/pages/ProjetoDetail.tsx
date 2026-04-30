@@ -939,24 +939,6 @@ export default function ProjetoDetailPage() {
                 )}
               </EntitySection>
 
-              {/* ── Section: Portal de Cliente ────────────── */}
-              {resolvedClientId && local.client_name && (
-                <>
-                  <EntitySection title="Portal do Cliente" icon={Users}>
-                    <ClientPortalSection
-                      clientId={resolvedClientId}
-                      clientName={local.client_name}
-                      currentProduct={local.product_name || null}
-                      productId={local.product_id}
-                    />
-                  </EntitySection>
-
-                  <EntitySection title="Feedback Recebido" icon={MessageCircle}>
-                    <ClientPortalFeedbackSection clientId={resolvedClientId} />
-                  </EntitySection>
-                </>
-              )}
-
               {/* ── Section: Fecho de Projeto ────────────── */}
               <EntitySection title="Fecho de Projeto" icon={Flag}>
                 <div className="space-y-2">
