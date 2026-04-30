@@ -181,12 +181,14 @@ export default function ProjetosPage() {
   }
 
   const projectsQuery = useInfiniteQuery<InfinitePageResult<Project>>({
-    queryKey: ['projects'],
+    queryKey: ['projects', { archived: showArchived }],
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('projects').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+      let q = supabase.from('projects').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+      q = showArchived ? q.not('archived_at', 'is', null) : q.is('archived_at', null);
+      const { data, error, count } = await q.range(from, to);
       if (error) throw error;
       return { data: (data || []) as Project[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
