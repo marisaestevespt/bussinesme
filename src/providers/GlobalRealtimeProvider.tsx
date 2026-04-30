@@ -23,51 +23,71 @@ export function GlobalRealtimeProvider({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!user) {
-      // Sem utilizador autenticado, não subscrever (RLS bloquearia tudo)
       return;
     }
 
+    let cancelled = false;
+
+    // Garantir que o realtime usa o JWT atual do utilizador (necessário para RLS)
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (token) {
+        try {
+          await (supabase.realtime as any).setAuth(token);
+        } catch (e) {
+          console.warn('[realtime] setAuth failed', e);
+        }
+      }
+    })();
+
     const invalidateForTable = (table: string) => {
-      // Debounce por tabela: agrupa rajadas de eventos em 150ms
       const existing = debounceMap.current.get(table);
       if (existing) clearTimeout(existing);
       const timeout = setTimeout(() => {
         debounceMap.current.delete(table);
         queryClient.invalidateQueries({
+          refetchType: 'active',
           predicate: (query) => {
             const key = query.queryKey;
             if (!Array.isArray(key)) return false;
             return key.some((part) => {
               if (typeof part !== 'string') return false;
-              // Match exato ou contains (case-insensitive)
-              return (
-                part === table ||
-                part.toLowerCase().includes(table.toLowerCase())
-              );
+              const a = part.toLowerCase();
+              const b = table.toLowerCase();
+              return a === b || a.includes(b) || b.includes(a);
             });
           },
         });
-      }, 150);
+      }, 200);
       debounceMap.current.set(table, timeout);
     };
 
     const channel = supabase
-      .channel('global-db-changes')
+      .channel('global-db-changes-' + user.id)
       .on(
         'postgres_changes' as any,
         { event: '*', schema: 'public' },
         (payload: any) => {
           const table = payload?.table;
+          if (import.meta.env.DEV) {
+            console.debug('[realtime] event', payload?.eventType, table);
+          }
           if (typeof table === 'string' && table.length > 0) {
             invalidateForTable(table);
           }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (import.meta.env.DEV) {
+          console.debug('[realtime] channel status:', status);
+        }
+      });
 
     channelRef.current = channel;
 
     return () => {
+      cancelled = true;
       debounceMap.current.forEach((t) => clearTimeout(t));
       debounceMap.current.clear();
       if (channelRef.current) {
@@ -75,7 +95,7 @@ export function GlobalRealtimeProvider({ children }: { children: React.ReactNode
         channelRef.current = null;
       }
     };
-  }, [user, queryClient]);
+  }, [user?.id, queryClient]);
 
   return <>{children}</>;
 }
