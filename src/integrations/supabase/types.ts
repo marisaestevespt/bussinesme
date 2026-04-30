@@ -1551,7 +1551,6 @@ export type Database = {
           last_visit_at: string | null
           portal_type: Database["public"]["Enums"]["portal_type"]
           show_faqs: boolean
-          show_materials: boolean
           show_meetings: boolean
           show_monthly_summary: boolean
           show_onboarding: boolean
@@ -1569,7 +1568,6 @@ export type Database = {
           last_visit_at?: string | null
           portal_type: Database["public"]["Enums"]["portal_type"]
           show_faqs?: boolean
-          show_materials?: boolean
           show_meetings?: boolean
           show_monthly_summary?: boolean
           show_onboarding?: boolean
@@ -1587,7 +1585,6 @@ export type Database = {
           last_visit_at?: string | null
           portal_type?: Database["public"]["Enums"]["portal_type"]
           show_faqs?: boolean
-          show_materials?: boolean
           show_meetings?: boolean
           show_monthly_summary?: boolean
           show_onboarding?: boolean
@@ -6971,44 +6968,6 @@ export type Database = {
           },
         ]
       }
-      portal_materials: {
-        Row: {
-          created_at: string
-          description: string | null
-          file_name: string
-          file_type: string
-          file_url: string
-          id: string
-          portal_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          file_name: string
-          file_type?: string
-          file_url: string
-          id?: string
-          portal_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          file_name?: string
-          file_type?: string
-          file_url?: string
-          id?: string
-          portal_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portal_materials_portal_id_fkey"
-            columns: ["portal_id"]
-            isOneToOne: false
-            referencedRelation: "client_portals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       portal_monthly_summaries: {
         Row: {
           content: string
@@ -11436,24 +11395,6 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "portal_initial_questions"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      get_portal_materials: {
-        Args: { _token: string }
-        Returns: {
-          created_at: string
-          description: string | null
-          file_name: string
-          file_type: string
-          file_url: string
-          id: string
-          portal_id: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "portal_materials"
           isOneToOne: false
           isSetofReturn: true
         }
