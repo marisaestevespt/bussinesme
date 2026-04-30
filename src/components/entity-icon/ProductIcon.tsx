@@ -23,7 +23,8 @@ export function ProductIcon({
   emojiClassName,
   variant = "rounded",
 }: Props) {
-  const hasPreload = icon !== undefined || logoUrl !== undefined;
+  const preloadedIcon = parseIcon(icon);
+  const hasPreload = !!preloadedIcon || !!logoUrl;
 
   const { data } = useQuery({
     queryKey: ["product-icon", productId],
@@ -40,7 +41,8 @@ export function ProductIcon({
   });
 
   const resolved =
-    parseIcon(icon ?? data?.icon) ??
+    preloadedIcon ??
+    parseIcon(data?.icon) ??
     (logoUrl ? { type: "image" as const, value: logoUrl } : null) ??
     (data?.logo_url ? { type: "image" as const, value: data.logo_url } : null);
 
