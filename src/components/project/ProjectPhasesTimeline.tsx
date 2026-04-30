@@ -997,7 +997,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                   })()}
                                   {/* Para fazer (scheduled_date) */}
                                   {(() => {
-                                    const overrun = !!d.scheduled_date && !!d.planned_end && d.scheduled_date > d.planned_end;
+                                    const sched = (d as any).scheduled_date as string | null | undefined;
+                                    const overrun = !!sched && !!d.planned_end && sched > d.planned_end;
                                     return (
                                       <div className="flex items-center justify-start min-w-0">
                                         <Input
