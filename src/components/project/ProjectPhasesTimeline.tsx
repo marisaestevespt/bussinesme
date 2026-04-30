@@ -938,13 +938,25 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                   {/* Deliverables */}
                   {phaseDeliverables.length > 0 && (
                     <div className="mt-3 space-y-1 pl-2">
+                      {/* Header de colunas */}
+                      <div
+                        className="grid items-center gap-2 px-3 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium"
+                        style={{ gridTemplateColumns: '16px minmax(0,1fr) 160px 110px 90px 70px' }}
+                      >
+                        <span />
+                        <span>Entrega</span>
+                        <span>Datas</span>
+                        <span>Status</span>
+                        <span>Reunião</span>
+                        <span className="text-right">Ações</span>
+                      </div>
                       {phaseDeliverables.map((d, di) => {
                         const isEditingThis = editingDel === d.id;
                         const _delInfo = getDeliverableStatusInfo(d.status);
                         const delStatusConfig = { bg: _delInfo.color, label: _delInfo.label };
                         return (
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
-                            <div className="grid items-center gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 170px 130px 110px 80px' }}>
+                            <div className="grid items-center gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 160px 110px 90px 70px' }}>
                               {isEditingThis ? (
                                 <div className="col-span-6 flex items-center gap-2">
                                   <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
