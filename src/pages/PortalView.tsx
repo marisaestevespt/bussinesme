@@ -21,6 +21,7 @@ import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { SectionCard, SectionTitle } from '@/components/portal-view/SectionPrimitives';
 import { PortalContractSection } from '@/components/portal-view/PortalContractSection';
 import { PortalFeedbackSection } from '@/components/portal-view/PortalFeedbackSection';
@@ -48,6 +49,10 @@ export default function PortalViewPage() {
   const { branding: portalBranding } = usePortalBranding(token);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string>('home');
+
+  const businessName = (portalBranding?.business_name as string | undefined) || (settings?.business_name as string | undefined) || 'Portal';
+  const clientName = (client?.full_name as string | undefined) || '';
+  useDocumentTitle(clientName ? `${businessName} · Portal · ${clientName}` : `${businessName} · Portal de Cliente`);
 
   const [faqs, setFaqs] = useState<PortalFaq[]>([]);
   const [questions, setQuestions] = useState<PortalQuestion[]>([]);
