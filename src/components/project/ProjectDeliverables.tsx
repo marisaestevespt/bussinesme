@@ -173,12 +173,65 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
-        .select('id, name, client_id, clients ( id, full_name )')
+        .select('id, name, client_id, department, departments, clients ( id, full_name )')
         .eq('id', projectId)
         .maybeSingle();
       return data as any;
     },
   });
+
+  // Team members (profile_id + department) — used to resolve members of the
+  // project's department(s) when creating a meeting from a deliverable.
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team-members-for-meeting-defaults'],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('team_members')
+        .select('profile_id, department, status')
+        .eq('status', 'ativo');
+      return (data || []) as { profile_id: string | null; department: string | null }[];
+    },
+  });
+
+  // Profiles already assigned to this project (maximally relevant for meetings).
+  const { data: projectMembers = [] } = useQuery({
+    queryKey: ['project-members-list', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_members')
+        .select('profile_id')
+        .eq('project_id', projectId);
+      return (data || []) as { profile_id: string }[];
+    },
+  });
+
+  /**
+   * Compute the default participant set when creating a meeting from a deliverable:
+   * - the deliverable assignee (if any)
+   * - all team members whose `department` matches the project's main department
+   *   or any department listed in `projects.departments` (jsonb array).
+   */
+  const computeMeetingMembers = (d: any): string[] => {
+    const ids = new Set<string>();
+    if (d?.assigned_to) ids.add(d.assigned_to);
+    // Always include explicit project members.
+    projectMembers.forEach(pm => { if (pm.profile_id) ids.add(pm.profile_id); });
+    // Plus all active team members whose department matches the project department(s).
+    const projectDepts = new Set<string>();
+    if (projectCtx?.department) projectDepts.add(projectCtx.department);
+    if (Array.isArray(projectCtx?.departments)) {
+      projectCtx.departments.forEach((dep: any) => { if (typeof dep === 'string' && dep) projectDepts.add(dep); });
+    }
+    if (projectDepts.size > 0) {
+      teamMembers.forEach(tm => {
+        if (tm.profile_id && tm.department && projectDepts.has(tm.department)) ids.add(tm.profile_id);
+      });
+    }
+    return Array.from(ids);
+  };
+
+  const projectDefaultDepartment = projectCtx?.department
+    || (Array.isArray(projectCtx?.departments) && projectCtx.departments[0]) || undefined;
 
   const linkMeetingMutation = useMutation({
     mutationFn: async ({ deliverableId, meetingId }: { deliverableId: string; meetingId: string }) => {
@@ -496,6 +549,8 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                           defaultClientId={projectCtx?.client_id ?? undefined}
                           defaultClientName={projectCtx?.clients?.full_name ?? undefined}
                           defaultTitle={d.name}
+                          defaultMemberIds={computeMeetingMembers(d)}
+                          defaultDepartment={projectDefaultDepartment}
                           onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
                         >
                           <button

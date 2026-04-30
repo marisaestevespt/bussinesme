@@ -461,6 +461,7 @@ export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
   defaultProjectId, defaultProjectName, defaultTitle,
+  defaultMemberIds, defaultDepartment,
   initialMeetingType,
   onMeetingCreated, navigateAfterCreate = true,
 }: {
@@ -469,6 +470,10 @@ export function MeetingFormDialog({
   defaultProjectId?: string; defaultProjectName?: string;
   /** Pre-fill the meeting title (e.g. when launched from a deliverable's template). */
   defaultTitle?: string;
+  /** Pre-select participants (profile ids). Useful when launched from a deliverable: includes the assignee + members of the project departments. */
+  defaultMemberIds?: string[];
+  /** Pre-fill department (used as fallback when none derived from defaults). */
+  defaultDepartment?: string;
   /** Pre-select a meeting type (skips the type-picker step inside the dialog). */
   initialMeetingType?: MeetingType;
   /** Called with the created meeting id BEFORE any navigation, so the caller can do follow-up writes (e.g. linking to a deliverable). */
@@ -493,8 +498,8 @@ export function MeetingFormDialog({
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientId, setClientId] = useState(defaultClientId || '');
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(defaultProjectId ? [defaultProjectId] : []);
-  const [department, setDepartment] = useState(hasDefaults ? 'clientes' : '');
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [department, setDepartment] = useState(defaultDepartment || (hasDefaults ? 'clientes' : ''));
+  const [selectedMembers, setSelectedMembers] = useState<string[]>(defaultMemberIds ?? []);
   const [meetingUrl, setMeetingUrl] = useState('');
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
   const [pendingClientProjects, setPendingClientProjects] = useState<ProjectOption[]>([]);
@@ -519,15 +524,20 @@ export function MeetingFormDialog({
       if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
     }
     if (defaultTitle && !title) setTitle(defaultTitle);
+    if (defaultDepartment && !department) setDepartment(defaultDepartment);
+    if (defaultMemberIds && defaultMemberIds.length > 0 && selectedMembers.length === 0) {
+      setSelectedMembers(defaultMemberIds);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialMeetingType, defaultTitle]);
+  }, [open, initialMeetingType, defaultTitle, defaultDepartment, defaultMemberIds]);
 
   const resetForm = () => {
     setStep(skipTypeStep ? 'form' : 'type');
     setMeetingType(initialType);
     setTitle(defaultTitle || ''); setDateTime(undefined); setStatus('por_confirmar');
-    setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []); setDepartment(hasDefaults ? 'clientes' : '');
-    setSelectedMembers([]); setMeetingUrl('');
+    setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []);
+    setDepartment(defaultDepartment || (hasDefaults ? 'clientes' : ''));
+    setSelectedMembers(defaultMemberIds ?? []); setMeetingUrl('');
     setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceStartDate(undefined); setRecurrenceEndDate(defaultRecurrenceEndDate);
     setHolidayOverrides({});
     skipAutoFillRef.current = false;
