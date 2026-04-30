@@ -814,6 +814,37 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                                       ))}
                                     </SelectContent>
                                   </Select>
+                                  {d.is_meeting && (
+                                    d.meeting_id ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
+                                        className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                                        title="Abrir reunião"
+                                      >
+                                        <Video className="h-3 w-3" /> Reunião
+                                      </button>
+                                    ) : (
+                                      <NewMeetingButton
+                                        skipPicker
+                                        forcedType={'recorrente' as any}
+                                        defaultProjectId={projectId}
+                                        defaultProjectName={projectCtx?.name}
+                                        defaultClientId={projectCtx?.client_id ?? undefined}
+                                        defaultClientName={projectCtx?.clients?.full_name ?? undefined}
+                                        defaultTitle={d.name}
+                                        onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
+                                      >
+                                        <button
+                                          type="button"
+                                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+                                          title="Criar reunião pré-preenchida"
+                                        >
+                                          <Plus className="h-3 w-3" /> Criar reunião
+                                        </button>
+                                      </NewMeetingButton>
+                                    )
+                                  )}
                                   <div className="opacity-0 group-hover/del:opacity-100 flex items-center gap-0.5 transition-opacity">
                                     <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => startEditDel(d)}>
                                       <Pencil className="h-2.5 w-2.5" />
