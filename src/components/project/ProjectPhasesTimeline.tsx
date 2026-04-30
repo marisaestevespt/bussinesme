@@ -896,7 +896,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                     <>
                       <div className={cn(
                         "flex items-center gap-3 flex-wrap",
-                        focusPhaseId && "rounded-lg border bg-muted/40 px-3 py-2.5 mb-4"
+                        focusPhaseId && "mb-5"
                       )}>
                         {!focusPhaseId && (
                           <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
@@ -905,12 +905,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                           <SelectTrigger className={cn(
                             "gap-1.5",
                             focusPhaseId
-                              ? cn(
-                                  "h-8 text-sm font-medium w-auto px-3 rounded-full border",
-                                  phase.status === 'concluida' ? 'border-success/40 bg-success/10' :
-                                  phase.status === 'em_curso' ? 'border-info/40 bg-info/10' :
-                                  'border-muted bg-muted/30'
-                                )
+                              ? "h-8 text-sm font-medium w-auto px-0 border-none shadow-none"
                               : "h-7 text-xs w-28 border-none shadow-none px-2"
                           )}>
                             {focusPhaseId && <Icon className={cn('h-4 w-4', si.color)} />}
