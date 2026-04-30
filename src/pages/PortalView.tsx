@@ -67,6 +67,8 @@ export default function PortalViewPage() {
 
   const [projectHistory, setProjectHistory] = useState<PortalProjectHistoryEntry[]>([]);
   const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
+  const [responsibilities, setResponsibilities] = useState<Array<Record<string, any>>>([]);
+  const [routines, setRoutines] = useState<Array<Record<string, any>>>([]);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -116,6 +118,13 @@ export default function PortalViewPage() {
       supabase.rpc('get_portal_project_history', { _token: realToken }),
       supabase.rpc('get_portal_contract_documents', { _token: realToken }),
     ]);
+    // Avença mensal: rotinas + responsabilidades acordadas
+    const [respR, routR] = await Promise.all([
+      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_responsibilities', { _token: realToken }),
+      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_routines', { _token: realToken }),
+    ]);
+    setResponsibilities((respR.data as Array<Record<string, any>>) || []);
+    setRoutines((routR.data as Array<Record<string, any>>) || []);
     const faqsList = (faqsR.data || []) as unknown as PortalFaq[];
     setFaqs(faqsList.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
     const questionsList = (questionsR.data || []) as unknown as Array<PortalQuestion & { group_sort_order?: number }>;
