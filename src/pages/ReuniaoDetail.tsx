@@ -807,6 +807,13 @@ export default function ReuniaoDetailPage() {
             </div>
           </EntityProperty>
 
+          {meetingWindowWarning && (
+            <div className="px-3 py-2 rounded-md border border-warning/40 bg-warning/10 text-warning text-xs flex items-start gap-2">
+              <span className="font-semibold shrink-0">⚠ Conflito:</span>
+              <span>{meetingWindowWarning}</span>
+            </div>
+          )}
+
           <EntityProperty icon={Clock} label="Status">
             <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
               <SelectTrigger className="h-auto border-none shadow-none p-0 w-auto [&>svg]:hidden bg-transparent">
