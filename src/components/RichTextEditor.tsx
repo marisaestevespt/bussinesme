@@ -209,9 +209,8 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
       <EditorContent
         editor={editor}
         className="prose prose-sm max-w-none p-3 focus-within:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:h-auto [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_ul[data-type=taskList]]:list-none [&_.ProseMirror_ul[data-type=taskList]_li]:flex [&_.ProseMirror_ul[data-type=taskList]_li]:gap-2 [&_.ProseMirror_ul[data-type=taskList]_li>label]:mt-1 [&_.mention]:bg-primary/10 [&_.mention]:text-primary [&_.mention]:rounded [&_.mention]:px-1 [&_.mention]:py-0.5"
-        style={{ ['--rte-min-h' as any]: `${minHeight}px` }}
+        style={{ ['--rte-min-h' as any]: `${minHeight}px` } as React.CSSProperties}
       />
-      <style>{`.ProseMirror { min-height: var(--rte-min-h, 200px); }`}</style>
     </div>
   );
 }
