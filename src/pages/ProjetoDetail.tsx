@@ -1102,6 +1102,18 @@ export default function ProjetoDetailPage() {
                 productId={local.product_id}
                 projectStartDate={local.start_date}
               />
+
+              {/* Avença Mensal: Rotinas + Responsabilidades acordadas */}
+              {isServicoMensal && (
+                <>
+                  <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
+                    <ProjectRoutines projectId={id!} />
+                  </EntitySection>
+                  <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
+                    <ProjectResponsibilities projectId={id!} />
+                  </EntitySection>
+                </>
+              )}
             </EntityTabsContent>
 
             {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
