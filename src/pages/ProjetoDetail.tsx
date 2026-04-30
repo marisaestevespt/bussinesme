@@ -946,8 +946,53 @@ export default function ProjetoDetailPage() {
                 )}
               </EntitySection>
 
-              {/* ── Section: Fecho de Projeto ────────────── */}
-              <EntitySection title="Fecho de Projeto" icon={Flag}>
+            </EntityTabsContent>
+
+            {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
+            <EntityTabsContent value="processos" className="mt-4 space-y-6">
+              {taskMode === 'fases' && <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />}
+              <ProjectProcessosTab
+                projectId={id!}
+                clientId={resolvedClientId}
+                productId={local.product_id}
+                projectStartDate={local.start_date}
+              />
+            </EntityTabsContent>
+
+            {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
+            {resolvedClientId && local.client_name && (
+              <EntityTabsContent value="portal" className="mt-4 space-y-8">
+                <EntitySection title="Portal do Cliente" icon={Users}>
+                  <ClientPortalSection
+                    clientId={resolvedClientId}
+                    clientName={local.client_name}
+                    currentProduct={local.product_name || null}
+                    productId={local.product_id}
+                  />
+                </EntitySection>
+              </EntityTabsContent>
+            )}
+
+            {/* ─── TAB 4: GESTÃO ───────────────────────────── */}
+            <EntityTabsContent value="gestao" className="mt-4">
+              <ProjectGestaoTab
+                projectId={id!}
+                projectName={local.name}
+                clientName={local.client_name}
+                clientId={resolvedClientId}
+                productName={local.product_name || null}
+                startDate={local.start_date}
+                deadline={local.deadline}
+                projectPaymentMethod={local.payment_method}
+                projectPaymentConfig={local.payment_config}
+                onNewMeeting={() => setMeetingDialogOpen(true)}
+                onUpdateProject={(field, value) => updateField(field as keyof ProjectFull, value)}
+              />
+            </EntityTabsContent>
+
+            {/* ─── TAB 5: FECHO DE PROJETO ─────────────────── */}
+            <EntityTabsContent value="fecho" className="mt-4 space-y-8">
+              <EntitySection title="Retrospetiva" icon={Flag}>
                 <div className="space-y-2">
                   {[
                     { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
@@ -973,52 +1018,12 @@ export default function ProjetoDetailPage() {
                   ))}
                 </div>
               </EntitySection>
-            </EntityTabsContent>
 
-            {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
-            <EntityTabsContent value="processos" className="mt-4 space-y-6">
-              {taskMode === 'fases' && <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />}
-              <ProjectProcessosTab
-                projectId={id!}
-                clientId={resolvedClientId}
-                productId={local.product_id}
-                projectStartDate={local.start_date}
-              />
-            </EntityTabsContent>
-
-            {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
-            {resolvedClientId && local.client_name && (
-              <EntityTabsContent value="portal" className="mt-4 space-y-8">
-                <EntitySection title="Portal do Cliente" icon={Users}>
-                  <ClientPortalSection
-                    clientId={resolvedClientId}
-                    clientName={local.client_name}
-                    currentProduct={local.product_name || null}
-                    productId={local.product_id}
-                  />
-                </EntitySection>
-
-                <EntitySection title="Feedback Recebido" icon={MessageCircle}>
+              {resolvedClientId && local.client_name && (
+                <EntitySection title="Feedback Recebido do Cliente" icon={MessageCircle}>
                   <ClientPortalFeedbackSection clientId={resolvedClientId} />
                 </EntitySection>
-              </EntityTabsContent>
-            )}
-
-            {/* ─── TAB 4: GESTÃO ───────────────────────────── */}
-            <EntityTabsContent value="gestao" className="mt-4">
-              <ProjectGestaoTab
-                projectId={id!}
-                projectName={local.name}
-                clientName={local.client_name}
-                clientId={resolvedClientId}
-                productName={local.product_name || null}
-                startDate={local.start_date}
-                deadline={local.deadline}
-                projectPaymentMethod={local.payment_method}
-                projectPaymentConfig={local.payment_config}
-                onNewMeeting={() => setMeetingDialogOpen(true)}
-                onUpdateProject={(field, value) => updateField(field as keyof ProjectFull, value)}
-              />
+              )}
             </EntityTabsContent>
           </EntityTabs>
           </div>
