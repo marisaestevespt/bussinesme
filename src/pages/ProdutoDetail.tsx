@@ -335,8 +335,8 @@ export default function ProdutoDetailPage() {
 
           {/* Title block */}
           <div className="px-2 md:px-6 pt-3">
-            {/* Floating icon (emoji or image) — Notion-style */}
-            <div className="relative -mt-12 md:-mt-14 mb-3 w-fit">
+            {/* Floating icon (emoji or image) — Notion-style, left-aligned with title */}
+            <div className="relative -mt-12 md:-mt-14 mb-2 w-fit -ml-1">
               <EntityIconPicker
                 icon={parseIcon(form.icon) ?? (form.logo_url ? { type: 'image', value: form.logo_url } : null)}
                 onChange={(next) => {
@@ -358,7 +358,7 @@ export default function ProdutoDetailPage() {
                           value={isNew ? (form.name || '') : nameDraft}
                           onChange={e => isNew ? update('name', e.target.value) : setNameDraft(e.target.value)}
                           placeholder="Nome do produto"
-                          className="text-3xl md:text-4xl font-bold border-input/60 shadow-none px-2 h-auto py-1 leading-tight tracking-tight bg-background"
+                          className="text-3xl md:text-4xl font-bold border-input/60 shadow-none px-1 h-auto py-1 leading-tight tracking-tight bg-background"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && !isNew) {
                               e.preventDefault();
