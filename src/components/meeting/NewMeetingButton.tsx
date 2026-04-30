@@ -11,6 +11,7 @@ interface Props {
   defaultClientName?: string;
   defaultProjectId?: string;
   defaultProjectName?: string;
+  defaultTitle?: string;
   /** When true, renders nothing visible — caller controls the trigger via children */
   children?: ReactNode;
   /** Button props for the default trigger */
@@ -34,6 +35,7 @@ interface Props {
  */
 export function NewMeetingButton({
   defaultClientId, defaultClientName, defaultProjectId, defaultProjectName,
+  defaultTitle,
   children, size = 'sm', variant = 'default', label = 'Nova Reunião', className,
   skipPicker, forcedType,
   onMeetingCreated, navigateAfterCreate,
@@ -117,6 +119,7 @@ export function NewMeetingButton({
         defaultClientName={defaultClientName}
         defaultProjectId={defaultProjectId}
         defaultProjectName={defaultProjectName}
+        defaultTitle={defaultTitle}
         initialMeetingType={pickedType as any}
         onMeetingCreated={onMeetingCreated}
         navigateAfterCreate={navigateAfterCreate}
