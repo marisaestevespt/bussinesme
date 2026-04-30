@@ -1013,7 +1013,7 @@ export default function ProjetoDetailPage() {
                     const tiles = [
                       local.type === 'interno'
                         ? { key: 'brainstorming' as SubPage, icon: Lightbulb, label: 'Brainstorming', filled: hasText((local as any).brainstorming) }
-                        : { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing', filled: false },
+                        : { key: 'briefing' as SubPage, icon: ClipboardList, label: local.type === 'cliente_servico_mensal' ? 'Âmbito da Avença' : 'Briefing', filled: false },
                       { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis', filled: hasText(local.entregaveis) },
                       { key: 'reunioes' as SubPage, icon: Users, label: 'Reuniões', filled: meetings.length > 0 },
                       { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais', filled: hasText(local.recursos) },
