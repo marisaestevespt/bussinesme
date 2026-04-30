@@ -1,7 +1,10 @@
 import { ReactNode, lazy, Suspense } from 'react';
+import { useLocation } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { pageTitleForPath } from '@/lib/routeTitles';
 import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { AiInsightsButton } from '@/components/AiInsightsButton';
@@ -18,6 +21,10 @@ const FloatingAiChat = lazy(() => import('@/components/FloatingAiChat').then(m =
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
   useSystemNotifications();
+
+  const { pathname } = useLocation();
+  const businessName = settings?.business_name || 'Lyrata';
+  useDocumentTitle(`${businessName} · ${pageTitleForPath(pathname)}`);
 
   return (
     <TooltipProvider>
