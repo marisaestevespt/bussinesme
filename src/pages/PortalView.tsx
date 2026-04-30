@@ -700,6 +700,9 @@ export default function PortalViewPage() {
                                           {d.description && <p className="text-xs text-muted-foreground mt-1">{String(d.description)}</p>}
                                         </div>
                                       </div>
+                                      {/* Attachment row: external link / external doc / internal file */}
+                                      <PortalDeliverableAttachment d={d as any} portalToken={portalToken} />
+                                      </>
                                     );
                                   })}
                                 </div>
