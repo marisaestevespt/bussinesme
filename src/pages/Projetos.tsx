@@ -482,9 +482,18 @@ export default function ProjetosPage() {
           <div className="flex justify-center py-12"><InlineLoader /></div>
         ) : projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-            <EmptyHint>Nenhum projeto registado</EmptyHint>
-            <Button variant="outline" className="mt-4 gap-2" onClick={() => openWithTemplate(PROJECT_TEMPLATES[0])}><Plus className="h-4 w-4" /> Criar primeiro projeto</Button>
+            <EmptyHint>{showArchived ? 'Nenhum projeto arquivado' : 'Nenhum projeto registado'}</EmptyHint>
+            {!showArchived && (
+              <Button variant="outline" className="mt-4 gap-2" onClick={() => openWithTemplate(PROJECT_TEMPLATES[0])}><Plus className="h-4 w-4" /> Criar primeiro projeto</Button>
+            )}
           </div>
+        ) : showArchived ? (
+          <ArchivedTable
+            projects={projects}
+            onOpen={(id) => navigate(`/hub/projetos/${id}`)}
+            onRestore={(id) => restoreMutation.mutate(id)}
+            onHardDelete={(id) => hardDeleteMutation.mutate(id)}
+          />
         ) : (
           <>
             {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} onStatusChange={(id, s) => updateStatusMutation.mutate({ projectId: id, status: s })} getTaskProgress={getTaskProgress} />}
