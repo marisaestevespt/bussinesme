@@ -18,6 +18,7 @@ import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, 
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { DeliverableFormatCell } from '@/components/project/DeliverableFormatCell';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -530,39 +531,15 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                       <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
                     )}
 
-                    {d.is_meeting && (
-                      d.meeting_id ? (
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
-                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
-                          title="Abrir reunião"
-                        >
-                          <Video className="h-3 w-3" /> Reunião
-                        </button>
-                      ) : (
-                        <NewMeetingButton
-                          skipPicker
-                          forcedType={'recorrente' as any}
-                          defaultProjectId={projectId}
-                          defaultProjectName={projectCtx?.name}
-                          defaultClientId={projectCtx?.client_id ?? undefined}
-                          defaultClientName={projectCtx?.clients?.full_name ?? undefined}
-                          defaultTitle={d.name}
-                          defaultMemberIds={computeMeetingMembers(d)}
-                          defaultDepartment={projectDefaultDepartment}
-                          onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
-                        >
-                          <button
-                            type="button"
-                            className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
-                            title="Criar reunião pré-preenchida"
-                          >
-                            <Plus className="h-3 w-3" /> Criar reunião
-                          </button>
-                        </NewMeetingButton>
-                      )
-                    )}
+                    <DeliverableFormatCell
+                      deliverable={d as any}
+                      projectId={projectId}
+                      projectName={projectCtx?.name}
+                      clientId={projectCtx?.client_id ?? null}
+                      clientName={projectCtx?.clients?.full_name ?? null}
+                      defaultDepartment={projectDefaultDepartment}
+                      defaultMemberIds={computeMeetingMembers(d)}
+                    />
 
                     {(() => {
                       const linkedTask = taskByDeliverable.get(d.id);

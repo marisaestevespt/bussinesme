@@ -17,6 +17,7 @@ import { addBusinessDays } from '@/lib/holidays';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 import { useNavigate } from 'react-router-dom';
+import { DeliverableFormatCell } from '@/components/project/DeliverableFormatCell';
 import {
   isDeliverableDone,
   isPhaseDone,
@@ -59,6 +60,11 @@ interface ProjectDeliverable {
   planned_end: string | null;
   is_meeting?: boolean;
   meeting_id?: string | null;
+  deliverable_type?: string | null;
+  responsible_type?: string | null;
+  link_url?: string | null;
+  document_url?: string | null;
+  document_file_path?: string | null;
 }
 
 import {
@@ -1082,46 +1088,15 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                   </div>
                                   {/* Reunião (coluna fixa) */}
                                   <div className="flex justify-start">
-                                    {d.is_meeting ? (
-                                      d.meeting_id ? (
-                                        <button
-                                          type="button"
-                                          onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
-                                          className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
-                                          title="Abrir reunião"
-                                        >
-                                          <Video className="h-3 w-3" /> Reunião
-                                        </button>
-                                      ) : (
-                                        <NewMeetingButton
-                                          skipPicker
-                                          forcedType={'recorrente' as any}
-                                          defaultProjectId={projectId}
-                                          defaultProjectName={projectCtx?.name}
-                                          defaultClientId={projectCtx?.client_id ?? undefined}
-                                          defaultClientName={projectCtx?.clients?.full_name ?? undefined}
-                                          defaultTitle={d.name}
-                                          defaultMemberIds={computeMeetingMembers(d)}
-                                          defaultDepartment={projectDefaultDepartment}
-                                          onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
-                                        >
-                                          <button
-                                            type="button"
-                                            className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-colors"
-                                            title="Criar reunião pré-preenchida"
-                                          >
-                                            <Plus className="h-3 w-3" /> Criar
-                                          </button>
-                                        </NewMeetingButton>
-                                      )
-                                    ) : (
-                                      <span
-                                        className="text-[10px] shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
-                                        title="Esta entrega gera uma tarefa"
-                                      >
-                                        <CheckSquare className="h-3 w-3" /> Tarefa
-                                      </span>
-                                    )}
+                                    <DeliverableFormatCell
+                                      deliverable={d as any}
+                                      projectId={projectId}
+                                      projectName={projectCtx?.name}
+                                      clientId={projectCtx?.client_id ?? null}
+                                      clientName={projectCtx?.clients?.full_name ?? null}
+                                      defaultDepartment={projectDefaultDepartment}
+                                      defaultMemberIds={computeMeetingMembers(d)}
+                                    />
                                   </div>
                                   {/* Ações */}
                                   <div className="opacity-0 group-hover/del:opacity-100 flex items-center justify-end gap-0.5 transition-opacity">

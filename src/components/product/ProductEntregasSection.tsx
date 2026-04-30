@@ -26,7 +26,7 @@ interface Template {
   offset_days?: number | null;
   offset_trigger?: string;
   responsible_type?: string;
-  deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao';
+  deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao' | 'link';
   estimated_minutes?: number | null;
   meeting_title_template?: string | null;
 }
@@ -105,7 +105,7 @@ function DeliverableRow({
             <SelectItem value="tarefa">📋 Tarefa</SelectItem>
             <SelectItem value="reuniao">📅 Reunião</SelectItem>
             <SelectItem value="documento">📄 Documento</SelectItem>
-            <SelectItem value="aprovacao">✅ Aprovação</SelectItem>
+            <SelectItem value="link">🔗 Link</SelectItem>
           </SelectContent>
         </Select>
         <Input value={name} onChange={e => setName(e.target.value)}
