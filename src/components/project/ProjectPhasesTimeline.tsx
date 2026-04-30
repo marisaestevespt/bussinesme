@@ -1101,6 +1101,33 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
       </AlertDialogContent>
     </AlertDialog>
 
+    {/* Out-of-window conflict prompt */}
+    <AlertDialog open={!!conflictPrompt} onOpenChange={(open) => { if (!open) setConflictPrompt(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            {conflictPrompt?.kind === 'del_outside_phase' ? 'Entrega fora da fase' : 'Fase fora do projeto'}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {conflictPrompt?.message}
+            {!conflictPrompt?.canExtend && ' Para alargar o projeto, ajusta o prazo na ficha do projeto.'}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <Button variant="outline" onClick={() => applyConflictResolution('accept')}>
+            Aceitar mesmo assim
+          </Button>
+          {conflictPrompt?.canExtend && (
+            <AlertDialogAction onClick={() => applyConflictResolution('extend')}>
+              {conflictPrompt.extendLabel}
+            </AlertDialogAction>
+          )}
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     {/* Task detail modal (mesmo da página Tarefas e Operação) */}
     <TaskFormDialog
       open={!!taskDetailId}
