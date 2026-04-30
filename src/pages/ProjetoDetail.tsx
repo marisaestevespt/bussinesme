@@ -263,7 +263,8 @@ export default function ProjetoDetailPage() {
         client_name: local.client_name, client_id: local.client_id,
         product_id: local.product_id, product_name: local.product_name,
         start_date: local.start_date, deadline: local.deadline, notes: local.notes,
-        objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma,
+        objetivo: local.objetivo, objetivo_curto: (local as any).objetivo_curto,
+        diretrizes: local.diretrizes, cronograma: local.cronograma,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url, contract_documents: local.contract_documents || [],
@@ -443,7 +444,7 @@ export default function ProjetoDetailPage() {
       objetivo: {
         field: 'objetivo',
         title: 'Objetivo e Definição',
-        description: 'O que se vai fazer, para quê e qual o resultado esperado.',
+        description: 'O objetivo do projeto e a sua definição/escopo.',
         icon: Target,
         textLabel: 'Definição do projeto',
         textPlaceholder: 'Objetivo, escopo, resultados esperados, restrições...',
@@ -495,6 +496,10 @@ export default function ProjetoDetailPage() {
         title={cfg.title}
         description={cfg.description}
         icon={cfg.icon}
+        shortLabel={subPage === 'objetivo' ? 'Objetivo' : undefined}
+        shortPlaceholder={subPage === 'objetivo' ? 'Numa frase: o que se vai alcançar com este projeto?' : undefined}
+        shortValue={subPage === 'objetivo' ? ((local as any).objetivo_curto || '') : undefined}
+        onShortChange={subPage === 'objetivo' ? (v) => updateField('objetivo_curto' as any, v) : undefined}
         textLabel={cfg.textLabel}
         textPlaceholder={cfg.textPlaceholder}
         assetsLabel={cfg.assetsLabel}

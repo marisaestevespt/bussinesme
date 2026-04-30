@@ -1,5 +1,6 @@
-import { LucideIcon, MessageSquare, Paperclip } from 'lucide-react';
+import { LucideIcon, MessageSquare, Paperclip, Target } from 'lucide-react';
 import { MentionTextarea } from '@/components/MentionTextarea';
+import { Input } from '@/components/ui/input';
 import { EntitySection } from '@/components/layout/entity/EntitySection';
 import { ProjectAssetGallery } from '@/components/project/ProjectAssetGallery';
 import { SubPageShell } from './SubPageShell';
@@ -10,6 +11,11 @@ interface Props {
   title: string;
   description?: string;
   icon: LucideIcon | React.ElementType;
+  // Optional short single-line field rendered above the main textarea (e.g. project goal)
+  shortLabel?: string;
+  shortPlaceholder?: string;
+  shortValue?: string;
+  onShortChange?: (v: string) => void;
   textLabel?: string;
   textPlaceholder?: string;
   assetsLabel?: string;
@@ -29,6 +35,10 @@ export function TextWithAssetsSubPage({
   title,
   description,
   icon,
+  shortLabel,
+  shortPlaceholder,
+  shortValue,
+  onShortChange,
   textLabel = 'Notas',
   textPlaceholder = 'Escreve aqui... usa @ para mencionar membros',
   assetsLabel = 'Documentos e referências',
@@ -43,6 +53,15 @@ export function TextWithAssetsSubPage({
 }: Props) {
   return (
     <SubPageShell title={title} description={description} icon={icon} onBack={onBack} onSave={onSave} saving={saving} dirty={dirty}>
+      {shortLabel && onShortChange && (
+        <EntitySection title={shortLabel} icon={Target}>
+          <Input
+            value={shortValue || ''}
+            onChange={e => onShortChange(e.target.value)}
+            placeholder={shortPlaceholder}
+          />
+        </EntitySection>
+      )}
       <EntitySection title={textLabel} icon={MessageSquare}>
         <MentionTextarea value={value} onChange={onChange} rows={10} placeholder={textPlaceholder} />
       </EntitySection>
