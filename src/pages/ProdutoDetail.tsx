@@ -30,6 +30,7 @@ import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSectio
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
+import { ProductPortalTemplateSection } from '@/components/product/ProductPortalTemplateSection';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { BackNavigation } from '@/components/BackNavigation';
