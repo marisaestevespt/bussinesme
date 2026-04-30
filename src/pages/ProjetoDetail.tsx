@@ -1178,6 +1178,7 @@ export default function ProjetoDetailPage() {
           <EntitySection title="Desenvolvimento" icon={FileText}>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
+                { key: 'briefing' as SubPage, icon: ClipboardList, label: 'Briefing' },
                 { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
                 { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
                 { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
