@@ -661,7 +661,8 @@ export default function ProjetoDetailPage() {
                 </div>
               </div>
             )}
-            {/* Cliente */}
+            {/* Cliente — não aplicável a projetos internos */}
+            {local.type !== 'interno' && (
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Users className="h-4 w-4" /> Cliente</span>
               <Select value={local.client_id || ''} onValueChange={v => {
@@ -677,6 +678,7 @@ export default function ProjetoDetailPage() {
                 </SelectContent>
               </Select>
             </div>
+            )}
             {/* Departamentos */}
             <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-0.5"><BookOpen className="h-4 w-4" /> Departamentos</span>
