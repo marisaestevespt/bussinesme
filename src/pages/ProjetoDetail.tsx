@@ -593,11 +593,8 @@ export default function ProjetoDetailPage() {
 
   // ─── Project layout (cliente_*, servico, clientes, interno) ─────
   if (
-    local.type === 'servico' ||
     local.type === 'cliente_servico_mensal' ||
     local.type === 'cliente_projeto_unico' ||
-    local.type === 'clientes' ||
-    local.type === 'cliente' ||
     local.type === 'interno'
   ) {
     const taskMode: string = (local as any).task_mode || 'fases';
