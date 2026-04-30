@@ -995,9 +995,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                     );
                                   })()}
                                   {/* Datas (coluna fixa) */}
-                                  <div className="text-[11px] text-muted-foreground flex items-center justify-end gap-1 tabular-nums">
+                                  <div className="text-[11px] text-muted-foreground flex items-center justify-start gap-1 tabular-nums min-w-0">
                                     {(d.planned_start || d.planned_end) ? (
-                                      <span className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5 whitespace-nowrap">
+                                      <span className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5 whitespace-nowrap truncate">
                                         <CalendarDays className="h-3 w-3" />
                                         {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                         {' → '}
