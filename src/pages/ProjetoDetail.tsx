@@ -1149,7 +1149,6 @@ export default function ProjetoDetailPage() {
                 { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
                 { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
                 { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
-                { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
               ].map(({ key, icon: Icon, label }) => (
                 <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
                   <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
