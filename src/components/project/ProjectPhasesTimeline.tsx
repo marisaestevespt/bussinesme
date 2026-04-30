@@ -894,23 +894,26 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className={cn(
+                        "flex items-center gap-3 flex-wrap",
+                        focusPhaseId && "rounded-lg border bg-muted/40 px-3 py-2.5 mb-4"
+                      )}>
                         {!focusPhaseId && (
                           <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
                         )}
                         <Select value={phase.status} onValueChange={(v) => updatePhase.mutate({ id: phase.id, status: v })}>
                           <SelectTrigger className={cn(
-                            "h-7 text-xs gap-1.5",
+                            "gap-1.5",
                             focusPhaseId
                               ? cn(
-                                  "w-auto px-2.5 rounded-full border",
+                                  "h-8 text-sm font-medium w-auto px-3 rounded-full border",
                                   phase.status === 'concluida' ? 'border-success/40 bg-success/10' :
                                   phase.status === 'em_curso' ? 'border-info/40 bg-info/10' :
                                   'border-muted bg-muted/30'
                                 )
-                              : "w-28 border-none shadow-none px-2"
+                              : "h-7 text-xs w-28 border-none shadow-none px-2"
                           )}>
-                            {focusPhaseId && <Icon className={cn('h-3.5 w-3.5', si.color)} />}
+                            {focusPhaseId && <Icon className={cn('h-4 w-4', si.color)} />}
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -920,10 +923,13 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                           </SelectContent>
                         </Select>
                         {(phase.planned_start || phase.planned_end) && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <CalendarDays className="h-3.5 w-3.5" />
+                          <span className={cn(
+                            "flex items-center gap-1.5 text-foreground",
+                            focusPhaseId ? "text-sm font-medium" : "text-xs text-muted-foreground"
+                          )}>
+                            <CalendarDays className={cn(focusPhaseId ? "h-4 w-4 text-muted-foreground" : "h-3.5 w-3.5")} />
                             {phase.planned_start ? format(new Date(phase.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
-                            {' → '}
+                            <span className="text-muted-foreground">→</span>
                             {phase.planned_end ? format(new Date(phase.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                           </span>
                         )}
