@@ -438,6 +438,7 @@ export default function ProjetoDetailPage() {
   if (subPage === 'brainstorming') {
     return (
       <BrainstormingSubPage
+        projectId={id!}
         value={(local as any).brainstorming || ''}
         onChange={(html) => updateField('brainstorming' as any, html)}
         onSave={() => saveMutation.mutate()}
