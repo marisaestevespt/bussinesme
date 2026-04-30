@@ -115,7 +115,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
-        .select('id, name, client_id, clients ( id, full_name )')
+        .select('id, name, client_id, deadline, clients ( id, full_name )')
         .eq('id', projectId)
         .maybeSingle();
       return data as any;
@@ -151,6 +151,20 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     phaseIdx: number;
     type: 'phase_end' | 'del_end';
     delId?: string;
+  } | null>(null);
+  // Out-of-window conflict prompt (deliverable outside phase, or phase outside project)
+  const [conflictPrompt, setConflictPrompt] = useState<{
+    kind: 'del_outside_phase' | 'phase_outside_project';
+    message: string;
+    targetId: string; // phase id to extend (or project deadline target)
+    field: 'planned_start' | 'planned_end';
+    newValue: string; // YYYY-MM-DD
+    originalValue: string | null;
+    sourceTable: 'project_phases' | 'project_deliverables';
+    sourceId: string;
+    extendLabel: string;
+    extendDate: string; // YYYY-MM-DD to set on target if user chooses extend
+    canExtend: boolean; // false when target is the project deadline (not editable here)
   } | null>(null);
   const { data: phases = [] } = useQuery({
     queryKey: phaseKey,
