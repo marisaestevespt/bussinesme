@@ -142,6 +142,7 @@ export default function ProjetoDetailPage() {
   const resolvedClientId = clientForProject?.id;
   const { products: productsQ } = useProducts();
   const productsList = productsQ.data || [];
+  const selectedProduct = productsList.find((p: any) => p.id === local?.product_id);
 
   // Suggested meeting title from the next pending meeting-deliverable's template
   const suggestedMeetingTitle = useMemo(() => {
@@ -739,7 +740,7 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Produto */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-28 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
               <Select
                 value={local.product_id || '__none__'}
                 onValueChange={v => {
@@ -753,8 +754,15 @@ export default function ProjetoDetailPage() {
                   }
                 }}
               >
-                <SelectTrigger className="w-64 h-8">
-                  <SelectValue placeholder="Sem produto associado" />
+                <SelectTrigger className="w-80 h-8 justify-start gap-2 px-2 [&>svg]:ml-auto">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    {local.product_id && (
+                      <ProductIcon productId={local.product_id as any} icon={selectedProduct?.icon} logoUrl={selectedProduct?.logo_url} className="h-5 w-5 shrink-0" emojiClassName="text-sm" />
+                    )}
+                    <span className={cn("min-w-0 flex-1 truncate text-left", !local.product_id && "text-muted-foreground")}>
+                      {selectedProduct?.name || local.product_name || 'Sem produto associado'}
+                    </span>
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">— Sem produto —</SelectItem>
@@ -763,9 +771,6 @@ export default function ProjetoDetailPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {local.product_id && (
-                <ProductIcon productId={local.product_id as any} className="h-5 w-5 ml-1" emojiClassName="text-sm" />
-              )}
             </div>
             {/* Datas */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
