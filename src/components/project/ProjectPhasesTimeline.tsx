@@ -893,7 +893,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                   ) : (
                     <>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
+                        {!focusPhaseId && (
+                          <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
+                        )}
                         <Select value={phase.status} onValueChange={(v) => updatePhase.mutate({ id: phase.id, status: v })}>
                           <SelectTrigger className="h-7 text-xs w-28 border-none shadow-none px-2">
                             <SelectValue />
