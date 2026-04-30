@@ -120,8 +120,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           const responsibles = Array.from(
             new Set(phaseDeliverables.map(d => d.assigned_to).filter(Boolean) as string[])
           );
-          const done = isPhaseDone(phase);
-          const inProgress = !done && (phase.status === 'em_curso' || phase.status === 'em_progresso' || (pct > 0 && pct < 100));
+          const phaseDone = isPhaseDone(phase);
+          const inProgress = !phaseDone && (phase.status === 'em_curso' || phase.status === 'em_progresso' || (pct > 0 && pct < 100));
 
           return (
             <button
@@ -130,11 +130,11 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
               onClick={() => setOpenPhaseId(phase.id)}
               className={cn(
                 'group relative flex flex-col gap-3 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
-                done &&
+                phaseDone &&
                   'border-success/30 bg-success/5 opacity-70 shadow-none hover:opacity-90 hover:border-success/50',
                 inProgress &&
                   'border-primary/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg shadow-primary/15 ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/25',
-                !done && !inProgress &&
+                !phaseDone && !inProgress &&
                   'border-border/60 bg-gradient-to-br from-card to-card/80 shadow-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10'
               )}
             >
