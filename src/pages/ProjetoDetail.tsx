@@ -44,6 +44,8 @@ import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
+import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
+import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
@@ -217,7 +219,24 @@ export default function ProjetoDetailPage() {
   }, [autoProgress, project?.progress, local?.id]);
 
   // Deadline overdue check
-  const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date();
+  const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date()
+    // Don't show overdue banner for recurring monthly services (deadline is not meaningful there)
+    && !(local?.type === 'cliente_servico_mensal' && (local as any)?.project_mode === 'recorrente');
+
+  // Fetch end_of_cycle for recurring monthly service clients
+  const clientCycleQ = useQuery({
+    queryKey: ['client-cycle', resolvedClientId],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('end_of_cycle, status, renewal_count').eq('id', resolvedClientId!).maybeSingle();
+      return data as { end_of_cycle: string | null; status: string; renewal_count: number } | null;
+    },
+    enabled: !!resolvedClientId && isServicoMensal,
+  });
+  const endOfCycle = clientCycleQ.data?.end_of_cycle ? new Date(clientCycleQ.data.end_of_cycle) : null;
+  const daysToRenewal = endOfCycle ? Math.ceil((endOfCycle.getTime() - now.getTime()) / 86400000) : null;
+  const clientStatus = clientCycleQ.data?.status;
+  // Encerramento da Avença só faz sentido se cliente está cancelado/pausado/altura_renovacao
+  const canCloseAvenca = isServicoMensal && clientStatus && ['cancelado', 'pausado', 'inativo'].includes(clientStatus);
 
   const formatCost = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k €` : `${v.toFixed(0)} €`;
 
