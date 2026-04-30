@@ -115,12 +115,54 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
-        .select('id, name, client_id, deadline, clients ( id, full_name )')
+        .select('id, name, client_id, deadline, department, departments, clients ( id, full_name )')
         .eq('id', projectId)
         .maybeSingle();
       return data as any;
     },
   });
+
+  // Team members of the project's department(s) + project members — used to
+  // pre-select participants when creating a meeting from a deliverable.
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team-members-for-meeting-defaults'],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('team_members')
+        .select('profile_id, department, status')
+        .eq('status', 'ativo');
+      return (data || []) as { profile_id: string | null; department: string | null }[];
+    },
+  });
+  const { data: projectMembers = [] } = useQuery({
+    queryKey: ['project-members-list', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_members')
+        .select('profile_id')
+        .eq('project_id', projectId);
+      return (data || []) as { profile_id: string }[];
+    },
+  });
+
+  const computeMeetingMembers = (d: any): string[] => {
+    const ids = new Set<string>();
+    if (d?.assigned_to) ids.add(d.assigned_to);
+    projectMembers.forEach(pm => { if (pm.profile_id) ids.add(pm.profile_id); });
+    const projectDepts = new Set<string>();
+    if (projectCtx?.department) projectDepts.add(projectCtx.department);
+    if (Array.isArray(projectCtx?.departments)) {
+      projectCtx.departments.forEach((dep: any) => { if (typeof dep === 'string' && dep) projectDepts.add(dep); });
+    }
+    if (projectDepts.size > 0) {
+      teamMembers.forEach(tm => {
+        if (tm.profile_id && tm.department && projectDepts.has(tm.department)) ids.add(tm.profile_id);
+      });
+    }
+    return Array.from(ids);
+  };
+  const projectDefaultDepartment = projectCtx?.department
+    || (Array.isArray(projectCtx?.departments) && projectCtx.departments[0]) || undefined;
 
   const linkMeetingMutation = useMutation({
     mutationFn: async ({ deliverableId, meetingId }: { deliverableId: string; meetingId: string }) => {
@@ -978,6 +1020,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                                         defaultClientId={projectCtx?.client_id ?? undefined}
                                         defaultClientName={projectCtx?.clients?.full_name ?? undefined}
                                         defaultTitle={d.name}
+                                        defaultMemberIds={computeMeetingMembers(d)}
+                                        defaultDepartment={projectDefaultDepartment}
                                         onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
                                       >
                                         <button
