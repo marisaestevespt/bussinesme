@@ -496,6 +496,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                           defaultProjectName={projectCtx?.name}
                           defaultClientId={projectCtx?.client_id ?? undefined}
                           defaultClientName={projectCtx?.clients?.name ?? undefined}
+                          defaultTitle={d.name}
                           onMeetingCreated={(meetingId) => linkMeetingMutation.mutate({ deliverableId: d.id, meetingId })}
                         >
                           <button
