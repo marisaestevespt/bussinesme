@@ -9,11 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, Settings2, MessageCircle, HelpCircle } from 'lucide-react';
+import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, Settings2, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
-  usePortal, usePortalFaqs, usePortalQuestions, usePortalFeedback,
+  usePortal, usePortalFaqs, usePortalQuestions,
   usePortalComments,
   getPortalTypeFromProduct, Portal
 } from '@/hooks/usePortalData';
@@ -43,7 +43,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
 
   const { faqs, addFaq, updateFaq, deleteFaq } = usePortalFaqs(portalId);
   const { questions, addQuestion, updateQuestion, deleteQuestion } = usePortalQuestions(portalId);
-  const { feedback } = usePortalFeedback(portalId);
   const { comments, addComment } = usePortalComments(portalId);
 
   const slug = (portalData as any)?.slug as string | null;
@@ -259,32 +258,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
                 <p className="text-xs text-muted-foreground">Aplica FAQs, materiais e fases definidos no produto.</p>
               </div>
               <ApplyPortalTemplateButton portalId={portalId} productId={product.id} productName={product.name} />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Feedback */}
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3 bg-muted/30 border-b">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-info/10 flex items-center justify-center">
-              <MessageCircle className="h-4.5 w-4.5 text-info" />
-            </div>
-            <CardTitle className="text-base">Feedback Recebido</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4 space-y-2">
-          {(feedback.data || []).map(f => (
-            <div key={f.id} className="rounded-lg border p-3 bg-background">
-              <p className="text-sm leading-relaxed">{f.content}</p>
-              <p className="text-xs text-muted-foreground mt-2">{format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}</p>
-            </div>
-          ))}
-          {(feedback.data || []).length === 0 && (
-            <div className="text-center py-6">
-              <MessageCircle className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
-              <EmptyHint>Sem feedback recebido</EmptyHint>
             </div>
           )}
         </CardContent>
