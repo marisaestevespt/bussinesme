@@ -17,6 +17,7 @@ import { addBusinessDays } from '@/lib/holidays';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 import { useNavigate } from 'react-router-dom';
+import { DeliverableFormatCell } from '@/components/project/DeliverableFormatCell';
 import {
   isDeliverableDone,
   isPhaseDone,
@@ -59,6 +60,11 @@ interface ProjectDeliverable {
   planned_end: string | null;
   is_meeting?: boolean;
   meeting_id?: string | null;
+  deliverable_type?: string | null;
+  responsible_type?: string | null;
+  link_url?: string | null;
+  document_url?: string | null;
+  document_file_path?: string | null;
 }
 
 import {
