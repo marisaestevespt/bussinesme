@@ -636,7 +636,15 @@ export default function ProjetoDetailPage() {
 
           {/* Header - Name first, then tags, then fields in single column */}
           {/* Project title */}
-          <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-4xl font-bold border-none px-0 focus-visible:ring-0 h-auto" />
+          <div className="flex items-center gap-3 flex-wrap">
+            <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-4xl font-bold border-none px-0 focus-visible:ring-0 h-auto flex-1 min-w-[200px]" />
+            {local.type === 'interno' && (
+              <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-[11px] font-medium border-primary/30 bg-primary/5 text-primary">
+                <Lightbulb className="h-3 w-3" />
+                Projeto Interno
+              </Badge>
+            )}
+          </div>
 
           {/* Notion-style property rows */}
           <div className="space-y-1">
