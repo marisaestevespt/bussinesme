@@ -830,7 +830,7 @@ export default function ProjetoDetailPage() {
                 className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
               >
                 <Workflow className="h-4 w-4" />
-                Fases &amp; Entregas
+                Tarefas &amp; Responsabilidades
               </EntityTabsTrigger>
               {resolvedClientId && local.client_name && (
                 <EntityTabsTrigger
