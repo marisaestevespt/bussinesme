@@ -30,6 +30,7 @@ import { PortalMeetingsSection } from '@/components/portal-view/PortalMeetingsSe
 import { PortalPaymentsSection } from '@/components/portal-view/PortalPaymentsSection';
 import { PortalWorkspaceSection } from '@/components/portal-view/PortalWorkspaceSection';
 import { PortalQuestionsSection } from '@/components/portal-view/PortalQuestionsSection';
+import { PortalDeliverableAttachment } from '@/components/portal/PortalDeliverableAttachment';
 import type {
   PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
@@ -698,6 +699,7 @@ export default function PortalViewPage() {
                                             </span>
                                           </div>
                                           {d.description && <p className="text-xs text-muted-foreground mt-1">{String(d.description)}</p>}
+                                          <PortalDeliverableAttachment d={d as any} portalToken={portalToken} />
                                         </div>
                                       </div>
                                     );
