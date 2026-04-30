@@ -1,10 +1,13 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { CalendarIcon, ListChecks } from 'lucide-react';
 import { EntitySection } from '@/components/layout/entity/EntitySection';
 import { ProjectAssetGallery } from '@/components/project/ProjectAssetGallery';
 import { SubPageShell } from './SubPageShell';
+import { format, parseISO, differenceInDays } from 'date-fns';
+import { pt } from 'date-fns/locale';
 
 interface Props {
   projectId: string;
@@ -16,49 +19,76 @@ interface Props {
   dirty: boolean;
 }
 
-export function CronogramaSubPage({ projectId, cronogramaJson, onChange, onBack, onSave, saving, dirty }: Props) {
-  let rows: { macro: string; prazo: string }[] = [];
-  try { rows = cronogramaJson ? JSON.parse(cronogramaJson) : []; } catch { rows = []; }
-  if (rows.length === 0) rows = [{ macro: '', prazo: '' }];
+const STATUS_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
+  pendente: { label: 'Pendente', variant: 'outline' },
+  em_curso: { label: 'Em curso', variant: 'default' },
+  concluida: { label: 'Concluída', variant: 'secondary' },
+  bloqueada: { label: 'Bloqueada', variant: 'destructive' },
+};
 
-  const updateRows = (newRows: { macro: string; prazo: string }[]) => onChange(JSON.stringify(newRows));
+function fmt(d: string | null) {
+  if (!d) return '—';
+  try { return format(parseISO(d), "d MMM yyyy", { locale: pt }); } catch { return d; }
+}
+
+export function CronogramaSubPage({ projectId, onBack, onSave, saving, dirty }: Props) {
+  const { data: phases = [], isLoading } = useQuery({
+    queryKey: ['project-phases-cronograma', projectId],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('project_phases')
+        .select('id, name, status, planned_start, planned_end, sort_order')
+        .eq('project_id', projectId)
+        .order('sort_order');
+      return (data || []) as Array<{ id: string; name: string; status: string; planned_start: string | null; planned_end: string | null; sort_order: number }>;
+    },
+  });
 
   return (
     <SubPageShell
       title="Cronograma Geral"
-      description="Marcos macro do projeto e respetivos prazos. Para tarefas detalhadas usa as Fases ou Tarefas."
+      description="Visão macro das fases do projeto. Para gerir entregas e detalhes usa o separador de Fases."
       icon={CalendarIcon}
       onBack={onBack}
       onSave={onSave}
       saving={saving}
       dirty={dirty}
     >
-      <EntitySection title="Marcos" icon={CalendarIcon} description="Lista de macro-fases com prazo final">
+      <EntitySection title="Fases do projeto" icon={ListChecks} description="Sincronizado automaticamente com as fases criadas no projeto.">
         <div className="rounded-lg border border-border/60 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
-                <TableHead className="text-foreground">Macro</TableHead>
-                <TableHead className="w-[180px] text-foreground">Prazo</TableHead>
-                <TableHead className="w-[40px]" />
+                <TableHead className="w-[40px] text-foreground">#</TableHead>
+                <TableHead className="text-foreground">Fase</TableHead>
+                <TableHead className="w-[140px] text-foreground">Início</TableHead>
+                <TableHead className="w-[140px] text-foreground">Fim</TableHead>
+                <TableHead className="w-[100px] text-foreground">Duração</TableHead>
+                <TableHead className="w-[120px] text-foreground">Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((row, i) => (
-                <TableRow key={i}>
-                  <TableCell><Input value={row.macro} onChange={e => { const r = [...rows]; r[i] = { ...r[i], macro: e.target.value }; updateRows(r); }} placeholder="Ex: Fase de pesquisa" className="border-0 bg-transparent focus-visible:ring-0 px-0" /></TableCell>
-                  <TableCell><Input type="date" value={row.prazo} onChange={e => { const r = [...rows]; r[i] = { ...r[i], prazo: e.target.value }; updateRows(r); }} className="border-0 bg-transparent focus-visible:ring-0 px-0" /></TableCell>
-                  <TableCell>
-                    <button onClick={() => { const r = rows.filter((_, j) => j !== i); updateRows(r.length ? r : [{ macro: '', prazo: '' }]); }} className="text-muted-foreground hover:text-destructive transition-colors">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isLoading ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">A carregar...</TableCell></TableRow>
+              ) : phases.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">Este projeto ainda não tem fases definidas.</TableCell></TableRow>
+              ) : phases.map((p, i) => {
+                const dur = p.planned_start && p.planned_end ? `${differenceInDays(parseISO(p.planned_end), parseISO(p.planned_start)) + 1}d` : '—';
+                const st = STATUS_LABEL[p.status] || { label: p.status, variant: 'outline' as const };
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="text-sm">{fmt(p.planned_start)}</TableCell>
+                    <TableCell className="text-sm">{fmt(p.planned_end)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{dur}</TableCell>
+                    <TableCell><Badge variant={st.variant}>{st.label}</Badge></TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
-        <Button variant="outline" size="sm" onClick={() => updateRows([...rows, { macro: '', prazo: '' }])} className="gap-1 mt-3"><Plus className="h-3.5 w-3.5" /> Adicionar linha</Button>
       </EntitySection>
 
       <EntitySection title="Documentos do cronograma" icon={CalendarIcon} description="Gantt em PDF, planeamentos partilhados, exports, etc.">
