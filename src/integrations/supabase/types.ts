@@ -8705,6 +8705,7 @@ export type Database = {
           recurrence_weekday: number | null
           responsible_role: string | null
           responsible_type: string
+          scheduled_date: string | null
           sort_order: number
           source_template_id: string | null
           status: string
@@ -8737,6 +8738,7 @@ export type Database = {
           recurrence_weekday?: number | null
           responsible_role?: string | null
           responsible_type?: string
+          scheduled_date?: string | null
           sort_order?: number
           source_template_id?: string | null
           status?: string
@@ -8769,6 +8771,7 @@ export type Database = {
           recurrence_weekday?: number | null
           responsible_role?: string | null
           responsible_type?: string
+          scheduled_date?: string | null
           sort_order?: number
           source_template_id?: string | null
           status?: string
