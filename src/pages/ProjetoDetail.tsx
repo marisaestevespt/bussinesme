@@ -941,24 +941,31 @@ export default function ProjetoDetailPage() {
               {/* ── Section: Menu Inicial ─────────────────── */}
               <EntitySection title="Menu Inicial" icon={Target}>
                 <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-                  {(local.type === 'cliente_servico_mensal' ? [
-                    { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
-                    { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
-                    { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
-                  ] : [
-                    { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
-                    { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
-                    { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
-                    { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
-                  ]).map(({ key, icon: Icon, label }) => (
+                  {(() => {
+                    const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
+                    const base = local.type === 'cliente_servico_mensal' ? [
+                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais', filled: hasText(local.diretrizes) },
+                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral', filled: hasText(local.cronograma) },
+                      { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
+                    ] : [
+                      { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição', filled: hasText(local.objetivo) },
+                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais', filled: hasText(local.diretrizes) },
+                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral', filled: hasText(local.cronograma) },
+                      { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
+                    ];
+                    return base.map(({ key, icon: Icon, label, filled }) => (
                     <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
                       <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
                         <Icon className="h-5 w-5 text-primary" />
                       </div>
-                      <span className="text-sm font-semibold text-foreground leading-tight">{label}</span>
+                      <span className="text-sm font-semibold text-foreground leading-tight flex items-center gap-2">
+                        {label}
+                        {filled && <span className="h-1.5 w-1.5 rounded-full bg-success" title="Já tem conteúdo" />}
+                      </span>
                       <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
                     </button>
-                  ))}
+                    ));
+                  })()}
                 </div>
               </EntitySection>
 
