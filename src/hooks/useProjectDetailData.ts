@@ -14,7 +14,7 @@ export interface ProjectFull {
   client_name: string | null; client_id: string | null;
   product_id: string | null; product_name: string | null;
   start_date: string | null; deadline: string | null; progress: number; notes: string | null;
-  objetivo: string | null; diretrizes: string | null; cronograma: string | null; dependencias: string | null;
+  objetivo: string | null; diretrizes: string | null; cronograma: string | null;
   entregaveis: string | null; recursos: string | null; project_notes: string | null;
   closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
   created_by: string | null; created_at: string; cover_url: string | null;
