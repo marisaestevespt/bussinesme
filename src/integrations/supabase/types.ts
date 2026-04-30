@@ -11371,6 +11371,10 @@ export type Database = {
           project_name: string
         }[]
       }
+      get_portal_deliverable_file_url: {
+        Args: { _deliverable_id: string; _token: string }
+        Returns: string
+      }
       get_portal_faqs: {
         Args: { _token: string }
         Returns: {
