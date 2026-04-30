@@ -837,9 +837,6 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
             <EntityTabsContent value="projeto" className="space-y-8 mt-6">
-              {/* Deliverables (only for fases recorrente) */}
-              {isRecorrente && taskMode === 'fases' && <ProjectDeliverables projectId={id!} profiles={profiles} />}
-
               {/* ── Section: Menu Inicial ─────────────────── */}
               <EntitySection title="Menu Inicial" icon={Target}>
                 <div className={cn("grid gap-3", local.type === 'cliente_servico_mensal' ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-4")}>
