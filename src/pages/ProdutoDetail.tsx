@@ -31,6 +31,7 @@ import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
 import { ProductPortalTemplateSection } from '@/components/product/ProductPortalTemplateSection';
+import { ProductProjectsSection } from '@/components/product/ProductProjectsSection';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -51,7 +52,7 @@ export default function ProdutoDetailPage() {
   const canSeeSection = (key: string) => {
     if (!isSalesOnly) return true;
     const allowed = new Set([
-      'clientes-vendas', 'comercial', 'marketing', 'branding', 'backoffice', 'metricas', 'arquivo',
+      'clientes-vendas', 'projetos', 'comercial', 'marketing', 'branding', 'backoffice', 'metricas', 'arquivo',
     ]);
     return allowed.has(key);
   };
@@ -710,6 +711,7 @@ export default function ProdutoDetailPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {canSeeSection('clientes-vendas') && <SectionButton sectionKey="clientes-vendas" label="Clientes e Vendas" />}
+            {canSeeSection('projetos') && <SectionButton sectionKey="projetos" label="Projetos" />}
             {canSeeSection('entregas') && <SectionButton sectionKey="entregas" label="Entregas" />}
             {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
             {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
@@ -728,6 +730,12 @@ export default function ProdutoDetailPage() {
               {!isNew && id && (
                 <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
               )}
+            </div>
+          )}
+
+          {openSection === 'projetos' && !isNew && id && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductProjectsSection productId={id} productName={form.name || ''} />
             </div>
           )}
 
