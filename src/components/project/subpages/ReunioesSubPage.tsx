@@ -1,14 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { Plus, Users, Paperclip } from 'lucide-react';
 import { getInitials } from '@/pages/Projetos';
 import type { Meeting, Profile } from '@/hooks/useProjectDetailData';
-import { MEETING_STATUSES, getMeetingStatusInfo as canonGetMeetingStatusInfo } from '@/lib/meetingStatus';
+import { getMeetingStatusInfo as canonGetMeetingStatusInfo } from '@/lib/meetingStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { EntitySection } from '@/components/layout/entity/EntitySection';
+import { ProjectAssetGallery } from '@/components/project/ProjectAssetGallery';
+import { SubPageShell } from './SubPageShell';
 
 const getMeetingStatusInfo = (s: string) => {
   const info = canonGetMeetingStatusInfo(s);
@@ -16,6 +18,7 @@ const getMeetingStatusInfo = (s: string) => {
 };
 
 interface Props {
+  projectId: string;
   meetings: Meeting[];
   projectMembers: string[];
   profileMap: Map<string, Profile & { avatar_url: string | null }>;
@@ -24,23 +27,30 @@ interface Props {
   onNewMeeting: () => void;
 }
 
-export function ReunioesSubPage({ meetings, projectMembers, profileMap, getPhotoUrl, onBack, onNewMeeting }: Props) {
+const getMeetingStatusInfo = (s: string) => {
+  const info = canonGetMeetingStatusInfo(s);
+  return { value: info.value, label: info.label, color: info.dotColor };
+};
+
+export function ReunioesSubPage({ projectId, meetings, projectMembers, profileMap, getPhotoUrl, onBack, onNewMeeting }: Props) {
   const navigate = useNavigate();
   return (
-    <AppLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={onBack} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-            <h2 className="text-xl font-bold">Reuniões do Projeto</h2>
-          </div>
-          <Button size="sm" onClick={onNewMeeting} className="gap-2"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>
-        </div>
+    <SubPageShell
+      title="Reuniões do Projeto"
+      description={`${meetings.length} reuni${meetings.length === 1 ? 'ão' : 'ões'} ligadas a este projeto.`}
+      icon={Users}
+      onBack={onBack}
+    >
+      <EntitySection
+        title="Lista de reuniões"
+        icon={Users}
+        action={<Button size="sm" onClick={onNewMeeting} className="gap-2"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>}
+      >
         {meetings.length === 0 ? (
           <EmptyHint>Nenhuma reunião ligada a este projeto.</EmptyHint>
         ) : (
-          <div className="border rounded-lg overflow-hidden divide-y divide-border">
-            <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
+          <div className="border border-border/60 rounded-lg overflow-hidden divide-y divide-border">
+            <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted/40 text-xs font-medium text-foreground">
               <div className="col-span-2">Status</div>
               <div className="col-span-4">Reunião</div>
               <div className="col-span-3">Data / Hora</div>
@@ -63,7 +73,11 @@ export function ReunioesSubPage({ meetings, projectMembers, profileMap, getPhoto
             })}
           </div>
         )}
-      </div>
-    </AppLayout>
+      </EntitySection>
+
+      <EntitySection title="Documentos das reuniões" icon={Paperclip} description="Atas em PDF, decks de apresentação, gravações partilhadas">
+        <ProjectAssetGallery projectId={projectId} pageKey="reunioes" categories={['Ata', 'Apresentação', 'Gravação']} emptyTitle="Sem documentos" emptyDescription="Arrasta atas, decks ou anexa links de gravações." />
+      </EntitySection>
+    </SubPageShell>
   );
 }
