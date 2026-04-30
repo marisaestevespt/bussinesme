@@ -941,11 +941,12 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                       {/* Header de colunas */}
                       <div
                         className="grid items-center gap-2 px-3 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium"
-                        style={{ gridTemplateColumns: '16px minmax(0,1fr) 160px 110px 90px 70px' }}
+                        style={{ gridTemplateColumns: '16px minmax(0,1fr) 120px 120px 110px 90px 70px' }}
                       >
                         <span />
                         <span>Entrega</span>
-                        <span>Datas</span>
+                        <span className="flex items-center gap-1"><CalendarDays className="h-2.5 w-2.5" /> Para fazer</span>
+                        <span className="flex items-center gap-1"><Flag className="h-2.5 w-2.5" /> Deadline</span>
                         <span>Status</span>
                         <span>Reunião</span>
                         <span className="text-right">Ações</span>
@@ -956,9 +957,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                         const delStatusConfig = { bg: _delInfo.color, label: _delInfo.label };
                         return (
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
-                            <div className="grid items-center gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 160px 110px 90px 70px' }}>
+                            <div className="grid items-center gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 120px 120px 110px 90px 70px' }}>
                               {isEditingThis ? (
-                                <div className="col-span-6 flex items-center gap-2">
+                                <div className="col-span-7 flex items-center gap-2">
                                   <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
                                     onKeyDown={e => e.key === 'Enter' && saveEditDel(d.id)} />
                                   <Button size="sm" className="h-5 px-1" onClick={() => saveEditDel(d.id)}><Check className="h-2.5 w-2.5" /></Button>
@@ -994,18 +995,43 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                       </button>
                                     );
                                   })()}
-                                  {/* Datas (coluna fixa) */}
-                                  <div className="text-[11px] text-muted-foreground flex items-center justify-start gap-1 tabular-nums min-w-0">
-                                    {(d.planned_start || d.planned_end) ? (
-                                      <span className="inline-flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5 whitespace-nowrap truncate">
-                                        <CalendarDays className="h-3 w-3" />
-                                        {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
-                                        {' → '}
-                                        {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
-                                      </span>
-                                    ) : (
-                                      <span className="text-muted-foreground/40">—</span>
-                                    )}
+                                  {/* Para fazer (scheduled_date) */}
+                                  {(() => {
+                                    const overrun = !!d.scheduled_date && !!d.planned_end && d.scheduled_date > d.planned_end;
+                                    return (
+                                      <div className="flex items-center justify-start min-w-0">
+                                        <Input
+                                          type="date"
+                                          defaultValue={(d as any).scheduled_date || ''}
+                                          onBlur={e => {
+                                            const v = e.target.value || null;
+                                            if (v !== ((d as any).scheduled_date || null)) {
+                                              updateDeliverable.mutate({ id: d.id, scheduled_date: v });
+                                            }
+                                          }}
+                                          className={cn(
+                                            'h-6 text-[10px] tabular-nums w-full px-1.5',
+                                            overrun && 'border-warning text-warning bg-warning/5'
+                                          )}
+                                          title={overrun ? 'Data planeada ultrapassa a deadline' : 'Data para fazer'}
+                                        />
+                                      </div>
+                                    );
+                                  })()}
+                                  {/* Deadline (planned_end) */}
+                                  <div className="flex items-center justify-start min-w-0">
+                                    <Input
+                                      type="date"
+                                      defaultValue={d.planned_end || ''}
+                                      onBlur={e => {
+                                        const v = e.target.value || null;
+                                        if (v !== (d.planned_end || null)) {
+                                          tryUpdateWithConflictCheck({ sourceTable: 'project_deliverables', sourceId: d.id, field: 'planned_end', newValue: v });
+                                        }
+                                      }}
+                                      className="h-6 text-[10px] tabular-nums w-full px-1.5 font-medium"
+                                      title="Deadline (prazo limite)"
+                                    />
                                   </div>
                                   {/* Status (coluna fixa) */}
                                   <div className="flex justify-start">
@@ -1080,18 +1106,6 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                 </>
                               )}
                             </div>
-                            {/* Inline date editing when in edit mode */}
-                            {isEditingThis && (
-                              <div className="flex items-center gap-2 mt-1.5 ml-6 flex-wrap">
-                                <CalendarDays className="h-2.5 w-2.5 text-muted-foreground" />
-                                <span className="text-[9px] text-muted-foreground">Início:</span>
-                                <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_start || ''}
-                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_start || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_deliverables', sourceId: d.id, field: 'planned_start', newValue: v }); }} />
-                                <span className="text-[9px] text-muted-foreground">Fim:</span>
-                                <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_end || ''}
-                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_end || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_deliverables', sourceId: d.id, field: 'planned_end', newValue: v }); }} />
-                              </div>
-                            )}
                           </div>
                         );
                       })}
