@@ -848,23 +848,14 @@ async function buildMemberDigest(
     }
   }
 
-  // ── Tempo registado ──
-  if (sections.tempo_registado) {
-    if (tm) {
-      const { data: entries } = await supabase
-        .from("time_entries")
-        .select("duration, project_id, client_name")
-        .eq("member_id", tm.id)
-        .gte("entry_date", periodStart)
-        .lte("entry_date", periodEnd);
-
-      if (entries?.length) {
-        hasContent = true;
-        const totalHours = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
-        html += sectionHeader("⏱️ Tempo registado");
-        html += `<p>Total: <strong>${(totalHours / 60).toFixed(1)}h</strong></p>`;
-      }
-    }
+  // ── Tempo registado (próprio membro) ──
+  if (sections.tempo_registado !== false) {
+    const wt = await buildWorkTimeSection(supabase, periodStart, periodEnd, 'user', {
+      memberId: tm?.id,
+      userId: profile.user_id,
+      title: "⏱️ O teu tempo registado",
+    });
+    if (wt) { hasContent = true; html += wt; }
   }
 
   if (!hasContent) {
