@@ -32,6 +32,18 @@ const CATEGORY_LABELS: Record<string, string> = {
   viagens: 'Viagens', outro: 'Outro',
 };
 
+const getSupplierStatusBadge = (supplier: any) => {
+  const pausedUntil = supplier.paused_until as string | null | undefined;
+  const today = new Date().toISOString().slice(0, 10);
+  const isIndefinite = pausedUntil === '2999-12-31';
+  const isPaused = !!pausedUntil && pausedUntil > today;
+
+  if (!supplier.is_active) return { label: 'Inativo', className: 'bg-muted text-muted-foreground' };
+  if (isIndefinite) return { label: 'Pausado ∞', className: 'bg-warning/10 text-warning' };
+  if (isPaused) return { label: `Pausado até ${pausedUntil}`, className: 'bg-warning/10 text-warning' };
+  return { label: 'Ativo', className: 'bg-success/10 text-success' };
+};
+
 interface Props {
   fin: ReturnType<typeof useFinancialData>;
 }
@@ -129,25 +141,26 @@ export function FinSetupFinanceiro({ fin }: Props) {
             <TableBody>
               {suppliers.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
-              ) : suppliers.map((s: any) => (
-                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setOpenSupplierId(s.id)}>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
-                  <TableCell><Badge variant="secondary" className="text-xs">{CATEGORY_LABELS[s.category] || s.category || '—'}</Badge></TableCell>
-                  <TableCell><Badge variant="outline">{PAYMENT_LABELS[s.payment_method] || s.payment_method || '—'}</Badge></TableCell>
-                  <TableCell>{s.default_vat_rate != null ? `${s.default_vat_rate}%` : '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {s.contract_start_date && s.contract_end_date
-                      ? `${s.contract_start_date} → ${s.contract_end_date}`
-                      : '—'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={s.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
-                      {s.is_active ? 'Ativo' : 'Inativo'}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
+              ) : suppliers.map((s: any) => {
+                const status = getSupplierStatusBadge(s);
+                return (
+                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setOpenSupplierId(s.id)}>
+                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
+                    <TableCell><Badge variant="secondary" className="text-xs">{CATEGORY_LABELS[s.category] || s.category || '—'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{PAYMENT_LABELS[s.payment_method] || s.payment_method || '—'}</Badge></TableCell>
+                    <TableCell>{s.default_vat_rate != null ? `${s.default_vat_rate}%` : '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {s.contract_start_date && s.contract_end_date
+                        ? `${s.contract_start_date} → ${s.contract_end_date}`
+                        : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={status.className}>{status.label}</Badge>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
