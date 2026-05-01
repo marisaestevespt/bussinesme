@@ -22,36 +22,8 @@ import {
   Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3, Users,
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon, Loader2,
 } from 'lucide-react';
+import { ChannelCard } from '@/components/marketing/ChannelCard';
 
-const CHANNEL_IMAGES: Record<string, string> = {};
-const channelImageModules = import.meta.glob('/src/assets/channels/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
-Object.entries(channelImageModules).forEach(([path, url]) => {
-  const name = path.split('/').pop()?.replace('.jpg', '') || '';
-  CHANNEL_IMAGES[name] = url;
-});
-
-const getChannelImageKey = (name: string): string => {
-  return name.toLowerCase().replace(/\s+/g, '-');
-};
-
-const CHANNEL_EMOJI: Record<string, string> = {
-  'Instagram': '📸',
-  'Youtube': '🎬',
-  'Facebook': '👥',
-  'TikTok': '🎵',
-  'LinkedIn': '💼',
-  'Pinterest': '📌',
-  'Website': '🌐',
-  'Email Marketing': '📧',
-  'Twitter': '🐦',
-  'Threads': '🧵',
-  'Spotify': '🎧',
-  'Blog': '📝',
-  'Podcast': '🎙️',
-  'Newsletter': '✉️',
-  'WhatsApp': '💬',
-  'Telegram': '✈️',
-};
 
 const MARKETING_360 = [
   { title: 'Gestão de Marca', desc: 'Branding, identidade e posicionamento', icon: Palette, url: '/hub/marketing/gestao-marca' },
