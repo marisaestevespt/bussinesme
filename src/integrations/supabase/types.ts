@@ -4637,6 +4637,7 @@ export type Database = {
           deadline_key: string
           id: string
           notes: string | null
+          year: number | null
         }
         Insert: {
           completed_by?: string | null
@@ -4645,6 +4646,7 @@ export type Database = {
           deadline_key: string
           id?: string
           notes?: string | null
+          year?: number | null
         }
         Update: {
           completed_by?: string | null
@@ -4653,6 +4655,7 @@ export type Database = {
           deadline_key?: string
           id?: string
           notes?: string | null
+          year?: number | null
         }
         Relationships: []
       }
