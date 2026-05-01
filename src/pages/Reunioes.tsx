@@ -503,6 +503,9 @@ export function MeetingFormDialog({
   const [meetingUrl, setMeetingUrl] = useState('');
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
   const [pendingClientProjects, setPendingClientProjects] = useState<ProjectOption[]>([]);
+  // Visibility in client portal — defaults to true so existing flow is preserved.
+  // Toggle is only meaningful when there's a client associated.
+  const [visibleInPortal, setVisibleInPortal] = useState(true);
 
   // Recurrence state
   const [isRecurring, setIsRecurring] = useState(false);
@@ -540,6 +543,7 @@ export function MeetingFormDialog({
     setSelectedMembers(defaultMemberIds ?? []); setMeetingUrl('');
     setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceStartDate(undefined); setRecurrenceEndDate(defaultRecurrenceEndDate);
     setHolidayOverrides({});
+    setVisibleInPortal(true);
     skipAutoFillRef.current = false;
   };
 
@@ -685,6 +689,7 @@ export function MeetingFormDialog({
         is_recurring: isRecurring,
         recurrence_frequency: isRecurring ? recurrenceFrequency : null,
         recurrence_end_date: isRecurring && recurrenceEndDate ? format(recurrenceEndDate, 'yyyy-MM-dd') : null,
+        visible_in_portal: visibleInPortal,
       };
 
       // Apply template default agenda (discussion_points) when creating from a template
@@ -862,6 +867,25 @@ export function MeetingFormDialog({
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Visibilidade no portal — só relevante quando há cliente */}
+              {clientId && (
+                <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="visible-in-portal" className="text-sm font-medium cursor-pointer">
+                      Visível no portal do cliente
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Quando desligado, esta reunião fica só interna — útil para preparações, debriefs ou conversas internas sobre o cliente.
+                    </p>
+                  </div>
+                  <Switch
+                    id="visible-in-portal"
+                    checked={visibleInPortal}
+                    onCheckedChange={setVisibleInPortal}
+                  />
+                </div>
+              )}
 
               {/* Department */}
               <div>

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1080,6 +1081,25 @@ export default function ReuniaoDetailPage() {
               <span className="text-sm font-semibold text-warning dark:text-warning">Nota do cliente sobre horário</span>
             </div>
             <p className="text-sm text-warning dark:text-warning">{(m as any).portal_notes}</p>
+          </div>
+        )}
+
+        {/* Visibilidade no portal — só faz sentido com cliente associado */}
+        {m.client_id && (
+          <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 p-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="meeting-visible-portal" className="text-sm font-medium cursor-pointer">
+                Visível no portal do cliente
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Quando desligado, esta reunião fica só interna — o cliente não a vê no portal.
+              </p>
+            </div>
+            <Switch
+              id="meeting-visible-portal"
+              checked={(m as any).visible_in_portal !== false}
+              onCheckedChange={v => update({ visible_in_portal: v } as any)}
+            />
           </div>
         )}
 

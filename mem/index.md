@@ -62,3 +62,4 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Deliverable↔task sync](mem://features/deliverable-task-sync.md) — Entregas com responsible_type=equipa auto-geram tarefas ligadas via trigger; conclusão sincroniza nos dois sentidos
 - [Batching focus blocks](mem://features/batching-focus-blocks.md) — Secretária tab "Blocos de Foco": agrupa tarefas por cliente/projeto/área para deep-work batched sessions
 - [Project detail layout](mem://features/project-detail-layout.md) — Ordem das secções na tab Tarefas & Responsabilidades por tipo de projeto, botões, health badge, título
+- [Meeting portal visibility](mem://features/meeting-portal-visibility.md) — Flag visible_in_portal por reunião (default true) controla se aparece no portal do cliente

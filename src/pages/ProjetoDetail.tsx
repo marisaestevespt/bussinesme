@@ -1199,6 +1199,7 @@ export default function ProjetoDetailPage() {
                     <div className="rounded-xl border overflow-hidden divide-y">
                       {list.map((m: any) => {
                         const isPast = m.date_time && new Date(m.date_time) < now;
+                        const isInternal = m.client_id && m.visible_in_portal === false;
                         return (
                           <div
                             key={m.id}
@@ -1209,7 +1210,14 @@ export default function ProjetoDetailPage() {
                               {isPast ? 'Realizada' : 'Próxima'}
                             </Badge>
                             <div className="min-w-0">
-                              <p className="font-medium truncate">{m.title}</p>
+                              <p className="font-medium truncate flex items-center gap-2">
+                                {m.title}
+                                {isInternal && (
+                                  <span className="text-[10px] font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded" title="Não visível para o cliente">
+                                    🔒 Interna
+                                  </span>
+                                )}
+                              </p>
                               <p className="text-xs text-muted-foreground">
                                 {m.date_time ? format(new Date(m.date_time), "d MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}
                               </p>

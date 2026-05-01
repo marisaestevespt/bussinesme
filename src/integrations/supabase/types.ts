@@ -5643,6 +5643,7 @@ export type Database = {
           title: string
           transcript_url: string | null
           updated_at: string
+          visible_in_portal: boolean
           with_meet: boolean
         }
         Insert: {
@@ -5679,6 +5680,7 @@ export type Database = {
           title: string
           transcript_url?: string | null
           updated_at?: string
+          visible_in_portal?: boolean
           with_meet?: boolean
         }
         Update: {
@@ -5715,6 +5717,7 @@ export type Database = {
           title?: string
           transcript_url?: string | null
           updated_at?: string
+          visible_in_portal?: boolean
           with_meet?: boolean
         }
         Relationships: [
