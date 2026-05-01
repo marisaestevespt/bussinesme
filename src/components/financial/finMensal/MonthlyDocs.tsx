@@ -11,6 +11,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { type FiscalConfig } from '@/lib/fiscalDeadlines';
 import { MONTHS } from './helpers';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { toast } from 'sonner';
 
 type DocRow = { id: string; document_url?: string | null; document_name?: string | null; title?: string | null };
 type FiscalCheckRow = { id: string; check_key: string; checked: boolean };
