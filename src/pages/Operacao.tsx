@@ -25,7 +25,7 @@ import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { OperacaoAnaliseTab } from '@/components/operacao/OperacaoAnaliseTab';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { computeProjectHealth } from '@/lib/projectHealth';
-import { isDeliverableDone } from '@/lib/projectProgress';
+import { isDeliverableDone, computeProjectProgressFromSources } from '@/lib/projectProgress';
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
