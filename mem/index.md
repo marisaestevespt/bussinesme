@@ -36,6 +36,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 
 ## Memories
 - [Brand name](mem://design/brand-name.md) — Lyrata (system) + Atena (AI assistant): naming, tone, where each appears
+- [Calendar quick-add](mem://design/calendar-quick-add-pattern.md) — Notion-like "+" hover button per day cell with onCreateForDate prop pattern
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
 - [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
 - [Client portal](mem://features/client-portal.md) — Client Portal system: public pages via /portal/[token] with OTP auth
