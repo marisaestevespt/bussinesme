@@ -116,8 +116,21 @@ export default function OperacaoPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from('project_phases')
-        .select('id, status');
-      return (data || []) as { id: string; status: string }[];
+        .select('id, status, project_id');
+      return (data || []) as { id: string; status: string; project_id: string }[];
+    },
+  });
+
+  // Todos os entregáveis (qualquer status) — necessário para calcular o progresso real
+  // por projeto, em coerência com a fonte de verdade usada no detalhe do projeto e
+  // no trigger DB `update_project_progress`.
+  const { data: allDeliverablesForProgress = [] } = useQuery({
+    queryKey: ['op-all-deliverables-for-progress'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('project_deliverables')
+        .select('id, status, project_id, phase_id');
+      return (data || []) as { id: string; status: string; project_id: string; phase_id: string | null }[];
     },
   });
 
