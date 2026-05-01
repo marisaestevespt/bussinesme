@@ -73,7 +73,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
     enabled: !!sale?.client,
   });
 
-  const [status, setStatus] = useState(sale?.status || 'por_pagar');
+  const [status, setStatus] = useState(sale?.status || 'aguarda_pagamento');
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [description, setDescription] = useState<string>(sale?.description || '');
   const [saving, setSaving] = useState(false);
@@ -84,7 +84,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const [lastId, setLastId] = useState<string | null>(null);
   if (sale && sale.id !== lastId) {
     setLastId(sale.id);
-    setStatus(sale.status || 'por_pagar');
+    setStatus(sale.status || 'aguarda_pagamento');
     setDescription(sale.description || '');
     const rawDocs = sale.documents;
     setDocs(Array.isArray(rawDocs) ? rawDocs : []);
