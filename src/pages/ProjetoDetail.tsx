@@ -65,6 +65,7 @@ import { BriefingSubPage } from '@/components/project/subpages/BriefingSubPage';
 import { BrainstormingSubPage } from '@/components/project/subpages/BrainstormingSubPage';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { safeUrl } from '@/lib/url';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
