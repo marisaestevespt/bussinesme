@@ -56,13 +56,35 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
     const nextMonth = month === 12 ? 1 : month + 1;
     const nextYear = month === 12 ? currentYear + 1 : currentYear;
     const nextMonthEnd = new Date(nextYear, nextMonth, 0); // last day of next month
+    // Preferimos vendas REAIS já agendadas para esse mês (alinha com Previsibilidade
+    // e respeita pro-rata, fim de ciclo, etc.). Caímos para forecast por ticket
+    // apenas quando ainda não há nada agendado.
+    const scheduledSales = allSales.filter(
+      s => s.sale_year === nextYear && s.sale_month === nextMonth,
+    );
+    const scheduledTotal = scheduledSales.reduce(
+      (sum, s) => sum + (Number(s.invoice_total) || 0),
+      0,
+    );
+    const scheduledClients = new Set(
+      scheduledSales.map(s => s.client).filter(Boolean) as string[],
+    );
+    if (scheduledTotal > 0) {
+      return {
+        total: scheduledTotal,
+        count: scheduledClients.size,
+        label: `${MONTHS[nextMonth - 1]} ${nextYear}`,
+        source: 'scheduled' as const,
+      };
+    }
     const { total, count } = forecastRecurringRevenue(clients, products, nextMonthEnd);
     return {
       total,
       count,
       label: `${MONTHS[nextMonth - 1]} ${nextYear}`,
+      source: 'estimate' as const,
     };
-  }, [clients, products, month, currentYear]);
+  }, [clients, products, month, currentYear, allSales]);
 
   // 4. Revenue churn
   const churn = useMemo(() => {
@@ -100,7 +122,11 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                 <p className="text-xs text-muted-foreground">Previsão {forecast.label}</p>
               </div>
               <p className="text-lg font-bold">{formatEuro(forecast.total)}</p>
-              <p className="text-[10px] text-muted-foreground">{forecast.count} cliente{forecast.count !== 1 ? 's' : ''} activo{forecast.count !== 1 ? 's' : ''}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {forecast.count} cliente{forecast.count !== 1 ? 's' : ''}{' '}
+                {forecast.source === 'scheduled' ? 'agendado' : 'previsto'}
+                {forecast.count !== 1 ? 's' : ''}
+              </p>
             </CardContent>
           </Card>
 
