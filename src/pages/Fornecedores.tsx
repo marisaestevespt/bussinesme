@@ -826,30 +826,54 @@ export default function FornecedoresPage() {
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs">Pausar despesas recorrentes até</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="date"
-                      value={form.paused_until || ''}
-                      min={new Date().toISOString().slice(0, 10)}
-                      onChange={e => setForm((f: any) => ({ ...f, paused_until: e.target.value || null }))}
-                    />
-                    {form.paused_until && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setForm((f: any) => ({ ...f, paused_until: null }))}
-                      >
-                        Retomar agora
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    {form.paused_until
-                      ? `Não serão geradas novas despesas até ${form.paused_until}. O sistema retoma automaticamente nessa data.`
-                      : 'Define uma data para pausar temporariamente (ex.: cancelaste a subscrição e vais voltar daqui a 2 meses).'}
-                  </p>
+                  <Label className="text-xs">Pausar despesas recorrentes</Label>
+                  {(() => {
+                    const INDEFINITE = '2999-12-31';
+                    const isIndefinite = form.paused_until === INDEFINITE;
+                    const hasDate = !!form.paused_until && !isIndefinite;
+                    return (
+                      <>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <Input
+                            type="date"
+                            className="w-44"
+                            value={hasDate ? form.paused_until : ''}
+                            min={new Date().toISOString().slice(0, 10)}
+                            disabled={isIndefinite}
+                            onChange={e => setForm((f: any) => ({ ...f, paused_until: e.target.value || null }))}
+                          />
+                          <Button
+                            type="button"
+                            variant={isIndefinite ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setForm((f: any) => ({
+                              ...f,
+                              paused_until: isIndefinite ? null : INDEFINITE,
+                            }))}
+                          >
+                            {isIndefinite ? '✓ Pausado indefinidamente' : 'Pausar indefinidamente'}
+                          </Button>
+                          {form.paused_until && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setForm((f: any) => ({ ...f, paused_until: null }))}
+                            >
+                              Retomar agora
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {isIndefinite
+                            ? 'Pausado sem data de retoma. Não serão geradas despesas até clicares em "Retomar agora". O histórico fica intacto.'
+                            : hasDate
+                            ? `Não serão geradas novas despesas até ${form.paused_until}. O sistema retoma automaticamente nessa data.`
+                            : 'Escolhe uma data se sabes quando voltas, ou "Pausar indefinidamente" se não sabes.'}
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
