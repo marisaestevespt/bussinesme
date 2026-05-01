@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
 import { logRun } from '../_shared/resilience.ts'
 import { getCorsHeaders } from '../_shared/cors.ts'
+import { isAuthorizedCronCall } from '../_shared/cron-auth.ts'
 
 /**
  * Edge Function: send-payment-reminders
@@ -17,6 +18,14 @@ Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
+  }
+
+  // Only allow service-role / cron / authenticated calls.
+  if (!isAuthorizedCronCall(req)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 
   const startedAt = new Date()
