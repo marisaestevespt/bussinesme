@@ -5312,6 +5312,7 @@ export type Database = {
       }
       marketing_channels: {
         Row: {
+          cover_url: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -5321,6 +5322,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -5330,6 +5332,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
