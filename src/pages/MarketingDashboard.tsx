@@ -22,36 +22,8 @@ import {
   Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3, Users,
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon, Loader2,
 } from 'lucide-react';
+import { ChannelCard } from '@/components/marketing/ChannelCard';
 
-const CHANNEL_IMAGES: Record<string, string> = {};
-const channelImageModules = import.meta.glob('/src/assets/channels/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
-Object.entries(channelImageModules).forEach(([path, url]) => {
-  const name = path.split('/').pop()?.replace('.jpg', '') || '';
-  CHANNEL_IMAGES[name] = url;
-});
-
-const getChannelImageKey = (name: string): string => {
-  return name.toLowerCase().replace(/\s+/g, '-');
-};
-
-const CHANNEL_EMOJI: Record<string, string> = {
-  'Instagram': '📸',
-  'Youtube': '🎬',
-  'Facebook': '👥',
-  'TikTok': '🎵',
-  'LinkedIn': '💼',
-  'Pinterest': '📌',
-  'Website': '🌐',
-  'Email Marketing': '📧',
-  'Twitter': '🐦',
-  'Threads': '🧵',
-  'Spotify': '🎧',
-  'Blog': '📝',
-  'Podcast': '🎙️',
-  'Newsletter': '✉️',
-  'WhatsApp': '💬',
-  'Telegram': '✈️',
-};
 
 const MARKETING_360 = [
   { title: 'Gestão de Marca', desc: 'Branding, identidade e posicionamento', icon: Palette, url: '/hub/marketing/gestao-marca' },
@@ -207,38 +179,29 @@ export default function MarketingDashboard() {
             <h2 className="text-xl font-semibold text-foreground">Canais</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {channels.filter(ch => ch.is_active).map(ch => {
-                const imgKey = getChannelImageKey(ch.name);
-                const imgSrc = CHANNEL_IMAGES[imgKey] || CHANNEL_IMAGES['default'];
+                let hostname: string | null = null;
+                if (ch.link) { try { hostname = new URL(ch.link).hostname; } catch {} }
                 return (
-                  <div key={ch.id} className="group relative">
-                    <Link to={`/hub/marketing/canal/${ch.id}`}>
-                      <Card className="hq-transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full border-primary/15 bg-primary/[0.04]">
-                        <CardContent className="flex flex-col items-center text-center p-5 gap-3">
-                          <div className="rounded-full w-12 h-12 overflow-hidden ring-2 ring-primary/10">
-                            <img src={imgSrc} alt={ch.name} className="w-full h-full object-cover" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{ch.name}</p>
-                            <div className="flex items-center justify-center gap-1 mt-1">
-                              {ch.link ? (
-                                <span className="text-[11px] text-muted-foreground truncate max-w-[120px]">{new URL(ch.link).hostname}</span>
-                              ) : (
-                                <span className="text-[11px] text-muted-foreground italic">Sem link</span>
-                              )}
-                              {isOwner && (
-                                <Button variant="ghost" aria-label="Editar" size="icon"
-                                  className="h-5 w-5 opacity-0 group-hover:opacity-100 hq-transition shrink-0"
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingChannelId(ch.id); setEditChannelLink(ch.link || ''); }}>
-                                  <Pencil className="h-2.5 w-2.5" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                  <div key={ch.id} className="relative">
+                    <ChannelCard
+                      channel={ch}
+                      to={`/hub/marketing/canal/${ch.id}`}
+                      isOwner={isOwner}
+                      subtitle={hostname || (ch.link ? ch.link : <span className="italic">Sem link</span>)}
+                      extraOverlay={isOwner ? (
+                        <button
+                          type="button"
+                          aria-label="Editar link"
+                          title="Editar link"
+                          className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-background/90 border border-border shadow-sm hover:bg-background"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingChannelId(ch.id); setEditChannelLink(ch.link || ''); }}
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-foreground" />
+                        </button>
+                      ) : undefined}
+                    />
                     {editingChannelId === ch.id && (
-                      <div className="absolute inset-x-0 bottom-0 z-10 bg-card border rounded-b-xl px-3 py-2 flex items-center gap-1 shadow-lg">
+                      <div className="absolute inset-x-0 bottom-0 z-30 bg-card border rounded-b-xl px-3 py-2 flex items-center gap-1 shadow-lg">
                         <Input value={editChannelLink} onChange={e => setEditChannelLink(e.target.value)}
                           className="h-7 text-xs flex-1" placeholder="https://..."
                           onKeyDown={e => e.key === 'Enter' && saveChannelLink()} autoFocus />

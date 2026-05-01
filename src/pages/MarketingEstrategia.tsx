@@ -15,15 +15,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import {
-  Plus, Trash2, Pencil, ExternalLink, Paperclip, X, Upload,
-  Instagram, Youtube, Facebook, Linkedin, Music2, Globe, Mail, Twitter,
-  AtSign, Headphones, FileText, Send, MessageCircle, Image as ImageIcon, Radio,
-} from 'lucide-react';
+import { Plus, Trash2, Pencil, ExternalLink, Paperclip, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { ChannelCard } from '@/components/marketing/ChannelCard';
 
 const DIST_COLUMNS = [
   { key: 'segunda', label: 'Segunda', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', addColor: 'text-[hsl(351,35%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
@@ -35,14 +32,6 @@ const DIST_COLUMNS = [
   { key: 'domingo', label: 'Domingo', headerBg: 'bg-[hsl(160,28%,92%)] dark:bg-[hsl(160,22%,15%)]', headerText: 'text-[hsl(160,35%,40%)] dark:text-[hsl(160,35%,60%)]', addColor: 'text-[hsl(160,30%,50%)]', cardBorder: 'border-l-[3px] border-[hsl(160,35%,65%)]' },
   { key: 'mensal', label: 'Mensal', headerBg: 'bg-[hsl(270,25%,93%)] dark:bg-[hsl(270,20%,15%)]', headerText: 'text-[hsl(270,30%,48%)] dark:text-[hsl(270,30%,65%)]', addColor: 'text-[hsl(270,25%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(270,30%,70%)]' },
 ];
-
-// Lucide icon per channel (sober fallback when no upload exists)
-const CHANNEL_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  'Instagram': Instagram, 'Youtube': Youtube, 'Facebook': Facebook, 'TikTok': Music2,
-  'LinkedIn': Linkedin, 'Pinterest': ImageIcon, 'Website': Globe, 'Email Marketing': Mail,
-  'Twitter': Twitter, 'Threads': AtSign, 'Spotify': Headphones, 'Blog': FileText,
-  'Podcast': Radio, 'Newsletter': Mail, 'WhatsApp': MessageCircle, 'Telegram': Send,
-};
 
 const CHANNEL_EMOJI: Record<string, string> = {
   'Instagram': '📸', 'Youtube': '🎬', 'Facebook': '👥', 'TikTok': '🎵',
@@ -131,32 +120,6 @@ export default function MarketingEstrategia() {
   };
 
   const activeChannels = channels.filter(c => c.is_active);
-
-  // Channel cover upload (Owner)
-  const [uploadingChannelId, setUploadingChannelId] = useState<string | null>(null);
-  const handleChannelCoverUpload = async (channelId: string, file: File) => {
-    setUploadingChannelId(channelId);
-    try {
-      const ext = file.name.split('.').pop();
-      const path = `${channelId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('channel-covers').upload(path, file, { upsert: true });
-      if (upErr) throw upErr;
-      const { data: urlData } = supabase.storage.from('channel-covers').getPublicUrl(path);
-      const { error: updErr } = await supabase.from('marketing_channels').update({ cover_url: urlData.publicUrl } as any).eq('id', channelId);
-      if (updErr) throw updErr;
-      qc.invalidateQueries({ queryKey: ['marketing-channels'] });
-      toast.success('Capa atualizada');
-    } catch (e: any) {
-      toast.error('Erro ao enviar capa: ' + (e?.message || ''));
-    } finally {
-      setUploadingChannelId(null);
-    }
-  };
-  const removeChannelCover = async (channelId: string) => {
-    const { error } = await supabase.from('marketing_channels').update({ cover_url: null } as any).eq('id', channelId);
-    if (error) { toast.error('Erro ao remover capa'); return; }
-    qc.invalidateQueries({ queryKey: ['marketing-channels'] });
-  };
 
   // Distribution card dialog state
   const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
@@ -301,70 +264,15 @@ export default function MarketingEstrategia() {
               <EmptyHint>Nenhum canal ativo. Ativa canais nas Definições.</EmptyHint>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {activeChannels.map(ch => {
-                  const Icon = CHANNEL_ICON[ch.name] || Globe;
-                  const cover = (ch as any).cover_url as string | null | undefined;
-                  const isUploading = uploadingChannelId === ch.id;
-                  return (
-                    <div key={ch.id} className="relative group">
-                      <Link
-                        to={`/hub/marketing/estrategia/canal/${ch.id}`}
-                        className={cn(
-                          'relative flex flex-col rounded-xl border border-border bg-card overflow-hidden hq-transition hover:shadow-md hover:border-primary/30 h-28',
-                        )}
-                      >
-                        {cover ? (
-                          <>
-                            <img src={cover} alt={ch.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
-                            <span className="relative z-10 mt-auto text-sm font-semibold text-foreground px-3 pb-2.5">
-                              {ch.name}
-                            </span>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-full w-full gap-2 hq-surface-sunken">
-                            <Icon className="h-6 w-6 text-muted-foreground/70" />
-                            <span className="text-sm font-medium text-foreground">{ch.name}</span>
-                          </div>
-                        )}
-                      </Link>
-                      {isOwner && (
-                        <div className="absolute top-1.5 right-1.5 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <label
-                            className={cn(
-                              'inline-flex items-center justify-center h-7 w-7 rounded-md bg-background/90 border border-border shadow-sm cursor-pointer hover:bg-background',
-                              isUploading && 'pointer-events-none opacity-60',
-                            )}
-                            title={cover ? 'Alterar capa' : 'Adicionar capa'}
-                          >
-                            <Upload className="h-3.5 w-3.5 text-foreground" />
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              disabled={isUploading}
-                              onChange={e => {
-                                const f = e.target.files?.[0];
-                                if (f) handleChannelCoverUpload(ch.id, f);
-                                e.target.value = '';
-                              }}
-                            />
-                          </label>
-                          {cover && (
-                            <button
-                              type="button"
-                              onClick={(e) => { e.preventDefault(); removeChannelCover(ch.id); }}
-                              title="Remover capa"
-                              className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-background/90 border border-border shadow-sm hover:bg-background"
-                            >
-                              <X className="h-3.5 w-3.5 text-foreground" />
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {activeChannels.map(ch => (
+                  <ChannelCard
+                    key={ch.id}
+                    channel={ch}
+                    to={`/hub/marketing/estrategia/canal/${ch.id}`}
+                    isOwner={isOwner}
+                    size="sm"
+                  />
+                ))}
               </div>
             )}
           </section>

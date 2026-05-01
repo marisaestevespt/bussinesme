@@ -21,5 +21,6 @@ Aplicado em: Processos (departamentos + SOPs), Estratégia por Canal (Marketing)
 O utilizador pediu repetidamente capas mais sóbrias e upload interno em galerias (Processos, depois Estratégia por Canal). Cada vez que se cria uma nova galeria, deve seguir este padrão por defeito em vez de repetir o erro de imagens hardcoded + overlay preto.
 
 ## How to apply
-- Reutilizar a estrutura do `MarketingEstrategia.tsx` (secção "Estratégia por Canal") como referência: `CHANNEL_ICON` map + render condicional `cover ? <img/> : <fallback/>` + overlay de upload.
-- Para novos buckets seguir o template de policies em `supabase/migrations/...170530...sql` (4 policies: SELECT público, INSERT/UPDATE/DELETE Owner only).
+- **Marketing channels:** usar SEMPRE `<ChannelCard>` de `@/components/marketing/ChannelCard`. NUNCA recriar cards de canal à mão (acontecia em MarketingDashboard "Canais" e MarketingEstrategia "Estratégia por Canal" — ambos consolidados neste componente). Bucket: `channel-covers`. Coluna: `marketing_channels.cover_url`.
+- **Outras entidades (processos, etc.):** seguir o mesmo padrão — fallback Lucide, capa upload, overlay de upload por hover. Para novos buckets seguir o template de 4 policies (SELECT público, INSERT/UPDATE/DELETE Owner only).
+- Antes de criar uma listagem nova de canais/processos/departamentos, PROCURAR um componente partilhado existente (`ChannelCard`, `ProcessCover`, etc.) e reutilizá-lo em vez de duplicar código.
