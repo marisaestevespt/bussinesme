@@ -228,7 +228,6 @@ const BLOCKED_TABLES = new Set([
   "audit_logs",
   // Secrets / tokens
   "client_portals",
-  "portal_otp_codes",
 ]);
 const READONLY_TABLES = new Set(["business_settings", "business_setup", "automation_settings", "system_config", "audit_logs"]);
 const PRODUCT_MUTABLE_FIELDS = new Set([
