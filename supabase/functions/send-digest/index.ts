@@ -661,12 +661,9 @@ async function buildMemberDigest(
     if (tasks?.length) {
       hasContent = true;
       html += sectionHeader("📋 Tarefas para hoje");
-      html += "<ul>";
-      for (const t of tasks) {
-        const prio = t.priority === "alta" ? " 🔴" : t.priority === "media" ? " 🟡" : "";
-        html += `<li>${esc(t.name)}${prio}</li>`;
-      }
-      html += "</ul>";
+      const sorted = sortByPriorityThenDeadline(tasks as any[]);
+      const rows = sorted.map((t: any) => [esc(t.name), priorityChip(t.priority)]);
+      html += dataTable(["Tarefa", "Prioridade"], rows, ["left", "left"]);
     }
   }
 
@@ -674,7 +671,7 @@ async function buildMemberDigest(
   if (sections.tarefas_atraso) {
     const { data: tasks } = await supabase
       .from("tasks")
-      .select("name, deadline")
+      .select("name, deadline, priority")
       .eq("assigned_to", profile.id)
       .neq("status", "done")
       .neq("status", "concluida")
@@ -684,12 +681,16 @@ async function buildMemberDigest(
     if (tasks?.length) {
       hasContent = true;
       html += sectionHeader("⚠️ Tarefas em atraso");
-      html += "<ul>";
-      for (const t of tasks) {
+      const sorted = [...tasks].sort((a: any, b: any) => (a.deadline || "").localeCompare(b.deadline || ""));
+      const rows = sorted.map((t: any) => {
         const days = daysDiff(t.deadline, todayStr);
-        html += `<li>${esc(t.name)} <span style="color:#888">(${days} dias)</span></li>`;
-      }
-      html += "</ul>";
+        return [
+          esc(t.name),
+          priorityChip(t.priority),
+          chip(`${days}d`, days >= 7 ? "red" : "amber"),
+        ];
+      });
+      html += dataTable(["Tarefa", "Prioridade", "Atraso"], rows, ["left", "left", "right"]);
     }
   }
 
