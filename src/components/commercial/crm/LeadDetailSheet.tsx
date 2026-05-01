@@ -244,6 +244,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
             });
 
             if (matchedProduct.id) {
+              // Carrega FAQs do produto (podem estar vazias)
               const { data: productData } = await supabase
                 .from('products')
                 .select('faqs')
@@ -253,13 +254,17 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 ? (productData.faqs as unknown as { question: string; answer: string }[])
                 : [];
               const validFaqs = productFaqs.filter(f => f.question?.trim());
-              if (validFaqs.length > 0) {
-                const { data: portal } = await supabase
-                  .from('client_portals')
-                  .select('id')
-                  .eq('client_id', newClient.id)
-                  .maybeSingle();
-                if (portal?.id) {
+
+              // Procura o portal recém-criado (independente de haver FAQs)
+              const { data: portal } = await supabase
+                .from('client_portals')
+                .select('id')
+                .eq('client_id', newClient.id)
+                .maybeSingle();
+
+              if (portal?.id) {
+                // 1) Copia FAQs (se houver pelo menos uma válida)
+                if (validFaqs.length > 0) {
                   await supabase.from('portal_faqs').insert(
                     validFaqs.map((f, i) => ({
                       portal_id: portal.id,
@@ -268,28 +273,28 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                       sort_order: i,
                     }))
                   );
+                }
 
-                  // Copy diagnostic questions to portal as initial questions
-                  const { data: diagQuestions } = await supabase
-                    .from('product_diagnostic_questions')
-                    .select('question, sort_order, question_group, answer_type, group_sort_order')
-                    .eq('product_id', matchedProduct.id!)
-                    .order('group_sort_order')
-                    .order('sort_order');
-                  if (diagQuestions?.length) {
-                    const { data: businessData } = await supabase.from('business_setup').select('*').limit(1).maybeSingle();
-                    const clientData = { email: lead.email, full_name: lead.name };
-                    const rows = diagQuestions.map((dq, i) => ({
-                        portal_id: portal.id,
-                        question: dq.question,
-                        sort_order: dq.sort_order ?? i,
-                        question_group: dq.question_group || null,
-                        answer_type: dq.answer_type || 'text',
-                        group_sort_order: dq.group_sort_order ?? 0,
-                    }));
-                    const enrichedRows = enrichQuestionsWithAutoFill(rows, clientData, businessData || null);
-                    await supabase.from('portal_initial_questions').insert(enrichedRows as any);
-                  }
+                // 2) Copia perguntas de diagnóstico SEMPRE (independente de FAQs)
+                const { data: diagQuestions } = await supabase
+                  .from('product_diagnostic_questions')
+                  .select('question, sort_order, question_group, answer_type, group_sort_order')
+                  .eq('product_id', matchedProduct.id!)
+                  .order('group_sort_order')
+                  .order('sort_order');
+                if (diagQuestions?.length) {
+                  const { data: businessData } = await supabase.from('business_setup').select('*').limit(1).maybeSingle();
+                  const clientData = { email: lead.email, full_name: lead.name };
+                  const rows = diagQuestions.map((dq, i) => ({
+                      portal_id: portal.id,
+                      question: dq.question,
+                      sort_order: dq.sort_order ?? i,
+                      question_group: dq.question_group || null,
+                      answer_type: dq.answer_type || 'text',
+                      group_sort_order: dq.group_sort_order ?? 0,
+                  }));
+                  const enrichedRows = enrichQuestionsWithAutoFill(rows, clientData, businessData || null);
+                  await supabase.from('portal_initial_questions').insert(enrichedRows as any);
                 }
               }
             }
