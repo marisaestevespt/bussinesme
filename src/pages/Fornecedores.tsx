@@ -752,12 +752,12 @@ export default function FornecedoresPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Status</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>NIF</TableHead>
                   <TableHead>Pagamento</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead className="text-right">Despesas</TableHead>
-                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -765,6 +765,17 @@ export default function FornecedoresPage() {
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
                 ) : suppliers.map((s) => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm({ ...s, create_recurring: false }); setSelectedSupplierId(s.id); setOpen(true); }}>
+                    <TableCell>
+                      {(() => {
+                        const pu = (s as any).paused_until as string | null;
+                        const pausedActive = pu && pu > new Date().toISOString().slice(0, 10);
+                        const isIndefinite = pu === '2999-12-31';
+                        if (!s.is_active) return <Badge variant="outline" className="bg-muted text-muted-foreground">Inativo</Badge>;
+                        if (isIndefinite) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado ∞</Badge>;
+                        if (pausedActive) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado até {pu}</Badge>;
+                        return <Badge variant="outline" className="bg-success/10 text-success">Ativo</Badge>;
+                      })()}
+                    </TableCell>
                     <TableCell>
                       <div className="font-medium">{s.name}</div>
                       {s.nif && <div className="text-xs text-muted-foreground">{s.nif}</div>}
@@ -777,17 +788,6 @@ export default function FornecedoresPage() {
                         : '—'}
                     </TableCell>
                     <TableCell className="text-right">{(expenseCounts as any)[s.id] || 0}</TableCell>
-                    <TableCell>
-                      {(() => {
-                        const pu = (s as any).paused_until as string | null;
-                        const pausedActive = pu && pu > new Date().toISOString().slice(0, 10);
-                        const isIndefinite = pu === '2999-12-31';
-                        if (!s.is_active) return <Badge variant="outline" className="bg-muted text-muted-foreground">Inativo</Badge>;
-                        if (isIndefinite) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado ∞</Badge>;
-                        if (pausedActive) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado até {pu}</Badge>;
-                        return <Badge variant="outline" className="bg-success/10 text-success">Ativo</Badge>;
-                      })()}
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
