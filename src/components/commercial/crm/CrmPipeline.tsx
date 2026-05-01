@@ -11,6 +11,7 @@ import { CrmLabelBadges } from './CrmLabelPicker';
 import { format } from 'date-fns';
 import { AlertTriangle, Clock, Phone, Mail, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 
 interface CrmPipelineProps {
@@ -56,7 +57,18 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
     e.preventDefault();
     setDragOver(null);
     const leadId = e.dataTransfer.getData('text/plain');
-    if (leadId) onUpdateStatus(leadId, status);
+    if (!leadId) return;
+    // Se está a marcar como 'ganho', exigir conversão completa via dialog em vez de update direto.
+    // Isto previne leads ganhos sem cliente/projeto/portal associados (validado também por trigger DB).
+    if (status === 'ganho') {
+      const lead = leads.find(l => l.id === leadId);
+      if (lead) {
+        toast.info('Para marcar como ganho, completa a conversão em "Converter em Cliente".');
+        onOpenLead(lead);
+        return;
+      }
+    }
+    onUpdateStatus(leadId, status);
   };
 
   const handleAddStage = () => {
