@@ -166,7 +166,7 @@ const WelcomeClientEmail = ({
                 Aceder ao Portal →
               </Button>
               <Text style={{ ...subtitle, marginTop: '12px', fontSize: '13px' }}>
-                Vais introduzir o teu email e receber um código de acesso.
+                Acede com o teu email — sem palavras-passe nem códigos.
               </Text>
             </Section>
           )}
