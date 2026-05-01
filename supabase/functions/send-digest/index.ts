@@ -1207,6 +1207,53 @@ function sectionHeader(title: string): string {
   return `</div></div><div style="margin:18px 0 0;border-radius:14px;background:#fafafa;border:1px solid #efeff1;overflow:hidden"><div style="padding:18px 22px 16px;border-left:3px solid %%PRIMARY%%"><h2 style="font-size:13px;font-weight:600;color:#1c1c1e;margin:0 0 12px;font-family:%%DISPLAY_FONT%%;letter-spacing:0.2px;text-transform:none">${title}</h2><div style="font-family:%%BODY_FONT%%;font-size:14px;color:#3a3a3c;line-height:1.6">`;
 }
 
+// ─── Table helpers (for richer sections) ──────────────────────────
+// Each cell escapes its content. The `align` array applies "left"/"right"/"center"
+// per column. Headers are 11px uppercase; rows are 13px with subtle separators.
+function dataTable(headers: string[], rows: string[][], align?: ("left"|"right"|"center")[]): string {
+  const al = (i: number) => align?.[i] || "left";
+  const headHtml = headers
+    .map((h, i) => `<th style="text-align:${al(i)};font-size:11px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:0.6px;padding:6px 10px;border-bottom:1px solid #e5e5e7">${esc(h)}</th>`)
+    .join("");
+  const bodyHtml = rows
+    .map(r => "<tr>" + r.map((c, i) => `<td style="text-align:${al(i)};padding:9px 10px;border-bottom:1px solid #efeff1;font-size:13px;color:#1c1c1e;vertical-align:top">${c}</td>`).join("") + "</tr>")
+    .join("");
+  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;margin:6px 0 2px"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
+// Coloured chip, e.g. priority or overdue badge. Use sparingly inside table cells.
+function chip(label: string, color: "red"|"amber"|"green"|"slate"|"primary" = "slate"): string {
+  const palette: Record<string, { bg: string; fg: string }> = {
+    red:    { bg: "#fdecea", fg: "#b71c1c" },
+    amber:  { bg: "#fff4e0", fg: "#9a5b00" },
+    green:  { bg: "#e7f5ec", fg: "#1f7a3a" },
+    slate:  { bg: "#eceef1", fg: "#4a4a4f" },
+    primary:{ bg: "#eceef1", fg: "#1c1c1e" },
+  };
+  const p = palette[color] || palette.slate;
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:${p.bg};color:${p.fg};font-size:11px;font-weight:600;letter-spacing:0.2px">${esc(label)}</span>`;
+}
+
+function priorityChip(prio?: string | null): string {
+  if (prio === "alta") return chip("Alta", "red");
+  if (prio === "media") return chip("Média", "amber");
+  if (prio === "baixa") return chip("Baixa", "slate");
+  return "—";
+}
+
+// Sort tasks by priority (alta → media → baixa → none) then by deadline asc.
+function sortByPriorityThenDeadline<T extends { priority?: string | null; deadline?: string | null }>(tasks: T[]): T[] {
+  const order: Record<string, number> = { alta: 0, media: 1, baixa: 2 };
+  return [...tasks].sort((a, b) => {
+    const pa = order[a.priority || ""] ?? 3;
+    const pb = order[b.priority || ""] ?? 3;
+    if (pa !== pb) return pa - pb;
+    const da = a.deadline || "9999-12-31";
+    const db = b.deadline || "9999-12-31";
+    return da.localeCompare(db);
+  });
+}
+
 function esc(s: string): string {
   return s
     .replace(/&/g, "&amp;")
