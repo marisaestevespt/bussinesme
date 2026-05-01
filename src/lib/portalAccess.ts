@@ -9,7 +9,6 @@ export const PUBLIC_PORTAL_KEYS = [
   'show_timeline',
   'show_payments',
   'show_meetings',
-  'show_materials',
   'show_faqs',
   'show_monthly_summary',
   'show_workspace',
@@ -28,7 +27,6 @@ export interface PublicPortal {
   show_timeline?: boolean;
   show_payments?: boolean;
   show_meetings?: boolean;
-  show_materials?: boolean;
   show_faqs?: boolean;
   show_monthly_summary?: boolean;
   show_workspace?: boolean;
