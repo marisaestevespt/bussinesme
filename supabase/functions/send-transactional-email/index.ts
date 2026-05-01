@@ -2,6 +2,10 @@ import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
+import {
+  applySafetyPolicy,
+  loadEmailSafetyConfig,
+} from '../_shared/email-test-mode.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
 // To update, re-run the email domain setup flow.
@@ -108,9 +112,9 @@ Deno.serve(async (req) => {
   // Resolve effective recipient: template-level `to` takes precedence over
   // the caller-provided recipientEmail. This allows notification templates
   // to always send to a fixed address (e.g., site owner from env var).
-  const effectiveRecipient = template.to || recipientEmail
+  const intendedRecipient = template.to || recipientEmail
 
-  if (!effectiveRecipient) {
+  if (!intendedRecipient) {
     return new Response(
       JSON.stringify({
         error: 'recipientEmail is required (unless the template defines a fixed recipient)',
@@ -124,6 +128,45 @@ Deno.serve(async (req) => {
 
   // Create Supabase client with service role (bypasses RLS)
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+  // ---- SAFETY GATE ----
+  // Centralised email safety: test-mode redirect + client-block switch.
+  // Every transactional/digest send goes through this single chokepoint.
+  const safetyConfig = await loadEmailSafetyConfig(supabase)
+  const decision = applySafetyPolicy({
+    templateName,
+    intendedRecipient,
+    config: safetyConfig,
+  })
+
+  if (decision.action === 'block') {
+    console.log('[email-safety] Blocked client-bound email', {
+      templateName,
+      intendedRecipient,
+      reason: decision.reason,
+    })
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: intendedRecipient,
+      status: 'suppressed',
+      error_message: `safety:${decision.reason}`,
+    })
+    return new Response(
+      JSON.stringify({ success: false, reason: 'safety_block', detail: decision.reason }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
+
+  const effectiveRecipient = decision.effectiveRecipient
+  const safetySubjectPrefix = decision.subjectPrefix
+  if (decision.action === 'redirect') {
+    console.log('[email-safety] Redirecting (test mode)', {
+      templateName,
+      intendedRecipient,
+      effectiveRecipient,
+    })
+  }
 
   // 2. Check suppression list (fail-closed: if we can't verify, don't send)
   const { data: suppressed, error: suppressionError } = await supabase
@@ -292,10 +335,11 @@ Deno.serve(async (req) => {
   )
 
   // Resolve subject — supports static string or dynamic function
-  const resolvedSubject =
+  const baseSubject =
     typeof template.subject === 'function'
       ? template.subject(templateData)
       : template.subject
+  const resolvedSubject = `${safetySubjectPrefix}${baseSubject}`
 
   // 5. Enqueue the pre-rendered email for async processing by the dispatcher.
   // The dispatcher (process-email-queue) handles sending, retries, and rate-limit backoff.
