@@ -738,17 +738,18 @@ export default function ProjetoDetailPage() {
           <div className="space-y-2">
             {/* Health card (left) + project name on the same row */}
             <div className="flex items-center gap-3">
-              <ProjectHealthBadge
-                project={local as any}
-                tasks={tasks as any}
-                progressOverride={autoProgress}
-                variant="square"
-              />
               <Input
                 value={local.name}
                 onChange={e => updateField('name', e.target.value)}
                 placeholder="Nome do projeto"
                 className="block w-full text-3xl font-bold tracking-tight border-none px-0 focus-visible:ring-0 h-auto bg-transparent md:text-2xl"
+              />
+              <ProjectHealthBadge
+                project={local as any}
+                tasks={tasks as any}
+                progressOverride={autoProgress}
+                variant="square"
+                className="ml-auto"
               />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
