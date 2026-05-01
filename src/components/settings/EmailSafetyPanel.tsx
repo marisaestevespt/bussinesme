@@ -35,7 +35,7 @@ export function EmailSafetyPanel() {
     if (data) {
       setState({
         email_test_mode: data.email_test_mode ?? true,
-        email_test_redirect: data.email_test_redirect ?? 'amarisaeg@gmail.com',
+        email_test_redirect: data.email_test_redirect ?? 'info@marisaesteves.pt',
         email_send_to_clients_enabled: data.email_send_to_clients_enabled ?? false,
       });
     }

@@ -35,14 +35,14 @@ export async function loadEmailSafetyConfig(
     console.warn('[email-safety] Could not load business_setup, using safe defaults', { error })
     return {
       testMode: true,
-      testRedirect: 'amarisaeg@gmail.com',
+      testRedirect: 'info@marisaesteves.pt',
       sendToClientsEnabled: false,
     }
   }
 
   return {
     testMode: data.email_test_mode !== false, // default true
-    testRedirect: data.email_test_redirect || 'amarisaeg@gmail.com',
+    testRedirect: data.email_test_redirect || 'info@marisaesteves.pt',
     sendToClientsEnabled: data.email_send_to_clients_enabled === true, // default false
   }
 }
