@@ -252,6 +252,7 @@ export default function ProjetoDetailPage() {
   function getProjectProgress() {
     // Single source of truth — same rule used by Operação's "Saúde dos Projetos"
     // card and by the project detail health badge. Do NOT inline a different rule.
+    if (!local) return 0;
     return computeProjectProgressFromSources(
       local as any,
       projectDeliverables as any,
