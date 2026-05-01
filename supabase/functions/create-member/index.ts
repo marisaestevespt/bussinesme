@@ -232,7 +232,12 @@ Deno.serve(async (req) => {
       const resetRedirectTo = `${appOrigin}/reset-password`;
 
       const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
-        type: "invite",
+        // The user was just created above with email_confirm:true, so "invite"
+        // would fail ("user already registered"). "recovery" generates a
+        // single-use action link that lets them set their initial password.
+        // generateLink does NOT send an email — we email it ourselves via
+        // the welcome-member template.
+        type: "recovery",
         email,
         options: {
           redirectTo: resetRedirectTo,
