@@ -143,8 +143,9 @@ function groupTasks(tasks: any[], by: ViewGroupBy, projectName: (id: string | nu
     else if (by === 'deadline') {
       const todayStr = format(new Date(), 'yyyy-MM-dd');
       if (!t.deadline) { key = '__sem__'; label = 'Sem prazo'; }
-      else if (t.deadline < todayStr) { key = 'atrasado'; label = 'Em atraso'; }
+      else if (t.deadline < todayStr && !isTaskDone(t)) { key = 'atrasado'; label = 'Em atraso'; }
       else if (t.deadline === todayStr) { key = 'hoje'; label = 'Hoje'; }
+      else if (isTaskDone(t)) { key = 'concluido'; label = 'Concluídas'; }
       else { key = 'futuro'; label = 'Próximos'; }
     }
     if (!map.has(key)) map.set(key, []);
