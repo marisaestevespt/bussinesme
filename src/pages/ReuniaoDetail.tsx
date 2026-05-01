@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import {
-  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat, ListTodo, MessageSquare, Clock, Video, Link2, FolderOpen, CheckSquare, Lightbulb,
+  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat, ListTodo, MessageSquare, Clock, Video, Link2, FolderOpen, CheckSquare, Lightbulb, RefreshCw,
 } from 'lucide-react';
 import { CreateTasksFromMeetingDialog } from '@/components/meeting/CreateTasksFromMeetingDialog';
 import { cn } from '@/lib/utils';
