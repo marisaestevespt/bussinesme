@@ -7,7 +7,7 @@ interface Props { sections: SectionDef[]; }
 export function NavRow({ sections }: Props) {
   const navigate = useNavigate();
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       {sections.map(s => (
         <Card
           key={s.path}
