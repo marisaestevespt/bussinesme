@@ -390,7 +390,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             <DialogTitle className="sr-only">{editingTask ? name || 'Editar tarefa' : 'Nova tarefa'}</DialogTitle>
             <Input
               value={name}
-              onChange={e => handleNameChange(e.target.value)}
+              onChange={e => { setName(e.target.value); setSuggestionDismissed(false); }}
               placeholder={editingTask ? 'Nome da tarefa' : 'Nova tarefa sem nome'}
               className="h-auto !text-[23px] font-semibold border-0 shadow-none focus-visible:ring-0 px-0 py-1 placeholder:text-muted-foreground/40"
             />
