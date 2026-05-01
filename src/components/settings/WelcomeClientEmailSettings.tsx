@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
-interface Settings {
+export interface WelcomeClientEmailSettingsData {
   intro_text: string;
   next_steps: string[];
   support_hours: string;
@@ -18,7 +18,7 @@ interface Settings {
   whatsapp_message: string;
 }
 
-const DEFAULTS: Settings = {
+export const DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS: WelcomeClientEmailSettingsData = {
   intro_text: 'Estamos muito felizes por te ter connosco! A partir de agora vamos trabalhar juntos para alcançar os teus objetivos.',
   next_steps: [
     'Aceder ao Portal do Cliente e explorar o teu espaço',
@@ -30,26 +30,30 @@ const DEFAULTS: Settings = {
   whatsapp_message: 'Olá! Sou cliente e gostaria de tirar uma dúvida.',
 };
 
-export function WelcomeClientEmailSettings() {
+export function WelcomeClientEmailSettings({ onPreviewChange }: { onPreviewChange?: (data: WelcomeClientEmailSettingsData) => void }) {
   const { settings } = useBusinessSettings();
   const queryClient = useQueryClient();
-  const [data, setData] = useState<Settings>(DEFAULTS);
+  const [data, setData] = useState<WelcomeClientEmailSettingsData>(DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const stored = (settings as any)?.welcome_client_email_settings;
     if (stored) {
       setData({
-        intro_text: stored.intro_text ?? DEFAULTS.intro_text,
-        next_steps: Array.isArray(stored.next_steps) ? stored.next_steps : DEFAULTS.next_steps,
-        support_hours: stored.support_hours ?? DEFAULTS.support_hours,
-        whatsapp_number: stored.whatsapp_number ?? DEFAULTS.whatsapp_number,
-        whatsapp_message: stored.whatsapp_message ?? DEFAULTS.whatsapp_message,
+        intro_text: stored.intro_text ?? DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS.intro_text,
+        next_steps: Array.isArray(stored.next_steps) ? stored.next_steps : DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS.next_steps,
+        support_hours: stored.support_hours ?? DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS.support_hours,
+        whatsapp_number: stored.whatsapp_number ?? DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS.whatsapp_number,
+        whatsapp_message: stored.whatsapp_message ?? DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS.whatsapp_message,
       });
     }
   }, [settings]);
 
-  const update = <K extends keyof Settings>(key: K, value: Settings[K]) => {
+  useEffect(() => {
+    onPreviewChange?.(data);
+  }, [data, onPreviewChange]);
+
+  const update = <K extends keyof WelcomeClientEmailSettingsData>(key: K, value: WelcomeClientEmailSettingsData[K]) => {
     setData((d) => ({ ...d, [key]: value }));
   };
 
