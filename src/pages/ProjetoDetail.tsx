@@ -681,6 +681,11 @@ export default function ProjetoDetailPage() {
                   : daysToRenewal === 0 ? 'Renova hoje' : `Em renovação há ${Math.abs(daysToRenewal)} dias`}
               </Badge>
             )}
+            <ProjectHealthBadge
+              project={local as any}
+              tasks={tasks as any}
+              progressOverride={autoProgress}
+            />
           </div>
 
           {/* Notion-style property rows */}
