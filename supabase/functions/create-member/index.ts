@@ -410,6 +410,7 @@ Deno.serve(async (req) => {
           whatsapp_team_url,
           whatsapp_dept_url,
           department_name,
+          reused_existing_user,
         }),
         {
           status: 200,
