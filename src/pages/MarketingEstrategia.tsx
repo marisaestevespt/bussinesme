@@ -15,15 +15,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import {
-  Plus, Trash2, Pencil, ExternalLink, Paperclip, X, Upload,
-  Instagram, Youtube, Facebook, Linkedin, Music2, Globe, Mail, Twitter,
-  AtSign, Headphones, FileText, Send, MessageCircle, Image as ImageIcon, Radio,
-} from 'lucide-react';
+import { Plus, Trash2, Pencil, ExternalLink, Paperclip, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { ChannelCard } from '@/components/marketing/ChannelCard';
 
 const DIST_COLUMNS = [
   { key: 'segunda', label: 'Segunda', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', addColor: 'text-[hsl(351,35%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
@@ -35,14 +32,6 @@ const DIST_COLUMNS = [
   { key: 'domingo', label: 'Domingo', headerBg: 'bg-[hsl(160,28%,92%)] dark:bg-[hsl(160,22%,15%)]', headerText: 'text-[hsl(160,35%,40%)] dark:text-[hsl(160,35%,60%)]', addColor: 'text-[hsl(160,30%,50%)]', cardBorder: 'border-l-[3px] border-[hsl(160,35%,65%)]' },
   { key: 'mensal', label: 'Mensal', headerBg: 'bg-[hsl(270,25%,93%)] dark:bg-[hsl(270,20%,15%)]', headerText: 'text-[hsl(270,30%,48%)] dark:text-[hsl(270,30%,65%)]', addColor: 'text-[hsl(270,25%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(270,30%,70%)]' },
 ];
-
-// Lucide icon per channel (sober fallback when no upload exists)
-const CHANNEL_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  'Instagram': Instagram, 'Youtube': Youtube, 'Facebook': Facebook, 'TikTok': Music2,
-  'LinkedIn': Linkedin, 'Pinterest': ImageIcon, 'Website': Globe, 'Email Marketing': Mail,
-  'Twitter': Twitter, 'Threads': AtSign, 'Spotify': Headphones, 'Blog': FileText,
-  'Podcast': Radio, 'Newsletter': Mail, 'WhatsApp': MessageCircle, 'Telegram': Send,
-};
 
 const CHANNEL_EMOJI: Record<string, string> = {
   'Instagram': '📸', 'Youtube': '🎬', 'Facebook': '👥', 'TikTok': '🎵',
