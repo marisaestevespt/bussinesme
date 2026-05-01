@@ -47,8 +47,8 @@ const PaymentReminderEmail = ({
   const days = daysUntil ?? 3
 
   const brandPrimary = hslToCss(primaryColor, '#1a1f36')
-  const brandText = hslToCss(textColor, '#1a1f36')
-  const brandMuted = hslToCss(accentColor, '#555770')
+  const brandText = '#1a1f36' // neutral dark, ignores textColor to avoid washed-out text
+  const brandMuted = '#555770' // neutral muted gray, ignores accentColor to avoid pink/light text
   const bodyFont = fontBody ? `'${fontBody}', Arial, sans-serif` : "'DM Sans', Arial, sans-serif"
   const displayFont = fontDisplay ? `'${fontDisplay}', Georgia, serif` : bodyFont
 
