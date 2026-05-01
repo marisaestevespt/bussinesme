@@ -465,7 +465,7 @@ export default function FornecedoresPage() {
           total = Math.round(base * (1 + vat / 100) * 100) / 100;
         }
         const periodicity = form.recurring_periodicity || 'mensal';
-        const startDate = form.first_payment_date || form.contract_start_date || new Date().toISOString().slice(0, 10);
+        const firstPayment = form.first_payment_date || form.contract_start_date;
 
         // Create parent recurring expense (the rule)
         const { data: parentData, error: parentErr } = await supabase.from('financial_expenses').insert({
@@ -496,7 +496,6 @@ export default function FornecedoresPage() {
         if (parentErr) throw parentErr;
 
         // Generate individual expenses
-        const firstPayment = form.first_payment_date || form.contract_start_date;
         const endDate = form.contract_end_date;
         if (firstPayment && endDate) {
           const count = await generateExpensesForPeriod(
