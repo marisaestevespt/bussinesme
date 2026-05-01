@@ -112,7 +112,7 @@ export default function MarketingDashboard() {
 
 
 
-  const createContent = async (tpl?: ContentTemplate) => {
+  const createContent = async (tpl?: ContentTemplate, scheduledAt?: Date) => {
     if (creatingContent) return;
     setCreatingContent(true);
     try {
@@ -123,6 +123,11 @@ export default function MarketingDashboard() {
       if (tpl?.defaultContentType) payload.content_type = tpl.defaultContentType;
       if (tpl?.defaultFormat) payload.format = tpl.defaultFormat;
       if (tpl?.defaultCopy) payload.copy_content = tpl.defaultCopy;
+      if (scheduledAt) {
+        const d = new Date(scheduledAt);
+        d.setHours(12, 0, 0, 0);
+        payload.scheduled_at = d.toISOString();
+      }
 
       const { data, error } = await supabase.from('content_items').insert(payload as any).select('id').single() as { data: { id: string } | null; error: any };
       if (error || !data) { toast.error('Erro ao criar'); return; }
@@ -270,7 +275,14 @@ export default function MarketingDashboard() {
               <h2 className="text-xl font-semibold text-foreground">Calendário de Conteúdos</h2>
               <NewContentButton onPick={createContent} loading={creatingContent} />
             </div>
-            <ContentCalendar items={contentItems} channels={channels} contentChannelLinks={contentChannelLinks} profiles={profiles} attachments={contentAttachments} />
+            <ContentCalendar
+              items={contentItems}
+              channels={channels}
+              contentChannelLinks={contentChannelLinks}
+              profiles={profiles}
+              attachments={contentAttachments}
+              onCreateForDate={(d) => createContent(undefined, d)}
+            />
           </section>
         </div>
       </div>
