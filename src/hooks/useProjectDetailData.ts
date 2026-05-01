@@ -186,8 +186,31 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
   });
 
   const meetingsQ = useQuery({
-    queryKey: ['project-meetings', id],
-    queryFn: async () => { const { data } = await supabase.from('meetings').select('id, title, date_time, status, project_id, client_id, visible_in_portal').eq('project_id', id!).order('date_time'); return (data || []) as Meeting[]; },
+    queryKey: ['project-meetings', id, project?.client_id],
+    queryFn: async () => {
+      // Reuniões ligadas ao projeto
+      const { data: byProject } = await supabase
+        .from('meetings')
+        .select('id, title, date_time, status, project_id, client_id, visible_in_portal')
+        .eq('project_id', id!)
+        .order('date_time');
+      let combined = (byProject || []) as Meeting[];
+      // Fallback: reuniões só com client_id (sem project_id) deste cliente
+      if (project?.client_id) {
+        const { data: byClient } = await supabase
+          .from('meetings')
+          .select('id, title, date_time, status, project_id, client_id, visible_in_portal')
+          .eq('client_id', project.client_id)
+          .is('project_id', null)
+          .order('date_time');
+        const seen = new Set(combined.map(m => m.id));
+        for (const m of (byClient || []) as Meeting[]) {
+          if (!seen.has(m.id)) combined.push(m);
+        }
+        combined.sort((a, b) => (a.date_time || '').localeCompare(b.date_time || ''));
+      }
+      return combined;
+    },
     enabled: !!id,
   });
 
