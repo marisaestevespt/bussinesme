@@ -350,7 +350,7 @@ export default function ClienteDetailPage() {
     if (form.email) {
       try {
         // Fetch business settings (brand) and owner profile
-        const [{ data: bs }, { data: portal }, { data: profile }] = await Promise.all([
+        const [{ data: bs }, { data: portal }, { data: profile }, { data: emailCustom }] = await Promise.all([
           supabase.from('business_settings').select('business_name,primary_color,accent_color,text_color,font_display,font_body,logo_url').maybeSingle(),
           supabase.from('client_portals').select('token').eq('client_id', id).eq('is_active', true).maybeSingle(),
           (async () => {
@@ -358,6 +358,7 @@ export default function ClienteDetailPage() {
             if (!user) return { data: null } as any;
             return supabase.from('profiles').select('full_name').eq('user_id', user.id).maybeSingle();
           })(),
+          supabase.from('email_template_settings').select('*').eq('template_key', 'client-offboarding').maybeSingle(),
         ]);
 
         const portalUrl = portal?.token
@@ -376,13 +377,18 @@ export default function ClienteDetailPage() {
               businessName: bs?.business_name || 'a equipa',
               ownerName: profile?.full_name || '',
               supportEmail: '',
-              primaryColor: bs?.primary_color,
-              primaryForeground: '0 0% 100%',
-              textColor: bs?.text_color,
-              accentColor: bs?.accent_color,
-              fontDisplay: bs?.font_display,
-              fontBody: bs?.font_body,
+              primaryColor: (emailCustom as any)?.primary_color || bs?.primary_color,
+              primaryForeground: (emailCustom as any)?.primary_foreground || '0 0% 100%',
+              textColor: (emailCustom as any)?.text_color || bs?.text_color,
+              accentColor: (emailCustom as any)?.muted_color || bs?.accent_color,
+              fontDisplay: (emailCustom as any)?.font_display || bs?.font_display,
+              fontBody: (emailCustom as any)?.font_body || bs?.font_body,
               logoUrl: bs?.logo_url || undefined,
+              customTitle: (emailCustom as any)?.title_text || undefined,
+              customSubtitle: (emailCustom as any)?.subtitle_text || undefined,
+              customCta: (emailCustom as any)?.cta_text || undefined,
+              customFooter: (emailCustom as any)?.footer_text || undefined,
+              customEmoji: (emailCustom as any)?.emoji || undefined,
             },
           },
         });

@@ -21,6 +21,11 @@ interface PaymentReminderProps {
   fontDisplay?: string
   fontBody?: string
   logoUrl?: string
+  customTitle?: string
+  customSubtitle?: string
+  customCta?: string
+  customFooter?: string
+  customEmoji?: string
 }
 
 function hslToCss(hsl: string | undefined, fallback: string): string {
@@ -32,6 +37,7 @@ const PaymentReminderEmail = ({
   clientName, productName, amount, dueDate, daysUntil,
   businessName, primaryColor, primaryForeground, textColor, accentColor,
   fontDisplay, fontBody, logoUrl,
+  customTitle, customSubtitle, customCta, customFooter, customEmoji,
 }: PaymentReminderProps) => {
   const name = clientName || 'Cliente'
   const biz = businessName || SITE_NAME
@@ -71,11 +77,17 @@ const PaymentReminderEmail = ({
             {logoUrl ? (
               <Img src={logoUrl} alt={biz} style={logoStyle} />
             ) : (
-              <Text style={headerEmoji}>🔔</Text>
+            <Text style={headerEmoji}>{customEmoji || '🔔'}</Text>
             )}
-            <Heading style={h1}>{name}, lembrete de pagamento</Heading>
+            <Heading style={h1}>
+              {customTitle
+                ? customTitle.replace('{name}', name).replace('{amount}', value).replace('{product}', product)
+                : `${name}, lembrete de pagamento`}
+            </Heading>
             <Text style={subtitle}>
-              Enviamos este lembrete para que possa organizar o pagamento referente a {product}, que vence em breve.
+              {customSubtitle
+                ? customSubtitle.replace('{name}', name).replace('{amount}', value).replace('{product}', product)
+                : `Enviamos este lembrete para que possa organizar o pagamento referente a ${product}, que vence em breve.`}
             </Text>
           </Section>
 
@@ -95,9 +107,13 @@ const PaymentReminderEmail = ({
           <Hr style={divider} />
 
           <Text style={{ fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0', textAlign: 'center' as const }}>
-            Se já efetuou o pagamento, por favor ignore este email.
-            <br />
-            Em caso de dúvida, não hesite em contactar-nos.
+            {customFooter || (
+              <>
+                Se já efetuou o pagamento, por favor ignore este email.
+                <br />
+                Em caso de dúvida, não hesite em contactar-nos.
+              </>
+            )}
           </Text>
 
           <Text style={footer}>
