@@ -12,6 +12,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { EmailSafetyPanel } from './EmailSafetyPanel';
 
 interface TemplateVariable {
   token: string;
@@ -421,6 +422,9 @@ export function SettingsEmails() {
 
   return (
     <div className="space-y-6">
+      {/* Safety controls — always render at the top */}
+      <EmailSafetyPanel />
+
       {/* Template selector */}
       <Card>
         <CardHeader>

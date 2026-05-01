@@ -710,6 +710,9 @@ export type Database = {
           contabilista: string
           contabilista_contacto: string
           created_at: string
+          email_send_to_clients_enabled: boolean
+          email_test_mode: boolean
+          email_test_redirect: string
           iban: string
           id: string
           morada_fiscal: string
@@ -734,6 +737,9 @@ export type Database = {
           contabilista?: string
           contabilista_contacto?: string
           created_at?: string
+          email_send_to_clients_enabled?: boolean
+          email_test_mode?: boolean
+          email_test_redirect?: string
           iban?: string
           id?: string
           morada_fiscal?: string
@@ -758,6 +764,9 @@ export type Database = {
           contabilista?: string
           contabilista_contacto?: string
           created_at?: string
+          email_send_to_clients_enabled?: boolean
+          email_test_mode?: boolean
+          email_test_redirect?: string
           iban?: string
           id?: string
           morada_fiscal?: string
