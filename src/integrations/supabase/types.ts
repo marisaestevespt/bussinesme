@@ -11824,7 +11824,14 @@ export type Database = {
         | "venda"
         | "debriefing_pos_fecho"
       launch_task_status: "por_comecar" | "em_curso" | "concluido" | "bloqueado"
-      meeting_status: "por_confirmar" | "marcada" | "terminada" | "confirmada"
+      meeting_status:
+        | "por_confirmar"
+        | "marcada"
+        | "terminada"
+        | "confirmada"
+        | "por_organizar"
+        | "realizada"
+        | "cancelada"
       meeting_type:
         | "recorrente"
         | "projeto"
@@ -11990,7 +11997,15 @@ export const Constants = {
         "debriefing_pos_fecho",
       ],
       launch_task_status: ["por_comecar", "em_curso", "concluido", "bloqueado"],
-      meeting_status: ["por_confirmar", "marcada", "terminada", "confirmada"],
+      meeting_status: [
+        "por_confirmar",
+        "marcada",
+        "terminada",
+        "confirmada",
+        "por_organizar",
+        "realizada",
+        "cancelada",
+      ],
       meeting_type: [
         "recorrente",
         "projeto",
