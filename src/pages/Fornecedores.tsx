@@ -371,6 +371,9 @@ export default function FornecedoresPage() {
     qc.invalidateQueries({ queryKey: ['suppliers-all'] });
     qc.invalidateQueries({ queryKey: ['suppliers-list'] });
     qc.invalidateQueries({ queryKey: ['suppliers-list-vat'] });
+    qc.invalidateQueries({ queryKey: ['suppliers-setup-fin'] });
+    qc.invalidateQueries({ queryKey: ['suppliers-id-name-map'] });
+    qc.invalidateQueries({ queryKey: ['suppliers-export-contabilista'] });
     qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     qc.invalidateQueries({ queryKey: ['recurring-expenses'] });
     qc.invalidateQueries({ queryKey: ['supplier-expense-counts'] });
