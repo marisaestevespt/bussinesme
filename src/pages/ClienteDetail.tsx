@@ -53,7 +53,7 @@ import { CustomFieldsSection } from '@/components/CustomFieldsSection';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog';
 import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
-import { sumRevenue } from '@/lib/salesCalculations';
+import { sumRevenue, pendingSales } from '@/lib/salesCalculations';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { buildPaymentEntries } from '@/lib/paymentGenerator';
 import { useAuth } from '@/hooks/useAuth';
@@ -266,7 +266,7 @@ export default function ClienteDetailPage() {
           // em_offboarding → show popup first
           if (newStatus === 'em_offboarding' && !skipOffboardingCheck) {
             // Check pending payments
-            const unpaid = clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada');
+            const unpaid = pendingSales(clientSales);
             setPendingPaymentsCount(unpaid.length);
             setPendingPaymentsTotal(unpaid.reduce((sum, s) => sum + Number(s.base_value || 0), 0));
             setOffboardingNps(true);
@@ -903,14 +903,14 @@ export default function ClienteDetailPage() {
     <AppLayout>
       <div className="space-y-6 w-full">
         {/* Pending payments alert for offboarding */}
-        {form.status === 'em_offboarding' && clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').length > 0 && (
+        {form.status === 'em_offboarding' && pendingSales(clientSales).length > 0 && (
           <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
             <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
             <div>
               <p className="text-sm font-medium text-destructive">Pagamentos pendentes</p>
               <p className="text-xs text-muted-foreground">
-                Este cliente tem {clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').length} pagamento(s)
-                pendente(s) no valor de {clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').reduce((sum, s) => sum + Number(s.base_value || 0), 0).toFixed(2)}€
+                Este cliente tem {pendingSales(clientSales).length} pagamento(s)
+                pendente(s) no valor de {pendingSales(clientSales).reduce((sum, s) => sum + Number(s.base_value || 0), 0).toFixed(2)}€
               </p>
             </div>
           </div>
