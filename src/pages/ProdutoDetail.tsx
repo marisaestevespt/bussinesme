@@ -31,6 +31,7 @@ import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
 import { ProductPortalTemplateSection } from '@/components/product/ProductPortalTemplateSection';
+import { ProductWelcomeEmailSection } from '@/components/product/ProductWelcomeEmailSection';
 import { ProductProjectsSection } from '@/components/product/ProductProjectsSection';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -852,13 +853,24 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'portal-template' && (
-            <ProductPortalTemplateSection
-              faqs={((form as any).portal_faqs_template || []) as any[]}
-              materials={((form as any).portal_materials_template || []) as any[]}
-              timeline={((form as any).portal_timeline_template || []) as any[]}
-              isOwner={isOwner}
-              onUpdate={(field, value) => update(field, value)}
-            />
+            <div className="space-y-6">
+              <ProductPortalTemplateSection
+                faqs={((form as any).portal_faqs_template || []) as any[]}
+                materials={((form as any).portal_materials_template || []) as any[]}
+                timeline={((form as any).portal_timeline_template || []) as any[]}
+                isOwner={isOwner}
+                onUpdate={(field, value) => update(field, value)}
+              />
+              {id && id !== 'novo' && (
+                <ProductWelcomeEmailSection
+                  productId={id}
+                  bannerUrl={(form as any).welcome_email_banner_url}
+                  accentColor={(form as any).welcome_email_accent_color}
+                  isOwner={isOwner}
+                  onUpdate={(field, value) => update(field as any, value)}
+                />
+              )}
+            </div>
           )}
 
           {openSection === 'metricas' && (

@@ -25,6 +25,7 @@ interface WelcomeClientProps {
   fontDisplay?: string
   fontBody?: string
   logoUrl?: string
+  bannerUrl?: string
 }
 
 function hslToCss(hsl: string | undefined, fallback: string): string {
@@ -67,6 +68,7 @@ const WelcomeClientEmail = ({
   fontDisplay,
   fontBody,
   logoUrl,
+  bannerUrl,
 }: WelcomeClientProps) => {
   const name = clientName || 'cliente'
   const biz = businessName || SITE_NAME
@@ -102,6 +104,7 @@ const WelcomeClientEmail = ({
   const whatsappButton = { backgroundColor: '#25D366', color: '#ffffff', fontSize: '14px', fontWeight: '600' as const, padding: '12px 24px', borderRadius: '8px', textDecoration: 'none', display: 'inline-block' as const }
   const footer = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
   const logoStyle = { width: '48px', height: '48px', borderRadius: '10px', margin: '0 auto 16px' }
+  const bannerStyle = { width: '100%', height: 'auto', borderRadius: '12px', margin: '0 0 24px', display: 'block' as const }
   const introStyle = { fontSize: '15px', color: brandText, lineHeight: '1.7', margin: '0' }
 
   return (
@@ -110,6 +113,9 @@ const WelcomeClientEmail = ({
       <Preview>Bem-vindo(a) — o teu acesso ao Portal está pronto</Preview>
       <Body style={main}>
         <Container style={container}>
+          {bannerUrl && (
+            <Img src={bannerUrl} alt={productName || biz} style={bannerStyle} />
+          )}
           <Section style={headerSection}>
             {logoUrl ? (
               <Img src={logoUrl} alt={biz} style={logoStyle} />
@@ -241,5 +247,6 @@ export const template = {
     primaryForeground: '0 0% 100%',
     fontDisplay: 'DM Serif Display',
     fontBody: 'DM Sans',
+    bannerUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=400&fit=crop',
   },
 } satisfies TemplateEntry
