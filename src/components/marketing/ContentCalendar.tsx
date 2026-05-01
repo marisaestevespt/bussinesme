@@ -11,7 +11,7 @@ import { pt } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { STATUS_OPTIONS, FORMAT_OPTIONS, CONTENT_TYPE_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,6 +30,7 @@ interface Props {
   calendarOnly?: boolean;
   profiles?: ProfileInfo[];
   attachments?: AttachmentInfo[];
+  onCreateForDate?: (date: Date) => void;
 }
 
 function getItemChannels(itemId: string, channels: MarketingChannel[], links: ContentChannelLink[]) {
@@ -137,7 +138,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
   );
 }
 
-export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly, profiles, attachments }: Props) {
+export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly, profiles, attachments, onCreateForDate }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
@@ -187,8 +188,20 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[130px] p-1.5 bg-card flex flex-col", !isCurrentMonth && "opacity-40")}>
-              <p className={cn("text-xs font-medium mb-1 shrink-0", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
+            <div key={day.toISOString()} className={cn("group/day relative min-h-[130px] p-1.5 bg-card flex flex-col", !isCurrentMonth && "opacity-40")}>
+              <div className="flex items-center justify-between mb-1 shrink-0">
+                <p className={cn("text-xs font-medium", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
+                {onCreateForDate && (
+                  <button
+                    type="button"
+                    aria-label={`Adicionar conteúdo em ${format(day, 'd MMM', { locale: pt })}`}
+                    onClick={(e) => { e.stopPropagation(); onCreateForDate(day); }}
+                    className="opacity-0 group-hover/day:opacity-100 hq-transition h-5 w-5 inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
               <div className="flex flex-col gap-1 flex-1">
                 {dayItems.slice(0, 4).map(item => (
                   <div key={item.id} className="flex-1 min-h-0">
