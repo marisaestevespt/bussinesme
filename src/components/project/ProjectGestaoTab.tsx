@@ -202,45 +202,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     });
   }, [projectSales, unlinkedClientSales]);
 
-  // ─── Meetings ─────────────────────────────────────────────────
-  const { data: meetings = [] } = useQuery({
-    queryKey: ['project-meetings', projectId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('meetings')
-        .select('id, title, date_time, status, meeting_url, meeting_participants(profile_id, profiles:profiles(full_name))')
-        .eq('project_id', projectId)
-        .order('date_time', { ascending: false });
-      return data || [];
-    },
-  });
-
-  const { data: clientMeetings = [] } = useQuery({
-    queryKey: ['client-meetings-project', clientId, clientName],
-    queryFn: async () => {
-      if (!clientId && !clientName) return [];
-      let query = supabase
-        .from('meetings')
-        .select('id, title, date_time, status, meeting_url, meeting_participants(profile_id, profiles:profiles(full_name))')
-        .is('project_id', null)
-        .order('date_time', { ascending: false });
-      if (clientId) query = query.eq('client_id', clientId);
-      else if (clientName) query = query.eq('client_name', clientName);
-      const { data } = await query;
-      return data || [];
-    },
-    enabled: !!clientId || !!clientName,
-  });
-
-  const allMeetings = [...meetings, ...clientMeetings].sort((a, b) =>
-    new Date(b.date_time).getTime() - new Date(a.date_time).getTime()
-  );
-
-  // Use canonical meeting statuses (mapped to local shape) so badges match the Reunioes page.
-  const MEETING_STATUSES: Record<string, { label: string; badgeColor: string; color: string }> = Object.fromEntries(
-    CANON_MEETING_STATUSES_FOR_GESTAO.map(s => [s.value, { label: s.label, badgeColor: s.color, color: s.dotColor }])
-  );
-
   // ─── Helper: resolve payment method for a generated entry ─────
   const getMethodForEntry = (isEntrada: boolean) => {
     if (payMethod === 'entrada_prestacoes') {
