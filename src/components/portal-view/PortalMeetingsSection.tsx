@@ -120,6 +120,9 @@ function MeetingDialog({
   const m = meeting;
   const status = m.status || '';
   const isPending = isMeetingPending({ status });
+  // Mostrar botão "Confirmar presença" SÓ quando ainda está por confirmar.
+  // Se já foi confirmada (ou outro estado), não pedimos confirmação outra vez.
+  const needsConfirmation = status === 'por_confirmar';
   const ms = meetingStatus(status);
 
   const confirmMeeting = async () => {
@@ -196,15 +199,15 @@ function MeetingDialog({
               </a>
             </Button>
           )}
-          {isPending && (
+          {needsConfirmation && (
             <Button size="sm" className="h-8 text-xs rounded-lg text-white" style={{ backgroundColor: pc }} onClick={confirmMeeting}>
               Confirmar presença
             </Button>
           )}
         </div>
 
-        {/* Note suggestion (pending only) */}
-        {isPending && !m.portal_notes && (
+        {/* Note suggestion (only when client still has to confirm) */}
+        {needsConfirmation && !m.portal_notes && (
           <div className="mt-4 pt-4 border-t border-border/20">
             <p className="text-[11px] text-muted-foreground mb-1.5">💡 Se este horário não te der jeito, sugere alternativas:</p>
             <Textarea
@@ -218,7 +221,7 @@ function MeetingDialog({
             </Button>
           </div>
         )}
-        {isPending && m.portal_notes && (
+        {needsConfirmation && m.portal_notes && (
           <div className="mt-4 pt-4 border-t border-border/20">
             <p className="text-[11px] text-muted-foreground">✅ Sugestão enviada:</p>
             <p className="text-xs mt-1 bg-muted/20 rounded-lg p-2">{m.portal_notes}</p>
