@@ -169,9 +169,9 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
     queryFn: async () => {
       const [{ data: directEntries }, { data: taskEntries }, { data: taskTimerEntries }, { data: members }] = await Promise.all([
-        supabase.from('time_entries').select('duration, member_id, entry_date').eq('project_id', id!),
+        supabase.from('time_entries').select('id, duration, member_id, entry_date').eq('project_id', id!),
         taskIds.length > 0
-          ? supabase.from('time_entries').select('duration, member_id, task_id, entry_date').in('task_id', taskIds)
+          ? supabase.from('time_entries').select('id, duration, member_id, task_id, entry_date').in('task_id', taskIds)
           : Promise.resolve({ data: [] as any[] }),
         taskIds.length > 0
           ? supabase.from('task_time_entries').select('duration_minutes, user_id, task_id, created_at, ended_at, is_manual').in('task_id', taskIds)
@@ -185,7 +185,7 @@ export default function ProjetoDetailPage() {
   const projectAnalysis = useMemo(() => {
     const data = projectAnalysisQ.data;
     const timerEntries = ((data?.taskTimerEntries || []) as any[]).filter(e => e.duration_minutes > 0 && (e.ended_at || e.is_manual));
-    const manualEntries = ([...((data?.directEntries || []) as any[]), ...((data?.taskEntries || []) as any[])]);
+    const manualEntries = Array.from(new Map([...((data?.directEntries || []) as any[]), ...((data?.taskEntries || []) as any[])].map(e => [e.id, e])).values());
     const manualMinutes = manualEntries.reduce((sum, e) => sum + Math.round(Number(e.duration || 0) * 60), 0);
     const timerMinutes = timerEntries.reduce((sum, e) => sum + Number(e.duration_minutes || 0), 0);
     const totalMinutes = manualMinutes + timerMinutes;
