@@ -72,7 +72,7 @@ export function SettingsFiscal() {
   const { data: teamMembers } = useQuery({
     queryKey: ['team-members-fiscal'],
     queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('id, full_name').eq('status', 'active').order('full_name');
+      const { data } = await supabase.from('team_members').select('id, full_name').eq('status', 'ativo').order('full_name');
       return data || [];
     },
   });
