@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { EmailSafetyPanel } from './EmailSafetyPanel';
-import { WelcomeClientEmailSettings } from './WelcomeClientEmailSettings';
+import { DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS, WelcomeClientEmailSettings, type WelcomeClientEmailSettingsData } from './WelcomeClientEmailSettings';
 
 interface TemplateVariable {
   token: string;
@@ -63,6 +63,15 @@ function hslToCss(hsl: string | undefined, fallback: string): string {
   return `hsl(${hsl.replace(/ /g, ', ')})`;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 const FONT_OPTIONS = [
   'Plus Jakarta Sans', 'Inter', 'DM Sans', 'Nunito', 'Raleway',
   'Cormorant Garamond', 'Playfair Display', 'Merriweather', 'Lora', 'DM Serif Display',
@@ -78,6 +87,24 @@ const PAYMENT_VARS: TemplateVariable[] = [
 ];
 
 const TEMPLATES: TemplateDefaults[] = [
+  {
+    key: 'welcome-client',
+    label: 'Boas-vindas ao cliente',
+    description: 'Enviado manualmente quando o projeto está pronto para o cliente entrar',
+    emoji: '🎉',
+    title: 'Bem-vindo(a), {name}!',
+    subtitle: 'O teu projeto arrancou — aqui ficam todas as informações para começares.',
+    ctaText: 'Aceder ao Portal',
+    footer: 'Com entusiasmo, a equipa',
+    variables: [
+      ...COMMON_VARS,
+      { token: '{product}', label: 'Produto comprado', example: 'Mentoria 1:1' },
+      { token: '{project}', label: 'Nome do projeto', example: 'Mentoria — Ana Silva' },
+      { token: '{start_date}', label: 'Data de início', example: '05 de maio de 2026' },
+      { token: '{end_date}', label: 'Data prevista de fim', example: '05 de agosto de 2026' },
+    ],
+    bodyBuilder: () => '',
+  },
   {
     key: 'invoice-available',
     label: 'Fatura disponível',
@@ -193,7 +220,56 @@ const TEMPLATES: TemplateDefaults[] = [
   },
 ];
 
-function buildPreview(tmpl: TemplateDefaults, custom: TemplateCustom, biz: string): string {
+function buildWelcomeClientPreview(custom: TemplateCustom, biz: string, welcome: WelcomeClientEmailSettingsData): string {
+  const brandPrimary = hslToCss(custom.primary_color || undefined, '#1a1f36');
+  const brandPrimaryFg = hslToCss(custom.primary_foreground || undefined, '#ffffff');
+  const brandText = hslToCss(custom.text_color || undefined, '#1a1f36');
+  const brandMuted = hslToCss(custom.muted_color || undefined, '#555770');
+  const bodyFont = custom.font_body ? `'${custom.font_body}', Arial, sans-serif` : "'DM Sans', Arial, sans-serif";
+  const displayFont = custom.font_display ? `'${custom.font_display}', Georgia, serif` : bodyFont;
+  const intro = escapeHtml(welcome.intro_text).replace(/\n/g, '<br>');
+  const steps = welcome.next_steps.map((step) => step.trim()).filter(Boolean);
+  const waNumber = welcome.whatsapp_number.replace(/[^\d]/g, '');
+  const waMessage = welcome.whatsapp_message ? `?text=${encodeURIComponent(welcome.whatsapp_message)}` : '';
+  const btnStyle = `background-color:${brandPrimary};color:${brandPrimaryFg};padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;display:inline-block`;
+
+  return `
+    <div style="background:#ffffff;font-family:${bodyFont};max-width:640px;margin:0 auto;padding:40px 24px;color:${brandText}">
+      <div style="text-align:center;padding:0 0 8px">
+        <p style="font-size:48px;margin:0 0 8px;line-height:1">🎉</p>
+        <h1 style="font-size:24px;font-weight:700;color:${brandText};margin:0 0 12px;line-height:1.3;font-family:${displayFont}">Bem-vindo(a), Ana!</h1>
+        <p style="font-size:15px;color:${brandMuted};line-height:1.6;margin:0">O teu projeto na ${escapeHtml(biz)} arrancou — aqui ficam todas as informações para começares.</p>
+      </div>
+      <hr style="border:none;border-top:1px solid #e5e5e5;margin:28px 0">
+      <p style="font-size:15px;color:${brandText};line-height:1.7;margin:0">${intro}</p>
+      <hr style="border:none;border-top:1px solid #e5e5e5;margin:28px 0">
+      <h2 style="font-size:17px;font-weight:600;color:${brandText};margin:0 0 16px;font-family:${displayFont}">📋 O teu projeto</h2>
+      <div style="background-color:#f7f7f9;border-radius:10px;padding:20px;margin-bottom:8px">
+        <p style="font-size:14px;color:${brandText};margin:0 0 8px;line-height:1.5"><span style="color:${brandMuted};font-weight:600">Produto:</span> Mentoria 1:1</p>
+        <p style="font-size:14px;color:${brandText};margin:0 0 8px;line-height:1.5"><span style="color:${brandMuted};font-weight:600">Projeto:</span> Mentoria — Ana Silva</p>
+        <p style="font-size:14px;color:${brandText};margin:0 0 8px;line-height:1.5"><span style="color:${brandMuted};font-weight:600">Início:</span> 05 de maio de 2026</p>
+        <p style="font-size:14px;color:${brandText};margin:0;line-height:1.5"><span style="color:${brandMuted};font-weight:600">Fim previsto:</span> 05 de agosto de 2026</p>
+      </div>
+      <div style="text-align:center;padding:24px 0 4px">
+        <a href="#" style="${btnStyle}">Aceder ao Portal →</a>
+        <p style="font-size:13px;color:${brandMuted};line-height:1.6;margin:12px 0 0">Vais introduzir o teu email e receber um código de acesso.</p>
+      </div>
+      ${steps.length ? `<hr style="border:none;border-top:1px solid #e5e5e5;margin:28px 0"><h2 style="font-size:17px;font-weight:600;color:${brandText};margin:0 0 16px;font-family:${displayFont}">🚀 Próximos passos</h2>${steps.map((step, i) => `<div style="background-color:#f5f5f5;border-radius:10px;padding:16px 20px;margin-bottom:10px"><span style="display:inline-block;background-color:${brandPrimary};color:${brandPrimaryFg};width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-size:12px;font-weight:700;margin-right:10px">${i + 1}</span><span style="font-size:14px;color:${brandText};line-height:1.6">${escapeHtml(step)}</span></div>`).join('')}` : ''}
+      <hr style="border:none;border-top:1px solid #e5e5e5;margin:28px 0">
+      <div style="background-color:#fefcf3;border-radius:10px;padding:18px 20px;border:1px solid #f5ecd5;text-align:center">
+        <p style="font-size:14px;color:${brandMuted};line-height:1.6;margin:0 0 12px">💬 <strong>Precisas de falar connosco?</strong><br>Horário de atendimento: ${escapeHtml(welcome.support_hours)}</p>
+        ${waNumber ? `<a href="https://wa.me/${waNumber}${waMessage}" style="background-color:#25D366;color:#ffffff;font-size:14px;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block">💚 Falar no WhatsApp</a>` : ''}
+      </div>
+      <p style="font-size:13px;color:#999;text-align:center;margin:28px 0 0;line-height:1.6">Com entusiasmo,<br>A equipa ${escapeHtml(biz)}</p>
+    </div>
+  `;
+}
+
+function buildPreview(tmpl: TemplateDefaults, custom: TemplateCustom, biz: string, welcomeSettings: WelcomeClientEmailSettingsData): string {
+  if (tmpl.key === 'welcome-client') {
+    return buildWelcomeClientPreview(custom, biz, welcomeSettings);
+  }
+
   const brandPrimary = hslToCss(custom.primary_color || undefined, '#e04a2f');
   const brandPrimaryFg = hslToCss(custom.primary_foreground || undefined, '#ffffff');
   const brandText = hslToCss(custom.text_color || undefined, '#1a1f36');
@@ -305,6 +381,7 @@ export function SettingsEmails() {
   const qc = useQueryClient();
   const [selectedKey, setSelectedKey] = useState<string>('welcome-client');
   const [form, setForm] = useState<TemplateCustom | null>(null);
+  const [welcomePreviewSettings, setWelcomePreviewSettings] = useState<WelcomeClientEmailSettingsData>(DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS);
   const [saving, setSaving] = useState(false);
 
   const isWelcomeClient = selectedKey === 'welcome-client';
@@ -370,7 +447,7 @@ export function SettingsEmails() {
   };
 
   const biz = settings?.business_name || 'O teu Negócio';
-  const previewHtml = form ? buildPreview(tmpl, form, biz) : '';
+  const previewHtml = form ? buildPreview(tmpl, form, biz, welcomePreviewSettings) : '';
 
   if (!form) return null;
 
@@ -395,12 +472,6 @@ export function SettingsEmails() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="welcome-client">
-                  <div className="flex flex-col items-start">
-                    <span>Boas-vindas ao cliente</span>
-                    <span className="text-[11px] text-muted-foreground font-normal">Enviado manualmente quando o projeto está pronto para o cliente entrar</span>
-                  </div>
-                </SelectItem>
                 {TEMPLATES.map(t => (
                   <SelectItem key={t.key} value={t.key}>
                     <div className="flex flex-col items-start">
@@ -427,16 +498,16 @@ export function SettingsEmails() {
         </CardContent>
       </Card>
 
-      {isWelcomeClient ? (
-        <WelcomeClientEmailSettings />
-      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Editor */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Personalizar</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {isWelcomeClient ? (
+          <WelcomeClientEmailSettings onPreviewChange={setWelcomePreviewSettings} />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Personalizar</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
             {/* Emoji */}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Emoji / Ícone</Label>
@@ -549,8 +620,9 @@ export function SettingsEmails() {
                 Repor original
               </Button>
             </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Preview */}
         <Card>
@@ -565,7 +637,6 @@ export function SettingsEmails() {
           </CardContent>
         </Card>
       </div>
-      )}
     </div>
   );
 }
