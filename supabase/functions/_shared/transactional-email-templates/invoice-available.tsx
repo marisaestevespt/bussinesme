@@ -60,8 +60,8 @@ const InvoiceAvailableEmail = ({
 
   const brandPrimary = hslToCss(primaryColor, '#e04a2f')
   const brandPrimaryFg = hslToCss(primaryForeground, '#ffffff')
-  const brandText = hslToCss(textColor, '#1a1f36')
-  const brandMuted = hslToCss(accentColor, '#555770')
+  const brandText = '#1a1f36' // neutral dark, ignores textColor to avoid washed-out text
+  const brandMuted = '#555770' // neutral muted gray, ignores accentColor to avoid pink/light text
   const bodyFont = fontBody ? `'${fontBody}', Arial, sans-serif` : "'DM Sans', Arial, sans-serif"
   const displayFont = fontDisplay ? `'${fontDisplay}', Georgia, serif` : bodyFont
 
