@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DepartmentProcessos } from '@/components/DepartmentProcessos';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
@@ -36,16 +36,20 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
 import { SOP_TEMPLATES, getSopTemplate, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
 import { ProcessCover } from '@/components/processes/ProcessCover';
+import { BibliotecaSection } from '@/components/processes/BibliotecaSection';
+import { BookOpen } from 'lucide-react';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
 const PROCESSOS_DEFAULT_VIEWS: DefaultView[] = [
   { key: 'galeria', label: 'Galeria', icon: <FileText className="h-4 w-4" />, isDefault: true },
   { key: 'lista', label: 'Lista', icon: <List className="h-4 w-4" />, isDefault: true },
+  { key: 'biblioteca', label: 'Biblioteca', icon: <BookOpen className="h-4 w-4" />, isDefault: true },
 ];
 
 export default function ProcessosPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { getPhotoUrl } = useTeamPhotos();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -80,6 +84,13 @@ export default function ProcessosPage() {
   const [sopTemplatePickerOpen, setSopTemplatePickerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('galeria');
   const [filterRole, setFilterRole] = useState('');
+
+  // Sync ?tab= query param with active tab (for deep-links e.g. /hub/biblioteca redirect)
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab) setActiveTab(tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // ─── Queries ──────────────────────────────────────────────────
 
@@ -426,6 +437,11 @@ export default function ProcessosPage() {
               </div>
             );
           })()}
+        </TabsContent>
+
+        {/* ═══ TAB: Biblioteca ═══ */}
+        <TabsContent value="biblioteca">
+          <BibliotecaSection />
         </TabsContent>
       </Tabs>
 

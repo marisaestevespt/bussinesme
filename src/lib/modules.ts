@@ -10,7 +10,6 @@ export const MODULES = {
   'tarefas': { label: 'Tarefas', section: 'transversais', icon: 'CheckSquare' },
   'acessos': { label: 'Acessos', section: 'transversais', icon: 'Key' },
   'mural': { label: 'Mural de Comunicações', section: 'transversais', icon: 'MessageSquare' },
-  'biblioteca': { label: 'Biblioteca de Documentos', section: 'transversais', icon: 'BookOpen' },
 
   // Hub de Equipa - Departamentos
   'administrativo': { label: 'Administrativo', section: 'departamentos', icon: 'Building2' },
