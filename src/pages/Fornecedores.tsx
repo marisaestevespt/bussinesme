@@ -749,9 +749,12 @@ export default function FornecedoresPage() {
                     <TableCell className="text-right">{(expenseCounts as any)[s.id] || 0}</TableCell>
                     <TableCell>
                       {(() => {
-                        const pausedActive = (s as any).paused_until && (s as any).paused_until > new Date().toISOString().slice(0, 10);
+                        const pu = (s as any).paused_until as string | null;
+                        const pausedActive = pu && pu > new Date().toISOString().slice(0, 10);
+                        const isIndefinite = pu === '2999-12-31';
                         if (!s.is_active) return <Badge variant="outline" className="bg-muted text-muted-foreground">Inativo</Badge>;
-                        if (pausedActive) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado até {(s as any).paused_until}</Badge>;
+                        if (isIndefinite) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado ∞</Badge>;
+                        if (pausedActive) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado até {pu}</Badge>;
                         return <Badge variant="outline" className="bg-success/10 text-success">Ativo</Badge>;
                       })()}
                     </TableCell>
