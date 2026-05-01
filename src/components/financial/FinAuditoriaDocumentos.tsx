@@ -175,7 +175,8 @@ export function FinAuditoriaDocumentos() {
 
     // Cross-table: paid sales/expenses without attached docs
     sales.forEach(s => {
-      const paid = (s.status || '').toLowerCase() === 'pago';
+      const sStatus = (s.status || '').toLowerCase();
+      const paid = sStatus === 'tudo_ok' || sStatus === 'pago_falta_fatura' || sStatus === 'pago';
       if (paid && extractUrls(s.documents).length === 0) {
         out.push({
           key: `spnd-${s.id}`,
