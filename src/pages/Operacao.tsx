@@ -24,6 +24,7 @@ import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { OperacaoAnaliseTab } from '@/components/operacao/OperacaoAnaliseTab';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { computeProjectHealth } from '@/lib/projectHealth';
 import { isDeliverableDone } from '@/lib/projectProgress';
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
@@ -429,31 +430,9 @@ export default function OperacaoPage() {
   // ── Project health indicators ──────────────────────────────
   const projectHealth = useMemo(() => {
     return allActiveProjects.map(p => {
-      const isTarefasLivres = (p as any).task_mode === 'tarefas_livres';
-      // Recurring monthly services don't have a meaningful deadline → use overdue-only health
-      const isRecorrenteMensal =
-        p.type === 'cliente_servico_mensal' &&
-        (p as any).project_mode === 'recorrente';
-      const useOverdueOnly = isTarefasLivres || isRecorrenteMensal;
-      const prog = useOverdueOnly ? null : (projectProgress.get(p.id) ?? p.progress);
-      let health: 'green' | 'yellow' | 'red' = 'green';
-
-      if (useOverdueOnly) {
-        // Only red if project has overdue tasks
-        const hasOverdue = tasks.some(t =>
-          t.project_id === p.id && isTaskOverdue(t, today)
-        );
-        if (hasOverdue) health = 'red';
-      } else if (prog !== null) {
-        if (p.deadline) {
-          const daysLeft = differenceInDays(new Date(p.deadline), today);
-          const expectedProg = p.deadline ? Math.max(0, Math.min(100, ((differenceInDays(today, new Date(p.start_date || p.created_at))) / Math.max(1, differenceInDays(new Date(p.deadline), new Date(p.start_date || p.created_at)))) * 100)) : 0;
-          if (prog < expectedProg - 25 || (daysLeft <= 3 && prog < 80)) health = 'red';
-          else if (prog < expectedProg - 10 || (daysLeft <= 7 && prog < 60)) health = 'yellow';
-        }
-        if (prog === 0 && differenceInDays(today, new Date(p.start_date || p.created_at)) > 7) health = 'red';
-      }
-      return { ...p, prog: prog ?? -1, health, isTarefasLivres: useOverdueOnly };
+      const override = projectProgress.get(p.id);
+      const r = computeProjectHealth(p as any, tasks as any, today, override);
+      return { ...p, prog: r.prog ?? -1, health: r.health, isTarefasLivres: r.useOverdueOnly };
     }).sort((a, b) => {
       const order = { red: 0, yellow: 1, green: 2 };
       return order[a.health] - order[b.health];
