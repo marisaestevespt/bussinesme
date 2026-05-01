@@ -1143,145 +1143,53 @@ function buildEmailHtml(opts: {
   contentHtml: string;
   isOwner: boolean;
 }) {
-  const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor).replace(/%%DISPLAY_FONT%%/g, displayFont);
   const bodyFont = `'${opts.fontBody}', Arial, Helvetica, sans-serif`;
   const displayFont = `'${opts.fontDisplay}', '${opts.fontBody}', Arial, sans-serif`;
-  // Build Google Fonts import for web-safe fonts
+  // Wrap content with a sentinel pair so the first sectionHeader (which closes
+  // the previous card via "</div></div>") has something valid to close.
+  let content = `<div style="display:none"><div>` + opts.contentHtml + `</div></div>`;
+  content = content
+    .replace(/%%SECONDARY%%/g, opts.secondaryColor)
+    .replace(/%%ACCENT%%/g, opts.accentColor)
+    .replace(/%%PRIMARY%%/g, opts.primaryColor)
+    .replace(/%%DISPLAY_FONT%%/g, displayFont)
+    .replace(/%%BODY_FONT%%/g, bodyFont);
+  const onPrimary = getContrastColor(opts.primaryColor);
   const fontsToImport = [opts.fontBody, opts.fontDisplay].filter(f => f && f !== "Arial" && f !== "Helvetica");
   const googleFontsLink = fontsToImport.length
-    ? `<link href="https://fonts.googleapis.com/css2?${fontsToImport.map(f => `family=${encodeURIComponent(f)}:wght@400;600;700`).join("&")}&display=swap" rel="stylesheet">`
+    ? `<link href="https://fonts.googleapis.com/css2?${fontsToImport.map(f => `family=${encodeURIComponent(f)}:wght@400;500;600;700`).join("&")}&display=swap" rel="stylesheet">`
     : "";
   return `<!DOCTYPE html>
 <html lang="pt">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${googleFontsLink}</head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:${bodyFont};font-size:11px;color:#333">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px">
+<body style="margin:0;padding:0;background:#f5f5f7;font-family:${bodyFont};font-size:14px;color:#1c1c1e;-webkit-font-smoothing:antialiased">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:40px 16px">
 <tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
-  <tr><td style="padding:0">
-    <table width="100%" cellpadding="0" cellspacing="0"><tr>
-      <td style="height:4px;background:${opts.primaryColor};border-radius:12px 12px 0 0"></td>
-    </tr></table>
+<table width="640" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.06)">
+  <tr><td style="background:linear-gradient(135deg, ${opts.primaryColor} 0%, ${opts.accentColor} 100%);padding:36px 36px 30px;color:${onPrimary};font-family:${displayFont}">
+    ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:24px;margin:0 0 20px;display:block">` : ""}
+    <p style="font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:${onPrimary};opacity:0.78;margin:0 0 8px;font-weight:500;font-family:${bodyFont}">${esc(opts.headerTitle)}</p>
+    <h1 style="font-size:24px;line-height:1.3;color:${onPrimary};margin:0 0 6px;font-weight:600;font-family:${displayFont}">${esc(opts.greeting)}</h1>
+    <p style="font-size:13px;color:${onPrimary};opacity:0.82;margin:0;font-family:${bodyFont}">${esc(opts.dateLine)}</p>
   </td></tr>
-  <tr><td style="padding:24px 32px;font-family:${bodyFont}">
-    ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:28px;margin:0 0 14px;display:block">` : ""}
-    <p style="font-size:13px;color:${opts.primaryColor};margin:0 0 4px;font-family:${displayFont};font-weight:600">${esc(opts.greeting)}</p>
-    <p style="font-size:10px;color:#888;margin:0 0 18px">${esc(opts.dateLine)}</p>
+  <tr><td style="padding:8px 28px 32px;font-family:${bodyFont}">
     ${content}
   </td></tr>
-  <tr><td style="padding:12px 32px 16px;border-top:2px solid ${opts.secondaryColor};text-align:center">
-    <p style="font-size:10px;color:#a1a1aa;margin:0;font-family:${bodyFont}">${esc(opts.businessName)}</p>
+  <tr><td style="padding:22px 36px 28px;background:#fafafa;border-top:1px solid #efeff1;text-align:center">
+    <p style="font-size:12px;color:#86868b;margin:0;font-family:${bodyFont};letter-spacing:0.2px">${esc(opts.businessName)}</p>
   </td></tr>
 </table>
+<p style="font-size:11px;color:#a1a1a6;margin:18px 0 0;font-family:${bodyFont}">Recebes este email porque ativaste o teu resumo no ${esc(opts.businessName)}.</p>
 </td></tr>
 </table>
 </body></html>`;
 }
 
-// ─── Helpers ──────────────────────────────────────────────
-
-// ── Fiscal Deadlines (inline computation for edge function) ──
-const PT_FIXED_HOLIDAYS = [
-  [1, 1], [4, 25], [5, 1], [6, 10], [8, 15], [10, 5], [11, 1], [12, 1], [12, 8], [12, 25],
-];
-
-function isNonBusinessDay(d: Date): boolean {
-  const day = d.getDay();
-  if (day === 0 || day === 6) return true;
-  const m = d.getMonth() + 1;
-  const dd = d.getDate();
-  return PT_FIXED_HOLIDAYS.some(([hm, hd]) => hm === m && hd === dd);
-}
-
-function adjustToPrevBiz(d: Date): Date {
-  const result = new Date(d);
-  while (isNonBusinessDay(result)) result.setDate(result.getDate() - 1);
-  return result;
-}
-
-function fmtDeadline(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-interface FiscalDl { name: string; date: string; category: string; }
-
-function computeDigestFiscalDeadlines(year: number, config: { taxIvaRegime: string; taxIrsRegime: string; ssExempt: boolean; ivaExempt: boolean }): FiscalDl[] {
-  const dls: FiscalDl[] = [];
-  const ML = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-
-  if (!config.ssExempt && config.taxIrsRegime !== 'contabilidade_organizada') {
-    for (let m = 1; m <= 12; m++) {
-      const nm = m === 12 ? 1 : m + 1;
-      const ny = m === 12 ? year + 1 : year;
-      const raw = new Date(ny, nm - 1, 20);
-      dls.push({ name: `Pagamento SS — ${ML[m-1]} ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'ss' });
-    }
-  }
-
-  if (!config.ivaExempt && config.taxIvaRegime === 'trimestral' && config.taxIrsRegime !== 'contabilidade_organizada') {
-    const qs = [
-      { q: 1, label: '1º Trim', dm: 5 }, { q: 2, label: '2º Trim', dm: 8 },
-      { q: 3, label: '3º Trim', dm: 11 }, { q: 4, label: '4º Trim', dm: 2 },
-    ];
-    for (const q of qs) {
-      const dy = q.q === 4 ? year + 1 : year;
-      const raw = new Date(dy, q.dm, 0); // last day of month
-      dls.push({ name: `IVA ${q.label} ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'iva' });
-    }
-  }
-
-  if (!config.ivaExempt && config.taxIvaRegime === 'mensal' && config.taxIrsRegime !== 'contabilidade_organizada') {
-    for (let m = 1; m <= 12; m++) {
-      const nm = m === 12 ? 1 : m + 1;
-      const ny = m === 12 ? year + 1 : year;
-      const raw = new Date(ny, nm - 1, 20);
-      dls.push({ name: `IVA — ${ML[m-1]} ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'iva' });
-    }
-  }
-
-  return dls.sort((a, b) => a.date.localeCompare(b.date));
-}
-
-async function buildFiscalDeadlinesSection(supabase: SupabaseAdmin, todayStr: string): Promise<string> {
-  const { data: bizSettings } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt").limit(1).single();
-  if (!bizSettings) return "";
-
-  const year = parseInt(todayStr.substring(0, 4));
-  const deadlines = computeDigestFiscalDeadlines(year, {
-    taxIvaRegime: bizSettings.tax_iva_regime || 'trimestral',
-    taxIrsRegime: bizSettings.tax_irs_regime || 'simplificado',
-    ssExempt: bizSettings.ss_exempt ?? false,
-    ivaExempt: bizSettings.iva_exempt ?? false,
-  });
-
-  // Show deadlines that are today or within next 15 days, or overdue
-  const upcoming = deadlines.filter(dl => {
-    if (dl.date < todayStr) return true; // overdue
-    const d = new Date(dl.date + 'T00:00:00');
-    const t = new Date(todayStr + 'T00:00:00');
-    const diff = Math.ceil((d.getTime() - t.getTime()) / (1000 * 60 * 60 * 24));
-    return diff <= 15;
-  });
-
-  if (upcoming.length === 0) return "";
-
-  let html = sectionHeader("📋 Prazos Fiscais");
-  html += "<ul>";
-  for (const dl of upcoming) {
-    const isOverdue = dl.date < todayStr;
-    const isToday = dl.date === todayStr;
-    const emoji = isOverdue ? "🔴" : isToday ? "📌" : "🟡";
-    const label = isOverdue
-      ? `em atraso (${daysDiff(dl.date, todayStr)} dias)`
-      : isToday ? "HOJE" : `em ${daysDiff(todayStr, dl.date)} dias`;
-    html += `<li>${emoji} ${esc(dl.name)} — <strong>${label}</strong></li>`;
-  }
-  html += "</ul>";
-  return html;
-}
-
 function sectionHeader(title: string): string {
-  return `<h2 style="font-size:12px;font-weight:600;color:%%PRIMARY%%;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px;font-family:%%DISPLAY_FONT%%;text-transform:uppercase;letter-spacing:0.5px">${title}</h2>`;
+  // Each section becomes a soft card with a colored accent rail. The leading
+  // "</div></div>" closes the previous card (or the sentinel wrapper opened
+  // in buildEmailHtml for the first section).
+  return `</div></div><div style="margin:18px 0 0;border-radius:14px;background:#fafafa;border:1px solid #efeff1;overflow:hidden"><div style="padding:18px 22px 16px;border-left:3px solid %%PRIMARY%%"><h2 style="font-size:13px;font-weight:600;color:#1c1c1e;margin:0 0 12px;font-family:%%DISPLAY_FONT%%;letter-spacing:0.2px;text-transform:none">${title}</h2><div style="font-family:%%BODY_FONT%%;font-size:14px;color:#3a3a3c;line-height:1.6">`;
 }
 
 function esc(s: string): string {
