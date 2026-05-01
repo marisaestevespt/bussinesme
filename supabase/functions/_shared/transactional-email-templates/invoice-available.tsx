@@ -170,7 +170,7 @@ export const template = {
     amount: '350',
     portalUrl: 'https://exemplo.com/portal/abc',
     businessName: 'O Teu Negócio',
-    primaryColor: '12 76% 52%',
+    primaryColor: '351 56% 28%',
     primaryForeground: '0 0% 100%',
     textColor: '20 25% 10%',
     accentColor: '20 10% 46%',
