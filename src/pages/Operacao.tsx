@@ -684,7 +684,29 @@ export default function OperacaoPage() {
               const hp = projectHealth.find(h => h.id === p.id);
               const healthLabel = hp?.health === 'red' ? 'Em risco' : hp?.health === 'yellow' ? 'Atenção' : 'Em dia';
               const healthColor = hp?.health === 'red' ? 'text-destructive' : hp?.health === 'yellow' ? 'text-warning' : 'text-success';
-              const hasIssues = pOverdueTasks.length > 0 || pUnassigned.length > 0;
+              // Re-run the health calc to get the human-readable reason + the
+              // contextual numbers (expected progress, days left, etc.).
+              const override = projectProgress.get(p.id);
+              const detail = computeProjectHealth(p as any, tasks as any, today, override);
+              const hasIssues = pOverdueTasks.length > 0 || pUnassigned.length > 0 || detail.health !== 'green';
+              // Detect "schedule" issues that are not just overdue tasks
+              const scheduleIssue =
+                !detail.useOverdueOnly &&
+                detail.health !== 'green' &&
+                detail.prog !== null &&
+                detail.expectedProg !== null &&
+                detail.prog < detail.expectedProg - 10;
+              const stalled =
+                !detail.useOverdueOnly &&
+                detail.prog === 0 &&
+                detail.health === 'red' &&
+                pOverdueTasks.length === 0;
+              const tightDeadline =
+                !detail.useOverdueOnly &&
+                detail.daysLeft !== null &&
+                detail.daysLeft <= 7 &&
+                detail.prog !== null &&
+                detail.prog < 80;
 
               return (
                 <>
@@ -695,7 +717,66 @@ export default function OperacaoPage() {
                     <p className="text-xs text-muted-foreground">{p.client_name || (Array.isArray((p as any).departments) && (p as any).departments.length > 0 ? (p as any).departments.join(', ') : p.department) || ''} · <span className={healthColor}>{healthLabel}</span></p>
                   </DialogHeader>
 
-                  {!hasIssues && (
+                  {/* Always show the WHY of the current health status */}
+                  <div className={cn(
+                    'rounded-lg border px-3 py-2.5 text-sm',
+                    detail.health === 'red' && 'border-destructive/30 bg-destructive/5 text-destructive',
+                    detail.health === 'yellow' && 'border-warning/30 bg-warning/5 text-warning',
+                    detail.health === 'green' && 'border-success/30 bg-success/5 text-success',
+                  )}>
+                    <div className="flex items-start gap-2">
+                      {detail.health === 'green'
+                        ? <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                        : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
+                      <div className="flex-1">
+                        <p className="font-medium leading-snug">Porquê este estado?</p>
+                        <p className="text-xs opacity-90 mt-0.5">{detail.reason}</p>
+                      </div>
+                    </div>
+                    {/* Numeric breakdown */}
+                    {!detail.useOverdueOnly && detail.prog !== null && (
+                      <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px] text-foreground/80">
+                        <div className="flex items-center gap-1.5">
+                          <Activity className="h-3 w-3" />
+                          Progresso: <span className="font-semibold">{Math.round(detail.prog)}%</span>
+                        </div>
+                        {detail.expectedProg !== null && (
+                          <div className="flex items-center gap-1.5">
+                            <Target className="h-3 w-3" />
+                            Esperado: <span className="font-semibold">{Math.round(detail.expectedProg)}%</span>
+                          </div>
+                        )}
+                        {detail.daysLeft !== null && (
+                          <div className="flex items-center gap-1.5 col-span-2">
+                            <Clock className="h-3 w-3" />
+                            {detail.daysLeft >= 0
+                              ? `${detail.daysLeft} dia${detail.daysLeft === 1 ? '' : 's'} até ao prazo`
+                              : `${Math.abs(detail.daysLeft)} dia${Math.abs(detail.daysLeft) === 1 ? '' : 's'} de atraso no prazo`}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actionable suggestions when the issue is schedule-based */}
+                  {(scheduleIssue || stalled || tightDeadline) && (
+                    <div className="rounded-lg border bg-muted/40 px-3 py-2.5 text-xs space-y-1.5">
+                      <p className="font-semibold text-foreground">O que podes fazer:</p>
+                      <ul className="space-y-1 text-muted-foreground list-disc pl-4">
+                        {scheduleIssue && (
+                          <li>Marcar entregáveis concluídos na tab <span className="font-medium">Operação</span> do projeto.</li>
+                        )}
+                        {stalled && (
+                          <li>O projeto não avançou desde o arranque — confirma a <span className="font-medium">data de início</span> ou começa as primeiras entregas.</li>
+                        )}
+                        {tightDeadline && (
+                          <li>Prazo a aproximar-se com progresso baixo — considera <span className="font-medium">renegociar o deadline</span> ou priorizar as entregas em falta.</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+
+                  {!hasIssues && detail.health === 'green' && (
                     <div className="py-6 text-center">
                       <CheckCircle2 className="h-8 w-8 text-success mx-auto mb-2" />
                       <p className="text-sm font-medium text-success">Tudo em dia!</p>
