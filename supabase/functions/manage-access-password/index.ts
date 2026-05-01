@@ -3,14 +3,17 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Encryption (AES-GCM) — key MUST come from secret ACCESS_ENCRYPTION_KEY
+// Derived via SHA-256 to guarantee 32 bytes of uniformly distributed entropy
+// regardless of the secret's raw length.
 // ────────────────────────────────────────────────────────────────────────────
 async function getKey(): Promise<CryptoKey> {
   const raw = Deno.env.get("ACCESS_ENCRYPTION_KEY");
   if (!raw) {
     throw new Error("ACCESS_ENCRYPTION_KEY secret not configured");
   }
-  const keyBytes = new TextEncoder().encode(raw.padEnd(32, "0").slice(0, 32));
-  return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt", "decrypt"]);
+  const rawBytes = new TextEncoder().encode(raw);
+  const hash = await crypto.subtle.digest("SHA-256", rawBytes);
+  return crypto.subtle.importKey("raw", hash, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
 async function encrypt(plaintext: string): Promise<string> {
@@ -140,13 +143,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── 3. Role check (owner / admin / manager) ──────────────────────────
-    const [ownerRes, adminRes, managerRes] = await Promise.all([
+    // ── 3. Role check (owner / admin) ────────────────────────────────────
+    const [ownerRes, adminRes] = await Promise.all([
       admin.rpc("has_role", { _user_id: userId, _role: "owner" }),
       admin.rpc("has_role", { _user_id: userId, _role: "admin" }),
-      admin.rpc("has_role", { _user_id: userId, _role: "manager" }),
     ]);
-    const hasRole = Boolean(ownerRes.data || adminRes.data || managerRes.data);
+    const hasRole = Boolean(ownerRes.data || adminRes.data);
 
     if (!hasRole) {
       await logAudit(admin, {
@@ -156,7 +158,7 @@ Deno.serve(async (req) => {
         user_agent: ua,
         reason: "insufficient_role",
       });
-      return json(403, { error: "Permissão insuficiente. Requer owner, admin ou manager." });
+      return json(403, { error: "Permissão insuficiente. Requer owner ou admin." });
     }
 
     // ── 4. Rate limit: 20 calls / hour / user ─────────────────────────────
