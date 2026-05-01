@@ -189,9 +189,10 @@ export function FinSetupFinanceiro({ fin }: Props) {
                     : '—'}
                 </div>
                 <div><span className="text-muted-foreground text-xs block">Estado</span>
-                  <Badge variant="outline" className={supplier.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
-                    {supplier.is_active ? 'Ativo' : 'Inativo'}
-                  </Badge>
+                  {(() => {
+                    const status = getSupplierStatusBadge(supplier);
+                    return <Badge variant="outline" className={status.className}>{status.label}</Badge>;
+                  })()}
                 </div>
               </div>
               {supplier.address && <div className="text-sm"><span className="text-muted-foreground text-xs block">Morada</span>{supplier.address}</div>}
