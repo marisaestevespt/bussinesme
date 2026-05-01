@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, Settings2, HelpCircle } from 'lucide-react';
+import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, Settings2, HelpCircle, Mail, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -40,6 +40,47 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
   const { portal, upsertPortal, updatePortal } = usePortal(clientId);
   const portalData = portal.data;
   const portalId = portalData?.id;
+
+  const welcomeSentAt = (portalData as any)?.welcome_email_sent_at as string | null | undefined;
+  const [sendingWelcome, setSendingWelcome] = useState(false);
+
+  // Find latest project of this client to send welcome for
+  const { data: latestProject } = useQuery({
+    queryKey: ['client-latest-project-for-welcome', clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  const handleSendWelcome = async () => {
+    if (!latestProject?.id) {
+      toast.error('Este cliente ainda não tem projeto associado');
+      return;
+    }
+    setSendingWelcome(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-client-welcome', {
+        body: { project_id: latestProject.id },
+      });
+      if (error || (data as any)?.error) {
+        throw new Error((data as any)?.error || error?.message || 'Falha ao enviar');
+      }
+      toast.success('Email de boas-vindas enviado');
+      queryClient.invalidateQueries({ queryKey: ['portal', clientId] });
+    } catch (e: any) {
+      toast.error(e.message || 'Erro a enviar email');
+    } finally {
+      setSendingWelcome(false);
+    }
+  };
 
   const { faqs, addFaq, updateFaq, deleteFaq } = usePortalFaqs(portalId);
   const { questions, addQuestion, updateQuestion, deleteQuestion } = usePortalQuestions(portalId);
@@ -205,6 +246,36 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
                 <ExternalLink className="h-3 w-3 mr-1.5" />Editar Portal
               </Button>
             </div>
+          </div>
+
+          {/* Welcome email */}
+          <div className="rounded-lg border bg-muted/20 p-4 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                Email de Boas-vindas
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {welcomeSentAt
+                  ? `Último envio: ${format(parseISO(welcomeSentAt), "dd/MM/yyyy 'às' HH:mm")}`
+                  : 'Ainda não foi enviado.'}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant={welcomeSentAt ? 'outline' : 'default'}
+              onClick={handleSendWelcome}
+              disabled={sendingWelcome}
+              className="shrink-0"
+            >
+              {sendingWelcome ? (
+                <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />A enviar...</>
+              ) : welcomeSentAt ? (
+                <><Mail className="h-3.5 w-3.5 mr-1.5" />Re-enviar</>
+              ) : (
+                <><Mail className="h-3.5 w-3.5 mr-1.5" />Enviar boas-vindas</>
+              )}
+            </Button>
           </div>
 
           {/* Slug */}
