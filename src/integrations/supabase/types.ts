@@ -11467,6 +11467,8 @@ export type Database = {
       }
       backfill_deliverable_tasks: { Args: never; Returns: number }
       can_edit_event: { Args: { _event_id: string }; Returns: boolean }
+      can_edit_marketing_metrics: { Args: never; Returns: boolean }
+      can_edit_operational_kpis: { Args: never; Returns: boolean }
       can_edit_project: { Args: { _project_id: string }; Returns: boolean }
       can_edit_sop: { Args: { _sop_id: string }; Returns: boolean }
       can_edit_task: { Args: { _task_id: string }; Returns: boolean }
