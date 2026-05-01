@@ -56,6 +56,20 @@ const calcMonthlyEquivalent = (base: number, periodicity: string) => {
   const map: Record<string, number> = { semanal: 52/12, mensal: 1, bimestral: 1/2, trimestral: 1/3, semestral: 1/6, anual: 1/12 };
   return Math.round(base * (map[periodicity] || 1) * 100) / 100;
 };
+
+const INDEFINITE_PAUSE_DATE = '2999-12-31';
+
+const isPausedUntilActive = (pausedUntil?: string | null) =>
+  !!pausedUntil && pausedUntil > new Date().toISOString().slice(0, 10);
+
+const getSupplierStatusLabel = (supplier: { is_active?: boolean | null; paused_until?: string | null }) => {
+  const pausedUntil = supplier.paused_until;
+
+  if (!supplier.is_active) return 'Inativo';
+  if (pausedUntil === INDEFINITE_PAUSE_DATE) return 'Pausado ∞';
+  if (isPausedUntilActive(pausedUntil)) return `Pausado até ${pausedUntil}`;
+  return 'Ativo';
+};
 /**
  * Simple date generator: from firstPaymentDate, step by periodicity, until endDate.
  * No guessing — uses exactly the dates the user provides.
@@ -768,8 +782,8 @@ export default function FornecedoresPage() {
                     <TableCell>
                       {(() => {
                         const pu = (s as any).paused_until as string | null;
-                        const pausedActive = pu && pu > new Date().toISOString().slice(0, 10);
-                        const isIndefinite = pu === '2999-12-31';
+                        const pausedActive = isPausedUntilActive(pu);
+                        const isIndefinite = pu === INDEFINITE_PAUSE_DATE;
                         if (!s.is_active) return <Badge variant="outline" className="bg-muted text-muted-foreground">Inativo</Badge>;
                         if (isIndefinite) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado ∞</Badge>;
                         if (pausedActive) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado até {pu}</Badge>;
@@ -848,21 +862,23 @@ export default function FornecedoresPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-medium">Estado & Pausa</Label>
+                    <div>
+                      <Label className="text-sm font-medium">Estado & Pausa</Label>
+                      <p className="text-xs text-muted-foreground">{getSupplierStatusLabel(form)}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
-                      checked={form.is_active ?? true}
-                      onCheckedChange={v => setForm((f: any) => ({ ...f, is_active: v }))}
+                      checked={(form.is_active ?? true) && !isPausedUntilActive(form.paused_until)}
+                      onCheckedChange={v => setForm((f: any) => ({ ...f, is_active: v, paused_until: v ? null : f.paused_until }))}
                     />
-                    <Label className="text-xs font-normal">{form.is_active === false ? 'Inativo' : 'Ativo'}</Label>
+                    <Label className="text-xs font-normal">{getSupplierStatusLabel(form)}</Label>
                   </div>
                 </div>
                 <div>
                   <Label className="text-xs">Pausar despesas recorrentes</Label>
                   {(() => {
-                    const INDEFINITE = '2999-12-31';
-                    const isIndefinite = form.paused_until === INDEFINITE;
+                    const isIndefinite = form.paused_until === INDEFINITE_PAUSE_DATE;
                     const hasDate = !!form.paused_until && !isIndefinite;
                     return (
                       <>
@@ -881,7 +897,7 @@ export default function FornecedoresPage() {
                             size="sm"
                             onClick={() => setForm((f: any) => ({
                               ...f,
-                              paused_until: isIndefinite ? null : INDEFINITE,
+                              paused_until: isIndefinite ? null : INDEFINITE_PAUSE_DATE,
                             }))}
                           >
                             {isIndefinite ? '✓ Pausado indefinidamente' : 'Pausar indefinidamente'}
