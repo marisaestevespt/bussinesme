@@ -162,7 +162,18 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
     if (toCreate.length > 0) {
       isMaterializingRef.current = true;
-      for (const fn of toCreate) await fn();
+      for (const fn of toCreate) {
+        try {
+          await fn();
+        } catch (err) {
+          // O trigger DB block_expense_for_paused_supplier pode rejeitar com
+          // check_violation (23514) se o fornecedor estiver pausado/inativo.
+          // É comportamento esperado — silenciamos e seguimos para os outros.
+          const e = err as { code?: string; message?: string };
+          const isPausedBlock = e?.code === '23514' || /pausado|inativo/i.test(e?.message || '');
+          if (!isPausedBlock) throw err;
+        }
+      }
       qc.invalidateQueries({ queryKey: ['financial-expenses'] });
       isMaterializingRef.current = false;
     }
