@@ -23,9 +23,12 @@ import {
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon, Loader2,
 } from 'lucide-react';
 import { ChannelCard } from '@/components/marketing/ChannelCard';
+import { getPlanningSection } from '@/lib/department-planning';
 
 
 const MARKETING_360 = [
+  // Planeamento sempre primeiro (regra: ver mem://design/department-planning-card.md)
+  (() => { const p = getPlanningSection('marketing'); return { title: p.label, desc: p.desc, icon: p.icon, url: p.path }; })(),
   { title: 'Gestão de Marca', desc: 'Branding, identidade e posicionamento', icon: Palette, url: '/hub/marketing/gestao-marca' },
   { title: 'Estratégia', desc: 'Planeamento estratégico', icon: Target, url: '/hub/marketing/estrategia' },
   
