@@ -303,10 +303,11 @@ function getDefaults(tmpl: TemplateDefaults, settings: any): TemplateCustom {
 export function SettingsEmails() {
   const { settings } = useBusinessSettings();
   const qc = useQueryClient();
-  const [selectedKey, setSelectedKey] = useState(TEMPLATES[0].key);
+  const [selectedKey, setSelectedKey] = useState<string>('welcome-client');
   const [form, setForm] = useState<TemplateCustom | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const isWelcomeClient = selectedKey === 'welcome-client';
   const tmpl = TEMPLATES.find(t => t.key === selectedKey) || TEMPLATES[0];
 
   const { data: savedSettings } = useQuery({
@@ -378,9 +379,6 @@ export function SettingsEmails() {
       {/* Safety controls — always render at the top */}
       <EmailSafetyPanel />
 
-      {/* Welcome client email — dedicated settings */}
-      <WelcomeClientEmailSettings />
-
       {/* Template selector */}
       <Card>
         <CardHeader>
@@ -397,6 +395,12 @@ export function SettingsEmails() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="welcome-client">
+                  <div className="flex flex-col items-start">
+                    <span>Boas-vindas ao cliente</span>
+                    <span className="text-[11px] text-muted-foreground font-normal">Enviado manualmente quando o projeto está pronto para o cliente entrar</span>
+                  </div>
+                </SelectItem>
                 {TEMPLATES.map(t => (
                   <SelectItem key={t.key} value={t.key}>
                     <div className="flex flex-col items-start">
@@ -408,13 +412,24 @@ export function SettingsEmails() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">{tmpl.label}</Badge>
-            <span className="text-xs text-muted-foreground">{tmpl.description}</span>
-          </div>
+          {!isWelcomeClient && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">{tmpl.label}</Badge>
+              <span className="text-xs text-muted-foreground">{tmpl.description}</span>
+            </div>
+          )}
+          {isWelcomeClient && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">Boas-vindas ao cliente</Badge>
+              <span className="text-xs text-muted-foreground">Enviado manualmente quando o projeto está pronto</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
+      {isWelcomeClient ? (
+        <WelcomeClientEmailSettings />
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Editor */}
         <Card>
@@ -550,6 +565,7 @@ export function SettingsEmails() {
           </CardContent>
         </Card>
       </div>
+      )}
     </div>
   );
 }
