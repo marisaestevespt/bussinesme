@@ -384,6 +384,7 @@ export default function ReuniaoDetailPage() {
   // Track which fields the user has changed in this session
   const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
   const [seriesSaveDialogOpen, setSeriesSaveDialogOpen] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     if (meeting && !localMeeting) setLocalMeeting(meeting);
@@ -676,10 +677,41 @@ export default function ReuniaoDetailPage() {
           secondaryActions={
             isOwner
               ? [
+                  ...(isSeriesParent
+                    ? [{
+                        label: regenerating ? 'A regenerar...' : 'Regenerar ocorrências',
+                        icon: RefreshCw,
+                        onClick: async () => {
+                          if (!m) return;
+                          setRegenerating(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke('regenerate-recurring-meetings', {
+                              body: { parent_meeting_id: m.id },
+                            });
+                            if (error) throw error;
+                            const created = (data as any)?.created ?? 0;
+                            const end = (data as any)?.effective_end ?? '';
+                            if (created > 0) {
+                              toast.success(`${created} nova(s) ocorrência(s) gerada(s)${end ? ` até ${end}` : ''}`);
+                              qc.invalidateQueries({ queryKey: ['meeting'] });
+                              qc.invalidateQueries({ queryKey: ['meetings'] });
+                              qc.invalidateQueries({ queryKey: ['series_count'] });
+                            } else {
+                              toast.info((data as any)?.message ?? 'Sem ocorrências novas para gerar.');
+                            }
+                          } catch (e: any) {
+                            toast.error(e?.message ?? 'Falhou a regeneração');
+                          } finally {
+                            setRegenerating(false);
+                          }
+                        },
+                        disabled: regenerating,
+                      }]
+                    : []),
                   {
                     label: 'Eliminar',
                     icon: Trash2,
-                    variant: 'destructive',
+                    variant: 'destructive' as const,
                     onClick: () => {
                       if (isSeriesParent && seriesCount > 0) {
                         setDeleteDialogOpen(true);
