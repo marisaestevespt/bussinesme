@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { EmailSafetyPanel } from './EmailSafetyPanel';
-import { WelcomeClientEmailSettings } from './WelcomeClientEmailSettings';
+import { DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS, WelcomeClientEmailSettings, type WelcomeClientEmailSettingsData } from './WelcomeClientEmailSettings';
 
 interface TemplateVariable {
   token: string;
@@ -78,6 +78,24 @@ const PAYMENT_VARS: TemplateVariable[] = [
 ];
 
 const TEMPLATES: TemplateDefaults[] = [
+  {
+    key: 'welcome-client',
+    label: 'Boas-vindas ao cliente',
+    description: 'Enviado manualmente quando o projeto está pronto para o cliente entrar',
+    emoji: '🎉',
+    title: 'Bem-vindo(a), {name}!',
+    subtitle: 'O teu projeto arrancou — aqui ficam todas as informações para começares.',
+    ctaText: 'Aceder ao Portal',
+    footer: 'Com entusiasmo, a equipa',
+    variables: [
+      ...COMMON_VARS,
+      { token: '{product}', label: 'Produto comprado', example: 'Mentoria 1:1' },
+      { token: '{project}', label: 'Nome do projeto', example: 'Mentoria — Ana Silva' },
+      { token: '{start_date}', label: 'Data de início', example: '05 de maio de 2026' },
+      { token: '{end_date}', label: 'Data prevista de fim', example: '05 de agosto de 2026' },
+    ],
+    bodyBuilder: () => '',
+  },
   {
     key: 'invoice-available',
     label: 'Fatura disponível',
