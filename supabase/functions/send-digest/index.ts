@@ -915,12 +915,12 @@ async function buildOwnerEodDigest(
     if (tasks?.length) {
       hasContent = true;
       html += sectionHeader("✅ Tarefas concluídas hoje");
-      html += `<p><strong>${tasks.length}</strong> tarefa(s) concluída(s)</p><ul>`;
-      for (const t of tasks) {
-        const assignee = t.profiles?.full_name || "—";
-        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)})</span></li>`;
-      }
-      html += "</ul>";
+      html += `<p><strong>${tasks.length}</strong> tarefa(s) concluída(s)</p>`;
+      const rows = (tasks as any[]).map((t: any) => [
+        esc(t.name),
+        esc(t.profiles?.full_name || "—"),
+      ]);
+      html += dataTable(["Tarefa", "Responsável"], rows, ["left", "left"]);
     }
   }
 
@@ -1031,7 +1031,7 @@ async function buildOwnerEodDigest(
   if (sections.tarefas_atraso !== false) {
     const { data: tasks } = await supabase
       .from("tasks")
-      .select("name, assigned_to, deadline, profiles!tasks_assigned_to_fkey(full_name)")
+      .select("name, assigned_to, priority, deadline, profiles!tasks_assigned_to_fkey(full_name)")
       .neq("status", "done")
       .neq("status", "concluida")
       .lte("deadline", todayStr)
@@ -1040,13 +1040,21 @@ async function buildOwnerEodDigest(
     if (tasks?.length) {
       hasContent = true;
       html += sectionHeader("⚠️ Tarefas em atraso");
-      html += `<p><strong>${tasks.length}</strong> tarefa(s) por resolver</p><ul>`;
-      for (const t of tasks.slice(0, 10)) {
-        const assignee = t.profiles?.full_name || "—";
-        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)})</span></li>`;
+      html += `<p><strong>${tasks.length}</strong> tarefa(s) por resolver</p>`;
+      const sorted = [...tasks].sort((a: any, b: any) => (a.deadline || "").localeCompare(b.deadline || ""));
+      const rows = sorted.slice(0, 15).map((t: any) => {
+        const days = daysDiff(t.deadline, todayStr);
+        return [
+          esc(t.name),
+          esc(t.profiles?.full_name || "—"),
+          priorityChip(t.priority),
+          chip(days > 0 ? `${days}d` : "Hoje", days >= 7 ? "red" : days > 0 ? "amber" : "slate"),
+        ];
+      });
+      html += dataTable(["Tarefa", "Responsável", "Prioridade", "Atraso"], rows, ["left", "left", "left", "right"]);
+      if (tasks.length > 15) {
+        html += `<p style="font-size:12px;color:#86868b;margin:8px 0 0">… e mais ${tasks.length - 15} tarefa(s).</p>`;
       }
-      if (tasks.length > 10) html += `<li style="color:#888">… e mais ${tasks.length - 10}</li>`;
-      html += "</ul>";
     }
   }
 
