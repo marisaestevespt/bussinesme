@@ -868,6 +868,25 @@ export function MeetingFormDialog({
                 </Select>
               </div>
 
+              {/* Visibilidade no portal — só relevante quando há cliente */}
+              {clientId && (
+                <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="visible-in-portal" className="text-sm font-medium cursor-pointer">
+                      Visível no portal do cliente
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Quando desligado, esta reunião fica só interna — útil para preparações, debriefs ou conversas internas sobre o cliente.
+                    </p>
+                  </div>
+                  <Switch
+                    id="visible-in-portal"
+                    checked={visibleInPortal}
+                    onCheckedChange={setVisibleInPortal}
+                  />
+                </div>
+              )}
+
               {/* Department */}
               <div>
                 <Label>Departamento</Label>
