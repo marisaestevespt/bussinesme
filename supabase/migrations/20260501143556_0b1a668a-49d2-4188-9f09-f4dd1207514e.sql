@@ -1,0 +1,1 @@
+ALTER TABLE public.email_unsubscribe_tokens ALTER COLUMN token TYPE text USING token::text;
