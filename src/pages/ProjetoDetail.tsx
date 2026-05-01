@@ -1286,14 +1286,25 @@ export default function ProjetoDetailPage() {
                       {list.map((m: any) => {
                         const isPast = m.date_time && new Date(m.date_time) < now;
                         const isInternal = m.client_id && m.visible_in_portal === false;
+                        const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
+                          por_confirmar: { label: 'Por confirmar', variant: 'outline' },
+                          confirmada: { label: 'Confirmada', variant: 'default' },
+                          terminada: { label: 'Terminada', variant: 'secondary' },
+                          realizada: { label: 'Realizada', variant: 'secondary' },
+                          cancelada: { label: 'Cancelada', variant: 'destructive' },
+                        };
+                        const fallback = isPast
+                          ? { label: 'Realizada', variant: 'secondary' as const }
+                          : { label: 'Por confirmar', variant: 'outline' as const };
+                        const statusInfo = (m.status && statusMap[m.status]) || fallback;
                         return (
                           <div
                             key={m.id}
                             className="px-4 py-2.5 text-sm grid grid-cols-[100px_1fr_auto] gap-3 items-center cursor-pointer hover:bg-muted/40"
                             onClick={() => navigate(`/hub/reunioes/${m.id}`)}
                           >
-                            <Badge variant={isPast ? 'secondary' : 'default'} className="text-[10px] justify-center">
-                              {isPast ? 'Realizada' : 'Próxima'}
+                            <Badge variant={statusInfo.variant} className="text-[10px] justify-center">
+                              {statusInfo.label}
                             </Badge>
                             <div className="min-w-0">
                               <p className="font-medium truncate flex items-center gap-2">
