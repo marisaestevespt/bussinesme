@@ -32,7 +32,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   viagens: 'Viagens', outro: 'Outro',
 };
 
-const getSupplierStatusBadge = (supplier: any) => {
+const getSupplierStatusBadge = (supplier: { is_active?: boolean; paused_until?: string | null }) => {
   const pausedUntil = supplier.paused_until as string | null | undefined;
   const today = new Date().toISOString().slice(0, 10);
   const isIndefinite = pausedUntil === '2999-12-31';
