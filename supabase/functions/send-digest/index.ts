@@ -545,30 +545,10 @@ async function buildOwnerDigest(
     }
   }
 
-  // ── Tempo trabalhado hoje ──
-  if (sections.tempo_trabalhado) {
-    const { data: entries } = await supabase
-      .from("time_entries")
-      .select("duration, member_id, team_members(full_name)")
-      .gte("entry_date", todayStr)
-      .lte("entry_date", todayStr);
-
-    if (entries?.length) {
-      hasContent = true;
-      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
-      html += sectionHeader("⏱️ Tempo trabalhado hoje");
-      html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
-      const byMember: Record<string, number> = {};
-      for (const e of entries) {
-        const name = e.team_members?.full_name || "—";
-        byMember[name] = (byMember[name] || 0) + (e.duration || 0);
-      }
-      html += "<ul>";
-      for (const [name, mins] of Object.entries(byMember)) {
-        html += `<li>${esc(name)}: ${((mins as number) / 60).toFixed(1)}h</li>`;
-      }
-      html += "</ul>";
-    }
+  // ── Tempo trabalhado hoje (equipa) ──
+  if (sections.tempo_trabalhado !== false) {
+    const wt = await buildWorkTimeSection(supabase, todayStr, todayStr, 'team', { title: "⏱️ Tempo trabalhado hoje" });
+    if (wt) { hasContent = true; html += wt; }
   }
 
   // ── Resumo por membro ──
