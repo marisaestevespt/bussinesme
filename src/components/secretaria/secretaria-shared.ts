@@ -147,10 +147,26 @@ export function useMyMeetings() {
     queryKey: ['my-meetings', user?.id, profileId],
     enabled: !!user?.id && !!profileId,
     queryFn: async () => {
-      const { data: partRows } = await supabase.from('meeting_participants').select('meeting_id').eq('profile_id', profileId!);
-      if (!partRows?.length) return [];
-      const ids = partRows.map(r => r.meeting_id);
-      const { data } = await supabase.from('meetings').select('*').in('id', ids).order('date_time');
+      // Apanha reuniões onde sou participante OU organizador (created_by)
+      const { data: partRows } = await supabase
+        .from('meeting_participants')
+        .select('meeting_id')
+        .eq('profile_id', profileId!);
+      const partIds = (partRows || []).map(r => r.meeting_id);
+
+      const { data: ownedRows } = await supabase
+        .from('meetings')
+        .select('id')
+        .eq('created_by', user!.id);
+      const ownedIds = (ownedRows || []).map(r => r.id);
+
+      const allIds = Array.from(new Set([...partIds, ...ownedIds]));
+      if (!allIds.length) return [];
+      const { data } = await supabase
+        .from('meetings')
+        .select('*')
+        .in('id', allIds)
+        .order('date_time');
       return data || [];
     },
   });
