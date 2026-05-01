@@ -1065,6 +1065,13 @@ export default function ProjetoDetailPage() {
                 <Workflow className="h-4 w-4" />
                 Fluxo de Trabalho
               </EntityTabsTrigger>
+              <EntityTabsTrigger
+                value="analise"
+                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Análise de Projeto
+              </EntityTabsTrigger>
               {resolvedClientId && local.client_name && (
                 <EntityTabsTrigger
                   value="portal"
