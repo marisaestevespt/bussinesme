@@ -1073,21 +1073,14 @@ async function buildMemberEodDigest(
     }
   }
 
-  // ── Tempo registado hoje ──
-  if (sections.tempo_registado !== false && tm) {
-    const { data: entries } = await supabase
-      .from("time_entries")
-      .select("duration")
-      .eq("member_id", tm.id)
-      .gte("entry_date", todayStr)
-      .lte("entry_date", todayStr);
-
-    if (entries?.length) {
-      hasContent = true;
-      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
-      html += sectionHeader("⏱️ Tempo registado hoje");
-      html += `<p>Total: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
-    }
+  // ── Tempo registado hoje (próprio membro) ──
+  if (sections.tempo_registado !== false) {
+    const wt = await buildWorkTimeSection(supabase, todayStr, todayStr, 'user', {
+      memberId: tm?.id,
+      userId: profile.user_id,
+      title: "⏱️ O teu tempo registado hoje",
+    });
+    if (wt) { hasContent = true; html += wt; }
   }
 
   // ── Tarefas que ficaram em atraso ──
