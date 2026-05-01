@@ -49,7 +49,7 @@ export { SOURCE_LABELS };
 // ─── Hook ────────────────────────────────────────────────────
 
 export function useUnifiedResponsibilities(userId?: string) {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const uid = userId || user?.id;
   
   const today = startOfDay(new Date());
@@ -158,8 +158,9 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   // 6. NPS records
   const npsQ = useQuery({
-    queryKey: ['unified-nps', uid],
-    enabled: !!uid,
+    queryKey: ['unified-nps', uid, isOwner],
+    // NPS sem responsável atribuído — só relevante para Owner (gestão).
+    enabled: !!uid && !!isOwner,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase.from('client_nps_records')
@@ -172,22 +173,28 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   // 7. Client milestones
   const milestonesQ = useQuery({
-    queryKey: ['unified-milestones', uid],
-    enabled: !!uid,
+    queryKey: ['unified-milestones', uid, profileId, isOwner],
+    enabled: !!uid && (!!profileId || !!isOwner),
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('client_milestones')
-        .select('id,milestone,expected_date,status,client_id,clients(full_name)')
+      let q = supabase.from('client_milestones')
+        .select('id,milestone,expected_date,status,client_id,responsible_id,clients(full_name)')
         .lte('expected_date', todayStr)
         .in('status', ['por_fazer', 'em_atraso']);
+      // Membros só veem marcos onde são responsáveis. Owner vê tudo (gestão).
+      if (!isOwner && profileId) {
+        q = q.eq('responsible_id', profileId);
+      }
+      const { data } = await q;
       return data || [];
     },
   });
 
   // 8. Sales actions
   const salesActionsQ = useQuery({
-    queryKey: ['unified-sales-actions', uid],
-    enabled: !!uid,
+    queryKey: ['unified-sales-actions', uid, isOwner],
+    // Ações de venda não têm responsável individual — só Owner.
+    enabled: !!uid && !!isOwner,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase.from('commercial_sales_actions')
