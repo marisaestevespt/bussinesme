@@ -587,6 +587,18 @@ Deno.serve(async (req) => {
     const dayOfMonth = today.getDate();
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
+    const shouldGenerateForPeriod = (anchor: string | null | undefined, periodicity: string | null | undefined) => {
+      if (!periodicity) return false;
+      if (!anchor) return periodicity === "mensal";
+      const start = new Date(`${anchor}T00:00:00`);
+      const monthsDiff = (currentYear - start.getFullYear()) * 12 + (currentMonth - (start.getMonth() + 1));
+      if (monthsDiff < 0) return false;
+      if (periodicity === "bimestral") return monthsDiff % 2 === 0;
+      if (periodicity === "trimestral") return monthsDiff % 3 === 0;
+      if (periodicity === "semestral") return monthsDiff % 6 === 0;
+      if (periodicity === "anual") return monthsDiff % 12 === 0;
+      return true;
+    };
     const { data: recurringExpenses } = await supabase
       .from("financial_expenses")
       .select("*")
@@ -594,7 +606,10 @@ Deno.serve(async (req) => {
       .is("parent_expense_id", null);
     let generatedCount = 0;
     for (const re of recurringExpenses || []) {
-      if ((re.recurrence_day || 1) !== dayOfMonth) continue;
+      const anchorDate = re.renewal_date || re.expense_date;
+      const anchorDay = anchorDate ? new Date(`${anchorDate}T00:00:00`).getDate() : null;
+      if ((re.recurrence_day || anchorDay || 1) !== dayOfMonth) continue;
+      if (!shouldGenerateForPeriod(anchorDate, re.periodicity)) continue;
       if (re.recurrence_end_date && todayStr > re.recurrence_end_date) continue;
       // Dedup: aceita correspondência por parent_expense_id OU pela chave (source_type=subscription, source_id)
       // que é a chave usada pelo cliente em FinMensal.autoMaterialize.
