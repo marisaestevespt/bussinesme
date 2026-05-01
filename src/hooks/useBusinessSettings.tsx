@@ -70,6 +70,7 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
   const [loading, setLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
+    setLoading(true);
     const { data } = await supabase
       .from('business_settings')
       .select('*')
@@ -79,6 +80,8 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
     if (data) {
       setSettings(data);
       applyTheme(data);
+    } else {
+      setSettings(null);
     }
     setLoading(false);
   }, []);
@@ -88,6 +91,9 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+        // Mark as loading immediately to prevent the SetupPage flash
+        // between SIGNED_IN and the settings query resolving.
+        setLoading(true);
         fetchSettings();
       }
       if (event === 'SIGNED_OUT') {
