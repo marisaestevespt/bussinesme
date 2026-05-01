@@ -3261,6 +3261,33 @@ export type Database = {
         }
         Relationships: []
       }
+      department_covers: {
+        Row: {
+          created_at: string
+          department_key: string
+          id: string
+          image_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          department_key: string
+          id?: string
+          image_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          department_key?: string
+          id?: string
+          image_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       department_links: {
         Row: {
           created_at: string

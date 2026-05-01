@@ -22,6 +22,8 @@ import { SOP_STATUSES, getSopStatusInfo as getStatusInfo } from '@/lib/sopStatus
 import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { SOP_TEMPLATES, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
+import { ProcessCover } from '@/components/processes/ProcessCover';
+import { getDept } from '@/lib/departments';
 
 interface DepartmentProcessosProps {
   department: string;
@@ -213,34 +215,49 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
               </PopoverContent>
             </Popover>
           </div>
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Produto</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sops.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Sem processos neste departamento</TableCell></TableRow>
-                )}
-                {sops.map(s => {
-                  const st = getStatusInfo(s.status);
-                  return (
-                    <TableRow key={s.id} className="cursor-pointer" onClick={() => navigate(`/hub/processos/${s.id}`)}>
-                      <TableCell className="font-mono text-sm">{s.sop_id}</TableCell>
-                      <TableCell className="font-medium">{s.name}</TableCell>
-                      <TableCell><Badge variant="outline" className={st.color}>{st.label}</Badge></TableCell>
-                      <TableCell>{s.product_name || '—'}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </Card>
+          {sops.length === 0 ? (
+            <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem processos neste departamento</CardContent></Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {sops.map((s: any) => {
+                const st = getStatusInfo(s.status);
+                const deptInfo = getDept(department);
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => navigate(`/hub/processos/${s.id}`)}
+                    className="group text-left rounded-xl overflow-hidden border border-border bg-card hover:shadow-md hq-transition focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <ProcessCover
+                      className="h-28"
+                      imageUrl={s.cover_url}
+                      onUpload={async (url) => {
+                        await supabase.from('sops').update({ cover_url: url }).eq('id', s.id);
+                        qc.invalidateQueries({ queryKey: ['sops'] });
+                      }}
+                      fallback={
+                        <span className="text-2xl opacity-40 group-hover:opacity-60 transition-opacity">
+                          {deptInfo?.icon || '📄'}
+                        </span>
+                      }
+                    />
+                    <div className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-mono text-[10px] text-muted-foreground">{s.sop_id}</p>
+                          <h4 className="text-sm font-semibold text-foreground line-clamp-2">{s.name}</h4>
+                        </div>
+                        <Badge variant="outline" className={cn('text-[10px] shrink-0', st.color)}>{st.label}</Badge>
+                      </div>
+                      {s.product_name && (
+                        <p className="text-xs text-muted-foreground mt-1 truncate">📦 {s.product_name}</p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <Separator />
