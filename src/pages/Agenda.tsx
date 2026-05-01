@@ -43,6 +43,7 @@ import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { getProductColorFromMap, useProductColors, useProductBrands, useClientProductMap } from '@/hooks/useProductColors';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
+import { safeUrl } from '@/lib/url';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -618,7 +619,7 @@ function AttachmentsSection({ eventId }: { eventId: string }) {
           {attachments.map(a => (
             <div key={a.id} className="flex items-center gap-2 text-xs group">
               {a.type === 'file' ? <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" /> : <Link2 className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />}
-              <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1 flex items-center gap-1">
+              <a href={safeUrl(a.url)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1 flex items-center gap-1">
                 {a.name} <ExternalLink className="h-2.5 w-2.5 opacity-50" />
               </a>
               <button onClick={() => deleteMutation.mutate(a.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all">
