@@ -1087,7 +1087,6 @@ export default function ProjetoDetailPage() {
                     <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
                     {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar</Button>}
                     <Button size="sm" variant="outline" className="gap-1" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
                   </div>
                 }
               >
