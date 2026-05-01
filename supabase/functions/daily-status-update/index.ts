@@ -596,18 +596,29 @@ Deno.serve(async (req) => {
     for (const re of recurringExpenses || []) {
       if ((re.recurrence_day || 1) !== dayOfMonth) continue;
       if (re.recurrence_end_date && todayStr > re.recurrence_end_date) continue;
-      const { count } = await supabase.from("financial_expenses").select("id", { count: "exact", head: true }).eq("parent_expense_id", re.id).eq("expense_month", currentMonth).eq("expense_year", currentYear);
-      if ((count || 0) > 0) continue;
+      // Dedup: aceita correspondência por parent_expense_id OU pela chave (source_type=subscription, source_id)
+      // que é a chave usada pelo cliente em FinMensal.autoMaterialize.
+      const { count: parentCount } = await supabase.from("financial_expenses").select("id", { count: "exact", head: true }).eq("parent_expense_id", re.id).eq("expense_month", currentMonth).eq("expense_year", currentYear);
+      if ((parentCount || 0) > 0) continue;
+      const { count: sourceCount } = await supabase.from("financial_expenses").select("id", { count: "exact", head: true }).eq("source_type", "subscription").eq("source_id", re.id).eq("expense_month", currentMonth).eq("expense_year", currentYear);
+      if ((sourceCount || 0) > 0) continue;
       const expDate = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(dayOfMonth).padStart(2, "0")}`;
-      await supabase.from("financial_expenses").insert({
+      const { error: insErr } = await supabase.from("financial_expenses").insert({
         description: re.description, category: re.category,
         base_value: re.base_value, vat_rate: re.vat_rate, total_with_vat: re.total_with_vat,
         location: re.location, supplier_id: re.supplier_id,
         status: "por_pagar", expense_date: expDate,
         expense_month: currentMonth, expense_quarter: Math.ceil(currentMonth / 3),
-        expense_year: currentYear, parent_expense_id: re.id, is_recurring: false,
+        expense_year: currentYear,
+        // Chaves alinhadas com o cliente — evita duplicação cruzada
+        parent_expense_id: re.id,
+        source_type: "subscription",
+        source_id: re.id,
+        is_recurring: false,
       });
-      generatedCount++;
+      // 23505 = unique_violation — proteção final pela constraint DB
+      if (insErr && (insErr as { code?: string }).code !== "23505") throw insErr;
+      if (!insErr) generatedCount++;
     }
     return generatedCount > 0 ? `Generated ${generatedCount} recurring expenses` : null;
   });
