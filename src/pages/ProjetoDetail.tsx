@@ -165,7 +165,7 @@ export default function ProjetoDetailPage() {
   const { data: trackedTaskMinutes = 0 } = useTaskTimeTotals(taskIds);
 
   const projectAnalysisQ = useQuery({
-    queryKey: ['project-analysis', id, monthStart],
+    queryKey: ['project-analysis', id, monthStart, taskIds],
     enabled: !!id,
     queryFn: async () => {
       const [{ data: directEntries }, { data: taskEntries }, { data: taskTimerEntries }, { data: members }] = await Promise.all([
@@ -382,6 +382,7 @@ export default function ProjetoDetailPage() {
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url, contract_documents: local.contract_documents || [],
         payment_method: local.payment_method || null, payment_config: local.payment_config || null,
+        budgeted_minutes: local.budgeted_minutes ?? null,
         project_mode: (local as any).project_mode || 'pontual',
         task_mode: (local as any).task_mode || 'fases',
         brainstorming: (local as any).brainstorming ?? null,
