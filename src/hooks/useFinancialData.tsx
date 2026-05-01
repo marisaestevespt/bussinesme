@@ -130,7 +130,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
     queryKey: ['recurring-expenses'],
     queryFn: async () => {
       const { data, error } = await supabase.from('financial_expenses')
-        .select('*')
+        .select('*, suppliers:supplier_id(id, is_active, paused_until)')
         .eq('is_recurring', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
