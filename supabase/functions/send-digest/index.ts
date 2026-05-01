@@ -449,7 +449,7 @@ async function buildOwnerDigest(
     const { data: payments } = await supabase
       .from("commercial_sales")
       .select("invoice_total, client, product")
-      .eq("status", "pago")
+      .in("status", ["tudo_ok", "pago_falta_fatura"])
       .eq("payment_date", todayStr);
 
     if (payments?.length) {
@@ -950,7 +950,7 @@ async function buildOwnerEodDigest(
     const { data: payments } = await supabase
       .from("commercial_sales")
       .select("invoice_total, client")
-      .eq("status", "pago")
+      .in("status", ["tudo_ok", "pago_falta_fatura"])
       .eq("payment_date", todayStr);
 
     if (payments?.length) {
