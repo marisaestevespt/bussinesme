@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,9 +13,30 @@ export default function SecretariaProjetos() {
 
   return (
     <div className="space-y-4 mt-4">
-      <div className="flex gap-2">
-        <Button variant={view === 'ativos' ? 'default' : 'outline'} size="sm" onClick={() => setView('ativos')}>Ativos</Button>
-        <Button variant={view === 'todos' ? 'default' : 'outline'} size="sm" onClick={() => setView('todos')}>Todos</Button>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
+          {([
+            { id: 'ativos', label: 'Ativos' },
+            { id: 'todos', label: 'Todos' },
+          ] as const).map(v => {
+            const isActive = view === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setView(v.id)}
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full px-3 h-8 text-xs font-medium border transition-colors',
+                  isActive
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-foreground/80 border-border hover:border-foreground/40',
+                )}
+              >
+                {v.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
       <Table>
         <TableHeader>
