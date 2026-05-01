@@ -219,6 +219,10 @@ Deno.serve(async (req) => {
         tag: "Rotina",
         estimated_time: routine.estimated_time || null,
         created_by: routine.created_by || null,
+        // Carry the routine's planned time onto each generated task (HH:MM).
+        scheduled_time: routine.hour_time
+          ? String(routine.hour_time).slice(0, 5)
+          : null,
       });
 
       if (insertErr) {
