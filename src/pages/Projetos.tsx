@@ -834,7 +834,7 @@ function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Pr
   );
 }
 
-export { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials };
+export { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials, StatusBadge, DeptBadge, ProjectDeptBadges };
 
 function ArchivedTable({
   projects,

@@ -32,6 +32,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - Owner role cannot be edited/deleted (is_owner=true in custom_roles)
 - has_role() is SECURITY DEFINER function for RLS
 - AI assistant is always called "Atena", never "Lyrata AI" or "Lirah AI"
+- Listagens de projetos (qualquer ecrã) DEVEM reutilizar StatusBadge / DeptBadge / ProjectDeptBadges de @/pages/Projetos — nunca redesenhar status/dept à mão
 
 ## Memories
 - [Brand name](mem://design/brand-name.md) — Lyrata (system) + Atena (AI assistant): naming, tone, where each appears
@@ -64,3 +65,4 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Welcome client email](mem://features/welcome-client-email.md) — Manual welcome email triggered from ClientPortalSection with portal access, project info, next steps, WhatsApp
 - [Project detail layout](mem://features/project-detail-layout.md) — Ordem das secções na tab Tarefas & Responsabilidades por tipo de projeto, botões, health badge, título
 - [Meeting portal visibility](mem://features/meeting-portal-visibility.md) — Flag visible_in_portal por reunião (default true) controla se aparece no portal do cliente
+- [Projects display consistency](mem://design/projects-display-consistency.md) — Reutilizar StatusBadge/DeptBadge/ProjectDeptBadges de @/pages/Projetos em todas as listagens; nunca text-[10px] em badges
