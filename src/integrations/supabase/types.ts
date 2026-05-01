@@ -3834,13 +3834,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "events_google_calendar_db_id_fkey"
-            columns: ["google_calendar_db_id"]
-            isOneToOne: false
-            referencedRelation: "google_calendars"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "events_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -4742,158 +4735,6 @@ export type Database = {
           year?: number
         }
         Relationships: []
-      }
-      google_calendar_event_sync: {
-        Row: {
-          created_at: string
-          google_calendar_db_id: string
-          google_etag: string | null
-          google_event_id: string
-          google_html_link: string | null
-          id: string
-          last_synced_at: string
-          lyrata_event_id: string | null
-          lyrata_meeting_id: string | null
-          meet_link: string | null
-          sync_direction: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          google_calendar_db_id: string
-          google_etag?: string | null
-          google_event_id: string
-          google_html_link?: string | null
-          id?: string
-          last_synced_at?: string
-          lyrata_event_id?: string | null
-          lyrata_meeting_id?: string | null
-          meet_link?: string | null
-          sync_direction?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          google_calendar_db_id?: string
-          google_etag?: string | null
-          google_event_id?: string
-          google_html_link?: string | null
-          id?: string
-          last_synced_at?: string
-          lyrata_event_id?: string | null
-          lyrata_meeting_id?: string | null
-          meet_link?: string | null
-          sync_direction?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "google_calendar_event_sync_google_calendar_db_id_fkey"
-            columns: ["google_calendar_db_id"]
-            isOneToOne: false
-            referencedRelation: "google_calendars"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "google_calendar_event_sync_lyrata_event_id_fkey"
-            columns: ["lyrata_event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "google_calendar_event_sync_lyrata_meeting_id_fkey"
-            columns: ["lyrata_meeting_id"]
-            isOneToOne: false
-            referencedRelation: "meetings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      google_calendars: {
-        Row: {
-          access_role: string | null
-          account_id: string
-          background_color: string | null
-          color_id: string | null
-          created_at: string
-          description: string | null
-          foreground_color: string | null
-          google_calendar_id: string
-          id: string
-          is_primary: boolean
-          last_sync_at: string | null
-          mapped_client_id: string | null
-          mapped_product_id: string | null
-          scope: Database["public"]["Enums"]["google_calendar_scope"]
-          summary: string
-          sync_token: string | null
-          updated_at: string
-          visible: boolean
-        }
-        Insert: {
-          access_role?: string | null
-          account_id: string
-          background_color?: string | null
-          color_id?: string | null
-          created_at?: string
-          description?: string | null
-          foreground_color?: string | null
-          google_calendar_id: string
-          id?: string
-          is_primary?: boolean
-          last_sync_at?: string | null
-          mapped_client_id?: string | null
-          mapped_product_id?: string | null
-          scope?: Database["public"]["Enums"]["google_calendar_scope"]
-          summary: string
-          sync_token?: string | null
-          updated_at?: string
-          visible?: boolean
-        }
-        Update: {
-          access_role?: string | null
-          account_id?: string
-          background_color?: string | null
-          color_id?: string | null
-          created_at?: string
-          description?: string | null
-          foreground_color?: string | null
-          google_calendar_id?: string
-          id?: string
-          is_primary?: boolean
-          last_sync_at?: string | null
-          mapped_client_id?: string | null
-          mapped_product_id?: string | null
-          scope?: Database["public"]["Enums"]["google_calendar_scope"]
-          summary?: string
-          sync_token?: string | null
-          updated_at?: string
-          visible?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "google_calendars_mapped_client_id_fkey"
-            columns: ["mapped_client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "google_calendars_mapped_client_id_fkey"
-            columns: ["mapped_client_id"]
-            isOneToOne: false
-            referencedRelation: "clients_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "google_calendars_mapped_product_id_fkey"
-            columns: ["mapped_product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       hiring_simulations: {
         Row: {
@@ -5832,13 +5673,6 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meetings_google_calendar_db_id_fkey"
-            columns: ["google_calendar_db_id"]
-            isOneToOne: false
-            referencedRelation: "google_calendars"
             referencedColumns: ["id"]
           },
           {
