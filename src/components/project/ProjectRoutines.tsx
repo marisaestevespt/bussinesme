@@ -34,6 +34,7 @@ export function ProjectRoutines({ projectId }: { projectId: string }) {
   const qc = useQueryClient();
   const [newTitle, setNewTitle] = useState('');
   const [newRec, setNewRec] = useState<'diaria' | 'semanal' | 'mensal'>('semanal');
+  const [newHour, setNewHour] = useState<string>(''); // "HH:MM"
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['project-routines', projectId],
@@ -58,12 +59,13 @@ export function ProjectRoutines({ projectId }: { projectId: string }) {
         recurrence_type: newRec,
         weekday: newRec === 'semanal' ? 1 : null,
         month_day: newRec === 'mensal' ? 1 : null,
+        hour_time: newHour ? `${newHour}:00` : null,
         project_id: projectId,
         active: true,
       } as any);
       if (error) throw error;
     },
-    onSuccess: () => { setNewTitle(''); qc.invalidateQueries({ queryKey: ['project-routines', projectId] }); },
+    onSuccess: () => { setNewTitle(''); setNewHour(''); qc.invalidateQueries({ queryKey: ['project-routines', projectId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -119,6 +121,13 @@ export function ProjectRoutines({ projectId }: { projectId: string }) {
           placeholder="Ex: Publicar post no Instagram"
           onKeyDown={e => { if (e.key === 'Enter') addMut.mutate(); }}
           className="flex-1 h-9"
+        />
+        <Input
+          type="time"
+          value={newHour}
+          onChange={e => setNewHour(e.target.value)}
+          className="w-28 h-9"
+          title="Hora (opcional)"
         />
         <Button size="sm" onClick={() => addMut.mutate()} disabled={!newTitle.trim() || addMut.isPending} className="gap-1">
           <Plus className="h-3.5 w-3.5" /> Adicionar
