@@ -2108,6 +2108,7 @@ export type Database = {
           assigned_to: string | null
           base_value: number
           client: string | null
+          client_id: string | null
           cover_url: string | null
           created_at: string
           created_by: string | null
@@ -2135,6 +2136,7 @@ export type Database = {
           assigned_to?: string | null
           base_value?: number
           client?: string | null
+          client_id?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -2162,6 +2164,7 @@ export type Database = {
           assigned_to?: string | null
           base_value?: number
           client?: string | null
+          client_id?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -2186,6 +2189,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "commercial_sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "commercial_sales_product_id_fkey"
             columns: ["product_id"]
