@@ -381,6 +381,7 @@ export function SettingsEmails() {
   const qc = useQueryClient();
   const [selectedKey, setSelectedKey] = useState<string>('welcome-client');
   const [form, setForm] = useState<TemplateCustom | null>(null);
+  const [welcomePreviewSettings, setWelcomePreviewSettings] = useState<WelcomeClientEmailSettingsData>(DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS);
   const [saving, setSaving] = useState(false);
 
   const isWelcomeClient = selectedKey === 'welcome-client';
@@ -446,7 +447,7 @@ export function SettingsEmails() {
   };
 
   const biz = settings?.business_name || 'O teu Negócio';
-  const previewHtml = form ? buildPreview(tmpl, form, biz) : '';
+  const previewHtml = form ? buildPreview(tmpl, form, biz, welcomePreviewSettings) : '';
 
   if (!form) return null;
 
@@ -471,12 +472,6 @@ export function SettingsEmails() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="welcome-client">
-                  <div className="flex flex-col items-start">
-                    <span>Boas-vindas ao cliente</span>
-                    <span className="text-[11px] text-muted-foreground font-normal">Enviado manualmente quando o projeto está pronto para o cliente entrar</span>
-                  </div>
-                </SelectItem>
                 {TEMPLATES.map(t => (
                   <SelectItem key={t.key} value={t.key}>
                     <div className="flex flex-col items-start">
