@@ -23,6 +23,11 @@ interface PaymentDueTodayProps {
   fontDisplay?: string
   fontBody?: string
   logoUrl?: string
+  customTitle?: string
+  customSubtitle?: string
+  customCta?: string
+  customFooter?: string
+  customEmoji?: string
 }
 
 function hslToCss(hsl: string | undefined, fallback: string): string {
@@ -45,6 +50,7 @@ const PaymentDueTodayEmail = ({
   clientName, productName, amount, dueDate, paymentMethod, iban, mbwayNumber,
   businessName, primaryColor, primaryForeground, textColor, accentColor,
   fontDisplay, fontBody, logoUrl,
+  customTitle, customSubtitle, customCta, customFooter, customEmoji,
 }: PaymentDueTodayProps) => {
   const name = clientName || 'Cliente'
   const biz = businessName || SITE_NAME
@@ -92,13 +98,19 @@ const PaymentDueTodayEmail = ({
             {logoUrl ? (
               <Img src={logoUrl} alt={biz} style={logoStyle} />
             ) : (
-              <Text style={headerEmoji}>📩</Text>
+            <Text style={headerEmoji}>{customEmoji || '📩'}</Text>
             )}
-            <Heading style={h1}>{name}, o pagamento vence hoje</Heading>
+            <Heading style={h1}>
+              {customTitle
+                ? customTitle.replace('{name}', name).replace('{amount}', value).replace('{product}', product)
+                : `${name}, o pagamento vence hoje`}
+            </Heading>
             <Text style={subtitle}>
-              {isAutomatic
-                ? `O pagamento referente a ${product} será processado automaticamente hoje.`
-                : `Passa por aqui um lembrete gentil — o pagamento referente a ${product} vence hoje.`}
+              {customSubtitle
+                ? customSubtitle.replace('{name}', name).replace('{amount}', value).replace('{product}', product)
+                : (isAutomatic
+                  ? `O pagamento referente a ${product} será processado automaticamente hoje.`
+                  : `Passa por aqui um lembrete gentil — o pagamento referente a ${product} vence hoje.`)}
             </Text>
           </Section>
 
@@ -167,9 +179,11 @@ const PaymentDueTodayEmail = ({
           <Hr style={divider} />
 
           <Text style={{ fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0', textAlign: 'center' as const }}>
-            {isAutomatic
-              ? 'Caso tenha alguma questão sobre a cobrança, não hesite em contactar-nos.'
-              : 'Se já efetuou o pagamento, por favor ignore este email.'}
+            {customFooter
+              ? customFooter
+              : (isAutomatic
+                ? 'Caso tenha alguma questão sobre a cobrança, não hesite em contactar-nos.'
+                : 'Se já efetuou o pagamento, por favor ignore este email.')}
           </Text>
 
           <Text style={footer}>
