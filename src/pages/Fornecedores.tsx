@@ -807,6 +807,49 @@ export default function FornecedoresPage() {
                 </div>
               </div>
 
+              {/* Status & Pause */}
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">Estado & Pausa</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={form.is_active ?? true}
+                      onCheckedChange={v => setForm((f: any) => ({ ...f, is_active: v }))}
+                    />
+                    <Label className="text-xs font-normal">{form.is_active === false ? 'Inativo' : 'Ativo'}</Label>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Pausar despesas recorrentes até</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={form.paused_until || ''}
+                      min={new Date().toISOString().slice(0, 10)}
+                      onChange={e => setForm((f: any) => ({ ...f, paused_until: e.target.value || null }))}
+                    />
+                    {form.paused_until && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setForm((f: any) => ({ ...f, paused_until: null }))}
+                      >
+                        Retomar agora
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {form.paused_until
+                      ? `Não serão geradas novas despesas até ${form.paused_until}. O sistema retoma automaticamente nessa data.`
+                      : 'Define uma data para pausar temporariamente (ex.: cancelaste a subscrição e vais voltar daqui a 2 meses).'}
+                  </p>
+                </div>
+              </div>
+
               {/* Contract dates */}
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
