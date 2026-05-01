@@ -43,9 +43,16 @@ export function canRenderSubscriptionForMonth(subscription: RecurringExpense, mo
   // já é igual ou posterior ao paused_until.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pausedUntil = (subscription as any).paused_until as string | null | undefined;
-  if (pausedUntil) {
-    const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`;
-    if (monthEnd < pausedUntil) return false;
+  const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`;
+  if (pausedUntil && monthEnd < pausedUntil) return false;
+
+  // Verificar também o estado do FORNECEDOR — se o fornecedor está pausado ou
+  // inativo, não devemos renderizar nem materializar despesas para esta regra.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplier = (subscription as any).suppliers as { is_active?: boolean; paused_until?: string | null } | null | undefined;
+  if (supplier) {
+    if (supplier.is_active === false) return false;
+    if (supplier.paused_until && monthEnd < supplier.paused_until) return false;
   }
 
   if (!subscription.recurrence_end_date) return true;
