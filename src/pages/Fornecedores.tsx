@@ -482,6 +482,7 @@ export default function FornecedoresPage() {
           periodicity,
           monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
           recurrence_day: form.recurring_day || null,
+          renewal_date: firstPayment || null,
           payment_method: form.payment_method || null,
           // Regra é template puro: NUNCA tem mês/ano/data — só os filhos têm.
           // Evita duplicação com as despesas materializadas. Trigger DB também force this.
@@ -563,6 +564,7 @@ export default function FornecedoresPage() {
           total_with_vat: ruleTotal,
           periodicity: editPeriodicity,
           monthly_equivalent: editMonthly,
+          renewal_date: form.first_payment_date || form.contract_start_date || form._existingRecurring.renewal_date || null,
           location: form.location || 'portugal',
           category: form.category || 'outro',
           payment_method: form.payment_method || null,
