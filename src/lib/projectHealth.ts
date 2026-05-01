@@ -1,6 +1,7 @@
 import { differenceInDays } from 'date-fns';
-import type { Task } from '@/lib/taskStatus';
-import { isTaskOverdue } from '@/lib/taskStatus';
+import { isTaskOverdue, type TaskLike } from '@/lib/taskStatus';
+
+type ProjectTask = TaskLike & { project_id?: string | null };
 
 export type ProjectHealth = 'green' | 'yellow' | 'red';
 
@@ -37,7 +38,7 @@ export interface ProjectHealthResult {
  */
 export function computeProjectHealth(
   project: ProjectHealthInput,
-  tasks: Task[],
+  tasks: ProjectTask[],
   today: Date,
   progressOverride?: number | null,
 ): ProjectHealthResult {
@@ -46,7 +47,7 @@ export function computeProjectHealth(
     project.type === 'cliente_servico_mensal' && project.project_mode === 'recorrente';
   const useOverdueOnly = isTarefasLivres || isRecorrenteMensal;
 
-  const projectTasks = tasks.filter(t => (t as any).project_id === project.id);
+  const projectTasks = tasks.filter(t => t.project_id === project.id);
   const overdueTasks = projectTasks.filter(t => isTaskOverdue(t, today));
   const overdueCount = overdueTasks.length;
 
