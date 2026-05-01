@@ -816,7 +816,7 @@ export default function ProjetoDetailPage() {
                     {isServicoMensal ? '📋 Checklist mensal (do produto)' : '📋 Tarefas Fixas Mensais'}
                   </SelectItem>
                   <SelectItem value="tarefas_livres">
-                    {isServicoMensal ? '✏️ Tarefas + Rotinas livres' : '✏️ Tarefas Livres'}
+                    {isServicoMensal ? '✏️ Rotinas + Tarefas livres' : '✏️ Tarefas Livres'}
                   </SelectItem>
                 </SelectContent>
               </Select>
