@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS email_unsubscribe_tokens_email_key ON public.email_unsubscribe_tokens (email);
