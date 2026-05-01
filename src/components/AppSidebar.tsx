@@ -60,7 +60,6 @@ const transversaisItems: NavItem[] = [
   { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos', termKey: 'projetos' },
   { title: 'Processos', url: '/hub/processos', icon: 'GitBranch', moduleKey: 'processos' },
   { title: 'Tarefas', url: '/hub/tarefas', icon: 'CheckSquare', moduleKey: 'tarefas' },
-  { title: 'Biblioteca', url: '/hub/biblioteca', icon: 'BookOpen', moduleKey: 'biblioteca' },
 ];
 
 const departamentosItems: NavItem[] = [
