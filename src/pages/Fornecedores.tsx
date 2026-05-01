@@ -748,9 +748,12 @@ export default function FornecedoresPage() {
                     </TableCell>
                     <TableCell className="text-right">{(expenseCounts as any)[s.id] || 0}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={s.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
-                        {s.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
+                      {(() => {
+                        const pausedActive = (s as any).paused_until && (s as any).paused_until > new Date().toISOString().slice(0, 10);
+                        if (!s.is_active) return <Badge variant="outline" className="bg-muted text-muted-foreground">Inativo</Badge>;
+                        if (pausedActive) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado até {(s as any).paused_until}</Badge>;
+                        return <Badge variant="outline" className="bg-success/10 text-success">Ativo</Badge>;
+                      })()}
                     </TableCell>
                   </TableRow>
                 ))}
