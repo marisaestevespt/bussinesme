@@ -69,7 +69,7 @@ const ClientOffboardingEmail = ({
   const displayFont = fontDisplay ? `'${fontDisplay}', Georgia, serif` : bodyFont
 
   const main = { backgroundColor: '#ffffff', fontFamily: bodyFont }
-  const container = { maxWidth: '540px', margin: '0 auto', padding: '40px 24px' }
+  const container = { maxWidth: '640px', margin: '0 auto', padding: '40px 24px' }
   const headerSection = { textAlign: 'center' as const, padding: '0 0 8px' }
   const h1 = { fontSize: '20px', fontWeight: '700' as const, color: brandText, margin: '0 0 10px', lineHeight: '1.3', fontFamily: displayFont }
   const text = { fontSize: '13px', color: brandMuted, lineHeight: '1.7', margin: '0 0 14px' }

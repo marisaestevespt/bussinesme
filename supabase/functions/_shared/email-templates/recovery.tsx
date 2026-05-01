@@ -25,7 +25,7 @@ export const RecoveryEmail = ({
   const __brand = brandColor ? `hsl(${brandColor.replace(/ /g, ', ')})` : 'hsl(351, 56%, 28%)';
   // styles inlined
   const main = { backgroundColor: '#ffffff', fontFamily: '"Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif' }
-  const container = { padding: '32px 28px', maxWidth: '560px' }
+  const container = { padding: '32px 28px', maxWidth: '640px' }
   const brand = { fontSize: '14px', fontWeight: 600 as const, color: __brand, letterSpacing: '0.08em', textTransform: 'uppercase' as const, margin: '0 0 24px' }
   const h1 = {
     fontSize: '24px',

@@ -1303,9 +1303,9 @@ function dataTable(headers: string[], rows: string[][], align?: ("left"|"right"|
     .map((h, i) => `<th style="text-align:${al(i)};font-size:11px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:0.6px;padding:6px 10px;border-bottom:1px solid #e5e5e7">${esc(h)}</th>`)
     .join("");
   const bodyHtml = rows
-    .map(r => "<tr>" + r.map((c, i) => `<td style="text-align:${al(i)};padding:9px 10px;border-bottom:1px solid #efeff1;font-size:13px;color:#1c1c1e;vertical-align:top">${c}</td>`).join("") + "</tr>")
+    .map(r => "<tr>" + r.map((c, i) => `<td style="text-align:${al(i)};padding:9px 10px;border-bottom:1px solid #efeff1;font-size:13px;color:#1c1c1e;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word">${c}</td>`).join("") + "</tr>")
     .join("");
-  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;margin:6px 0 2px"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;margin:6px 0 2px;table-layout:auto"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
 
 // Coloured chip, e.g. priority or overdue badge. Use sparingly inside table cells.
@@ -1318,7 +1318,7 @@ function chip(label: string, color: "red"|"amber"|"green"|"slate"|"primary" = "s
     primary:{ bg: "#eceef1", fg: "#1c1c1e" },
   };
   const p = palette[color] || palette.slate;
-  return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:${p.bg};color:${p.fg};font-size:11px;font-weight:600;letter-spacing:0.2px">${esc(label)}</span>`;
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:${p.bg};color:${p.fg};font-size:11px;font-weight:600;letter-spacing:0.2px;white-space:nowrap">${esc(label)}</span>`;
 }
 
 function priorityChip(prio?: string | null): string {
