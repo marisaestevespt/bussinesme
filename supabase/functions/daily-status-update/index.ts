@@ -379,13 +379,19 @@ Deno.serve(async (req) => {
     const { data: expiredPortals } = await supabase
       .from("clients")
       .select("id")
-      .eq("status", "terminado")
+      .in("status", ["em_offboarding", "terminado"])
       .not("portal_deactivation_date", "is", null)
       .lte("portal_deactivation_date", todayStr);
     let portalsDeactivated = 0;
     for (const client of expiredPortals || []) {
       const { error: portalErr } = await supabase.from("client_portals").update({ is_active: false }).eq("client_id", client.id);
       if (!portalErr) portalsDeactivated++;
+      // Auto-transition em_offboarding → terminado when the 30-day portal window expires
+      await supabase
+        .from("clients")
+        .update({ status: "terminado" })
+        .eq("id", client.id)
+        .eq("status", "em_offboarding");
     }
     return portalsDeactivated > 0 ? `Portals deactivated: ${portalsDeactivated}` : null;
   });
