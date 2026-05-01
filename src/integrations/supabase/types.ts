@@ -588,6 +588,7 @@ export type Database = {
           values_list: Json
           vision: string | null
           weekly_align_day: number
+          welcome_client_email_settings: Json
           welcome_text: string | null
           whatsapp_team_url: string | null
         }
@@ -632,6 +633,7 @@ export type Database = {
           values_list?: Json
           vision?: string | null
           weekly_align_day?: number
+          welcome_client_email_settings?: Json
           welcome_text?: string | null
           whatsapp_team_url?: string | null
         }
@@ -676,6 +678,7 @@ export type Database = {
           values_list?: Json
           vision?: string | null
           weekly_align_day?: number
+          welcome_client_email_settings?: Json
           welcome_text?: string | null
           whatsapp_team_url?: string | null
         }
@@ -1568,6 +1571,7 @@ export type Database = {
           show_workspace: boolean
           slug: string | null
           token: string
+          welcome_email_sent_at: string | null
         }
         Insert: {
           client_id: string
@@ -1585,6 +1589,7 @@ export type Database = {
           show_workspace?: boolean
           slug?: string | null
           token?: string
+          welcome_email_sent_at?: string | null
         }
         Update: {
           client_id?: string
@@ -1602,6 +1607,7 @@ export type Database = {
           show_workspace?: boolean
           slug?: string | null
           token?: string
+          welcome_email_sent_at?: string | null
         }
         Relationships: [
           {
