@@ -11755,6 +11755,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_owner: { Args: never; Returns: boolean }
+      is_hr_or_admin: { Args: never; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
       is_self_team_member: { Args: { _member_id: string }; Returns: boolean }
       log_audit_entry: {
