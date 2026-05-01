@@ -996,6 +996,35 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
             <EntityTabsContent value="projeto" className="space-y-8 mt-6">
+              {/* ── Card: Próxima Reunião (atalho) ───────── */}
+              {(() => {
+                const now = new Date();
+                const next = [...(meetings || [])]
+                  .filter((m: any) => m.date_time && new Date(m.date_time) >= now)
+                  .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
+                if (!next) return null;
+                return (
+                  <button
+                    onClick={() => navigate(`/hub/reunioes/${(next as any).id}`)}
+                    className="w-full flex items-center justify-between gap-4 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent px-4 py-3 text-left transition-all hover:border-primary/60 hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="rounded-lg bg-primary/15 p-2">
+                        <Video className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Próxima Reunião</p>
+                        <p className="text-sm font-semibold truncate">{(next as any).title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date((next as any).date_time), "EEEE, d MMM 'às' HH:mm", { locale: pt })}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+                  </button>
+                );
+              })()}
+
               {/* ── Section: Menu Inicial ─────────────────── */}
               <EntitySection title="Menu Inicial" icon={Target}>
                 <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
