@@ -4347,6 +4347,7 @@ export type Database = {
           member_id: string | null
           monthly_equivalent: number | null
           parent_expense_id: string | null
+          paused_until: string | null
           payment_method: string | null
           periodicity: string | null
           recurrence_day: number | null
@@ -4383,6 +4384,7 @@ export type Database = {
           member_id?: string | null
           monthly_equivalent?: number | null
           parent_expense_id?: string | null
+          paused_until?: string | null
           payment_method?: string | null
           periodicity?: string | null
           recurrence_day?: number | null
@@ -4419,6 +4421,7 @@ export type Database = {
           member_id?: string | null
           monthly_equivalent?: number | null
           parent_expense_id?: string | null
+          paused_until?: string | null
           payment_method?: string | null
           periodicity?: string | null
           recurrence_day?: number | null
@@ -9992,6 +9995,7 @@ export type Database = {
           name: string
           nif: string | null
           notes: string | null
+          paused_until: string | null
           payment_method: string | null
           phone: string | null
           renewal_history: Json | null
@@ -10017,6 +10021,7 @@ export type Database = {
           name: string
           nif?: string | null
           notes?: string | null
+          paused_until?: string | null
           payment_method?: string | null
           phone?: string | null
           renewal_history?: Json | null
@@ -10042,6 +10047,7 @@ export type Database = {
           name?: string
           nif?: string | null
           notes?: string | null
+          paused_until?: string | null
           payment_method?: string | null
           phone?: string | null
           renewal_history?: Json | null

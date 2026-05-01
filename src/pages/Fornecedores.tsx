@@ -398,6 +398,7 @@ export default function FornecedoresPage() {
         contract_end_date: form.contract_end_date || null,
         documents: form.documents || [],
         expense_description_template: form.expense_description_template || null,
+        paused_until: form.paused_until || null,
       };
 
       let supplierId = form.id;
@@ -747,9 +748,12 @@ export default function FornecedoresPage() {
                     </TableCell>
                     <TableCell className="text-right">{(expenseCounts as any)[s.id] || 0}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={s.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
-                        {s.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
+                      {(() => {
+                        const pausedActive = (s as any).paused_until && (s as any).paused_until > new Date().toISOString().slice(0, 10);
+                        if (!s.is_active) return <Badge variant="outline" className="bg-muted text-muted-foreground">Inativo</Badge>;
+                        if (pausedActive) return <Badge variant="outline" className="bg-warning/10 text-warning">Pausado até {(s as any).paused_until}</Badge>;
+                        return <Badge variant="outline" className="bg-success/10 text-success">Ativo</Badge>;
+                      })()}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -803,6 +807,49 @@ export default function FornecedoresPage() {
                       {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              {/* Status & Pause */}
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">Estado & Pausa</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={form.is_active ?? true}
+                      onCheckedChange={v => setForm((f: any) => ({ ...f, is_active: v }))}
+                    />
+                    <Label className="text-xs font-normal">{form.is_active === false ? 'Inativo' : 'Ativo'}</Label>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Pausar despesas recorrentes até</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={form.paused_until || ''}
+                      min={new Date().toISOString().slice(0, 10)}
+                      onChange={e => setForm((f: any) => ({ ...f, paused_until: e.target.value || null }))}
+                    />
+                    {form.paused_until && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setForm((f: any) => ({ ...f, paused_until: null }))}
+                      >
+                        Retomar agora
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {form.paused_until
+                      ? `Não serão geradas novas despesas até ${form.paused_until}. O sistema retoma automaticamente nessa data.`
+                      : 'Define uma data para pausar temporariamente (ex.: cancelaste a subscrição e vais voltar daqui a 2 meses).'}
+                  </p>
                 </div>
               </div>
 
