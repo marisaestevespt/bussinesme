@@ -23,6 +23,7 @@ import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, displayObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { safeUrl } from '@/lib/url';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-accent-violet/15 text-accent-violet' },
@@ -200,7 +201,7 @@ export default function MarketingTrafegoPago() {
                           <TableCell className="text-sm text-muted-foreground truncate max-w-[140px]">{displayObjetivoFinal(c.oferta_goal)}</TableCell>
                           <TableCell>
                             {c.link ? (
-                              <a href={c.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+                              <a href={safeUrl(c.link)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
                                 <ExternalLink className="h-3.5 w-3.5 text-primary" />
                               </a>
                             ) : '—'}
