@@ -816,6 +816,22 @@ export default function ProjetoDetailPage() {
                 </SelectContent>
               </Select>
             </div>
+            {/* Orçamento de tempo — junto à Operação */}
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Clock className="h-4 w-4" /> Orçamento tempo</span>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.25"
+                  value={local.budgeted_minutes ? local.budgeted_minutes / 60 : ''}
+                  onChange={e => updateField('budgeted_minutes', e.target.value ? Math.round(Number(e.target.value) * 60) : null)}
+                  placeholder={isServicoMensal ? 'Horas/mês' : 'Horas/projeto'}
+                  className="h-8 w-28 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">{isServicoMensal ? 'h/mês contratadas' : 'h previstas no projeto'}</span>
+              </div>
+            </div>
             {/* Progresso */}
             {taskMode !== 'tarefas_livres' && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
@@ -1023,22 +1039,6 @@ export default function ProjetoDetailPage() {
                 <span className="text-sm font-medium">{formatCost(projectCost)}</span>
               </div>
             )}
-            {/* Orçamento de tempo */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Clock className="h-4 w-4" /> Orçamento tempo</span>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.25"
-                  value={local.budgeted_minutes ? local.budgeted_minutes / 60 : ''}
-                  onChange={e => updateField('budgeted_minutes', e.target.value ? Math.round(Number(e.target.value) * 60) : null)}
-                  placeholder={isServicoMensal ? 'Horas/mês' : 'Horas/projeto'}
-                  className="h-8 w-28 text-sm"
-                />
-                <span className="text-xs text-muted-foreground">{isServicoMensal ? 'h/mês contratadas' : 'h previstas no projeto'}</span>
-              </div>
-            </div>
           </div>
 
 
