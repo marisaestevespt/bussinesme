@@ -584,7 +584,6 @@ Deno.serve(async (req) => {
 
   // ── 15. Recurring expenses ──
   await runSection("recurring-expenses", "recurring_expenses", async () => {
-    const dayOfMonth = today.getDate();
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
     const shouldGenerateForPeriod = (anchor: string | null | undefined, periodicity: string | null | undefined) => {
