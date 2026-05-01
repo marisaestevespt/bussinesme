@@ -11360,9 +11360,8 @@ export type Database = {
           client_id: string
           id: string
           is_active: boolean
-          portal_type: Database["public"]["Enums"]["portal_type"]
+          portal_type: string
           show_faqs: boolean
-          show_materials: boolean
           show_meetings: boolean
           show_monthly_summary: boolean
           show_onboarding: boolean
@@ -11379,9 +11378,8 @@ export type Database = {
           client_id: string
           id: string
           is_active: boolean
-          portal_type: Database["public"]["Enums"]["portal_type"]
+          portal_type: string
           show_faqs: boolean
-          show_materials: boolean
           show_meetings: boolean
           show_monthly_summary: boolean
           show_onboarding: boolean
