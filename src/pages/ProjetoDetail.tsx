@@ -808,15 +808,10 @@ export default function ProjetoDetailPage() {
               <Select value={taskMode} onValueChange={v => updateField('task_mode', v)}>
                 <SelectTrigger className="w-64 h-8"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {/* Para serviço mensal recorrente, "fases" raramente faz sentido — escondido */}
-                  {!isRecorrenteMensal && (
-                    <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
-                  )}
-                  <SelectItem value="tarefas_fixas">
-                    {isServicoMensal ? '📋 Checklist mensal (do produto)' : '📋 Tarefas Fixas Mensais'}
-                  </SelectItem>
+                  <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
+                  <SelectItem value="tarefas_fixas">🔁 Entregas Recorrentes</SelectItem>
                   <SelectItem value="tarefas_livres">
-                    {isServicoMensal ? '✏️ Rotinas + Tarefas livres' : '✏️ Tarefas Livres'}
+                    {isServicoMensal ? '✏️ Rotinas + Tarefas Livres' : '✏️ Tarefas Livres'}
                   </SelectItem>
                 </SelectContent>
               </Select>
