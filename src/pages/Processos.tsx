@@ -36,12 +36,15 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
 import { SOP_TEMPLATES, getSopTemplate, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
 import { ProcessCover } from '@/components/processes/ProcessCover';
+import { BibliotecaSection } from '@/components/processes/BibliotecaSection';
+import { BookOpen } from 'lucide-react';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
 const PROCESSOS_DEFAULT_VIEWS: DefaultView[] = [
   { key: 'galeria', label: 'Galeria', icon: <FileText className="h-4 w-4" />, isDefault: true },
   { key: 'lista', label: 'Lista', icon: <List className="h-4 w-4" />, isDefault: true },
+  { key: 'biblioteca', label: 'Biblioteca', icon: <BookOpen className="h-4 w-4" />, isDefault: true },
 ];
 
 export default function ProcessosPage() {
