@@ -132,6 +132,32 @@ export default function MarketingEstrategia() {
 
   const activeChannels = channels.filter(c => c.is_active);
 
+  // Channel cover upload (Owner)
+  const [uploadingChannelId, setUploadingChannelId] = useState<string | null>(null);
+  const handleChannelCoverUpload = async (channelId: string, file: File) => {
+    setUploadingChannelId(channelId);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${channelId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('channel-covers').upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('channel-covers').getPublicUrl(path);
+      const { error: updErr } = await supabase.from('marketing_channels').update({ cover_url: urlData.publicUrl } as any).eq('id', channelId);
+      if (updErr) throw updErr;
+      qc.invalidateQueries({ queryKey: ['marketing-channels'] });
+      toast.success('Capa atualizada');
+    } catch (e: any) {
+      toast.error('Erro ao enviar capa: ' + (e?.message || ''));
+    } finally {
+      setUploadingChannelId(null);
+    }
+  };
+  const removeChannelCover = async (channelId: string) => {
+    const { error } = await supabase.from('marketing_channels').update({ cover_url: null } as any).eq('id', channelId);
+    if (error) { toast.error('Erro ao remover capa'); return; }
+    qc.invalidateQueries({ queryKey: ['marketing-channels'] });
+  };
+
   // Distribution card dialog state
   const [distDialog, setDistDialog] = useState<{ open: boolean; columnKey: string; editId?: string }>({ open: false, columnKey: '' });
   const [distForm, setDistForm] = useState({ title: '', channel: '', description: '', link_url: '', files: [] as { name: string; url: string }[] });
