@@ -11463,6 +11463,7 @@ export type Database = {
         Returns: number
       }
       backfill_deliverable_tasks: { Args: never; Returns: number }
+      can_edit_task: { Args: { _task_id: string }; Returns: boolean }
       cancel_scheduled_renewal: { Args: { _client_id: string }; Returns: Json }
       current_team_member_id: { Args: never; Returns: string }
       current_user_departments: { Args: never; Returns: string[] }
