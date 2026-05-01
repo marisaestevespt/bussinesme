@@ -15,10 +15,9 @@ const OwnerEodDigestEmail = ({ subject, html }: OwnerEodDigestProps) => (
     <Head />
     <Preview>{subject || 'Wrap-up do dia'}</Preview>
     <Body style={{ backgroundColor: '#ffffff', margin: 0, padding: 0 }}>
-      <Container
-        style={{ maxWidth: '600px', margin: '0 auto' }}
-        dangerouslySetInnerHTML={{ __html: html || '<p>Sem conteúdo disponível.</p>' }}
-      />
+      <Container style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <div dangerouslySetInnerHTML={{ __html: html || '<p>Sem conteúdo disponível.</p>'  }} />
+        </Container>
     </Body>
   </Html>
 )
