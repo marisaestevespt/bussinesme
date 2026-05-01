@@ -121,12 +121,16 @@ export function forecastRecurringRevenue(
 ): { total: number; count: number } {
   const recurringMap = recurringProductTickets(products);
   const recurringNames = new Set(recurringMap.keys());
+  // Mês previsto = [primeiro dia, último dia]. Incluímos clientes cujo ciclo
+  // ainda esteja ativo em qualquer dia do mês (end_of_cycle >= monthStart),
+  // porque mesmo terminando a meio do mês a mensalidade desse mês é cobrada.
+  const monthStart = new Date(monthEnd.getFullYear(), monthEnd.getMonth(), 1);
   const contributing = clients.filter(c => {
     if (!isActiveClient(c) || !c.current_product) return false;
     if (!recurringNames.has(c.current_product)) return false;
     if (c.end_of_cycle) {
       try {
-        return new Date(c.end_of_cycle) > monthEnd;
+        return new Date(c.end_of_cycle) >= monthStart;
       } catch {
         return true;
       }
