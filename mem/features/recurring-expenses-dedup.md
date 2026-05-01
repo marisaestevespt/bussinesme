@@ -23,6 +23,22 @@ Uma `financial_expenses` pode ser de dois tipos mutuamente exclusivos:
 - `financial_expenses_supplier_month_value_uq`: UNIQUE (supplier_id, year, month, total_with_vat) WHERE supplier IS NOT NULL AND não é regra AND status<>'cancelado'. Apanha duplicados mesmo quando os parent/source IDs estão diferentes.
 - Trigger `trg_validate_recurring_rule_no_period`: força que regras nunca tenham período preenchido.
 
+## Pausa temporária (2026-05-01)
+
+Despesas recorrentes podem ser pausadas sem cancelar a regra:
+
+- `financial_expenses.paused_until` (date) — pausa só aquela regra.
+- `suppliers.paused_until` (date) — pausa todas as regras desse fornecedor.
+- `suppliers.is_active=false` — bloqueia geração permanentemente.
+
+**Defesa em camadas:**
+1. Trigger `validate_recurring_child_period` rejeita inserções de filhas se a regra está cancelada/pausada OU se o fornecedor está inativo/pausado (`check_violation`).
+2. Edge function `daily-status-update` faz join `suppliers:supplier_id(is_active, paused_until)` e ignora regras pausadas/inativas com contador `Skipped N paused/inactive`.
+3. Frontend `canRenderSubscriptionForMonth` em `helpers.ts` esconde subs pausadas (mês alvo < `paused_until`).
+4. UI em `Fornecedores.tsx` permite definir "Pausar até" e mostra badge `Pausado até DD/MM`.
+
+Quando `today >= paused_until`, o sistema retoma automaticamente — não é preciso intervenção manual.
+
 ## Bug histórico (2026-05-01) e como evitar
 
 A regra era inserida com `expense_year/month` do mês corrente E imediatamente outra despesa-filho era inserida para o mesmo mês com `source_type='subscription'`. As duas linhas tinham chaves diferentes (rule vs subscription) e os índices únicos não as apanhavam. **Resultado: 7 fornecedores com despesa duplicada em vários meses.**
