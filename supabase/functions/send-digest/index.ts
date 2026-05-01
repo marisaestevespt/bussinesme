@@ -1265,6 +1265,94 @@ function sectionHeader(title: string): string {
 // ─── Table helpers (for richer sections) ──────────────────────────
 // Each cell escapes its content. The `align` array applies "left"/"right"/"center"
 // per column. Headers are 11px uppercase; rows are 13px with subtle separators.
+// Aggregates work time from `time_entries` (manual, duration in MINUTES) and
+// `task_time_entries` (timer cronometrado, duration_minutes). Optionally filters by user/member.
+// scope: 'team' returns rows per member; 'user' returns total only.
+async function buildWorkTimeSection(
+  supabase: SupabaseAdmin,
+  startDate: string,
+  endDate: string,
+  scope: 'team' | 'user',
+  opts: { memberId?: string; userId?: string; title?: string } = {}
+): Promise<string> {
+  const totals: Record<string, { name: string; minutes: number }> = {};
+  let total = 0;
+
+  // 1) Manual entries
+  let q1 = supabase
+    .from("time_entries")
+    .select("duration, member_id, team_members(full_name)")
+    .gte("entry_date", startDate)
+    .lte("entry_date", endDate);
+  if (opts.memberId) q1 = q1.eq("member_id", opts.memberId);
+  const { data: manual } = await q1;
+  for (const e of (manual || []) as Row[]) {
+    const mins = Number(e.duration) || 0;
+    total += mins;
+    if (scope === 'team') {
+      const k = e.member_id || "—";
+      if (!totals[k]) totals[k] = { name: e.team_members?.full_name || "Sem nome", minutes: 0 };
+      totals[k].minutes += mins;
+    }
+  }
+
+  // 2) Task timer entries (per user_id → join via team_members.profile_id → profiles.user_id)
+  let q2 = supabase
+    .from("task_time_entries")
+    .select("duration_minutes, user_id")
+    .gte("started_at", startDate + "T00:00:00")
+    .lte("started_at", endDate + "T23:59:59");
+  if (opts.userId) q2 = q2.eq("user_id", opts.userId);
+  const { data: timers } = await q2;
+  let userIdToMember: Record<string, { id: string; name: string }> = {};
+  if (scope === 'team' && timers?.length) {
+    const userIds = [...new Set(timers.map((t: Row) => t.user_id).filter(Boolean))];
+    if (userIds.length) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("user_id, id, full_name, team_members(id, full_name)")
+        .in("user_id", userIds);
+      for (const p of (prof || []) as Row[]) {
+        const tm = Array.isArray(p.team_members) ? p.team_members[0] : p.team_members;
+        userIdToMember[p.user_id] = {
+          id: tm?.id || p.id,
+          name: tm?.full_name || p.full_name || "Sem nome",
+        };
+      }
+    }
+  }
+  for (const t of (timers || []) as Row[]) {
+    const mins = Number(t.duration_minutes) || 0;
+    total += mins;
+    if (scope === 'team') {
+      const m = userIdToMember[t.user_id];
+      const k = m?.id || `u:${t.user_id}`;
+      if (!totals[k]) totals[k] = { name: m?.name || "Sem nome", minutes: 0 };
+      totals[k].minutes += mins;
+    }
+  }
+
+  if (total <= 0) return "";
+
+  const fmt = (m: number) => {
+    const h = Math.floor(m / 60);
+    const mm = Math.round(m % 60);
+    return h > 0 ? `${h}h${mm > 0 ? ` ${mm}min` : ""}` : `${mm}min`;
+  };
+
+  let html = sectionHeader(opts.title || (scope === 'team' ? "⏱️ Tempo trabalhado da equipa" : "⏱️ Tempo trabalhado"));
+  if (scope === 'team' && Object.keys(totals).length > 0) {
+    const rows = Object.values(totals)
+      .sort((a, b) => b.minutes - a.minutes)
+      .map(r => [esc(r.name), fmt(r.minutes)]);
+    rows.push([`<strong>Total equipa</strong>`, `<strong>${fmt(total)}</strong>`]);
+    html += dataTable(["Membro", "Tempo"], rows, ["left", "right"]);
+  } else {
+    html += `<p style="margin:6px 0 2px;font-size:14px;color:#1c1c1e">Total: <strong>${fmt(total)}</strong></p>`;
+  }
+  return html;
+}
+
 function dataTable(headers: string[], rows: string[][], align?: ("left"|"right"|"center")[]): string {
   const al = (i: number) => align?.[i] || "left";
   const headHtml = headers
