@@ -1135,6 +1135,64 @@ export default function ProjetoDetailPage() {
                   projectStartDate={local.start_date}
                 />
               )}
+
+              {/* ── Reuniões: próximas + últimas 3 realizadas ── */}
+              <EntitySection
+                title="Reuniões"
+                icon={Video}
+                action={
+                  <div className="flex gap-2 items-center">
+                    <Button size="sm" variant="ghost" className="gap-1" onClick={() => setSubPage('reunioes')}>Ver todas</Button>
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
+                  </div>
+                }
+              >
+                {(() => {
+                  const now = new Date();
+                  const sorted = [...(meetings || [])].sort((a: any, b: any) =>
+                    new Date(a.date_time || 0).getTime() - new Date(b.date_time || 0).getTime()
+                  );
+                  const upcoming = sorted.filter((m: any) => m.date_time && new Date(m.date_time) >= now);
+                  const pastDone = sorted
+                    .filter((m: any) => m.date_time && new Date(m.date_time) < now)
+                    .slice(-3)
+                    .reverse();
+                  const list = [...upcoming, ...pastDone];
+                  if (list.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
+                        <Video className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                        <p className="text-sm text-muted-foreground">Sem reuniões associadas a este projeto.</p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="rounded-xl border overflow-hidden divide-y">
+                      {list.map((m: any) => {
+                        const isPast = m.date_time && new Date(m.date_time) < now;
+                        return (
+                          <div
+                            key={m.id}
+                            className="px-4 py-2.5 text-sm grid grid-cols-[100px_1fr_auto] gap-3 items-center cursor-pointer hover:bg-muted/40"
+                            onClick={() => navigate(`/hub/reunioes/${m.id}`)}
+                          >
+                            <Badge variant={isPast ? 'secondary' : 'default'} className="text-[10px] justify-center">
+                              {isPast ? 'Realizada' : 'Próxima'}
+                            </Badge>
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{m.title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {m.date_time ? format(new Date(m.date_time), "d MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}
+                              </p>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </EntitySection>
             </EntityTabsContent>
 
             {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
