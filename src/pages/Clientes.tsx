@@ -21,6 +21,7 @@ import {
   CollectionEmpty,
 } from '@/components/layout/collection';
 import { EntityTabs, EntityTabsList, EntityTabsTrigger } from '@/components/layout/entity';
+import { getPlanningSection } from '@/lib/department-planning';
 
 const fmtDate = (d: string | null | undefined) => {
   if (!d) return '—';
@@ -100,8 +101,10 @@ export default function ClientesPage() {
       <PageHeader title="Clientes" subtitle="Gestão de clientes, acompanhamento e satisfação." department="clientes" />
       <CollectionPage className="pt-6">
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
             {[
+              // Planeamento sempre primeiro (regra: ver mem://design/department-planning-card.md)
+              (() => { const p = getPlanningSection('clientes'); return { path: p.path, label: p.label, icon: p.icon, iconColor: p.iconColor, color: p.color }; })(),
               { path: '/hub/clientes/analise', label: 'Análise de Clientes', icon: BarChart3, iconColor: 'text-info', color: 'from-info/20 to-info/10 border-info/30/60 hover:from-info/30 hover:to-info/15 hover:border-info/30/80' },
               { path: '/hub/clientes/portais', label: 'Portal de Clientes', icon: Globe, iconColor: 'text-accent-violet', color: 'from-accent-violet/20 to-accent-violet/10 border-accent-violet/60 hover:from-accent-violet/30 hover:to-accent-violet/15 hover:border-accent-violet/80' },
               { path: '/hub/clientes/feedback', label: 'Feedbacks', icon: MessageSquare, iconColor: 'text-warning', color: 'from-warning/20 to-warning/10 border-warning/30/60 hover:from-warning/30 hover:to-warning/15 hover:border-warning/30/80' },
