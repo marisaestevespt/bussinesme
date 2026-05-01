@@ -113,7 +113,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "access_password_audit_access_id_fkey"
+            columns: ["access_id"]
+            isOneToOne: false
+            referencedRelation: "platform_accesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
