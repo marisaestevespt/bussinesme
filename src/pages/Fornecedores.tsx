@@ -412,6 +412,33 @@ export default function FornecedoresPage() {
           .eq('supplier_id', form.id);
         if (paymentMethodSyncError) throw paymentMethodSyncError;
 
+        // ── Limpeza ao pausar / desativar ──
+        // Se o fornecedor passa a estar pausado (paused_until definido) ou inativo,
+        // apaga as despesas FUTURAS ainda "por_pagar" para evitar pagamentos previstos
+        // que já não fazem sentido. Mantém intactas: pagas, parciais e passadas (histórico).
+        const isPausedNow = !!record.paused_until || record.is_active === false;
+        if (isPausedNow) {
+          const todayStr = new Date().toISOString().slice(0, 10);
+          // Filtros: só "por_pagar", só não-recorrentes (não apagar a regra-mãe),
+          // e só com expense_date >= hoje (não toca em histórico).
+          const { data: toDelete } = await supabase
+            .from('financial_expenses')
+            .select('id')
+            .eq('supplier_id', form.id)
+            .eq('status', 'por_pagar')
+            .eq('is_recurring', false)
+            .gte('expense_date', todayStr);
+          if (toDelete && toDelete.length > 0) {
+            const ids = toDelete.map(d => d.id);
+            const { error: delErr } = await supabase
+              .from('financial_expenses')
+              .delete()
+              .in('id', ids);
+            if (delErr) throw delErr;
+            toast.success(`${ids.length} despesa${ids.length !== 1 ? 's' : ''} futura${ids.length !== 1 ? 's' : ''} por pagar removida${ids.length !== 1 ? 's' : ''}`);
+          }
+        }
+
         // Cascade location/VAT changes to all existing expenses for this supplier
         const newLocation = form.location || 'portugal';
         const newVat = form.default_vat_rate ?? 23;
