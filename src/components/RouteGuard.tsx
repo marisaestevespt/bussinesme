@@ -41,7 +41,7 @@ function resolveAccess(pathname: string): { moduleKey?: string; ownerOnly?: bool
       'tarefas': 'tarefas',
       'acessos': 'acessos',
       'mural': 'mural',
-      'biblioteca': 'biblioteca',
+      'biblioteca': 'processos', // Biblioteca foi movida para dentro de Processos
       'marketing': 'marketing',
       'financeiro': 'financeiro',
       'comercial': 'comercial',
