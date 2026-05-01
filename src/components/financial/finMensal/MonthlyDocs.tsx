@@ -199,24 +199,32 @@ export function FiscalChecklistCard({ month, year }: { month: number; year: numb
         const existing = deadlineCompletions.find((c) => c.deadline_key === deadlineKey);
         if (checked && !existing) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (supabase.from as any)('fiscal_deadline_completions')
+          const { error } = await (supabase.from as any)('fiscal_deadline_completions')
             .insert({ deadline_key: deadlineKey, year, completed_by: (await supabase.auth.getUser()).data.user?.id });
+          if (error) throw error;
         } else if (!checked && existing) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (supabase.from as any)('fiscal_deadline_completions').delete().eq('id', existing.id);
+          const { error } = await (supabase.from as any)('fiscal_deadline_completions').delete().eq('id', existing.id);
+          if (error) throw error;
         }
         return;
       }
       const existing = (checks as FiscalCheckRow[]).find((c) => c.check_key === key);
       if (existing) {
-        await supabase.from('fiscal_monthly_checks').update({ checked, checked_at: checked ? new Date().toISOString() : null }).eq('id', existing.id);
+        const { error } = await supabase.from('fiscal_monthly_checks').update({ checked, checked_at: checked ? new Date().toISOString() : null }).eq('id', existing.id);
+        if (error) throw error;
       } else {
-        await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: key, checked, checked_at: checked ? new Date().toISOString() : null });
+        const { error } = await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: key, checked, checked_at: checked ? new Date().toISOString() : null });
+        if (error) throw error;
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['fiscal-checks', year, month] });
       qc.invalidateQueries({ queryKey: ['fiscal-deadline-completions', year] });
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      toast.error(`Não foi possível guardar: ${msg}`);
     },
   });
 
