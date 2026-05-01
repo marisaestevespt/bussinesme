@@ -100,12 +100,17 @@ Deno.serve(async (req) => {
     let welcome_email_sent = false;
     if (send_welcome) {
       try {
-        // Fetch member info (full_name, department) via team_members → profiles
-        const { data: profileRow } = await supabase
-          .from("profiles")
-          .select("id, user_id, full_name")
-          .eq("user_id", userExists ? (existing!.users!.find(u => u.email?.toLowerCase() === targetEmail.toLowerCase())!.id) : "")
-          .maybeSingle();
+        // Find auth user by email to look up profile/team_member info
+        const targetUser = existing?.users?.find(
+          (u) => u.email?.toLowerCase() === targetEmail.toLowerCase()
+        );
+        const { data: profileRow } = targetUser
+          ? await supabase
+              .from("profiles")
+              .select("id, user_id, full_name")
+              .eq("user_id", targetUser.id)
+              .maybeSingle()
+          : { data: null };
 
         const { data: tmRow } = profileRow
           ? await supabase
