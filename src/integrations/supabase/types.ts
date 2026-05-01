@@ -11323,6 +11323,10 @@ export type Database = {
     Functions: {
       accountant_access_enabled: { Args: never; Returns: boolean }
       activate_renewal_project: { Args: { _project_id: string }; Returns: Json }
+      add_business_hours: {
+        Args: { _from: string; _hours: number }
+        Returns: string
+      }
       apply_product_portal_template: {
         Args: {
           _mode?: string
@@ -11646,6 +11650,7 @@ export type Database = {
         }
         Returns: number
       }
+      notify_meetings_missing_link: { Args: never; Returns: number }
       notify_portal_meeting_confirmed: {
         Args: {
           _client_name: string
