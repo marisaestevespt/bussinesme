@@ -48,6 +48,16 @@ Deno.serve(async (req) => {
       .limit(1)
       .single()
 
+    // Fetch custom overrides for both templates (one row each, optional)
+    const { data: customRows } = await supabase
+      .from('email_template_settings')
+      .select('*')
+      .in('template_key', ['payment-reminder', 'payment-due-today'])
+    const customByKey: Record<string, any> = {}
+    for (const row of (customRows || []) as any[]) {
+      customByKey[row.template_key] = row
+    }
+
     // Extract payment details from payment_methods JSON
     const paymentMethods = (bizSetup?.payment_methods as any[]) || []
     const mbwayEntry = paymentMethods.find((pm: any) => pm.type === 'mbway')
@@ -106,19 +116,25 @@ Deno.serve(async (req) => {
 
       try {
         const templateName = isToday ? 'payment-due-today' : 'payment-reminder'
+        const custom = customByKey[templateName] || {}
         const templateData: Record<string, any> = {
           clientName: client.full_name,
           productName: sale.product || 'Serviço',
           amount: String(sale.invoice_total || 0),
           dueDate: formattedDate,
           businessName: settings?.business_name || '',
-          primaryColor: settings?.primary_color || '',
-          primaryForeground: settings?.secondary_color || '',
-          textColor: settings?.text_color || '',
-          accentColor: settings?.accent_color || '',
-          fontDisplay: settings?.font_display || '',
-          fontBody: settings?.font_body || '',
+          primaryColor: custom.primary_color || settings?.primary_color || '',
+          primaryForeground: custom.primary_foreground || settings?.secondary_color || '',
+          textColor: custom.text_color || settings?.text_color || '',
+          accentColor: custom.muted_color || settings?.accent_color || '',
+          fontDisplay: custom.font_display || settings?.font_display || '',
+          fontBody: custom.font_body || settings?.font_body || '',
           logoUrl: settings?.logo_url || '',
+          customTitle: custom.title_text || undefined,
+          customSubtitle: custom.subtitle_text || undefined,
+          customCta: custom.cta_text || undefined,
+          customFooter: custom.footer_text || undefined,
+          customEmoji: custom.emoji || undefined,
         }
 
         if (isToday) {
