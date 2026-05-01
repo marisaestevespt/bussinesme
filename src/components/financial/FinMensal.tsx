@@ -88,10 +88,14 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     return recurringExps.filter(sub => canRenderSubscriptionForMonth(sub, m, currentYear));
   }, [recurringExps, m, currentYear]);
 
+  // Dedup robusto: o cron `daily-status-update` insere com parent_expense_id mas pode
+  // não preencher source_type/source_id. Olhamos para AMBAS as chaves para evitar
+  // duplicar uma despesa já criada pelo backend (ver mem://features/recurring-expenses-dedup.md).
   const subExpenseMap = useMemo(() => {
     const map = new Map<string, Expense>();
     monthExpenses.forEach(e => {
       if (e.source_type === 'subscription' && e.source_id) map.set(e.source_id, e);
+      else if (e.parent_expense_id) map.set(e.parent_expense_id, e);
     });
     return map;
   }, [monthExpenses]);
@@ -100,6 +104,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     const map = new Map<string, Expense>();
     monthExpenses.forEach(e => {
       if (e.source_type === 'contract' && e.source_id) map.set(e.source_id, e);
+      else if (e.parent_expense_id) map.set(e.parent_expense_id, e);
     });
     return map;
   }, [monthExpenses]);
@@ -121,10 +126,10 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       if (subExpenseMap.has(sub.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
 
+      // Dedup cruzado com cron: aceita correspondência por source_id OU parent_expense_id
       const { count } = await supabase.from('financial_expenses')
         .select('id', { count: 'exact', head: true })
-        .eq('source_type', 'subscription')
-        .eq('source_id', sub.id)
+        .or(`and(source_type.eq.subscription,source_id.eq.${sub.id}),parent_expense_id.eq.${sub.id}`)
         .eq('expense_month', m)
         .eq('expense_year', currentYear);
       if ((count || 0) > 0) continue;
@@ -143,8 +148,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
       const { count } = await supabase.from('financial_expenses')
         .select('id', { count: 'exact', head: true })
-        .eq('source_type', 'contract')
-        .eq('source_id', contract.id)
+        .or(`and(source_type.eq.contract,source_id.eq.${contract.id}),parent_expense_id.eq.${contract.id}`)
         .eq('expense_month', m)
         .eq('expense_year', currentYear);
       if ((count || 0) > 0) continue;
