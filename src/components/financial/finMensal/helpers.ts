@@ -1,5 +1,5 @@
 import type { RecurringExpense } from '@/hooks/useFinancialData';
-import { getSubscriptionOccurrences } from '@/hooks/useFinancialData';
+import { getRecurringAnchorDate, getSubscriptionOccurrences } from '@/hooks/useFinancialData';
 
 export const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 export const VAT_RATES = [0, 6, 13, 23];
@@ -24,7 +24,7 @@ export function parseDateString(value: string | null | undefined) {
 }
 
 export function getSubscriptionDueDate(subscription: RecurringExpense, month: number, year: number) {
-  const startDate = parseDateString(subscription.expense_date);
+  const startDate = parseDateString(getRecurringAnchorDate(subscription));
   const fallbackDay = startDate?.getDate() ?? 15;
   const targetDay = subscription.recurrence_day || fallbackDay;
   const lastDayOfMonth = new Date(year, month, 0).getDate();
@@ -35,7 +35,7 @@ export function getSubscriptionDueDate(subscription: RecurringExpense, month: nu
 
 export function canRenderSubscriptionForMonth(subscription: RecurringExpense, month: number, year: number) {
   if (subscription.status === 'cancelado' || !subscription.periodicity) return false;
-  if (getSubscriptionOccurrences(subscription.expense_date, subscription.periodicity, month, year) <= 0) return false;
+  if (getSubscriptionOccurrences(getRecurringAnchorDate(subscription), subscription.periodicity, month, year) <= 0) return false;
 
   if (!subscription.recurrence_end_date) return true;
 
