@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake, Video } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
@@ -963,7 +963,7 @@ export default function ProjetoDetailPage() {
                 className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
               >
                 <Workflow className="h-4 w-4" />
-                Tarefas &amp; Responsabilidades
+                Fluxo de Trabalho
               </EntityTabsTrigger>
               {resolvedClientId && local.client_name && (
                 <EntityTabsTrigger
@@ -996,6 +996,35 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
             <EntityTabsContent value="projeto" className="space-y-8 mt-6">
+              {/* ── Card: Próxima Reunião (atalho) ───────── */}
+              {(() => {
+                const now = new Date();
+                const next = [...(meetings || [])]
+                  .filter((m: any) => m.date_time && new Date(m.date_time) >= now)
+                  .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
+                if (!next) return null;
+                return (
+                  <button
+                    onClick={() => navigate(`/hub/reunioes/${(next as any).id}`)}
+                    className="w-full flex items-center justify-between gap-4 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent px-4 py-3 text-left transition-all hover:border-primary/60 hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="rounded-lg bg-primary/15 p-2">
+                        <Video className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Próxima Reunião</p>
+                        <p className="text-sm font-semibold truncate">{(next as any).title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date((next as any).date_time), "EEEE, d MMM 'às' HH:mm", { locale: pt })}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+                  </button>
+                );
+              })()}
+
               {/* ── Section: Menu Inicial ─────────────────── */}
               <EntitySection title="Menu Inicial" icon={Target}>
                 <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
@@ -1135,6 +1164,64 @@ export default function ProjetoDetailPage() {
                   projectStartDate={local.start_date}
                 />
               )}
+
+              {/* ── Reuniões: próximas + últimas 3 realizadas ── */}
+              <EntitySection
+                title="Reuniões"
+                icon={Video}
+                action={
+                  <div className="flex gap-2 items-center">
+                    <Button size="sm" variant="ghost" className="gap-1" onClick={() => setSubPage('reunioes')}>Ver todas</Button>
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
+                  </div>
+                }
+              >
+                {(() => {
+                  const now = new Date();
+                  const sorted = [...(meetings || [])].sort((a: any, b: any) =>
+                    new Date(a.date_time || 0).getTime() - new Date(b.date_time || 0).getTime()
+                  );
+                  const upcoming = sorted.filter((m: any) => m.date_time && new Date(m.date_time) >= now);
+                  const pastDone = sorted
+                    .filter((m: any) => m.date_time && new Date(m.date_time) < now)
+                    .slice(-3)
+                    .reverse();
+                  const list = [...upcoming, ...pastDone];
+                  if (list.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
+                        <Video className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                        <p className="text-sm text-muted-foreground">Sem reuniões associadas a este projeto.</p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="rounded-xl border overflow-hidden divide-y">
+                      {list.map((m: any) => {
+                        const isPast = m.date_time && new Date(m.date_time) < now;
+                        return (
+                          <div
+                            key={m.id}
+                            className="px-4 py-2.5 text-sm grid grid-cols-[100px_1fr_auto] gap-3 items-center cursor-pointer hover:bg-muted/40"
+                            onClick={() => navigate(`/hub/reunioes/${m.id}`)}
+                          >
+                            <Badge variant={isPast ? 'secondary' : 'default'} className="text-[10px] justify-center">
+                              {isPast ? 'Realizada' : 'Próxima'}
+                            </Badge>
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{m.title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {m.date_time ? format(new Date(m.date_time), "d MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}
+                              </p>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </EntitySection>
             </EntityTabsContent>
 
             {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}

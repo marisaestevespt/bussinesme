@@ -202,45 +202,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     });
   }, [projectSales, unlinkedClientSales]);
 
-  // ─── Meetings ─────────────────────────────────────────────────
-  const { data: meetings = [] } = useQuery({
-    queryKey: ['project-meetings', projectId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('meetings')
-        .select('id, title, date_time, status, meeting_url, meeting_participants(profile_id, profiles:profiles(full_name))')
-        .eq('project_id', projectId)
-        .order('date_time', { ascending: false });
-      return data || [];
-    },
-  });
-
-  const { data: clientMeetings = [] } = useQuery({
-    queryKey: ['client-meetings-project', clientId, clientName],
-    queryFn: async () => {
-      if (!clientId && !clientName) return [];
-      let query = supabase
-        .from('meetings')
-        .select('id, title, date_time, status, meeting_url, meeting_participants(profile_id, profiles:profiles(full_name))')
-        .is('project_id', null)
-        .order('date_time', { ascending: false });
-      if (clientId) query = query.eq('client_id', clientId);
-      else if (clientName) query = query.eq('client_name', clientName);
-      const { data } = await query;
-      return data || [];
-    },
-    enabled: !!clientId || !!clientName,
-  });
-
-  const allMeetings = [...meetings, ...clientMeetings].sort((a, b) =>
-    new Date(b.date_time).getTime() - new Date(a.date_time).getTime()
-  );
-
-  // Use canonical meeting statuses (mapped to local shape) so badges match the Reunioes page.
-  const MEETING_STATUSES: Record<string, { label: string; badgeColor: string; color: string }> = Object.fromEntries(
-    CANON_MEETING_STATUSES_FOR_GESTAO.map(s => [s.value, { label: s.label, badgeColor: s.color, color: s.dotColor }])
-  );
-
   // ─── Helper: resolve payment method for a generated entry ─────
   const getMethodForEntry = (isEntrada: boolean) => {
     if (payMethod === 'entrada_prestacoes') {
@@ -590,53 +551,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         onSave={(sale) => { comData.upsertSale.mutate(sale); setManualEntryOpen(false); }}
       />
 
-      {/* Reuniões */}
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Video className="h-4 w-4 text-primary" />
-            </div>
-            <CardTitle className="text-base">Reuniões</CardTitle>
-          </div>
-          <Button size="sm" variant="outline" onClick={onNewMeeting}>
-            <Plus className="h-3 w-3 mr-1" />Nova Reunião
-          </Button>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-4 gap-2">
-            <span>Status</span>
-            <span>Data & Hora</span>
-            <span>Reunião</span>
-            <span>Participantes</span>
-          </div>
-          {allMeetings.length === 0 ? (
-            <EmptyHint>Sem reuniões associadas</EmptyHint>
-          ) : (
-            allMeetings.map((m: any) => {
-              const ms = MEETING_STATUSES[m.status] || { label: m.status, badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' };
-              return (
-                <div
-                  key={m.id}
-                  className="px-4 py-2.5 text-sm grid grid-cols-4 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/hub/reunioes/${m.id}`)}
-                >
-                  <span>
-                    <Badge className={`text-[11px] font-semibold px-2.5 py-0.5 ${ms.badgeColor}`}>
-                      {ms.label}
-                    </Badge>
-                  </span>
-                  <span>{m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}</span>
-                  <span className="font-medium truncate">{m.title}</span>
-                  <span className="truncate text-muted-foreground">
-                    {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
-                  </span>
-                </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

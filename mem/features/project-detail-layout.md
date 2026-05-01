@@ -1,27 +1,34 @@
 ---
 name: Project detail tab layout
-description: ProjetoDetail.tsx — ordem da tab "Tarefas & Responsabilidades" por tipo, botões de ação, health badge
+description: ProjetoDetail.tsx — abas, ordem de secções por tipo, reuniões, health badge, título
 type: feature
 ---
 
-## Tab "Tarefas & Responsabilidades" (value="processos")
+## Abas
+1. **Overview de Projeto** (`projeto`)
+2. **Fluxo de Trabalho** (`processos`) — antiga "Tarefas & Responsabilidades"
+3. **Portal de Cliente** (se cliente associado)
+4. **Gestão** (se não-interno) — admin: pagamentos, contrato, vendas. **Sem reuniões.**
+5. **Encerramento da Avença / Fecho de Projeto**
 
-### Avença mensal (isServicoMensal)
-Ordem: Responsabilidades Acordadas → Rotinas/Tarefas Fixas → Tarefas. **Sem SOPs/Processos.**
+## Tab Fluxo de Trabalho — ordem das secções
+- **Avença mensal** (`isServicoMensal`): Responsabilidades → Rotinas → Tarefas → Reuniões. **Sem SOPs.**
+- **Outros projetos** (pontual, deadline-driven, tarefas livres, futuros): Tarefas → SOPs/Processos → Reuniões.
 
-### Outros projetos (pontual, deadline-driven, tarefas livres, futuros)
-Ordem: Tarefas → SOPs/Processos (`ProjectProcessosTab`). Sem Responsabilidades nem Rotinas.
+## Reuniões
+- Listadas dentro da tab Fluxo de Trabalho (no fim): próximas + últimas 3 realizadas, com botão "Ver todas" que abre a sub-página completa.
+- Card "Próxima Reunião" em destaque no topo da Overview (só aparece se houver reunião futura).
+- Botão "+ Reunião" vive na secção Reuniões da tab Fluxo de Trabalho (não mais ao lado do botão "Tarefa").
 
 ## Botões de ação na secção Tarefas
 - Sempre: "+ Tarefa"
 - Só `tarefas_fixas`: "📋 Gerar"
-- **Não tem botão "+ Reunião"** — reuniões criam-se na tab Gestão ou no módulo Reuniões (onde são listadas).
 
 ## Health badge
-- Calculado em `src/lib/projectHealth.ts` (partilhado com Operação dashboard).
-- Regras diferentes consoante modo: overdue-only para avenças/tarefas_livres; deadline-driven para os outros.
-- Mostrado no header do detalhe do projeto, ao lado dos badges Interno/Avença.
+- `src/lib/projectHealth.ts` (partilhado com Operação dashboard).
+- Overdue-only para avenças/tarefas_livres; deadline-driven para os outros.
+- Renderizado no header do detalhe ao lado dos badges Interno/Avença.
 
 ## Título do projeto
 - Input editável em linha própria (block w-full), `text-3xl md:text-2xl font-bold`.
-- Badges (Interno, Avença, Health) numa linha por baixo do título — não no mesmo flex-wrap, para não roubar área de clique.
+- Badges (Interno, Avença, Health) numa linha por baixo do título.
