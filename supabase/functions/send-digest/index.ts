@@ -70,8 +70,19 @@ Deno.serve(async (req) => {
     const fontDisplay = bizSettings?.font_display || fontBody;
 
     const todayStr = formatDate(now);
-    const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); // 1=Mon, 7=Sun
+    const jsDow = now.getDay(); // 0=Sun … 6=Sat
+    const dayOfWeek = jsDow === 0 ? 7 : jsDow; // 1=Mon, 7=Sun
     const dayOfMonth = now.getDate();
+
+    // ── Skip weekends (Saturday=6, Sunday=0) ──
+    // Digests só são enviados em dias úteis, independentemente do tipo (owner/membro)
+    // ou frequência. Evita "ruído" ao fim de semana.
+    if (jsDow === 0 || jsDow === 6) {
+      return new Response(
+        JSON.stringify({ message: "Skipped: weekend", dow: jsDow }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const results: { userId: string; sent: boolean; error?: string }[] = [];
 
