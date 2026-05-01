@@ -132,9 +132,9 @@ function TeamWhatsAppLink() {
   if (editing) {
     return (
       <div className="flex items-center gap-2 mt-2">
-        <InputField value={draft} onChange={e => setDraft(e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-7 text-xs bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 flex-1 max-w-sm" autoFocus />
-        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-primary-foreground hover:bg-primary-foreground/10" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-3.5 w-3.5" /></Button>
-        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-primary-foreground/60 hover:bg-primary-foreground/10" onClick={() => setEditing(false)}><XIcon className="h-3.5 w-3.5" /></Button>
+        <InputField value={draft} onChange={e => setDraft(e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-7 text-xs flex-1 max-w-sm" autoFocus />
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-3.5 w-3.5" /></Button>
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground" onClick={() => setEditing(false)}><XIcon className="h-3.5 w-3.5" /></Button>
       </div>
     );
   }
@@ -144,14 +144,14 @@ function TeamWhatsAppLink() {
   return (
     <div className="flex items-center gap-2 mt-2">
       {url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-primary-foreground/80 hover:text-primary-foreground flex items-center gap-2 transition-colors">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-2 transition-colors">
           <WhatsAppIcon className="h-3.5 w-3.5" /> Grupo de Equipa (WhatsApp) <ExternalLink className="h-3 w-3" />
         </a>
       ) : (
-        <span className="text-xs text-primary-foreground/50 italic flex items-center gap-2"><WhatsAppIcon className="h-3.5 w-3.5" /> Sem link de grupo</span>
+        <span className="text-xs text-muted-foreground italic flex items-center gap-2"><WhatsAppIcon className="h-3.5 w-3.5" /> Sem link de grupo</span>
       )}
       {isAdmin && (
-        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-primary-foreground/50 hover:text-primary-foreground hover:bg-primary-foreground/10" onClick={() => { setDraft(url); setEditing(true); }}>
+        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setDraft(url); setEditing(true); }}>
           <Pencil className="h-3 w-3" />
         </Button>
       )}
