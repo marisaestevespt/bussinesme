@@ -99,13 +99,9 @@ Deno.serve(async (req) => {
       .from("commercial_sales")
       .select("id")
       .lt("payment_date", todayStr)
-      // Só promove a "em_atraso" estados que indicam dívida ainda não paga.
-      // Estados como "pago", "tudo_ok", "aguarda_pagamento", "parcial", etc. NÃO devem ser tocados.
-      .not(
-        "status",
-        "in",
-        '("tudo_ok","pago","pago_falta_fatura","pagamento_ok","recibo_enviado","contabilidade_ok","aguarda_pagamento","parcial","cancelada","anulado","em_atraso")'
-      );
+      // Promove a "em_atraso" qualquer pagamento ainda em dívida cuja data já passou.
+      // Status finais (tudo_ok, pago_falta_fatura, cancelado, em_atraso) não devem ser tocados.
+      .in("status", ["aguarda_pagamento"]);
     if (!overdueSales || overdueSales.length === 0) return null;
     const ids = overdueSales.map((s: { id: string }) => s.id);
     await supabase.from("commercial_sales").update({ status: "em_atraso" }).in("id", ids);
