@@ -10,6 +10,7 @@ export interface ContentItem {
 
 export interface MarketingChannel {
   id: string; name: string; link: string | null; is_active: boolean; sort_order: number;
+  cover_url?: string | null;
 }
 
 export interface ContentChannelLink {
