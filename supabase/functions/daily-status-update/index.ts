@@ -606,11 +606,20 @@ Deno.serve(async (req) => {
     };
     const { data: recurringExpenses } = await supabase
       .from("financial_expenses")
-      .select("*")
+      .select("*, suppliers:supplier_id(id, is_active, paused_until)")
       .eq("is_recurring", true)
       .is("parent_expense_id", null);
     let generatedCount = 0;
+    let skippedPaused = 0;
     for (const re of recurringExpenses || []) {
+      // Skip cancelled rules
+      if (re.status === "cancelado") continue;
+      // Skip rules paused until a future date
+      if (re.paused_until && todayStr < re.paused_until) { skippedPaused++; continue; }
+      // Skip if supplier is inactive or paused
+      const sup = (re as Row).suppliers as Row | null;
+      if (sup && sup.is_active === false) { skippedPaused++; continue; }
+      if (sup && sup.paused_until && todayStr < (sup.paused_until as string)) { skippedPaused++; continue; }
       const anchorDate = re.renewal_date || re.expense_date;
       if (!shouldGenerateForPeriod(anchorDate, re.periodicity)) continue;
       const expDate = getExpectedRecurringDate(anchorDate, re.recurrence_day);
@@ -639,7 +648,10 @@ Deno.serve(async (req) => {
       if (insErr && (insErr as { code?: string }).code !== "23505") throw insErr;
       if (!insErr) generatedCount++;
     }
-    return generatedCount > 0 ? `Generated ${generatedCount} recurring expenses` : null;
+    const parts: string[] = [];
+    if (generatedCount > 0) parts.push(`Generated ${generatedCount} recurring expenses`);
+    if (skippedPaused > 0) parts.push(`Skipped ${skippedPaused} paused/inactive`);
+    return parts.length > 0 ? parts.join(" · ") : null;
   });
 
   // ── 16. Fiscal tasks ──
