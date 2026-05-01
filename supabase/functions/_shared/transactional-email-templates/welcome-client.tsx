@@ -247,5 +247,6 @@ export const template = {
     primaryForeground: '0 0% 100%',
     fontDisplay: 'DM Serif Display',
     fontBody: 'DM Sans',
+    bannerUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=400&fit=crop',
   },
 } satisfies TemplateEntry
