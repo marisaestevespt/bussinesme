@@ -112,7 +112,19 @@ async function handlePreview(req: Request): Promise<Response> {
     })
   }
 
-  const sampleData = SAMPLE_DATA[type] || {}
+  // Fetch brand color for preview consistency
+  let brandColor: string | undefined
+  try {
+    const sb = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+    const { data: bs } = await sb.from('business_settings').select('primary_color').maybeSingle()
+    brandColor = bs?.primary_color || undefined
+  } catch (e) {
+    console.warn('Could not fetch brand color for preview', e)
+  }
+  const sampleData = { ...(SAMPLE_DATA[type] || {}), brandColor }
   const html = await renderAsync(React.createElement(EmailTemplate, sampleData))
 
   return new Response(html, {
