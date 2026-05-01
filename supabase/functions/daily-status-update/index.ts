@@ -599,6 +599,12 @@ Deno.serve(async (req) => {
       if (periodicity === "anual") return monthsDiff % 12 === 0;
       return true;
     };
+    const getExpectedRecurringDate = (anchor: string | null | undefined, recurrenceDay: number | null | undefined) => {
+      const anchorDate = anchor ? new Date(`${anchor}T00:00:00`) : null;
+      const targetDay = recurrenceDay || anchorDate?.getDate() || 1;
+      const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+      return `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(Math.min(targetDay, lastDay)).padStart(2, "0")}`;
+    };
     const { data: recurringExpenses } = await supabase
       .from("financial_expenses")
       .select("*")
@@ -607,9 +613,9 @@ Deno.serve(async (req) => {
     let generatedCount = 0;
     for (const re of recurringExpenses || []) {
       const anchorDate = re.renewal_date || re.expense_date;
-      const anchorDay = anchorDate ? new Date(`${anchorDate}T00:00:00`).getDate() : null;
-      if ((re.recurrence_day || anchorDay || 1) !== dayOfMonth) continue;
       if (!shouldGenerateForPeriod(anchorDate, re.periodicity)) continue;
+      const expDate = getExpectedRecurringDate(anchorDate, re.recurrence_day);
+      if (expDate !== todayStr) continue;
       if (re.recurrence_end_date && todayStr > re.recurrence_end_date) continue;
       // Dedup: aceita correspondência por parent_expense_id OU pela chave (source_type=subscription, source_id)
       // que é a chave usada pelo cliente em FinMensal.autoMaterialize.
@@ -617,7 +623,6 @@ Deno.serve(async (req) => {
       if ((parentCount || 0) > 0) continue;
       const { count: sourceCount } = await supabase.from("financial_expenses").select("id", { count: "exact", head: true }).eq("source_type", "subscription").eq("source_id", re.id).eq("expense_month", currentMonth).eq("expense_year", currentYear);
       if ((sourceCount || 0) > 0) continue;
-      const expDate = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(dayOfMonth).padStart(2, "0")}`;
       const { error: insErr } = await supabase.from("financial_expenses").insert({
         description: re.description, category: re.category,
         base_value: re.base_value, vat_rate: re.vat_rate, total_with_vat: re.total_with_vat,
