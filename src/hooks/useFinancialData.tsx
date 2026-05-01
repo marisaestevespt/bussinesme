@@ -65,6 +65,10 @@ export function getSubscriptionOccurrences(
   }
 }
 
+export function getRecurringAnchorDate(subscription: Pick<RecurringExpense, 'renewal_date' | 'expense_date'>): string | null {
+  return subscription.renewal_date || subscription.expense_date || null;
+}
+
 export interface FinancialDataOptions {
   /** Enable expenses query (default true) */
   expenses?: boolean;
