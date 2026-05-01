@@ -1,6 +1,26 @@
 // @vitest-environment node
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { hasCompletePortalAccess, mergePortalAccessRows, resolvePublicPortal } from './portalAccess';
+import { PUBLIC_PORTAL_KEYS, hasCompletePortalAccess, mergePortalAccessRows, resolvePublicPortal } from './portalAccess';
+
+const parseReturnedColumns = (returns: string) =>
+  Array.from(returns.matchAll(/\b([a-z_][a-z0-9_]*)\s+(?:uuid|boolean|text|integer|bigint|numeric|jsonb|timestamp|timestamptz)/gi)).map((m) => m[1]);
+
+const getLatestPortalFunctionReturns = (functionName: 'get_portal_by_slug' | 'get_portal_by_token') => {
+  const migrationsDir = path.join(process.cwd(), 'supabase/migrations');
+  const files = fs.readdirSync(migrationsDir).filter((file) => file.endsWith('.sql')).sort();
+  let latest: string | null = null;
+
+  for (const file of files) {
+    const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+    const regex = new RegExp(`CREATE\\s+(?:OR\\s+REPLACE\\s+)?FUNCTION\\s+public\\.${functionName}[\\s\\S]*?RETURNS\\s+TABLE\\s*\\(([^;]*?)\\)`, 'gi');
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(sql))) latest = match[1];
+  }
+
+  return latest;
+};
 
 describe('portalAccess', () => {
   it('identifica quando a resposta pública por slug vem incompleta', () => {
@@ -72,5 +92,15 @@ describe('portalAccess', () => {
       show_workspace: true,
       portal_type: 'projeto_unico',
     });
+  });
+
+  it('mantém o contrato público do portal alinhado com as funções da base de dados', () => {
+    for (const functionName of ['get_portal_by_slug', 'get_portal_by_token'] as const) {
+      const returns = getLatestPortalFunctionReturns(functionName);
+      expect(returns, `${functionName} precisa de RETURNS TABLE nas migrações`).toBeTruthy();
+
+      const returnedColumns = parseReturnedColumns(returns ?? '');
+      expect(returnedColumns).toEqual(expect.arrayContaining([...PUBLIC_PORTAL_KEYS]));
+    }
   });
 });
