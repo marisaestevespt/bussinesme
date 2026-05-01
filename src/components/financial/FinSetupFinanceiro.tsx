@@ -129,13 +129,13 @@ export function FinSetupFinanceiro({ fin }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
+                  <TableHead>Estado</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>NIF</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead>Pagamento</TableHead>
                 <TableHead>IVA</TableHead>
                 <TableHead>Contrato</TableHead>
-                <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -145,6 +145,9 @@ export function FinSetupFinanceiro({ fin }: Props) {
                 const status = getSupplierStatusBadge(s);
                 return (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setOpenSupplierId(s.id)}>
+                    <TableCell>
+                      <Badge variant="outline" className={status.className}>{status.label}</Badge>
+                    </TableCell>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
                     <TableCell><Badge variant="secondary" className="text-xs">{CATEGORY_LABELS[s.category] || s.category || '—'}</Badge></TableCell>
@@ -154,9 +157,6 @@ export function FinSetupFinanceiro({ fin }: Props) {
                       {s.contract_start_date && s.contract_end_date
                         ? `${s.contract_start_date} → ${s.contract_end_date}`
                         : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={status.className}>{status.label}</Badge>
                     </TableCell>
                   </TableRow>
                 );
