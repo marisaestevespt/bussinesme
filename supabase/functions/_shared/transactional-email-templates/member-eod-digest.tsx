@@ -27,7 +27,7 @@ export const template = {
   subject: (data: Record<string, any>) => data.subject || 'Wrap-up do dia',
   displayName: 'Wrap-up do dia (Membro)',
   previewData: {
-    subject: 'Wrap-up do dia — 03/04/2026',
-    html: '<div style="padding:24px;font-family:DM Sans,Arial,sans-serif"><h1 style="font-size:22px;margin:0 0 12px">Wrap-up do dia</h1><p style="color:#555770;font-size:15px">Boa noite! Aqui está o resumo do que aconteceu hoje.</p></div>',
+    subject: 'Wrap-up do dia — 01/05/2026',
+    html: '<div style="padding:24px 32px;font-family:DM Sans,Arial,sans-serif;background:#ffffff"><p style="font-size:13px;color:#6366f1;margin:0 0 4px;font-weight:600">Boa noite, Tiago! Aqui está o resumo do que fizeste hoje.</p><p style="font-size:10px;color:#888;margin:0 0 18px">Sexta-feira, 1 de Maio</p><h3 style="font-size:14px;margin:18px 0 8px;color:#111">✅ Concluído hoje</h3><ul style="margin:0 0 14px;padding-left:18px;font-size:12px;color:#444"><li>3 tarefas concluídas 🌟</li><li>2 reuniões participadas</li><li>1 entrega submetida — Página de pagamentos</li></ul><h3 style="font-size:14px;margin:18px 0 8px;color:#111">⚠️ Por terminar</h3><ul style="margin:0 0 14px;padding-left:18px;font-size:12px;color:#444"><li>1 tarefa em atraso — Fix bug login</li><li>1 tarefa para amanhã — Refactor tabela</li></ul><h3 style="font-size:14px;margin:18px 0 8px;color:#111">🌅 Amanhã</h3><ul style="margin:0 0 14px;padding-left:18px;font-size:12px;color:#444"><li>1 reunião marcada — Sprint planning 10h</li><li>4 tarefas no plano do dia</li></ul></div>',
   },
 } satisfies TemplateEntry

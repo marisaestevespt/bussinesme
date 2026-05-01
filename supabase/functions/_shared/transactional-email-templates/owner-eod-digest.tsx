@@ -27,7 +27,7 @@ export const template = {
   subject: (data: Record<string, any>) => data.subject || 'Wrap-up do dia',
   displayName: 'Wrap-up do dia (Owner)',
   previewData: {
-    subject: 'Wrap-up do dia — O Teu Negócio — 03/04/2026',
-    html: '<div style="padding:24px;font-family:DM Sans,Arial,sans-serif"><h1 style="font-size:22px;margin:0 0 12px">Wrap-up do dia</h1><p style="color:#555770;font-size:15px">Boa noite! Aqui está o resumo do que aconteceu hoje.</p></div>',
+    subject: 'Wrap-up do dia — O Teu Negócio — 01/05/2026',
+    html: '<div style="padding:24px 32px;font-family:DM Sans,Arial,sans-serif;background:#ffffff"><p style="font-size:13px;color:#6366f1;margin:0 0 4px;font-weight:600">Boa noite, Mariana! Aqui está o resumo do que aconteceu hoje.</p><p style="font-size:10px;color:#888;margin:0 0 18px">Sexta-feira, 1 de Maio</p><h3 style="font-size:14px;margin:18px 0 8px;color:#111">✅ Concluído hoje</h3><ul style="margin:0 0 14px;padding-left:18px;font-size:12px;color:#444"><li>4 reuniões realizadas</li><li>12 tarefas concluídas pela equipa</li><li>2 entregas enviadas a clientes</li><li>1 venda fechada — <strong>€2.400</strong> (Atlas Studio)</li></ul><h3 style="font-size:14px;margin:18px 0 8px;color:#111">⚠️ Ficou por fazer</h3><ul style="margin:0 0 14px;padding-left:18px;font-size:12px;color:#444"><li>3 tarefas tuas em atraso</li><li>1 reunião sem notas registadas</li></ul><h3 style="font-size:14px;margin:18px 0 8px;color:#111">💰 Movimento financeiro</h3><ul style="margin:0 0 14px;padding-left:18px;font-size:12px;color:#444"><li>Recebimentos: €3.850</li><li>Pagamentos: €420</li><li>Saldo do dia: <strong>+€3.430</strong></li></ul><h3 style="font-size:14px;margin:18px 0 8px;color:#111">🌅 Amanhã</h3><ul style="margin:0 0 14px;padding-left:18px;font-size:12px;color:#444"><li>2 reuniões marcadas</li><li>6 tarefas planeadas</li><li>1 entrega prevista</li></ul></div>',
   },
 } satisfies TemplateEntry
