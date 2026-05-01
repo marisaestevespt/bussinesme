@@ -37,6 +37,17 @@ export function canRenderSubscriptionForMonth(subscription: RecurringExpense, mo
   if (subscription.status === 'cancelado' || !subscription.periodicity) return false;
   if (getSubscriptionOccurrences(getRecurringAnchorDate(subscription), subscription.periodicity, month, year) <= 0) return false;
 
+  // Pausa temporária — ocultar enquanto a data de retoma ainda for futura
+  // relativamente ao último dia do mês a renderizar.
+  // Permite que o sistema mostre/materialize automaticamente quando o mês alvo
+  // já é igual ou posterior ao paused_until.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pausedUntil = (subscription as any).paused_until as string | null | undefined;
+  if (pausedUntil) {
+    const monthEnd = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`;
+    if (monthEnd < pausedUntil) return false;
+  }
+
   if (!subscription.recurrence_end_date) return true;
 
   return getSubscriptionDueDate(subscription, month, year) <= subscription.recurrence_end_date;
