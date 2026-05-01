@@ -161,6 +161,76 @@ export default function ProjetoDetailPage() {
   const productsList = productsQ.data || [];
   const selectedProduct = productsList.find((p: any) => p.id === local?.product_id);
 
+  const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
+  const { data: trackedTaskMinutes = 0 } = useTaskTimeTotals(taskIds);
+
+  const projectAnalysisQ = useQuery({
+    queryKey: ['project-analysis', id, monthStart],
+    enabled: !!id,
+    queryFn: async () => {
+      const [{ data: directEntries }, { data: taskEntries }, { data: taskTimerEntries }, { data: members }] = await Promise.all([
+        supabase.from('time_entries').select('duration, member_id, entry_date').eq('project_id', id!),
+        taskIds.length > 0
+          ? supabase.from('time_entries').select('duration, member_id, task_id, entry_date').in('task_id', taskIds)
+          : Promise.resolve({ data: [] as any[] }),
+        taskIds.length > 0
+          ? supabase.from('task_time_entries').select('duration_minutes, user_id, task_id, created_at, ended_at, is_manual').in('task_id', taskIds)
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from('team_members').select('id, profile_id, full_name, photo_url'),
+      ]);
+      return { directEntries: directEntries || [], taskEntries: taskEntries || [], taskTimerEntries: taskTimerEntries || [], members: members || [] };
+    },
+  });
+
+  const projectAnalysis = useMemo(() => {
+    const data = projectAnalysisQ.data;
+    const timerEntries = ((data?.taskTimerEntries || []) as any[]).filter(e => e.duration_minutes > 0 && (e.ended_at || e.is_manual));
+    const manualEntries = ([...((data?.directEntries || []) as any[]), ...((data?.taskEntries || []) as any[])]);
+    const manualMinutes = manualEntries.reduce((sum, e) => sum + Math.round(Number(e.duration || 0) * 60), 0);
+    const timerMinutes = timerEntries.reduce((sum, e) => sum + Number(e.duration_minutes || 0), 0);
+    const totalMinutes = manualMinutes + timerMinutes;
+    const doneTasks = tasks.filter(isTaskDone).length;
+    const estimatedTaskMinutes = tasks.reduce((sum, t) => sum + (Number(t.estimated_minutes || 0) || Math.round(Number(t.estimated_time || 0) * 60)), 0);
+    const deliverableEstimatedMinutes = (projectDeliverables as any[]).reduce((sum, d) => sum + Number(d.estimated_minutes || 0), 0);
+    const budgetMinutes = Number(local?.budgeted_minutes || 0) || estimatedTaskMinutes || deliverableEstimatedMinutes;
+    const memberNames = new Map<string, string>();
+    (data?.members || []).forEach((m: any) => {
+      if (m.id) memberNames.set(m.id, m.full_name || 'Membro');
+      if (m.profile_id) memberNames.set(m.profile_id, m.full_name || 'Membro');
+    });
+    profiles.forEach(p => { memberNames.set(p.id, p.full_name || 'Membro'); if (p.user_id) memberNames.set(p.user_id, p.full_name || 'Membro'); });
+    const byPerson = new Map<string, { id: string; name: string; minutes: number }>();
+    const addPerson = (key: string | null | undefined, minutes: number) => {
+      const id = key || 'sem-responsavel';
+      const current = byPerson.get(id) || { id, name: memberNames.get(id) || 'Sem responsável', minutes: 0 };
+      current.minutes += minutes;
+      byPerson.set(id, current);
+    };
+    timerEntries.forEach((e: any) => addPerson(e.user_id, Number(e.duration_minutes || 0)));
+    manualEntries.forEach((e: any) => addPerson(e.member_id, Math.round(Number(e.duration || 0) * 60)));
+    const monthTimerMinutes = timerEntries
+      .filter((e: any) => e.created_at && e.created_at >= monthStart && e.created_at <= `${monthEnd}T23:59:59`)
+      .reduce((sum, e: any) => sum + Number(e.duration_minutes || 0), 0);
+    const monthManualMinutes = manualEntries
+      .filter((e: any) => e.entry_date && e.entry_date >= monthStart && e.entry_date <= monthEnd)
+      .reduce((sum, e: any) => sum + Math.round(Number(e.duration || 0) * 60), 0);
+    const monthlyBudget = isServicoMensal ? Number(local?.budgeted_minutes || 0) : 0;
+    return {
+      totalMinutes,
+      trackedTaskMinutes,
+      budgetMinutes,
+      estimatedTaskMinutes,
+      deliverableEstimatedMinutes,
+      doneTasks,
+      totalTasks: tasks.length,
+      completedDeliverables: (projectDeliverables as any[]).filter((d: any) => d.status === 'concluido' || d.status === 'entregue').length,
+      totalDeliverables: projectDeliverables.length,
+      people: Array.from(byPerson.values()).sort((a, b) => b.minutes - a.minutes),
+      currentMonthMinutes: monthTimerMinutes + monthManualMinutes,
+      monthlyBudget,
+    };
+  }, [projectAnalysisQ.data, tasks, projectDeliverables, local?.budgeted_minutes, profiles, monthStart, monthEnd, isServicoMensal, trackedTaskMinutes]);
+
   // Suggested meeting title from the next pending meeting-deliverable's template
   const suggestedMeetingTitle = useMemo(() => {
     const dels = (projectDeliverables || []) as any[];
