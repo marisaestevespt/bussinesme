@@ -977,11 +977,11 @@ export default function ProjetoDetailPage() {
                   return (
                     <div key={i} className="group relative rounded-lg border bg-muted/60 border border-border/50 hover:bg-muted/60 transition-colors w-48 overflow-hidden">
                       {isImage ? (
-                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="block h-28 overflow-hidden">
-                          <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
+                        <a href={safeUrl(doc.url)} target="_blank" rel="noopener noreferrer" className="block h-28 overflow-hidden">
+                          <img src={safeUrl(doc.url)} alt={doc.name} className="w-full h-full object-cover" />
                         </a>
                       ) : (
-                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-28 bg-muted/50">
+                        <a href={safeUrl(doc.url)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-28 bg-muted/50">
                           <span className="text-4xl">{isPdf ? '📄' : '📎'}</span>
                         </a>
                       )}
