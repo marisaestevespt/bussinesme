@@ -314,10 +314,8 @@ export default function OperacaoPage() {
   const internoProjectOptions = useMemo(() => internoProjects.map(p => ({ id: p.id, name: p.name })), [internoProjects]);
 
   // ── KPI data ────────────────────────────────────────────────
-  const today = startOfToday();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const weekEnd2 = endOfWeek(today, { weekStartsOn: 1 });
-
+  // Note: `today`, `weekStart`, `weekEnd2` are declared earlier so that
+  // the `projectProgress` memo can reference them.
   const overdueTasks = useMemo(() =>
     tasks.filter(t => isTaskOverdue(t, today)),
     [tasks, today]
