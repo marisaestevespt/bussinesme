@@ -24,19 +24,19 @@ export interface ProjectStatusInfo {
 }
 
 export const PROJECT_STATUSES: ProjectStatusInfo[] = [
-  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-warning' },
   { value: 'em_ideia',      label: 'Em ideia',      color: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
+  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-warning' },
+  { value: 'agendado',      label: 'Agendado',      color: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30', dot: 'bg-accent-violet' },
   { value: 'em_curso',      label: 'Em curso',      color: 'bg-info/15 text-info border-info/30',          dot: 'bg-info' },
   { value: 'em_pausa',      label: 'Em pausa',      color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-warning' },
   { value: 'em_revisao',    label: 'Em revisão',    color: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30', dot: 'bg-accent-violet' },
   { value: 'concluido',     label: 'Concluído',     color: 'bg-success/15 text-success border-success/30', dot: 'bg-success' },
   { value: 'cancelado',     label: 'Cancelado',     color: 'bg-destructive/15 text-destructive border-destructive/30', dot: 'bg-destructive' },
   { value: 'arquivo',       label: 'Arquivo',       color: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
-  { value: 'agendado',      label: 'Agendado',      color: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30', dot: 'bg-accent-violet' },
 ];
 
 export function getProjectStatusInfo(v: string | null | undefined): ProjectStatusInfo {
-  return PROJECT_STATUSES.find(s => s.value === v) || PROJECT_STATUSES[1]; // default: em_ideia
+  return PROJECT_STATUSES.find(s => s.value === v) || PROJECT_STATUSES[0]; // default: em_ideia
 }
 
 /** Statuses that mean the project is finished and shouldn't show in active lists. */
