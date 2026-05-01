@@ -56,6 +56,20 @@ const calcMonthlyEquivalent = (base: number, periodicity: string) => {
   const map: Record<string, number> = { semanal: 52/12, mensal: 1, bimestral: 1/2, trimestral: 1/3, semestral: 1/6, anual: 1/12 };
   return Math.round(base * (map[periodicity] || 1) * 100) / 100;
 };
+
+const INDEFINITE_PAUSE_DATE = '2999-12-31';
+
+const isPausedUntilActive = (pausedUntil?: string | null) =>
+  !!pausedUntil && pausedUntil > new Date().toISOString().slice(0, 10);
+
+const getSupplierStatusLabel = (supplier: { is_active?: boolean | null; paused_until?: string | null }) => {
+  const pausedUntil = supplier.paused_until;
+
+  if (!supplier.is_active) return 'Inativo';
+  if (pausedUntil === INDEFINITE_PAUSE_DATE) return 'Pausado ∞';
+  if (isPausedUntilActive(pausedUntil)) return `Pausado até ${pausedUntil}`;
+  return 'Ativo';
+};
 /**
  * Simple date generator: from firstPaymentDate, step by periodicity, until endDate.
  * No guessing — uses exactly the dates the user provides.
