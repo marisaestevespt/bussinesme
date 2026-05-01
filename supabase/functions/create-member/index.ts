@@ -222,17 +222,17 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Send real password setup email and also generate a direct recovery link
+      // Generate a direct recovery/invite link for the welcome email.
+      // IMPORTANT: do NOT call resetPasswordForEmail here — it would trigger
+      // the auth-email-hook and send a generic "recovery" email, duplicating
+      // the welcome-member transactional email below. The welcome-member
+      // template already includes the inviteUrl as its primary CTA, so the
+      // member only needs that one branded email.
       const appOrigin = req.headers.get("origin") || new URL(req.url).origin;
       const resetRedirectTo = `${appOrigin}/reset-password`;
-      const publicClient = createClient(supabaseUrl, anonKey);
-
-      const { error: inviteEmailError } = await publicClient.auth.resetPasswordForEmail(email, {
-        redirectTo: resetRedirectTo,
-      });
 
       const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
-        type: "recovery",
+        type: "invite",
         email,
         options: {
           redirectTo: resetRedirectTo,
@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
       });
 
       const invite_url = resetData?.properties?.action_link ?? null;
-      const email_sent = !inviteEmailError;
+      const email_sent = !!invite_url; // welcome-member email is sent below
 
       // Fetch WhatsApp group links for the welcome email
       let whatsapp_team_url: string | null = null;
@@ -342,7 +342,7 @@ Deno.serve(async (req) => {
           invite_url,
           email_sent,
           welcome_email_sent,
-          invite_error: inviteEmailError?.message ?? resetError?.message ?? null,
+          invite_error: resetError?.message ?? null,
           onboarding_created,
           onboarding_warning,
           whatsapp_team_url,
