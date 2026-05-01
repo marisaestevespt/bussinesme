@@ -372,6 +372,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      estimated_minutes: estimatedTime ? Math.round(parseFloat(estimatedTime) * 60) : null,
       sop_id: sopId || null,
       scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
