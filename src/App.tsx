@@ -16,6 +16,7 @@ import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
 import NotFound from "./pages/NotFound";
 import ResetPasswordPage from "./pages/ResetPassword";
+import EmailUnsubscribePage from "./pages/EmailUnsubscribe";
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
 import { useSuspensionCheck } from '@/hooks/useSuspensionCheck';
@@ -162,6 +163,7 @@ function AppRoutes() {
           <Route path="/portal/:token" element={<PortalAuthPage />} />
           <Route path="/portal/:token/view" element={<PortalViewPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/unsubscribe" element={<EmailUnsubscribePage />} />
           <Route path="*" element={<AuthPage />} />
         </Routes>
       </Suspense>
@@ -179,6 +181,7 @@ function AppRoutes() {
           <Route path="/portal/:token" element={<PortalAuthPage />} />
           <Route path="/portal/:token/view" element={<PortalViewPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/unsubscribe" element={<EmailUnsubscribePage />} />
           <Route path="*" element={<SetupPage />} />
         </Routes>
       </Suspense>
@@ -192,6 +195,7 @@ function AppRoutes() {
         <Route path="/portal/:token" element={<PortalAuthPage />} />
         <Route path="/portal/:token/view" element={<PortalViewPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/unsubscribe" element={<EmailUnsubscribePage />} />
         <Route path="/" element={<Navigate to="/secretaria" replace />} />
         <Route path="/secretaria" element={<SecretariaPage />} />
         <Route path="/hub-equipa" element={<HubEquipaPage />} />
