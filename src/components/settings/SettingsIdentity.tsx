@@ -115,7 +115,7 @@ function FontSelector({ label, value, onChange, fonts, customFonts }: {
           ))}
         </SelectContent>
       </Select>
-      <p className="text-sm text-muted-foreground leading-relaxed" style={{ fontFamily: `'${value}', sans-serif` }}>
+      <p className="text-sm text-muted-foreground leading-relaxed" style={{ fontFamily: `'${value}', system-ui, sans-serif` }}>
         O teu negócio merece uma identidade única.
       </p>
     </div>
@@ -442,11 +442,11 @@ export function SettingsIdentity() {
             ) : (
               <div className="h-8 w-8 rounded-md" style={{ backgroundColor: colors.primary }} />
             )}
-            <span style={{ color: colors.text, fontFamily: `'${fontDisplay}', serif` }} className="text-lg font-semibold">
+            <span style={{ color: colors.text, fontFamily: `'${fontDisplay}', 'Sora', system-ui, sans-serif` }} className="text-lg font-semibold">
               Sistema Lyrata® · {businessName || 'O Teu Negócio'}
             </span>
           </div>
-          <p className="mt-3 text-sm" style={{ color: colors.text, fontFamily: `'${fontBody}', sans-serif`, opacity: 0.7 }}>
+          <p className="mt-3 text-sm" style={{ color: colors.text, fontFamily: `'${fontBody}', 'Inter', system-ui, sans-serif`, opacity: 0.7 }}>
             Esta é uma amostra do texto do corpo com a fonte selecionada.
           </p>
           <div className="flex gap-2 mt-4 flex-wrap">
