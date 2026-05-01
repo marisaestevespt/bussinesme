@@ -430,10 +430,15 @@ export default function OperacaoPage() {
   const projectHealth = useMemo(() => {
     return allActiveProjects.map(p => {
       const isTarefasLivres = (p as any).task_mode === 'tarefas_livres';
-      const prog = isTarefasLivres ? null : (projectProgress.get(p.id) ?? p.progress);
+      // Recurring monthly services don't have a meaningful deadline → use overdue-only health
+      const isRecorrenteMensal =
+        p.type === 'cliente_servico_mensal' &&
+        (p as any).project_mode === 'recorrente';
+      const useOverdueOnly = isTarefasLivres || isRecorrenteMensal;
+      const prog = useOverdueOnly ? null : (projectProgress.get(p.id) ?? p.progress);
       let health: 'green' | 'yellow' | 'red' = 'green';
 
-      if (isTarefasLivres) {
+      if (useOverdueOnly) {
         // Only red if project has overdue tasks
         const hasOverdue = tasks.some(t =>
           t.project_id === p.id && isTaskOverdue(t, today)
@@ -448,7 +453,7 @@ export default function OperacaoPage() {
         }
         if (prog === 0 && differenceInDays(today, new Date(p.start_date || p.created_at)) > 7) health = 'red';
       }
-      return { ...p, prog: prog ?? -1, health, isTarefasLivres };
+      return { ...p, prog: prog ?? -1, health, isTarefasLivres: useOverdueOnly };
     }).sort((a, b) => {
       const order = { red: 0, yellow: 1, green: 2 };
       return order[a.health] - order[b.health];
