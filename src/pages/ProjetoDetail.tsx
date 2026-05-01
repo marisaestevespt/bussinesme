@@ -47,6 +47,7 @@ import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
 import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
+import { computeProjectProgressFromSources } from '@/lib/projectProgress';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
