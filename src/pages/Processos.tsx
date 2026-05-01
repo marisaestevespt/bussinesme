@@ -430,6 +430,11 @@ export default function ProcessosPage() {
             );
           })()}
         </TabsContent>
+
+        {/* ═══ TAB: Biblioteca ═══ */}
+        <TabsContent value="biblioteca">
+          <BibliotecaSection />
+        </TabsContent>
       </Tabs>
 
       {/* ═══ Dialog: Novo Processo ═══ */}
