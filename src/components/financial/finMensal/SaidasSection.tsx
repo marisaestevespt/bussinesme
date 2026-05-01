@@ -188,7 +188,21 @@ export function SaidasTable({
     qc.invalidateQueries({ queryKey: ['my-payments'] });
   };
 
-  const regularExpenses = monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract');
+  // IDs das regras (subscriptions/contracts) que estão a ser renderizadas como linhas próprias
+  const renderedSubIds = new Set(dueSubscriptions.map(s => s.id));
+  const renderedContractIds = new Set(activeContracts.map(c => c.id));
+
+  // Despesas regulares = tudo o que não é subscription/contract,
+  // MAIS despesas materializadas cuja regra-mãe já não está a ser renderizada
+  // (ex: fornecedor pausado depois da despesa ter sido criada). Sem isto, ficavam invisíveis.
+  const regularExpenses = monthExpenses.filter(e => {
+    if (e.source_type !== 'subscription' && e.source_type !== 'contract') return true;
+    const parentId = e.source_id || e.parent_expense_id;
+    if (!parentId) return true;
+    if (e.source_type === 'subscription') return !renderedSubIds.has(parentId);
+    if (e.source_type === 'contract') return !renderedContractIds.has(parentId);
+    return true;
+  });
 
   return (
     <Card>
