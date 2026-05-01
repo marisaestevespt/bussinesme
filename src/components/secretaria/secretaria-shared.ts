@@ -205,18 +205,18 @@ export function useProfiles() {
 }
 
 export function useMonthRoutineTasks() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const mStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
   const mEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
   return useQuery({
-    queryKey: ['routine-tasks-month', user?.id, mStart],
-    enabled: !!user?.id,
+    queryKey: ['routine-tasks-month', profile?.id, mStart],
+    enabled: !!profile?.id,
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
         .select('*')
         .eq('tag', 'Rotina')
-        .eq('assigned_to', user!.id)
+        .eq('assigned_to', profile!.id)
         .gte('deadline', mStart)
         .lte('deadline', mEnd)
         .order('deadline');
