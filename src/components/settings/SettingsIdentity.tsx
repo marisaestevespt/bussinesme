@@ -115,7 +115,7 @@ function FontSelector({ label, value, onChange, fonts, customFonts }: {
           ))}
         </SelectContent>
       </Select>
-      <p className="text-sm text-muted-foreground leading-relaxed" style={{ fontFamily: `'${value}', sans-serif` }}>
+      <p className="text-sm text-muted-foreground leading-relaxed" style={{ fontFamily: `'${value}', system-ui, sans-serif` }}>
         O teu negócio merece uma identidade única.
       </p>
     </div>
