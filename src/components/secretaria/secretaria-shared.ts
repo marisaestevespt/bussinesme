@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useMyProfileId } from '@/hooks/useMyProfileId';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { TASK_STATUSES, getTaskStatusInfo } from '@/lib/taskStatus';
 import { PROJECT_STATUSES as CANON_PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
