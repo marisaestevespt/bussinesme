@@ -72,13 +72,20 @@ export default function SecretariaContrato() {
 
       const normalizedMemberPayments = (memberPayments || []).map((p: any) => ({ ...p, source: 'member_payment' as const }));
 
-      // Merge — evitar duplicados (mesmo mês/ano/tipo)
-      const merged = [...normalizedMemberPayments];
-      for (const e of normalizedExpenses) {
-        const dup = merged.find(m => m.year === e.year && m.month === e.month && m.payment_type === e.payment_type);
-        if (!dup) merged.push(e);
-      }
+      // financial_expenses (contabilidade) é a fonte da verdade para ordenado/contrato.
+      // Se houver uma despesa para um determinado mês/ano, escondemos qualquer member_payment
+      // do mesmo mês com tipo equivalente (contrato_trabalho/ordenado/ordenados) para não duplicar.
+      const SALARY_TYPES = new Set(['contrato_trabalho', 'ordenado', 'ordenados']);
+      const expenseKeys = new Set(
+        normalizedExpenses.map(e => `${e.year}-${e.month}`),
+      );
 
+      const filteredMemberPayments = normalizedMemberPayments.filter((p: any) => {
+        if (!SALARY_TYPES.has(p.payment_type)) return true; // outros tipos (ex: prestacao) mantêm-se
+        return !expenseKeys.has(`${p.year}-${p.month}`);
+      });
+
+      const merged = [...filteredMemberPayments, ...normalizedExpenses];
       return merged.sort((a, b) => (b.year - a.year) || ((b.month || 0) - (a.month || 0)));
     },
   });
