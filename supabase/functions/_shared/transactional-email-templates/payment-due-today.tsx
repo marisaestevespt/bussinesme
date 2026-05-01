@@ -71,7 +71,7 @@ const PaymentDueTodayEmail = ({
   const isMultibanco = paymentMethod === 'multibanco'
 
   const main = { backgroundColor: '#ffffff', fontFamily: bodyFont }
-  const container = { maxWidth: '540px', margin: '0 auto', padding: '40px 24px' }
+  const container = { maxWidth: '640px', margin: '0 auto', padding: '40px 24px' }
   const headerSection = { textAlign: 'center' as const, padding: '0 0 8px' }
   const logoStyle = { width: '48px', height: '48px', borderRadius: '10px', margin: '0 auto 16px' }
   const headerEmoji = { fontSize: '48px', margin: '0 0 8px', lineHeight: '1' }
