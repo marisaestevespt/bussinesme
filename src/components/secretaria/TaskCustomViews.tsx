@@ -118,8 +118,9 @@ function groupItems(items: UnifiedItem[], by: GroupBy): Array<{ key: string; lab
       if (!i.deadline) key = '__sem__';
       else {
         const today = format(new Date(), 'yyyy-MM-dd');
-        if (i.deadline < today) key = 'atrasado';
+        if (i.deadline < today && !i.completed) key = 'atrasado';
         else if (i.deadline === today) key = 'hoje';
+        else if (i.completed) key = 'concluido';
         else key = 'futuro';
       }
     }
@@ -129,11 +130,11 @@ function groupItems(items: UnifiedItem[], by: GroupBy): Array<{ key: string; lab
   const labels: Record<string, string> = {
     ...SOURCE_LABELS,
     ...PRIORITY_LABEL,
-    atrasado: 'Em atraso', hoje: 'Hoje', futuro: 'Próximos', __sem__: 'Sem prazo',
+    atrasado: 'Em atraso', hoje: 'Hoje', futuro: 'Próximos', __sem__: 'Sem prazo', concluido: 'Concluídas',
   };
   let order: string[] = [];
   if (by === 'priority') order = PRIORITY_ORDER;
-  else if (by === 'deadline') order = ['atrasado', 'hoje', 'futuro', '__sem__'];
+  else if (by === 'deadline') order = ['atrasado', 'hoje', 'futuro', '__sem__', 'concluido'];
   else order = Array.from(map.keys()).sort();
   return order
     .filter(k => map.has(k))
