@@ -54,6 +54,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Planning period progress](mem://features/planning-period-progress.md) — `planning.getPeriodProgress()` é a fonte única do cálculo de % por período (mês/trimestre/semestre)
 - [Product deliverable templates](mem://features/product-deliverable-templates.md) — Product deliverable templates
 - [Products](mem://features/produtos.md) — Product detail page structure and tab organization
+- [Recurring expenses dedup](mem://features/recurring-expenses-dedup.md) — Despesas recorrentes geradas pelo cron + cliente: chave única (parent_expense_id, year, month) + constraint DB
 - [Routines system](mem://features/routines-system.md) — Routines auto-generate tasks via daily cron; managed in Tarefas > Rotinas tab
 - [Secretaria refactor](mem://features/secretaria-refactor.md) — Secretaria.tsx refactored to lazy-loaded tabs
 - [Security audit](mem://features/security-audit.md) — RLS hardening for 23 tables
