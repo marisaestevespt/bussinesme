@@ -34,6 +34,12 @@ Solução: regras passaram a ser templates puros (sem período), constraint extr
 Sempre que inserir/atualizar uma `financial_expenses` recorrente:
 - `is_recurring=true` + `source_type='rule'` → **NUNCA** definir `expense_date`, `expense_month`, `expense_quarter`, `expense_year`. (O trigger limpa, mas o código deve ser explícito.)
 - A despesa do mês corrente é gerada **separadamente** como filho com `parent_expense_id` apontando para a regra.
+- Para periodicidade diferente de mensal, a recorrência é sempre calculada a partir de `renewal_date` (data-âncora da regra) e não do mês atual. Uma regra `anual` só pode gerar filhos no mês de aniversário dessa data.
+- Trigger `trg_validate_recurring_child_period` bloqueia qualquer filho ligado a uma regra recorrente se o mês/ano não bater com `periodicity` + `renewal_date`.
+
+## Bug histórico (2026-05-01) — anuais geradas em maio
+
+O cron `daily-status-update` só validava `recurrence_day` e ignorava `periodicity`; regras anuais sem dia explícito foram geradas no dia 1 de maio mesmo já tendo despesa correta noutro mês (ex.: Google Workspace em janeiro). Solução: cron e UI usam `renewal_date` como âncora; DB bloqueia materializações fora da cadência.
 
 ## Locais críticos
 - `src/pages/Fornecedores.tsx` — criação de regras de fornecedor

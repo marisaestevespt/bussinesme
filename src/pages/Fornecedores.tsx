@@ -465,7 +465,7 @@ export default function FornecedoresPage() {
           total = Math.round(base * (1 + vat / 100) * 100) / 100;
         }
         const periodicity = form.recurring_periodicity || 'mensal';
-        const startDate = form.first_payment_date || form.contract_start_date || new Date().toISOString().slice(0, 10);
+        const firstPayment = form.first_payment_date || form.contract_start_date;
 
         // Create parent recurring expense (the rule)
         const { data: parentData, error: parentErr } = await supabase.from('financial_expenses').insert({
@@ -482,6 +482,7 @@ export default function FornecedoresPage() {
           periodicity,
           monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
           recurrence_day: form.recurring_day || null,
+          renewal_date: firstPayment || null,
           payment_method: form.payment_method || null,
           // Regra é template puro: NUNCA tem mês/ano/data — só os filhos têm.
           // Evita duplicação com as despesas materializadas. Trigger DB também force this.
@@ -495,7 +496,6 @@ export default function FornecedoresPage() {
         if (parentErr) throw parentErr;
 
         // Generate individual expenses
-        const firstPayment = form.first_payment_date || form.contract_start_date;
         const endDate = form.contract_end_date;
         if (firstPayment && endDate) {
           const count = await generateExpensesForPeriod(
@@ -563,6 +563,7 @@ export default function FornecedoresPage() {
           total_with_vat: ruleTotal,
           periodicity: editPeriodicity,
           monthly_equivalent: editMonthly,
+          renewal_date: form.first_payment_date || form.contract_start_date || form._existingRecurring.renewal_date || null,
           location: form.location || 'portugal',
           category: form.category || 'outro',
           payment_method: form.payment_method || null,

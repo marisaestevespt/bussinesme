@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 interface SubscriptionLike {
   expense_date?: string | null;
+  renewal_date?: string | null;
   periodicity?: string | null;
   status?: string | null;
   recurrence_end_date?: string | null;
@@ -17,7 +18,7 @@ function parseDateString(value: string | null | undefined) {
 }
 
 function getSubscriptionDueDate(subscription: SubscriptionLike, month: number, year: number) {
-  const startDate = parseDateString(subscription.expense_date);
+  const startDate = parseDateString(subscription.renewal_date || subscription.expense_date);
   const fallbackDay = startDate?.getDate() ?? 15;
   const targetDay = subscription.recurrence_day || fallbackDay;
   const lastDayOfMonth = new Date(year, month, 0).getDate();
@@ -43,7 +44,7 @@ function getSubscriptionOccurrences(startDate: string | null, periodicity: strin
 
 function canRenderSubscriptionForMonth(subscription: SubscriptionLike, month: number, year: number) {
   if (subscription.status === 'cancelado' || !subscription.periodicity) return false;
-  if (getSubscriptionOccurrences(subscription.expense_date ?? null, subscription.periodicity, month, year) <= 0) return false;
+  if (getSubscriptionOccurrences(subscription.renewal_date || subscription.expense_date || null, subscription.periodicity, month, year) <= 0) return false;
   if (!subscription.recurrence_end_date) return true;
   return getSubscriptionDueDate(subscription, month, year) <= subscription.recurrence_end_date;
 }
@@ -85,6 +86,20 @@ describe('canRenderSubscriptionForMonth', () => {
   it('does NOT render when periodicity is null', () => {
     const noPeriod = { ...activeSub, periodicity: null };
     expect(canRenderSubscriptionForMonth(noPeriod, 4, 2026)).toBe(false);
+  });
+
+  it('uses renewal_date as the annual anchor for template rules', () => {
+    const annualRule = {
+      expense_date: null,
+      renewal_date: '2026-01-13',
+      periodicity: 'anual',
+      status: 'por_pagar',
+      recurrence_end_date: null,
+      recurrence_day: null,
+    };
+    expect(canRenderSubscriptionForMonth(annualRule, 1, 2026)).toBe(true);
+    expect(canRenderSubscriptionForMonth(annualRule, 5, 2026)).toBe(false);
+    expect(canRenderSubscriptionForMonth(annualRule, 1, 2027)).toBe(true);
   });
 
   it('reactivation: new rule with active status renders again', () => {
