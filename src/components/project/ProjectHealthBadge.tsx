@@ -1,6 +1,8 @@
-import { Activity, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { Activity, AlertTriangle, CheckCircle2, Clock, Target } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import {
   HEALTH_LABEL,
@@ -16,8 +18,8 @@ interface ProjectHealthBadgeProps {
   tasks: ProjectTask[];
   today?: Date;
   progressOverride?: number | null;
-  /** Visual style: compact pill (header) or full row (KPI). */
-  variant?: 'pill' | 'card';
+  /** Visual style: compact pill (header), full row (KPI), or square card. */
+  variant?: 'pill' | 'card' | 'square';
   className?: string;
 }
 
@@ -51,6 +53,7 @@ export function ProjectHealthBadge({
   const style = HEALTH_STYLES[result.health];
   const Icon = style.icon;
   const label = HEALTH_LABEL[result.health];
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const tooltipBody = (
     <div className="space-y-2 max-w-xs">
@@ -89,6 +92,122 @@ export function ProjectHealthBadge({
       </div>
     </div>
   );
+
+  // Shared explanation dialog reused by the square variant.
+  const overdueTasks = tasks.filter(
+    t => t.project_id === project.id && (() => {
+      // simple inline overdue check (mirrors lib/taskStatus.isTaskOverdue)
+      const dl = (t as any).deadline;
+      const status = (t as any).status;
+      if (!dl || status === 'concluida' || status === 'cancelada') return false;
+      return new Date(dl) < today;
+    })(),
+  );
+
+  const explanationDialog = (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <span className={cn('h-2.5 w-2.5 rounded-full', style.dot)} />
+            Saúde do projeto: {label}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className={cn(
+          'rounded-lg border px-3 py-2.5 text-sm',
+          result.health === 'red' && 'border-destructive/30 bg-destructive/5 text-destructive',
+          result.health === 'yellow' && 'border-warning/30 bg-warning/5 text-warning',
+          result.health === 'green' && 'border-success/30 bg-success/5 text-success',
+        )}>
+          <div className="flex items-start gap-2">
+            {result.health === 'green'
+              ? <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+              : <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />}
+            <div className="flex-1">
+              <p className="font-medium leading-snug">Porquê este estado?</p>
+              <p className="text-xs opacity-90 mt-0.5">{result.reason}</p>
+            </div>
+          </div>
+          {!result.useOverdueOnly && result.prog !== null && (
+            <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px] text-foreground/80">
+              <div className="flex items-center gap-1.5">
+                <Activity className="h-3 w-3" />
+                Progresso: <span className="font-semibold">{Math.round(result.prog)}%</span>
+              </div>
+              {result.expectedProg !== null && (
+                <div className="flex items-center gap-1.5">
+                  <Target className="h-3 w-3" />
+                  Esperado: <span className="font-semibold">{Math.round(result.expectedProg)}%</span>
+                </div>
+              )}
+              {result.daysLeft !== null && (
+                <div className="flex items-center gap-1.5 col-span-2">
+                  <Clock className="h-3 w-3" />
+                  {result.daysLeft >= 0
+                    ? `${result.daysLeft} dia${result.daysLeft === 1 ? '' : 's'} até ao prazo`
+                    : `${Math.abs(result.daysLeft)} dia${Math.abs(result.daysLeft) === 1 ? '' : 's'} de atraso no prazo`}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {overdueTasks.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold mb-2 flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-destructive" />
+              Tarefas em atraso ({overdueTasks.length})
+            </p>
+            <div className="space-y-1 max-h-[180px] overflow-y-auto">
+              {overdueTasks.map(t => (
+                <div key={t.id} className="text-xs px-2 py-1.5 rounded bg-destructive/5 border border-destructive/20">
+                  {(t as any).name}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {result.health === 'green' && overdueTasks.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-2">
+            Sem alertas pendentes neste projeto.
+          </p>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (variant === 'square') {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setDialogOpen(true)}
+          className={cn(
+            'group flex items-center gap-2.5 rounded-xl border px-3 py-2 text-left',
+            'transition-all hover:shadow-sm hover:-translate-y-0.5',
+            style.badge,
+            className,
+          )}
+        >
+          <span className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-lg shrink-0',
+            'bg-background/50',
+          )}>
+            <Icon className="h-4 w-4" />
+          </span>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="text-[9px] uppercase tracking-wider opacity-70 font-medium">
+              Saúde
+            </span>
+            <span className="text-xs font-semibold truncate">{label}</span>
+          </div>
+        </button>
+        {explanationDialog}
+      </>
+    );
+  }
 
   if (variant === 'card') {
     return (
