@@ -96,12 +96,18 @@ export function revenueGroupedBy<T extends SaleLike>(
   return map;
 }
 
-/** Count of paid sales (status === 'pago'). */
+/** Count of paid sales (tudo_ok or pago_falta_fatura). */
 export function paidSales<T extends SaleLike>(sales: T[]): T[] {
-  return sales.filter(s => s.status === 'pago');
+  return sales.filter(s => s.status === 'tudo_ok' || s.status === 'pago_falta_fatura' || s.status === 'pago');
 }
 
-/** Count of pending sales (status !== 'pago' && !== 'cancelada'). */
+/** Count of pending sales (anything not paid and not cancelled). */
 export function pendingSales<T extends SaleLike>(sales: T[]): T[] {
-  return sales.filter(s => s.status !== 'pago' && s.status !== 'cancelada' && s.status !== 'cancelado');
+  return sales.filter(s =>
+    s.status !== 'tudo_ok' &&
+    s.status !== 'pago_falta_fatura' &&
+    s.status !== 'pago' &&
+    s.status !== 'cancelada' &&
+    s.status !== 'cancelado'
+  );
 }
