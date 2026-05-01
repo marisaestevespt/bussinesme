@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useMyProfileId } from '@/hooks/useMyProfileId';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { TASK_STATUSES, getTaskStatusInfo } from '@/lib/taskStatus';
 import { PROJECT_STATUSES as CANON_PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
@@ -205,18 +206,18 @@ export function useProfiles() {
 }
 
 export function useMonthRoutineTasks() {
-  const { user } = useAuth();
+  const { data: profileId } = useMyProfileId();
   const mStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
   const mEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
   return useQuery({
-    queryKey: ['routine-tasks-month', user?.id, mStart],
-    enabled: !!user?.id,
+    queryKey: ['routine-tasks-month', profileId, mStart],
+    enabled: !!profileId,
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
         .select('*')
         .eq('tag', 'Rotina')
-        .eq('assigned_to', user!.id)
+        .eq('assigned_to', profileId!)
         .gte('deadline', mStart)
         .lte('deadline', mEnd)
         .order('deadline');

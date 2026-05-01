@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useMyProfileId } from '@/hooks/useMyProfileId';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -24,6 +25,7 @@ const PENDING_CONTENT_STATUSES = [
 
 export default function SecretariaConteudos() {
   const { user } = useAuth();
+  const { data: profileId } = useMyProfileId();
   const navigate = useNavigate();
   const now = new Date();
   const weekStart = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
@@ -32,13 +34,13 @@ export default function SecretariaConteudos() {
   const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
 
   const { data: myContent = [] } = useQuery({
-    queryKey: ['my-content-items', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-content-items', profileId],
+    enabled: !!profileId,
     queryFn: async () => {
       const { data } = await supabase
         .from('content_items')
         .select('*')
-        .eq('assigned_to', user!.id)
+        .eq('assigned_to', profileId!)
         .not('status', 'eq', 'publicado')
         .order('scheduled_at', { ascending: true });
       return data || [];
