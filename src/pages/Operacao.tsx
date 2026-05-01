@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot, Hourglass, Activity } from 'lucide-react';
+import { getPlanningSection } from '@/lib/department-planning';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -558,6 +559,27 @@ export default function OperacaoPage() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Operação" subtitle="Vista operacional de projetos de clientes e internos" department="operacao" />
+
+        {/* Planeamento (regra: ver mem://design/department-planning-card.md) */}
+        {(() => {
+          const p = getPlanningSection('operacao');
+          const Icon = p.icon;
+          return (
+            <Link to={p.path}>
+              <Card className={`group cursor-pointer border bg-gradient-to-br ${p.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${p.iconColor}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm text-foreground">{p.label}</p>
+                    <p className="text-[11px] text-muted-foreground">{p.desc}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })()}
 
         <OperacaoKpis
           allActiveCount={allActiveProjects.length}

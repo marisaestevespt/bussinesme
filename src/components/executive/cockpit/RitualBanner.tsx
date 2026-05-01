@@ -63,8 +63,9 @@ export function RitualBanner() {
       icon: Target,
       title: `Mês novo — define o foco de ${format(now, 'MMMM', { locale: pt })}`,
       subtitle: 'Revê metas mensais, capacidade da equipa e prioridades.',
-      cta: 'Abrir Planeamento',
-      to: '/executive/planeamento',
+      cta: `Abrir ${format(now, 'MMMM', { locale: pt })}`,
+      // Abre directamente o detalhe do mês corrente (regra: ver mem://design/ritual-banner-targets.md)
+      to: `/executive/planeamento/operacional?ano=${now.getFullYear()}&mes=${month}`,
       accent: 'from-primary/10 via-primary/5 to-transparent border-primary/30',
     };
   } else if (isWeeklyAlignDay) {

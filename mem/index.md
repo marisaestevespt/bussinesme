@@ -38,6 +38,8 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Brand name](mem://design/brand-name.md) — Lyrata (system) + Atena (AI assistant): naming, tone, where each appears
 - [Calendar quick-add](mem://design/calendar-quick-add-pattern.md) — Notion-like "+" hover button per day cell with onCreateForDate prop pattern
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
+- [Department planning card](mem://design/department-planning-card.md) — "Planeamento" sempre na grelha principal de botões via getPlanningSection(), nunca no header
+- [Ritual banner targets](mem://design/ritual-banner-targets.md) — RitualBanner aterra na vista mais específica (mês/semana/trimestre), nunca no índice de planeamento
 - [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
 - [Client portal](mem://features/client-portal.md) — Client Portal system: public pages via /portal/[token] with OTP auth
 - [Fiscal management](mem://features/fiscal-management.md) — Fiscal deadlines, IVA/IRS/SS rules

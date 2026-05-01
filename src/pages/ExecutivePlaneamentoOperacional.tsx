@@ -24,6 +24,17 @@ export default function ExecutivePlaneamentoOperacional() {
   const [year, setYear] = useState(initialYear);
   const planning = usePlanningData(year);
 
+  // Mês inicial via ?mes=1..12 (ex.: banner "Mês novo" abre o mês corrente)
+  const mesParam = parseInt(params.get('mes') || '', 10);
+  const initialMonth = Number.isFinite(mesParam) && mesParam >= 1 && mesParam <= 12 ? mesParam - 1 : null;
+
+  const handleMonthChange = (monthIdx: number | null) => {
+    const sp = new URLSearchParams(params);
+    if (monthIdx === null) sp.delete('mes');
+    else sp.set('mes', String(monthIdx + 1));
+    setParams(sp, { replace: true });
+  };
+
   const updateYear = (next: number) => {
     setYear(next);
     const sp = new URLSearchParams(params);
@@ -73,7 +84,12 @@ export default function ExecutivePlaneamentoOperacional() {
               <p className="text-xs text-muted-foreground">Mês-a-mês: metas, capacidade da equipa e relatório.</p>
             </div>
           </div>
-          <MonthlyGallery planning={planning} year={year} />
+          <MonthlyGallery
+            planning={planning}
+            year={year}
+            initialMonth={initialMonth}
+            onMonthChange={handleMonthChange}
+          />
         </section>
       </div>
     </AppLayout>
