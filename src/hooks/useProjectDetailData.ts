@@ -13,6 +13,7 @@ export interface ProjectFull {
   departments: string[] | null;
   client_name: string | null; client_id: string | null;
   product_id: string | null; product_name: string | null;
+  budgeted_minutes: number | null;
   start_date: string | null; deadline: string | null; progress: number; notes: string | null;
   objetivo: string | null; diretrizes: string | null; cronograma: string | null;
   entregaveis: string | null; recursos: string | null; project_notes: string | null;
@@ -28,7 +29,7 @@ export interface ProjectFull {
 }
 
 export interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
-export interface Task { id: string; name: string; status: string; priority: string; deadline: string | null; assigned_to: string | null; project_id: string | null; department: string | null; }
+export interface Task { id: string; name: string; status: string; priority: string; deadline: string | null; assigned_to: string | null; project_id: string | null; department: string | null; estimated_time?: number | null; estimated_minutes?: number | null; }
 export interface Meeting { id: string; title: string; date_time: string; status: string; project_id: string | null; }
 
 // ─── Helpers ────────────────────────────────────────────────────
