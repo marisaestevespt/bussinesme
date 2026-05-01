@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake, Video } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake, Video, BarChart3 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
@@ -86,6 +86,19 @@ function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
       <Clock className="h-3 w-3" /> {formatDuration(totalMinutes)} investidas
     </Badge>
   );
+}
+
+function formatMinutes(min: number | null | undefined): string {
+  const value = Math.max(0, Math.round(Number(min || 0)));
+  if (value < 60) return `${value}m`;
+  const h = Math.floor(value / 60);
+  const m = value % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+function safePct(value: number, total: number): number {
+  if (!total || total <= 0) return 0;
+  return Math.min(100, Math.round((value / total) * 100));
 }
 
 // ─── Main Component ─────────────────────────────────────────────
