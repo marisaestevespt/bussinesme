@@ -345,6 +345,53 @@ export default function ClienteDetailPage() {
 
     // 5. Now save with skip flag
     await save(true);
+
+    // 6. Send offboarding email to client (best-effort, non-blocking)
+    if (form.email) {
+      try {
+        // Fetch business settings (brand) and owner profile
+        const [{ data: bs }, { data: portal }, { data: profile }] = await Promise.all([
+          supabase.from('business_settings').select('business_name,primary_color,accent_color,text_color,font_display,font_body,logo_url').maybeSingle(),
+          supabase.from('client_portals').select('token').eq('client_id', id).eq('is_active', true).maybeSingle(),
+          (async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return { data: null } as any;
+            return supabase.from('profiles').select('full_name').eq('user_id', user.id).maybeSingle();
+          })(),
+        ]);
+
+        const portalUrl = portal?.token
+          ? `${window.location.origin}/portal/${portal.token}/view`
+          : window.location.origin;
+
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'client-offboarding',
+            recipientEmail: form.email,
+            idempotencyKey: `client-offboarding-${id}-${Date.now()}`,
+            templateData: {
+              clientName: form.full_name || form.email,
+              portalUrl,
+              portalDays: 30,
+              businessName: bs?.business_name || 'a equipa',
+              ownerName: profile?.full_name || '',
+              supportEmail: '',
+              primaryColor: bs?.primary_color,
+              primaryForeground: '0 0% 100%',
+              textColor: bs?.text_color,
+              accentColor: bs?.accent_color,
+              fontDisplay: bs?.font_display,
+              fontBody: bs?.font_body,
+              logoUrl: bs?.logo_url || undefined,
+            },
+          },
+        });
+        toast.success('Email de offboarding enviado ao cliente');
+      } catch (err) {
+        console.error('Failed to send offboarding email', err);
+        toast.error('Não foi possível enviar o email de offboarding');
+      }
+    }
   };
 
   const seedOffboardingChecklist = async (clientId: string, productName: string | null) => {
