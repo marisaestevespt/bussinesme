@@ -47,6 +47,7 @@ import {
   inlineTriggerClass,
 } from '@/components/layout/entity';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
+import { safeUrl } from '@/lib/url';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1091,7 +1092,7 @@ export default function ReuniaoDetailPage() {
                   {m.documents.map((doc, idx) => (
                     <div key={idx} className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs bg-muted/30">
                       <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[200px]">
+                      <a href={safeUrl(doc.url)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[200px]">
                         {doc.name}
                       </a>
                       <button onClick={() => removeDocument(idx)} className="text-muted-foreground hover:text-destructive ml-1">

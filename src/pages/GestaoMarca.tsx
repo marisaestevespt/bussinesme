@@ -40,6 +40,7 @@ import type { KanbanItem } from '@/components/gestao-marca/types';
 import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/components/gestao-marca/types';
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
 import { BrandIdentitySync } from '@/components/gestao-marca/BrandIdentitySync';
+import { safeUrl } from '@/lib/url';
 
 
 export default function GestaoMarcaPage() {
@@ -583,7 +584,7 @@ export default function GestaoMarcaPage() {
                   <div className="space-y-2">
                     {folders.map(link => (
                       <div key={link.id} className="flex items-center gap-2 group">
-                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
+                        <a href={safeUrl(link.url)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
                           <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                           {link.label}
                         </a>
@@ -619,7 +620,7 @@ export default function GestaoMarcaPage() {
                   <div className="space-y-2">
                     {shortcuts.map(link => (
                       <div key={link.id} className="flex items-center gap-2 group">
-                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
+                        <a href={safeUrl(link.url)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
                           <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                           {link.label}
                         </a>

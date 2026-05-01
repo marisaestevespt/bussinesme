@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
+import { safeUrl } from '@/lib/url';
 
 const CATEGORIES = [
   { value: 'anuncio', label: 'Anúncio', color: 'bg-destructive/15 text-destructive' },
@@ -585,7 +586,7 @@ function PostCard({
           {post.files.map((f, i) => (
             <a
               key={i}
-              href={f.url}
+              href={safeUrl(f.url)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-primary hover:underline"

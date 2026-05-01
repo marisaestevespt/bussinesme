@@ -24,6 +24,7 @@ import {
 import { CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, type MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { safeUrl } from '@/lib/url';
 
 const IDEA_CATEGORIES = [
   { value: 'todas', label: 'Todas' },
@@ -166,7 +167,7 @@ export default function MarketingRecursos() {
         ) : (
           <div className="flex items-center gap-2 group">
             {link?.url ? (
-              <a href={link.url} target="_blank" rel="noopener noreferrer"
+              <a href={safeUrl(link.url)} target="_blank" rel="noopener noreferrer"
                 className="text-xs text-primary hover:underline flex items-center gap-1 truncate flex-1">
                 <ExternalLink className="h-3 w-3 shrink-0" />
                 <span className="truncate">{link.url}</span>
@@ -230,7 +231,7 @@ export default function MarketingRecursos() {
                       ) : (
                         <>
                           {u.url ? (
-                            <a href={u.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex-1 truncate">{u.label}</a>
+                            <a href={safeUrl(u.url)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex-1 truncate">{u.label}</a>
                           ) : (
                             <span className="text-xs text-muted-foreground flex-1">{u.label}</span>
                           )}
