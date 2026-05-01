@@ -8,8 +8,11 @@ import { CommercialOverview } from '@/components/commercial/CommercialOverview';
 import { Separator } from '@/components/ui/separator';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { formatNumber } from '@/lib/formatting';
+import { getPlanningSection } from '@/lib/department-planning';
 
 const SECTIONS = [
+  // Planeamento sempre primeiro (regra: ver mem://design/department-planning-card.md)
+  (() => { const p = getPlanningSection('comercial'); return { path: p.path, label: p.label, icon: p.icon, iconColor: p.iconColor, color: p.color }; })(),
   { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
   { path: '/hub/comercial/vendas', label: 'Vendas', icon: ShoppingCart, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
   { path: '/hub/comercial/acoes', label: 'Ações de Vendas', icon: Zap, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },

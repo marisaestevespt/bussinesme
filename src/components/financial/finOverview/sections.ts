@@ -1,4 +1,5 @@
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, Package, CalendarCheck, LineChart, type LucideIcon } from 'lucide-react';
+import { getPlanningSection } from '@/lib/department-planning';
 
 export interface SectionDef {
   path: string;
@@ -10,6 +11,8 @@ export interface SectionDef {
 }
 
 export const ALL_SECTIONS_ROW1: SectionDef[] = [
+  // Planeamento sempre primeiro (regra: ver mem://design/department-planning-card.md)
+  (() => { const p = getPlanningSection('financeiro'); return { path: p.path, label: p.label, icon: p.icon, iconColor: p.iconColor, color: p.color, key: p.key }; })(),
   { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-info', color: 'from-info/20 to-info/10 border-info/30/60 hover:from-info/30 hover:to-info/15 hover:border-info/30/80', key: 'mensal' },
   { path: '/hub/financeiro/trimestral', label: 'Trimestral', icon: CalendarRange, iconColor: 'text-accent-violet', color: 'from-accent-violet/20 to-accent-violet/10 border-accent-violet/60 hover:from-accent-violet/30 hover:to-accent-violet/15 hover:border-accent-violet/80', key: 'trimestral' },
   { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-warning', color: 'from-warning/20 to-warning/10 border-warning/30/60 hover:from-warning/30 hover:to-warning/15 hover:border-warning/30/80', key: 'documentos' },
