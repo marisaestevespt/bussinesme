@@ -219,6 +219,11 @@ export default function OperacaoPage() {
     })).sort((a, b) => b.value - a.value);
   }, [activeInternoProjects]);
 
+  // Hoisted up so memos defined below (like `projectProgress`) can use it.
+  const today = startOfToday();
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekEnd2 = endOfWeek(today, { weekStartsOn: 1 });
+
   // Per-project real progress map. Uses the SAME rule as the project detail page:
   //   recorrente mensal → tasks of current month
   //   else → deliverables (all) > phases (all) > 0
