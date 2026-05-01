@@ -736,12 +736,21 @@ export default function ProjetoDetailPage() {
           {/* Header - Name first, then tags, then fields in single column */}
           {/* Project title */}
           <div className="space-y-2">
-            <Input
-              value={local.name}
-              onChange={e => updateField('name', e.target.value)}
-              placeholder="Nome do projeto"
-              className="block w-full text-3xl font-bold tracking-tight border-none px-0 focus-visible:ring-0 h-auto bg-transparent md:text-2xl"
-            />
+            {/* Health card (left) + project name on the same row */}
+            <div className="flex items-center gap-3">
+              <ProjectHealthBadge
+                project={local as any}
+                tasks={tasks as any}
+                progressOverride={autoProgress}
+                variant="square"
+              />
+              <Input
+                value={local.name}
+                onChange={e => updateField('name', e.target.value)}
+                placeholder="Nome do projeto"
+                className="block w-full text-3xl font-bold tracking-tight border-none px-0 focus-visible:ring-0 h-auto bg-transparent md:text-2xl"
+              />
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
               {local.type === 'interno' && (
               <Badge variant="outline" className="shrink-0 gap-1.5 px-2.5 py-1 text-[11px] font-medium border-primary/30 bg-primary/5 text-primary">
@@ -766,11 +775,6 @@ export default function ProjetoDetailPage() {
                   : daysToRenewal === 0 ? 'Renova hoje' : `Em renovação há ${Math.abs(daysToRenewal)} dias`}
               </Badge>
             )}
-            <ProjectHealthBadge
-              project={local as any}
-              tasks={tasks as any}
-              progressOverride={autoProgress}
-            />
             </div>
           </div>
 
