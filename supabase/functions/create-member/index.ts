@@ -85,18 +85,67 @@ Deno.serve(async (req) => {
 
     // Create user with a random password (they'll set their own via invite link)
     const tempPassword = crypto.randomUUID() + "Aa1!";
-    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+    let { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email,
       password: tempPassword,
       email_confirm: true,
       user_metadata: { full_name },
     });
+    let reused_existing_user = false;
 
+    // If the user already exists in auth (e.g. previously offboarded member
+    // re-added with the same email), reuse the existing auth user instead of
+    // failing. We then re-attach role/profile and send a fresh welcome email.
     if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const msg = (createError.message || "").toLowerCase();
+      const alreadyExists = msg.includes("already") || msg.includes("registered") || msg.includes("exists");
+      if (alreadyExists) {
+        const { data: existingList } = await supabase.auth.admin.listUsers();
+        const existing = existingList?.users?.find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+        if (existing) {
+          // Check if this user is still actively a member (has user_role + non-offboarded team_member)
+          const { data: activeRole } = await supabase
+            .from("user_roles")
+            .select("id")
+            .eq("user_id", existing.id)
+            .maybeSingle();
+          const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("user_id", existing.id)
+            .maybeSingle();
+          const { data: activeTm } = existingProfile
+            ? await supabase
+                .from("team_members")
+                .select("id, status")
+                .eq("profile_id", existingProfile.id)
+                .neq("status", "ex_membro")
+                .neq("id", team_member_id || "00000000-0000-0000-0000-000000000000")
+                .limit(1)
+                .maybeSingle()
+            : { data: null };
+          if (activeRole && activeTm) {
+            return new Response(
+              JSON.stringify({
+                error: `Já existe um membro ativo com o email ${email}. Verifica em "Equipa" antes de re-adicionar.`,
+              }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          // Reuse: pretend createUser returned this user
+          newUser = { user: existing } as any;
+          createError = null as any;
+          reused_existing_user = true;
+        }
+      }
+      if (createError) {
+        return new Response(JSON.stringify({ error: createError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     if (newUser.user) {
@@ -126,11 +175,19 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Assign member role
-      await supabase.from("user_roles").insert({
-        user_id: newUser.user.id,
-        role: "member",
-      });
+      // Assign member role (idempotent: skip if already exists)
+      const { data: existingRole } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", newUser.user.id)
+        .eq("role", "member")
+        .maybeSingle();
+      if (!existingRole) {
+        await supabase.from("user_roles").insert({
+          user_id: newUser.user.id,
+          role: "member",
+        });
+      }
 
 
       // ── Onboarding checklist from SOPs with sop_type='onboarding' ──
