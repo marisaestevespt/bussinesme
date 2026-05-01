@@ -43,11 +43,22 @@ export default function SecretariaDia() {
         <>
       <RoutineMonthCard tasks={routineTasks.data || []} />
 
-      <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas para hoje</p><p className="text-2xl font-bold">{unified.todayItems.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
-      </div>
+      {(() => {
+        const todayOnlyCount = unified.todayItems.filter((i: any) => {
+          if (!i.date) return false;
+          const d = parseISO(i.date.split('T')[0]);
+          return isToday(d);
+        }).length;
+        const overdueCount = unified.todayItems.length - todayOnlyCount;
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Prazo hoje</p><p className="text-2xl font-bold">{todayOnlyCount}</p></CardContent></Card>
+            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Em atraso</p><p className="text-2xl font-bold text-destructive">{overdueCount}</p></CardContent></Card>
+            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
+            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
+          </div>
+        );
+      })()}
 
       <MyTasksTable scope="today" />
 
