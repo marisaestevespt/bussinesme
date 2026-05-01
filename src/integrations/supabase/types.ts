@@ -11387,6 +11387,7 @@ export type Database = {
           show_timeline: boolean
           show_workspace: boolean
           slug: string
+          token: string
         }[]
       }
       get_portal_client_context: {
