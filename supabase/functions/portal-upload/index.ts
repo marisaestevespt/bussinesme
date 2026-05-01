@@ -1,4 +1,5 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { checkRateLimit, getClientId, rateLimitResponse } from '../_shared/rate-limit.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,6 +58,10 @@ function sanitizeFileName(raw: string): string {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405);
+
+  // Rate limit: 20 uploads / minute per IP (anti-storage-flood)
+  const rl = checkRateLimit(`portal-upload:${getClientId(req)}`, 20, 60);
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders);
 
   try {
     const form = await req.formData();

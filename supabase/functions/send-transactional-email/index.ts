@@ -6,6 +6,7 @@ import {
   applySafetyPolicy,
   loadEmailSafetyConfig,
 } from '../_shared/email-test-mode.ts'
+import { checkRateLimit, getClientId, rateLimitResponse } from '../_shared/rate-limit.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
 // To update, re-run the email domain setup flow.
@@ -43,6 +44,10 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
+
+  // Rate limit: 30 emails / minute per IP (anti-email-bombing)
+  const rl = checkRateLimit(`tx-email:${getClientId(req)}`, 30, 60)
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')

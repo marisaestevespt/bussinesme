@@ -1,4 +1,5 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { checkRateLimit, getClientId, rateLimitResponse } from '../_shared/rate-limit.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +22,10 @@ const json = (body: unknown, status = 200) =>
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+
+  // Rate limit: 60 requests / minute per IP (anti-enumeration of deliverable IDs)
+  const rl = checkRateLimit(`portal-file:${getClientId(req)}`, 60, 60);
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders);
 
   let body: { token?: string; deliverable_id?: string };
   try { body = await req.json(); } catch { return json({ error: 'invalid_json' }, 400); }

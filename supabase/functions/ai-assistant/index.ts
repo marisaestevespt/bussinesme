@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { checkRateLimit, getClientId, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 type SupabaseAdmin = ReturnType<typeof createClient>;
 type Row = Record<string, unknown>;
@@ -1371,6 +1372,10 @@ async function executeTool(
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // Rate limit: 30 calls / minute per IP (LLM cost protection)
+  const rl = checkRateLimit(`ai-assistant:${getClientId(req)}`, 30, 60);
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders);
 
   try {
     // --- Auth gate: require a valid authenticated user ---

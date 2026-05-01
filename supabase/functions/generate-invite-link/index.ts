@@ -1,11 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, getClientId, rateLimitResponse } from "../_shared/rate-limit.ts";
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Rate limit: 10 invites / minute per IP (anti-invite-spam)
+  const rl = checkRateLimit(`invite:${getClientId(req)}`, 10, 60);
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
