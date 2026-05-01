@@ -343,7 +343,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
               )}
 
               <div className="flex justify-end">
-                <Button size="sm" variant="outline" onClick={() => { setOpenSupplierId(null); navigate('/hub/financeiro/fornecedores'); }}>
+                <Button size="sm" variant="outline" onClick={() => { const id = supplier.id; setOpenSupplierId(null); navigate(`/hub/financeiro/fornecedores?open=${id}`); }}>
                   Abrir página completa
                 </Button>
               </div>
