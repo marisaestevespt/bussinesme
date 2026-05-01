@@ -134,7 +134,8 @@ export function FinAuditoriaVendas() {
     });
 
     sales.forEach(s => {
-      const isPaid = (s.status || '').toLowerCase() === 'pago';
+      const sStatus = (s.status || '').toLowerCase();
+      const isPaid = sStatus === 'tudo_ok' || sStatus === 'pago_falta_fatura' || sStatus === 'pago';
 
       if (isPaid && !s.payment_date) {
         out.push({
