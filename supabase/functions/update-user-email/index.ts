@@ -1,9 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, preflight } from "../_shared/cors.ts";
+import { checkRateLimit, getClientId, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return preflight(req);
   const corsHeaders = getCorsHeaders(req);
+
+  // Rate limit: 5 changes / minute per IP (anti-email-enumeration)
+  const rl = checkRateLimit(`update-email:${getClientId(req)}`, 5, 60);
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders);
 
   try {
     const authHeader = req.headers.get("Authorization");

@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { checkRateLimit, getClientId, rateLimitResponse } from '../_shared/rate-limit.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,6 +23,10 @@ Deno.serve(async (req) => {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return jsonResponse({ error: 'Method not allowed' }, 405)
   }
+
+  // Rate limit: 10 requests / minute per IP (anti-spam unsubscribe abuse)
+  const rl = checkRateLimit(`unsub:${getClientId(req)}`, 10, 60)
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
