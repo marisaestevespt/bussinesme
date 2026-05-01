@@ -1067,6 +1067,18 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 2: TAREFAS & RESPONSABILIDADES ─────── */}
             <EntityTabsContent value="processos" className="mt-4 space-y-8">
+              {/* Avença Mensal: Responsabilidades primeiro, depois Rotinas, depois Tarefas. Sem SOPs. */}
+              {isServicoMensal && (
+                <>
+                  <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
+                    <ProjectResponsibilities projectId={id!} />
+                  </EntitySection>
+                  <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
+                    <ProjectRoutines projectId={id!} />
+                  </EntitySection>
+                </>
+              )}
+
               <EntitySection
                 title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
                 icon={CheckSquare}
@@ -1115,24 +1127,14 @@ export default function ProjetoDetailPage() {
                 )}
               </EntitySection>
 
-              {/* SOPs ligados ao projeto */}
-              <ProjectProcessosTab
-                projectId={id!}
-                clientId={resolvedClientId}
-                productId={local.product_id}
-                projectStartDate={local.start_date}
-              />
-
-              {/* Avença Mensal: Rotinas + Responsabilidades acordadas */}
-              {isServicoMensal && (
-                <>
-                  <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
-                    <ProjectRoutines projectId={id!} />
-                  </EntitySection>
-                  <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
-                    <ProjectResponsibilities projectId={id!} />
-                  </EntitySection>
-                </>
+              {/* SOPs ligados ao projeto — apenas para projetos não-avença */}
+              {!isServicoMensal && (
+                <ProjectProcessosTab
+                  projectId={id!}
+                  clientId={resolvedClientId}
+                  productId={local.product_id}
+                  projectStartDate={local.start_date}
+                />
               )}
             </EntityTabsContent>
 
