@@ -8496,6 +8496,8 @@ export type Database = {
           ticket_type: string
           updated_at: string
           vat_rate: string | null
+          welcome_email_accent_color: string | null
+          welcome_email_banner_url: string | null
         }
         Insert: {
           about_content?: string | null
@@ -8548,6 +8550,8 @@ export type Database = {
           ticket_type?: string
           updated_at?: string
           vat_rate?: string | null
+          welcome_email_accent_color?: string | null
+          welcome_email_banner_url?: string | null
         }
         Update: {
           about_content?: string | null
@@ -8600,6 +8604,8 @@ export type Database = {
           ticket_type?: string
           updated_at?: string
           vat_rate?: string | null
+          welcome_email_accent_color?: string | null
+          welcome_email_banner_url?: string | null
         }
         Relationships: []
       }
