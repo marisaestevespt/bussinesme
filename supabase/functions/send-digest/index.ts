@@ -545,30 +545,10 @@ async function buildOwnerDigest(
     }
   }
 
-  // ── Tempo trabalhado hoje ──
-  if (sections.tempo_trabalhado) {
-    const { data: entries } = await supabase
-      .from("time_entries")
-      .select("duration, member_id, team_members(full_name)")
-      .gte("entry_date", todayStr)
-      .lte("entry_date", todayStr);
-
-    if (entries?.length) {
-      hasContent = true;
-      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
-      html += sectionHeader("⏱️ Tempo trabalhado hoje");
-      html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
-      const byMember: Record<string, number> = {};
-      for (const e of entries) {
-        const name = e.team_members?.full_name || "—";
-        byMember[name] = (byMember[name] || 0) + (e.duration || 0);
-      }
-      html += "<ul>";
-      for (const [name, mins] of Object.entries(byMember)) {
-        html += `<li>${esc(name)}: ${((mins as number) / 60).toFixed(1)}h</li>`;
-      }
-      html += "</ul>";
-    }
+  // ── Tempo trabalhado hoje (equipa) ──
+  if (sections.tempo_trabalhado !== false) {
+    const wt = await buildWorkTimeSection(supabase, todayStr, todayStr, 'team', { title: "⏱️ Tempo trabalhado hoje" });
+    if (wt) { hasContent = true; html += wt; }
   }
 
   // ── Resumo por membro ──
@@ -868,23 +848,14 @@ async function buildMemberDigest(
     }
   }
 
-  // ── Tempo registado ──
-  if (sections.tempo_registado) {
-    if (tm) {
-      const { data: entries } = await supabase
-        .from("time_entries")
-        .select("duration, project_id, client_name")
-        .eq("member_id", tm.id)
-        .gte("entry_date", periodStart)
-        .lte("entry_date", periodEnd);
-
-      if (entries?.length) {
-        hasContent = true;
-        const totalHours = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
-        html += sectionHeader("⏱️ Tempo registado");
-        html += `<p>Total: <strong>${(totalHours / 60).toFixed(1)}h</strong></p>`;
-      }
-    }
+  // ── Tempo registado (próprio membro) ──
+  if (sections.tempo_registado !== false) {
+    const wt = await buildWorkTimeSection(supabase, periodStart, periodEnd, 'user', {
+      memberId: tm?.id,
+      userId: profile.user_id,
+      title: "⏱️ O teu tempo registado",
+    });
+    if (wt) { hasContent = true; html += wt; }
   }
 
   if (!hasContent) {
@@ -952,30 +923,10 @@ async function buildOwnerEodDigest(
     }
   }
 
-  // ── Tempo trabalhado hoje ──
+  // ── Tempo trabalhado hoje (equipa) ──
   if (sections.tempo_trabalhado !== false) {
-    const { data: entries } = await supabase
-      .from("time_entries")
-      .select("duration, member_id, team_members(full_name)")
-      .gte("entry_date", todayStr)
-      .lte("entry_date", todayStr);
-
-    if (entries?.length) {
-      hasContent = true;
-      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
-      html += sectionHeader("⏱️ Tempo trabalhado hoje");
-      html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
-      const byMember: Record<string, number> = {};
-      for (const e of entries) {
-        const name = e.team_members?.full_name || "—";
-        byMember[name] = (byMember[name] || 0) + (e.duration || 0);
-      }
-      html += "<ul>";
-      for (const [name, mins] of Object.entries(byMember)) {
-        html += `<li>${esc(name)}: ${((mins as number) / 60).toFixed(1)}h</li>`;
-      }
-      html += "</ul>";
-    }
+    const wt = await buildWorkTimeSection(supabase, todayStr, todayStr, 'team', { title: "⏱️ Tempo trabalhado da equipa hoje" });
+    if (wt) { hasContent = true; html += wt; }
   }
 
   // ── Vendas do dia ──
@@ -1122,21 +1073,14 @@ async function buildMemberEodDigest(
     }
   }
 
-  // ── Tempo registado hoje ──
-  if (sections.tempo_registado !== false && tm) {
-    const { data: entries } = await supabase
-      .from("time_entries")
-      .select("duration")
-      .eq("member_id", tm.id)
-      .gte("entry_date", todayStr)
-      .lte("entry_date", todayStr);
-
-    if (entries?.length) {
-      hasContent = true;
-      const totalMin = entries.reduce((s: number, e: Row) => s + (e.duration || 0), 0);
-      html += sectionHeader("⏱️ Tempo registado hoje");
-      html += `<p>Total: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
-    }
+  // ── Tempo registado hoje (próprio membro) ──
+  if (sections.tempo_registado !== false) {
+    const wt = await buildWorkTimeSection(supabase, todayStr, todayStr, 'user', {
+      memberId: tm?.id,
+      userId: profile.user_id,
+      title: "⏱️ O teu tempo registado hoje",
+    });
+    if (wt) { hasContent = true; html += wt; }
   }
 
   // ── Tarefas que ficaram em atraso ──
@@ -1265,6 +1209,94 @@ function sectionHeader(title: string): string {
 // ─── Table helpers (for richer sections) ──────────────────────────
 // Each cell escapes its content. The `align` array applies "left"/"right"/"center"
 // per column. Headers are 11px uppercase; rows are 13px with subtle separators.
+// Aggregates work time from `time_entries` (manual, duration in MINUTES) and
+// `task_time_entries` (timer cronometrado, duration_minutes). Optionally filters by user/member.
+// scope: 'team' returns rows per member; 'user' returns total only.
+async function buildWorkTimeSection(
+  supabase: SupabaseAdmin,
+  startDate: string,
+  endDate: string,
+  scope: 'team' | 'user',
+  opts: { memberId?: string; userId?: string; title?: string } = {}
+): Promise<string> {
+  const totals: Record<string, { name: string; minutes: number }> = {};
+  let total = 0;
+
+  // 1) Manual entries
+  let q1 = supabase
+    .from("time_entries")
+    .select("duration, member_id, team_members(full_name)")
+    .gte("entry_date", startDate)
+    .lte("entry_date", endDate);
+  if (opts.memberId) q1 = q1.eq("member_id", opts.memberId);
+  const { data: manual } = await q1;
+  for (const e of (manual || []) as Row[]) {
+    const mins = Number(e.duration) || 0;
+    total += mins;
+    if (scope === 'team') {
+      const k = e.member_id || "—";
+      if (!totals[k]) totals[k] = { name: e.team_members?.full_name || "Sem nome", minutes: 0 };
+      totals[k].minutes += mins;
+    }
+  }
+
+  // 2) Task timer entries (per user_id → join via team_members.profile_id → profiles.user_id)
+  let q2 = supabase
+    .from("task_time_entries")
+    .select("duration_minutes, user_id")
+    .gte("started_at", startDate + "T00:00:00")
+    .lte("started_at", endDate + "T23:59:59");
+  if (opts.userId) q2 = q2.eq("user_id", opts.userId);
+  const { data: timers } = await q2;
+  let userIdToMember: Record<string, { id: string; name: string }> = {};
+  if (scope === 'team' && timers?.length) {
+    const userIds = [...new Set(timers.map((t: Row) => t.user_id).filter(Boolean))];
+    if (userIds.length) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("user_id, id, full_name, team_members(id, full_name)")
+        .in("user_id", userIds);
+      for (const p of (prof || []) as Row[]) {
+        const tm = Array.isArray(p.team_members) ? p.team_members[0] : p.team_members;
+        userIdToMember[p.user_id] = {
+          id: tm?.id || p.id,
+          name: tm?.full_name || p.full_name || "Sem nome",
+        };
+      }
+    }
+  }
+  for (const t of (timers || []) as Row[]) {
+    const mins = Number(t.duration_minutes) || 0;
+    total += mins;
+    if (scope === 'team') {
+      const m = userIdToMember[t.user_id];
+      const k = m?.id || `u:${t.user_id}`;
+      if (!totals[k]) totals[k] = { name: m?.name || "Sem nome", minutes: 0 };
+      totals[k].minutes += mins;
+    }
+  }
+
+  if (total <= 0) return "";
+
+  const fmt = (m: number) => {
+    const h = Math.floor(m / 60);
+    const mm = Math.round(m % 60);
+    return h > 0 ? `${h}h${mm > 0 ? ` ${mm}min` : ""}` : `${mm}min`;
+  };
+
+  let html = sectionHeader(opts.title || (scope === 'team' ? "⏱️ Tempo trabalhado da equipa" : "⏱️ Tempo trabalhado"));
+  if (scope === 'team' && Object.keys(totals).length > 0) {
+    const rows = Object.values(totals)
+      .sort((a, b) => b.minutes - a.minutes)
+      .map(r => [esc(r.name), fmt(r.minutes)]);
+    rows.push([`<strong>Total equipa</strong>`, `<strong>${fmt(total)}</strong>`]);
+    html += dataTable(["Membro", "Tempo"], rows, ["left", "right"]);
+  } else {
+    html += `<p style="margin:6px 0 2px;font-size:14px;color:#1c1c1e">Total: <strong>${fmt(total)}</strong></p>`;
+  }
+  return html;
+}
+
 function dataTable(headers: string[], rows: string[][], align?: ("left"|"right"|"center")[]): string {
   const al = (i: number) => align?.[i] || "left";
   const headHtml = headers
