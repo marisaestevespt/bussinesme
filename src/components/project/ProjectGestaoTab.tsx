@@ -551,53 +551,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         onSave={(sale) => { comData.upsertSale.mutate(sale); setManualEntryOpen(false); }}
       />
 
-      {/* Reuniões */}
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Video className="h-4 w-4 text-primary" />
-            </div>
-            <CardTitle className="text-base">Reuniões</CardTitle>
-          </div>
-          <Button size="sm" variant="outline" onClick={onNewMeeting}>
-            <Plus className="h-3 w-3 mr-1" />Nova Reunião
-          </Button>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-4 gap-2">
-            <span>Status</span>
-            <span>Data & Hora</span>
-            <span>Reunião</span>
-            <span>Participantes</span>
-          </div>
-          {allMeetings.length === 0 ? (
-            <EmptyHint>Sem reuniões associadas</EmptyHint>
-          ) : (
-            allMeetings.map((m: any) => {
-              const ms = MEETING_STATUSES[m.status] || { label: m.status, badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' };
-              return (
-                <div
-                  key={m.id}
-                  className="px-4 py-2.5 text-sm grid grid-cols-4 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/hub/reunioes/${m.id}`)}
-                >
-                  <span>
-                    <Badge className={`text-[11px] font-semibold px-2.5 py-0.5 ${ms.badgeColor}`}>
-                      {ms.label}
-                    </Badge>
-                  </span>
-                  <span>{m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}</span>
-                  <span className="font-medium truncate">{m.title}</span>
-                  <span className="truncate text-muted-foreground">
-                    {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
-                  </span>
-                </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
