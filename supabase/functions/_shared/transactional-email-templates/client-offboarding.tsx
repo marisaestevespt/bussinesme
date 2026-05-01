@@ -22,6 +22,12 @@ interface ClientOffboardingProps {
   fontDisplay?: string
   fontBody?: string
   logoUrl?: string
+  // Custom text overrides from email_template_settings
+  customTitle?: string
+  customSubtitle?: string
+  customCta?: string
+  customFooter?: string
+  customEmoji?: string
 }
 
 function hslToCss(hsl: string | undefined, fallback: string): string {
@@ -43,6 +49,11 @@ const ClientOffboardingEmail = ({
   fontDisplay,
   fontBody,
   logoUrl,
+  customTitle,
+  customSubtitle,
+  customCta,
+  customFooter,
+  customEmoji,
 }: ClientOffboardingProps) => {
   const name = clientName || ''
   const biz = businessName || SITE_NAME
@@ -83,15 +94,19 @@ const ClientOffboardingEmail = ({
             {logoUrl ? (
               <Img src={logoUrl} alt={biz} style={logoStyle} />
             ) : (
-              <Text style={{ fontSize: '48px', margin: '0 0 8px', lineHeight: '1', textAlign: 'center' as const }}>🤝</Text>
+            <Text style={{ fontSize: '48px', margin: '0 0 8px', lineHeight: '1', textAlign: 'center' as const }}>{customEmoji || '🤝'}</Text>
             )}
             <Heading style={h1}>
-              {name ? `${name}, obrigado(a) por tudo!` : 'Obrigado(a) por tudo!'}
+            {customTitle
+              ? customTitle.replace('{name}', name || 'Cliente')
+              : (name ? `${name}, obrigado(a) por tudo!` : 'Obrigado(a) por tudo!')}
             </Heading>
           </Section>
 
           <Text style={text}>
-            O nosso projeto juntos chegou ao fim por agora — e queremos agradecer-te por toda a confiança e trabalho em conjunto. Foi um prazer!
+            {customSubtitle
+              ? customSubtitle.replace('{name}', name || 'Cliente')
+              : 'O nosso projeto juntos chegou ao fim por agora — e queremos agradecer-te por toda a confiança e trabalho em conjunto. Foi um prazer!'}
           </Text>
 
           <Hr style={divider} />
@@ -115,7 +130,7 @@ const ClientOffboardingEmail = ({
           {portalUrl && (
             <Section style={ctaSection}>
               <Button style={ctaButton} href={portalUrl}>
-                Aceder ao meu portal →
+                {customCta || 'Aceder ao meu portal →'}
               </Button>
             </Section>
           )}
@@ -124,7 +139,7 @@ const ClientOffboardingEmail = ({
 
           {/* Closing */}
           <Text style={text}>
-            Se no futuro precisares de nós, estaremos cá. A porta está sempre aberta. 💛
+            {customFooter || 'Se no futuro precisares de nós, estaremos cá. A porta está sempre aberta. 💛'}
           </Text>
 
           {support && (
