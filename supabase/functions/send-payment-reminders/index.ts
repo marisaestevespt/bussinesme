@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       .from('commercial_sales')
       .select('id, client, product, invoice_total, payment_date, status, payment_method')
       .in('payment_date', [todayStr, threeDaysStr])
-      .not('status', 'eq', 'pago')
+      .in('status', ['aguarda_pagamento', 'em_atraso'])
 
     if (salesError) {
       console.error('Error fetching sales:', salesError)
