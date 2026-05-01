@@ -35,6 +35,7 @@ import { RoutineFormFields } from '@/components/routines/RoutineFormFields';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
 import { SOP_TEMPLATES, getSopTemplate, type SopTemplate } from '@/components/sop/SOP_TEMPLATES';
+import { ProcessCover } from '@/components/processes/ProcessCover';
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -274,12 +275,17 @@ export default function ProcessosPage() {
                   <button
                     key={dept.value}
                     onClick={() => setSelectedDept(dept.value)}
-                    className="group text-left rounded-xl overflow-hidden border border-border hover:shadow-lg hq-transition focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="group text-left rounded-xl overflow-hidden border border-border bg-card hover:shadow-md hq-transition focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >
-                    <div className={cn('h-32 bg-gradient-to-br flex items-center justify-center relative', dept.gradient)}>
-                      <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform duration-300">{dept.icon}</span>
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
-                    </div>
+                    <ProcessCover
+                      className="h-32"
+                      departmentKey={dept.value}
+                      fallback={
+                        <span className="text-3xl opacity-50 group-hover:opacity-70 transition-opacity">
+                          {dept.icon}
+                        </span>
+                      }
+                    />
                     <div className="bg-card p-4">
                       <h3 className="font-semibold text-foreground">{dept.label}</h3>
                       <p className="text-xs text-muted-foreground mt-1">
