@@ -222,7 +222,7 @@ async function buildOwnerDigest(
   if (sections.tarefas_equipa_hoje) {
     const { data: tasks } = await supabase
       .from("tasks")
-      .select("name, assigned_to, priority, profiles!tasks_assigned_to_fkey(full_name)")
+      .select("name, assigned_to, priority, deadline, profiles!tasks_assigned_to_fkey(full_name)")
       .neq("status", "done")
       .neq("status", "concluida")
       .gte("deadline", todayStr)
@@ -231,13 +231,13 @@ async function buildOwnerDigest(
     if (tasks?.length) {
       hasContent = true;
       html += sectionHeader("📋 Tarefas da equipa para hoje");
-      html += "<ul>";
-      for (const t of tasks) {
-        const assignee = t.profiles?.full_name || "—";
-        const prio = t.priority === "alta" ? " 🔴" : t.priority === "media" ? " 🟡" : "";
-        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)})</span>${prio}</li>`;
-      }
-      html += "</ul>";
+      const sorted = sortByPriorityThenDeadline(tasks as any[]);
+      const rows = sorted.map((t: any) => [
+        esc(t.name),
+        esc(t.profiles?.full_name || "—"),
+        priorityChip(t.priority),
+      ]);
+      html += dataTable(["Tarefa", "Responsável", "Prioridade"], rows, ["left", "left", "left"]);
     }
   }
 
@@ -245,7 +245,7 @@ async function buildOwnerDigest(
   if (sections.tarefas_atraso) {
     const { data: tasks } = await supabase
       .from("tasks")
-      .select("name, assigned_to, deadline, profiles!tasks_assigned_to_fkey(full_name)")
+      .select("name, assigned_to, priority, deadline, profiles!tasks_assigned_to_fkey(full_name)")
       .neq("status", "done")
       .neq("status", "concluida")
       .lt("deadline", todayStr)
@@ -254,13 +254,18 @@ async function buildOwnerDigest(
     if (tasks?.length) {
       hasContent = true;
       html += sectionHeader("⚠️ Tarefas em atraso");
-      html += "<ul>";
-      for (const t of tasks) {
-        const assignee = t.profiles?.full_name || "—";
+      // Mais atrasadas primeiro
+      const sorted = [...tasks].sort((a: any, b: any) => (a.deadline || "").localeCompare(b.deadline || ""));
+      const rows = sorted.map((t: any) => {
         const days = daysDiff(t.deadline, todayStr);
-        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)} · ${days} dias)</span></li>`;
-      }
-      html += "</ul>";
+        return [
+          esc(t.name),
+          esc(t.profiles?.full_name || "—"),
+          priorityChip(t.priority),
+          chip(`${days}d`, days >= 7 ? "red" : "amber"),
+        ];
+      });
+      html += dataTable(["Tarefa", "Responsável", "Prioridade", "Atraso"], rows, ["left", "left", "left", "right"]);
     }
   }
 
@@ -443,7 +448,7 @@ async function buildOwnerDigest(
   if (sections.pagamentos_recebidos) {
     const { data: payments } = await supabase
       .from("commercial_sales")
-      .select("invoice_total, client")
+      .select("invoice_total, client, product")
       .eq("status", "pago")
       .eq("payment_date", todayStr);
 
@@ -452,11 +457,12 @@ async function buildOwnerDigest(
       const total = payments.reduce((s: number, p: Row) => s + (p.invoice_total || 0), 0);
       html += sectionHeader("💳 Pagamentos recebidos hoje");
       html += `<p>Total: <strong>${formatCurrency(total)}</strong></p>`;
-      html += "<ul>";
-      for (const p of payments) {
-        html += `<li>${esc(p.client || "—")} — ${formatCurrency(p.invoice_total)}</li>`;
-      }
-      html += "</ul>";
+      const rows = (payments as any[]).map((p: any) => [
+        esc(p.client || "—"),
+        esc(p.product || "—"),
+        `<strong>${formatCurrency(p.invoice_total || 0)}</strong>`,
+      ]);
+      html += dataTable(["Cliente", "Produto/Serviço", "Valor"], rows, ["left", "left", "right"]);
     }
   }
 
