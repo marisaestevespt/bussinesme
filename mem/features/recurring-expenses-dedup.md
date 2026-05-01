@@ -41,6 +41,8 @@ Sempre que inserir/atualizar uma `financial_expenses` recorrente:
 
 O cron `daily-status-update` só validava `recurrence_day` e ignorava `periodicity`; regras anuais sem dia explícito foram geradas no dia 1 de maio mesmo já tendo despesa correta noutro mês (ex.: Google Workspace em janeiro). Solução: cron e UI usam `renewal_date` como âncora; DB bloqueia materializações fora da cadência.
 
+No mesmo bug, regras mensais também podiam ser geradas no dia 1 quando a regra tinha outro dia (ex.: Anthropic 18, Manychat 2, Systeme.io 10, Fireflies 31). A função `validate_recurring_child_period` agora normaliza qualquer filho de regra recorrente para `source_type='subscription'`, `source_id=parent_rule.id` e `expense_date` no dia correto da regra (com cap para último dia do mês).
+
 ## Locais críticos
 - `src/pages/Fornecedores.tsx` — criação de regras de fornecedor
 - `src/components/financial/FinSaidas.tsx` — formulário de despesas
