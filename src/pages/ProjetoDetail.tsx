@@ -661,7 +661,7 @@ export default function ProjetoDetailPage() {
               value={local.name}
               onChange={e => updateField('name', e.target.value)}
               placeholder="Nome do projeto"
-              className="block w-full text-3xl md:text-4xl font-bold tracking-tight border-none px-0 focus-visible:ring-0 h-auto bg-transparent"
+              className="block w-full text-3xl font-bold tracking-tight border-none px-0 focus-visible:ring-0 h-auto bg-transparent md:text-2xl"
             />
             <div className="flex items-center gap-2 flex-wrap">
               {local.type === 'interno' && (
