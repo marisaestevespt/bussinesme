@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FinancialHealthSection } from './FinancialHealthSection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -39,7 +40,21 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
   const qc = useQueryClient();
   const currentMonth = new Date().getMonth() + 1;
-  const [month, setMonth] = useState(currentMonth.toString());
+  // Persistir mês no URL (?m=4) — sobrevive a re-renders, refetch on focus,
+  // navegação para outro tab do browser e regresso, e até partilha de link.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const monthParam = searchParams.get('m');
+  const parsedMonth = monthParam && /^\d+$/.test(monthParam) ? parseInt(monthParam) : NaN;
+  const month = !isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12
+    ? parsedMonth.toString()
+    : currentMonth.toString();
+  const setMonth = useCallback((next: string) => {
+    setSearchParams(prev => {
+      const sp = new URLSearchParams(prev);
+      sp.set('m', next);
+      return sp;
+    }, { replace: true });
+  }, [setSearchParams]);
   const [selectedSale, setSelectedSale] = useState<SelectedSale | null>(null);
   const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
