@@ -1153,7 +1153,11 @@ function buildEmailHtml(opts: {
     .replace(/%%ACCENT%%/g, opts.accentColor)
     .replace(/%%PRIMARY%%/g, opts.primaryColor)
     .replace(/%%DISPLAY_FONT%%/g, displayFont)
-    .replace(/%%BODY_FONT%%/g, bodyFont);
+    .replace(/%%BODY_FONT%%/g, bodyFont)
+    .replace(/<ul>/g, '<ul style="margin:4px 0 0;padding:0;list-style:none">')
+    .replace(/<li>/g, '<li style="padding:8px 0;border-bottom:1px solid #efeff1;font-size:14px;color:#3a3a3c;line-height:1.5">')
+    .replace(/<p><em>/g, '<p style="margin:8px 0 4px;font-size:12px;color:#86868b;font-weight:500;text-transform:uppercase;letter-spacing:0.6px"><em style="font-style:normal">')
+    .replace(/<\/em><\/p>/g, '</em></p>');
   const onPrimary = getContrastColor(opts.primaryColor);
   const fontsToImport = [opts.fontBody, opts.fontDisplay].filter(f => f && f !== "Arial" && f !== "Helvetica");
   const googleFontsLink = fontsToImport.length
