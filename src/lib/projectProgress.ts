@@ -155,3 +155,52 @@ export function progressLabel(
 export function isPhaseComplete(phaseDeliverables: DeliverableLike[]): boolean {
   return phaseDeliverables.length > 0 && phaseDeliverables.every(isDeliverableDone);
 }
+
+/* ---------- Unified per-project progress (single source of truth) ---------- */
+
+export interface MonthlyTaskLike {
+  status?: string | null;
+}
+
+export interface ProjectProgressInput {
+  type?: string | null;
+  project_mode?: string | null;
+  task_mode?: string | null;
+}
+
+/**
+ * Single source of truth for a project's "real progress" (0–100).
+ * Used by ProjetoDetail (badge + persisted progress) AND by Operação
+ * (saúde dos projetos card + project lists). Keep both call sites in sync —
+ * never recompute progress with a different rule.
+ *
+ * Order of precedence:
+ *   1. Recorrente mensal → tasks of the current month
+ *   2. Deliverables (all, not just open ones)
+ *   3. Phases (all)
+ *   4. 0
+ *
+ * `monthlyDoneFn` is a function that, for a recurring monthly project,
+ * returns { done, total } for the current month tasks. Pass `null` from
+ * call sites that don't compute monthly tasks (Operação) — they will fall
+ * through to deliverables/phases, which is still coherent because the
+ * health rule for recurring monthly projects is "overdue-only" anyway.
+ */
+export function computeProjectProgressFromSources(
+  project: ProjectProgressInput,
+  deliverables: DeliverableLike[],
+  phases: PhaseLike[],
+  monthlyDoneFn?: (() => { done: number; total: number }) | null,
+): number {
+  const isRecorrenteMensal =
+    project.type === 'cliente_servico_mensal' && project.project_mode === 'recorrente';
+
+  if (isRecorrenteMensal && monthlyDoneFn) {
+    const { done, total } = monthlyDoneFn();
+    return percent(done, total);
+  }
+
+  if (deliverables.length > 0) return deliverableProgress(deliverables);
+  if (phases.length > 0) return phaseProgress(phases);
+  return 0;
+}

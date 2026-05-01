@@ -47,6 +47,7 @@ import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
 import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
+import { computeProjectProgressFromSources } from '@/lib/projectProgress';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
@@ -249,25 +250,19 @@ export default function ProjetoDetailPage() {
   }, [projectDeliverables, (local as any)?.client_name, (clientForProject as any)?.full_name]);
 
   function getProjectProgress() {
-    // Recorrente mensal: progress by current month tasks
-    if (isRecorrenteMensal) {
-      if (monthlyTasks.length === 0) return 0;
-      const completed = monthlyTasks.filter(isTaskDone).length;
-      return Math.round((completed / monthlyTasks.length) * 100);
-    }
-
-    // All other projects: deliverables > phases
-    if (projectDeliverables.length > 0) {
-      const completed = projectDeliverables.filter((d: any) => d.status === 'concluido').length;
-      return Math.round((completed / projectDeliverables.length) * 100);
-    }
-
-    if (projectPhases.length > 0) {
-      const completed = projectPhases.filter((p: any) => p.status === 'concluida').length;
-      return Math.round((completed / projectPhases.length) * 100);
-    }
-
-    return 0;
+    // Single source of truth — same rule used by Operação's "Saúde dos Projetos"
+    // card and by the project detail health badge. Do NOT inline a different rule.
+    return computeProjectProgressFromSources(
+      local as any,
+      projectDeliverables as any,
+      projectPhases as any,
+      isRecorrenteMensal
+        ? () => ({
+            done: monthlyTasks.filter(isTaskDone).length,
+            total: monthlyTasks.length,
+          })
+        : null,
+    );
   }
 
   function getProjectProgressSummary() {
