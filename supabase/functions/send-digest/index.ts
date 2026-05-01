@@ -466,6 +466,46 @@ async function buildOwnerDigest(
     }
   }
 
+  // ── Contas a pagar (próximos 7 dias) ──
+  // Mostra despesas com status pendente / por_pagar com expense_date dentro
+  // dos próximos 7 dias (incluindo já vencidas). Inclui fornecedor e valor.
+  if (sections.contas_pagar !== false) {
+    const sevenLater = new Date(now);
+    sevenLater.setDate(sevenLater.getDate() + 7);
+    const sevenStr = formatDate(sevenLater);
+
+    const { data: expenses } = await supabase
+      .from("financial_expenses")
+      .select("expense_name, description, total_with_vat, expense_date, status, supplier_id, suppliers(name)")
+      .in("status", ["por_pagar", "pendente"])
+      .lte("expense_date", sevenStr)
+      .order("expense_date", { ascending: true });
+
+    if (expenses?.length) {
+      hasContent = true;
+      const total = (expenses as Row[]).reduce((s: number, e: Row) => s + (Number(e.total_with_vat) || 0), 0);
+      html += sectionHeader("🧾 Contas a pagar (próximos 7 dias)");
+      html += `<p>Total pendente: <strong>${formatCurrency(total)}</strong> · ${expenses.length} despesa(s)</p>`;
+      const rows = (expenses as any[]).map((e: any) => {
+        const supplier = e.suppliers?.name || "—";
+        const isOverdue = e.expense_date < todayStr;
+        const isToday = e.expense_date === todayStr;
+        const dateLabel = isOverdue
+          ? chip(`Atraso · ${e.expense_date.substring(8)}/${e.expense_date.substring(5,7)}`, "red")
+          : isToday
+            ? chip("Hoje", "amber")
+            : `${e.expense_date.substring(8)}/${e.expense_date.substring(5,7)}`;
+        return [
+          esc(e.expense_name || e.description || "—"),
+          esc(supplier),
+          dateLabel,
+          `<strong>${formatCurrency(Number(e.total_with_vat) || 0)}</strong>`,
+        ];
+      });
+      html += dataTable(["Despesa", "Fornecedor", "Vencimento", "Valor"], rows, ["left", "left", "left", "right"]);
+    }
+  }
+
   // ── Projetos fechados hoje ──
   if (sections.projetos_fechados) {
     const { data: closed } = await supabase
