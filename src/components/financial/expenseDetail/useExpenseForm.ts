@@ -80,7 +80,8 @@ export function useExpenseForm({ expense, open, fin, onClose }: Args) {
     await fin.upsertExpense.mutateAsync({
       id: form.id,
       status: autoStatus,
-      expense_date: date,
+      // Regras (is_recurring=true) são templates: nunca têm data/mês/ano.
+      expense_date: isRecurring ? null : date,
       description: form.description || null,
       category: form.category,
       base_value: base,
@@ -88,9 +89,9 @@ export function useExpenseForm({ expense, open, fin, onClose }: Args) {
       total_with_vat: total,
       location: form.location,
       documents: allDocs,
-      expense_month: month,
-      expense_quarter: quarter,
-      expense_year: year,
+      expense_month: isRecurring ? null : month,
+      expense_quarter: isRecurring ? null : quarter,
+      expense_year: isRecurring ? null : year,
       department: form.department || null,
       supplier_id: form.supplier_id || null,
       is_recurring: isRecurring,

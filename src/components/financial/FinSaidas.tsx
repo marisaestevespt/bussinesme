@@ -115,7 +115,8 @@ export function FinSaidas({ fin, currentYear }: Props) {
     await fin.upsertExpense.mutateAsync({
       ...(expForm.id ? { id: expForm.id } : {}),
       status: effectiveStatus,
-      expense_date: date,
+      // Regras (is_recurring=true) são templates: nunca têm data/mês/ano (evita duplicação).
+      expense_date: isRecurring ? null : date,
       description: expForm.description || null,
       expense_name: isRecurring ? (expForm.description || null) : null,
       category: expForm.category,
@@ -124,9 +125,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
       total_with_vat: total,
       location: expForm.location,
       documents: expForm.documents || [],
-      expense_month: month,
-      expense_quarter: quarter,
-      expense_year: year,
+      expense_month: isRecurring ? null : month,
+      expense_quarter: isRecurring ? null : quarter,
+      expense_year: isRecurring ? null : year,
       supplier_id: expForm.supplier_id || null,
       payment_method: expForm.payment_method || null,
       is_recurring: isRecurring,

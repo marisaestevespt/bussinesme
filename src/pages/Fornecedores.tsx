@@ -483,10 +483,12 @@ export default function FornecedoresPage() {
           monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
           recurrence_day: form.recurring_day || null,
           payment_method: form.payment_method || null,
-          expense_date: startDate,
-          expense_month: new Date(startDate + 'T00:00:00').getMonth() + 1,
-          expense_quarter: Math.ceil((new Date(startDate + 'T00:00:00').getMonth() + 1) / 3),
-          expense_year: new Date(startDate + 'T00:00:00').getFullYear(),
+          // Regra é template puro: NUNCA tem mês/ano/data — só os filhos têm.
+          // Evita duplicação com as despesas materializadas. Trigger DB também force this.
+          expense_date: null,
+          expense_month: null,
+          expense_quarter: null,
+          expense_year: null,
           recurrence_end_date: form.contract_end_date || null,
           source_type: 'rule',
         } as any).select('id').single();

@@ -1,51 +1,43 @@
 ---
-name: recurring-expenses-dedup
-description: Despesas recorrentes (subscriptions/contracts) são geradas por DOIS mecanismos — cron diário daily-status-update e cliente FinMensal — e DEVEM partilhar a mesma chave de dedupe (parent_expense_id) + constraint DB
+name: Recurring expenses deduplication
+description: Rules and constraints to prevent duplicate financial expenses, especially recurring ones (subscriptions, contracts)
 type: feature
 ---
-# Dedup de despesas recorrentes
 
-## Por que existe esta regra
-Despesas mensais recorrentes (Lovable, Anthropic, Google Workspace, salários,
-etc.) são materializadas em `financial_expenses` por **dois caminhos
-independentes**:
+## Modelo invariável: regra ≠ despesa
 
-1. **Backend** — `supabase/functions/daily-status-update/index.ts`
-   secção "recurring-expenses" (corre por `pg_cron` diariamente).
-2. **Frontend** — `src/components/financial/FinMensal.tsx` `autoMaterialize`
-   (corre quando o utilizador abre o mês corrente/passado).
+Uma `financial_expenses` pode ser de dois tipos mutuamente exclusivos:
 
-Quando estes dois caminhos usam **chaves de dedupe diferentes**, criam
-duplicados (caso real: Maio 2026 — 5 subscrições duplicadas).
+1. **Regra/template** (`is_recurring=true`, `source_type='rule'`)
+   - É um molde para gerar despesas mensais. **NUNCA tem `expense_date`, `expense_month`, `expense_quarter` ou `expense_year`.** Estes campos são FORÇADOS a NULL pelo trigger `trg_validate_recurring_rule_no_period`.
+   - Não aparece em vistas mensais — é filtrada como `source_type !== 'rule'`.
 
-## Regra
-Toda despesa auto-gerada DEVE preencher **as duas chaves**:
+2. **Despesa do mês** (`is_recurring=false`)
+   - Materialização concreta para um mês específico. Tem mês/ano obrigatórios.
+   - Liga-se à regra via `parent_expense_id` E/OU `source_id` + `source_type` (subscription/contract).
 
-```ts
-{
-  parent_expense_id: re.id,              // chave do cron (sempre)
-  source_type: 'subscription'|'contract',// chave do cliente
-  source_id: re.id,
-}
-```
+## Constraints DB (defesa em camadas)
 
-E qualquer **verificação prévia de existência** deve aceitar correspondência
-por `parent_expense_id` OU `(source_type, source_id)` no mesmo `(year, month)`.
+- `financial_expenses_parent_month_uq`: UNIQUE (parent_expense_id, year, month) WHERE parent IS NOT NULL.
+- `financial_expenses_source_month_uq`: UNIQUE (source_type, source_id, year, month) WHERE source_id IS NOT NULL.
+- `financial_expenses_supplier_month_value_uq`: UNIQUE (supplier_id, year, month, total_with_vat) WHERE supplier IS NOT NULL AND não é regra AND status<>'cancelado'. Apanha duplicados mesmo quando os parent/source IDs estão diferentes.
+- Trigger `trg_validate_recurring_rule_no_period`: força que regras nunca tenham período preenchido.
 
-## Salvaguarda final (DB)
-Existem dois índices únicos parciais:
+## Bug histórico (2026-05-01) e como evitar
 
-- `financial_expenses_parent_month_uq` em `(parent_expense_id, expense_year, expense_month)` quando `parent_expense_id IS NOT NULL`.
-- `financial_expenses_source_month_uq` em `(source_type, source_id, expense_year, expense_month)` quando `source_id IS NOT NULL`.
+A regra era inserida com `expense_year/month` do mês corrente E imediatamente outra despesa-filho era inserida para o mesmo mês com `source_type='subscription'`. As duas linhas tinham chaves diferentes (rule vs subscription) e os índices únicos não as apanhavam. **Resultado: 7 fornecedores com despesa duplicada em vários meses.**
 
-Se algum caminho tentar inserir um duplicado, o Postgres devolve `23505` —
-o cron trata como no-op e segue.
+Solução: regras passaram a ser templates puros (sem período), constraint extra por `(supplier, year, month, total)` e trigger DB.
 
-## Como aplicar quando adicionar um novo gerador
-- Reutilizar `buildSubscriptionExpense` / `buildContractExpense`
-  (`src/components/financial/finMensal/expenseBuilders.ts`) que já preenchem
-  ambas as chaves.
-- No backend, replicar o padrão da secção "recurring-expenses" do
-  daily-status-update: dedup duplo + insert com ambas as chaves + tolerar 23505.
-- Nunca criar uma terceira chave de dedupe (ex.: `description` + `amount`) —
-  partir sempre de `(parent_expense_id, year, month)`.
+## Regra para futuro código
+
+Sempre que inserir/atualizar uma `financial_expenses` recorrente:
+- `is_recurring=true` + `source_type='rule'` → **NUNCA** definir `expense_date`, `expense_month`, `expense_quarter`, `expense_year`. (O trigger limpa, mas o código deve ser explícito.)
+- A despesa do mês corrente é gerada **separadamente** como filho com `parent_expense_id` apontando para a regra.
+
+## Locais críticos
+- `src/pages/Fornecedores.tsx` — criação de regras de fornecedor
+- `src/components/financial/FinSaidas.tsx` — formulário de despesas
+- `src/components/financial/expenseDetail/useExpenseForm.ts` — edição
+- `src/components/financial/FinMensal.tsx` — auto-materialização do mês
+- `supabase/functions/daily-status-update/index.ts` — cron de geração mensal
