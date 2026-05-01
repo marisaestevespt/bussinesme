@@ -148,15 +148,6 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     },
   });
 
-  const { data: allTimeEntries = [] } = useQuery({
-    queryKey: ['task-time-entries-all'],
-    staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      const { data } = await supabase.from('task_time_entries').select('task_id, duration_minutes').or('ended_at.not.is.null,is_manual.eq.true');
-      return data || [];
-    },
-  });
-
   const { data: sopsList = [] } = useQuery({
     queryKey: ['sops-list-for-tasks'],
     staleTime: 10 * 60 * 1000,
@@ -194,47 +185,32 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   }, [open, editingTask]);
 
   // Similarity search — auto-fill estimated_time from historical average
-  const [suggestion, setSuggestion] = useState<{ taskName: string; avgHours: number } | null>(null);
+  const [suggestion, setSuggestion] = useState<{ taskName: string; avgHours: number; sampleCount: number; confidence: string } | null>(null);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
 
-  function normalize(s: string) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
-
-  function findSimilarTasks(input: string) {
-    if (!input || input.length < 3 || editingTask) return;
-    const norm = normalize(input);
-    const taskTimeMap: Record<string, number[]> = {};
-    allTimeEntries.forEach(e => {
-      if (!e.task_id || !e.duration_minutes) return;
-      if (!taskTimeMap[e.task_id]) taskTimeMap[e.task_id] = [];
-      taskTimeMap[e.task_id].push(e.duration_minutes);
-    });
-    // Aggregate times across ALL matching tasks (not just the first one)
-    let totalMinutes = 0;
-    let totalEntries = 0;
-    let matchedName = '';
-    for (const t of allTasks) {
-      if (!taskTimeMap[t.id]) continue;
-      const tn = normalize(t.name);
-      if (tn === norm || tn.includes(norm) || norm.includes(tn)) {
-        const times = taskTimeMap[t.id];
-        totalMinutes += times.reduce((s, v) => s + v, 0);
-        totalEntries += times.length;
-        if (!matchedName) matchedName = t.name;
-      }
+  useEffect(() => {
+    if (!open || editingTask || suggestionDismissed || name.trim().length < 3) {
+      setSuggestion(null);
+      return;
     }
-    if (totalEntries > 0) {
-      const avgHours = Math.round((totalMinutes / totalEntries / 60) * 10) / 10;
-      if (avgHours > 0) {
-        setSuggestion({ taskName: matchedName, avgHours });
-        // Auto-fill estimated time
-        setEstimatedTime(String(avgHours));
+    const timer = setTimeout(async () => {
+      const { data } = await (supabase as any).rpc('suggest_task_estimate', {
+        _name: name.trim(),
+        _sop_id: sopId || null,
+        _project_id: projectId || defaultProjectId || null,
+        _deliverable_template_id: null,
+      });
+      const row = Array.isArray(data) ? data[0] : null;
+      if (!row?.avg_minutes) {
+        setSuggestion(null);
         return;
       }
-    }
-    setSuggestion(null);
-  }
-
-  function handleNameChange(val: string) { setName(val); setSuggestionDismissed(false); findSimilarTasks(val); }
+      const avgHours = Math.round((Number(row.avg_minutes) / 60) * 10) / 10;
+      setSuggestion({ taskName: row.matched_task_name || name.trim(), avgHours, sampleCount: row.sample_count || 1, confidence: row.confidence || 'baixa' });
+      setEstimatedTime(String(avgHours));
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [open, editingTask, suggestionDismissed, name, sopId, projectId, defaultProjectId]);
 
   // Capacity warning
   const capacityWarning = useMemo(() => {
@@ -396,6 +372,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      estimated_minutes: estimatedTime ? Math.round(parseFloat(estimatedTime) * 60) : null,
       sop_id: sopId || null,
       scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
@@ -414,7 +391,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             <DialogTitle className="sr-only">{editingTask ? name || 'Editar tarefa' : 'Nova tarefa'}</DialogTitle>
             <Input
               value={name}
-              onChange={e => handleNameChange(e.target.value)}
+              onChange={e => { setName(e.target.value); setSuggestionDismissed(false); }}
               placeholder={editingTask ? 'Nome da tarefa' : 'Nova tarefa sem nome'}
               className="h-auto !text-[23px] font-semibold border-0 shadow-none focus-visible:ring-0 px-0 py-1 placeholder:text-muted-foreground/40"
             />

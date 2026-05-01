@@ -8447,6 +8447,7 @@ export type Database = {
           description: string | null
           drive_url: string | null
           escada: string | null
+          estimated_project_hours: number | null
           faqs: Json | null
           icon: Json | null
           id: string
@@ -8498,6 +8499,7 @@ export type Database = {
           description?: string | null
           drive_url?: string | null
           escada?: string | null
+          estimated_project_hours?: number | null
           faqs?: Json | null
           icon?: Json | null
           id?: string
@@ -8549,6 +8551,7 @@ export type Database = {
           description?: string | null
           drive_url?: string | null
           escada?: string | null
+          estimated_project_hours?: number | null
           faqs?: Json | null
           icon?: Json | null
           id?: string
@@ -11723,6 +11726,20 @@ export type Database = {
           _user_id: string
         }
         Returns: string
+      }
+      suggest_task_estimate: {
+        Args: {
+          _deliverable_template_id?: string
+          _name: string
+          _project_id?: string
+          _sop_id?: string
+        }
+        Returns: {
+          avg_minutes: number
+          confidence: string
+          matched_task_name: string
+          sample_count: number
+        }[]
       }
       test_payment_sync_e2e: {
         Args: never

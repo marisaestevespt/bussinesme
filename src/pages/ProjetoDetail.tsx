@@ -16,7 +16,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake, Video } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake, Video, BarChart3 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntitySection,
@@ -88,6 +88,19 @@ function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
   );
 }
 
+function formatMinutes(min: number | null | undefined): string {
+  const value = Math.max(0, Math.round(Number(min || 0)));
+  if (value < 60) return `${value}m`;
+  const h = Math.floor(value / 60);
+  const m = value % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+function safePct(value: number, total: number): number {
+  if (!total || total <= 0) return 0;
+  return Math.min(100, Math.round((value / total) * 100));
+}
+
 // ─── Main Component ─────────────────────────────────────────────
 
 export default function ProjetoDetailPage() {
@@ -147,6 +160,76 @@ export default function ProjetoDetailPage() {
   const { products: productsQ } = useProducts();
   const productsList = productsQ.data || [];
   const selectedProduct = productsList.find((p: any) => p.id === local?.product_id);
+
+  const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
+  const { data: trackedTaskMinutes = 0 } = useTaskTimeTotals(taskIds);
+
+  const projectAnalysisQ = useQuery({
+    queryKey: ['project-analysis', id, monthStart, taskIds],
+    enabled: !!id,
+    queryFn: async () => {
+      const [{ data: directEntries }, { data: taskEntries }, { data: taskTimerEntries }, { data: members }] = await Promise.all([
+        supabase.from('time_entries').select('id, duration, member_id, entry_date').eq('project_id', id!),
+        taskIds.length > 0
+          ? supabase.from('time_entries').select('id, duration, member_id, task_id, entry_date').in('task_id', taskIds)
+          : Promise.resolve({ data: [] as any[] }),
+        taskIds.length > 0
+          ? supabase.from('task_time_entries').select('duration_minutes, user_id, task_id, created_at, ended_at, is_manual').in('task_id', taskIds)
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from('team_members').select('id, profile_id, full_name, photo_url'),
+      ]);
+      return { directEntries: directEntries || [], taskEntries: taskEntries || [], taskTimerEntries: taskTimerEntries || [], members: members || [] };
+    },
+  });
+
+  const projectAnalysis = useMemo(() => {
+    const data = projectAnalysisQ.data;
+    const timerEntries = ((data?.taskTimerEntries || []) as any[]).filter(e => e.duration_minutes > 0 && (e.ended_at || e.is_manual));
+    const manualEntries = Array.from(new Map([...((data?.directEntries || []) as any[]), ...((data?.taskEntries || []) as any[])].map(e => [e.id, e])).values());
+    const manualMinutes = manualEntries.reduce((sum, e) => sum + Math.round(Number(e.duration || 0) * 60), 0);
+    const timerMinutes = timerEntries.reduce((sum, e) => sum + Number(e.duration_minutes || 0), 0);
+    const totalMinutes = manualMinutes + timerMinutes;
+    const doneTasks = tasks.filter(isTaskDone).length;
+    const estimatedTaskMinutes = tasks.reduce((sum, t) => sum + (Number(t.estimated_minutes || 0) || Math.round(Number(t.estimated_time || 0) * 60)), 0);
+    const deliverableEstimatedMinutes = (projectDeliverables as any[]).reduce((sum, d) => sum + Number(d.estimated_minutes || 0), 0);
+    const budgetMinutes = Number(local?.budgeted_minutes || 0) || estimatedTaskMinutes || deliverableEstimatedMinutes;
+    const memberNames = new Map<string, string>();
+    (data?.members || []).forEach((m: any) => {
+      if (m.id) memberNames.set(m.id, m.full_name || 'Membro');
+      if (m.profile_id) memberNames.set(m.profile_id, m.full_name || 'Membro');
+    });
+    profiles.forEach(p => { memberNames.set(p.id, p.full_name || 'Membro'); if (p.user_id) memberNames.set(p.user_id, p.full_name || 'Membro'); });
+    const byPerson = new Map<string, { id: string; name: string; minutes: number }>();
+    const addPerson = (key: string | null | undefined, minutes: number) => {
+      const id = key || 'sem-responsavel';
+      const current = byPerson.get(id) || { id, name: memberNames.get(id) || 'Sem responsável', minutes: 0 };
+      current.minutes += minutes;
+      byPerson.set(id, current);
+    };
+    timerEntries.forEach((e: any) => addPerson(e.user_id, Number(e.duration_minutes || 0)));
+    manualEntries.forEach((e: any) => addPerson(e.member_id, Math.round(Number(e.duration || 0) * 60)));
+    const monthTimerMinutes = timerEntries
+      .filter((e: any) => e.created_at && e.created_at >= monthStart && e.created_at <= `${monthEnd}T23:59:59`)
+      .reduce((sum, e: any) => sum + Number(e.duration_minutes || 0), 0);
+    const monthManualMinutes = manualEntries
+      .filter((e: any) => e.entry_date && e.entry_date >= monthStart && e.entry_date <= monthEnd)
+      .reduce((sum, e: any) => sum + Math.round(Number(e.duration || 0) * 60), 0);
+    const monthlyBudget = isServicoMensal ? Number(local?.budgeted_minutes || 0) : 0;
+    return {
+      totalMinutes,
+      trackedTaskMinutes,
+      budgetMinutes,
+      estimatedTaskMinutes,
+      deliverableEstimatedMinutes,
+      doneTasks,
+      totalTasks: tasks.length,
+      completedDeliverables: (projectDeliverables as any[]).filter((d: any) => d.status === 'concluido' || d.status === 'entregue').length,
+      totalDeliverables: projectDeliverables.length,
+      people: Array.from(byPerson.values()).sort((a, b) => b.minutes - a.minutes),
+      currentMonthMinutes: monthTimerMinutes + monthManualMinutes,
+      monthlyBudget,
+    };
+  }, [projectAnalysisQ.data, tasks, projectDeliverables, local?.budgeted_minutes, profiles, monthStart, monthEnd, isServicoMensal, trackedTaskMinutes]);
 
   // Suggested meeting title from the next pending meeting-deliverable's template
   const suggestedMeetingTitle = useMemo(() => {
@@ -299,6 +382,7 @@ export default function ProjetoDetailPage() {
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url, contract_documents: local.contract_documents || [],
         payment_method: local.payment_method || null, payment_config: local.payment_config || null,
+        budgeted_minutes: local.budgeted_minutes ?? null,
         project_mode: (local as any).project_mode || 'pontual',
         task_mode: (local as any).task_mode || 'fases',
         brainstorming: (local as any).brainstorming ?? null,
@@ -944,6 +1028,22 @@ export default function ProjetoDetailPage() {
                 <span className="text-sm font-medium">{formatCost(projectCost)}</span>
               </div>
             )}
+            {/* Orçamento de tempo */}
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Clock className="h-4 w-4" /> Orçamento tempo</span>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.25"
+                  value={local.budgeted_minutes ? local.budgeted_minutes / 60 : ''}
+                  onChange={e => updateField('budgeted_minutes', e.target.value ? Math.round(Number(e.target.value) * 60) : null)}
+                  placeholder={isServicoMensal ? 'Horas/mês' : 'Horas/projeto'}
+                  className="h-8 w-28 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">{isServicoMensal ? 'h/mês contratadas' : 'h previstas no projeto'}</span>
+              </div>
+            </div>
           </div>
 
 
@@ -964,6 +1064,13 @@ export default function ProjetoDetailPage() {
               >
                 <Workflow className="h-4 w-4" />
                 Fluxo de Trabalho
+              </EntityTabsTrigger>
+              <EntityTabsTrigger
+                value="analise"
+                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Análise de Projeto
               </EntityTabsTrigger>
               {resolvedClientId && local.client_name && (
                 <EntityTabsTrigger
@@ -1229,6 +1336,65 @@ export default function ProjetoDetailPage() {
                     </div>
                   );
                 })()}
+              </EntitySection>
+            </EntityTabsContent>
+
+            {/* ─── TAB 3: ANÁLISE DE PROJETO ───────────────── */}
+            <EntityTabsContent value="analise" className="mt-4 space-y-8">
+              <EntitySection title="Saúde do Projeto" icon={BarChart3} description={isServicoMensal ? 'Contratado vs. consumido no mês corrente e total produtivo.' : 'Previsto vs. realizado, execução e distribuição de esforço.'}>
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    { label: isServicoMensal ? 'Horas contratadas/mês' : 'Tempo previsto', value: projectAnalysis.budgetMinutes > 0 ? formatMinutes(projectAnalysis.budgetMinutes) : '—', sub: projectAnalysis.estimatedTaskMinutes > 0 ? `${formatMinutes(projectAnalysis.estimatedTaskMinutes)} estimadas em tarefas` : 'Sem estimativa detalhada' },
+                    { label: 'Tempo produtivo total', value: projectAnalysis.totalMinutes > 0 ? formatMinutes(projectAnalysis.totalMinutes) : '—', sub: projectAnalysis.totalMinutes > 0 ? `${safePct(projectAnalysis.totalMinutes, projectAnalysis.budgetMinutes)}% do previsto` : 'Sem tempo registado' },
+                    { label: 'Tarefas feitas', value: `${projectAnalysis.doneTasks}/${projectAnalysis.totalTasks}`, sub: `${safePct(projectAnalysis.doneTasks, projectAnalysis.totalTasks)}% concluído` },
+                    { label: 'Entregas concluídas', value: `${projectAnalysis.completedDeliverables}/${projectAnalysis.totalDeliverables}`, sub: `${safePct(projectAnalysis.completedDeliverables, projectAnalysis.totalDeliverables)}% concluído` },
+                  ].map(kpi => (
+                    <div key={kpi.label} className="rounded-lg border border-border/60 bg-muted/30 p-4">
+                      <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                      <p className="mt-1 text-2xl font-semibold tabular-nums">{kpi.value}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{kpi.sub}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">Consumo do orçamento</span>
+                        <span className="text-muted-foreground tabular-nums">{projectAnalysis.totalMinutes > 0 ? formatMinutes(projectAnalysis.totalMinutes) : '0m'}{projectAnalysis.budgetMinutes > 0 ? ` / ${formatMinutes(projectAnalysis.budgetMinutes)}` : ''}</span>
+                      </div>
+                      <Progress value={safePct(projectAnalysis.totalMinutes, projectAnalysis.budgetMinutes)} className="h-2" />
+                    </div>
+                    {isServicoMensal && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium">Mês corrente</span>
+                          <span className="text-muted-foreground tabular-nums">{formatMinutes(projectAnalysis.currentMonthMinutes)}{projectAnalysis.monthlyBudget > 0 ? ` / ${formatMinutes(projectAnalysis.monthlyBudget)}` : ''}</span>
+                        </div>
+                        <Progress value={safePct(projectAnalysis.currentMonthMinutes, projectAnalysis.monthlyBudget)} className="h-2" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-lg border border-border/60 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
+                      <h3 className="text-sm font-semibold">Tempo por pessoa</h3>
+                    </div>
+                    {projectAnalysis.people.length === 0 ? (
+                      <p className="p-4 text-sm text-muted-foreground">Sem tempo registado.</p>
+                    ) : (
+                      <div className="divide-y divide-border/60">
+                        {projectAnalysis.people.map(person => (
+                          <div key={person.id} className="px-4 py-3 flex items-center justify-between gap-3 text-sm">
+                            <span className="min-w-0 truncate font-medium">{person.name}</span>
+                            <span className="tabular-nums text-muted-foreground">{formatMinutes(person.minutes)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </EntitySection>
             </EntityTabsContent>
 
