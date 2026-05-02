@@ -6,7 +6,6 @@ type PortalBrandingLike = {
   primary_color?: string | null;
   accent_color?: string | null;
   text_color?: string | null;
-  [key: string]: unknown;
 };
 
 const HSL_TRIPLET = /^\s*\d+(?:\.\d+)?\s+\d+(?:\.\d+)?%\s+\d+(?:\.\d+)?%\s*$/;
