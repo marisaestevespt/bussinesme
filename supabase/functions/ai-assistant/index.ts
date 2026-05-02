@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { checkRateLimit, getClientId, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
 type SupabaseAdmin = ReturnType<typeof createClient>;
 type Row = Record<string, unknown>;
@@ -723,15 +724,13 @@ async function executeSingleAction(
 
   if (actionType === "send_email") {
     try {
-      const { error } = await supabaseAdmin.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "ai-assistant-email",
-          recipientEmail: details.to,
-          idempotencyKey: `ai-email-${Date.now()}`,
-          templateData: { subject: details.subject, body: details.body },
-        },
+      const sendRes = await sendTransactionalEmail({
+        templateName: "ai-assistant-email",
+        recipientEmail: details.to as string,
+        idempotencyKey: `ai-email-${Date.now()}`,
+        templateData: { subject: details.subject, body: details.body },
       });
-      if (error) return { error: `Erro ao enviar email: ${error.message}` };
+      if (!sendRes.ok) return { error: `Erro ao enviar email: ${sendRes.details}` };
       return { success: true, message: `Email enviado para ${details.to}` };
     } catch (e) {
       return { error: `Email não configurado ou erro: ${e instanceof Error ? e.message : "desconhecido"}` };
