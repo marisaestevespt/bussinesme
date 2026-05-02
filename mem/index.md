@@ -35,7 +35,6 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - Listagens de projetos (qualquer ecrã) DEVEM reutilizar StatusBadge / DeptBadge / ProjectDeptBadges de @/pages/Projetos — nunca redesenhar status/dept à mão
 
 ## Memories
-- [Brand name](mem://design/brand-name.md) — Lyrata (system) + Atena (AI assistant): naming, tone, where each appears
 - [Calendar quick-add](mem://design/calendar-quick-add-pattern.md) — Notion-like "+" hover button per day cell with onCreateForDate prop pattern
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
 - [Department planning card](mem://design/department-planning-card.md) — "Planeamento" sempre na grelha principal de botões via getPlanningSection(), nunca no header
