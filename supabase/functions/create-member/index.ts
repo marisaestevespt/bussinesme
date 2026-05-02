@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, preflight } from "../_shared/cors.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
 // ─── Portuguese holidays (inline for edge function) ───
 function computeEaster(year: number): Date {
@@ -362,12 +363,11 @@ Deno.serve(async (req) => {
           .eq("user_id", caller.id)
           .maybeSingle();
 
-        await supabase.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "welcome-member",
-            recipientEmail: email,
-            idempotencyKey: `welcome-member-${newUser.user.id}`,
-            templateData: {
+        await sendTransactionalEmail({
+          templateName: "welcome-member",
+          recipientEmail: email,
+          idempotencyKey: `welcome-member-${newUser.user.id}`,
+          templateData: {
               memberName: full_name.split(" ")[0],
               inviteUrl: invite_url,
               ownerName: ownerProfile?.data?.full_name?.split(" ")[0] || "a equipa",
@@ -389,7 +389,6 @@ Deno.serve(async (req) => {
               customFooter: emailOverrides?.footer_text || undefined,
               customEmoji: emailOverrides?.emoji || undefined,
             },
-          },
         });
         welcome_email_sent = true;
       } catch (welcomeErr) {

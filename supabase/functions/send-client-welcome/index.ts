@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -141,17 +142,14 @@ Deno.serve(async (req) => {
 
     const idempotencyKey = `welcome-client-${portal.id}-${Date.now()}`;
 
-    const { error: sendErr } = await supabase.functions.invoke("send-transactional-email", {
-      body: {
-        templateName: "welcome-client",
-        recipientEmail: client.email,
-        idempotencyKey,
-        templateData,
-      },
+    const sendRes = await sendTransactionalEmail({
+      templateName: "welcome-client",
+      recipientEmail: client.email,
+      idempotencyKey,
+      templateData,
     });
-    if (sendErr) {
-      console.error("send-transactional-email error", sendErr);
-      return new Response(JSON.stringify({ error: "Falha ao enviar email", details: String(sendErr) }), {
+    if (!sendRes.ok) {
+      return new Response(JSON.stringify({ error: "Falha ao enviar email", details: sendRes.details }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { checkRateLimit, getClientId, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -167,33 +168,31 @@ Deno.serve(async (req) => {
           .eq("user_id", caller.id)
           .maybeSingle();
 
-        await supabase.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "welcome-member",
-            recipientEmail: targetEmail,
-            // Use a time-bucketed key so resends are not blocked by idempotency
-            idempotencyKey: `welcome-member-resend-${targetEmail}-${Date.now()}`,
-            templateData: {
-              memberName: memberFullName.split(" ")[0],
-              inviteUrl,
-              ownerName: ownerProfile?.full_name?.split(" ")[0] || "a equipa",
-              businessName: brandSettings?.business_name || undefined,
-              whatsappTeamUrl: brandSettings?.whatsapp_team_url || undefined,
-              whatsappDeptUrl: whatsappDeptUrl || undefined,
-              departmentName: departmentName || undefined,
-              primaryColor: emailOverrides?.primary_color || brandSettings?.primary_color || undefined,
-              primaryForeground: emailOverrides?.primary_foreground || brandSettings?.primary_foreground || undefined,
-              textColor: emailOverrides?.text_color || brandSettings?.text_color || undefined,
-              accentColor: emailOverrides?.muted_color || brandSettings?.accent_color || undefined,
-              fontDisplay: emailOverrides?.font_display || brandSettings?.font_display || undefined,
-              fontBody: emailOverrides?.font_body || brandSettings?.font_body || undefined,
-              logoUrl: brandSettings?.logo_url || undefined,
-              customTitle: emailOverrides?.title_text || undefined,
-              customSubtitle: emailOverrides?.subtitle_text || undefined,
-              customCta: emailOverrides?.cta_text || undefined,
-              customFooter: emailOverrides?.footer_text || undefined,
-              customEmoji: emailOverrides?.emoji || undefined,
-            },
+        await sendTransactionalEmail({
+          templateName: "welcome-member",
+          recipientEmail: targetEmail,
+          // Use a time-bucketed key so resends are not blocked by idempotency
+          idempotencyKey: `welcome-member-resend-${targetEmail}-${Date.now()}`,
+          templateData: {
+            memberName: memberFullName.split(" ")[0],
+            inviteUrl,
+            ownerName: ownerProfile?.full_name?.split(" ")[0] || "a equipa",
+            businessName: brandSettings?.business_name || undefined,
+            whatsappTeamUrl: brandSettings?.whatsapp_team_url || undefined,
+            whatsappDeptUrl: whatsappDeptUrl || undefined,
+            departmentName: departmentName || undefined,
+            primaryColor: emailOverrides?.primary_color || brandSettings?.primary_color || undefined,
+            primaryForeground: emailOverrides?.primary_foreground || brandSettings?.primary_foreground || undefined,
+            textColor: emailOverrides?.text_color || brandSettings?.text_color || undefined,
+            accentColor: emailOverrides?.muted_color || brandSettings?.accent_color || undefined,
+            fontDisplay: emailOverrides?.font_display || brandSettings?.font_display || undefined,
+            fontBody: emailOverrides?.font_body || brandSettings?.font_body || undefined,
+            logoUrl: brandSettings?.logo_url || undefined,
+            customTitle: emailOverrides?.title_text || undefined,
+            customSubtitle: emailOverrides?.subtitle_text || undefined,
+            customCta: emailOverrides?.cta_text || undefined,
+            customFooter: emailOverrides?.footer_text || undefined,
+            customEmoji: emailOverrides?.emoji || undefined,
           },
         });
         welcome_email_sent = true;

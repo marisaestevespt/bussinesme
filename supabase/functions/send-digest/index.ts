@@ -5,6 +5,7 @@ type SupabaseAdmin = ReturnType<typeof createClient>;
 type Row = Record<string, unknown>;
 
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -156,13 +157,11 @@ Deno.serve(async (req) => {
           const templateName = digest.is_owner_digest
             ? (isEod ? "owner-eod-digest" : "owner-digest")
             : (isEod ? "member-eod-digest" : "member-digest");
-          await supabase.functions.invoke("send-transactional-email", {
-            body: {
-              templateName,
-              recipientEmail: authUser.email,
-              idempotencyKey: `digest-${digest.id}-${todayStr}-${isEod ? "eod" : "am"}`,
-              templateData: { subject, html },
-            },
+          await sendTransactionalEmail({
+            templateName,
+            recipientEmail: authUser.email,
+            idempotencyKey: `digest-${digest.id}-${todayStr}-${isEod ? "eod" : "am"}`,
+            templateData: { subject, html },
           });
         } catch {
           // If transactional email not set up yet, just log
