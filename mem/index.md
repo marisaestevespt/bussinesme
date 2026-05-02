@@ -31,7 +31,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - Executive Room only visible to Owner
 - Owner role cannot be edited/deleted (is_owner=true in custom_roles)
 - has_role() is SECURITY DEFINER function for RLS
-- AI assistant is always called "Atena", never "Lyrata AI" or "Lirah AI"
+- AI assistant is always called "Atena", never "Lyrata AI"
 - Listagens de projetos (qualquer ecrã) DEVEM reutilizar StatusBadge / DeptBadge / ProjectDeptBadges de @/pages/Projetos — nunca redesenhar status/dept à mão
 
 ## Memories

@@ -260,7 +260,7 @@ export default function PortalAuthPage() {
             </p>
             <p className="text-center text-[10px] text-muted-foreground/50 flex items-center justify-center gap-1">
               <ShieldCheck className="h-3 w-3" />
-              Acesso seguro · Lirah
+              Acesso seguro · Lyrata
             </p>
           </div>
         </div>
