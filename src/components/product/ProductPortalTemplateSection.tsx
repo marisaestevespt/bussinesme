@@ -29,7 +29,7 @@ export function ProductPortalTemplateSection({ faqs, materials, timeline, isOwne
         <CardHeader>
           <CardTitle className="text-base">Template do Portal de Cliente</CardTitle>
           <CardDescription>
-            Estes itens são aplicados aos portais de cliente <strong>quando carregares no botão "Aplicar template"</strong> dentro do portal de cada cliente. Não afetam portais existentes automaticamente.
+            Estes itens são aplicados <strong>automaticamente</strong> a todos os portais de clientes deste produto. Qualquer alteração aqui (adicionar, editar, remover) propaga-se aos portais existentes em tempo real. Itens criados manualmente em cada portal não são afetados.
           </CardDescription>
         </CardHeader>
       </Card>
