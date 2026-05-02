@@ -389,7 +389,6 @@ Deno.serve(async (req) => {
               customFooter: emailOverrides?.footer_text || undefined,
               customEmoji: emailOverrides?.emoji || undefined,
             },
-          },
         });
         welcome_email_sent = true;
       } catch (welcomeErr) {
