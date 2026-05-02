@@ -22,6 +22,11 @@ export default function PortalAuthPage() {
   const { branding } = usePortalBranding(token);
   const settings = branding;
 
+  // DEBUG
+  if (typeof window !== 'undefined') {
+    (window as any).__portalDebug = { branding, token };
+  }
+
   useDocumentTitle(`${settings?.business_name || 'Portal'} · Acesso ao Portal`);
 
   useEffect(() => {
