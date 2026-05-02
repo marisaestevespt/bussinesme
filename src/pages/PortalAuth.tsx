@@ -8,6 +8,7 @@ import { Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { BUSINESS_BRAND_FALLBACK_HSL, portalCssColorAlpha } from '@/lib/portalBranding';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 
@@ -105,14 +106,12 @@ export default function PortalAuthPage() {
     navigate(`/portal/${token}/view`, { replace: true });
   };
 
-  // Fall back to the CSS var injected by BusinessSettingsProvider (when an Owner
-  // previews the portal) before defaulting to a neutral grey.
-  // Default to the brand bordeaux while branding loads. Avoid reading from the
-  // DOM (`--primary`) because it may have been overridden by the dark theme on
-  // devices that haven't been re-styled yet.
-  const rawColor = settings?.primary_color || '351 56% 28%';
+  // Never read `--primary` from the DOM here: the main app can temporarily run
+  // in dark mode, where `--primary` is coral. Portal branding must come only
+  // from get_portal_branding, with the business bordeaux as the sole fallback.
+  const rawColor = settings?.primary_color || BUSINESS_BRAND_FALLBACK_HSL;
   const pc = `hsl(${rawColor})`;          // solid color
-  const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`; // with alpha
+  const pcAlpha = (a: number) => portalCssColorAlpha(rawColor, a); // with alpha
   const logoUrl = settings?.logo_url;
   const businessName = settings?.business_name || '';
   const firstName = settings?.client_first_name || '';

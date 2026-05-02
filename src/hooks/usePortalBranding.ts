@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { resolvePublicPortal } from '@/lib/portalAccess';
+import { normalizePortalBranding } from '@/lib/portalBranding';
 
 type RpcFn = (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
 
@@ -41,7 +42,7 @@ export function usePortalBranding(token: string | undefined | null) {
         const realToken = portal?.token ?? token;
         const { data } = await callRpc('get_portal_branding', { _token: realToken });
         if (!cancelled) {
-          setBranding((data || {}) as PortalBranding);
+          setBranding(normalizePortalBranding((data || {}) as PortalBranding));
           setLoading(false);
         }
       } catch (e) {
