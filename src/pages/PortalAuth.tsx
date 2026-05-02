@@ -24,6 +24,18 @@ export default function PortalAuthPage() {
 
   useDocumentTitle(`${settings?.business_name || 'Portal'} · Acesso ao Portal`);
 
+  // Portal is always rendered in light mode. Without this, devices in dark
+  // mode would inherit the dark `--primary` (coral) and the brand color would
+  // briefly flash orange before branding loads.
+  useEffect(() => {
+    const root = document.documentElement;
+    const hadDark = root.classList.contains('dark');
+    root.classList.remove('dark');
+    return () => {
+      if (hadDark) root.classList.add('dark');
+    };
+  }, []);
+
   useEffect(() => {
     loadPortal();
   }, [token]);
@@ -95,12 +107,10 @@ export default function PortalAuthPage() {
 
   // Fall back to the CSS var injected by BusinessSettingsProvider (when an Owner
   // previews the portal) before defaulting to a neutral grey.
-  const rawColor = settings?.primary_color
-    || (typeof window !== 'undefined'
-      ? (getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim()
-         || getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())
-      : '')
-    || '0 0% 20%';
+  // Default to the brand bordeaux while branding loads. Avoid reading from the
+  // DOM (`--primary`) because it may have been overridden by the dark theme on
+  // devices that haven't been re-styled yet.
+  const rawColor = settings?.primary_color || '351 56% 28%';
   const pc = `hsl(${rawColor})`;          // solid color
   const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`; // with alpha
   const logoUrl = settings?.logo_url;
