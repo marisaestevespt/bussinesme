@@ -11637,15 +11637,25 @@ export type Database = {
         Args: { _meeting_id: string; _notes: string; _token: string }
         Returns: boolean
       }
-      portal_answer_initial_question: {
-        Args: {
-          _answer: string
-          _file_urls?: Json
-          _question_id: string
-          _token: string
-        }
-        Returns: boolean
-      }
+      portal_answer_initial_question:
+        | {
+            Args: {
+              _answer: string
+              _file_urls?: Json
+              _question_id: string
+              _token: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _answer: string
+              _file_urls?: Json
+              _question_id: string
+              _token: string
+            }
+            Returns: boolean
+          }
       portal_confirm_meeting: {
         Args: { _meeting_id: string; _token: string }
         Returns: boolean
