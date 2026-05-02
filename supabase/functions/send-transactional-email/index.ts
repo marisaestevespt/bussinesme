@@ -30,9 +30,14 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// Auth note: verify_jwt = false in config.toml. We validate auth in-function
+// to accept three caller types reliably:
+//   1. End-user JWT (Authorization: Bearer <user JWT>)
+//   2. Service role JWT (Authorization: Bearer <service_role>)
+//   3. Internal edge-function calls (x-internal-secret: <service_role>)
+// Doing this in-function avoids the Supabase gateway's strict JWT-format
+// check that rejects Authorization headers it cannot parse, which has been
+// observed when one edge function calls another via fetch.
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req)
@@ -41,12 +46,32 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
+
+  // ---- AUTH GATE (in-function) ----
+  const internalSecret = req.headers.get('x-internal-secret')
+  const authHeader = req.headers.get('Authorization') || ''
+  const bearer = authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.slice(7).trim()
+    : ''
+
+  const isInternal = !!internalSecret && !!supabaseServiceKey && internalSecret === supabaseServiceKey
+  const isServiceRole = !!supabaseServiceKey && bearer === supabaseServiceKey
+  const hasUserJwt = !!bearer && bearer !== supabaseAnonKey && bearer.split('.').length === 3
+  const hasAnonJwt = !!supabaseAnonKey && bearer === supabaseAnonKey
+
+  if (!isInternal && !isServiceRole && !hasUserJwt && !hasAnonJwt) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
+
   // Rate limit: 30 emails / minute per IP (anti-email-bombing)
   const rl = checkRateLimit(`tx-email:${getClientId(req)}`, 30, 60)
   if (!rl.allowed) return rateLimitResponse(rl, corsHeaders)
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Missing required environment variables')
