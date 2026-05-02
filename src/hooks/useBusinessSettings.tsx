@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { SYSTEM_FONT_DISPLAY, SYSTEM_FONT_BODY } from '@/lib/modules';
+import { BUSINESS_ACCENT_FALLBACK_HSL, BUSINESS_BRAND_FALLBACK_HSL, BUSINESS_TEXT_FALLBACK_HSL, normalizeHslTriplet } from '@/lib/portalBranding';
 import type { Tables } from '@/integrations/supabase/types';
 
 type BusinessSettings = Tables<'business_settings'>;
@@ -34,27 +35,33 @@ function contrastForeground(bgHsl: string): string {
 }
 
 function applyTheme(settings: BusinessSettings) {
-  // If using system theme, only apply fonts — CSS tokens handle colors
+  // Business settings are the source of truth for brand colors. Apply them even
+  // when the system typography/theme switch is enabled so `.dark` can never
+  // fall back to the coral default on public/client-facing routes.
   const useSystem = settings.use_system_theme ?? true;
   const root = document.documentElement;
+  const primary = normalizeHslTriplet(settings.primary_color, BUSINESS_BRAND_FALLBACK_HSL);
+  const secondary = normalizeHslTriplet(settings.secondary_color, '3 42% 74%');
+  const background = normalizeHslTriplet(settings.background_color, '33 43% 96%');
+  const text = normalizeHslTriplet(settings.text_color, BUSINESS_TEXT_FALLBACK_HSL);
+  const accentColor = normalizeHslTriplet(settings.accent_color || settings.secondary_color, BUSINESS_ACCENT_FALLBACK_HSL);
 
-  if (!useSystem) {
-    root.style.setProperty('--primary', settings.primary_color);
-    root.style.setProperty('--primary-foreground', contrastForeground(settings.primary_color));
-    root.style.setProperty('--brand-primary', settings.primary_color);
-    root.style.setProperty('--secondary', settings.secondary_color);
-    root.style.setProperty('--secondary-foreground', contrastForeground(settings.secondary_color));
-    root.style.setProperty('--brand-secondary', settings.secondary_color);
-    root.style.setProperty('--background', settings.background_color);
-    root.style.setProperty('--foreground', settings.text_color);
-    root.style.setProperty('--card-foreground', settings.text_color);
-    root.style.setProperty('--popover-foreground', settings.text_color);
-    const accentColor = settings.accent_color || settings.secondary_color;
-    root.style.setProperty('--accent', accentColor);
-    root.style.setProperty('--accent-foreground', contrastForeground(accentColor));
-    root.style.setProperty('--sidebar-primary', settings.primary_color);
-    root.style.setProperty('--sidebar-primary-foreground', contrastForeground(settings.primary_color));
-  }
+  root.style.setProperty('--primary', primary);
+  root.style.setProperty('--primary-foreground', contrastForeground(primary));
+  root.style.setProperty('--brand-primary', primary);
+  root.style.setProperty('--secondary', secondary);
+  root.style.setProperty('--secondary-foreground', contrastForeground(secondary));
+  root.style.setProperty('--brand-secondary', secondary);
+  root.style.setProperty('--background', background);
+  root.style.setProperty('--foreground', text);
+  root.style.setProperty('--card-foreground', text);
+  root.style.setProperty('--popover-foreground', text);
+  root.style.setProperty('--accent', accentColor);
+  root.style.setProperty('--accent-foreground', contrastForeground(accentColor));
+  root.style.setProperty('--ring', primary);
+  root.style.setProperty('--sidebar-primary', primary);
+  root.style.setProperty('--sidebar-primary-foreground', contrastForeground(primary));
+  root.style.setProperty('--gradient-accent', primary);
 
   if (useSystem) {
     root.style.setProperty('--font-display', `'${SYSTEM_FONT_DISPLAY}'`);
