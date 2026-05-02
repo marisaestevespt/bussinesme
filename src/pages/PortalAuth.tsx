@@ -98,7 +98,7 @@ export default function PortalAuthPage() {
     navigate(`/portal/${token}/view`, { replace: true });
   };
 
-  const rawColor = settings?.primary_color || '12 76% 52%';
+  const rawColor = settings?.primary_color || '0 0% 20%';
   const pc = `hsl(${rawColor})`;          // solid color
   const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`; // with alpha
   const logoUrl = settings?.logo_url;
@@ -120,7 +120,7 @@ export default function PortalAuthPage() {
   const fontDisplay = settings?.font_display ? `"${settings.font_display}", sans-serif` : 'var(--font-display, "Plus Jakarta Sans", sans-serif)';
 
   const ErrorShell = ({ title, message }: { title: string; message: string }) => (
-    <div className="flex min-h-screen items-center justify-center p-6" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
+    <div className="flex min-h-screen items-center justify-center p-6" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.08)} 0%, ${pcAlpha(0.02)} 50%, #fafafa 100%)` }}>
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center space-y-4">
         {logoUrl ? (
           <img src={logoUrl} alt={businessName || 'Logo'} className="h-10 mx-auto object-contain" />
@@ -144,7 +144,7 @@ export default function PortalAuthPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: '#fafafa' }}>
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: `${pcAlpha(0.25)}`, borderTopColor: 'transparent' }} />
       </div>
     );
@@ -186,7 +186,7 @@ export default function PortalAuthPage() {
       {/* Right login panel */}
       <div
         className="flex-1 flex items-center justify-center p-6 sm:p-12"
-        style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pcAlpha(0.05)} 100%)` }}
+        style={{ background: `linear-gradient(180deg, #ffffff 0%, ${pcAlpha(0.04)} 100%)` }}
       >
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile logo */}
