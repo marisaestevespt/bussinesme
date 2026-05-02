@@ -332,10 +332,18 @@ export default function PortalViewPage() {
     return linked?.title || null;
   })();
 
-  // Override next step if questions need filling
-  const effectiveNextStep = hasUnansweredQuestions
-    ? { name: 'Preencher perguntas iniciais', phase_name: 'Perguntas', planned_end: null, _isQuestions: true }
-    : (nextStep && nextStepMeetingTitle ? { ...nextStep, name: nextStepMeetingTitle } : nextStep);
+  // Prefer the real next pending deliverable from the project phases (the
+  // client's actual next responsibility). Only fall back to "Preencher
+  // perguntas iniciais" when there is no pending deliverable but there are
+  // unanswered initial questions in the portal.
+  const realNextStep = nextStep && nextStepMeetingTitle
+    ? { ...nextStep, name: nextStepMeetingTitle }
+    : nextStep;
+  const effectiveNextStep = realNextStep
+    ? realNextStep
+    : (hasUnansweredQuestions
+        ? { name: 'Preencher perguntas iniciais', phase_name: 'Perguntas', planned_end: null, _isQuestions: true }
+        : null);
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
