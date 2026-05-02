@@ -154,8 +154,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                 if (error) { toast.error('Erro ao sincronizar: ' + error.message); return; }
                 const added = (data as any)?.added ?? 0;
                 toast.success(added > 0 ? `${added} entregas adicionadas do template` : 'Já está sincronizado com o template');
-                qc.invalidateQueries({ queryKey: ['project-phases', projectId] });
-                qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+                queryClient.invalidateQueries({ queryKey: ['project-phases', projectId] });
+                queryClient.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
               }}
               title="Adiciona ao projeto as entregas do template do produto que ainda não existam"
             >
