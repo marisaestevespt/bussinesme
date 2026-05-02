@@ -83,7 +83,7 @@ export function EmailSafetyPanel() {
               amount: '100',
               dueDate: '01/01/2030',
               daysUntil: 3,
-              businessName: 'Lirah',
+              businessName: 'Lyrata',
             },
           },
         },
