@@ -4,6 +4,11 @@ import { resolvePublicPortal } from '@/lib/portalAccess';
 
 type RpcFn = (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
 
+// Wrap supabase.rpc preserving the `this` binding (otherwise Supabase throws
+// "Cannot read properties of undefined (reading 'rest')").
+const callRpc: RpcFn = (fn, args) =>
+  (supabase.rpc as any).call(supabase, fn, args) as Promise<{ data: unknown; error: unknown }>;
+
 export interface PortalBranding {
   business_name?: string | null;
   primary_color?: string | null;   // HSL like "351 56% 28%"
@@ -31,11 +36,10 @@ export function usePortalBranding(token: string | undefined | null) {
     let cancelled = false;
     if (!token) { setLoading(false); return; }
     (async () => {
-      const rpc = (supabase.rpc as unknown) as RpcFn;
       try {
-        const portal = await resolvePublicPortal(token, (fn, args) => rpc(fn, args));
+        const portal = await resolvePublicPortal(token, (fn, args) => callRpc(fn, args));
         const realToken = portal?.token ?? token;
-        const { data } = await rpc('get_portal_branding', { _token: realToken });
+        const { data } = await callRpc('get_portal_branding', { _token: realToken });
         if (!cancelled) {
           setBranding((data || {}) as PortalBranding);
           setLoading(false);
