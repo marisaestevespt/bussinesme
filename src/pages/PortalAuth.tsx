@@ -36,12 +36,9 @@ export default function PortalAuthPage() {
           const parsed = JSON.parse(session);
           const elapsed = Date.now() - parsed.timestamp;
           if (elapsed < 24 * 60 * 60 * 1000) {
-            // Log the returning visit
+            // Log the returning visit (server-side via RPC, contorna RLS)
             const email = parsed.email || '';
-            if (email) {
-              sb('portal_visits').insert({ portal_id: portal.id, email }).then(() => {});
-              (supabase as any).rpc('portal_record_visit', { _token: portal.token }).then(() => {});
-            }
+            (supabase as any).rpc('portal_record_visit', { _token: portal.token, _email: email || null }).then(() => {});
             navigate(`/portal/${token}/view`, { replace: true });
             return;
           }
@@ -83,9 +80,7 @@ export default function PortalAuthPage() {
     }
 
     setSubmitting(true);
-    const now = new Date().toISOString();
-    await (supabase as any).rpc('portal_record_visit', { _token: portal.token });
-    await sb('portal_visits').insert({ portal_id: portal.id, email: inputEmail, visited_at: now });
+    await (supabase as any).rpc('portal_record_visit', { _token: portal.token, _email: inputEmail });
     localStorage.setItem(
       `portal_session_${portal.id}`,
       JSON.stringify({
