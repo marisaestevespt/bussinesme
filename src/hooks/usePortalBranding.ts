@@ -35,15 +35,13 @@ export function usePortalBranding(token: string | undefined | null) {
       try {
         const portal = await resolvePublicPortal(token, (fn, args) => rpc(fn, args));
         const realToken = portal?.token ?? token;
-        const { data, error } = await rpc('get_portal_branding', { _token: realToken });
-        if (error) console.warn('[usePortalBranding] rpc error', error);
-        console.log('[usePortalBranding] result', { realToken, data });
+        const { data } = await rpc('get_portal_branding', { _token: realToken });
         if (!cancelled) {
           setBranding((data || {}) as PortalBranding);
           setLoading(false);
         }
       } catch (e) {
-        console.error('[usePortalBranding] threw', e);
+        // swallow — fallbacks handled in component
         if (!cancelled) setLoading(false);
       }
     })();
