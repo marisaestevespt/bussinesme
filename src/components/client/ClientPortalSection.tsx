@@ -321,15 +321,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
             </div>
           </div>
 
-          {isOwner && portalId && product?.id && (
-            <div className="flex items-center justify-between rounded-lg border border-dashed bg-muted/10 p-3">
-              <div>
-                <p className="text-sm font-medium">Template do produto</p>
-                <p className="text-xs text-muted-foreground">Aplica FAQs, materiais e fases definidos no produto.</p>
-              </div>
-              <ApplyPortalTemplateButton portalId={portalId} productId={product.id} productName={product.name} />
-            </div>
-          )}
         </CardContent>
       </Card>
 
