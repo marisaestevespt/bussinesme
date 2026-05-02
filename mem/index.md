@@ -36,6 +36,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 
 ## Memories
 - [Calendar quick-add](mem://design/calendar-quick-add-pattern.md) — Notion-like "+" hover button per day cell with onCreateForDate prop pattern
+- [User identity](mem://preferences/user-identity.md) — Marisa Esteves é a owner; usar profile d7d4e732-... sempre que disser "eu" como responsável
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
 - [Department planning card](mem://design/department-planning-card.md) — "Planeamento" sempre na grelha principal de botões via getPlanningSection(), nunca no header
 - [Ritual banner targets](mem://design/ritual-banner-targets.md) — RitualBanner aterra na vista mais específica (mês/semana/trimestre), nunca no índice de planeamento
