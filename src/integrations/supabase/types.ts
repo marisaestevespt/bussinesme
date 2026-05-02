@@ -2439,6 +2439,57 @@ export type Database = {
           },
         ]
       }
+      content_item_comments: {
+        Row: {
+          author_id: string
+          body: string
+          content_item_id: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          content_item_id: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          content_item_id?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_item_comments_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_item_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "content_item_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_items: {
         Row: {
           account_id: string | null
