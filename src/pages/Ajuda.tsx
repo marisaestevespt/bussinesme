@@ -47,10 +47,10 @@ const FAQS: { q: string; a: string }[] = [
 ];
 
 export default function AjudaPage() {
-  const waText = encodeURIComponent('Olá! Preciso de ajuda com a plataforma Lirah:');
+  const waText = encodeURIComponent('Olá! Preciso de ajuda com a plataforma Lyrata:');
   const waUrl = `https://wa.me/${SUPPORT_WHATSAPP}?text=${waText}`;
 
-  const reportText = encodeURIComponent('Olá! Quero reportar um problema na plataforma Lirah:\n\nO que aconteceu:\n\nOnde aconteceu (página/módulo):\n\nPassos para reproduzir:\n');
+  const reportText = encodeURIComponent('Olá! Quero reportar um problema na plataforma Lyrata:\n\nO que aconteceu:\n\nOnde aconteceu (página/módulo):\n\nPassos para reproduzir:\n');
   const reportUrl = `https://wa.me/${SUPPORT_WHATSAPP}?text=${reportText}`;
 
   return (
