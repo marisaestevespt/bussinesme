@@ -6794,6 +6794,7 @@ export type Database = {
         Row: {
           answer: string | null
           created_at: string
+          from_template: boolean
           id: string
           portal_id: string
           question: string
@@ -6802,6 +6803,7 @@ export type Database = {
         Insert: {
           answer?: string | null
           created_at?: string
+          from_template?: boolean
           id?: string
           portal_id: string
           question: string
@@ -6810,6 +6812,7 @@ export type Database = {
         Update: {
           answer?: string | null
           created_at?: string
+          from_template?: boolean
           id?: string
           portal_id?: string
           question?: string
@@ -7015,6 +7018,7 @@ export type Database = {
       portal_timeline_phases: {
         Row: {
           created_at: string
+          from_template: boolean
           id: string
           portal_id: string
           sort_order: number
@@ -7023,6 +7027,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          from_template?: boolean
           id?: string
           portal_id: string
           sort_order?: number
@@ -7031,6 +7036,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          from_template?: boolean
           id?: string
           portal_id?: string
           sort_order?: number
@@ -11401,6 +11407,7 @@ export type Database = {
         Returns: {
           answer: string | null
           created_at: string
+          from_template: boolean
           id: string
           portal_id: string
           question: string
@@ -11560,6 +11567,7 @@ export type Database = {
         Args: { _token: string }
         Returns: {
           created_at: string
+          from_template: boolean
           id: string
           portal_id: string
           sort_order: number
@@ -11712,6 +11720,10 @@ export type Database = {
           matched_task_name: string
           sample_count: number
         }[]
+      }
+      sync_portal_with_product_template: {
+        Args: { _portal_id: string }
+        Returns: undefined
       }
       sync_project_with_template: {
         Args: { _project_id: string }
