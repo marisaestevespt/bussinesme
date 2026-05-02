@@ -33,15 +33,18 @@ export function usePortalBranding(token: string | undefined | null) {
     (async () => {
       const rpc = (supabase.rpc as unknown) as RpcFn;
       try {
+        console.log('[PB] start', { token });
         const portal = await resolvePublicPortal(token, (fn, args) => rpc(fn, args));
+        console.log('[PB] portal', portal);
         const realToken = portal?.token ?? token;
         const { data } = await rpc('get_portal_branding', { _token: realToken });
+        console.log('[PB] branding', data);
         if (!cancelled) {
           setBranding((data || {}) as PortalBranding);
           setLoading(false);
         }
       } catch (e) {
-        // swallow — fallbacks handled in component
+        console.error('[PB] threw', e);
         if (!cancelled) setLoading(false);
       }
     })();
