@@ -11654,7 +11654,9 @@ export type Database = {
         Args: { _email: string; _token: string }
         Returns: boolean
       }
-      portal_record_visit: { Args: { _token: string }; Returns: undefined }
+      portal_record_visit:
+        | { Args: { _token: string }; Returns: undefined }
+        | { Args: { _email?: string; _token: string }; Returns: undefined }
       portal_submit_feedback: {
         Args: { _payload: Json; _token: string }
         Returns: string
