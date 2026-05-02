@@ -31,6 +31,7 @@ import { PortalPaymentsSection } from '@/components/portal-view/PortalPaymentsSe
 import { PortalWorkspaceSection } from '@/components/portal-view/PortalWorkspaceSection';
 import { PortalQuestionsSection } from '@/components/portal-view/PortalQuestionsSection';
 import { PortalDeliverableAttachment } from '@/components/portal/PortalDeliverableAttachment';
+import { BUSINESS_BRAND_FALLBACK_HSL, normalizePortalBranding, portalCssColorAlpha } from '@/lib/portalBranding';
 import type {
   PortalFaq, PortalQuestion, PortalComment, PortalFeedback,
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
@@ -104,7 +105,7 @@ export default function PortalViewPage() {
     const clientData = Array.isArray(clientCtxRes.data) ? clientCtxRes.data[0] : null;
     if (clientCtxRes.error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
     setClient(clientData);
-    setSettings(settingsRes.data || {});
+    setSettings(normalizePortalBranding(settingsRes.data || {}));
     const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, contractR] = await Promise.all([
       supabase.rpc('get_portal_faqs', { _token: realToken }),
       supabase.rpc('get_portal_initial_questions', { _token: realToken }),
@@ -263,9 +264,9 @@ export default function PortalViewPage() {
     </div>
   );
 
-  const rawColor = settings?.primary_color || '12 76% 52%';
+  const rawColor = settings?.primary_color || BUSINESS_BRAND_FALLBACK_HSL;
   const pc = `hsl(${rawColor})`;
-  const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`;
+  const pcAlpha = (a: number) => portalCssColorAlpha(rawColor, a);
   const portalToken = portal.token;
   const logoUrl = settings?.logo_url;
   const firstName = client.full_name?.split(' ')[0] || '';
