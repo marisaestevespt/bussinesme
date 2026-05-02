@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -141,26 +142,14 @@ Deno.serve(async (req) => {
 
     const idempotencyKey = `welcome-client-${portal.id}-${Date.now()}`;
 
-    // Invoke send-transactional-email via fetch with service role key
-    // (functions.invoke from service-role client does not propagate a valid JWT)
-    const sendRes = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${serviceRoleKey}`,
-        apikey: serviceRoleKey,
-      },
-      body: JSON.stringify({
-        templateName: "welcome-client",
-        recipientEmail: client.email,
-        idempotencyKey,
-        templateData,
-      }),
+    const sendRes = await sendTransactionalEmail({
+      templateName: "welcome-client",
+      recipientEmail: client.email,
+      idempotencyKey,
+      templateData,
     });
     if (!sendRes.ok) {
-      const details = await sendRes.text();
-      console.error("send-transactional-email error", sendRes.status, details);
-      return new Response(JSON.stringify({ error: "Falha ao enviar email", details }), {
+      return new Response(JSON.stringify({ error: "Falha ao enviar email", details: sendRes.details }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
