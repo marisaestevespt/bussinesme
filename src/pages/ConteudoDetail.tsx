@@ -27,6 +27,7 @@ import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, Aler
 import { BackNavigation } from '@/components/BackNavigation';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
+import { ContentComments } from '@/components/marketing/ContentComments';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
 
@@ -427,6 +428,11 @@ export default function ConteudoDetailPage() {
                 <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
                 <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
               </div>
+
+              <Separator />
+
+              {/* Comentários */}
+              {id && <ContentComments contentItemId={id} />}
             </div>
 
             {/* Sidebar */}
