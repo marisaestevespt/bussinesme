@@ -547,7 +547,7 @@ export function FloatingAiChat() {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed bottom-5 right-5 z-50 h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105",
+          "fixed bottom-20 md:bottom-5 right-3 sm:right-5 z-50 h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105",
           open ? "bg-muted text-muted-foreground hover:bg-muted/80" : "bg-primary text-primary-foreground hover:shadow-xl"
         )}
       >
