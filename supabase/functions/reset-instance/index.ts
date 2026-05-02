@@ -59,13 +59,13 @@ Deno.serve(async (req) => {
     const tablesToDelete = [
       // ── Portal children (deepest) ──
       "portal_comments",
-      "portal_comments",
       "portal_monthly_summaries",
       "portal_initial_questions",
-      "portal_materials",
       "portal_feedback",
       "portal_faqs",
       "portal_project_history",
+      "portal_visits",
+      "portal_timeline_phases",
 
       // ── Content children ──
       "content_attachments",
@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
       "crm_interactions",
       "crm_lead_actions",
       "crm_pipeline_leads",
+      "crm_lead_labels",
 
       // ── Client children ──
       "client_activities",
@@ -87,6 +88,8 @@ Deno.serve(async (req) => {
       "client_offboarding",
       "client_onboarding",
       "client_portals",
+      "client_assignments",
+      "client_renewals",
 
       // ── Event children ──
       "event_attachments",
@@ -99,6 +102,9 @@ Deno.serve(async (req) => {
       // ── Project children ──
       "project_deliverables",
       "project_members",
+      "project_assets",
+      "project_phases",
+      "project_responsibilities",
 
       // ── Task children ──
       "task_dependencies",
@@ -125,6 +131,11 @@ Deno.serve(async (req) => {
       "product_team_members",
       "product_traffic_ads",
       "product_useful_links",
+      "product_diagnostic_questions",
+      "product_offer_scenarios",
+      "product_phases",
+      "product_price_tiers",
+      "product_renewal_templates",
 
       // ── Objective children ──
       "objective_actions",
@@ -143,6 +154,7 @@ Deno.serve(async (req) => {
       // ── Financial children ──
       "financial_documents",
       "financial_goals",
+      "fiscal_deadline_completions",
 
       // ── Launch children ──
       "launch_tasks",
@@ -150,6 +162,7 @@ Deno.serve(async (req) => {
 
       // ── Planning children ──
       "planning_routines",
+      "routines",
 
       // ── Commercial children ──
       "commercial_library_entries",
@@ -167,6 +180,7 @@ Deno.serve(async (req) => {
       "member_personal_images",
       "member_personal_links",
       "member_personal_notes",
+      "member_quick_links",
       "team_member_vacations",
 
       // ── Hiring ──
@@ -198,6 +212,7 @@ Deno.serve(async (req) => {
       "marketing_ideas",
       "marketing_resource_links",
       "marketing_monthly_analysis",
+      "marketing_goals",
 
       // ── Custom field values ──
       "custom_field_values",
@@ -208,15 +223,23 @@ Deno.serve(async (req) => {
       "fiscal_monthly_checks",
       "page_access_grants",
       "user_views",
+      "user_task_views",
+      "secretaria_custom_views",
       "weekly_align_notes",
       "metric_history",
       "suppliers",
+      "monthly_reports",
+      "dismissed_ceo_alerts",
+      "business_legal_documents",
 
       // ── CRM parents (after children) ──
       "crm_pipeline_stages",
       "crm_pipelines",
       "crm_saved_views",
       "crm_leads",
+      "crm_custom_stages",
+      "crm_pipeline_labels",
+      "crm_labels",
 
       // ── Main operational tables (parents — last) ──
       "content_items",
@@ -235,12 +258,15 @@ Deno.serve(async (req) => {
       "commercial_monthly_analysis",
       "clients_monthly_analysis",
       "executive_brain_dump",
+      "executive_brain_dump_categories",
       "executive_goals",
       "executive_monthly_checklists",
       "executive_objectives",
       "executive_quarterly_analysis",
       "executive_weekly_routines",
       "planning_goals",
+      "strategic_directives",
+      "publico_alvo_sections",
       "time_entries",
       "notifications",
       "user_favorites",
@@ -278,10 +304,10 @@ Deno.serve(async (req) => {
       "strategy_settings",
 
       // SOPs (children first)
+      "sop_step_documents",
+      "sop_steps",
       "sop_onboarding_items",
       "sop_onboarding_templates",
-      "sop_offboarding_items",
-      "sop_offboarding_templates",
       "sop_categories",
       "sops",
 
@@ -291,6 +317,7 @@ Deno.serve(async (req) => {
       "marketing_funnels",
       "marketing_pages",
       "marketing_channels",
+      "marketing_channel_accounts",
 
       // Product KPI definitions
       "product_kpis",
@@ -315,6 +342,9 @@ Deno.serve(async (req) => {
 
       // Departments
       "department_whatsapp_links",
+      "department_links",
+      "department_covers",
+      "department_colors",
       "departments",
 
       // Digest / KPI settings
@@ -328,6 +358,7 @@ Deno.serve(async (req) => {
       "role_permissions",
       "member_sensitive_access",
       "custom_roles",
+      "team_role_presets",
 
       // Team members (after member dependencies)
       "team_members",
