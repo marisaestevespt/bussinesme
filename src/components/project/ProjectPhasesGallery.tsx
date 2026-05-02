@@ -190,7 +190,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             new Set(phaseDeliverables.map(d => d.assigned_to).filter(Boolean) as string[])
           );
           const phaseDone = isPhaseDone(phase);
-          const inProgress = !phaseDone && (phase.status === 'em_curso' || phase.status === 'em_progresso' || (pct > 0 && pct < 100));
+          // Apenas a fase com status efetivo "em curso" (definido manualmente ou pelo trigger)
+          // ganha o destaque animado. Ter algumas entregas feitas não chega.
+          const inProgress = !phaseDone && (phase.status === 'em_curso' || phase.status === 'em_progresso');
 
           return (
             <button
