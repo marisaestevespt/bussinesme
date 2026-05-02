@@ -1438,7 +1438,7 @@ export default function ClienteDetailPage() {
               )}
 
               {renewPayMethod === 'prestacoes' && (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1"><Label>Valor total (€)</Label><Input type="number" step="0.01" value={renewTotalValue} onChange={e => setRenewTotalValue(e.target.value)} /></div>
                   <div className="space-y-1"><Label>Nº prestações</Label><Input type="number" value={renewNumPrestacoes} onChange={e => setRenewNumPrestacoes(e.target.value)} /></div>
                   <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>
@@ -1446,7 +1446,7 @@ export default function ClienteDetailPage() {
               )}
 
               {renewPayMethod === 'avenca_mensal' && (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1"><Label>Valor mensal (€)</Label><Input type="number" step="0.01" value={renewAvencaValue} onChange={e => setRenewAvencaValue(e.target.value)} /></div>
                   <div className="space-y-1"><Label>Nº meses</Label><Input type="number" value={renewNumMeses} onChange={e => setRenewNumMeses(e.target.value)} /></div>
                   <div className="space-y-1"><Label>Dia de pagamento</Label><Input type="number" min="1" max="28" value={renewPayDay} onChange={e => setRenewPayDay(e.target.value)} /></div>

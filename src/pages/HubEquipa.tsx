@@ -366,10 +366,10 @@ function DepartamentosColumn() {
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Departamentos</h2>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {DEPARTMENT_CARDS.slice(0, 4).map(d => <DeptCard key={d.key} d={d} canAccess={canAccess(d.key)} navigate={navigate} />)}
       </div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {DEPARTMENT_CARDS.slice(4).map(d => <DeptCard key={d.key} d={d} canAccess={canAccess(d.key)} navigate={navigate} />)}
       </div>
     </div>

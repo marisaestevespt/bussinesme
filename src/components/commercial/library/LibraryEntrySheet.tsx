@@ -336,7 +336,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
                 </Button>
               )}
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <DatePicker date={startDate} onChange={setStartDate} label="Data Início" />
                 <DatePicker date={endDate} onChange={setEndDate} label="Data Fim" />
                 <div className="space-y-2">
