@@ -19,7 +19,7 @@ export default function PortalAuthPage() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
-  const { branding } = usePortalBranding(token);
+  const { branding, loading: brandingLoading } = usePortalBranding(token);
   const settings = branding;
 
   useDocumentTitle(`${settings?.business_name || 'Portal'} · Acesso ao Portal`);
@@ -98,7 +98,14 @@ export default function PortalAuthPage() {
     navigate(`/portal/${token}/view`, { replace: true });
   };
 
-  const rawColor = settings?.primary_color || '0 0% 20%';
+  // Fall back to the CSS var injected by BusinessSettingsProvider (when an Owner
+  // previews the portal) before defaulting to a neutral grey.
+  const rawColor = settings?.primary_color
+    || (typeof window !== 'undefined'
+      ? (getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim()
+         || getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())
+      : '')
+    || '0 0% 20%';
   const pc = `hsl(${rawColor})`;          // solid color
   const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`; // with alpha
   const logoUrl = settings?.logo_url;
