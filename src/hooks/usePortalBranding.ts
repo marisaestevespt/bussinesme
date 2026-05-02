@@ -32,12 +32,19 @@ export function usePortalBranding(token: string | undefined | null) {
     if (!token) { setLoading(false); return; }
     (async () => {
       const rpc = (supabase.rpc as unknown) as RpcFn;
-      const portal = await resolvePublicPortal(token, (fn, args) => rpc(fn, args));
-      const realToken = portal?.token ?? token;
-      const { data } = await rpc('get_portal_branding', { _token: realToken });
-      if (!cancelled) {
-        setBranding((data || {}) as PortalBranding);
-        setLoading(false);
+      try {
+        const portal = await resolvePublicPortal(token, (fn, args) => rpc(fn, args));
+        const realToken = portal?.token ?? token;
+        const { data, error } = await rpc('get_portal_branding', { _token: realToken });
+        if (error) console.warn('[usePortalBranding] rpc error', error);
+        console.log('[usePortalBranding] result', { realToken, data });
+        if (!cancelled) {
+          setBranding((data || {}) as PortalBranding);
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error('[usePortalBranding] threw', e);
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
