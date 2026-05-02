@@ -134,7 +134,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
                     <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
                     <div><Label>Fonte</Label>

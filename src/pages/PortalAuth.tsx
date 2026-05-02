@@ -176,7 +176,7 @@ export default function PortalAuthPage() {
         )}
         <div className="relative z-10 space-y-4 max-w-md">
           {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 object-contain brightness-0 invert" />}
-          <h2 className="text-3xl font-bold text-white leading-tight" style={{ fontFamily: fontDisplay }}>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight" style={{ fontFamily: fontDisplay }}>
             {heroTitle} <br />{heroSubtitle}
           </h2>
           {loginSubtitle && (
