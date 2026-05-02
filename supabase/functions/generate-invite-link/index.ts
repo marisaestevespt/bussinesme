@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { checkRateLimit, getClientId, rateLimitResponse } from "../_shared/rate-limit.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {

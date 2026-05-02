@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
 import { logRun } from '../_shared/resilience.ts'
 import { getCorsHeaders } from '../_shared/cors.ts'
 import { isAuthorizedCronCall } from '../_shared/cron-auth.ts'
+import { sendTransactionalEmail } from '../_shared/send-email.ts'
 
 /**
  * Edge Function: send-payment-reminders
@@ -154,17 +155,15 @@ Deno.serve(async (req) => {
           templateData.daysUntil = daysUntil
         }
 
-        const { error: invokeError } = await supabase.functions.invoke('send-transactional-email', {
-          body: {
-            templateName,
-            recipientEmail: client.email,
-            idempotencyKey: `${templateName}-${sale.id}-${todayStr}`,
-            templateData,
-          },
+        const sendRes = await sendTransactionalEmail({
+          templateName,
+          recipientEmail: client.email,
+          idempotencyKey: `${templateName}-${sale.id}-${todayStr}`,
+          templateData,
         })
 
-        if (invokeError) {
-          results.push({ saleId: sale.id, status: 'error', error: invokeError.message })
+        if (!sendRes.ok) {
+          results.push({ saleId: sale.id, status: 'error', error: sendRes.details })
         } else {
           results.push({ saleId: sale.id, status: 'sent' })
         }
