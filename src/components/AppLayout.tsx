@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { TabsBar } from '@/components/TabsBar';
 import { NewTabButton } from '@/components/TabsBar';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 // Lazy-load heavy floating widgets (pdfjs, large UI) to keep AppLayout chunk small
 const OnboardingTour = lazy(() => import('@/components/OnboardingTour').then(m => ({ default: m.OnboardingTour })));
@@ -57,8 +58,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <NotificationBell />
               </div>
             </header>
-            <TabsBar />
-            <main id="main-content" className="flex-1 overflow-auto p-4 sm:p-8 lg:p-12 pb-24 sm:pb-10">
+            <div className="hidden sm:block">
+              <TabsBar />
+            </div>
+            <main id="main-content" className="flex-1 overflow-auto p-4 sm:p-8 lg:p-12 pb-24 md:pb-10">
               <div className="mx-auto w-full max-w-[1600px]">
                 {children}
               </div>
@@ -67,6 +70,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <OnboardingTour />
               <FloatingAiChat />
             </Suspense>
+            <MobileBottomNav />
           </div>
         </div>
       </SidebarProvider>

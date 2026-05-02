@@ -397,7 +397,7 @@ export function FloatingAiChat() {
   return (
     <>
       {open && (
-        <div className="fixed bottom-20 right-5 z-50 w-[380px] max-w-[calc(100vw-2.5rem)] h-[520px] max-h-[calc(100vh-7rem)] bg-background border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-300">
+        <div className="fixed bottom-24 md:bottom-20 right-3 sm:right-5 z-50 w-[380px] max-w-[calc(100vw-1.5rem)] h-[520px] max-h-[calc(100vh-9rem)] bg-background border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-300">
           {/* Header */}
           <div className="flex items-center gap-2 px-4 py-3 border-b bg-primary/5">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -547,7 +547,7 @@ export function FloatingAiChat() {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "fixed bottom-5 right-5 z-50 h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105",
+          "fixed bottom-20 md:bottom-5 right-3 sm:right-5 z-50 h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105",
           open ? "bg-muted text-muted-foreground hover:bg-muted/80" : "bg-primary text-primary-foreground hover:shadow-xl"
         )}
       >
