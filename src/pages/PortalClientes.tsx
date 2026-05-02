@@ -73,17 +73,19 @@ export default function PortalClientesPage() {
 
         <Card>
           <CardContent className="p-0">
-            <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-8 gap-2">
-              <span>Cliente</span>
-              <span>Data de Início</span>
-              <span>Fim de Ciclo</span>
-              <span>Tipo</span>
-              <span>Link</span>
-              <span>Estado</span>
-              <span>Visita Cliente</span>
-              <span>Última Visita</span>
-            </div>
-            {isLoading ? (
+            <div className="overflow-x-auto">
+              <div className="min-w-[960px]">
+              <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-8 gap-2">
+                <span>Cliente</span>
+                <span>Data de Início</span>
+                <span>Fim de Ciclo</span>
+                <span>Tipo</span>
+                <span>Link</span>
+                <span>Estado</span>
+                <span>Visita Cliente</span>
+                <span>Última Visita</span>
+              </div>
+              {isLoading ? (
               <InlineLoader />
             ) : portals.length === 0 ? (
               <EmptyHint>Sem portais criados</EmptyHint>
@@ -163,6 +165,8 @@ export default function PortalClientesPage() {
                 );
               })
             )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
