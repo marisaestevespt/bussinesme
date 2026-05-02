@@ -19,6 +19,7 @@ const DEFAULT_ALLOWED: readonly string[] = [
   "https://id-preview--c24284e3-0c07-4f6e-ba4d-f58463326a8d.lovable.app",
   "https://lyrata.pt",
   "https://www.lyrata.pt",
+  "https://businessme.lyrata.pt",
   "http://localhost:8080",
 ];
 
@@ -46,6 +47,10 @@ function isAllowedOrigin(origin: string): boolean {
     }
     // Lovable sandbox preview environments
     if (url.hostname === "lovableproject.com" || url.hostname.endsWith(".lovableproject.com")) {
+      return true;
+    }
+    // Custom Lyrata domain + any subdomain
+    if (url.hostname === "lyrata.pt" || url.hostname.endsWith(".lyrata.pt")) {
       return true;
     }
   } catch {
