@@ -103,9 +103,21 @@ export default function PortalClientesPage() {
                     <span className="text-xs">{client?.start_date ? format(parseISO(client.start_date), 'dd/MM/yyyy') : '—'}</span>
                     <span className="text-xs">{client?.end_of_cycle ? format(parseISO(client.end_of_cycle), 'dd/MM/yyyy') : '—'}</span>
                     <span>
-                      <Badge variant="outline" className="text-[10px]">
-                        {p.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Serviço Mensal'}
-                      </Badge>
+                      {p.portal_type === 'projeto_unico' ? (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-primary/10 text-primary border-primary/30"
+                        >
+                          Projeto Único
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-success/10 text-success border-success/30"
+                        >
+                          Serviço Mensal
+                        </Badge>
+                      )}
                     </span>
                     <span className="flex items-center gap-1">
                       <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
