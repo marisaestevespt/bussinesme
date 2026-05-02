@@ -865,12 +865,12 @@ export default function OperacaoPage() {
                 </div>
                 <div className="flex items-baseline gap-1 mb-2">
                   {nextDelivery.daysLeft === 0 ? (
-                    <span className={`text-4xl font-black tabular-nums text-destructive`}>Hoje</span>
+                    <span className={`text-3xl sm:text-4xl font-black tabular-nums text-destructive`}>Hoje</span>
                   ) : nextDelivery.daysLeft === 1 ? (
-                    <span className={`text-4xl font-black tabular-nums text-destructive`}>Amanhã</span>
+                    <span className={`text-3xl sm:text-4xl font-black tabular-nums text-destructive`}>Amanhã</span>
                   ) : (
                     <>
-                      <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
+                      <span className={`text-3xl sm:text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
                         {nextDelivery.daysLeft}
                       </span>
                       <span className="text-sm text-muted-foreground font-medium">dias</span>
