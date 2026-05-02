@@ -11713,6 +11713,10 @@ export type Database = {
           sample_count: number
         }[]
       }
+      sync_project_with_template: {
+        Args: { _project_id: string }
+        Returns: Json
+      }
       test_payment_sync_e2e: {
         Args: never
         Returns: {
