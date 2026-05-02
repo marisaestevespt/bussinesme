@@ -107,7 +107,7 @@
     --popover: 350 15% 10%;
     --popover-foreground: 350 8% 88%;
 
-    --primary: 3 50% 65%;
+    --primary: 351 56% 28%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 350 10% 15%;
@@ -134,7 +134,7 @@
 
     --border: 350 10% 17%;
     --input: 350 10% 17%;
-    --ring: 3 50% 65%;
+    --ring: 351 56% 28%;
 
     --sidebar-background: 350 25% 7%;
     --sidebar-foreground: 350 6% 82%;
@@ -148,7 +148,7 @@
     --surface-warm: 350 12% 10%;
     --gradient-start: 351 15% 12%;
     --gradient-end: 350 18% 7%;
-    --gradient-accent: 3 50% 65%;
+    --gradient-accent: 351 56% 28%;
 
     --chart-1: 3 55% 65%;
     --chart-2: 351 50% 42%;
