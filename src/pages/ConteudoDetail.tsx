@@ -354,8 +354,8 @@ export default function ConteudoDetailPage() {
 
   // Notion-style row: label fixo à esquerda, valor à direita
   const PropRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="flex items-start gap-3 py-1.5">
-      <div className="w-40 shrink-0 text-sm text-muted-foreground pt-2">{label}</div>
+    <div className="flex items-start gap-4 py-2 border-b border-border/40 last:border-b-0">
+      <div className="w-44 shrink-0 text-sm font-medium text-foreground pt-2">{label}</div>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
@@ -434,8 +434,8 @@ export default function ConteudoDetailPage() {
           <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             className="text-2xl md:text-3xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6 leading-tight" placeholder="Título do conteúdo" />
 
-          {/* Propriedades estilo Notion */}
-          <div className="mb-8 space-y-0.5">
+          {/* Propriedades — campos principais */}
+          <div className="mb-8 rounded-xl border border-border/60 bg-card px-5 py-2">
             <PropRow label="Status">
               <Select value={form.status} onValueChange={v => {
                 setForm(f => ({ ...f, status: v }));
