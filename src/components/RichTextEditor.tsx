@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react';
+import { useState } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -17,7 +18,7 @@ import {
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
   Heading1, Heading2, Heading3, Palette, Highlighter, Undo, Redo,
   ListChecks, Quote,
-  ImagePlus,
+  ImagePlus, Type,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -37,9 +38,14 @@ interface RichTextEditorProps {
   enableMentions?: boolean;
   minHeight?: number;
   enableImages?: boolean;
+  /** Quando true, a toolbar arranca colapsada e só aparece ao focar o editor ou clicar no botão "Aa". */
+  collapsibleToolbar?: boolean;
 }
 
-export function RichTextEditor({ content, onChange, editable = true, placeholder, enableMentions = false, minHeight = 200, enableImages = false }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, editable = true, placeholder, enableMentions = false, minHeight = 200, enableImages = false, collapsibleToolbar = false }: RichTextEditorProps) {
+  const [focused, setFocused] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const showToolbar = !collapsibleToolbar || focused || pinned;
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -66,6 +72,8 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
     ],
     content,
     editable,
+    onFocus: () => setFocused(true),
+    onBlur: () => setFocused(false),
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -87,8 +95,18 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
   );
 
   return (
-    <div className="border rounded-md overflow-hidden">
-      {editable && (
+    <div className="border rounded-md overflow-hidden relative group">
+      {editable && collapsibleToolbar && !showToolbar && (
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); setPinned(true); }}
+          className="absolute top-1.5 right-1.5 z-10 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground/60 hover:text-foreground hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Mostrar formatação"
+        >
+          <Type className="h-3.5 w-3.5" />
+        </button>
+      )}
+      {editable && showToolbar && (
         <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/30 p-1">
           <ToolBtn active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} title="Negrito">
             <Bold className="h-3.5 w-3.5" />
