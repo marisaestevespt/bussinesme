@@ -10,6 +10,7 @@ export const MODULES = {
   'tarefas': { label: 'Tarefas', section: 'transversais', icon: 'CheckSquare' },
   'acessos': { label: 'Acessos', section: 'transversais', icon: 'Key' },
   'mural': { label: 'Mural de Comunicações', section: 'transversais', icon: 'MessageSquare' },
+  'operacao': { label: 'Operação', section: 'transversais', icon: 'Headphones' },
 
   // Hub de Equipa - Departamentos
   'administrativo': { label: 'Administrativo', section: 'departamentos', icon: 'Building2' },
@@ -18,7 +19,6 @@ export const MODULES = {
   'comercial': { label: 'Comercial', section: 'departamentos', icon: 'ShoppingCart' },
   'clientes': { label: 'Clientes', section: 'departamentos', icon: 'UserCheck' },
   'equipa': { label: 'Equipa', section: 'departamentos', icon: 'UsersRound' },
-  'operacao': { label: 'Operação', section: 'departamentos', icon: 'Headphones' },
   'produtos': { label: 'Produtos', section: 'departamentos', icon: 'Package' },
   'customer-success': { label: 'Customer Success', section: 'departamentos', icon: 'Heart' },
   'recursos-humanos': { label: 'Pessoas', section: 'departamentos', icon: 'UsersRound' },
