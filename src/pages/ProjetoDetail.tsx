@@ -1552,3 +1552,14 @@ function ProjetoDetailInner() {
     </AppLayout>
   );
 }
+
+import { DetailAccessGuard } from '@/components/access/DetailAccessGuard';
+
+export default function ProjetoDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  return (
+    <DetailAccessGuard entity="project" id={id}>
+      <ProjetoDetailInner />
+    </DetailAccessGuard>
+  );
+}
