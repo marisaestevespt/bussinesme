@@ -9,6 +9,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import Mention from '@tiptap/extension-mention';
+import Image from '@tiptap/extension-image';
 import { mentionSuggestion } from './rich-editor/mentionSuggestion';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +17,7 @@ import {
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
   Heading1, Heading2, Heading3, Palette, Highlighter, Undo, Redo,
   ListChecks, Quote,
+  ImagePlus,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -34,9 +36,10 @@ interface RichTextEditorProps {
   placeholder?: string;
   enableMentions?: boolean;
   minHeight?: number;
+  enableImages?: boolean;
 }
 
-export function RichTextEditor({ content, onChange, editable = true, placeholder, enableMentions = false, minHeight = 200 }: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange, editable = true, placeholder, enableMentions = false, minHeight = 200, enableImages = false }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -53,6 +56,7 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
       TaskList,
       TaskItem.configure({ nested: true }),
       Placeholder.configure({ placeholder: placeholder || '' }),
+      ...(enableImages ? [Image.configure({ HTMLAttributes: { class: 'rounded-lg max-w-full my-3' } })] : []),
       ...(enableMentions
         ? [Mention.configure({
             HTMLAttributes: { class: 'mention' },
@@ -204,6 +208,20 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
           <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Refazer">
             <Redo className="h-3.5 w-3.5" />
           </ToolBtn>
+          {enableImages && (
+            <>
+              <div className="w-px h-5 bg-border mx-1" />
+              <ToolBtn
+                title="Inserir imagem (URL)"
+                onClick={() => {
+                  const url = window.prompt('URL da imagem:');
+                  if (url) editor.chain().focus().setImage({ src: url }).run();
+                }}
+              >
+                <ImagePlus className="h-3.5 w-3.5" />
+              </ToolBtn>
+            </>
+          )}
         </div>
       )}
       <EditorContent
