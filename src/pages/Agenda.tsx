@@ -205,16 +205,38 @@ function useSalesActionsAsEvents(range: { from: string; to: string }) {
 }
 
 function useMeetingsAsEvents(range: { from: string; to: string }) {
+  const { user, isAdminOrOwner } = useAuth();
   return useQuery({
-    queryKey: ['meetings-as-events', range.from, range.to],
+    queryKey: ['meetings-as-events', range.from, range.to, user?.id, isAdminOrOwner],
+    enabled: !!user,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Owners/Admins veem todas as reuniões.
+      // Restantes utilizadores só veem reuniões em que estão identificados como participante.
+      let allowedIds: string[] | null = null;
+      if (!isAdminOrOwner && user) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (!prof?.id) return [];
+        const { data: parts } = await supabase
+          .from('meeting_participants')
+          .select('meeting_id')
+          .eq('profile_id', prof.id);
+        allowedIds = (parts || []).map((p: any) => p.meeting_id);
+        if (allowedIds.length === 0) return [];
+      }
+
+      let q = supabase
         .from('meetings')
         .select('id,title,date_time,status,meeting_url,client_id,client_name,department,project_name,product_id,product_name,is_recurring,recurrence_frequency,recurrence_end_date')
         .gte('date_time', range.from + 'T00:00:00')
         .lte('date_time', range.to + 'T23:59:59')
         .order('date_time');
+      if (allowedIds) q = q.in('id', allowedIds);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []).map((m: any): EventRow & { _isMeeting: true; _meetingId: string } => ({
         id: `meeting_${m.id}`,
