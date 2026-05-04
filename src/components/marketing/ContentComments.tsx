@@ -9,7 +9,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { MentionTextarea, RichText } from '@/components/MentionTextarea';
 import { notifyMentions } from '@/hooks/useNotifications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
