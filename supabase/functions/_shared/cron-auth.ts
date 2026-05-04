@@ -16,7 +16,11 @@
  */
 import { jwtVerify } from "https://deno.land/x/jose@v5.9.6/index.ts";
 
-const ACCEPTED_ROLES = new Set(["service_role", "anon", "authenticated"]);
+// Only the service_role is allowed to invoke cron-protected functions.
+// pg_cron always uses the service_role key when calling edge functions, so
+// legitimate scheduled invocations continue to work. Authenticated end users
+// (anon / authenticated JWTs) must NOT be able to trigger these jobs.
+const ACCEPTED_ROLES = new Set(["service_role"]);
 
 function decodePayload(token: string): Record<string, unknown> | null {
   const parts = token.split(".");
