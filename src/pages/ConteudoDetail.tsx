@@ -701,14 +701,21 @@ export default function ConteudoDetailPage() {
                 />
               )}
 
-              {['reels', 'vlog', 'longo_youtube', 'short_tiktok'].includes(form.format) && (
+              {(!form.format || ['reels', 'vlog', 'longo_youtube', 'short_tiktok'].includes(form.format)) && (
                 <Card className="border-border/60">
                   <CardContent className="p-5 space-y-3">
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4 text-muted-foreground" />
-                      <h3 className="text-sm font-semibold text-foreground">Legenda / Copy</h3>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        {form.format ? 'Legenda / Copy' : 'Conteúdo / Copy'}
+                      </h3>
                     </div>
-                    <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
+                    <RichTextEditor
+                      content={form.copy_content}
+                      onChange={v => setForm(f => ({ ...f, copy_content: v }))}
+                      editable
+                      placeholder={form.format ? 'Escreve a legenda...' : 'Escreve o copy do teu conteúdo... (ou define um formato acima para usar um template estruturado)'}
+                    />
                   </CardContent>
                 </Card>
               )}
