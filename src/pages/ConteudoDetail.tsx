@@ -386,7 +386,6 @@ export default function ConteudoDetailPage() {
         />
         <div className="w-full py-8 px-6 flex flex-col items-center gap-1" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Conteúdo</p>
-          {statusOpt && <Badge className={cn("text-xs", statusOpt.color)}>{statusOpt.label}</Badge>}
         </div>
 
         <div className="w-full">
