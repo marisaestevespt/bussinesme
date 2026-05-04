@@ -1133,6 +1133,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         const handleDownloadPdf = () => {
           if (!rd) return;
           const label = rd.period?.label || `${monthName} ${year}`;
+          const esc = (value: unknown) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
           const f = fmtV;
           const fin = rd.financial || {};
           const com = rd.commercial || {};
@@ -1140,13 +1146,14 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           const ops = rd.operations || {};
           const tm = rd.team || {};
           const crm = rd.crm || {};
-          const topHtml = (com.topProducts || []).map(([n, v]: [string, number]) => `<tr><td>${n}</td><td style="text-align:right;font-weight:600">€${f(v)}</td></tr>`).join('');
+          const safeLabel = esc(label);
+          const topHtml = (com.topProducts || []).map(([n, v]: [string, number]) => `<tr><td>${esc(n)}</td><td style="text-align:right;font-weight:600">€${f(v)}</td></tr>`).join('');
 
           const pw = window.open('', '_blank', 'width=900,height=700');
           if (!pw) { toast.error('Popup bloqueado'); return; }
-          pw.document.write(`<!DOCTYPE html><html><head><title>Relatório ${label}</title>
+          pw.document.write(`<!DOCTYPE html><html><head><title>Relatório ${safeLabel}</title>
 <style>@page{size:A4;margin:18mm 15mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;color:#1a1a1a;line-height:1.5}.header{border-bottom:2px solid #1a1a1a;padding-bottom:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}.header h1{font-size:18px;font-weight:700}.header .date{font-size:10px;color:#6b7280}h2{font-size:13px;font-weight:700;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.5px;color:#374151}.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.kpi{border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px}.kpi .label{font-size:9px;text-transform:uppercase;color:#6b7280;letter-spacing:.3px}.kpi .value{font-size:16px;font-weight:700;margin-top:2px}.kpi .sub{font-size:9px;color:#6b7280;margin-top:1px}.section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.card{border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px}.card h3{font-size:11px;font-weight:600;margin-bottom:6px}.row{display:flex;justify-content:space-between;font-size:10px;padding:3px 0}.row .lbl{color:#6b7280}.row .val{font-weight:600}.green{color:#059669}.red{color:#dc2626}.progress-bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin:4px 0}.progress-fill{height:100%;background:#3b82f6;border-radius:4px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{padding:5px 8px;border-bottom:1px solid #e5e7eb;text-align:left}th{font-weight:600;background:#f9fafb}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
-<div class="header"><h1>Relatório Mensal — ${label}</h1><span class="date">Gerado em ${new Date(rd.generatedAt || Date.now()).toLocaleDateString('pt-PT')}</span></div>
+<div class="header"><h1>Relatório Mensal — ${safeLabel}</h1><span class="date">Gerado em ${new Date(rd.generatedAt || Date.now()).toLocaleDateString('pt-PT')}</span></div>
 <h2>Financeiro</h2><div class="kpi-grid"><div class="kpi"><div class="label">Receita</div><div class="value">€${f(fin.revenue||0)}</div></div><div class="kpi"><div class="label">Despesas</div><div class="value">€${f(fin.expenses||0)}</div></div><div class="kpi"><div class="label">Margem</div><div class="value">€${f(fin.margin||0)}</div><div class="sub">${(fin.marginPct||0).toFixed(1)}%</div></div></div>
 <h2>Comercial</h2><div class="kpi-grid"><div class="kpi"><div class="label">Vendas</div><div class="value">${com.salesCount||0}</div><div class="sub">€${f(com.totalSales||0)}</div></div><div class="kpi"><div class="label">Total YTD</div><div class="value">€${f(com.totalYtd||0)}</div></div><div class="kpi"><div class="label">Meta Anual</div><div class="value">${(com.progressPct||0).toFixed(1)}%</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(com.progressPct||0,100)}%"></div></div><div class="sub">€${f(com.totalYtd||0)} / €${f(com.annualGoal||0)}</div></div></div>
 ${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="text-align:right">Valor</th></tr></thead><tbody>${topHtml}</tbody></table>`:''}
