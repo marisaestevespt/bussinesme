@@ -72,7 +72,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Vídeo YouTube',
     defaultChannel: 'Youtube',
     defaultContentType: 'video',
-    defaultFormat: 'video',
+    defaultFormat: 'longo_youtube',
     defaultCopy: 'Título:\n\nHook (15s iniciais):\n\nGuião / estrutura:\n\nDescrição:\n\nThumbnail:',
   },
   {
@@ -83,7 +83,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Short YouTube',
     defaultChannel: 'Youtube',
     defaultContentType: 'short',
-    defaultFormat: 'video',
+    defaultFormat: 'short_tiktok',
     defaultCopy: 'Hook (3s):\n\nGuião:\n\nTítulo / descrição:',
   },
   // TikTok
@@ -95,7 +95,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'TikTok',
     defaultChannel: 'TikTok',
     defaultContentType: 'video',
-    defaultFormat: 'video',
+    defaultFormat: 'short_tiktok',
     defaultCopy: 'Hook (3s):\n\nGuião:\n\nLegenda:\n\nÁudio/som:\n\nHashtags:',
   },
   // LinkedIn
