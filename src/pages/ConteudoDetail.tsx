@@ -243,6 +243,11 @@ export default function ConteudoDetailPage() {
     if (!e.target.files?.length || !id) return;
     setUploading(true);
     let firstUploadedUrl: string | null = null;
+    // Determinar próximo sort_order para este tipo
+    const sameTypeAttachments = attachments.filter(a => a.file_type === fileType);
+    let nextOrder = sameTypeAttachments.length > 0
+      ? Math.max(...sameTypeAttachments.map(a => (a as any).sort_order ?? 0)) + 1
+      : 0;
     for (const file of Array.from(e.target.files)) {
       const path = `${id}/${fileType}/${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from('content-files').upload(path, file);
@@ -250,7 +255,9 @@ export default function ConteudoDetailPage() {
       const { data: { publicUrl } } = supabase.storage.from('content-files').getPublicUrl(path);
       await supabase.from('content_attachments').insert({
         content_id: id, file_url: publicUrl, file_name: file.name, file_type: fileType,
+        sort_order: nextOrder,
       } as any);
+      nextOrder += 1;
       if (fileType === 'image' && !firstUploadedUrl) firstUploadedUrl = publicUrl;
     }
     // Auto-set cover_url to the first image if there isn't one yet, so the
