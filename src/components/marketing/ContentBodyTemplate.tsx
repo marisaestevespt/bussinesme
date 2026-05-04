@@ -60,18 +60,24 @@ function getTemplateFields(format: string): TemplateField[] {
 
     case 'email':
       return [
+        { key: 'checklist', label: 'Checklist: antes de enviar', type: 'checklist', items: [
+          'Assunto testado (A/B se possível)', 'Pré-header coerente', 'Links revistos', 'Imagens com alt text', 'CTA claro e único', 'Versão mobile testada',
+        ]},
         { key: 'assunto', label: 'Assunto:', type: 'text', placeholder: 'Linha de assunto do email...' },
-        { key: 'cabecalho', label: 'Cabeçalho:', type: 'text', placeholder: 'Pré-header / cabeçalho...' },
-        { key: 'corpo', label: 'Corpo do email:', type: 'textarea', placeholder: 'Conteúdo do email...' },
+        { key: 'preheader', label: 'Pré-header:', type: 'text', placeholder: 'Texto curto que aparece junto ao assunto...' },
+        { key: 'intro', label: 'Intro / abertura:', type: 'textarea', placeholder: 'Primeiras linhas que captam atenção...' },
+        { key: 'corpo', label: 'Corpo do email:', type: 'textarea', placeholder: 'Conteúdo principal do email...' },
         { key: 'cta', label: 'CTA (Call to Action):', type: 'text', placeholder: 'Ex: Saber mais, Comprar agora...' },
+        { key: 'ps', label: 'P.S.:', type: 'textarea', placeholder: 'Pós-escrito (opcional, costuma ter alta taxa de leitura)...' },
       ];
 
     case 'post_linkedin':
       return [
+        { key: 'capa', label: 'IMAGEM / DOCUMENTO', type: 'image-placeholder' },
         { key: 'hook', label: 'Hook:', type: 'text', placeholder: 'Primeira frase que capta atenção...' },
         { key: 'corpo', label: 'Corpo do post:', type: 'textarea', placeholder: 'Conteúdo do post...' },
         { key: 'cta', label: 'CTA:', type: 'text', placeholder: 'Call to action...' },
-        { key: 'capa', label: 'IMAGEM/DOCUMENTO', type: 'image-placeholder' },
+        { key: 'hashtags', label: 'Hashtags:', type: 'text', placeholder: '#exemplo #marketing ...' },
       ];
 
     case 'pin':
@@ -80,11 +86,13 @@ function getTemplateFields(format: string): TemplateField[] {
         { key: 'titulo', label: 'Título do Pin:', type: 'text', placeholder: 'Título SEO do pin...' },
         { key: 'descricao', label: 'Descrição:', type: 'textarea', placeholder: 'Descrição do pin...' },
         { key: 'link', label: 'Link destino:', type: 'text', placeholder: 'https://...' },
+        { key: 'tags', label: 'Tags / palavras-chave:', type: 'text', placeholder: 'Termos de pesquisa relevantes...' },
       ];
 
     default:
       return [
         { key: 'conteudo', label: 'Conteúdo:', type: 'textarea', placeholder: 'Escreve o conteúdo...' },
+        { key: 'notas', label: 'Notas:', type: 'textarea', placeholder: 'Notas internas, referências, links...' },
       ];
   }
 }
