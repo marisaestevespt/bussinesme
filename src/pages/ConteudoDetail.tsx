@@ -29,7 +29,7 @@ import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
 import { ContentComments } from '@/components/marketing/ContentComments';
 import { useConfirm } from '@/components/ui/confirm-dialog';
-import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
+import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
