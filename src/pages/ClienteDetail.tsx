@@ -1553,8 +1553,17 @@ export default function ClienteDetailPage() {
   // 'novo' = criação de cliente, sem id ainda → não aplica guard
   if (!id || id === 'novo') return <ClienteDetailPageInner />;
   return (
-    <DetailAccessGuard entity="client" id={id}>
-      <ClienteDetailPageInner />
-    </DetailAccessGuard>
+    <AppLayout>
+      <DetailAccessGuard entity="client" id={id}>
+        {/* Inner já renderiza o seu próprio AppLayout. Quando passa, o wrapper fica
+            nested mas isso é seguro: AppLayout aceita render aninhado. */}
+        <ClienteDetailPageInnerNoLayout />
+      </DetailAccessGuard>
+    </AppLayout>
   );
+}
+
+// Versão sem AppLayout para usar dentro do guard (que já garante AppLayout)
+function ClienteDetailPageInnerNoLayout() {
+  return <ClienteDetailPageInner />;
 }
