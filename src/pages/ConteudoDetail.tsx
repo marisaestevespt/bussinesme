@@ -90,7 +90,12 @@ export default function ConteudoDetailPage() {
   const { data: attachments = [] } = useQuery({
     queryKey: ['content-attachments', id],
     queryFn: async () => {
-      const { data } = await supabase.from('content_attachments').select('*').eq('content_id', id!).order('created_at') as { data: ContentAttachment[] | null };
+      const { data } = await supabase
+        .from('content_attachments')
+        .select('*')
+        .eq('content_id', id!)
+        .order('sort_order' as any, { ascending: true })
+        .order('created_at', { ascending: true }) as { data: ContentAttachment[] | null };
       return data || [];
     },
     enabled: !!id,
