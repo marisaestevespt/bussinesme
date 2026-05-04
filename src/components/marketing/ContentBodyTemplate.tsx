@@ -114,78 +114,85 @@ export function ContentBodyTemplate({ format, value, onChange, editable = true }
 
   if (!format) return null;
 
+  const imageFields = fields.filter(f => f.type === 'image-placeholder');
+  const textFields = fields.filter(f => f.type !== 'image-placeholder');
+
+  const renderField = (field: TemplateField) => {
+    if (field.type === 'text') {
+      return editable ? (
+        <Input
+          value={data[field.key] || ''}
+          onChange={e => updateField(field.key, e.target.value)}
+          placeholder={field.placeholder}
+          className="h-11 text-base border-0 border-b border-border rounded-none bg-transparent px-0 focus-visible:ring-0 focus-visible:border-primary"
+        />
+      ) : (
+        <p className="text-base">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
+      );
+    }
+    if (field.type === 'textarea') {
+      return editable ? (
+        <AutoGrowTextarea
+          value={data[field.key] || ''}
+          onChange={(v) => updateField(field.key, v)}
+          placeholder={field.placeholder}
+        />
+      ) : (
+        <p className="text-base whitespace-pre-wrap leading-relaxed">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
+      );
+    }
+    if (field.type === 'checklist') {
+      return (
+        <div className="space-y-2">
+          {(field.items || []).map(item => {
+            const checked = (data[`${field.key}_checked`] || []).includes(item);
+            return (
+              <label key={item} className={cn(
+                "flex items-center gap-3 text-sm cursor-pointer",
+                checked && "line-through text-muted-foreground"
+              )}>
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={() => editable && toggleChecklistItem(field.key, item)}
+                  disabled={!editable}
+                />
+                {item}
+              </label>
+            );
+          })}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">Template de Conteúdo</h3>
-      <div className="rounded-xl border bg-card px-6 sm:px-10 py-8 max-w-3xl mx-auto w-full space-y-6">
-        {fields.map((field) => (
-          <div key={field.key}>
-            {field.type === 'image-placeholder' && (
-              <ImageBlock
-                label={field.label}
-                value={data[field.key] || ''}
-                onChange={(v) => updateField(field.key, v)}
-                editable={editable}
-              />
-            )}
+    <div className="space-y-4">
+      {imageFields.length > 0 && (
+        <div className="rounded-xl border border-border/60 bg-card px-6 py-6 space-y-6">
+          {imageFields.map(field => (
+            <ImageBlock
+              key={field.key}
+              label={field.label}
+              value={data[field.key] || ''}
+              onChange={(v) => updateField(field.key, v)}
+              editable={editable}
+            />
+          ))}
+        </div>
+      )}
 
-            {field.type === 'text' && (
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{field.label}</label>
-                {editable ? (
-                  <Input
-                    value={data[field.key] || ''}
-                    onChange={e => updateField(field.key, e.target.value)}
-                    placeholder={field.placeholder}
-                    className="h-11 text-base border-0 border-b border-border rounded-none bg-transparent px-0 focus-visible:ring-0 focus-visible:border-primary"
-                  />
-                ) : (
-                  <p className="text-base">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
-                )}
-              </div>
-            )}
-
-            {field.type === 'textarea' && (
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{field.label}</label>
-                {editable ? (
-                  <AutoGrowTextarea
-                    value={data[field.key] || ''}
-                    onChange={(v) => updateField(field.key, v)}
-                    placeholder={field.placeholder}
-                  />
-                ) : (
-                  <p className="text-base whitespace-pre-wrap leading-relaxed">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
-                )}
-              </div>
-            )}
-
-            {field.type === 'checklist' && (
-              <div className="space-y-3">
-                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{field.label}</label>
-                <div className="space-y-2">
-                  {(field.items || []).map(item => {
-                    const checked = (data[`${field.key}_checked`] || []).includes(item);
-                    return (
-                      <label key={item} className={cn(
-                        "flex items-center gap-3 text-sm cursor-pointer",
-                        checked && "line-through text-muted-foreground"
-                      )}>
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={() => editable && toggleChecklistItem(field.key, item)}
-                          disabled={!editable}
-                        />
-                        {item}
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {textFields.map(field => (
+        <div
+          key={field.key}
+          className="rounded-xl border border-border/60 bg-card px-5 py-4 space-y-3"
+        >
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+            {field.label.replace(/:$/, '')}
+          </label>
+          {renderField(field)}
+        </div>
+      ))}
     </div>
   );
 }
