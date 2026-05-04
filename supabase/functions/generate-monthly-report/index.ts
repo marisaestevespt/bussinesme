@@ -12,22 +12,39 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify owner role via JWT, or allow cron calls via anon key (no user context)
+    // Verify owner role via user JWT, or allow scheduled calls via the private
+    // service_role key. Never treat the anon key as a shared secret: it is
+    // intentionally public in client apps.
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Não autorizado");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const token = authHeader.replace("Bearer ", "");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     let userId: string | null = null;
 
-    // If token is the anon key, it's a cron call — skip owner check
-    if (token !== anonKey) {
+    // If token is the service_role key, it's a trusted scheduled call.
+    if (token !== serviceKey) {
       const anonClient = createClient(supabaseUrl, anonKey);
       const { data: { user } } = await anonClient.auth.getUser(token);
-      if (!user) throw new Error("Sessão inválida");
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Sessão inválida" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       const { data: isOwner } = await supabase.rpc("has_role", { _user_id: user.id, _role: "owner" });
-      if (!isOwner) throw new Error("Apenas o owner pode gerar relatórios");
+      if (!isOwner) {
+        return new Response(JSON.stringify({ error: "Apenas o owner pode gerar relatórios" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       userId = user.id;
     }
 
