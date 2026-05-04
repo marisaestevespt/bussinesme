@@ -166,14 +166,15 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
       );
     }
     if (field.type === 'textarea') {
-      return editable ? (
-        <AutoGrowTextarea
-          value={data[field.key] || ''}
+      return (
+        <RichTextEditor
+          content={data[field.key] || ''}
           onChange={(v) => updateField(field.key, v)}
+          editable={editable}
           placeholder={field.placeholder}
+          minHeight={160}
+          collapsibleToolbar
         />
-      ) : (
-        <p className="text-base whitespace-pre-wrap leading-relaxed">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
       );
     }
     if (field.type === 'checklist') {
@@ -218,6 +219,10 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
   // restantes campos (legenda, hook, etc.) cada um no seu card.
   const slideFields = fields.filter(f => f.type === 'image-placeholder');
   const otherFields = fields.filter(f => f.type !== 'image-placeholder');
+  const slidesSectionTitle = slideFields.length === 1 ? 'Capa do post' : 'Slides do post';
+  const slidesSectionHint = slideFields.length === 1
+    ? '— copy / notas para a imagem de capa'
+    : '— um bloco por slide; cada um tem editor completo';
 
   return (
     <div className="space-y-4">
@@ -225,8 +230,8 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
         <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm space-y-4">
           <div className="flex items-center gap-2">
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
-            <label className="text-sm font-semibold text-foreground">Slides do post</label>
-            <span className="text-xs text-muted-foreground">— um bloco por slide; cada um tem editor completo</span>
+            <label className="text-sm font-semibold text-foreground">{slidesSectionTitle}</label>
+            <span className="text-xs text-muted-foreground">{slidesSectionHint}</span>
           </div>
           <div className="space-y-3">
             {slideFields.map(field => (
