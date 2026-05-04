@@ -691,18 +691,14 @@ export default function ConteudoDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Format-based Template */}
+              {/* Format-based Template — cada campo já é o seu próprio card */}
               {form.format && (
-                <Card className="border-border/60">
-                  <CardContent className="p-5">
-                    <ContentBodyTemplate
-                      format={form.format}
-                      value={form.body_template}
-                      onChange={val => setForm(f => ({ ...f, body_template: val }))}
-                      editable
-                    />
-                  </CardContent>
-                </Card>
+                <ContentBodyTemplate
+                  format={form.format}
+                  value={form.body_template}
+                  onChange={val => setForm(f => ({ ...f, body_template: val }))}
+                  editable
+                />
               )}
 
               {['reels', 'vlog', 'longo_youtube', 'short_tiktok'].includes(form.format) && (
