@@ -78,12 +78,8 @@ export default function SecretariaConteudos() {
   // (independent of assignee/status). For non-Owner, keep "my content" minus
   // items already shown in "Esta Semana".
   const galleryItems = useMemo(() => {
-    if (isOwner) {
-      const weekIds = new Set(thisWeek.map(c => c.id));
-      return monthAllContent.filter(c => !weekIds.has(c.id));
-    }
-    return thisMonth.filter(c => !thisWeek.includes(c));
-  }, [isOwner, monthAllContent, thisMonth, thisWeek]);
+    return isOwner ? monthAllContent : thisMonth;
+  }, [isOwner, monthAllContent, thisMonth]);
 
   if (myContent.length === 0 && galleryItems.length === 0) return null;
 
@@ -110,7 +106,7 @@ export default function SecretariaConteudos() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">
-              {isOwner ? 'Este Mês — Toda a Equipa' : 'Este Mês'} ({galleryItems.length + thisWeek.length})
+              {isOwner ? 'Este Mês — Toda a Equipa' : 'Este Mês'} ({galleryItems.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
