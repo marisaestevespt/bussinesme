@@ -7,7 +7,7 @@ import { useMyProfileId } from '@/hooks/useMyProfileId';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText } from 'lucide-react';
+import { FileText, ImageIcon } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { getStatusOption } from '@/lib/marketing-constants';
 
@@ -39,7 +39,7 @@ export default function SecretariaConteudos() {
     queryFn: async () => {
       const { data } = await supabase
         .from('content_items')
-        .select('*')
+        .select('*, content_channels(channel_id, marketing_channels(id, name))')
         .eq('assigned_to', profileId!)
         .not('status', 'eq', 'publicado')
         .order('scheduled_at', { ascending: true });
@@ -85,8 +85,8 @@ export default function SecretariaConteudos() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Este Mês ({thisMonth.length})</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <ContentTable items={thisMonth.filter(c => !thisWeek.includes(c))} onNavigate={id => navigate(`/hub/marketing/conteudos/${id}`)} />
+          <CardContent>
+            <ContentGallery items={thisMonth.filter(c => !thisWeek.includes(c))} onNavigate={id => navigate(`/hub/marketing/conteudos/${id}`)} />
           </CardContent>
         </Card>
       )}
@@ -122,5 +122,63 @@ function ContentTable({ items, onNavigate }: { items: any[]; onNavigate: (id: st
         })}
       </TableBody>
     </Table>
+  );
+}
+
+function ContentGallery({ items, onNavigate }: { items: any[]; onNavigate: (id: string) => void }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      {items.map(c => {
+        const opt = getStatusOption(c.status);
+        const st = opt
+          ? { label: opt.label, className: opt.color }
+          : { label: c.status, className: 'bg-muted text-muted-foreground' };
+        const channels: string[] = (c.content_channels || [])
+          .map((cc: any) => cc.marketing_channels?.name)
+          .filter(Boolean);
+        return (
+          <button
+            key={c.id}
+            onClick={() => onNavigate(c.id)}
+            className="group text-left rounded-lg overflow-hidden border bg-card hover:shadow-md hq-transition"
+          >
+            <div className="aspect-square bg-muted relative overflow-hidden">
+              {c.cover_url ? (
+                <img
+                  src={c.cover_url}
+                  alt={c.title}
+                  className="w-full h-full object-cover group-hover:scale-105 hq-transition"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  <ImageIcon className="h-8 w-8" />
+                </div>
+              )}
+              <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1">
+                {channels.slice(0, 2).map(ch => (
+                  <Badge key={ch} variant="secondary" className="text-[10px] px-1.5 py-0 backdrop-blur bg-background/80">
+                    {ch}
+                  </Badge>
+                ))}
+                {channels.length > 2 && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 backdrop-blur bg-background/80">
+                    +{channels.length - 2}
+                  </Badge>
+                )}
+              </div>
+              <div className="absolute bottom-2 right-2">
+                <Badge className={`${st.className} text-[10px] px-1.5 py-0`}>{st.label}</Badge>
+              </div>
+            </div>
+            <div className="p-2 space-y-1">
+              <div className="text-xs font-medium line-clamp-2 leading-tight">{c.title}</div>
+              <div className="text-[11px] text-muted-foreground">
+                {c.scheduled_at ? format(parseISO(c.scheduled_at), 'dd/MM') : '—'}
+              </div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
   );
 }
