@@ -76,7 +76,7 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
       body,
       user.id,
       contextLabel || 'Comentário no conteúdo',
-      `/conteudo/${contentItemId}`,
+      `/hub/marketing/conteudos/${contentItemId}`,
     ).catch(() => {});
     if (parent_id) { setReplyDraft(''); } else setDraft('');
     qc.invalidateQueries({ queryKey: ['content-item-comments', contentItemId] });
