@@ -22,15 +22,23 @@ export function InstagramFeedPreview({ items }: Props) {
     },
   });
 
-  // Publicados + agendados futuros, ordenados do mais recente para o mais antigo
-  const feedItems = items
-    .filter(i => {
-      if (!i.scheduled_at) return false;
-      const isPublished = i.status === 'publicado';
-      const isFutureScheduled = new Date(i.scheduled_at) >= now && i.status !== 'publicado';
-      return isPublished || isFutureScheduled;
+  // Mostra publicados + qualquer conteúdo planeado/agendado para este canal.
+  // Ordem: publicados (mais recente primeiro) → agendados futuros (mais próximo primeiro)
+  // → restantes planeados sem data.
+  const feedItems = [...items]
+    .sort((a, b) => {
+      const aPub = a.status === 'publicado';
+      const bPub = b.status === 'publicado';
+      if (aPub && !bPub) return -1;
+      if (!aPub && bPub) return 1;
+      const aT = a.scheduled_at ? new Date(a.scheduled_at).getTime() : null;
+      const bT = b.scheduled_at ? new Date(b.scheduled_at).getTime() : null;
+      if (aPub && bPub) return (bT ?? 0) - (aT ?? 0);
+      if (aT === null && bT === null) return 0;
+      if (aT === null) return 1;
+      if (bT === null) return -1;
+      return aT - bT;
     })
-    .sort((a, b) => new Date(b.scheduled_at!).getTime() - new Date(a.scheduled_at!).getTime())
     .slice(0, 30);
 
   const handle = (settings?.business_name || 'business')
