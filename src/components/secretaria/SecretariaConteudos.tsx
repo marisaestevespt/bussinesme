@@ -179,7 +179,9 @@ function ContentGallery({ items, onNavigate }: { items: any[]; onNavigate: (id: 
                 </div>
               )}
               <div className="absolute bottom-2 right-2">
-                <Badge className={`${st.className} text-[10px] px-1.5 py-0 shadow-sm ring-1 ring-background/40`}>
+                <Badge
+                  className={`${st.className} text-[10px] px-2 py-0.5 font-medium shadow-md ring-1 ring-background/60 backdrop-blur-md`}
+                >
                   {st.label}
                 </Badge>
               </div>
