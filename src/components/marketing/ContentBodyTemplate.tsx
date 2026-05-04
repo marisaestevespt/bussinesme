@@ -115,8 +115,11 @@ export function ContentBodyTemplate({ format, value, onChange, editable = true }
 
   if (!format) return null;
 
-  const imageFields = fields.filter(f => f.type === 'image-placeholder');
-  const textFields = fields.filter(f => f.type !== 'image-placeholder');
+  const hasImages = fields.some(f => f.type === 'image-placeholder');
+  // Para formatos com imagens, unificamos: 1 editor livre (corpo do post) + campos não-imagem (legenda, etc.)
+  const textFields = hasImages
+    ? fields.filter(f => f.type !== 'image-placeholder')
+    : fields;
 
   const renderField = (field: TemplateField) => {
     if (field.type === 'text') {
@@ -169,18 +172,21 @@ export function ContentBodyTemplate({ format, value, onChange, editable = true }
 
   return (
     <div className="space-y-4">
-      {imageFields.length > 0 && (
-        <div className="space-y-4">
-          {imageFields.map(field => (
-            <div key={field.key} className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
-              <ImageBlock
-                label={field.label}
-                value={data[field.key] || ''}
-                onChange={(v) => updateField(field.key, v)}
-                editable={editable}
-              />
-            </div>
-          ))}
+      {hasImages && (
+        <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            <label className="text-sm font-semibold text-foreground">Conteúdo do post</label>
+            <span className="text-xs text-muted-foreground">— escreve livremente e insere imagens onde quiseres</span>
+          </div>
+          <RichTextEditor
+            content={data.post_body || ''}
+            onChange={(v) => updateField('post_body', v)}
+            editable={editable}
+            placeholder="Começa a escrever... Usa a barra de ferramentas para inserir imagens, listas, negritos..."
+            minHeight={240}
+            enableImages
+          />
         </div>
       )}
 
