@@ -4,12 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Trash2, CornerDownRight, Check, Send, Maximize2 } from 'lucide-react';
+import { MessageSquare, Trash2, CornerDownRight, Check, Send, Maximize2, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { MentionTextarea, RichText } from '@/components/MentionTextarea';
 import { notifyMentions } from '@/hooks/useNotifications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -35,6 +34,7 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
   const [replyDraft, setReplyDraft] = useState('');
   const [showResolved, setShowResolved] = useState(false);
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(true);
 
   const { data: comments = [] } = useQuery({
     queryKey: ['content-item-comments', contentItemId],
@@ -169,37 +169,48 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
   return (
     <>
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" />
-          Comentários{top.length > 0 && <span className="text-muted-foreground font-normal">· {top.length}</span>}
-        </h3>
-        {resolvedCount > 0 && (
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowResolved(s => !s)}>
-            {showResolved ? 'Ocultar resolvidos' : `Mostrar resolvidos (${resolvedCount})`}
-          </Button>
-        )}
-      </div>
+      <button
+        type="button"
+        onClick={() => setCollapsed(c => !c)}
+        className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition w-full"
+      >
+        {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        <MessageSquare className="h-4 w-4" />
+        <span>Comentários</span>
+        {top.length > 0 && <span className="text-xs text-muted-foreground/70">· {top.length}</span>}
+      </button>
 
-      <div className="space-y-2">
-        <MentionTextarea
-          value={draft}
-          onChange={setDraft}
-          placeholder="Adicionar comentário... (escreve @ para mencionar alguém)"
-          rows={3}
-        />
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">Usa <span className="font-mono">@</span> para mencionar e notificar.</p>
-          <Button onClick={() => submit(draft)} disabled={!draft.trim()} size="sm">
-            <Send className="h-3.5 w-3.5 mr-1" />Publicar
-          </Button>
-        </div>
-      </div>
+      {!collapsed && (
+        <>
+          {resolvedCount > 0 && (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowResolved(s => !s)}>
+                {showResolved ? 'Ocultar resolvidos' : `Mostrar resolvidos (${resolvedCount})`}
+              </Button>
+            </div>
+          )}
 
-      {visible.length === 0 ? (
-        <EmptyHint>Sem comentários ainda.</EmptyHint>
-      ) : (
-        <div className="space-y-4">{visible.map(c => renderOne(c))}</div>
+          <div className="space-y-2">
+            <MentionTextarea
+              value={draft}
+              onChange={setDraft}
+              placeholder="Adicionar comentário... (@ para mencionar)"
+              rows={draft.trim() ? 3 : 1}
+            />
+            {draft.trim() && (
+              <div className="flex items-center justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setDraft('')}>Cancelar</Button>
+                <Button onClick={() => submit(draft)} size="sm">
+                  <Send className="h-3.5 w-3.5 mr-1" />Publicar
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {visible.length > 0 && (
+            <div className="space-y-4">{visible.map(c => renderOne(c))}</div>
+          )}
+        </>
       )}
     </div>
 
