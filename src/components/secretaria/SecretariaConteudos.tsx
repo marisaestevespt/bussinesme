@@ -24,7 +24,7 @@ const PENDING_CONTENT_STATUSES = [
 ];
 
 export default function SecretariaConteudos() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const { data: profileId } = useMyProfileId();
   const navigate = useNavigate();
   const now = new Date();
@@ -47,6 +47,21 @@ export default function SecretariaConteudos() {
     },
   });
 
+  // For Owner: all content scheduled this month, regardless of assignee/status.
+  const { data: monthAllContent = [] } = useQuery({
+    queryKey: ['month-all-content', monthStart, monthEnd, isOwner],
+    enabled: isOwner,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('content_items')
+        .select('*, content_channels(channel_id, marketing_channels(id, name))')
+        .gte('scheduled_at', monthStart)
+        .lte('scheduled_at', monthEnd + 'T23:59:59')
+        .order('scheduled_at', { ascending: true });
+      return data || [];
+    },
+  });
+
   const thisWeek = useMemo(() => myContent.filter(c =>
     c.scheduled_at && c.scheduled_at >= weekStart && c.scheduled_at <= weekEnd + 'T23:59:59'
   ), [myContent, weekStart, weekEnd]);
@@ -59,7 +74,18 @@ export default function SecretariaConteudos() {
     PENDING_CONTENT_STATUSES.includes(c.status)
   ), [myContent]);
 
-  if (myContent.length === 0) return null;
+  // Items shown in the gallery: for Owner, everything scheduled this month
+  // (independent of assignee/status). For non-Owner, keep "my content" minus
+  // items already shown in "Esta Semana".
+  const galleryItems = useMemo(() => {
+    if (isOwner) {
+      const weekIds = new Set(thisWeek.map(c => c.id));
+      return monthAllContent.filter(c => !weekIds.has(c.id));
+    }
+    return thisMonth.filter(c => !thisWeek.includes(c));
+  }, [isOwner, monthAllContent, thisMonth, thisWeek]);
+
+  if (myContent.length === 0 && galleryItems.length === 0) return null;
 
   return (
     <div className="space-y-4 mt-4">
@@ -80,13 +106,15 @@ export default function SecretariaConteudos() {
         </Card>
       )}
 
-      {thisMonth.length > thisWeek.length && (
+      {galleryItems.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Este Mês ({thisMonth.length})</CardTitle>
+            <CardTitle className="text-sm">
+              {isOwner ? 'Este Mês — Toda a Equipa' : 'Este Mês'} ({galleryItems.length + thisWeek.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ContentGallery items={thisMonth.filter(c => !thisWeek.includes(c))} onNavigate={id => navigate(`/hub/marketing/conteudos/${id}`)} />
+            <ContentGallery items={galleryItems} onNavigate={id => navigate(`/hub/marketing/conteudos/${id}`)} />
           </CardContent>
         </Card>
       )}
