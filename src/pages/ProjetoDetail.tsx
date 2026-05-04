@@ -105,7 +105,7 @@ function safePct(value: number, total: number): number {
 
 // ─── Main Component ─────────────────────────────────────────────
 
-export default function ProjetoDetailPage() {
+function ProjetoDetailInner() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
