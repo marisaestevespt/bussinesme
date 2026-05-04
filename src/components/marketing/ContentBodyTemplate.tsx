@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { ImageIcon } from 'lucide-react';
 
 // Template structures per format
 export type TemplateField = {
@@ -115,70 +115,60 @@ export function ContentBodyTemplate({ format, value, onChange, editable = true }
   if (!format) return null;
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-foreground">Template de Conteúdo</h3>
-      <div className="space-y-3 rounded-lg border bg-card p-4">
-        {fields.map((field, idx) => (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">Template de Conteúdo</h3>
+      <div className="rounded-xl border bg-card px-6 sm:px-10 py-8 max-w-3xl mx-auto w-full space-y-6">
+        {fields.map((field) => (
           <div key={field.key}>
             {field.type === 'image-placeholder' && (
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-foreground uppercase tracking-wide">{field.label}</label>
-                <div className="h-10 rounded border border-dashed border-muted-foreground/30 bg-muted/20 flex items-center px-3">
-                  {editable ? (
-                    <Input
-                      value={data[field.key] || ''}
-                      onChange={e => updateField(field.key, e.target.value)}
-                      placeholder={`Notas para ${field.label.toLowerCase()}...`}
-                      className="border-0 bg-transparent h-8 px-0 text-sm focus-visible:ring-0"
-                    />
-                  ) : (
-                    <span className="text-sm text-muted-foreground">{data[field.key] || ''}</span>
-                  )}
-                </div>
-              </div>
+              <ImageBlock
+                label={field.label}
+                value={data[field.key] || ''}
+                onChange={(v) => updateField(field.key, v)}
+                editable={editable}
+              />
             )}
 
             {field.type === 'text' && (
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-primary uppercase tracking-wide">{field.label}</label>
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{field.label}</label>
                 {editable ? (
                   <Input
                     value={data[field.key] || ''}
                     onChange={e => updateField(field.key, e.target.value)}
                     placeholder={field.placeholder}
-                    className="h-9 text-sm"
+                    className="h-11 text-base border-0 border-b border-border rounded-none bg-transparent px-0 focus-visible:ring-0 focus-visible:border-primary"
                   />
                 ) : (
-                  <p className="text-sm">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
+                  <p className="text-base">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
                 )}
               </div>
             )}
 
             {field.type === 'textarea' && (
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-primary uppercase tracking-wide">{field.label}</label>
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{field.label}</label>
                 {editable ? (
-                  <Textarea
+                  <AutoGrowTextarea
                     value={data[field.key] || ''}
-                    onChange={e => updateField(field.key, e.target.value)}
+                    onChange={(v) => updateField(field.key, v)}
                     placeholder={field.placeholder}
-                    className="min-h-[80px] text-sm resize-y"
                   />
                 ) : (
-                  <p className="text-sm whitespace-pre-wrap">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
+                  <p className="text-base whitespace-pre-wrap leading-relaxed">{data[field.key] || <span className="text-muted-foreground italic">Vazio</span>}</p>
                 )}
               </div>
             )}
 
             {field.type === 'checklist' && (
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-primary uppercase tracking-wide">▸ {field.label}</label>
-                <div className="space-y-2 pl-2">
+              <div className="space-y-3">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{field.label}</label>
+                <div className="space-y-2">
                   {(field.items || []).map(item => {
                     const checked = (data[`${field.key}_checked`] || []).includes(item);
                     return (
                       <label key={item} className={cn(
-                        "flex items-center gap-2 text-sm cursor-pointer",
+                        "flex items-center gap-3 text-sm cursor-pointer",
                         checked && "line-through text-muted-foreground"
                       )}>
                         <Checkbox
@@ -193,12 +183,55 @@ export function ContentBodyTemplate({ format, value, onChange, editable = true }
                 </div>
               </div>
             )}
-
-            {idx < fields.length - 1 && field.type !== 'image-placeholder' && (
-              <Separator className="mt-3" />
-            )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function AutoGrowTextarea({
+  value, onChange, placeholder,
+}: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return (
+    <Textarea
+      ref={ref}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="min-h-[140px] text-base leading-relaxed resize-none border-0 bg-muted/20 rounded-md px-4 py-3 focus-visible:ring-1 focus-visible:ring-primary/30"
+    />
+  );
+}
+
+function ImageBlock({
+  label, value, onChange, editable,
+}: { label: string; value: string; onChange: (v: string) => void; editable: boolean }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{label}</label>
+      </div>
+      <div className="rounded-lg border-2 border-dashed border-border bg-muted/10 p-4 min-h-[120px] flex flex-col">
+        {editable ? (
+          <AutoGrowTextarea
+            value={value}
+            onChange={onChange}
+            placeholder={`Notas, copy ou descrição para ${label.toLowerCase()}...`}
+          />
+        ) : (
+          <p className="text-base whitespace-pre-wrap leading-relaxed">
+            {value || <span className="text-muted-foreground italic">Vazio</span>}
+          </p>
+        )}
       </div>
     </div>
   );

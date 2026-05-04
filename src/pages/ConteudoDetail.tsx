@@ -237,6 +237,7 @@ export default function ConteudoDetailPage() {
   const uploadFiles = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'file') => {
     if (!e.target.files?.length || !id) return;
     setUploading(true);
+    let firstUploadedUrl: string | null = null;
     for (const file of Array.from(e.target.files)) {
       const path = `${id}/${fileType}/${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from('content-files').upload(path, file);
@@ -245,6 +246,21 @@ export default function ConteudoDetailPage() {
       await supabase.from('content_attachments').insert({
         content_id: id, file_url: publicUrl, file_name: file.name, file_type: fileType,
       } as any);
+      if (fileType === 'image' && !firstUploadedUrl) firstUploadedUrl = publicUrl;
+    }
+    // Auto-set cover_url to the first image if there isn't one yet, so the
+    // gallery card on Secretária shows the cover immediately (no need to
+    // press "Guardar" first).
+    if (fileType === 'image' && firstUploadedUrl) {
+      const currentCover = (item as any)?.cover_url;
+      const hasExistingImage = attachments.some(a => a.file_type === 'image');
+      if (!currentCover || !hasExistingImage) {
+        await supabase.from('content_items').update({ cover_url: firstUploadedUrl } as any).eq('id', id);
+        queryClient.invalidateQueries({ queryKey: ['content-item', id] });
+        queryClient.invalidateQueries({ queryKey: ['content-items'] });
+        queryClient.invalidateQueries({ queryKey: ['my-content-items'] });
+        queryClient.invalidateQueries({ queryKey: ['month-all-content'] });
+      }
     }
     queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
     setUploading(false);
