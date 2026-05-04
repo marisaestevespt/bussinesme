@@ -159,15 +159,6 @@ export function InstagramFeedPreview({ items }: Props) {
                     {isReel ? <Film className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
                   </div>
                 )}
-                {/* Status badge (bottom-left) */}
-                {(isScheduled || isDraft) && (
-                  <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-background/90 px-1.5 py-0.5 shadow-sm">
-                    <Clock className="h-2.5 w-2.5 text-foreground" />
-                    <span className="text-[9px] font-medium text-foreground">
-                      {isScheduled ? 'Agendado' : 'Planeado'}
-                    </span>
-                  </div>
-                )}
               </button>
             );
           })}
