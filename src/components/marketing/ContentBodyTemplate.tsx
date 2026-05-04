@@ -263,6 +263,17 @@ function AutoGrowTextarea({
   );
 }
 
+export const ContentBodyTemplate = memo(ContentBodyTemplateInner, (prev, next) => {
+  // Re-render only when format/editable change, or when the external value identity changes.
+  // This prevents heavy re-mounts of the Tiptap editor on every parent re-render.
+  return (
+    prev.format === next.format &&
+    prev.editable === next.editable &&
+    prev.value === next.value &&
+    prev.onChange === next.onChange
+  );
+});
+
 function ImageBlock({
   label, value, onChange, editable,
 }: { label: string; value: string; onChange: (v: string) => void; editable: boolean }) {
