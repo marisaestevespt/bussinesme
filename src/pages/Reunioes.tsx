@@ -36,6 +36,8 @@ import { logAudit } from '@/lib/auditLog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader, CollectionEmpty } from '@/components/layout/collection';
 import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
+import { useDetailAccessMap } from '@/hooks/useDetailAccess';
+import { Lock } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────
 
