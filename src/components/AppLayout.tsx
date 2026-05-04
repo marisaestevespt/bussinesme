@@ -14,6 +14,7 @@ import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { TabsBar } from '@/components/TabsBar';
 import { NewTabButton } from '@/components/TabsBar';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { useAuth } from '@/hooks/useAuth';
 
 // Lazy-load heavy floating widgets (pdfjs, large UI) to keep AppLayout chunk small
 const OnboardingTour = lazy(() => import('@/components/OnboardingTour').then(m => ({ default: m.OnboardingTour })));
@@ -22,6 +23,7 @@ const FloatingAiChat = lazy(() => import('@/components/FloatingAiChat').then(m =
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
   useSystemNotifications();
+  const { isAdminOrOwner } = useAuth();
 
   const { pathname } = useLocation();
   const businessName = settings?.business_name || 'Lyrata';
@@ -68,7 +70,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </main>
             <Suspense fallback={null}>
               <OnboardingTour />
-              <FloatingAiChat />
+              {isAdminOrOwner && <FloatingAiChat />}
             </Suspense>
             <MobileBottomNav />
           </div>
