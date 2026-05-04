@@ -234,29 +234,29 @@ export default function MarketingDashboard() {
             {weekContent.length === 0 ? (
               <Card><CardContent className="p-8 text-center text-sm text-muted-foreground italic">Nenhum conteúdo agendado para esta semana.</CardContent></Card>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {weekContent.map(item => {
                   const itemChannels = getItemChannels(item.id);
                   const status = STATUS_OPTIONS.find(s => s.value === item.status);
                   return (
                     <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`}>
                       <Card className="hq-transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer overflow-hidden h-full">
-                        <div className="aspect-video bg-muted/40 flex items-center justify-center overflow-hidden">
+                        <div className="aspect-square bg-muted/40 flex items-center justify-center overflow-hidden">
                           {item.cover_url ? (
                             <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover" />
                           ) : (
-                            <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                            <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
                           )}
                         </div>
-                        <CardContent className="p-3 space-y-2">
-                          <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                          <div className="flex items-center gap-2 flex-wrap">
+                        <CardContent className="p-2 space-y-1.5">
+                          <p className="text-xs font-medium text-foreground truncate">{item.title}</p>
+                          <div className="flex items-center gap-1 flex-wrap">
                             {itemChannels.map(ch => (
                               <Badge key={ch.id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ch.name}</Badge>
                             ))}
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] text-muted-foreground">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] text-muted-foreground truncate">
                               {item.scheduled_at && format(new Date(item.scheduled_at), 'dd MMM HH:mm', { locale: pt })}
                             </span>
                             {status && <Badge className={cn("text-[10px]", status.color)}>{status.label}</Badge>}
