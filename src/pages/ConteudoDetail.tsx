@@ -427,7 +427,7 @@ export default function ConteudoDetailPage() {
 
           <div className="max-w-4xl mx-auto">
           <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            className="text-4xl md:text-5xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-8 leading-tight" placeholder="Título do conteúdo" />
+            className="text-2xl md:text-3xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6 leading-tight" placeholder="Título do conteúdo" />
 
           {/* Propriedades estilo Notion */}
           <div className="mb-8 space-y-0.5">
