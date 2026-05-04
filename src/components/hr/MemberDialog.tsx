@@ -47,6 +47,7 @@ const DEFAULT_MEMBER_FORM = {
   responsibilities: '',
   work_areas: [] as string[],
   system_role: 'team_member' as string, // função no sistema (RBAC)
+  works_with_clients: false,
 };
 
 // Funções do sistema disponíveis para atribuir a um membro de equipa.
