@@ -448,8 +448,6 @@ export default function ConteudoDetailPage() {
                 </>
               )}
 
-              <Separator />
-
             </div>
 
             {/* Sidebar */}
