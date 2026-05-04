@@ -308,6 +308,39 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
         const { error } = await supabase.from('member_contracts').update(rec as TablesUpdate<'member_contracts'>).eq('id', rec.id);
         if (error) throw error;
 
+        // If contract has an end_date, prune unpaid payments/payroll AFTER that date.
+        // Paid entries are never touched.
+        if (rec.end_date) {
+          const end = new Date(rec.end_date);
+          const endY = end.getFullYear();
+          const endM = end.getMonth() + 1;
+          const { data: allUnpaid } = await supabase
+            .from('member_payments')
+            .select('id, month, year')
+            .eq('member_id', rec.member_id)
+            .eq('status', 'por_pagar');
+          const toDelete = (allUnpaid || [])
+            .filter(p => p.year > endY || (p.year === endY && p.month > endM))
+            .map(p => p.id);
+          if (toDelete.length > 0) {
+            await supabase.from('member_payments').delete().in('id', toDelete);
+          }
+          const { data: memberRow } = await supabase.from('team_members').select('full_name').eq('id', rec.member_id).maybeSingle();
+          if (memberRow?.full_name) {
+            const { data: allUnpaidPay } = await supabase
+              .from('financial_payroll')
+              .select('id, month, year')
+              .eq('collaborator_name', memberRow.full_name)
+              .eq('status', 'por_pagar');
+            const payDel = (allUnpaidPay || [])
+              .filter(p => p.year > endY || (p.year === endY && p.month > endM))
+              .map(p => p.id);
+            if (payDel.length > 0) {
+              await supabase.from('financial_payroll').delete().in('id', payDel);
+            }
+          }
+        }
+
         // Update unpaid future payments with the new monthly value
         const newVal = Number(rec.monthly_value) || 0;
         if (newVal > 0) {
