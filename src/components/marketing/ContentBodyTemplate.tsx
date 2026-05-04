@@ -152,12 +152,6 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
 
   if (!format) return null;
 
-  const hasImages = fields.some(f => f.type === 'image-placeholder');
-  // Para formatos com imagens, unificamos: 1 editor livre (corpo do post) + campos não-imagem (legenda, etc.)
-  const textFields = hasImages
-    ? fields.filter(f => f.type !== 'image-placeholder')
-    : fields;
-
   const renderField = (field: TemplateField) => {
     if (field.type === 'text') {
       return editable ? (
@@ -204,30 +198,49 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
         </div>
       );
     }
+    if (field.type === 'image-placeholder') {
+      return (
+        <RichTextEditor
+          content={data[field.key] || ''}
+          onChange={(v) => updateField(field.key, v)}
+          editable={editable}
+          placeholder={`Escreve o copy / cola a imagem para ${field.label.toLowerCase()}...`}
+          minHeight={140}
+          enableImages
+        />
+      );
+    }
     return null;
   };
 
+  // Agrupa: slides (image-placeholder) num único card "Slides do post",
+  // restantes campos (legenda, hook, etc.) cada um no seu card.
+  const slideFields = fields.filter(f => f.type === 'image-placeholder');
+  const otherFields = fields.filter(f => f.type !== 'image-placeholder');
+
   return (
     <div className="space-y-4">
-      {hasImages && (
-        <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm space-y-3">
+      {slideFields.length > 0 && (
+        <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm space-y-4">
           <div className="flex items-center gap-2">
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
-            <label className="text-sm font-semibold text-foreground">Conteúdo do post</label>
-            <span className="text-xs text-muted-foreground">— escreve livremente e insere imagens onde quiseres</span>
+            <label className="text-sm font-semibold text-foreground">Slides do post</label>
+            <span className="text-xs text-muted-foreground">— um bloco por slide; cada um tem editor completo</span>
           </div>
-          <RichTextEditor
-            content={data.post_body || ''}
-            onChange={(v) => updateField('post_body', v)}
-            editable={editable}
-            placeholder="Começa a escrever... Usa a barra de ferramentas para inserir imagens, listas, negritos..."
-            minHeight={240}
-            enableImages
-          />
+          <div className="space-y-3">
+            {slideFields.map(field => (
+              <div key={field.key} className="rounded-lg border border-border/50 bg-background/40 p-3 space-y-2">
+                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                  {field.label}
+                </label>
+                {renderField(field)}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {textFields.map(field => (
+      {otherFields.map(field => (
         <div
           key={field.key}
           className="rounded-xl border border-border/60 bg-card px-5 py-4 space-y-3"
