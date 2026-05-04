@@ -56,7 +56,6 @@ function getTemplateFields(format: string): TemplateField[] {
           label: `STORY ${i + 1}`,
           type: 'image-placeholder' as const,
         })),
-        { key: 'notas', label: 'Notas:', type: 'textarea', placeholder: 'Notas sobre os stories...' },
       ];
 
     case 'email':
