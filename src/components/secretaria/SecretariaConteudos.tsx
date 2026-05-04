@@ -178,23 +178,27 @@ function ContentGallery({ items, onNavigate }: { items: any[]; onNavigate: (id: 
                   <ImageIcon className="h-8 w-8" />
                 </div>
               )}
-              <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1">
-                {channels.slice(0, 2).map(ch => (
-                  <Badge key={ch} variant="secondary" className="text-[10px] px-1.5 py-0 backdrop-blur bg-background/80">
-                    {ch}
-                  </Badge>
-                ))}
-                {channels.length > 2 && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 backdrop-blur bg-background/80">
-                    +{channels.length - 2}
-                  </Badge>
-                )}
-              </div>
               <div className="absolute bottom-2 right-2">
-                <Badge className={`${st.className} text-[10px] px-1.5 py-0`}>{st.label}</Badge>
+                <Badge className={`${st.className} text-[10px] px-1.5 py-0 shadow-sm ring-1 ring-background/40`}>
+                  {st.label}
+                </Badge>
               </div>
             </div>
             <div className="p-2 space-y-1">
+              {channels.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {channels.slice(0, 2).map(ch => (
+                    <Badge key={ch} variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {ch}
+                    </Badge>
+                  ))}
+                  {channels.length > 2 && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      +{channels.length - 2}
+                    </Badge>
+                  )}
+                </div>
+              )}
               <div className="text-xs font-medium line-clamp-2 leading-tight">{c.title}</div>
               <div className="text-[11px] text-muted-foreground">
                 {c.scheduled_at ? format(parseISO(c.scheduled_at), 'dd/MM') : '—'}
