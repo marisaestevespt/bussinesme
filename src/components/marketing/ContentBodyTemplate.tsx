@@ -207,6 +207,7 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
           placeholder={`Escreve o copy / cola a imagem para ${field.label.toLowerCase()}...`}
           minHeight={140}
           enableImages
+          collapsibleToolbar
         />
       );
     }
