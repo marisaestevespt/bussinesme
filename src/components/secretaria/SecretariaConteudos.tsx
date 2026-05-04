@@ -178,11 +178,6 @@ function ContentGallery({ items, onNavigate }: { items: any[]; onNavigate: (id: 
                   <ImageIcon className="h-8 w-8" />
                 </div>
               )}
-              <div className="absolute bottom-2 right-2">
-                <Badge className={`${st.className} text-[10px] px-1.5 py-0 shadow-sm ring-1 ring-background/40`}>
-                  {st.label}
-                </Badge>
-              </div>
             </div>
             <div className="p-2 space-y-1">
               {channels.length > 0 && (
@@ -200,8 +195,11 @@ function ContentGallery({ items, onNavigate }: { items: any[]; onNavigate: (id: 
                 </div>
               )}
               <div className="text-xs font-medium line-clamp-2 leading-tight">{c.title}</div>
-              <div className="text-[11px] text-muted-foreground">
-                {c.scheduled_at ? format(parseISO(c.scheduled_at), 'dd/MM') : '—'}
+              <div className="flex items-center justify-between gap-2 pt-0.5">
+                <span className="text-[11px] text-muted-foreground">
+                  {c.scheduled_at ? format(parseISO(c.scheduled_at), 'dd/MM') : '—'}
+                </span>
+                <Badge className={`${st.className} text-[10px] px-1.5 py-0`}>{st.label}</Badge>
               </div>
             </div>
           </button>
