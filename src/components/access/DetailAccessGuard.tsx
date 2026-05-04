@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useDetailAccess } from '@/hooks/useDetailAccess';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { AppLayout } from '@/components/AppLayout';
 
 interface Props {
   entity: 'meeting' | 'client';
@@ -21,16 +22,19 @@ export function DetailAccessGuard({ entity, id, children }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <InlineLoader />
-      </div>
+      <AppLayout>
+        <div className="flex h-[60vh] items-center justify-center">
+          <InlineLoader />
+        </div>
+      </AppLayout>
     );
   }
 
   if (!canOpen) {
     const label = entity === 'meeting' ? 'reunião' : 'cliente';
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
+      <AppLayout>
+        <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
           <Lock className="h-8 w-8 text-muted-foreground" />
         </div>
@@ -44,7 +48,8 @@ export function DetailAccessGuard({ entity, id, children }: Props) {
         <Button variant="outline" onClick={() => navigate(-1)}>
           Voltar
         </Button>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
