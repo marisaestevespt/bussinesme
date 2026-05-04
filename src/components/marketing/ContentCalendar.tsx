@@ -82,20 +82,24 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
       className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors h-full flex flex-col overflow-hidden">
-      {/* Cover image */}
+      {/* Status — sempre visível no topo */}
+      {status && (
+        <span className={cn("text-[10px] px-1.5 py-0.5 leading-none font-medium text-center w-full block shrink-0", status.color)}>
+          {status.label}
+        </span>
+      )}
+      {/* Cover image (mais pequena para deixar espaço aos meta) */}
       {coverImage && (
-        <div className="w-full aspect-[16/9] overflow-hidden shrink-0">
+        <div className="w-full aspect-[3/1] overflow-hidden shrink-0">
           <img src={coverImage} alt="" className="w-full h-full object-cover" />
         </div>
       )}
-      <div className="p-1.5 flex flex-col gap-1 flex-1">
+      <div className="p-1.5 flex flex-col gap-1 flex-1 min-h-0">
         {/* Title + time */}
         <div className="flex items-center justify-between gap-1">
           <p className="text-xs font-medium truncate leading-tight text-foreground">{item.title}</p>
           {time && <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
         </div>
-        {/* Status */}
-        {status && <span className={cn("text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
         {/* Canal + Formato */}
         <div className="flex items-center gap-1 w-full">
           {itemChannels.slice(0, 1).map(ch => (
