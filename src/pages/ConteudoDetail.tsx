@@ -399,6 +399,7 @@ export default function ConteudoDetailPage() {
         <div className="w-full">
           <div className="flex items-center justify-between mb-2">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
+            <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -423,6 +424,10 @@ export default function ConteudoDetailPage() {
             >
               <Trash2 className="h-4 w-4" /> Eliminar
             </Button>
+            <Button onClick={handleSave} disabled={saving} size="sm">
+              <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar'}
+            </Button>
+            </div>
           </div>
 
           <div className="max-w-4xl mx-auto">
@@ -573,34 +578,74 @@ export default function ConteudoDetailPage() {
                 <SelectContent>{profiles.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
               </Select>
             </PropRow>
+
+            <PropRow label="Ficheiros">
+              <div className="py-1 space-y-1.5">
+                {files.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {files.map(f => (
+                      <div key={f.id} className="group inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md bg-muted/40 hover:bg-muted/70 border border-transparent hover:border-border/60 transition">
+                        <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-foreground hover:text-primary truncate max-w-[220px]">
+                          <FileText className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{f.file_name}</span>
+                        </a>
+                        <button
+                          type="button"
+                          aria-label="Eliminar"
+                          onClick={() => deleteAttachment(f.id)}
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition">
+                  <Upload className="h-3 w-3" />
+                  <span>{files.length > 0 ? 'Adicionar ficheiro' : 'Adicionar ficheiros'}</span>
+                  <input type="file" multiple className="hidden" onChange={e => uploadFiles(e, 'file')} disabled={uploading} />
+                </label>
+              </div>
+            </PropRow>
           </div>
 
-          <div className="flex justify-end mb-6">
-            <Button onClick={handleSave} disabled={saving} size="sm">
-              <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar'}
-            </Button>
-          </div>
+          {/* Comentários — minimal, logo abaixo dos campos principais */}
+          {id && (
+            <div className="mb-8 pt-6 border-t border-border/60">
+              <ContentComments contentItemId={id} contextLabel={`Conteúdo: ${form.title || 'sem título'}`} />
+            </div>
+          )}
 
           <Separator className="mb-6" />
 
           {/* Conteúdo principal */}
           <div className="space-y-6">
               {/* Designs Finais */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">Designs Finais</h3>
-                  <label className="cursor-pointer">
-                    <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-3.5 w-3.5 mr-1" />Adicionar</span></Button>
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={e => uploadFiles(e, 'image')} disabled={uploading} />
-                  </label>
-                  {images.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={sortImagesByName} className="text-xs">
-                      <ArrowDownAZ className="h-3.5 w-3.5 mr-1" />Ordenar por nome
-                    </Button>
-                  )}
+              <Card className="overflow-hidden border-border/60">
+                <CardContent className="p-5 space-y-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">Designs Finais</h3>
+                    {images.length > 0 && (
+                      <span className="text-xs text-muted-foreground">· {images.length}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {images.length > 1 && (
+                      <Button variant="ghost" size="sm" onClick={sortImagesByName} className="text-xs h-8">
+                        <ArrowDownAZ className="h-3.5 w-3.5 mr-1" />Ordenar
+                      </Button>
+                    )}
+                    <label className="cursor-pointer">
+                      <Button variant="outline" size="sm" asChild className="h-8"><span><ImageIcon className="h-3.5 w-3.5 mr-1" />Adicionar</span></Button>
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={e => uploadFiles(e, 'image')} disabled={uploading} />
+                    </label>
+                  </div>
                 </div>
                 {images.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {images.map((img, idx) => (
                       <div
                         key={img.id}
@@ -616,99 +661,63 @@ export default function ConteudoDetailPage() {
                         }}
                         onDragEnd={() => { setDragId(null); setDragOverId(null); }}
                         className={cn(
-                          'relative group rounded-lg overflow-hidden border cursor-grab active:cursor-grabbing transition-all',
+                          'relative group rounded-lg overflow-hidden border border-border/60 bg-muted/20 cursor-grab active:cursor-grabbing transition-all hover:shadow-md',
                           dragId === img.id && 'opacity-40',
                           dragOverId === img.id && dragId !== img.id && 'ring-2 ring-primary ring-offset-2',
                         )}
                       >
                         {idx === 0 && (
-                          <Badge className="absolute top-2 left-2 z-10 text-[9px] bg-primary text-primary-foreground">Capa</Badge>
+                          <Badge className="absolute top-2 left-2 z-10 text-[9px] px-1.5 py-0 h-4 bg-primary text-primary-foreground shadow">Capa</Badge>
                         )}
-                        <div className="absolute top-2 right-10 z-10 opacity-0 group-hover:opacity-100 bg-background/80 rounded p-1 pointer-events-none">
+                        <div className="absolute top-2 right-10 z-10 opacity-0 group-hover:opacity-100 bg-background/85 backdrop-blur rounded p-1 pointer-events-none">
                           <GripVertical className="h-3 w-3 text-muted-foreground" />
                         </div>
                         <img src={img.file_url} alt={img.file_name} className="w-full aspect-square object-cover" />
-                        <Button variant="destructive" aria-label="Eliminar" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
+                        <Button variant="destructive" aria-label="Eliminar" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 shadow"
                           onClick={() => deleteAttachment(img.id)}><Trash2 className="h-3 w-3" /></Button>
-                        <p className="text-[10px] text-muted-foreground p-1 truncate">{img.file_name}</p>
+                        <p className="text-[10px] text-muted-foreground px-1.5 py-1 truncate bg-background/60">{img.file_name}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="aspect-video bg-muted/30 rounded-lg flex items-center justify-center">
+                  <div className="aspect-[3/1] bg-muted/20 rounded-lg flex items-center justify-center border border-dashed border-border/60">
                     <div className="text-center text-muted-foreground/40">
-                      <ImageIcon className="h-10 w-10 mx-auto mb-2" />
+                      <ImageIcon className="h-8 w-8 mx-auto mb-2" />
                       <p className="text-xs">Nenhum design carregado</p>
                       <p className="text-[10px]">Arrasta para reordenar — a 1ª será a capa</p>
                     </div>
                   </div>
                 )}
-              </div>
-
-              <Separator />
+                </CardContent>
+              </Card>
 
               {/* Format-based Template */}
               {form.format && (
-                <>
-                  <ContentBodyTemplate
-                    format={form.format}
-                    value={form.body_template}
-                    onChange={val => setForm(f => ({ ...f, body_template: val }))}
-                    editable
-                  />
-                  <Separator />
-                </>
+                <Card className="border-border/60">
+                  <CardContent className="p-5">
+                    <ContentBodyTemplate
+                      format={form.format}
+                      value={form.body_template}
+                      onChange={val => setForm(f => ({ ...f, body_template: val }))}
+                      editable
+                    />
+                  </CardContent>
+                </Card>
               )}
 
-
-              {/* Ficheiros */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">Ficheiros</h3>
-                  <label className="cursor-pointer">
-                    <Button variant="outline" size="sm" asChild><span><FileText className="h-3.5 w-3.5 mr-1" />Adicionar</span></Button>
-                    <input type="file" multiple className="hidden" onChange={e => uploadFiles(e, 'file')} disabled={uploading} />
-                  </label>
-                </div>
-                {files.length > 0 ? (
-                  <div className="space-y-2">
-                    {files.map(f => (
-                      <div key={f.id} className="flex items-center gap-2 group">
-                        <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
-                          <FileText className="h-3.5 w-3.5 shrink-0" />{f.file_name}
-                        </a>
-                        <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteAttachment(f.id)}>
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <EmptyHint>Nenhum ficheiro.</EmptyHint>
-                )}
-              </div>
-
               {['reels', 'vlog', 'longo_youtube', 'short_tiktok'].includes(form.format) && (
-                <>
-                  <Separator />
-                  {/* Copy / Guião — só para formatos de vídeo */}
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
+                <Card className="border-border/60">
+                  <CardContent className="p-5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="text-sm font-semibold text-foreground">Legenda / Copy</h3>
+                    </div>
                     <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
-                  </div>
-                </>
+                  </CardContent>
+                </Card>
               )}
 
             </div>
-
-          {/* Comentários — secção full-width abaixo dos campos principais */}
-          {id && (
-            <Card className="mt-8">
-              <CardContent className="p-6">
-                <ContentComments contentItemId={id} contextLabel={`Conteúdo: ${form.title || 'sem título'}`} />
-              </CardContent>
-            </Card>
-          )}
           </div>
         </div>
       </div>
