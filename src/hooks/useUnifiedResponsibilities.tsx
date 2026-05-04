@@ -222,7 +222,8 @@ export function useUnifiedResponsibilities(userId?: string) {
         source: isRoutine ? 'rotina' : 'tarefa',
         title: t.name,
         subtitle: undefined,
-        date: t.deadline || t.created_at,
+        // Sem deadline ⇒ sem data; não deve cair em "hoje" nem "atraso".
+        date: t.deadline || undefined,
         deadline: t.deadline || undefined,
         priority: t.priority,
         isInfoOnly: false,
