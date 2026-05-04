@@ -351,7 +351,7 @@ function EditableBulletList({ items, onChange, label }: { items: string[]; onCha
 
 // ─── Main Page ──────────────────────────────────────────────────
 
-export default function ReuniaoDetailPage() {
+function ReuniaoDetailPageInner() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
