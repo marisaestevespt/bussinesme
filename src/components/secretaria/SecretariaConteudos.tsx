@@ -106,7 +106,7 @@ export default function SecretariaConteudos() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">
-              {isOwner ? 'Este Mês — Toda a Equipa' : 'Este Mês'} ({galleryItems.length})
+              Este Mês ({galleryItems.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
