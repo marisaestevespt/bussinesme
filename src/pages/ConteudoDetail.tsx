@@ -432,6 +432,11 @@ export default function ConteudoDetailPage() {
                     <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-3.5 w-3.5 mr-1" />Adicionar</span></Button>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={e => uploadFiles(e, 'image')} disabled={uploading} />
                   </label>
+                  {images.length > 1 && (
+                    <Button variant="ghost" size="sm" onClick={sortImagesByName} className="text-xs">
+                      <ArrowDownAZ className="h-3.5 w-3.5 mr-1" />Ordenar por nome
+                    </Button>
+                  )}
                 </div>
                 {images.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
