@@ -10406,6 +10406,7 @@ export type Database = {
           work_areas: Json
           work_schedule: string | null
           works_holidays: boolean
+          works_with_clients: boolean
         }
         Insert: {
           access_revoked?: boolean | null
@@ -10448,6 +10449,7 @@ export type Database = {
           work_areas?: Json
           work_schedule?: string | null
           works_holidays?: boolean
+          works_with_clients?: boolean
         }
         Update: {
           access_revoked?: boolean | null
@@ -10490,6 +10492,7 @@ export type Database = {
           work_areas?: Json
           work_schedule?: string | null
           works_holidays?: boolean
+          works_with_clients?: boolean
         }
         Relationships: [
           {
