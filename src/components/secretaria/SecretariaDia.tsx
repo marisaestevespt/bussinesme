@@ -4,7 +4,8 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Layers, Eye } from 'lucide-react';
+import { Layers, Eye, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
 import { MyTasksTable } from './MyTasksTable';
 import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secretaria-shared';
@@ -61,6 +62,38 @@ export default function SecretariaDia() {
       })()}
 
       <MyTasksTable scope="today" />
+
+      {(() => {
+        const conteudosDia = unified.todayItems.filter((i: any) => i.source === 'conteudo');
+        if (conteudosDia.length === 0) return null;
+        return (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4" /> Conteúdos para hoje / em atraso ({conteudosDia.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {conteudosDia.map((c: any) => {
+                const d = c.date ? parseISO(c.date.split('T')[0]) : null;
+                const overdue = d && !isToday(d);
+                return (
+                  <Link
+                    key={c.id}
+                    to={`/hub/marketing/conteudos/${c.sourceId}`}
+                    className="flex items-center justify-between p-2 rounded-lg border hover:bg-accent hq-transition"
+                  >
+                    <span className="text-sm truncate">{c.title}</span>
+                    <Badge variant={overdue ? 'destructive' : 'outline'} className="text-[10px] shrink-0">
+                      {d ? format(d, 'dd/MM') : '—'}
+                    </Badge>
+                  </Link>
+                );
+              })}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {todayTime.length > 0 && (
         <Card>
