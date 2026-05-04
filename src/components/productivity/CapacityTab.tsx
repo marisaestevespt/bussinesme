@@ -220,14 +220,21 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
   const [cfInitialized, setCfInitialized] = useState(false);
 
   if (members.length > 0 && !cfInitialized) {
-    const CLIENT_AREAS = ['cliente_administrativo', 'cliente_servico', 'cliente_comercial'];
-    const autoIds = members
-      .filter(m => {
-        const areas: string[] = Array.isArray((m as any).work_areas) ? (m as any).work_areas : [];
-        return areas.some(a => CLIENT_AREAS.includes(a));
-      })
-      .map(m => m.id);
-    setClientFacingIds(new Set(autoIds.length > 0 ? autoIds : members.map(m => m.id)));
+    // Fonte única: flag works_with_clients no membro.
+    // Fallback (legacy) para work_areas client-facing se ninguém tiver a flag.
+    const flagged = members.filter(m => (m as any).works_with_clients === true).map(m => m.id);
+    if (flagged.length > 0) {
+      setClientFacingIds(new Set(flagged));
+    } else {
+      const CLIENT_AREAS = ['cliente_administrativo', 'cliente_servico', 'cliente_comercial'];
+      const autoIds = members
+        .filter(m => {
+          const areas: string[] = Array.isArray((m as any).work_areas) ? (m as any).work_areas : [];
+          return areas.some(a => CLIENT_AREAS.includes(a));
+        })
+        .map(m => m.id);
+      setClientFacingIds(new Set(autoIds.length > 0 ? autoIds : members.map(m => m.id)));
+    }
     setCfInitialized(true);
   }
 
