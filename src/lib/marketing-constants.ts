@@ -22,6 +22,7 @@ export interface ContentAttachment {
 }
 
 export const STATUS_OPTIONS = [
+  { value: 'por_planear', label: 'Por planear', color: 'bg-muted text-muted-foreground' },
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-muted text-muted-foreground' },
   { value: 'pronto_para_copy', label: 'Pronto para copy', color: 'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning' },
   { value: 'em_copy', label: 'Em copy', color: 'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning' },
