@@ -1237,10 +1237,18 @@ function ReuniaoDetailPageInner() {
 export default function ReuniaoDetailPage() {
   const { id } = useParams<{ id: string }>();
   return (
-    <AppLayout>
-      <DetailAccessGuard entity="meeting" id={id}>
-        <ReuniaoDetailPageInner />
-      </DetailAccessGuard>
-    </AppLayout>
+    <DetailAccessGuardWrapper entity="meeting" id={id}>
+      <ReuniaoDetailPageInner />
+    </DetailAccessGuardWrapper>
+  );
+}
+
+function DetailAccessGuardWrapper({
+  entity, id, children,
+}: { entity: 'meeting' | 'client'; id?: string; children: React.ReactNode }) {
+  return (
+    <DetailAccessGuard entity={entity} id={id}>
+      {children}
+    </DetailAccessGuard>
   );
 }
