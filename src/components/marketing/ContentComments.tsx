@@ -3,14 +3,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Trash2, CornerDownRight, Check, Send } from 'lucide-react';
+import { MessageSquare, Trash2, CornerDownRight, Check, Send, Maximize2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { MentionTextarea, RichText } from '@/components/MentionTextarea';
+import { notifyMentions } from '@/hooks/useNotifications';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type Comment = {
   id: string;
@@ -26,13 +28,13 @@ type Comment = {
 
 type Profile = { id: string; full_name: string | null; avatar_url: string | null };
 
-export function ContentComments({ contentItemId }: { contentItemId: string }) {
+export function ContentComments({ contentItemId, contextLabel }: { contentItemId: string; contextLabel?: string }) {
   const { user, isOwner } = useAuth();
   const qc = useQueryClient();
   const [draft, setDraft] = useState('');
-  const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
   const [showResolved, setShowResolved] = useState(false);
+  const [openThreadId, setOpenThreadId] = useState<string | null>(null);
 
   const { data: comments = [] } = useQuery({
     queryKey: ['content-item-comments', contentItemId],
@@ -69,7 +71,14 @@ export function ContentComments({ contentItemId }: { contentItemId: string }) {
       .from('content_item_comments' as any)
       .insert({ content_item_id: contentItemId, author_id: user.id, body: body.trim(), parent_id });
     if (error) { toast.error('Erro ao publicar comentário'); return; }
-    if (parent_id) { setReplyDraft(''); setReplyTo(null); } else setDraft('');
+    // Notifica utilizadores mencionados
+    notifyMentions(
+      body,
+      user.id,
+      contextLabel || 'Comentário no conteúdo',
+      `/hub/marketing/conteudos/${contentItemId}`,
+    ).catch(() => {});
+    if (parent_id) { setReplyDraft(''); } else setDraft('');
     qc.invalidateQueries({ queryKey: ['content-item-comments', contentItemId] });
   };
 
@@ -95,11 +104,12 @@ export function ContentComments({ contentItemId }: { contentItemId: string }) {
   const replies = (id: string) => comments.filter(c => c.parent_id === id);
   const visible = top.filter(c => showResolved || !c.resolved_at);
   const resolvedCount = top.filter(c => c.resolved_at).length;
+  const openThread = openThreadId ? top.find(c => c.id === openThreadId) || null : null;
 
   const initials = (name: string | null | undefined) =>
     (name || '?').split(' ').map(s => s[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 
-  const renderOne = (c: Comment, isReply = false) => {
+  const renderOne = (c: Comment, isReply = false, inDialog = false) => {
     const author = profilesMap[c.author_id];
     const canDelete = c.author_id === user?.id || isOwner;
     return (
@@ -116,11 +126,18 @@ export function ContentComments({ contentItemId }: { contentItemId: string }) {
             </span>
             {c.resolved_at && <span className="text-xs text-emerald-600">· resolvido</span>}
           </div>
-          <p className="text-sm whitespace-pre-wrap break-words mt-0.5">{c.body}</p>
+          <p className="text-sm whitespace-pre-wrap break-words mt-0.5">
+            <RichText text={c.body} />
+          </p>
           <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {!isReply && (
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setReplyTo(c.id)}>
+            {!isReply && !inDialog && (
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => { setOpenThreadId(c.id); setReplyDraft(''); }}>
                 <CornerDownRight className="h-3 w-3 mr-1" />Responder
+              </Button>
+            )}
+            {!isReply && !inDialog && (
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setOpenThreadId(c.id)}>
+                <Maximize2 className="h-3 w-3 mr-1" />Abrir
               </Button>
             )}
             {!isReply && (
@@ -135,26 +152,14 @@ export function ContentComments({ contentItemId }: { contentItemId: string }) {
             )}
           </div>
 
-          {!isReply && replies(c.id).map(r => renderOne(r, true))}
-
-          {!isReply && replyTo === c.id && (
-            <div className="ml-8 mt-3 flex gap-2">
-              <Textarea
-                value={replyDraft}
-                onChange={e => setReplyDraft(e.target.value)}
-                placeholder="Escreve uma resposta..."
-                className="min-h-[60px] text-sm"
-                autoFocus
-              />
-              <div className="flex flex-col gap-1">
-                <Button size="sm" onClick={() => submit(replyDraft, c.id)} disabled={!replyDraft.trim()}>
-                  <Send className="h-3 w-3" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => { setReplyTo(null); setReplyDraft(''); }}>
-                  ✕
-                </Button>
-              </div>
-            </div>
+          {!isReply && !inDialog && replies(c.id).slice(0, 2).map(r => renderOne(r, true))}
+          {!isReply && !inDialog && replies(c.id).length > 2 && (
+            <button
+              className="ml-8 mt-2 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setOpenThreadId(c.id)}
+            >
+              Ver mais {replies(c.id).length - 2} respostas →
+            </button>
           )}
         </div>
       </div>
@@ -162,6 +167,7 @@ export function ContentComments({ contentItemId }: { contentItemId: string }) {
   };
 
   return (
+    <>
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -175,16 +181,19 @@ export function ContentComments({ contentItemId }: { contentItemId: string }) {
         )}
       </div>
 
-      <div className="flex gap-2">
-        <Textarea
+      <div className="space-y-2">
+        <MentionTextarea
           value={draft}
-          onChange={e => setDraft(e.target.value)}
-          placeholder="Adicionar comentário..."
-          className="min-h-[60px] text-sm"
+          onChange={setDraft}
+          placeholder="Adicionar comentário... (escreve @ para mencionar alguém)"
+          rows={3}
         />
-        <Button onClick={() => submit(draft)} disabled={!draft.trim()} size="sm" className="self-end">
-          <Send className="h-3.5 w-3.5 mr-1" />Publicar
-        </Button>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">Usa <span className="font-mono">@</span> para mencionar e notificar.</p>
+          <Button onClick={() => submit(draft)} disabled={!draft.trim()} size="sm">
+            <Send className="h-3.5 w-3.5 mr-1" />Publicar
+          </Button>
+        </div>
       </div>
 
       {visible.length === 0 ? (
@@ -193,5 +202,45 @@ export function ContentComments({ contentItemId }: { contentItemId: string }) {
         <div className="space-y-4">{visible.map(c => renderOne(c))}</div>
       )}
     </div>
+
+    {/* Dialog de thread */}
+    <Dialog open={!!openThread} onOpenChange={(o) => { if (!o) { setOpenThreadId(null); setReplyDraft(''); } }}>
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Conversa
+          </DialogTitle>
+        </DialogHeader>
+        {openThread && (
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+            {renderOne(openThread, false, true)}
+            <div className="ml-10 space-y-3">
+              {replies(openThread.id).map(r => renderOne(r, true, true))}
+            </div>
+          </div>
+        )}
+        {openThread && (
+          <div className="border-t pt-3 space-y-2">
+            <MentionTextarea
+              value={replyDraft}
+              onChange={setReplyDraft}
+              placeholder="Escreve uma resposta... (@ para mencionar)"
+              rows={3}
+            />
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                onClick={() => submit(replyDraft, openThread.id)}
+                disabled={!replyDraft.trim()}
+              >
+                <Send className="h-3.5 w-3.5 mr-1" />Responder
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

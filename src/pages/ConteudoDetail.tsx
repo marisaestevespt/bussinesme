@@ -448,10 +448,6 @@ export default function ConteudoDetailPage() {
                 </>
               )}
 
-              <Separator />
-
-              {/* Comentários */}
-              {id && <ContentComments contentItemId={id} />}
             </div>
 
             {/* Sidebar */}
@@ -613,6 +609,15 @@ export default function ConteudoDetailPage() {
               </Card>
             </div>
           </div>
+
+          {/* Comentários — secção full-width abaixo dos campos principais */}
+          {id && (
+            <Card className="mt-8">
+              <CardContent className="p-6">
+                <ContentComments contentItemId={id} contextLabel={`Conteúdo: ${form.title || 'sem título'}`} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </AppLayout>
