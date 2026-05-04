@@ -258,7 +258,9 @@ export default function ChannelPage() {
 
               <Separator />
 
-              {/* Strategy Section */}
+              {/* Strategy + Pages (left) and Instagram Feed Preview (right) */}
+              <div className={isInstagram ? "grid grid-cols-1 lg:grid-cols-3 gap-6" : ""}>
+                <div className={isInstagram ? "lg:col-span-2 space-y-6" : "space-y-6"}>
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -404,24 +406,23 @@ export default function ChannelPage() {
                   </div>
                 )}
               </section>
+                </div>
+                {isInstagram && (
+                  <aside className="lg:col-span-1">
+                    <div className="lg:sticky lg:top-4 space-y-3">
+                      <div>
+                        <h2 className="text-lg font-semibold text-foreground">Preview do Feed</h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Simulação do feed Instagram
+                        </p>
+                      </div>
+                      <InstagramFeedPreview items={channelContent} />
+                    </div>
+                  </aside>
+                )}
+              </div>
 
               <Separator />
-
-              {/* Section 3: Calendar filtered to this channel */}
-              {isInstagram && (
-                <>
-                  <section className="space-y-4">
-                    <div>
-                      <h2 className="text-lg font-semibold text-foreground">Preview do Feed</h2>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Simulação do feed Instagram com conteúdos publicados e agendados
-                      </p>
-                    </div>
-                    <InstagramFeedPreview items={channelContent} />
-                  </section>
-                  <Separator />
-                </>
-              )}
 
               <section className="space-y-4">
                 <h2 className="text-lg font-semibold text-foreground">Calendário — {channel.name}</h2>
