@@ -2376,6 +2376,7 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
+          sort_order: number
         }
         Insert: {
           content_id: string
@@ -2384,6 +2385,7 @@ export type Database = {
           file_type?: string
           file_url: string
           id?: string
+          sort_order?: number
         }
         Update: {
           content_id?: string
@@ -2392,6 +2394,7 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
+          sort_order?: number
         }
         Relationships: [
           {

@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
+import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle, GripVertical } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
@@ -48,6 +48,8 @@ export default function ConteudoDetailPage() {
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [showResponsibleReminder, setShowResponsibleReminder] = useState(false);
 
   const { data: item, isLoading } = useQuery({
@@ -90,7 +92,12 @@ export default function ConteudoDetailPage() {
   const { data: attachments = [] } = useQuery({
     queryKey: ['content-attachments', id],
     queryFn: async () => {
-      const { data } = await supabase.from('content_attachments').select('*').eq('content_id', id!).order('created_at') as { data: ContentAttachment[] | null };
+      const { data } = await supabase
+        .from('content_attachments')
+        .select('*')
+        .eq('content_id', id!)
+        .order('sort_order' as any, { ascending: true })
+        .order('created_at', { ascending: true }) as { data: ContentAttachment[] | null };
       return data || [];
     },
     enabled: !!id,
@@ -238,6 +245,11 @@ export default function ConteudoDetailPage() {
     if (!e.target.files?.length || !id) return;
     setUploading(true);
     let firstUploadedUrl: string | null = null;
+    // Determinar próximo sort_order para este tipo
+    const sameTypeAttachments = attachments.filter(a => a.file_type === fileType);
+    let nextOrder = sameTypeAttachments.length > 0
+      ? Math.max(...sameTypeAttachments.map(a => (a as any).sort_order ?? 0)) + 1
+      : 0;
     for (const file of Array.from(e.target.files)) {
       const path = `${id}/${fileType}/${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from('content-files').upload(path, file);
@@ -245,7 +257,9 @@ export default function ConteudoDetailPage() {
       const { data: { publicUrl } } = supabase.storage.from('content-files').getPublicUrl(path);
       await supabase.from('content_attachments').insert({
         content_id: id, file_url: publicUrl, file_name: file.name, file_type: fileType,
+        sort_order: nextOrder,
       } as any);
+      nextOrder += 1;
       if (fileType === 'image' && !firstUploadedUrl) firstUploadedUrl = publicUrl;
     }
     // Auto-set cover_url to the first image if there isn't one yet, so the
@@ -270,6 +284,43 @@ export default function ConteudoDetailPage() {
 
   const deleteAttachment = async (attId: string) => {
     await supabase.from('content_attachments').delete().eq('id', attId);
+    queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
+  };
+
+  const reorderImages = async (sourceId: string, targetId: string) => {
+    if (sourceId === targetId || !id) return;
+    const ids = images.map(i => i.id);
+    const fromIdx = ids.indexOf(sourceId);
+    const toIdx = ids.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const reordered = [...images];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+
+    // Optimistic UI update
+    queryClient.setQueryData(['content-attachments', id], (old: any) => {
+      if (!old) return old;
+      const others = old.filter((a: any) => a.file_type !== 'image');
+      const updated = reordered.map((img, idx) => ({ ...img, sort_order: idx }));
+      return [...updated, ...others];
+    });
+
+    // Persist
+    await Promise.all(
+      reordered.map((img, idx) =>
+        supabase.from('content_attachments').update({ sort_order: idx } as any).eq('id', img.id),
+      ),
+    );
+
+    // Update cover_url to the new first image immediately
+    const newCover = reordered[0]?.file_url || null;
+    if (newCover) {
+      await supabase.from('content_items').update({ cover_url: newCover } as any).eq('id', id);
+      queryClient.invalidateQueries({ queryKey: ['content-item', id] });
+      queryClient.invalidateQueries({ queryKey: ['content-items'] });
+      queryClient.invalidateQueries({ queryKey: ['my-content-items'] });
+      queryClient.invalidateQueries({ queryKey: ['month-all-content'] });
+    }
     queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
   };
 
@@ -372,10 +423,31 @@ export default function ConteudoDetailPage() {
                 {images.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {images.map((img, idx) => (
-                      <div key={img.id} className="relative group rounded-lg overflow-hidden border">
+                      <div
+                        key={img.id}
+                        draggable
+                        onDragStart={() => setDragId(img.id)}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverId(img.id); }}
+                        onDragLeave={() => setDragOverId(prev => prev === img.id ? null : prev)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (dragId) reorderImages(dragId, img.id);
+                          setDragId(null);
+                          setDragOverId(null);
+                        }}
+                        onDragEnd={() => { setDragId(null); setDragOverId(null); }}
+                        className={cn(
+                          'relative group rounded-lg overflow-hidden border cursor-grab active:cursor-grabbing transition-all',
+                          dragId === img.id && 'opacity-40',
+                          dragOverId === img.id && dragId !== img.id && 'ring-2 ring-primary ring-offset-2',
+                        )}
+                      >
                         {idx === 0 && (
                           <Badge className="absolute top-2 left-2 z-10 text-[9px] bg-primary text-primary-foreground">Capa</Badge>
                         )}
+                        <div className="absolute top-2 right-10 z-10 opacity-0 group-hover:opacity-100 bg-background/80 rounded p-1 pointer-events-none">
+                          <GripVertical className="h-3 w-3 text-muted-foreground" />
+                        </div>
                         <img src={img.file_url} alt={img.file_name} className="w-full aspect-square object-cover" />
                         <Button variant="destructive" aria-label="Eliminar" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
                           onClick={() => deleteAttachment(img.id)}><Trash2 className="h-3 w-3" /></Button>
@@ -388,7 +460,7 @@ export default function ConteudoDetailPage() {
                     <div className="text-center text-muted-foreground/40">
                       <ImageIcon className="h-10 w-10 mx-auto mb-2" />
                       <p className="text-xs">Nenhum design carregado</p>
-                      <p className="text-[10px]">A 1ª imagem será usada como capa</p>
+                      <p className="text-[10px]">Arrasta para reordenar — a 1ª será a capa</p>
                     </div>
                   </div>
                 )}
