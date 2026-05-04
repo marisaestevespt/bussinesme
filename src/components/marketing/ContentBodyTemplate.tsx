@@ -4,6 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { ImageIcon } from 'lucide-react';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 // Template structures per format
 export type TemplateField = {
@@ -227,18 +228,14 @@ function ImageBlock({
         <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
         <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{label}</label>
       </div>
-      <div className="rounded-lg border-2 border-dashed border-border bg-muted/10 p-4 min-h-[120px] flex flex-col">
-        {editable ? (
-          <AutoGrowTextarea
-            value={value}
-            onChange={onChange}
-            placeholder={`Notas, copy ou descrição para ${label.toLowerCase()}...`}
-          />
-        ) : (
-          <p className="text-base whitespace-pre-wrap leading-relaxed">
-            {value || <span className="text-muted-foreground italic">Vazio</span>}
-          </p>
-        )}
+      <div className="rounded-lg border-2 border-dashed border-border bg-muted/10 p-2 min-h-[120px]">
+        <RichTextEditor
+          content={value || ''}
+          onChange={onChange}
+          editable={editable}
+          placeholder={`Notas, copy ou descrição para ${label.toLowerCase()}...`}
+          minHeight={100}
+        />
       </div>
     </div>
   );
