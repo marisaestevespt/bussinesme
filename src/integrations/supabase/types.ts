@@ -11806,6 +11806,8 @@ export type Database = {
         Args: { _project_id: string }
         Returns: boolean
       }
+      user_can_open_client: { Args: { _client_id: string }; Returns: boolean }
+      user_can_open_meeting: { Args: { _meeting_id: string }; Returns: boolean }
       user_in_department: { Args: { _dept: string }; Returns: boolean }
     }
     Enums: {

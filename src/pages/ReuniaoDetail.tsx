@@ -48,6 +48,7 @@ import {
 } from '@/components/layout/entity';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { safeUrl } from '@/lib/url';
+import { DetailAccessGuard } from '@/components/access/DetailAccessGuard';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -351,7 +352,7 @@ function EditableBulletList({ items, onChange, label }: { items: string[]; onCha
 
 // ─── Main Page ──────────────────────────────────────────────────
 
-export default function ReuniaoDetailPage() {
+function ReuniaoDetailPageInner() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -1230,5 +1231,14 @@ export default function ReuniaoDetailPage() {
         )}
       </div>
     </AppLayout>
+  );
+}
+
+export default function ReuniaoDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  return (
+    <DetailAccessGuard entity="meeting" id={id}>
+      <ReuniaoDetailPageInner />
+    </DetailAccessGuard>
   );
 }

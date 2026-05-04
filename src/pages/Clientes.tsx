@@ -22,6 +22,8 @@ import {
 } from '@/components/layout/collection';
 import { EntityTabs, EntityTabsList, EntityTabsTrigger } from '@/components/layout/entity';
 import { getPlanningSection } from '@/lib/department-planning';
+import { useDetailAccessMap } from '@/hooks/useDetailAccess';
+import { Lock } from 'lucide-react';
 
 const fmtDate = (d: string | null | undefined) => {
   if (!d) return '—';
@@ -49,6 +51,10 @@ export default function ClientesPage() {
   const archivedItems = useMemo(() => items.filter(c => !(c as any).is_legacy && ARCHIVED_STATUSES.includes(c.status)), [items]);
   const displayItems = tab === 'ativos' ? activeItems : tab === 'arquivados' ? archivedItems : legacyItems;
 
+  // Cadeado por linha: precalcular permissão de abertura
+  const ids = useMemo(() => displayItems.map((c: any) => c.id), [displayItems]);
+  const { data: accessMap = {} } = useDetailAccessMap('client', ids);
+
   const activeCount = activeItems.length;
 
   // Donut data
@@ -68,13 +74,21 @@ export default function ClientesPage() {
     return Object.entries(map).map(([name, count]) => ({ name, count }));
   }, [activeItems]);
 
-  const renderClientRow = (c: Client) => (
+  const renderClientRow = (c: Client) => {
+    const canOpen = accessMap[c.id] !== false; // default optimista enquanto carrega
+    return (
     <TableRow
       key={c.id}
-      className="cursor-pointer"
-      onClick={() => navigate(`/hub/clientes/${c.id}`)}
+      className={canOpen ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'}
+      onClick={() => { if (canOpen) navigate(`/hub/clientes/${c.id}`); }}
+      title={canOpen ? undefined : 'Não tens acesso a este cliente'}
     >
-      <TableCell className="font-medium max-w-[220px] truncate" title={c.full_name}>{c.full_name}</TableCell>
+      <TableCell className="font-medium max-w-[220px] truncate" title={c.full_name}>
+        <span className="inline-flex items-center gap-1.5">
+          {!canOpen && <Lock className="h-3 w-3 text-muted-foreground shrink-0" />}
+          <span className="truncate">{c.full_name}</span>
+        </span>
+      </TableCell>
       <TableCell className="font-mono text-xs text-muted-foreground whitespace-nowrap">{c.client_id}</TableCell>
       <TableCell className="whitespace-nowrap">
         <Badge variant="outline" className={`whitespace-nowrap ${getClientStatusInfo(c.status).color}`}>
@@ -94,7 +108,7 @@ export default function ClientesPage() {
       <TableCell className="text-muted-foreground max-w-[220px] truncate" title={c.email || ''}>{c.email || '—'}</TableCell>
       <TableCell className="text-muted-foreground whitespace-nowrap">{c.whatsapp || '—'}</TableCell>
     </TableRow>
-  );
+  );};
 
   return (
     <AppLayout>

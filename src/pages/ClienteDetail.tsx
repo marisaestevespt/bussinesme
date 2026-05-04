@@ -147,7 +147,7 @@ function DateField({ value, onChange, label }: { value: string | null; onChange:
   );
 }
 
-export default function ClienteDetailPage() {
+function ClienteDetailPageInner() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === 'novo';
@@ -1543,5 +1543,18 @@ export default function ClienteDetailPage() {
       {/* Lead CRM Preview Dialog */}
       <LeadPreviewDialog leadId={leadPreviewId} onClose={() => setLeadPreviewId(null)} />
     </AppLayout>
+  );
+}
+
+import { DetailAccessGuard } from '@/components/access/DetailAccessGuard';
+
+export default function ClienteDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  // 'novo' = criação de cliente, sem id ainda → não aplica guard
+  if (!id || id === 'novo') return <ClienteDetailPageInner />;
+  return (
+    <DetailAccessGuard entity="client" id={id}>
+      <ClienteDetailPageInner />
+    </DetailAccessGuard>
   );
 }
