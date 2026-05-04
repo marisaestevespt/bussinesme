@@ -170,15 +170,16 @@ export function ContentBodyTemplate({ format, value, onChange, editable = true }
   return (
     <div className="space-y-4">
       {imageFields.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-4">
           {imageFields.map(field => (
-            <ImageBlock
-              key={field.key}
-              label={field.label}
-              value={data[field.key] || ''}
-              onChange={(v) => updateField(field.key, v)}
-              editable={editable}
-            />
+            <div key={field.key} className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+              <ImageBlock
+                label={field.label}
+                value={data[field.key] || ''}
+                onChange={(v) => updateField(field.key, v)}
+                editable={editable}
+              />
+            </div>
           ))}
         </div>
       )}
