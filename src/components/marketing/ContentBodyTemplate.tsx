@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -97,20 +97,57 @@ interface ContentBodyTemplateProps {
   editable?: boolean;
 }
 
-export function ContentBodyTemplate({ format, value, onChange, editable = true }: ContentBodyTemplateProps) {
+function ContentBodyTemplateInner({ format, value, onChange, editable = true }: ContentBodyTemplateProps) {
   const fields = getTemplateFields(format);
-  const data = value || {};
+
+  // Internal state buffers fast keystrokes; we only push to parent (heavy re-render) after a debounce.
+  const [data, setData] = useState<Record<string, any>>(value || {});
+  const debounceRef = useRef<number | null>(null);
+  const dataRef = useRef(data);
+  const lastExternalRef = useRef<string>(JSON.stringify(value || {}));
+
+  // Re-sync from outside when the value prop changes meaningfully (e.g. after load).
+  useEffect(() => {
+    const incoming = JSON.stringify(value || {});
+    if (incoming !== lastExternalRef.current && incoming !== JSON.stringify(dataRef.current)) {
+      lastExternalRef.current = incoming;
+      setData(value || {});
+      dataRef.current = value || {};
+    }
+  }, [value]);
+
+  useEffect(() => () => {
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+      onChange(dataRef.current);
+    }
+  }, [onChange]);
+
+  const scheduleFlush = () => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      debounceRef.current = null;
+      lastExternalRef.current = JSON.stringify(dataRef.current);
+      onChange(dataRef.current);
+    }, 400);
+  };
 
   const updateField = (key: string, val: any) => {
-    onChange({ ...data, [key]: val });
+    const next = { ...dataRef.current, [key]: val };
+    dataRef.current = next;
+    setData(next);
+    scheduleFlush();
   };
 
   const toggleChecklistItem = (key: string, item: string) => {
-    const current: string[] = data[`${key}_checked`] || [];
+    const current: string[] = dataRef.current[`${key}_checked`] || [];
     const updated = current.includes(item)
       ? current.filter((i: string) => i !== item)
       : [...current, item];
-    onChange({ ...data, [`${key}_checked`]: updated });
+    const next = { ...dataRef.current, [`${key}_checked`]: updated };
+    dataRef.current = next;
+    setData(next);
+    scheduleFlush();
   };
 
   if (!format) return null;
