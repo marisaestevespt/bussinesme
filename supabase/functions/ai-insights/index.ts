@@ -22,7 +22,12 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Sem autorização");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Sem autorização" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Verify user
     const supabase = createClient(
@@ -34,7 +39,28 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY")!
     );
     const { data: { user }, error: authErr } = await anonClient.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (authErr || !user) throw new Error("Sessão inválida");
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Sessão inválida" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // The insights engine reads sensitive operational data with the service-role
+    // client, so it must be restricted to users who already have broad business
+    // visibility.
+    const { data: roleRows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    const allowedRoles = new Set(["owner", "admin"]);
+    const hasAccess = (roleRows || []).some((row: Row) => allowedRoles.has(String(row.role)));
+    if (!hasAccess) {
+      return new Response(JSON.stringify({ error: "Acesso restrito ao Owner/Admin." }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { type, context } = await req.json();
 
