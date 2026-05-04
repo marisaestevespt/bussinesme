@@ -1408,6 +1408,23 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // --- Role gate: only owners/admins may use the AI assistant ---
+    // The assistant uses the service-role key for queries (bypassing RLS), so
+    // we MUST restrict access at the function boundary to roles that already
+    // have broad visibility over sensitive data (payroll, contracts, finance).
+    const { data: roleRows } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    const allowedRoles = new Set(["owner", "admin"]);
+    const hasAccess = (roleRows || []).some((r: Row) => allowedRoles.has(String(r.role)));
+    if (!hasAccess) {
+      return new Response(
+        JSON.stringify({ error: "Acesso restrito ao Owner/Admin." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     let userName = "";
     const { data: profile } = await supabaseAdmin.from("profiles").select("full_name").eq("user_id", user.id).single();
     userName = profile?.full_name || user.email?.split("@")[0] || "";
