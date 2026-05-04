@@ -352,6 +352,14 @@ export default function ConteudoDetailPage() {
     <div className="space-y-1"><label className="text-xs text-muted-foreground font-medium">{label}</label>{children}</div>
   );
 
+  // Notion-style row: label fixo à esquerda, valor à direita
+  const PropRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className="flex items-start gap-3 py-1.5">
+      <div className="w-40 shrink-0 text-sm text-muted-foreground pt-2">{label}</div>
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
+  );
+
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
     const existing = form.scheduled_at ? new Date(form.scheduled_at) : new Date();
@@ -417,12 +425,166 @@ export default function ConteudoDetailPage() {
             </Button>
           </div>
 
+          <div className="max-w-4xl mx-auto">
           <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            className="text-2xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6" placeholder="Título do conteúdo" />
+            className="text-4xl md:text-5xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-8 leading-tight" placeholder="Título do conteúdo" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main */}
-            <div className="lg:col-span-2 space-y-6">
+          {/* Propriedades estilo Notion */}
+          <div className="mb-8 space-y-0.5">
+            <PropRow label="Status">
+              <Select value={form.status} onValueChange={v => {
+                setForm(f => ({ ...f, status: v }));
+                setShowResponsibleReminder(true);
+              }}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {showResponsibleReminder && (
+                <div className="flex items-start gap-2 mt-2 p-2.5 rounded-md bg-warning/15 border border-warning/30 dark:bg-warning/30 dark:border-warning">
+                  <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-warning">O responsável de fase continua o mesmo?</p>
+                    <p className="text-[10px] text-warning mt-0.5">Confirma que o responsável de fase está correto para este novo status.</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-warning hover:bg-warning/15"
+                    onClick={() => setShowResponsibleReminder(false)}>OK</Button>
+                </div>
+              )}
+            </PropRow>
+
+            <PropRow label="Data e Hora">
+              <div className="flex gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex-1 justify-start text-sm font-normal hover:bg-muted/50 -ml-2">
+                      <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                      {form.scheduled_at ? format(new Date(form.scheduled_at), 'dd/MM/yyyy', { locale: pt }) : 'Data'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={form.scheduled_at ? new Date(form.scheduled_at) : undefined}
+                      onSelect={handleDateSelect} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+                <Input type="time" className="h-9 w-24 border-0 hover:bg-muted/50 focus-visible:ring-0"
+                  value={form.scheduled_at ? format(new Date(form.scheduled_at), 'HH:mm') : ''}
+                  onChange={handleTimeChange} />
+              </div>
+            </PropRow>
+
+            <PropRow label="Canais">
+              <div className="flex flex-wrap gap-1.5 py-2">
+                {channels.filter(c => c.is_active).map(ch => {
+                  const checked = selectedChannels.includes(ch.id);
+                  return (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => setSelectedChannels(prev => checked ? prev.filter(i => i !== ch.id) : [...prev, ch.id])}
+                      className={cn(
+                        'text-xs px-2 py-1 rounded-md border transition',
+                        checked ? 'bg-primary/10 border-primary/30 text-foreground' : 'bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/60'
+                      )}
+                    >
+                      {ch.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </PropRow>
+
+            {(() => {
+              const availableAccounts = channelAccounts.filter(a => selectedChannels.includes(a.channel_id));
+              if (availableAccounts.length === 0) return null;
+              return (
+                <PropRow label="Conta">
+                  <Select value={form.account_id || 'none'} onValueChange={v => setForm(f => ({ ...f, account_id: v === 'none' ? '' : v }))}>
+                    <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Sem conta específica" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem conta específica</SelectItem>
+                      {availableAccounts.map(acc => {
+                        const ch = channels.find(c => c.id === acc.channel_id);
+                        const label = `${ch?.name || ''} · ${acc.handle}${acc.label ? ` (${acc.label})` : ''}`;
+                        return <SelectItem key={acc.id} value={acc.id}>{label}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                </PropRow>
+              );
+            })()}
+
+            <PropRow label="Etapa de Funil">
+              <Select value={form.funnel_stage} onValueChange={v => setForm(f => ({ ...f, funnel_stage: v }))}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
+                <SelectContent>{FUNNEL_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </PropRow>
+
+            <PropRow label="Tipo de Conteúdo">
+              <Select value={form.content_type} onValueChange={v => setForm(f => ({ ...f, content_type: v }))}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
+                <SelectContent>{CONTENT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </PropRow>
+
+            <PropRow label="Formato">
+              <Select value={form.format} onValueChange={v => setForm(f => ({ ...f, format: v }))}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
+                <SelectContent>
+                  {getFormatsForChannels(
+                    (selectedChannels.length > 0
+                      ? selectedChannels.map(chId => channels.find(c => c.id === chId)?.name || '').filter(Boolean)
+                      : channels.filter(c => c.is_active).map(c => c.name)
+                    )
+                  ).map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </PropRow>
+
+            <PropRow label="Objetivo">
+              <Select value={form.objective} onValueChange={v => setForm(f => ({ ...f, objective: v }))}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
+                <SelectContent>{OBJECTIVE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </PropRow>
+
+            <PropRow label="Produto">
+              <Select value={form.product_id} onValueChange={v => {
+                const prod = products.find((p: any) => p.id === v);
+                setForm(f => ({ ...f, product_id: v, product_name: prod?.name || '' }));
+              }}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
+                <SelectContent>{products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </PropRow>
+
+            <PropRow label="Projeto">
+              <Select value={form.project_id} onValueChange={v => setForm(f => ({ ...f, project_id: v }))}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
+                <SelectContent>{projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </PropRow>
+
+            <PropRow label="Responsável">
+              <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Ninguém" /></SelectTrigger>
+                <SelectContent>{profiles.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+              </Select>
+            </PropRow>
+          </div>
+
+          <div className="flex justify-end mb-6">
+            <Button onClick={handleSave} disabled={saving} size="sm">
+              <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar'}
+            </Button>
+          </div>
+
+          <Separator className="mb-6" />
+
+          {/* Conteúdo principal */}
+          <div className="space-y-6">
               {/* Designs Finais */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -539,166 +701,6 @@ export default function ConteudoDetailPage() {
 
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-4">
-              <Button className="w-full" onClick={handleSave} disabled={saving}>
-                <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar'}
-              </Button>
-
-              <Card>
-                <CardContent className="p-4 space-y-4">
-                  <Field label="Status">
-                    <Select value={form.status} onValueChange={v => {
-                      setForm(f => ({ ...f, status: v }));
-                      setShowResponsibleReminder(true);
-                    }}>
-                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    {showResponsibleReminder && (
-                      <div className="flex items-start gap-2 mt-2 p-2.5 rounded-md bg-warning/15 border border-warning/30 dark:bg-warning/30 dark:border-warning">
-                        <AlertTriangle className="h-4 w-4 text-warning dark:text-warning shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-warning dark:text-warning">O responsável de fase continua o mesmo?</p>
-                          <p className="text-[10px] text-warning dark:text-warning mt-0.5">Confirma que o responsável de fase está correto para este novo status.</p>
-                        </div>
-                        <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-warning dark:text-warning hover:bg-warning/15 dark:hover:bg-warning/20"
-                          onClick={() => setShowResponsibleReminder(false)}>OK</Button>
-                      </div>
-                    )}
-                  </Field>
-
-                  <Field label="Data e Hora">
-                    <div className="flex gap-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm" className="flex-1 justify-start text-xs">
-                            <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                            {form.scheduled_at ? format(new Date(form.scheduled_at), 'dd/MM/yyyy', { locale: pt }) : 'Data'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={form.scheduled_at ? new Date(form.scheduled_at) : undefined}
-                            onSelect={handleDateSelect} className="p-3 pointer-events-auto" />
-                        </PopoverContent>
-                      </Popover>
-                      <Input type="time" className="h-9 w-24"
-                        value={form.scheduled_at ? format(new Date(form.scheduled_at), 'HH:mm') : ''}
-                        onChange={handleTimeChange} />
-                    </div>
-                  </Field>
-
-                  <Field label="Canais">
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {channels.filter(c => c.is_active).map(ch => (
-                        <label key={ch.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                          <Checkbox checked={selectedChannels.includes(ch.id)}
-                            onCheckedChange={checked => setSelectedChannels(prev =>
-                              checked ? [...prev, ch.id] : prev.filter(i => i !== ch.id)
-                            )} />
-                          {ch.name}
-                        </label>
-                      ))}
-                    </div>
-                  </Field>
-
-                  {(() => {
-                    const availableAccounts = channelAccounts.filter(a => selectedChannels.includes(a.channel_id));
-                    if (availableAccounts.length === 0) return null;
-                    return (
-                      <Field label="Conta">
-                        <Select value={form.account_id || 'none'} onValueChange={v => setForm(f => ({ ...f, account_id: v === 'none' ? '' : v }))}>
-                          <SelectTrigger className="h-9"><SelectValue placeholder="Sem conta específica" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Sem conta específica</SelectItem>
-                            {availableAccounts.map(acc => {
-                              const ch = channels.find(c => c.id === acc.channel_id);
-                              const label = `${ch?.name || ''} · ${acc.handle}${acc.label ? ` (${acc.label})` : ''}`;
-                              return <SelectItem key={acc.id} value={acc.id}>{label}</SelectItem>;
-                            })}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    );
-                  })()}
-
-                  <Field label="Etapa de Funil">
-                    <Select value={form.funnel_stage} onValueChange={v => setForm(f => ({ ...f, funnel_stage: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                      <SelectContent>
-                        {FUNNEL_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Tipo de Conteúdo">
-                    <Select value={form.content_type} onValueChange={v => setForm(f => ({ ...f, content_type: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                      <SelectContent>
-                        {CONTENT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Formato">
-                    <Select value={form.format} onValueChange={v => setForm(f => ({ ...f, format: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                      <SelectContent>
-                        {getFormatsForChannels(
-                          (selectedChannels.length > 0
-                            ? selectedChannels.map(chId => channels.find(c => c.id === chId)?.name || '').filter(Boolean)
-                            : channels.filter(c => c.is_active).map(c => c.name)
-                          )
-                        ).map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Objetivo">
-                    <Select value={form.objective} onValueChange={v => setForm(f => ({ ...f, objective: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                      <SelectContent>
-                        {OBJECTIVE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Produto associado">
-                    <Select value={form.product_id} onValueChange={v => {
-                      const prod = products.find((p: any) => p.id === v);
-                      setForm(f => ({ ...f, product_id: v, product_name: prod?.name || '' }));
-                    }}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                      <SelectContent>
-                        {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Projeto">
-                    <Select value={form.project_id} onValueChange={v => setForm(f => ({ ...f, project_id: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                      <SelectContent>
-                        {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Responsável de Fase">
-                    <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Ninguém" /></SelectTrigger>
-                      <SelectContent>
-                        {profiles.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
           {/* Comentários — secção full-width abaixo dos campos principais */}
           {id && (
             <Card className="mt-8">
@@ -707,6 +709,7 @@ export default function ConteudoDetailPage() {
               </CardContent>
             </Card>
           )}
+          </div>
         </div>
       </div>
     </AppLayout>
