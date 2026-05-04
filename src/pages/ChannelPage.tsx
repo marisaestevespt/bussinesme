@@ -347,7 +347,8 @@ export default function ChannelPage() {
                         <p className="text-xs font-medium text-muted-foreground mb-2">Formatos e Funções Validados</p>
                         <Card>
                           <CardContent className="p-0">
-                            <table className="w-full text-sm">
+                            <div className="overflow-x-auto">
+                            <table className="w-full text-sm min-w-[480px]">
                               <thead>
                                 <tr className="border-b bg-muted/30">
                                   <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Formato</th>
@@ -365,6 +366,7 @@ export default function ChannelPage() {
                                 ))}
                               </tbody>
                             </table>
+                            </div>
                           </CardContent>
                         </Card>
                       </div>
@@ -375,7 +377,8 @@ export default function ChannelPage() {
                         <p className="text-xs font-medium text-muted-foreground mb-2">Quadros Fixos de Conteúdo</p>
                         <Card>
                           <CardContent className="p-0">
-                            <table className="w-full text-sm">
+                            <div className="overflow-x-auto">
+                            <table className="w-full text-sm min-w-[560px]">
                               <thead>
                                 <tr className="border-b bg-muted/30">
                                   <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Nome</th>
@@ -395,6 +398,7 @@ export default function ChannelPage() {
                                 ))}
                               </tbody>
                             </table>
+                            </div>
                           </CardContent>
                         </Card>
                       </div>
