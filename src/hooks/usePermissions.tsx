@@ -2,7 +2,33 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
-import type { ModuleKey } from '@/lib/modules';
+import { MODULES, type ModuleKey } from '@/lib/modules';
+
+// Sempre acessíveis a qualquer membro autenticado, independentemente da role.
+// Cobrem Secretária, Hub e tudo o que for "Transversais" (Agenda, Reuniões, Projetos, Tarefas, Clientes, Mural, Acessos, Processos).
+const ALWAYS_ALLOWED: Set<string> = new Set([
+  'comeca-aqui',
+  'hub-equipa',
+  ...Object.entries(MODULES)
+    .filter(([, m]) => (m as any).section === 'transversais')
+    .map(([k]) => k),
+]);
+
+// Mapeia o nome do departamento do team_member para a moduleKey correspondente.
+// Nem todos têm equivalência 1:1, por isso explicitamos.
+const DEPT_TO_MODULE: Record<string, string[]> = {
+  marketing: ['marketing'],
+  financeiro: ['financeiro'],
+  comercial: ['comercial'],
+  clientes: ['clientes', 'customer-success'],
+  equipa: ['equipa', 'recursos-humanos'],
+  operacao: ['operacao'],
+  administrativo: ['administrativo'],
+  produtos: ['produtos'],
+  rh: ['recursos-humanos', 'equipa'],
+  'recursos-humanos': ['recursos-humanos', 'equipa'],
+  'customer-success': ['customer-success', 'clientes'],
+};
 
 export function usePermissions() {
   const { user, isOwner } = useAuth();
@@ -143,9 +169,19 @@ export function usePermissions() {
   }, [user, isOwner, impersonating]);
 
   const canAccess = (moduleKey: ModuleKey | string): boolean => {
-    if (moduleKey === 'hub-equipa') return true;
     if (isOwner && !impersonating) return true;
     if (allowedModules.has('*')) return true;
+
+    // 1. Defaults sempre acessíveis (Secretária, Hub, Transversais)
+    if (ALWAYS_ALLOWED.has(moduleKey)) return true;
+
+    // 2. Departamento(s) do membro
+    for (const dept of userDepartments) {
+      const mods = DEPT_TO_MODULE[dept] ?? [dept];
+      if (mods.includes(moduleKey)) return true;
+    }
+
+    // 3. Páginas extra concedidas via role (configuração manual)
     return allowedModules.has(moduleKey);
   };
 
