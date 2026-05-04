@@ -1088,6 +1088,9 @@ export default function ReunioesPage() {
         .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())
     : [...meetings].sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
 
+  const meetingIds = useMemo(() => filteredMeetings.map((m: any) => m.id), [filteredMeetings]);
+  const { data: meetingAccess = {} } = useDetailAccessMap('meeting', meetingIds);
+
   return (
     <AppLayout>
       <CollectionPage>
@@ -1143,7 +1146,9 @@ export default function ReunioesPage() {
                 <div className="col-span-3">Data / Hora</div>
                 <div className="col-span-3">Tipo / Contexto</div>
               </div>
-              {filteredMeetings.map(m => (
+              {filteredMeetings.map(m => {
+                const canOpen = meetingAccess[m.id] !== false;
+                return (
                 <div
                   key={m.id}
                   className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm items-center"
@@ -1153,10 +1158,16 @@ export default function ReunioesPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => navigate(`/hub/reunioes/${m.id}`)}
-                    className="col-span-4 font-medium text-foreground truncate text-left hover:underline"
+                    onClick={() => { if (canOpen) navigate(`/hub/reunioes/${m.id}`); }}
+                    disabled={!canOpen}
+                    title={canOpen ? undefined : 'Não tens acesso a esta reunião'}
+                    className={cn(
+                      'col-span-4 font-medium text-foreground truncate text-left flex items-center gap-1.5',
+                      canOpen ? 'hover:underline' : 'cursor-not-allowed opacity-70',
+                    )}
                   >
-                    {m.title}
+                    {!canOpen && <Lock className="h-3 w-3 text-muted-foreground shrink-0" />}
+                    <span className="truncate">{m.title}</span>
                   </button>
                   <div className="col-span-3">
                     <InlineDateTimeEditor meetingId={m.id} dateTime={m.date_time} />
@@ -1168,7 +1179,8 @@ export default function ReunioesPage() {
                     </span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </InfiniteScrollList>
         )}
