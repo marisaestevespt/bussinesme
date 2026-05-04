@@ -81,14 +81,14 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors h-full flex flex-col overflow-hidden">
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors flex flex-col overflow-hidden">
       {/* Cover image (mantida — a forma de visualização que o user gosta) */}
       {coverImage && (
         <div className="w-full aspect-[3/1] overflow-hidden shrink-0">
           <img src={coverImage} alt="" className="w-full h-full object-cover" />
         </div>
       )}
-      <div className="p-1.5 flex flex-col gap-1.5 flex-1 min-h-0">
+      <div className="p-1.5 flex flex-col items-start gap-1">
         {/* Título + hora (estilo Notion: título destacado em cima) */}
         <div className="flex items-start justify-between gap-1">
           <p className="text-xs font-semibold leading-tight text-foreground line-clamp-2">{item.title}</p>
@@ -138,7 +138,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
         )}
         {/* Assignee — avatar + nome no rodapé, estilo Notion */}
         {assignee && (
-          <div className="flex items-center gap-1 mt-auto pt-1">
+          <div className="flex items-center gap-1 pt-0.5">
             <Avatar className="h-4 w-4">
               <AvatarImage src={getPhotoUrl(assignee)} />
               <AvatarFallback className="text-[7px]">{assignee.full_name?.charAt(0) || '?'}</AvatarFallback>
@@ -217,9 +217,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
               </div>
               <div className="flex flex-col gap-1 flex-1">
                 {dayItems.slice(0, 4).map(item => (
-                  <div key={item.id} className="flex-1 min-h-0">
-                    <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} profiles={profiles} attachments={attachments} />
-                  </div>
+                  <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} profiles={profiles} attachments={attachments} />
                 ))}
               </div>
               {dayItems.length > 4 && <p className="text-[9px] text-muted-foreground pl-1 shrink-0">+{dayItems.length - 4}</p>}
