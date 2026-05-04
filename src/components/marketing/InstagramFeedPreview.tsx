@@ -130,7 +130,9 @@ export function InstagramFeedPreview({ items }: Props) {
       ) : (
         <div className="grid grid-cols-3 gap-[2px]">
           {feedItems.map(item => {
-            const isFuture = item.status !== 'publicado';
+            const isPublished = item.status === 'publicado';
+            const isScheduled = !isPublished && !!item.scheduled_at && new Date(item.scheduled_at) >= now;
+            const isDraft = !isPublished && !isScheduled;
             const isReel = item.format === 'reels';
             const isCarousel = item.format === 'carrossel';
             return (
@@ -144,16 +146,10 @@ export function InstagramFeedPreview({ items }: Props) {
                   <img
                     src={item.cover_url}
                     alt={item.title}
-                    className={cn(
-                      "h-full w-full object-cover hq-transition group-hover:opacity-90",
-                      isFuture && "opacity-60 grayscale-[20%]"
-                    )}
+                    className="h-full w-full object-cover hq-transition group-hover:opacity-90"
                   />
                 ) : (
-                  <div className={cn(
-                    "h-full w-full flex items-center justify-center bg-muted",
-                    isFuture && "opacity-60"
-                  )}>
+                  <div className="h-full w-full flex items-center justify-center bg-muted">
                     <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
                   </div>
                 )}
@@ -163,11 +159,13 @@ export function InstagramFeedPreview({ items }: Props) {
                     {isReel ? <Film className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
                   </div>
                 )}
-                {/* Scheduled badge (bottom-left) */}
-                {isFuture && (
+                {/* Status badge (bottom-left) */}
+                {(isScheduled || isDraft) && (
                   <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-background/90 px-1.5 py-0.5 shadow-sm">
                     <Clock className="h-2.5 w-2.5 text-foreground" />
-                    <span className="text-[9px] font-medium text-foreground">Agendado</span>
+                    <span className="text-[9px] font-medium text-foreground">
+                      {isScheduled ? 'Agendado' : 'Planeado'}
+                    </span>
                   </div>
                 )}
               </button>
