@@ -437,13 +437,16 @@ export default function ConteudoDetailPage() {
                 )}
               </div>
 
-              <Separator />
-
-              {/* Copy / Guião */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
-                <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
-              </div>
+              {['reels', 'vlog', 'longo_youtube', 'short_tiktok'].includes(form.format) && (
+                <>
+                  <Separator />
+                  {/* Copy / Guião — só para formatos de vídeo */}
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
+                    <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
+                  </div>
+                </>
+              )}
 
               <Separator />
 
