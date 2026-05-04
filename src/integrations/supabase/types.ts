@@ -11805,6 +11805,7 @@ export type Database = {
         }[]
       }
       user_can_access_client: { Args: { _client_id: string }; Returns: boolean }
+      user_can_access_portal: { Args: { _portal_id: string }; Returns: boolean }
       user_can_access_project: {
         Args: { _project_id: string }
         Returns: boolean
