@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
-import { Image as ImageIcon, Clock } from 'lucide-react';
+import { Image as ImageIcon, Clock, Film, Layers, Grid3x3, Bookmark, UserSquare2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ContentItem } from '@/lib/marketing-constants';
 
@@ -12,6 +14,14 @@ export function InstagramFeedPreview({ items }: Props) {
   const navigate = useNavigate();
   const now = new Date();
 
+  const { data: settings } = useQuery({
+    queryKey: ['business-settings-ig-preview'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_settings').select('business_name, logo_url').maybeSingle();
+      return data as { business_name: string | null; logo_url: string | null } | null;
+    },
+  });
+
   // Publicados + agendados futuros, ordenados do mais recente para o mais antigo
   const feedItems = items
     .filter(i => {
@@ -21,64 +31,142 @@ export function InstagramFeedPreview({ items }: Props) {
       return isPublished || isFutureScheduled;
     })
     .sort((a, b) => new Date(b.scheduled_at!).getTime() - new Date(a.scheduled_at!).getTime())
-    .slice(0, 24);
+    .slice(0, 30);
 
-  if (feedItems.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center text-sm text-muted-foreground italic">
-          Sem conteúdos publicados ou agendados para mostrar no feed.
-        </CardContent>
-      </Card>
-    );
-  }
+  const handle = (settings?.business_name || 'business')
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_.]/g, '');
+
+  const publishedCount = feedItems.filter(i => i.status === 'publicado').length;
 
   return (
-    <div className="max-w-md mx-auto">
-      <div className="grid grid-cols-3 gap-0.5 bg-border/50 p-0.5 rounded-md overflow-hidden">
-        {feedItems.map(item => {
-          const isFuture = item.status !== 'publicado';
-          return (
-            <button
-              key={item.id}
-              onClick={() => navigate(`/hub/marketing/conteudos/${item.id}`)}
-              className="relative aspect-square bg-muted overflow-hidden group hq-transition"
-              title={item.title}
-            >
-              {item.cover_url ? (
-                <img
-                  src={item.cover_url}
-                  alt={item.title}
-                  className={cn(
-                    "h-full w-full object-cover hq-transition group-hover:scale-105",
-                    isFuture && "opacity-70"
-                  )}
-                />
+    <div className="max-w-[420px] mx-auto rounded-xl border border-border bg-background overflow-hidden shadow-sm">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <span className="text-sm font-semibold text-foreground">{handle}</span>
+        <div className="flex items-center gap-1 text-foreground">
+          <span className="text-lg leading-none">+</span>
+          <span className="text-lg leading-none">≡</span>
+        </div>
+      </div>
+
+      {/* Profile header */}
+      <div className="px-4 py-4">
+        <div className="flex items-center gap-5">
+          {/* Avatar with story ring */}
+          <div className="rounded-full p-[2px] bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600">
+            <div className="rounded-full p-[2px] bg-background">
+              {settings?.logo_url ? (
+                <img src={settings.logo_url} alt="" className="h-16 w-16 rounded-full object-cover" />
               ) : (
-                <div className="h-full w-full flex items-center justify-center bg-muted">
-                  <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
+                <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-lg font-semibold text-muted-foreground">
+                  {(settings?.business_name || '?').charAt(0).toUpperCase()}
                 </div>
               )}
-              {isFuture && (
-                <div className="absolute top-1 right-1 rounded-full bg-background/90 p-1 shadow-sm">
-                  <Clock className="h-3 w-3 text-foreground" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 hq-transition" />
-            </button>
-          );
-        })}
+            </div>
+          </div>
+          {/* Stats */}
+          <div className="flex-1 grid grid-cols-3 text-center text-foreground">
+            <div>
+              <div className="text-base font-semibold">{publishedCount}</div>
+              <div className="text-[11px] text-muted-foreground">publicações</div>
+            </div>
+            <div>
+              <div className="text-base font-semibold">—</div>
+              <div className="text-[11px] text-muted-foreground">seguidores</div>
+            </div>
+            <div>
+              <div className="text-base font-semibold">—</div>
+              <div className="text-[11px] text-muted-foreground">a seguir</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <p className="text-sm font-semibold text-foreground">{settings?.business_name || 'Business'}</p>
+          <p className="text-[12px] text-muted-foreground">Preview do feed planeado ✨</p>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button className="text-xs font-semibold py-1.5 rounded-md bg-muted text-foreground hover:bg-muted/80 hq-transition">
+            Editar perfil
+          </button>
+          <button className="text-xs font-semibold py-1.5 rounded-md bg-muted text-foreground hover:bg-muted/80 hq-transition">
+            Partilhar perfil
+          </button>
+        </div>
       </div>
-      <div className="flex items-center justify-center gap-4 mt-3 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-foreground/60" />
-          Publicado
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Clock className="h-3 w-3" />
-          Agendado
-        </span>
+
+      {/* Tabs */}
+      <div className="flex border-t border-border">
+        <div className="flex-1 flex items-center justify-center py-2.5 border-t-2 border-foreground -mt-px">
+          <Grid3x3 className="h-5 w-5 text-foreground" />
+        </div>
+        <div className="flex-1 flex items-center justify-center py-2.5 text-muted-foreground/60">
+          <Film className="h-5 w-5" />
+        </div>
+        <div className="flex-1 flex items-center justify-center py-2.5 text-muted-foreground/60">
+          <Bookmark className="h-5 w-5" />
+        </div>
+        <div className="flex-1 flex items-center justify-center py-2.5 text-muted-foreground/60">
+          <UserSquare2 className="h-5 w-5" />
+        </div>
       </div>
+
+      {/* Grid */}
+      {feedItems.length === 0 ? (
+        <div className="p-10 text-center text-sm text-muted-foreground italic">
+          Sem conteúdos para mostrar.
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-[2px]">
+          {feedItems.map(item => {
+            const isFuture = item.status !== 'publicado';
+            const isReel = item.format === 'reels';
+            const isCarousel = item.format === 'carrossel';
+            return (
+              <button
+                key={item.id}
+                onClick={() => navigate(`/hub/marketing/conteudos/${item.id}`)}
+                className="relative aspect-square bg-muted overflow-hidden group"
+                title={item.title}
+              >
+                {item.cover_url ? (
+                  <img
+                    src={item.cover_url}
+                    alt={item.title}
+                    className={cn(
+                      "h-full w-full object-cover hq-transition group-hover:opacity-90",
+                      isFuture && "opacity-60 grayscale-[20%]"
+                    )}
+                  />
+                ) : (
+                  <div className={cn(
+                    "h-full w-full flex items-center justify-center bg-muted",
+                    isFuture && "opacity-60"
+                  )}>
+                    <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
+                  </div>
+                )}
+                {/* Format indicator (top-right) */}
+                {(isReel || isCarousel) && (
+                  <div className="absolute top-1.5 right-1.5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+                    {isReel ? <Film className="h-4 w-4" /> : <Layers className="h-4 w-4" />}
+                  </div>
+                )}
+                {/* Scheduled badge (bottom-left) */}
+                {isFuture && (
+                  <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-background/90 px-1.5 py-0.5 shadow-sm">
+                    <Clock className="h-2.5 w-2.5 text-foreground" />
+                    <span className="text-[9px] font-medium text-foreground">Agendado</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
