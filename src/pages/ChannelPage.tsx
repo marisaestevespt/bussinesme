@@ -24,6 +24,7 @@ import {
 import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelContent';
 import { ChannelMonthGallery } from '@/components/marketing/ChannelMonthGallery';
 import { ChannelMonthlyAnalysis } from '@/components/marketing/ChannelMonthlyAnalysis';
+import { InstagramFeedPreview } from '@/components/marketing/InstagramFeedPreview';
 import { BackNavigation } from '@/components/BackNavigation';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 
@@ -203,6 +204,7 @@ export default function ChannelPage() {
   };
 
   const isWebsite = channel?.name?.toLowerCase() === 'website';
+  const isInstagram = channel?.name?.toLowerCase() === 'instagram';
 
   if (!channel) {
     return (
@@ -406,6 +408,21 @@ export default function ChannelPage() {
               <Separator />
 
               {/* Section 3: Calendar filtered to this channel */}
+              {isInstagram && (
+                <>
+                  <section className="space-y-4">
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">Preview do Feed</h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Simulação do feed Instagram com conteúdos publicados e agendados
+                      </p>
+                    </div>
+                    <InstagramFeedPreview items={channelContent} />
+                  </section>
+                  <Separator />
+                </>
+              )}
+
               <section className="space-y-4">
                 <h2 className="text-lg font-semibold text-foreground">Calendário — {channel.name}</h2>
                 <ContentCalendar
