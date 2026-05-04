@@ -585,6 +585,33 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 O que faz</h3>
                 <div>
+                  <span className="text-xs text-muted-foreground font-medium">Atalhos rápidos</span>
+                  <p className="text-[10px] text-muted-foreground">Aplica em 1 clique departamento(s) + modo de trabalho típico. Podes ajustar depois.</p>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {[
+                      { key: 'contabilista',     label: 'Contabilista',     depts: ['financeiro'],     wwc: false },
+                      { key: 'marketer',         label: 'Marketer',         depts: ['marketing'],      wwc: false },
+                      { key: 'comercial',        label: 'Comercial',        depts: ['comercial'],      wwc: true  },
+                      { key: 'customer-success', label: 'Customer Success', depts: ['clientes'],       wwc: true  },
+                      { key: 'administrativa',   label: 'Administrativa',   depts: ['administrativo'], wwc: false },
+                    ].map(p => (
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => {
+                          set('departments', p.depts);
+                          set('department', p.depts[0] || '');
+                          set('work_areas', p.depts);
+                          set('works_with_clients', p.wwc);
+                        }}
+                        className="text-[11px] rounded-full border border-border px-2.5 py-1 hover:border-primary hover:bg-primary/5 transition-colors"
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
                   <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
                   <p className="text-[10px] text-muted-foreground">Define em que áreas do negócio este membro trabalha. Controla também o acesso a essas secções do sistema.</p>
                   <div className="space-y-1 mt-1.5">
