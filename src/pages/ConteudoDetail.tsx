@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle, GripVertical } from 'lucide-react';
+import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle, GripVertical, ArrowDownAZ } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
@@ -287,16 +287,8 @@ export default function ConteudoDetailPage() {
     queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
   };
 
-  const reorderImages = async (sourceId: string, targetId: string) => {
-    if (sourceId === targetId || !id) return;
-    const ids = images.map(i => i.id);
-    const fromIdx = ids.indexOf(sourceId);
-    const toIdx = ids.indexOf(targetId);
-    if (fromIdx === -1 || toIdx === -1) return;
-    const reordered = [...images];
-    const [moved] = reordered.splice(fromIdx, 1);
-    reordered.splice(toIdx, 0, moved);
-
+  const applyImageOrder = async (reordered: typeof images) => {
+    if (!id) return;
     // Optimistic UI update
     queryClient.setQueryData(['content-attachments', id], (old: any) => {
       if (!old) return old;
@@ -322,6 +314,27 @@ export default function ConteudoDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['month-all-content'] });
     }
     queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
+  };
+
+  const reorderImages = async (sourceId: string, targetId: string) => {
+    if (sourceId === targetId || !id) return;
+    const ids = images.map(i => i.id);
+    const fromIdx = ids.indexOf(sourceId);
+    const toIdx = ids.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const reordered = [...images];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    await applyImageOrder(reordered);
+  };
+
+  const sortImagesByName = async () => {
+    if (images.length < 2) return;
+    const sorted = [...images].sort((a, b) =>
+      a.file_name.localeCompare(b.file_name, 'pt', { numeric: true, sensitivity: 'base' })
+    );
+    await applyImageOrder(sorted);
+    toast.success('Imagens ordenadas por nome');
   };
 
   const images = attachments.filter(a => a.file_type === 'image');
@@ -419,6 +432,11 @@ export default function ConteudoDetailPage() {
                     <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-3.5 w-3.5 mr-1" />Adicionar</span></Button>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={e => uploadFiles(e, 'image')} disabled={uploading} />
                   </label>
+                  {images.length > 1 && (
+                    <Button variant="ghost" size="sm" onClick={sortImagesByName} className="text-xs">
+                      <ArrowDownAZ className="h-3.5 w-3.5 mr-1" />Ordenar por nome
+                    </Button>
+                  )}
                 </div>
                 {images.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
