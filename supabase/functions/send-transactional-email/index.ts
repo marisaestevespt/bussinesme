@@ -50,29 +50,7 @@ Deno.serve(async (req) => {
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
 
-  // ---- AUTH GATE (in-function) ----
-  const internalSecret = req.headers.get('x-internal-secret')
-  const authHeader = req.headers.get('Authorization') || ''
-  const bearer = authHeader.toLowerCase().startsWith('bearer ')
-    ? authHeader.slice(7).trim()
-    : ''
-
-  const isInternal = !!internalSecret && !!supabaseServiceKey && internalSecret === supabaseServiceKey
-  const isServiceRole = !!supabaseServiceKey && bearer === supabaseServiceKey
-  const hasUserJwt = !!bearer && bearer !== supabaseAnonKey && bearer.split('.').length === 3
-
-  if (!isInternal && !isServiceRole && !hasUserJwt) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
-  }
-
-  // Rate limit: 30 emails / minute per IP (anti-email-bombing)
-  const rl = checkRateLimit(`tx-email:${getClientId(req)}`, 30, 60)
-  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders)
-
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
     console.error('Missing required environment variables')
     return new Response(
       JSON.stringify({ error: 'Server configuration error' }),
@@ -82,6 +60,33 @@ Deno.serve(async (req) => {
       }
     )
   }
+
+  // ---- AUTH GATE (in-function) ----
+  const internalSecret = req.headers.get('x-internal-secret')
+  const authHeader = req.headers.get('Authorization') || ''
+  const bearer = authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.slice(7).trim()
+    : ''
+
+  const isInternal = !!internalSecret && !!supabaseServiceKey && internalSecret === supabaseServiceKey
+  const isServiceRole = !!supabaseServiceKey && bearer === supabaseServiceKey
+  let hasValidUserJwt = false
+  if (!isInternal && !isServiceRole && bearer && bearer !== supabaseAnonKey) {
+    const anonClient = createClient(supabaseUrl, supabaseAnonKey)
+    const { data, error } = await anonClient.auth.getUser(bearer)
+    hasValidUserJwt = !error && !!data?.user
+  }
+
+  if (!isInternal && !isServiceRole && !hasValidUserJwt) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
+
+  // Rate limit: 30 emails / minute per IP (anti-email-bombing)
+  const rl = checkRateLimit(`tx-email:${getClientId(req)}`, 30, 60)
+  if (!rl.allowed) return rateLimitResponse(rl, corsHeaders)
 
   // Parse request body
   let templateName: string
