@@ -27,7 +27,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Post Instagram',
     defaultChannel: 'Instagram',
     defaultContentType: 'post',
-    defaultFormat: 'imagem',
+    defaultFormat: 'estatico',
     defaultCopy: 'Legenda:\n\nHashtags:\n\nCTA:',
   },
   {
@@ -49,7 +49,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Reel Instagram',
     defaultChannel: 'Instagram',
     defaultContentType: 'reel',
-    defaultFormat: 'video',
+    defaultFormat: 'reels',
     defaultCopy: 'Hook (3 primeiros segundos):\n\nGuião:\n\nLegenda:\n\nMúsica/áudio:',
   },
   {
@@ -60,7 +60,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Story Instagram',
     defaultChannel: 'Instagram',
     defaultContentType: 'story',
-    defaultFormat: 'imagem',
+    defaultFormat: 'stories',
     defaultCopy: 'Story 1:\nStory 2:\nStory 3:\n\nStickers/interações:',
   },
   // YouTube
@@ -107,7 +107,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Post LinkedIn',
     defaultChannel: 'LinkedIn',
     defaultContentType: 'post',
-    defaultFormat: 'texto',
+    defaultFormat: 'post_linkedin',
     defaultCopy: 'Hook (1ª linha):\n\nDesenvolvimento:\n\nLição/insight:\n\nCTA / pergunta:',
   },
   {
@@ -118,7 +118,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Artigo LinkedIn',
     defaultChannel: 'LinkedIn',
     defaultContentType: 'artigo',
-    defaultFormat: 'texto',
+    defaultFormat: 'post_linkedin',
     defaultCopy: 'Título:\n\nIntrodução:\n\nSecções:\n\nConclusão / CTA:',
   },
   // Pinterest
@@ -130,7 +130,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Pin Pinterest',
     defaultChannel: 'Pinterest',
     defaultContentType: 'pin',
-    defaultFormat: 'imagem',
+    defaultFormat: 'pin',
     defaultCopy: 'Título do pin:\n\nDescrição (SEO):\n\nLink de destino:',
   },
   // Email / Newsletter
@@ -142,7 +142,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Newsletter',
     defaultChannel: 'Email Marketing',
     defaultContentType: 'email',
-    defaultFormat: 'newsletter',
+    defaultFormat: 'email',
     defaultCopy: 'Assunto:\n\nPré-header:\n\nIntro:\n\nConteúdo principal:\n\nCTA:',
   },
   {
@@ -165,7 +165,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Artigo de Blog',
     defaultChannel: 'Blog',
     defaultContentType: 'artigo',
-    defaultFormat: 'texto',
+    defaultFormat: 'outro',
     defaultCopy: 'Título (H1):\n\nMeta descrição:\n\nIntrodução:\n\nSubtópicos (H2):\n\nConclusão / CTA:',
   },
   // Podcast
@@ -177,7 +177,7 @@ export const CONTENT_TEMPLATES: ContentTemplate[] = [
     defaultTitle: 'Episódio de Podcast',
     defaultChannel: 'Podcast',
     defaultContentType: 'podcast',
-    defaultFormat: 'audio',
+    defaultFormat: 'outro',
     defaultCopy: 'Título do episódio:\n\nGuião / tópicos:\n\nConvidado(s):\n\nDescrição (show notes):',
   },
 ];
