@@ -106,13 +106,14 @@ export function useUnifiedResponsibilities(userId?: string) {
 
   // 3. Content items
   const contentQ = useQuery({
-    queryKey: ['unified-content', uid],
-    enabled: !!uid,
+    queryKey: ['unified-content', uid, profileId],
+    enabled: !!uid && !!profileId,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase.from('content_items')
         .select('id,title,status,scheduled_at,assigned_to')
-        .eq('assigned_to', uid!)
+        // assigned_to em content_items refere-se ao profile.id
+        .eq('assigned_to', profileId!)
         .not('status', 'eq', 'publicado');
       return data || [];
     },
@@ -257,7 +258,9 @@ export function useUnifiedResponsibilities(userId?: string) {
     (contentQ.data || []).forEach(c => {
       if (!c.scheduled_at) return;
       const schedDate = c.scheduled_at.split('T')[0];
-      if (isBefore(parseISO(schedDate), addDays(today, 1)) || isToday(parseISO(schedDate))) {
+      const d = parseISO(schedDate);
+      // Inclui conteúdos até ao fim da próxima semana (cobre vista "Hoje" e "Semana")
+      if (isBefore(d, addDays(weekEnd_, 8))) {
         result.push({
           id: `conteudo-${c.id}`,
           sourceId: c.id,
