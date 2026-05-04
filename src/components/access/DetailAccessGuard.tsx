@@ -7,7 +7,7 @@ import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { AppLayout } from '@/components/AppLayout';
 
 interface Props {
-  entity: 'meeting' | 'client';
+  entity: 'meeting' | 'client' | 'project';
   id: string | null | undefined;
   children: ReactNode;
 }
@@ -31,7 +31,7 @@ export function DetailAccessGuard({ entity, id, children }: Props) {
   }
 
   if (!canOpen) {
-    const label = entity === 'meeting' ? 'reunião' : 'cliente';
+    const label = entity === 'meeting' ? 'reunião' : entity === 'project' ? 'projeto' : 'cliente';
     return (
       <AppLayout>
         <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
