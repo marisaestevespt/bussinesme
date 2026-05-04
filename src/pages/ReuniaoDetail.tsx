@@ -48,6 +48,7 @@ import {
 } from '@/components/layout/entity';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { safeUrl } from '@/lib/url';
+import { DetailAccessGuard } from '@/components/access/DetailAccessGuard';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -1229,6 +1230,17 @@ function ReuniaoDetailPageInner() {
           </div>
         )}
       </div>
+    </AppLayout>
+  );
+}
+
+export default function ReuniaoDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  return (
+    <AppLayout>
+      <DetailAccessGuard entity="meeting" id={id}>
+        <ReuniaoDetailPageInner />
+      </DetailAccessGuard>
     </AppLayout>
   );
 }
