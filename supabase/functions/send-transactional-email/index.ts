@@ -60,9 +60,8 @@ Deno.serve(async (req) => {
   const isInternal = !!internalSecret && !!supabaseServiceKey && internalSecret === supabaseServiceKey
   const isServiceRole = !!supabaseServiceKey && bearer === supabaseServiceKey
   const hasUserJwt = !!bearer && bearer !== supabaseAnonKey && bearer.split('.').length === 3
-  const hasAnonJwt = !!supabaseAnonKey && bearer === supabaseAnonKey
 
-  if (!isInternal && !isServiceRole && !hasUserJwt && !hasAnonJwt) {
+  if (!isInternal && !isServiceRole && !hasUserJwt) {
     return new Response(
       JSON.stringify({ error: 'Unauthorized' }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
