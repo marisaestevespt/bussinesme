@@ -81,9 +81,20 @@ Deno.serve(async (req) => {
 
   let triggerType = "scheduled";
 
-  // If called with auth header, validate user is owner
+  // Require authentication for every invocation. Scheduled jobs must use the
+  // private service_role key; manual calls must be made by the owner.
   const authHeader = req.headers.get("Authorization");
-  if (authHeader) {
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Não autorizado" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  if (token === serviceKey) {
+    triggerType = "scheduled";
+  } else {
     triggerType = "manual";
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
