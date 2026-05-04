@@ -438,6 +438,8 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
     onSuccess: () => {
       invalidate();
       toast.success('Contrato guardado e pagamentos gerados');
+      // Fire-and-forget: garante 12 meses à frente / poda fora do end_date
+      supabase.functions.invoke('ensure-member-payments').then(() => invalidate()).catch(() => {});
     },
     onError: () => toast.error('Erro ao guardar contrato'),
   });
