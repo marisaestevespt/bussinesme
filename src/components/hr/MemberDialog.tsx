@@ -47,6 +47,7 @@ const DEFAULT_MEMBER_FORM = {
   responsibilities: '',
   work_areas: [] as string[],
   system_role: 'team_member' as string, // função no sistema (RBAC)
+  works_with_clients: false,
 };
 
 // Funções do sistema disponíveis para atribuir a um membro de equipa.
@@ -670,6 +671,20 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🕐 Horário</h3>
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
+          </div>
+
+          <Separator />
+
+          {/* ═══ MODO DE TRABALHO ═══ */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🎯 Modo de trabalho</h3>
+            <label className="flex items-center justify-between gap-3 rounded-md border border-border/60 px-3 py-2.5 cursor-pointer hover:bg-muted/40">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">Trabalha diretamente com clientes</p>
+                <p className="text-xs text-muted-foreground leading-tight">Inclui-o no cálculo de capacidade client-facing e em análises de tempo Cliente vs. Interno.</p>
+              </div>
+              <Switch checked={!!f.works_with_clients} onCheckedChange={(v) => set('works_with_clients', v)} />
+            </label>
           </div>
 
           {isENIOwner && (

@@ -105,7 +105,7 @@ function safePct(value: number, total: number): number {
 
 // ─── Main Component ─────────────────────────────────────────────
 
-export default function ProjetoDetailPage() {
+function ProjetoDetailInner() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -1550,5 +1550,16 @@ export default function ProjetoDetailPage() {
         </Alert>
       </div>
     </AppLayout>
+  );
+}
+
+import { DetailAccessGuard } from '@/components/access/DetailAccessGuard';
+
+export default function ProjetoDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  return (
+    <DetailAccessGuard entity="project" id={id}>
+      <ProjetoDetailInner />
+    </DetailAccessGuard>
   );
 }

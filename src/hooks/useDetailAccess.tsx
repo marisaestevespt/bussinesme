@@ -2,11 +2,18 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-type Entity = 'meeting' | 'client';
+type Entity = 'meeting' | 'client' | 'project';
 
-const FN_BY_ENTITY: Record<Entity, 'user_can_open_meeting' | 'user_can_open_client'> = {
+const FN_BY_ENTITY: Record<Entity, 'user_can_open_meeting' | 'user_can_open_client' | 'user_can_open_project'> = {
   meeting: 'user_can_open_meeting',
   client: 'user_can_open_client',
+  project: 'user_can_open_project',
+};
+
+const PARAM_BY_ENTITY: Record<Entity, string> = {
+  meeting: '_meeting_id',
+  client: '_client_id',
+  project: '_project_id',
 };
 
 /**
@@ -22,9 +29,7 @@ export function useDetailAccess(entity: Entity, id: string | null | undefined) {
     queryFn: async () => {
       if (isAdminOrOwner) return true;
       const fn = FN_BY_ENTITY[entity];
-      const { data, error } = await supabase.rpc(fn as any, {
-        [entity === 'meeting' ? '_meeting_id' : '_client_id']: id,
-      } as any);
+      const { data, error } = await supabase.rpc(fn as any, { [PARAM_BY_ENTITY[entity]]: id } as any);
       if (error) {
         console.warn('[useDetailAccess]', entity, error.message);
         return false;
@@ -52,7 +57,7 @@ export function useDetailAccessMap(entity: Entity, ids: string[]) {
         return map;
       }
       const fn = FN_BY_ENTITY[entity];
-      const param = entity === 'meeting' ? '_meeting_id' : '_client_id';
+      const param = PARAM_BY_ENTITY[entity];
       // Paraleliza chamadas (RPC não suporta batch nativo)
       const results = await Promise.all(
         ids.map(async (id) => {
