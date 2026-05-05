@@ -1026,10 +1026,14 @@ export default function GestaoMarcaPage() {
                 <KanbanSectionsEditor
                   itemId={selectedKanban.id}
                   isOwner={isOwner}
-                  twoColumns={selectedKanban.title?.includes('Personalidade')}
+                  twoColumns={
+                    selectedKanban.title?.includes('Personalidade') ||
+                    selectedKanban.title?.includes('Segmento')
+                  }
                   hideAttachments={
                     selectedKanban.title?.includes('Personalidade') ||
-                    selectedKanban.title?.includes('Tom de voz')
+                    selectedKanban.title?.includes('Tom de voz') ||
+                    selectedKanban.title?.includes('Segmento')
                   }
                 />
               )}
