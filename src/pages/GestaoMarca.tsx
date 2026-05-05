@@ -41,6 +41,7 @@ import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
 import { BulletListEditor } from '@/components/gestao-marca/BulletListEditor';
 import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
 import { ContentPillarsBoard } from '@/components/gestao-marca/ContentPillarsBoard';
+import { FolderSystemTable } from '@/components/gestao-marca/FolderSystemTable';
 
 import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/components/gestao-marca/types';
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
@@ -88,6 +89,7 @@ export default function GestaoMarcaPage() {
   const [addingVisualLink, setAddingVisualLink] = useState(false);
   const [visualLinkLabel, setVisualLinkLabel] = useState('');
   const [visualLinkUrl, setVisualLinkUrl] = useState('');
+  const [showFolderSystem, setShowFolderSystem] = useState(false);
 
   // Competitors
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
@@ -752,7 +754,18 @@ export default function GestaoMarcaPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <Card
+                  className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden group relative border-primary/30"
+                  onClick={() => setShowFolderSystem(true)}
+                >
+                  <div className="aspect-square bg-primary/5 flex items-center justify-center overflow-hidden">
+                    <FolderOpen className="h-8 w-8 text-primary/60" />
+                  </div>
+                  <CardContent className="p-2">
+                    <p className="text-xs font-medium text-foreground text-center truncate">Sistema de Pastas</p>
+                  </CardContent>
+                </Card>
                 {visualCards.map(card => (
                   <Card
                     key={card.id}
@@ -805,6 +818,19 @@ export default function GestaoMarcaPage() {
             </div>
             <Button className="w-full" disabled={!linkLabel.trim() || !linkUrl.trim()} onClick={addLink}>Adicionar</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Sistema de Pastas Dialog ── */}
+      <Dialog open={showFolderSystem} onOpenChange={setShowFolderSystem}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 text-primary" />
+              Sistema de Pastas
+            </DialogTitle>
+          </DialogHeader>
+          <FolderSystemTable isOwner={isOwner} />
         </DialogContent>
       </Dialog>
 

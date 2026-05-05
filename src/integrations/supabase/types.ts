@@ -345,6 +345,36 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_folder_links: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          sort_order: number
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       brand_kanban_items: {
         Row: {
           content: string | null
