@@ -38,6 +38,7 @@ import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
 import type { KanbanItem } from '@/components/gestao-marca/types';
 import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEditor';
 import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
+import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
 
 import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/components/gestao-marca/types';
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
@@ -1022,6 +1023,8 @@ export default function GestaoMarcaPage() {
                   placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : 'Escreve a vossa promessa...'}
                   onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
                 />
+              ) : selectedKanban.title?.includes('Arquétipos') || selectedKanban.title?.includes('Arquetipos') ? (
+                <ArchetypesBoard isOwner={isOwner} />
               ) : (
                 <KanbanSectionsEditor
                   itemId={selectedKanban.id}
