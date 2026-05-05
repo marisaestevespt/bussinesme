@@ -88,7 +88,6 @@ export default function SecretariaConteudos() {
       <div className="flex items-center gap-2">
         <FileText className="h-4 w-4 text-muted-foreground" />
         <h3 className="text-sm font-semibold tracking-tight uppercase">Os Meus Conteúdos</h3>
-        <Badge variant="secondary">{pending.length} pendentes</Badge>
       </div>
 
       {thisWeek.length > 0 && (
