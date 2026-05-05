@@ -37,6 +37,7 @@ import { KanbanColumn } from '@/components/gestao-marca/KanbanColumn';
 import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
 import type { KanbanItem } from '@/components/gestao-marca/types';
 import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEditor';
+import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
 
 import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/components/gestao-marca/types';
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
@@ -1013,12 +1014,22 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               ) : null}
-              <KanbanSectionsEditor
-                itemId={selectedKanban.id}
-                isOwner={isOwner}
-                twoColumns={selectedKanban.title?.includes('Personalidade')}
-                hideAttachments={selectedKanban.title?.includes('Personalidade')}
-              />
+              {selectedKanban.title?.includes('Assinatura') ? (
+                <SingleLineEditor
+                  itemId={selectedKanban.id}
+                  initial={selectedKanban.content || ''}
+                  isOwner={isOwner}
+                  placeholder="Escreve a frase de assinatura..."
+                  onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
+                />
+              ) : (
+                <KanbanSectionsEditor
+                  itemId={selectedKanban.id}
+                  isOwner={isOwner}
+                  twoColumns={selectedKanban.title?.includes('Personalidade')}
+                  hideAttachments={selectedKanban.title?.includes('Personalidade')}
+                />
+              )}
             </div>
           ) : null}
         </DialogContent>
