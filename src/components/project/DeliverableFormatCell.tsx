@@ -85,6 +85,18 @@ export function DeliverableFormatCell({
   const [linkOpen, setLinkOpen] = useState(false);
   const [docOpen, setDocOpen] = useState(false);
   const [meetPickerOpen, setMeetPickerOpen] = useState(false);
+
+  // For tarefa formats: lookup linked task to allow "Abrir tarefa" shortcut
+  const isTarefa = fmt === 'tarefa_interna' || fmt === 'tarefa_cliente';
+  const { data: linkedTask } = useQuery({
+    queryKey: ['deliverable-linked-task', d.id],
+    enabled: isTarefa,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('tasks').select('id').eq('deliverable_id', d.id).maybeSingle();
+      return data as { id: string } | null;
+    },
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
