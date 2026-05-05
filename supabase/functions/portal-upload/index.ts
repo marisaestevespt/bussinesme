@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
 
     return json({ path, url: signed?.signedUrl ?? null, name: safeName });
   } catch (e) {
-    return json({ error: String(e) }, 500);
+    console.error('[portal-upload] error', e);
+    return json({ error: 'internal_error' }, 500);
   }
 });
