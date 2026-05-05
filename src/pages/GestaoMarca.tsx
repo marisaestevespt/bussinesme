@@ -38,6 +38,7 @@ import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
 import type { KanbanItem } from '@/components/gestao-marca/types';
 import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEditor';
 import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
+import { BulletListEditor } from '@/components/gestao-marca/BulletListEditor';
 import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
 import { ContentPillarsBoard } from '@/components/gestao-marca/ContentPillarsBoard';
 
@@ -1030,6 +1031,14 @@ export default function GestaoMarcaPage() {
                 <ArchetypesBoard isOwner={isOwner} />
               ) : selectedKanban.title?.includes('Pilares') ? (
                 <ContentPillarsBoard isOwner={isOwner} />
+              ) : selectedKanban.title?.includes('Crenç') || selectedKanban.title?.includes('crenç') ? (
+                <BulletListEditor
+                  itemId={selectedKanban.id}
+                  initial={selectedKanban.content || ''}
+                  isOwner={isOwner}
+                  placeholder="Nova crença..."
+                  onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
+                />
               ) : (
                 <KanbanSectionsEditor
                   itemId={selectedKanban.id}
