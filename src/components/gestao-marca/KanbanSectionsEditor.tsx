@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
-import { Pencil, Check, X, Plus, Trash2, ChevronUp, ChevronDown, Link2, Paperclip, Upload, ExternalLink, FileText } from 'lucide-react';
+import { Pencil, Check, X, Plus, Trash2, ChevronUp, ChevronDown, Link2, Upload, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { KanbanSection } from './types';
