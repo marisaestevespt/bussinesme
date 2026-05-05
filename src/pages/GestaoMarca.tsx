@@ -823,21 +823,14 @@ export default function GestaoMarcaPage() {
 
       {/* ── Sistema de Pastas Dialog ── */}
       <Dialog open={showFolderSystem} onOpenChange={setShowFolderSystem}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Adicionar {showAddLink === 'folder' ? 'Pasta' : 'Atalho'}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5 text-primary" />
+              Sistema de Pastas
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-muted-foreground">Nome</label>
-              <Input value={linkLabel} onChange={e => setLinkLabel(e.target.value)} placeholder="Ex: Google Drive" />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">URL</label>
-              <Input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..." />
-            </div>
-            <Button className="w-full" disabled={!linkLabel.trim() || !linkUrl.trim()} onClick={addLink}>Adicionar</Button>
-          </div>
+          <FolderSystemTable isOwner={isOwner} />
         </DialogContent>
       </Dialog>
 
