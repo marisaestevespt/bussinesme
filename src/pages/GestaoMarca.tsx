@@ -752,22 +752,22 @@ export default function GestaoMarcaPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                 {visualCards.map(card => (
                   <Card
                     key={card.id}
                     className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden group relative"
                     onClick={() => { setSelectedVisual(card); setVisualDesc(card.description || ''); setEditingVisualDesc(false); }}
                   >
-                    <div className="aspect-[4/3] bg-muted/40 flex items-center justify-center overflow-hidden">
+                    <div className="aspect-square bg-muted/40 flex items-center justify-center overflow-hidden">
                       {card.cover_url ? (
                         <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
                       ) : (
-                        <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                        <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
                       )}
                     </div>
-                    <CardContent className="p-3">
-                      <p className="text-sm font-medium text-foreground text-center">{card.title}</p>
+                    <CardContent className="p-2">
+                      <p className="text-xs font-medium text-foreground text-center truncate">{card.title}</p>
                     </CardContent>
                     {isOwner && (
                       <Button
