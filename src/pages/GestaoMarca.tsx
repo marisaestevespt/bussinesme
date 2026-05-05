@@ -1016,12 +1016,12 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               ) : null}
-              {selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') ? (
+              {selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') || selectedKanban.title?.includes('Proposta') ? (
                 <SingleLineEditor
                   itemId={selectedKanban.id}
                   initial={selectedKanban.content || ''}
                   isOwner={isOwner}
-                  placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : 'Escreve a vossa promessa...'}
+                  placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : selectedKanban.title?.includes('Proposta') ? 'Escreve a proposta de valor...' : 'Escreve a vossa promessa...'}
                   onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
                 />
               ) : selectedKanban.title?.includes('Arquétipos') || selectedKanban.title?.includes('Arquetipos') ? (
