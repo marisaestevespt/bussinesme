@@ -821,6 +821,26 @@ export default function GestaoMarcaPage() {
         </DialogContent>
       </Dialog>
 
+      {/* ── Sistema de Pastas Dialog ── */}
+      <Dialog open={showFolderSystem} onOpenChange={setShowFolderSystem}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar {showAddLink === 'folder' ? 'Pasta' : 'Atalho'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Nome</label>
+              <Input value={linkLabel} onChange={e => setLinkLabel(e.target.value)} placeholder="Ex: Google Drive" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">URL</label>
+              <Input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..." />
+            </div>
+            <Button className="w-full" disabled={!linkLabel.trim() || !linkUrl.trim()} onClick={addLink}>Adicionar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* ── Kanban Item Detail Dialog ── */}
       <Dialog open={!!selectedKanban} onOpenChange={open => { if (!open) setSelectedKanban(null); }}>
         <DialogContent className={cn(
