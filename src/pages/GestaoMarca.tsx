@@ -38,6 +38,7 @@ import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
 import type { KanbanItem } from '@/components/gestao-marca/types';
 import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEditor';
 import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
+import { BulletListEditor } from '@/components/gestao-marca/BulletListEditor';
 import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
 import { ContentPillarsBoard } from '@/components/gestao-marca/ContentPillarsBoard';
 
@@ -1018,18 +1019,26 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               ) : null}
-              {selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') || selectedKanban.title?.includes('Proposta') || selectedKanban.title?.includes('Movimento') ? (
+              {selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') || selectedKanban.title?.includes('Proposta') || selectedKanban.title?.includes('Movimento') || selectedKanban.title?.includes('Transformaç') || selectedKanban.title?.includes('transformaç') || selectedKanban.title?.includes('Convite') || selectedKanban.title?.includes('convite') ? (
                 <SingleLineEditor
                   itemId={selectedKanban.id}
                   initial={selectedKanban.content || ''}
                   isOwner={isOwner}
-                  placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : selectedKanban.title?.includes('Proposta') ? 'Escreve a proposta de valor...' : selectedKanban.title?.includes('Movimento') ? 'Escreve o movimento da marca...' : 'Escreve a vossa promessa...'}
+                  placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : selectedKanban.title?.includes('Proposta') ? 'Escreve a proposta de valor...' : selectedKanban.title?.includes('Movimento') ? 'Escreve o movimento da marca...' : selectedKanban.title?.toLowerCase().includes('transformaç') ? 'Escreve a transformação que entregas...' : selectedKanban.title?.toLowerCase().includes('convite') ? 'Escreve o convite da marca...' : 'Escreve a vossa promessa...'}
                   onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
                 />
               ) : selectedKanban.title?.includes('Arquétipos') || selectedKanban.title?.includes('Arquetipos') ? (
                 <ArchetypesBoard isOwner={isOwner} />
               ) : selectedKanban.title?.includes('Pilares') ? (
                 <ContentPillarsBoard isOwner={isOwner} />
+              ) : selectedKanban.title?.includes('Crenç') || selectedKanban.title?.includes('crenç') ? (
+                <BulletListEditor
+                  itemId={selectedKanban.id}
+                  initial={selectedKanban.content || ''}
+                  isOwner={isOwner}
+                  placeholder="Nova crença..."
+                  onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
+                />
               ) : (
                 <KanbanSectionsEditor
                   itemId={selectedKanban.id}
