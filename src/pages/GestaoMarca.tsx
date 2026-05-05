@@ -755,6 +755,17 @@ export default function GestaoMarcaPage() {
               </Card>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <Card
+                  className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden group relative border-primary/30"
+                  onClick={() => setShowFolderSystem(true)}
+                >
+                  <div className="aspect-square bg-primary/5 flex items-center justify-center overflow-hidden">
+                    <FolderOpen className="h-8 w-8 text-primary/60" />
+                  </div>
+                  <CardContent className="p-2">
+                    <p className="text-xs font-medium text-foreground text-center truncate">Sistema de Pastas</p>
+                  </CardContent>
+                </Card>
                 {visualCards.map(card => (
                   <Card
                     key={card.id}
