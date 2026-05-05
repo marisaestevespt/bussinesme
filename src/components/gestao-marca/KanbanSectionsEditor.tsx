@@ -25,9 +25,10 @@ interface SectionAttachment {
 interface Props {
   itemId: string;
   isOwner: boolean;
+  twoColumns?: boolean;
 }
 
-export function KanbanSectionsEditor({ itemId, isOwner }: Props) {
+export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false }: Props) {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
