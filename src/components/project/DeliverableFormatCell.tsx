@@ -217,7 +217,7 @@ export function DeliverableFormatCell({
         d.meeting_id ? (
           <button
             type="button"
-            onClick={() => navigate(`/reunioes/${d.meeting_id}`)}
+            onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
             className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-primary"
             title="Abrir reunião"
           >
