@@ -534,8 +534,8 @@ export default function GestaoMarcaPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {puv || <span className="italic">Ainda não definida.</span>}
+                      <p className="text-base text-primary font-medium leading-relaxed">
+                        {puv || <span className="italic text-muted-foreground font-normal">Ainda não definida.</span>}
                       </p>
                     )}
                   </div>
@@ -559,8 +559,8 @@ export default function GestaoMarcaPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                        {aboutText || <span className="italic">Ainda não definido.</span>}
+                      <p className="text-sm text-primary/90 leading-relaxed whitespace-pre-line">
+                        {aboutText || <span className="italic text-muted-foreground">Ainda não definido.</span>}
                       </p>
                     )}
                   </div>
