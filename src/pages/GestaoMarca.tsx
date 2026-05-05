@@ -1013,7 +1013,11 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               ) : null}
-              <KanbanSectionsEditor itemId={selectedKanban.id} isOwner={isOwner} />
+              <KanbanSectionsEditor
+                itemId={selectedKanban.id}
+                isOwner={isOwner}
+                twoColumns={selectedKanban.title?.includes('Personalidade')}
+              />
             </div>
           ) : null}
         </DialogContent>
