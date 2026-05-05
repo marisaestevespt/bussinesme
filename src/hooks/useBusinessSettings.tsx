@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { SYSTEM_FONT_DISPLAY, SYSTEM_FONT_BODY } from '@/lib/modules';
 import { BUSINESS_ACCENT_FALLBACK_HSL, BUSINESS_BRAND_FALLBACK_HSL, BUSINESS_TEXT_FALLBACK_HSL, normalizeHslTriplet } from '@/lib/portalBranding';
@@ -75,9 +75,11 @@ function applyTheme(settings: BusinessSettings) {
 export function BusinessSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const loadedForUserRef = useRef<string | null>(null);
+  const settingsRef = useRef<BusinessSettings | null>(null);
 
-  const fetchSettings = useCallback(async () => {
-    setLoading(true);
+  const fetchSettings = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
     const { data } = await supabase
       .from('business_settings')
       .select('*')
@@ -85,25 +87,40 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
       .maybeSingle();
 
     if (data) {
+      settingsRef.current = data;
       setSettings(data);
       applyTheme(data);
     } else {
+      settingsRef.current = null;
       setSettings(null);
     }
     setLoading(false);
   }, []);
 
-  // Single source of truth: only fetch on initial session or fresh sign-in.
-  // TOKEN_REFRESHED fires periodically and doesn't need to refetch settings.
+  // Single source of truth: fetch on initial session or genuinely new sign-in.
+  // Supabase can emit SIGNED_IN again when a browser tab regains focus; do not
+  // show the global loader then, otherwise the whole app remounts and loses scroll.
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-        // Mark as loading immediately to prevent the SetupPage flash
-        // between SIGNED_IN and the settings query resolving.
-        setLoading(true);
-        fetchSettings();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const userId = session?.user?.id ?? null;
+
+      if (event === 'INITIAL_SESSION') {
+        loadedForUserRef.current = userId;
+        fetchSettings(true);
       }
+
+      if (event === 'SIGNED_IN') {
+        const isNewUser = !!userId && userId !== loadedForUserRef.current;
+        loadedForUserRef.current = userId;
+
+        if (isNewUser || !settingsRef.current) {
+          fetchSettings(isNewUser);
+        }
+      }
+
       if (event === 'SIGNED_OUT') {
+        loadedForUserRef.current = null;
+        settingsRef.current = null;
         setSettings(null);
         setLoading(false);
       }
