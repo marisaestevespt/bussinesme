@@ -803,7 +803,6 @@ export default function GestaoMarcaPage() {
 
       {/* ── Add Link Dialog ── */}
       <Dialog open={!!showAddLink} onOpenChange={open => { if (!open) setShowAddLink(null); }}>
-        {/* placeholder */}
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Adicionar {showAddLink === 'folder' ? 'Pasta' : 'Atalho'}</DialogTitle>
