@@ -1019,12 +1019,12 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               ) : null}
-              {selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') || selectedKanban.title?.includes('Proposta') || selectedKanban.title?.includes('Movimento') ? (
+              {selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') || selectedKanban.title?.includes('Proposta') || selectedKanban.title?.includes('Movimento') || selectedKanban.title?.includes('Transformaç') || selectedKanban.title?.includes('transformaç') || selectedKanban.title?.includes('Convite') || selectedKanban.title?.includes('convite') ? (
                 <SingleLineEditor
                   itemId={selectedKanban.id}
                   initial={selectedKanban.content || ''}
                   isOwner={isOwner}
-                  placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : selectedKanban.title?.includes('Proposta') ? 'Escreve a proposta de valor...' : selectedKanban.title?.includes('Movimento') ? 'Escreve o movimento da marca...' : 'Escreve a vossa promessa...'}
+                  placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : selectedKanban.title?.includes('Proposta') ? 'Escreve a proposta de valor...' : selectedKanban.title?.includes('Movimento') ? 'Escreve o movimento da marca...' : selectedKanban.title?.toLowerCase().includes('transformaç') ? 'Escreve a transformação que entregas...' : selectedKanban.title?.toLowerCase().includes('convite') ? 'Escreve o convite da marca...' : 'Escreve a vossa promessa...'}
                   onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
                 />
               ) : selectedKanban.title?.includes('Arquétipos') || selectedKanban.title?.includes('Arquetipos') ? (
