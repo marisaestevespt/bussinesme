@@ -950,10 +950,7 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               )}
-              {competitors.length === 0 ? (
-                <EmptyHint>Nenhum concorrente adicionado.</EmptyHint>
-              ) : (
-                <div className="overflow-x-auto rounded-lg border">
+              <div className="overflow-x-auto rounded-lg border">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/50 border-b">
@@ -970,7 +967,13 @@ export default function GestaoMarcaPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {competitors.map(c => (
+                      {competitors.length === 0 ? (
+                        <tr>
+                          <td colSpan={isOwner ? 10 : 9} className="p-6 text-center text-sm text-muted-foreground italic">
+                            Nenhum concorrente adicionado.
+                          </td>
+                        </tr>
+                      ) : competitors.map(c => (
                         <tr key={c.id} className="border-b last:border-b-0 hover:bg-muted/30 hq-transition cursor-pointer" onClick={() => isOwner && openEditCompetitor(c)}>
                           <td className="p-3 font-medium text-foreground">{c.name}</td>
                           <td className="p-3">
@@ -999,8 +1002,7 @@ export default function GestaoMarcaPage() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-              )}
+              </div>
             </div>
           ) : selectedKanban ? (
             /* ── Default: sections editor (or special link for Público Alvo) ── */
