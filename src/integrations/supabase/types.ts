@@ -297,6 +297,33 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_content_pillars: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_differentials: {
         Row: {
           content: string
