@@ -225,6 +225,30 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_archetypes: {
+        Row: {
+          archetype: string | null
+          id: string
+          notes: string | null
+          slot: string
+          updated_at: string
+        }
+        Insert: {
+          archetype?: string | null
+          id?: string
+          notes?: string | null
+          slot: string
+          updated_at?: string
+        }
+        Update: {
+          archetype?: string | null
+          id?: string
+          notes?: string | null
+          slot?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_competitors: {
         Row: {
           comunicacao: string | null
