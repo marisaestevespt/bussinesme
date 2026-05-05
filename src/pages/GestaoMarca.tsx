@@ -36,6 +36,7 @@ import { SortableKanbanItem } from '@/components/gestao-marca/SortableKanbanItem
 import { KanbanColumn } from '@/components/gestao-marca/KanbanColumn';
 import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
 import type { KanbanItem } from '@/components/gestao-marca/types';
+import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEditor';
 
 import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/components/gestao-marca/types';
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
@@ -999,36 +1000,20 @@ export default function GestaoMarcaPage() {
               )}
             </div>
           ) : selectedKanban ? (
-            /* ── Default rich text content ── */
+            /* ── Default: sections editor (or special link for Público Alvo) ── */
             <div className="space-y-4">
-              {editingKanban && isOwner ? (
-                <>
-                  <RichTextEditor content={kanbanContent} onChange={setKanbanContent} editable={true} />
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={() => { setKanbanContent(selectedKanban.content || ''); setEditingKanban(false); }}>
-                      <X className="h-3.5 w-3.5 mr-1" />Cancelar
-                    </Button>
-                    <Button onClick={saveKanbanContent}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
+              {selectedKanban.title?.includes('Público') && selectedKanban.title?.includes('Alvo') ? (
+                <div className="rounded-lg border bg-muted/20 p-4 flex items-center justify-between gap-3">
+                  <div className="text-sm">
+                    <p className="font-medium text-foreground">Página de Público-Alvo</p>
+                    <p className="text-xs text-muted-foreground">Esta secção está ligada à página dedicada de Público-Alvo & Personas em Estratégia.</p>
                   </div>
-                </>
-              ) : (
-                <>
-                  <div className="prose prose-sm max-w-none p-3 min-h-[200px] border rounded-md bg-muted/10">
-                    {selectedKanban.content ? (
-                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedKanban.content) }} />
-                    ) : (
-                      <p className="text-muted-foreground italic">Sem conteúdo. {isOwner ? 'Clica em "Editar" para começar.' : ''}</p>
-                    )}
-                  </div>
-                  {isOwner && (
-                    <div className="flex justify-end">
-                      <Button variant="outline" onClick={() => setEditingKanban(true)}>
-                        <Pencil className="h-3.5 w-3.5 mr-1" />Editar
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
+                  <Button onClick={() => { setSelectedKanban(null); navigate('/hub/marketing/estrategia/publico-alvo'); }}>
+                    Abrir página <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+                  </Button>
+                </div>
+              ) : null}
+              <KanbanSectionsEditor itemId={selectedKanban.id} isOwner={isOwner} />
             </div>
           ) : null}
         </DialogContent>

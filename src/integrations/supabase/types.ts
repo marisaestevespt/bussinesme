@@ -301,6 +301,7 @@ export type Database = {
           emoji: string
           group_key: string
           id: string
+          is_system: boolean
           sort_order: number
           title: string
           updated_at: string
@@ -311,6 +312,7 @@ export type Database = {
           emoji?: string
           group_key: string
           id?: string
+          is_system?: boolean
           sort_order?: number
           title: string
           updated_at?: string
@@ -321,11 +323,50 @@ export type Database = {
           emoji?: string
           group_key?: string
           id?: string
+          is_system?: boolean
           sort_order?: number
           title?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      brand_kanban_sections: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          item_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_kanban_sections_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "brand_kanban_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brand_links: {
         Row: {

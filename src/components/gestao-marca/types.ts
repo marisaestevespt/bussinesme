@@ -14,6 +14,15 @@ export interface KanbanItem {
   content: string | null;
   sort_order: number;
   emoji?: string | null;
+  is_system?: boolean;
+}
+
+export interface KanbanSection {
+  id: string;
+  item_id: string;
+  title: string;
+  content: string | null;
+  sort_order: number;
 }
 
 export interface BrandCompetitor {

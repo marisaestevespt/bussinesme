@@ -76,7 +76,7 @@ export function SortableKanbanItem({
           ⋮⋮
         </button>
       )}
-      {isOwner && !reservedTitles.includes(item.title) && (
+      {isOwner && !reservedTitles.includes(item.title) && !item.is_system && (
         <Button
           variant="ghost"
           aria-label="Eliminar" size="icon"
