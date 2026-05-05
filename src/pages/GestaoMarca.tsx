@@ -41,6 +41,7 @@ import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
 import { BulletListEditor } from '@/components/gestao-marca/BulletListEditor';
 import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
 import { ContentPillarsBoard } from '@/components/gestao-marca/ContentPillarsBoard';
+import { FolderSystemTable } from '@/components/gestao-marca/FolderSystemTable';
 
 import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/components/gestao-marca/types';
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
@@ -88,6 +89,7 @@ export default function GestaoMarcaPage() {
   const [addingVisualLink, setAddingVisualLink] = useState(false);
   const [visualLinkLabel, setVisualLinkLabel] = useState('');
   const [visualLinkUrl, setVisualLinkUrl] = useState('');
+  const [showFolderSystem, setShowFolderSystem] = useState(false);
 
   // Competitors
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
