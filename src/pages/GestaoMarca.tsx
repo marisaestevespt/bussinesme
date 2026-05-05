@@ -482,26 +482,29 @@ export default function GestaoMarcaPage() {
 
           {/* ── Brand Card ── */}
           <Card className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row items-start gap-6">
-                {/* Logo - bigger */}
-                {isOwner ? (
-                  <LogoFramer
-                    settings={settings}
-                    uploadLogo={uploadLogo}
-                    uploadingLogo={uploadingLogo}
-                    refetchSettings={refetchSettings}
-                  />
-                ) : settings?.logo_url ? (
-                  <img
-                    src={settings.logo_url}
-                    alt={settings.business_name}
-                    className="h-40 w-40 rounded-xl object-cover border bg-muted/30 shrink-0"
-                    style={{ objectPosition: `center ${(settings as any)?.logo_position_y ?? 50}%` }}
-                  />
-                ) : null}
+            <CardContent className="p-0">
+              <div className="flex flex-col md:flex-row items-stretch">
+                {/* Logo - fills full card height */}
+                <div className="md:w-[340px] md:shrink-0 md:self-stretch">
+                  {isOwner ? (
+                    <LogoFramer
+                      settings={settings}
+                      uploadLogo={uploadLogo}
+                      uploadingLogo={uploadingLogo}
+                      refetchSettings={refetchSettings}
+                      fill
+                    />
+                  ) : settings?.logo_url ? (
+                    <img
+                      src={settings.logo_url}
+                      alt={settings.business_name}
+                      className="h-64 md:h-full w-full object-cover bg-muted/30"
+                      style={{ objectPosition: `center ${(settings as any)?.logo_position_y ?? 50}%` }}
+                    />
+                  ) : null}
+                </div>
 
-                <div className="flex-1 space-y-4 min-w-0">
+                <div className="flex-1 space-y-4 min-w-0 p-6">
                   {/* Name */}
                   <h2 className="text-2xl font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
 
