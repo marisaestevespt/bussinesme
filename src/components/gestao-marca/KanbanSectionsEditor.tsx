@@ -25,9 +25,10 @@ interface SectionAttachment {
 interface Props {
   itemId: string;
   isOwner: boolean;
+  twoColumns?: boolean;
 }
 
-export function KanbanSectionsEditor({ itemId, isOwner }: Props) {
+export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false }: Props) {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -149,6 +150,7 @@ export function KanbanSectionsEditor({ itemId, isOwner }: Props) {
         <EmptyHint>Sem secções. {isOwner ? 'Adiciona a primeira abaixo.' : ''}</EmptyHint>
       )}
 
+      <div className={twoColumns ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'space-y-3'}>
       {sections.map((s, idx) => (
         <div key={s.id} className="rounded-lg border bg-card overflow-hidden group">
           {editingId === s.id ? (
@@ -209,6 +211,7 @@ export function KanbanSectionsEditor({ itemId, isOwner }: Props) {
           )}
         </div>
       ))}
+      </div>
 
       {isOwner && (
         adding ? (
