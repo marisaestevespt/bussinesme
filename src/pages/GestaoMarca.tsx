@@ -1017,6 +1017,7 @@ export default function GestaoMarcaPage() {
                 itemId={selectedKanban.id}
                 isOwner={isOwner}
                 twoColumns={selectedKanban.title?.includes('Personalidade')}
+                hideAttachments={selectedKanban.title?.includes('Personalidade')}
               />
             </div>
           ) : null}
