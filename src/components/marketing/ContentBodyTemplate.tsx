@@ -2,8 +2,9 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Plus, Trash2 } from 'lucide-react';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
 // Template structures per format
@@ -16,10 +17,37 @@ export type TemplateField = {
 };
 
 const CAROUSEL_MAX_SLIDES = 20;
+const STORIES_MAX_SLIDES = 20;
+const DEFAULT_CAROUSEL_SLIDES = 2;
+const DEFAULT_STORIES_SLIDES = 2;
 
-function getTemplateFields(format: string): TemplateField[] {
+function getTemplateFields(format: string, slideCount?: number): TemplateField[] {
   switch (format) {
     case 'carrossel':
+      {
+        const count = Math.min(Math.max(slideCount ?? DEFAULT_CAROUSEL_SLIDES, 1), CAROUSEL_MAX_SLIDES);
+        return [
+          { key: 'capa', label: 'CAPA', type: 'image-placeholder' },
+          ...Array.from({ length: count - 1 }, (_, i) => ({
+            key: `imagem_${i + 2}`,
+            label: `IMAGEM ${i + 2}`,
+            type: 'image-placeholder' as const,
+          })),
+          { key: 'legenda', label: 'Legenda:', type: 'textarea', placeholder: 'Escreve a legenda do carrossel...' },
+        ];
+      }
+
+    case 'stories':
+      {
+        const count = Math.min(Math.max(slideCount ?? DEFAULT_STORIES_SLIDES, 1), STORIES_MAX_SLIDES);
+        return Array.from({ length: count }, (_, i) => ({
+          key: `story_${i + 1}`,
+          label: `STORY ${i + 1}`,
+          type: 'image-placeholder' as const,
+        }));
+      }
+
+    case 'carrossel_legacy_unused':
       return [
         { key: 'capa', label: 'CAPA', type: 'image-placeholder' },
         ...Array.from({ length: CAROUSEL_MAX_SLIDES - 1 }, (_, i) => ({
@@ -47,15 +75,6 @@ function getTemplateFields(format: string): TemplateField[] {
         { key: 'hook', label: 'Hook:', type: 'textarea', placeholder: 'O gancho inicial do vídeo...' },
         { key: 'script', label: 'Script de vídeo', type: 'textarea', placeholder: 'Escreve o script/guião...' },
         { key: 'legenda', label: 'Legenda:', type: 'textarea', placeholder: 'Escreve a legenda...' },
-      ];
-
-    case 'stories':
-      return [
-        ...Array.from({ length: 10 }, (_, i) => ({
-          key: `story_${i + 1}`,
-          label: `STORY ${i + 1}`,
-          type: 'image-placeholder' as const,
-        })),
       ];
 
     case 'email':
