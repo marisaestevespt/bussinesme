@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Check, X, Plus, Target, Eye, Heart, Link2 } from 'lucide-react';
+import { Pencil, Check, X, Plus, Target, Eye, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
