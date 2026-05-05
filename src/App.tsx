@@ -123,8 +123,9 @@ const queryClient = new QueryClient({
       gcTime: 5 * 60 * 1000,
       // 1 retry em vez de 3 (failures são geralmente rede ou RLS, não vale a pena martelar)
       retry: 1,
-      // Refetch ao voltar à janela — combinado com realtime garante dados frescos sem refresh manual
-      refetchOnWindowFocus: true,
+      // Não refetch ao voltar à janela — evita re-renders pesados e perda de scroll.
+      // Realtime/invalidate explícitos tratam de manter dados frescos.
+      refetchOnWindowFocus: false,
       // Refetch ao reconectar mantém-se ligado (default: true)
     },
     mutations: {
