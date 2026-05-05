@@ -225,6 +225,16 @@ export function DeliverableFormatCell({
       </DropdownMenu>
 
       {/* Format-specific action */}
+      {isTarefa && linkedTask?.id && (
+        <button
+          type="button"
+          onClick={() => navigate(`/hub/tarefas?taskId=${linkedTask.id}`)}
+          className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground"
+          title="Abrir tarefa associada"
+        >
+          <ExternalLink className="h-3 w-3" />
+        </button>
+      )}
       {fmt === 'reuniao' && (
         d.meeting_id ? (
           <button
