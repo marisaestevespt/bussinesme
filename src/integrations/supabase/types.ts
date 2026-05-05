@@ -330,6 +330,50 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_kanban_section_attachments: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          file_type: string | null
+          id: string
+          kind: string
+          label: string
+          section_id: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          kind: string
+          label: string
+          section_id: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          section_id?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_kanban_section_attachments_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "brand_kanban_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_kanban_sections: {
         Row: {
           content: string | null
