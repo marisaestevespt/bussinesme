@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
 import { AppTabsProvider } from "@/hooks/useAppTabs";
 import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -115,6 +115,14 @@ const OperacaoPage = lazy(() => import("./pages/Operacao"));
 const RecursosHumanosSubPage = lazy(() => import("./pages/RecursosHumanosSubPage"));
 
 const queryClient = new QueryClient({
+  // Garantia global: depois de qualquer mutation com sucesso, invalida todas
+  // as queries activas. Evita ter de saltar de página para ver as alterações
+  // mesmo em ecrãs cuja mutation se esqueceu de chamar invalidateQueries.
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+  }),
   defaultOptions: {
     queries: {
       // Cache resultados durante 30s antes de considerar stale
