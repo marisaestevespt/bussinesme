@@ -8,9 +8,10 @@ interface Props {
   uploadLogo: (e: React.ChangeEvent<HTMLInputElement>) => void;
   uploadingLogo: boolean;
   refetchSettings: () => void;
+  fill?: boolean;
 }
 
-export function LogoFramer({ settings, uploadLogo, uploadingLogo, refetchSettings }: Props) {
+export function LogoFramer({ settings, uploadLogo, uploadingLogo, refetchSettings, fill }: Props) {
   const initialY = (settings as any)?.logo_position_y ?? 50;
   const [posY, setPosY] = useState<number>(initialY);
   const draggingRef = useRef<{ startY: number; startPos: number; moved: boolean } | null>(null);
@@ -46,16 +47,19 @@ export function LogoFramer({ settings, uploadLogo, uploadingLogo, refetchSetting
     }
   };
 
+  const sizeCls = fill
+    ? 'h-64 md:h-full w-full rounded-none border-0'
+    : 'h-40 w-40 rounded-xl border';
   return (
-    <div className="shrink-0 space-y-2 group">
-      <div className="relative">
+    <div className={`group ${fill ? 'h-full w-full' : 'shrink-0 space-y-2'}`}>
+      <div className={`relative ${fill ? 'h-full w-full' : ''}`}>
         {settings?.logo_url ? (
           <div
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
-            className="h-40 w-40 rounded-xl border bg-muted/30 overflow-hidden cursor-ns-resize select-none touch-none relative"
+            className={`${sizeCls} bg-muted/30 overflow-hidden cursor-ns-resize select-none touch-none relative`}
             title="Arrasta para cima/baixo para enquadrar"
           >
             <img
@@ -79,7 +83,7 @@ export function LogoFramer({ settings, uploadLogo, uploadingLogo, refetchSetting
           </div>
         ) : (
           <label className="cursor-pointer block">
-            <div className="h-40 w-40 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center hover:border-primary/50 hover:bg-muted/40 transition-colors">
+            <div className={`${fill ? 'h-64 md:h-full w-full' : 'h-40 w-40 rounded-xl'} border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center hover:border-primary/50 hover:bg-muted/40 transition-colors`}>
               <Upload className="h-6 w-6 text-muted-foreground/50" />
             </div>
             <input type="file" accept="image/*" className="hidden" onChange={uploadLogo} disabled={uploadingLogo} />
