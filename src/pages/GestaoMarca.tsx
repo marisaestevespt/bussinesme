@@ -1013,12 +1013,22 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               ) : null}
-              <KanbanSectionsEditor
-                itemId={selectedKanban.id}
-                isOwner={isOwner}
-                twoColumns={selectedKanban.title?.includes('Personalidade')}
-                hideAttachments={selectedKanban.title?.includes('Personalidade')}
-              />
+              {selectedKanban.title?.includes('Assinatura') ? (
+                <SingleLineEditor
+                  itemId={selectedKanban.id}
+                  initial={selectedKanban.content || ''}
+                  isOwner={isOwner}
+                  placeholder="Escreve a frase de assinatura..."
+                  onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
+                />
+              ) : (
+                <KanbanSectionsEditor
+                  itemId={selectedKanban.id}
+                  isOwner={isOwner}
+                  twoColumns={selectedKanban.title?.includes('Personalidade')}
+                  hideAttachments={selectedKanban.title?.includes('Personalidade')}
+                />
+              )}
             </div>
           ) : null}
         </DialogContent>
