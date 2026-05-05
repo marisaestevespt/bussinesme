@@ -26,9 +26,10 @@ interface Props {
   itemId: string;
   isOwner: boolean;
   twoColumns?: boolean;
+  hideAttachments?: boolean;
 }
 
-export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false }: Props) {
+export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hideAttachments = false }: Props) {
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -199,14 +200,14 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false }: Pr
                   <p className="text-xs text-muted-foreground italic m-0">Sem conteúdo.{isOwner ? ' Clica no lápis para editar.' : ''}</p>
                 )}
               </div>
-              <SectionAttachments
+              {!hideAttachments && <SectionAttachments
                 sectionId={s.id}
                 isOwner={isOwner}
                 items={attachments.filter(a => a.section_id === s.id)}
                 onAddLink={addLink}
                 onUpload={uploadFile}
                 onDelete={deleteAttachment}
-              />
+              />}
             </>
           )}
         </div>
