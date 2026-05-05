@@ -76,6 +76,7 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const loadedForUserRef = useRef<string | null>(null);
+  const settingsRef = useRef<BusinessSettings | null>(null);
 
   const fetchSettings = useCallback(async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -86,9 +87,11 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
       .maybeSingle();
 
     if (data) {
+      settingsRef.current = data;
       setSettings(data);
       applyTheme(data);
     } else {
+      settingsRef.current = null;
       setSettings(null);
     }
     setLoading(false);
@@ -110,19 +113,20 @@ export function BusinessSettingsProvider({ children }: { children: ReactNode }) 
         const isNewUser = !!userId && userId !== loadedForUserRef.current;
         loadedForUserRef.current = userId;
 
-        if (isNewUser || !settings) {
+        if (isNewUser || !settingsRef.current) {
           fetchSettings(isNewUser);
         }
       }
 
       if (event === 'SIGNED_OUT') {
         loadedForUserRef.current = null;
+        settingsRef.current = null;
         setSettings(null);
         setLoading(false);
       }
     });
     return () => subscription.unsubscribe();
-  }, [fetchSettings, settings]);
+  }, [fetchSettings]);
 
   return (
     <BusinessSettingsContext.Provider
