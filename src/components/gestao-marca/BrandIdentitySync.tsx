@@ -47,14 +47,14 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
   });
 
   return (
-    <div className="rounded-lg border border-dashed bg-muted/20 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Missão */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-2 mb-2">
           <Target className="h-3 w-3 text-muted-foreground" />
           <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Missão</p>
           {isOwner && !editM && (
-            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setMDraft(data?.mission || ''); setEditM(true); }}>
+            <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => { setMDraft(data?.mission || ''); setEditM(true); }}>
               <Pencil className="h-2.5 w-2.5" />
             </Button>
           )}
@@ -73,12 +73,12 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
       </div>
 
       {/* Visão */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-2 mb-2">
           <Eye className="h-3 w-3 text-muted-foreground" />
           <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Visão</p>
           {isOwner && !editV && (
-            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setVDraft(data?.vision || ''); setEditV(true); }}>
+            <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => { setVDraft(data?.vision || ''); setEditV(true); }}>
               <Pencil className="h-2.5 w-2.5" />
             </Button>
           )}
@@ -97,8 +97,8 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
       </div>
 
       {/* Valores */}
-      <div>
-        <div className="flex items-center gap-2 mb-1.5">
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-2 mb-2">
           <Heart className="h-3 w-3 text-muted-foreground" />
           <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Valores</p>
         </div>
@@ -119,32 +119,18 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
           ))}
         </div>
         {isOwner && (
-          <div className="flex gap-1">
-            <Input
-              value={newVal}
-              onChange={e => setNewVal(e.target.value)}
-              placeholder="Ex: Transparência"
-              className="h-8 text-sm"
-              onKeyDown={e => {
-                if (e.key === 'Enter' && newVal.trim()) {
-                  save.mutate({ values_list: [...valuesList, newVal.trim()] });
-                  setNewVal('');
-                }
-              }}
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                if (newVal.trim()) {
-                  save.mutate({ values_list: [...valuesList, newVal.trim()] });
-                  setNewVal('');
-                }
-              }}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
+          <Input
+            value={newVal}
+            onChange={e => setNewVal(e.target.value)}
+            placeholder="+ Adicionar valor e Enter"
+            className="h-7 text-xs px-0 border-0 border-b rounded-none shadow-none focus-visible:ring-0 focus-visible:border-primary bg-transparent"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && newVal.trim()) {
+                save.mutate({ values_list: [...valuesList, newVal.trim()] });
+                setNewVal('');
+              }
+            }}
+          />
         )}
       </div>
     </div>
