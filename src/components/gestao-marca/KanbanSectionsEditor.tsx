@@ -150,6 +150,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false }: Pr
         <EmptyHint>Sem secções. {isOwner ? 'Adiciona a primeira abaixo.' : ''}</EmptyHint>
       )}
 
+      <div className={twoColumns ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'space-y-3'}>
       {sections.map((s, idx) => (
         <div key={s.id} className="rounded-lg border bg-card overflow-hidden group">
           {editingId === s.id ? (
@@ -210,6 +211,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false }: Pr
           )}
         </div>
       ))}
+      </div>
 
       {isOwner && (
         adding ? (
