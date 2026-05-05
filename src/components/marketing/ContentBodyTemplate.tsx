@@ -2,8 +2,9 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Plus, Trash2 } from 'lucide-react';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
 // Template structures per format
@@ -16,10 +17,37 @@ export type TemplateField = {
 };
 
 const CAROUSEL_MAX_SLIDES = 20;
+const STORIES_MAX_SLIDES = 20;
+const DEFAULT_CAROUSEL_SLIDES = 2;
+const DEFAULT_STORIES_SLIDES = 2;
 
-function getTemplateFields(format: string): TemplateField[] {
+function getTemplateFields(format: string, slideCount?: number): TemplateField[] {
   switch (format) {
     case 'carrossel':
+      {
+        const count = Math.min(Math.max(slideCount ?? DEFAULT_CAROUSEL_SLIDES, 1), CAROUSEL_MAX_SLIDES);
+        return [
+          { key: 'capa', label: 'CAPA', type: 'image-placeholder' },
+          ...Array.from({ length: count - 1 }, (_, i) => ({
+            key: `imagem_${i + 2}`,
+            label: `IMAGEM ${i + 2}`,
+            type: 'image-placeholder' as const,
+          })),
+          { key: 'legenda', label: 'Legenda:', type: 'textarea', placeholder: 'Escreve a legenda do carrossel...' },
+        ];
+      }
+
+    case 'stories':
+      {
+        const count = Math.min(Math.max(slideCount ?? DEFAULT_STORIES_SLIDES, 1), STORIES_MAX_SLIDES);
+        return Array.from({ length: count }, (_, i) => ({
+          key: `story_${i + 1}`,
+          label: `STORY ${i + 1}`,
+          type: 'image-placeholder' as const,
+        }));
+      }
+
+    case 'carrossel_legacy_unused':
       return [
         { key: 'capa', label: 'CAPA', type: 'image-placeholder' },
         ...Array.from({ length: CAROUSEL_MAX_SLIDES - 1 }, (_, i) => ({
@@ -47,15 +75,6 @@ function getTemplateFields(format: string): TemplateField[] {
         { key: 'hook', label: 'Hook:', type: 'textarea', placeholder: 'O gancho inicial do vídeo...' },
         { key: 'script', label: 'Script de vídeo', type: 'textarea', placeholder: 'Escreve o script/guião...' },
         { key: 'legenda', label: 'Legenda:', type: 'textarea', placeholder: 'Escreve a legenda...' },
-      ];
-
-    case 'stories':
-      return [
-        ...Array.from({ length: 10 }, (_, i) => ({
-          key: `story_${i + 1}`,
-          label: `STORY ${i + 1}`,
-          type: 'image-placeholder' as const,
-        })),
       ];
 
     case 'email':
@@ -105,13 +124,46 @@ interface ContentBodyTemplateProps {
 }
 
 function ContentBodyTemplateInner({ format, value, onChange, editable = true }: ContentBodyTemplateProps) {
-  const fields = getTemplateFields(format);
-
   // Internal state buffers fast keystrokes; we only push to parent (heavy re-render) after a debounce.
   const [data, setData] = useState<Record<string, any>>(value || {});
   const debounceRef = useRef<number | null>(null);
   const dataRef = useRef(data);
   const lastExternalRef = useRef<string>(JSON.stringify(value || {}));
+
+  // Determine current slide count for variable-slide formats. Stored in `_slide_count`
+  // so it persists per content item. Falls back to inferring from existing keys
+  // (legacy items saved with 20 slots) or to the format default.
+  const inferSlideCount = (): number | undefined => {
+    if (format === 'carrossel') {
+      const stored = Number(data._slide_count);
+      if (Number.isFinite(stored) && stored >= 1) return stored;
+      // Infer from existing non-empty image keys
+      const used = [1, ...Array.from({ length: CAROUSEL_MAX_SLIDES - 1 }, (_, i) => i + 2)]
+        .filter(n => {
+          const key = n === 1 ? 'capa' : `imagem_${n}`;
+          const v = data[key];
+          return typeof v === 'string' && v.trim().length > 0;
+        });
+      if (used.length > 0) return Math.max(...used, DEFAULT_CAROUSEL_SLIDES);
+      return DEFAULT_CAROUSEL_SLIDES;
+    }
+    if (format === 'stories') {
+      const stored = Number(data._slide_count);
+      if (Number.isFinite(stored) && stored >= 1) return stored;
+      const used = Array.from({ length: STORIES_MAX_SLIDES }, (_, i) => i + 1).filter(n => {
+        const v = data[`story_${n}`];
+        return typeof v === 'string' && v.trim().length > 0;
+      });
+      if (used.length > 0) return Math.max(...used, DEFAULT_STORIES_SLIDES);
+      return DEFAULT_STORIES_SLIDES;
+    }
+    return undefined;
+  };
+
+  const slideCount = inferSlideCount();
+  const fields = getTemplateFields(format, slideCount);
+  const isVariableSlideFormat = format === 'carrossel' || format === 'stories';
+  const maxSlides = format === 'carrossel' ? CAROUSEL_MAX_SLIDES : STORIES_MAX_SLIDES;
 
   // Re-sync from outside when the value prop changes meaningfully (e.g. after load).
   useEffect(() => {
@@ -141,6 +193,40 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
 
   const updateField = (key: string, val: any) => {
     const next = { ...dataRef.current, [key]: val };
+    dataRef.current = next;
+    setData(next);
+    scheduleFlush();
+  };
+
+  const setSlideCount = (n: number) => {
+    const next = { ...dataRef.current, _slide_count: n };
+    dataRef.current = next;
+    setData(next);
+    scheduleFlush();
+  };
+
+  const addSlide = () => {
+    if (!isVariableSlideFormat) return;
+    const current = slideCount ?? (format === 'carrossel' ? DEFAULT_CAROUSEL_SLIDES : DEFAULT_STORIES_SLIDES);
+    if (current >= maxSlides) return;
+    setSlideCount(current + 1);
+  };
+
+  const removeSlideAt = (index: number) => {
+    if (!isVariableSlideFormat) return;
+    const current = slideCount ?? 1;
+    if (current <= 1) return;
+    // Shift content down: for index i (1-based), copy i+1 → i, i+2 → i+1, etc.
+    const next = { ...dataRef.current };
+    const keyAt = (n: number) => {
+      if (format === 'carrossel') return n === 1 ? 'capa' : `imagem_${n}`;
+      return `story_${n}`;
+    };
+    for (let i = index; i < current; i++) {
+      next[keyAt(i)] = dataRef.current[keyAt(i + 1)] ?? '';
+    }
+    delete next[keyAt(current)];
+    next._slide_count = current - 1;
     dataRef.current = next;
     setData(next);
     scheduleFlush();
@@ -239,13 +325,40 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
             <label className="text-sm font-semibold text-foreground">{slidesSectionTitle}</label>
             <span className="text-xs text-muted-foreground">{slidesSectionHint}</span>
+            {isVariableSlideFormat && editable && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="ml-auto h-7 gap-1 text-xs"
+                onClick={addSlide}
+                disabled={(slideCount ?? 0) >= maxSlides}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Adicionar slide
+              </Button>
+            )}
           </div>
           <div className="space-y-3">
-            {slideFields.map(field => (
+            {slideFields.map((field, idx) => (
               <div key={field.key} className="rounded-lg border border-border/50 bg-background/40 p-3 space-y-2">
-                <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-                  {field.label}
-                </label>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                    {field.label}
+                  </label>
+                  {isVariableSlideFormat && editable && slideFields.length > 1 && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeSlideAt(idx + 1)}
+                      title="Remover slide"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
                 {renderField(field)}
               </div>
             ))}
