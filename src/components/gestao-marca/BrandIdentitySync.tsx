@@ -47,14 +47,7 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
   });
 
   return (
-    <div className="rounded-lg border border-dashed bg-muted/20 p-3 space-y-3">
-      <div className="flex items-center gap-1.5">
-        <Link2 className="h-3 w-3 text-muted-foreground" />
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          Identidade Estratégica · sincronizada com Planeamento
-        </p>
-      </div>
-
+    <div className="rounded-lg border border-dashed bg-muted/20 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Missão */}
       <div>
         <div className="flex items-center gap-2 mb-1">
