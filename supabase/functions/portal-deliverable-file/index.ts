@@ -41,13 +41,19 @@ Deno.serve(async (req) => {
     _token: token,
     _deliverable_id: deliverableId,
   });
-  if (error) return json({ error: 'rpc_failed', details: error.message }, 500);
+  if (error) {
+    console.error('[portal-deliverable-file] RPC error', error);
+    return json({ error: 'internal_error' }, 500);
+  }
   if (!path) return json({ error: 'not_found' }, 404);
 
   const { data: signed, error: signErr } = await sb.storage
     .from('deliverable-documents')
     .createSignedUrl(path as string, 60 * 5);
-  if (signErr || !signed?.signedUrl) return json({ error: 'sign_failed', details: signErr?.message }, 500);
+  if (signErr || !signed?.signedUrl) {
+    console.error('[portal-deliverable-file] sign error', signErr);
+    return json({ error: 'internal_error' }, 500);
+  }
 
   return json({ url: signed.signedUrl });
 });
