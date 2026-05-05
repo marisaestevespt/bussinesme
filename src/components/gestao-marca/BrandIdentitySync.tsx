@@ -49,12 +49,14 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Missão */}
-      <div className="rounded-lg border bg-card p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Target className="h-3 w-3 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Missão</p>
+      <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <Target className="h-3.5 w-3.5" />
+          </div>
+          <p className="text-xs text-primary font-semibold uppercase tracking-wider">Missão</p>
           {isOwner && !editM && (
-            <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => { setMDraft(data?.mission || ''); setEditM(true); }}>
+          <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={() => { setMDraft(data?.mission || ''); setEditM(true); }}>
               <Pencil className="h-2.5 w-2.5" />
             </Button>
           )}
@@ -68,17 +70,19 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground leading-relaxed">{data?.mission || <span className="italic">Por definir.</span>}</p>
+          <p className="text-sm text-foreground leading-relaxed">{data?.mission || <span className="italic text-muted-foreground">Por definir.</span>}</p>
         )}
       </div>
 
       {/* Visão */}
-      <div className="rounded-lg border bg-card p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Eye className="h-3 w-3 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Visão</p>
+      <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <Eye className="h-3.5 w-3.5" />
+          </div>
+          <p className="text-xs text-primary font-semibold uppercase tracking-wider">Visão</p>
           {isOwner && !editV && (
-            <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => { setVDraft(data?.vision || ''); setEditV(true); }}>
+          <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={() => { setVDraft(data?.vision || ''); setEditV(true); }}>
               <Pencil className="h-2.5 w-2.5" />
             </Button>
           )}
@@ -92,15 +96,17 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground leading-relaxed">{data?.vision || <span className="italic">Por definir.</span>}</p>
+          <p className="text-sm text-foreground leading-relaxed">{data?.vision || <span className="italic text-muted-foreground">Por definir.</span>}</p>
         )}
       </div>
 
       {/* Valores */}
-      <div className="rounded-lg border bg-card p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Heart className="h-3 w-3 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Valores</p>
+      <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <Heart className="h-3.5 w-3.5" />
+          </div>
+          <p className="text-xs text-primary font-semibold uppercase tracking-wider">Valores</p>
         </div>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {valuesList.length === 0 && <span className="text-xs italic text-muted-foreground">Adiciona valores que guiam a equipa.</span>}
