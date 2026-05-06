@@ -7,7 +7,7 @@ import { Upload, X, Pencil, Check, Image as ImageIcon, Plus, Trash2 } from 'luci
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { ArchetypesBoard } from './ArchetypesBoard';
-import { KanbanSectionsEditor } from './KanbanSectionsEditor';
+import { PersonalidadePalavrasLayout } from './PersonalidadePalavrasLayout';
 
 interface PersonalityImage {
   id: string;
@@ -54,7 +54,7 @@ export function PersonalidadeUniversoBoard({ itemId, isOwner }: { itemId: string
         <header>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Personalidade & Palavras</h3>
         </header>
-        <KanbanSectionsEditor itemId={itemId} isOwner={isOwner} twoColumns hideAttachments />
+        <PersonalidadePalavrasLayout itemId={itemId} isOwner={isOwner} />
       </section>
     </div>
   );
