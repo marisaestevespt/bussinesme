@@ -117,7 +117,7 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
 
   const gridClass = layout === 'moodboard'
     ? 'columns-1 sm:columns-2 lg:columns-3 gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid'
-    : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3';
+    : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3';
 
   return (
     <div className="space-y-3">
@@ -130,7 +130,11 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
         <div className={gridClass}>
           {images.map(img => (
             <div key={img.id} className="group/img relative rounded-lg overflow-hidden border bg-card">
-              <img src={img.image_url} alt={img.caption || ''} className="w-full h-auto block" />
+              <img
+                src={img.image_url}
+                alt={img.caption || ''}
+                className={layout === 'elements' ? 'w-full aspect-square object-cover block' : 'w-full h-auto block'}
+              />
               {layout === 'elements' && (
                 editingId === img.id ? (
                   <div className="p-2 space-y-1.5 border-t">
