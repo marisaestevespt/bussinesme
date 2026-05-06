@@ -47,14 +47,14 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Missão */}
-      <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-3 hq-transition hover:border-primary/30">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="h-6 w-6 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Target className="h-3 w-3" />
+      <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-4 hq-transition hover:border-primary/30">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Target className="h-3.5 w-3.5" />
           </div>
-          <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Missão</p>
+          <p className="text-xs text-primary font-semibold uppercase tracking-wider">Missão</p>
           {isOwner && !editM && (
           <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto opacity-0 group-hover/card:opacity-100 transition-opacity" onClick={() => { setMDraft(data?.mission || ''); setEditM(true); }}>
               <Pencil className="h-2.5 w-2.5" />
@@ -70,17 +70,17 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-foreground leading-relaxed">{data?.mission || <span className="italic text-muted-foreground">Por definir.</span>}</p>
+          <p className="text-sm text-foreground leading-relaxed">{data?.mission || <span className="italic text-muted-foreground">Por definir.</span>}</p>
         )}
       </div>
 
       {/* Visão */}
-      <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-3 hq-transition hover:border-primary/30">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="h-6 w-6 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Eye className="h-3 w-3" />
+      <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-4 hq-transition hover:border-primary/30">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Eye className="h-3.5 w-3.5" />
           </div>
-          <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Visão</p>
+          <p className="text-xs text-primary font-semibold uppercase tracking-wider">Visão</p>
           {isOwner && !editV && (
           <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto opacity-0 group-hover/card:opacity-100 transition-opacity" onClick={() => { setVDraft(data?.vision || ''); setEditV(true); }}>
               <Pencil className="h-2.5 w-2.5" />
@@ -96,24 +96,24 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-foreground leading-relaxed">{data?.vision || <span className="italic text-muted-foreground">Por definir.</span>}</p>
+          <p className="text-sm text-foreground leading-relaxed">{data?.vision || <span className="italic text-muted-foreground">Por definir.</span>}</p>
         )}
       </div>
 
       {/* Valores */}
-      <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-3 hq-transition hover:border-primary/30">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="h-6 w-6 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Heart className="h-3 w-3" />
+      <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-4 hq-transition hover:border-primary/30">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Heart className="h-3.5 w-3.5" />
           </div>
-          <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Valores</p>
+          <p className="text-xs text-primary font-semibold uppercase tracking-wider">Valores</p>
         </div>
         {valuesList.length === 0 ? (
-          <p className="text-xs italic text-muted-foreground">Adiciona valores que guiam a equipa.</p>
+          <p className="text-sm italic text-muted-foreground">Adiciona valores que guiam a equipa.</p>
         ) : (
           <ul className="divide-y divide-primary/15">
             {valuesList.map((v, idx) => (
-              <li key={idx} className="group/val flex items-center justify-between py-1.5 text-xs text-primary font-medium">
+              <li key={idx} className="group/val flex items-center justify-between py-2 text-sm text-primary font-medium">
                 <span>{v}</span>
                 {isOwner && (
                   <button
