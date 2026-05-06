@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, X, Pencil, Check, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Pencil, Check, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { ArchetypesBoard } from './ArchetypesBoard';
 import { KanbanSectionsEditor } from './KanbanSectionsEditor';
@@ -27,6 +28,7 @@ export function PersonalidadeUniversoBoard({ itemId, isOwner }: { itemId: string
           <p className="text-xs text-muted-foreground">Moodboard visual: imagens, texturas e referências que definem o universo da marca.</p>
         </header>
         <ImageGallery itemId={itemId} kind="moodboard" isOwner={isOwner} layout="moodboard" />
+        <UniverseNotes isOwner={isOwner} />
       </section>
 
       {/* Arquétipos */}
@@ -185,6 +187,123 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
           </Button>
           <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFile} />
         </>
+      )}
+    </div>
+  );
+}
+
+interface UniverseNote {
+  id: string;
+  title: string;
+  description: string | null;
+  sort_order: number;
+}
+
+function UniverseNotes({ isOwner }: { isOwner: boolean }) {
+  const qc = useQueryClient();
+  const [adding, setAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState('');
+  const [draftDesc, setDraftDesc] = useState('');
+
+  const { data: notes = [] } = useQuery({
+    queryKey: ['brand-universe-notes'],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('brand_universe_notes')
+        .select('*')
+        .order('sort_order');
+      return (data || []) as UniverseNote[];
+    },
+  });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['brand-universe-notes'] });
+
+  const add = async () => {
+    if (!newTitle.trim()) return;
+    const { error } = await (supabase as any).from('brand_universe_notes').insert({
+      title: newTitle.trim(), description: newDesc.trim() || null, sort_order: notes.length,
+    });
+    if (error) toast.error('Erro ao adicionar');
+    else { setNewTitle(''); setNewDesc(''); setAdding(false); invalidate(); }
+  };
+
+  const startEdit = (n: UniverseNote) => {
+    setEditingId(n.id); setDraftTitle(n.title); setDraftDesc(n.description || '');
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    const { error } = await (supabase as any).from('brand_universe_notes')
+      .update({ title: draftTitle.trim() || 'Sem título', description: draftDesc.trim() || null })
+      .eq('id', editingId);
+    if (error) toast.error('Erro ao guardar');
+    else { setEditingId(null); invalidate(); }
+  };
+
+  const remove = async (id: string) => {
+    await (supabase as any).from('brand_universe_notes').delete().eq('id', id);
+    invalidate();
+  };
+
+  return (
+    <div className="space-y-2 pt-2">
+      {notes.length > 0 && (
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="grid grid-cols-[200px_1fr_auto] gap-3 px-3 py-2 border-b bg-muted/30 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div>Título</div>
+            <div>Descrição</div>
+            <div className="w-6" />
+          </div>
+          <ul className="divide-y">
+            {notes.map(n => (
+              <li key={n.id} className="group/note">
+                {editingId === n.id ? (
+                  <div className="grid grid-cols-[200px_1fr_auto] gap-3 px-3 py-2 items-start">
+                    <Input value={draftTitle} onChange={e => setDraftTitle(e.target.value)} className="h-8 text-sm" autoFocus />
+                    <Textarea value={draftDesc} onChange={e => setDraftDesc(e.target.value)} rows={2} className="text-sm min-h-[60px]" />
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5" /></Button>
+                      <Button size="icon" className="h-7 w-7" onClick={saveEdit}><Check className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-[200px_1fr_auto] gap-3 px-3 py-2 items-start">
+                    <div className="text-sm font-medium text-foreground">{n.title}</div>
+                    <div className="text-sm text-muted-foreground whitespace-pre-line">{n.description || <span className="italic">—</span>}</div>
+                    <div className="flex gap-0.5 opacity-0 group-hover/note:opacity-100 transition-opacity">
+                      {isOwner && (
+                        <>
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => startEdit(n)}><Pencil className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => remove(n.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {isOwner && (
+        adding ? (
+          <div className="grid grid-cols-[200px_1fr_auto] gap-3 items-start rounded-lg border bg-card p-3">
+            <Input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Título..." className="h-8 text-sm" autoFocus />
+            <Textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={2} placeholder="Descrição..." className="text-sm min-h-[60px]" />
+            <div className="flex gap-1">
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setAdding(false); setNewTitle(''); setNewDesc(''); }}><X className="h-3.5 w-3.5" /></Button>
+              <Button size="icon" className="h-7 w-7" onClick={add}><Check className="h-3.5 w-3.5" /></Button>
+            </div>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />Adicionar nota
+          </Button>
+        )
       )}
     </div>
   );
