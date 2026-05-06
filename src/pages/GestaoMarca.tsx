@@ -493,7 +493,7 @@ export default function GestaoMarcaPage() {
             <CardContent className="p-0">
               <div className="flex flex-col md:flex-row items-stretch">
                 {/* Logo - fills full card height */}
-                <div className="md:w-[220px] md:shrink-0 md:self-stretch">
+                <div className="md:w-[260px] md:shrink-0 md:self-stretch">
                   {isOwner ? (
                     <LogoFramer
                       settings={settings}
@@ -512,9 +512,9 @@ export default function GestaoMarcaPage() {
                   ) : null}
                 </div>
 
-                <div className="flex-1 space-y-3 min-w-0 p-4">
+                <div className="flex-1 space-y-4 min-w-0 p-5">
                   {/* Name */}
-                  <h2 className="text-lg font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
+                  <h2 className="text-xl font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
 
                   {/* PUV */}
                   <div className="group/puv">
