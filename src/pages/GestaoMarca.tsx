@@ -40,6 +40,7 @@ import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEd
 import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
 import { BulletListEditor } from '@/components/gestao-marca/BulletListEditor';
 import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
+import { PersonalidadeUniversoBoard } from '@/components/gestao-marca/PersonalidadeUniversoBoard';
 import { ContentPillarsBoard } from '@/components/gestao-marca/ContentPillarsBoard';
 import { FolderSystemTable } from '@/components/gestao-marca/FolderSystemTable';
 
@@ -1056,6 +1057,8 @@ export default function GestaoMarcaPage() {
                   placeholder={selectedKanban.title?.includes('Assinatura') ? 'Escreve a frase de assinatura...' : selectedKanban.title?.includes('Proposta') ? 'Escreve a proposta de valor...' : selectedKanban.title?.includes('Movimento') ? 'Escreve o movimento da marca...' : selectedKanban.title?.toLowerCase().includes('transformaç') ? 'Escreve a transformação que entregas...' : selectedKanban.title?.toLowerCase().includes('convite') ? 'Escreve o convite da marca...' : selectedKanban.title?.toLowerCase().includes('propósito') || selectedKanban.title?.toLowerCase().includes('proposito') ? 'Escreve o vosso propósito numa frase...' : selectedKanban.title?.toLowerCase().includes('história') || selectedKanban.title?.toLowerCase().includes('historia') ? 'Escreve a história da marca numa frase...' : 'Escreve a vossa promessa...'}
                   onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
                 />
+              ) : selectedKanban.title?.includes('Personalidade') ? (
+                <PersonalidadeUniversoBoard itemId={selectedKanban.id} isOwner={isOwner} />
               ) : selectedKanban.title?.includes('Arquétipos') || selectedKanban.title?.includes('Arquetipos') ? (
                 <ArchetypesBoard isOwner={isOwner} />
               ) : selectedKanban.title?.includes('Pilares') ? (
@@ -1073,11 +1076,9 @@ export default function GestaoMarcaPage() {
                   itemId={selectedKanban.id}
                   isOwner={isOwner}
                   twoColumns={
-                    selectedKanban.title?.includes('Personalidade') ||
                     selectedKanban.title?.includes('Segmento')
                   }
                   hideAttachments={
-                    selectedKanban.title?.includes('Personalidade') ||
                     selectedKanban.title?.includes('Tom de voz') ||
                     selectedKanban.title?.includes('Segmento')
                   }
