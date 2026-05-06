@@ -24,13 +24,23 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
     },
   });
 
-  const valuesList: string[] = useMemo(() => Array.isArray(data?.values_list) ? data.values_list : [], [data]);
+  type ValueItem = { name: string; description?: string };
+  const valuesList: ValueItem[] = useMemo(() => {
+    if (!Array.isArray(data?.values_list)) return [];
+    return data.values_list.map((v: any) =>
+      typeof v === 'string' ? { name: v, description: '' } : { name: v?.name || '', description: v?.description || '' }
+    );
+  }, [data]);
 
   const [editM, setEditM] = useState(false);
   const [editV, setEditV] = useState(false);
   const [mDraft, setMDraft] = useState('');
   const [vDraft, setVDraft] = useState('');
-  const [newVal, setNewVal] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [editingValIdx, setEditingValIdx] = useState<number | null>(null);
+  const [valNameDraft, setValNameDraft] = useState('');
+  const [valDescDraft, setValDescDraft] = useState('');
 
   const save = useMutation({
     mutationFn: async (patch: Record<string, any>) => {
@@ -118,35 +128,83 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             style={{ gridTemplateColumns: `repeat(${valuesList.length}, minmax(0, 1fr))` }}
           >
             {valuesList.map((v, idx) => (
-              <div key={idx} className="group/val flex items-center justify-between gap-2 px-4 first:pl-0 text-sm text-primary font-medium">
-                <span>{v}</span>
-                {isOwner && (
-                  <button
-                    onClick={() => save.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
-                    className="opacity-0 group-hover/val:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                    aria-label="Remover valor"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+              <div key={idx} className="group/val flex flex-col items-start gap-1 px-4 first:pl-0 text-left">
+                {editingValIdx === idx ? (
+                  <div className="w-full space-y-1.5">
+                    <Input value={valNameDraft} onChange={e => setValNameDraft(e.target.value)} placeholder="Nome" className="h-7 text-sm font-semibold" autoFocus />
+                    <Textarea value={valDescDraft} onChange={e => setValDescDraft(e.target.value)} rows={2} placeholder="Descrição (opcional)" className="text-xs" />
+                    <div className="flex gap-1">
+                      <Button size="sm" className="h-6 px-2" onClick={() => {
+                        const next = valuesList.map((it, i) => i === idx ? { name: valNameDraft.trim() || it.name, description: valDescDraft.trim() } : it);
+                        save.mutate({ values_list: next }, { onSuccess: () => setEditingValIdx(null) });
+                      }}><Check className="h-3 w-3" /></Button>
+                      <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => setEditingValIdx(null)}><X className="h-3 w-3" /></Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-2 w-full">
+                      <span className="text-sm text-primary font-semibold">{v.name}</span>
+                      {isOwner && (
+                        <div className="flex gap-0.5 opacity-0 group-hover/val:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => { setEditingValIdx(idx); setValNameDraft(v.name); setValDescDraft(v.description || ''); }}
+                            className="text-muted-foreground hover:text-foreground"
+                            aria-label="Editar valor"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => save.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
+                            className="text-muted-foreground hover:text-destructive"
+                            aria-label="Remover valor"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {v.description && (
+                      <p className="text-xs text-muted-foreground leading-snug">{v.description}</p>
+                    )}
+                  </>
                 )}
               </div>
             ))}
           </div>
         )}
         {isOwner && (
-          <div className="opacity-0 group-hover/card:opacity-100 focus-within:opacity-100 transition-opacity mt-3 pt-3 border-t border-primary/15">
+          <div className="opacity-0 group-hover/card:opacity-100 focus-within:opacity-100 transition-opacity mt-3 pt-3 border-t border-primary/15 grid grid-cols-[1fr_2fr_auto] gap-2 items-start">
             <Input
-              value={newVal}
-              onChange={e => setNewVal(e.target.value)}
-              placeholder="+ Adicionar valor e Enter"
-              className="h-7 text-xs px-0 border-0 rounded-none shadow-none focus-visible:ring-0 bg-transparent placeholder:text-primary/60"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              placeholder="Nome do valor"
+              className="h-7 text-xs"
+            />
+            <Input
+              value={newDesc}
+              onChange={e => setNewDesc(e.target.value)}
+              placeholder="Descrição curta (opcional)"
+              className="h-7 text-xs"
               onKeyDown={e => {
-                if (e.key === 'Enter' && newVal.trim()) {
-                  save.mutate({ values_list: [...valuesList, newVal.trim()] });
-                  setNewVal('');
+                if (e.key === 'Enter' && newName.trim()) {
+                  save.mutate({ values_list: [...valuesList, { name: newName.trim(), description: newDesc.trim() }] });
+                  setNewName(''); setNewDesc('');
                 }
               }}
             />
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2"
+              disabled={!newName.trim()}
+              onClick={() => {
+                save.mutate({ values_list: [...valuesList, { name: newName.trim(), description: newDesc.trim() }] });
+                setNewName(''); setNewDesc('');
+              }}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
           </div>
         )}
       </div>
