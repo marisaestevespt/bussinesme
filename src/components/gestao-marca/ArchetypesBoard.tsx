@@ -105,7 +105,10 @@ export function ArchetypesBoard({ isOwner }: { isOwner: boolean }) {
                     <p className="text-xs text-muted-foreground italic">Sem arquétipo definido.</p>
                   )}
                   {row.notes ? (
-                    <div className="prose prose-sm max-w-none text-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(row.notes) }} />
+                    <div
+                      className="prose prose-sm max-w-none text-sm [&_p:empty]:before:content-['\\00a0'] [&_p:empty]:block"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(row.notes) }}
+                    />
                   ) : (
                     <p className="text-xs text-muted-foreground italic m-0">Sem notas.</p>
                   )}
