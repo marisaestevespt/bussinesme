@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, X, Pencil, Check, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Pencil, Check, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { ArchetypesBoard } from './ArchetypesBoard';
 import { KanbanSectionsEditor } from './KanbanSectionsEditor';
@@ -27,6 +28,7 @@ export function PersonalidadeUniversoBoard({ itemId, isOwner }: { itemId: string
           <p className="text-xs text-muted-foreground">Moodboard visual: imagens, texturas e referências que definem o universo da marca.</p>
         </header>
         <ImageGallery itemId={itemId} kind="moodboard" isOwner={isOwner} layout="moodboard" />
+        <UniverseNotes isOwner={isOwner} />
       </section>
 
       {/* Arquétipos */}
