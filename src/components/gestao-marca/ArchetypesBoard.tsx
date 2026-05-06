@@ -106,7 +106,7 @@ export function ArchetypesBoard({ isOwner }: { isOwner: boolean }) {
                   )}
                   {row.notes ? (
                     <div
-                      className="prose prose-sm max-w-none text-sm [&_p:empty]:before:content-['\\00a0'] [&_p:empty]:block"
+                      className="prose prose-sm max-w-none text-sm [&_p:empty]:min-h-[1em] [&_p]:my-2"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(row.notes) }}
                     />
                   ) : (
