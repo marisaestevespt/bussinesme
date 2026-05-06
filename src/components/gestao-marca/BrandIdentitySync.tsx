@@ -49,10 +49,10 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Missão */}
-      <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Target className="h-3.5 w-3.5" />
+      <div className="group/card rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Target className="h-4 w-4" />
           </div>
           <p className="text-xs text-primary font-semibold uppercase tracking-wider">Missão</p>
           {isOwner && !editM && (
@@ -75,10 +75,10 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
       </div>
 
       {/* Visão */}
-      <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Eye className="h-3.5 w-3.5" />
+      <div className="group/card rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Eye className="h-4 w-4" />
           </div>
           <p className="text-xs text-primary font-semibold uppercase tracking-wider">Visão</p>
           {isOwner && !editV && (
@@ -101,46 +101,48 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
       </div>
 
       {/* Valores */}
-      <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Heart className="h-3.5 w-3.5" />
+      <div className="group/card rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/[0.02] p-5 shadow-subtle hover:shadow-card hover:border-primary/40 transition-all">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Heart className="h-4 w-4" />
           </div>
           <p className="text-xs text-primary font-semibold uppercase tracking-wider">Valores</p>
         </div>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {valuesList.length === 0 && <span className="text-sm italic text-muted-foreground">Adiciona valores que guiam a equipa.</span>}
-          {valuesList.map((v, idx) => (
-            <Badge
-              key={idx}
-              variant="outline"
-              className="gap-1 group bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 font-medium"
-            >
-              {v}
-              {isOwner && (
-                <button
-                  onClick={() => save.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
-                  className="opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </Badge>
-          ))}
-        </div>
+        {valuesList.length === 0 ? (
+          <p className="text-sm italic text-muted-foreground">Adiciona valores que guiam a equipa.</p>
+        ) : (
+          <ul className="divide-y divide-primary/20">
+            {valuesList.map((v, idx) => (
+              <li key={idx} className="group/val flex items-center justify-between py-2 text-sm text-primary font-medium">
+                <span>{v}</span>
+                {isOwner && (
+                  <button
+                    onClick={() => save.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
+                    className="opacity-0 group-hover/val:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                    aria-label="Remover valor"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
         {isOwner && (
-          <Input
-            value={newVal}
-            onChange={e => setNewVal(e.target.value)}
-            placeholder="+ Adicionar valor e Enter"
-            className="h-7 text-xs px-0 border-0 border-b rounded-none shadow-none focus-visible:ring-0 focus-visible:border-primary bg-transparent"
-            onKeyDown={e => {
-              if (e.key === 'Enter' && newVal.trim()) {
-                save.mutate({ values_list: [...valuesList, newVal.trim()] });
-                setNewVal('');
-              }
-            }}
-          />
+          <div className="opacity-0 group-hover/card:opacity-100 focus-within:opacity-100 transition-opacity mt-2 pt-2 border-t border-primary/20">
+            <Input
+              value={newVal}
+              onChange={e => setNewVal(e.target.value)}
+              placeholder="+ Adicionar valor e Enter"
+              className="h-7 text-xs px-0 border-0 rounded-none shadow-none focus-visible:ring-0 bg-transparent placeholder:text-primary/60"
+              onKeyDown={e => {
+                if (e.key === 'Enter' && newVal.trim()) {
+                  save.mutate({ values_list: [...valuesList, newVal.trim()] });
+                  setNewVal('');
+                }
+              }}
+            />
+          </div>
         )}
       </div>
     </div>
