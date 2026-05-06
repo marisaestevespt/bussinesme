@@ -398,3 +398,11 @@
   min-height: var(--rte-min-h, 200px);
   height: auto;
 }
+
+/* Preserva parágrafos vazios (linhas em branco) quando o conteúdo é renderizado
+   via dangerouslySetInnerHTML em containers .prose. Sem isto, <p></p> colapsa
+   para altura zero e o utilizador perde os espaçamentos que criou. */
+.prose p:empty::before,
+.ProseMirror p:empty::before {
+  content: "\00a0";
+}
