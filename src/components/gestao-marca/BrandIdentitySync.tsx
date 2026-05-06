@@ -179,15 +179,17 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
               value={newName}
               onChange={e => setNewName(e.target.value)}
               placeholder="Nome do valor"
-              className="h-7 text-xs"
+              className="h-8 text-sm"
             />
-            <Input
+            <Textarea
               value={newDesc}
               onChange={e => setNewDesc(e.target.value)}
-              placeholder="Descrição curta (opcional)"
-              className="h-7 text-xs"
+              placeholder="Descrição (opcional) — Enter para nova linha, Ctrl/⌘+Enter para guardar"
+              rows={2}
+              className="min-h-[40px] text-sm resize-y"
               onKeyDown={e => {
-                if (e.key === 'Enter' && newName.trim()) {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && newName.trim()) {
+                  e.preventDefault();
                   save.mutate({ values_list: [...valuesList, { name: newName.trim(), description: newDesc.trim() }] });
                   setNewName(''); setNewDesc('');
                 }
@@ -196,7 +198,7 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 px-2"
+              className="h-8 px-2"
               disabled={!newName.trim()}
               onClick={() => {
                 save.mutate({ values_list: [...valuesList, { name: newName.trim(), description: newDesc.trim() }] });
