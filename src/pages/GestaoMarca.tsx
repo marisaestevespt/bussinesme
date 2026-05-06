@@ -842,7 +842,11 @@ export default function GestaoMarcaPage() {
       <Dialog open={!!selectedKanban} onOpenChange={open => { if (!open) setSelectedKanban(null); }}>
         <DialogContent className={cn(
           'max-h-[90vh] overflow-y-auto',
-          selectedKanban?.title?.includes('Competitiva') || selectedKanban?.title?.includes('Concorrência') ? 'sm:max-w-5xl' : 'sm:max-w-3xl'
+          selectedKanban?.title?.includes('Personalidade') || selectedKanban?.title?.includes('Universo')
+            ? 'sm:max-w-[1200px] w-[95vw]'
+            : selectedKanban?.title?.includes('Competitiva') || selectedKanban?.title?.includes('Concorrência')
+              ? 'sm:max-w-5xl'
+              : 'sm:max-w-3xl'
         )}>
           <DialogHeader>
             <DialogTitle>{selectedKanban?.title}</DialogTitle>
