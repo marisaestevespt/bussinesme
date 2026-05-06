@@ -55,7 +55,7 @@ export function SingleLineEditor({ itemId, initial, isOwner, placeholder, onSave
   return (
     <div className="rounded-lg border bg-card p-6 flex items-center justify-between gap-3 group">
       {value ? (
-        <p className="text-lg font-medium text-foreground italic flex-1 whitespace-pre-line">"{value}"</p>
+        <p className="text-lg font-medium text-foreground italic flex-1 whitespace-pre-wrap">"{value}"</p>
       ) : (
         <p className="text-sm text-muted-foreground italic flex-1">{placeholder || 'Sem frase definida.'}</p>
       )}

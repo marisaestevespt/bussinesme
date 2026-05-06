@@ -201,7 +201,7 @@ export default function ComecaAquiPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{displayAbout}</p>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{displayAbout}</p>
             )}
           </section>
 
@@ -283,7 +283,7 @@ export default function ComecaAquiPage() {
                   {selectedMember.presentation && (
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-foreground">Apresentação</p>
-                      <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedMember.presentation}</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedMember.presentation}</p>
                     </div>
                   )}
 

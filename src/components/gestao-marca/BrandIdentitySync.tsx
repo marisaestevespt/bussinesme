@@ -81,7 +81,7 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{data?.mission || <span className="italic text-muted-foreground">Por definir.</span>}</p>
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{data?.mission || <span className="italic text-muted-foreground">Por definir.</span>}</p>
         )}
       </div>
 
@@ -107,7 +107,7 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{data?.vision || <span className="italic text-muted-foreground">Por definir.</span>}</p>
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{data?.vision || <span className="italic text-muted-foreground">Por definir.</span>}</p>
         )}
       </div>
       </div>
@@ -165,7 +165,7 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
                       )}
                     </div>
                     {v.description && (
-                      <p className="text-xs text-muted-foreground leading-snug whitespace-pre-line">{v.description}</p>
+                      <p className="text-xs text-muted-foreground leading-snug whitespace-pre-wrap">{v.description}</p>
                     )}
                   </>
                 )}

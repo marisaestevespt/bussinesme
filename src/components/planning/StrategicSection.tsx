@@ -72,7 +72,7 @@ function EditableTextBlock({
           className="min-h-[96px] rounded-md border border-dashed border-transparent hover:border-border hover:bg-muted/30 hq-transition px-3 py-2.5 cursor-text"
         >
           {value
-            ? <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line">{value}</p>
+            ? <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{value}</p>
             : <p className="text-sm italic text-muted-foreground">{placeholder}</p>}
         </div>
       )}
@@ -455,7 +455,7 @@ export function StrategicSection() {
                     </div>
                   </div>
                   {d.description && (
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-3 whitespace-pre-line">{d.description}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-3 whitespace-pre-wrap">{d.description}</p>
                   )}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <Badge variant="outline" className="text-[10px]">{d.horizon === '3_anos' ? '3 anos' : '5 anos'}</Badge>

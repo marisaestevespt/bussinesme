@@ -282,7 +282,7 @@ function UniverseNotes({ isOwner }: { isOwner: boolean }) {
                 ) : (
                   <div className="grid grid-cols-[200px_1fr_auto] gap-3 px-3 py-2 items-start">
                     <div className="text-sm font-medium text-foreground">{n.title}</div>
-                    <div className="text-sm text-muted-foreground whitespace-pre-line">{n.description || <span className="italic">—</span>}</div>
+                    <div className="text-sm text-muted-foreground whitespace-pre-wrap">{n.description || <span className="italic">—</span>}</div>
                     <div className="flex gap-0.5 opacity-0 group-hover/note:opacity-100 transition-opacity">
                       {isOwner && (
                         <>
