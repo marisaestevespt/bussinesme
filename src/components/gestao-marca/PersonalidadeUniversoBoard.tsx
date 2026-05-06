@@ -20,7 +20,7 @@ interface PersonalityImage {
 
 export function PersonalidadeUniversoBoard({ itemId, isOwner }: { itemId: string; isOwner: boolean }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-14">
       {/* Universo de marca — Moodboard */}
       <section className="space-y-3 group/sec">
         <header>
