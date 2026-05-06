@@ -523,6 +523,39 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_personality_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          file_path: string | null
+          id: string
+          image_url: string
+          kind: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          image_url: string
+          kind: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          image_url?: string
+          kind?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_swot_items: {
         Row: {
           content: string
