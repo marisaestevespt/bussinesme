@@ -113,9 +113,12 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
         {valuesList.length === 0 ? (
           <p className="text-sm italic text-muted-foreground">Adiciona valores que guiam a equipa.</p>
         ) : (
-          <div className="flex flex-wrap items-center divide-x divide-primary/20">
+          <div
+            className="grid gap-4 divide-x divide-primary/20"
+            style={{ gridTemplateColumns: `repeat(${valuesList.length}, minmax(0, 1fr))` }}
+          >
             {valuesList.map((v, idx) => (
-              <div key={idx} className="group/val flex items-center gap-2 px-4 first:pl-0 py-1 text-sm text-primary font-medium">
+              <div key={idx} className="group/val flex items-center justify-between gap-2 px-4 first:pl-0 text-sm text-primary font-medium">
                 <span>{v}</span>
                 {isOwner && (
                   <button
