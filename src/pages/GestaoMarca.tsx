@@ -535,7 +535,7 @@ export default function GestaoMarcaPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-base text-primary font-medium leading-relaxed whitespace-pre-line">
+                      <p className="text-base text-primary font-medium leading-relaxed whitespace-pre-wrap">
                         {puv || <span className="italic text-muted-foreground font-normal">Ainda não definida.</span>}
                       </p>
                     )}
@@ -563,7 +563,7 @@ export default function GestaoMarcaPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-primary/90 leading-relaxed whitespace-pre-line">
+                      <p className="text-sm text-primary/90 leading-relaxed whitespace-pre-wrap">
                         {aboutText || <span className="italic text-muted-foreground">Ainda não definido.</span>}
                       </p>
                     )}
@@ -875,7 +875,7 @@ export default function GestaoMarcaPage() {
                         {items.map(item => (
                           <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
                             <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
-                            <span className="flex-1 whitespace-pre-line">{item.content}</span>
+                            <span className="flex-1 whitespace-pre-wrap">{item.content}</span>
                             {isOwner && (
                               <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
@@ -925,7 +925,7 @@ export default function GestaoMarcaPage() {
                           {items.map(item => (
                             <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
                               <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
-                              <span className="flex-1 whitespace-pre-line">{item.content}</span>
+                              <span className="flex-1 whitespace-pre-wrap">{item.content}</span>
                               {isOwner && (
                                 <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
                                   <Trash2 className="h-3 w-3 text-destructive" />
@@ -956,7 +956,7 @@ export default function GestaoMarcaPage() {
               {differentials.map(d => (
                 <div key={d.id} className="flex items-center gap-3 group p-3 rounded-lg border bg-card hq-transition hover:shadow-sm">
                   <span className="text-primary">✦</span>
-                  <span className="flex-1 text-sm text-foreground whitespace-pre-line">{d.content}</span>
+                  <span className="flex-1 text-sm text-foreground whitespace-pre-wrap">{d.content}</span>
                   {isOwner && (
                     <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
                       <Trash2 className="h-3 w-3 text-destructive" />

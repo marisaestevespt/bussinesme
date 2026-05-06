@@ -84,7 +84,7 @@ export function BulletListEditor({ itemId, initial, isOwner, placeholder, onSave
                 className="min-h-[40px] border-transparent bg-transparent shadow-none focus-visible:border-input focus-visible:bg-background px-2 py-1 text-sm resize-y"
               />
             ) : (
-              <span className="text-sm text-foreground py-1 whitespace-pre-line">{b}</span>
+              <span className="text-sm text-foreground py-1 whitespace-pre-wrap">{b}</span>
             )}
             {isOwner && (
               <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => remove(idx)}>
