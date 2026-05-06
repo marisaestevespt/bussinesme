@@ -146,7 +146,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 group/board">
       {sections.length === 0 && !adding && (
         <EmptyHint>Sem secções. {isOwner ? 'Adiciona a primeira abaixo.' : ''}</EmptyHint>
       )}
@@ -231,8 +231,13 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
             </Button>
           </div>
         ) : (
-          <Button variant="outline" size="sm" className="w-full" onClick={() => setAdding(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1" />Adicionar secção
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setAdding(true)}
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover/board:opacity-100 focus-visible:opacity-100 transition-opacity"
+          >
+            <Plus className="h-3 w-3 mr-1" />Adicionar secção
           </Button>
         )
       )}
