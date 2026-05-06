@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Plus, X, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
@@ -75,15 +76,15 @@ export function BulletListEditor({ itemId, initial, isOwner, placeholder, onSave
           <li key={idx} className="flex items-start gap-2 group">
             <span className="mt-2 h-1.5 w-1.5 rounded-full bg-foreground/60 shrink-0" />
             {isOwner ? (
-              <Input
+              <Textarea
                 value={b}
                 onChange={e => update(idx, e.target.value)}
                 onBlur={() => commit(idx)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur(); } }}
-                className="h-8 border-transparent bg-transparent shadow-none focus-visible:border-input focus-visible:bg-background px-2"
+                rows={2}
+                className="min-h-[40px] border-transparent bg-transparent shadow-none focus-visible:border-input focus-visible:bg-background px-2 py-1 text-sm resize-y"
               />
             ) : (
-              <span className="text-sm text-foreground py-1">{b}</span>
+              <span className="text-sm text-foreground py-1 whitespace-pre-line">{b}</span>
             )}
             {isOwner && (
               <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => remove(idx)}>
@@ -95,12 +96,13 @@ export function BulletListEditor({ itemId, initial, isOwner, placeholder, onSave
       </ul>
       {isOwner && (
         <div className="flex gap-2 pt-2 border-t">
-          <Input
+          <Textarea
             value={draft}
             onChange={e => setDraft(e.target.value)}
             placeholder={placeholder || 'Nova crença...'}
-            className="h-8"
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+            rows={2}
+            className="min-h-[40px] text-sm resize-y"
+            onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); add(); } }}
           />
           <Button size="sm" className="h-8" onClick={add} disabled={!draft.trim()}>
             <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
