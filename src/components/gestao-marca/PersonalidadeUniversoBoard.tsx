@@ -116,7 +116,7 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
   };
 
   const gridClass = layout === 'moodboard'
-    ? 'columns-2 md:columns-3 lg:columns-4 gap-3 [&>*]:mb-3 [&>*]:break-inside-avoid'
+    ? 'columns-1 sm:columns-2 lg:columns-3 gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid'
     : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3';
 
   return (
