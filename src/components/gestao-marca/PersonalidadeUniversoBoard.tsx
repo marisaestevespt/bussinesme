@@ -310,8 +310,13 @@ function UniverseNotes({ isOwner }: { isOwner: boolean }) {
             </div>
           </div>
         ) : (
-          <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" />Adicionar nota
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setAdding(true)}
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover/sec:opacity-100 focus-visible:opacity-100 transition-opacity"
+          >
+            <Plus className="h-3 w-3 mr-1" />Adicionar nota
           </Button>
         )
       )}
