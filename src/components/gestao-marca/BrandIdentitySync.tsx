@@ -47,7 +47,8 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Missão */}
       <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-4 hq-transition hover:border-primary/30">
         <div className="flex items-center gap-2 mb-3">
@@ -99,6 +100,7 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
           <p className="text-sm text-foreground leading-relaxed">{data?.vision || <span className="italic text-muted-foreground">Por definir.</span>}</p>
         )}
       </div>
+      </div>
 
       {/* Valores */}
       <div className="group/card rounded-lg border border-primary/15 bg-primary/5 p-4 hq-transition hover:border-primary/30">
@@ -111,10 +113,10 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
         {valuesList.length === 0 ? (
           <p className="text-sm italic text-muted-foreground">Adiciona valores que guiam a equipa.</p>
         ) : (
-          <ul className="divide-y divide-primary/15">
+          <div className="flex flex-wrap gap-2">
             {valuesList.map((v, idx) => (
-              <li key={idx} className="group/val flex items-center justify-between py-2 text-sm text-primary font-medium">
-                <span>{v}</span>
+              <span key={idx} className="group/val inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background px-3 py-1 text-sm text-primary font-medium">
+                {v}
                 {isOwner && (
                   <button
                     onClick={() => save.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
@@ -124,12 +126,12 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
                     <X className="h-3 w-3" />
                   </button>
                 )}
-              </li>
+              </span>
             ))}
-          </ul>
+          </div>
         )}
         {isOwner && (
-          <div className="opacity-0 group-hover/card:opacity-100 focus-within:opacity-100 transition-opacity mt-1.5 pt-1.5 border-t border-primary/15">
+          <div className="opacity-0 group-hover/card:opacity-100 focus-within:opacity-100 transition-opacity mt-3 pt-3 border-t border-primary/15">
             <Input
               value={newVal}
               onChange={e => setNewVal(e.target.value)}
