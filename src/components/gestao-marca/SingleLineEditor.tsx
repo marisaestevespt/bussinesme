@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,14 +32,17 @@ export function SingleLineEditor({ itemId, initial, isOwner, placeholder, onSave
 
   if (editing && isOwner) {
     return (
-      <div className="flex gap-2">
-        <Input
+      <div className="flex gap-2 items-start">
+        <Textarea
           value={value}
           onChange={e => setValue(e.target.value)}
           placeholder={placeholder}
-          className="text-base"
+          className="text-base min-h-[120px]"
           autoFocus
-          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { setValue(initial); setEditing(false); } }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); save(); }
+            if (e.key === 'Escape') { setValue(initial); setEditing(false); }
+          }}
         />
         <Button size="sm" onClick={save}><Check className="h-3.5 w-3.5" /></Button>
         <Button size="sm" variant="ghost" onClick={() => { setValue(initial); setEditing(false); }}>
@@ -52,7 +55,7 @@ export function SingleLineEditor({ itemId, initial, isOwner, placeholder, onSave
   return (
     <div className="rounded-lg border bg-card p-6 flex items-center justify-between gap-3 group">
       {value ? (
-        <p className="text-lg font-medium text-foreground italic flex-1">"{value}"</p>
+        <p className="text-lg font-medium text-foreground italic flex-1 whitespace-pre-line">"{value}"</p>
       ) : (
         <p className="text-sm text-muted-foreground italic flex-1">{placeholder || 'Sem frase definida.'}</p>
       )}
