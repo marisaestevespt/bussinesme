@@ -493,7 +493,7 @@ export default function GestaoMarcaPage() {
             <CardContent className="p-0">
               <div className="flex flex-col md:flex-row items-stretch">
                 {/* Logo - fills full card height */}
-                <div className="md:w-[340px] md:shrink-0 md:self-stretch">
+                <div className="md:w-[220px] md:shrink-0 md:self-stretch">
                   {isOwner ? (
                     <LogoFramer
                       settings={settings}
@@ -506,15 +506,15 @@ export default function GestaoMarcaPage() {
                     <img
                       src={settings.logo_url}
                       alt={settings.business_name}
-                      className="h-64 md:h-full w-full object-cover bg-muted/30"
+                      className="h-44 md:h-full w-full object-cover bg-muted/30"
                       style={{ objectPosition: `center ${(settings as any)?.logo_position_y ?? 50}%` }}
                     />
                   ) : null}
                 </div>
 
-                <div className="flex-1 space-y-4 min-w-0 p-6">
+                <div className="flex-1 space-y-3 min-w-0 p-4">
                   {/* Name */}
-                  <h2 className="text-2xl font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
+                  <h2 className="text-lg font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
 
                   {/* PUV */}
                   <div className="group/puv">
@@ -535,7 +535,7 @@ export default function GestaoMarcaPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-base text-primary font-medium leading-relaxed">
+                      <p className="text-sm text-primary font-medium leading-relaxed">
                         {puv || <span className="italic text-muted-foreground font-normal">Ainda não definida.</span>}
                       </p>
                     )}
@@ -563,7 +563,7 @@ export default function GestaoMarcaPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-primary/90 leading-relaxed whitespace-pre-line">
+                      <p className="text-xs text-primary/90 leading-relaxed whitespace-pre-line">
                         {aboutText || <span className="italic text-muted-foreground">Ainda não definido.</span>}
                       </p>
                     )}
