@@ -875,7 +875,7 @@ export default function GestaoMarcaPage() {
                         {items.map(item => (
                           <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
                             <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
-                            <span className="flex-1">{item.content}</span>
+                            <span className="flex-1 whitespace-pre-line">{item.content}</span>
                             {isOwner && (
                               <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
                                 <Trash2 className="h-3 w-3 text-destructive" />
@@ -887,9 +887,9 @@ export default function GestaoMarcaPage() {
                       </div>
                       {newSwot?.quadrant === q.key && (
                         <div className="flex gap-2">
-                          <Input value={newSwot.text} onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
-                            placeholder={`Adicionar...`} className="h-8 text-xs" autoFocus
-                            onKeyDown={e => e.key === 'Enter' && addSwotItem(q.key, newSwot.text)} />
+                          <Textarea value={newSwot.text} onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
+                            placeholder={`Adicionar...`} rows={2} className="min-h-[40px] text-xs resize-y" autoFocus
+                            onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addSwotItem(q.key, newSwot.text); }} />
                           <Button size="sm" className="h-8" onClick={() => addSwotItem(q.key, newSwot.text)}><Check className="h-3 w-3" /></Button>
                           <Button size="sm" variant="ghost" className="h-8" onClick={() => setNewSwot(null)}><X className="h-3 w-3" /></Button>
                         </div>
@@ -925,7 +925,7 @@ export default function GestaoMarcaPage() {
                           {items.map(item => (
                             <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
                               <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
-                              <span className="flex-1">{item.content}</span>
+                              <span className="flex-1 whitespace-pre-line">{item.content}</span>
                               {isOwner && (
                                 <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
                                   <Trash2 className="h-3 w-3 text-destructive" />
@@ -937,9 +937,9 @@ export default function GestaoMarcaPage() {
                         </div>
                         {newSwot?.quadrant === q.key && (
                           <div className="flex gap-2">
-                            <Input value={newSwot.text} onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
-                              placeholder={`Adicionar ${q.label.toLowerCase()}...`} className="h-8 text-xs" autoFocus
-                              onKeyDown={e => e.key === 'Enter' && addSwotItem(q.key, newSwot.text)} />
+                            <Textarea value={newSwot.text} onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
+                              placeholder={`Adicionar ${q.label.toLowerCase()}...`} rows={2} className="min-h-[40px] text-xs resize-y" autoFocus
+                              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addSwotItem(q.key, newSwot.text); }} />
                             <Button size="sm" className="h-8" onClick={() => addSwotItem(q.key, newSwot.text)}><Check className="h-3 w-3" /></Button>
                             <Button size="sm" variant="ghost" className="h-8" onClick={() => setNewSwot(null)}><X className="h-3 w-3" /></Button>
                           </div>
@@ -956,7 +956,7 @@ export default function GestaoMarcaPage() {
               {differentials.map(d => (
                 <div key={d.id} className="flex items-center gap-3 group p-3 rounded-lg border bg-card hq-transition hover:shadow-sm">
                   <span className="text-primary">✦</span>
-                  <span className="flex-1 text-sm text-foreground">{d.content}</span>
+                  <span className="flex-1 text-sm text-foreground whitespace-pre-line">{d.content}</span>
                   {isOwner && (
                     <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
                       <Trash2 className="h-3 w-3 text-destructive" />
@@ -967,9 +967,9 @@ export default function GestaoMarcaPage() {
               {differentials.length === 0 && <EmptyHint>Nenhum diferencial adicionado.</EmptyHint>}
               {isOwner && (
                 <div className="flex gap-2 mt-2">
-                  <Input value={newDifferential} onChange={e => setNewDifferential(e.target.value)}
-                    placeholder="Adicionar diferencial..." className="h-9"
-                    onKeyDown={e => e.key === 'Enter' && addDifferential()} />
+                  <Textarea value={newDifferential} onChange={e => setNewDifferential(e.target.value)}
+                    placeholder="Adicionar diferencial..." rows={2} className="min-h-[44px] resize-y"
+                    onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addDifferential(); }} />
                   <Button size="sm" className="h-9" disabled={!newDifferential.trim()} onClick={addDifferential}>
                     <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
                   </Button>
