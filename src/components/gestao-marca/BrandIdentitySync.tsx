@@ -113,10 +113,10 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
         {valuesList.length === 0 ? (
           <p className="text-sm italic text-muted-foreground">Adiciona valores que guiam a equipa.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center divide-x divide-primary/20">
             {valuesList.map((v, idx) => (
-              <span key={idx} className="group/val inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background px-3 py-1 text-sm text-primary font-medium">
-                {v}
+              <div key={idx} className="group/val flex items-center gap-2 px-4 first:pl-0 py-1 text-sm text-primary font-medium">
+                <span>{v}</span>
                 {isOwner && (
                   <button
                     onClick={() => save.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
@@ -126,7 +126,7 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
                     <X className="h-3 w-3" />
                   </button>
                 )}
-              </span>
+              </div>
             ))}
           </div>
         )}
