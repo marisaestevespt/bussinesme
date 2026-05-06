@@ -22,7 +22,7 @@ export function PersonalidadeUniversoBoard({ itemId, isOwner }: { itemId: string
   return (
     <div className="space-y-8">
       {/* Universo de marca — Moodboard */}
-      <section className="space-y-3">
+      <section className="space-y-3 group/sec">
         <header>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Universo de marca</h3>
           <p className="text-xs text-muted-foreground">Moodboard visual: imagens, texturas e referências que definem o universo da marca.</p>
@@ -41,7 +41,7 @@ export function PersonalidadeUniversoBoard({ itemId, isOwner }: { itemId: string
       </section>
 
       {/* Elementos */}
-      <section className="space-y-3">
+      <section className="space-y-3 group/sec">
         <header>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Elementos</h3>
           <p className="text-xs text-muted-foreground">Imagens com legenda/descrição para referência (ex: símbolos, padrões, formas).</p>
@@ -116,7 +116,7 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
   };
 
   const gridClass = layout === 'moodboard'
-    ? 'columns-1 sm:columns-2 lg:columns-3 gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid'
+    ? 'columns-1 sm:columns-2 gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid'
     : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3';
 
   return (
@@ -185,8 +185,14 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
 
       {isOwner && (
         <>
-          <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            <Upload className="h-3.5 w-3.5 mr-1.5" />
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover/sec:opacity-100 focus-visible:opacity-100 transition-opacity"
+          >
+            <Upload className="h-3 w-3 mr-1" />
             {uploading ? 'A carregar...' : 'Carregar imagens'}
           </Button>
           <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFile} />
