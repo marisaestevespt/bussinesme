@@ -569,12 +569,13 @@ export default function GestaoMarcaPage() {
                     )}
                   </div>
 
-                  {/* Missão / Visão / Valores — sync com Planeamento Estratégico */}
-                  <BrandIdentitySync settingsId={settings?.id} isOwner={isOwner} />
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Missão / Visão / Valores — sync com Planeamento Estratégico */}
+          <BrandIdentitySync settingsId={settings?.id} isOwner={isOwner} />
 
           {/* ── Folders & Shortcuts ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
