@@ -70,7 +70,7 @@ export function ContentPillarsBoard({ isOwner }: { isOwner: boolean }) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 group/board">
       {pillars.length === 0 && (
         <p className="text-sm text-muted-foreground italic">Ainda não há pilares de conteúdo.</p>
       )}
@@ -141,8 +141,13 @@ export function ContentPillarsBoard({ isOwner }: { isOwner: boolean }) {
         })}
       </div>
       {isOwner && (
-        <Button variant="outline" size="sm" onClick={addPillar}>
-          <Plus className="h-3.5 w-3.5 mr-1.5" /> Adicionar pilar
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={addPillar}
+          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover/board:opacity-100 focus-visible:opacity-100 transition-opacity"
+        >
+          <Plus className="h-3 w-3 mr-1" /> Adicionar pilar
         </Button>
       )}
     </div>
