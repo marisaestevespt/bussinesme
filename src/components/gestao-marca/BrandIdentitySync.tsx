@@ -109,9 +109,13 @@ export function BrandIdentitySync({ settingsId, isOwner }: Props) {
           <p className="text-xs text-primary font-semibold uppercase tracking-wider">Valores</p>
         </div>
         <div className="flex flex-wrap gap-1.5 mb-2">
-          {valuesList.length === 0 && <span className="text-xs italic text-muted-foreground">Adiciona valores que guiam a equipa.</span>}
+          {valuesList.length === 0 && <span className="text-sm italic text-muted-foreground">Adiciona valores que guiam a equipa.</span>}
           {valuesList.map((v, idx) => (
-            <Badge key={idx} variant="secondary" className="gap-1 group">
+            <Badge
+              key={idx}
+              variant="outline"
+              className="gap-1 group bg-primary/10 text-primary border-primary/20 hover:bg-primary/15 font-medium"
+            >
               {v}
               {isOwner && (
                 <button
