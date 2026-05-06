@@ -516,11 +516,11 @@ export default function GestaoMarcaPage() {
                   <h2 className="text-2xl font-bold text-foreground">{settings?.business_name || 'Negócio'}</h2>
 
                   {/* PUV */}
-                  <div>
+                  <div className="group/puv">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Proposta Única de Valor</p>
                       {isOwner && !editingPuv && (
-                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6" onClick={() => { setTempPuv(puv); setEditingPuv(true); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/puv:opacity-100 focus:opacity-100 transition-opacity" onClick={() => { setTempPuv(puv); setEditingPuv(true); }}>
                           <Pencil className="h-3 w-3" />
                         </Button>
                       )}
@@ -540,12 +540,15 @@ export default function GestaoMarcaPage() {
                     )}
                   </div>
 
+                  {/* Divider */}
+                  <div className="border-t border-primary/20" />
+
                   {/* About / Texto de Apresentação */}
-                  <div>
+                  <div className="group/about">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Texto de Apresentação</p>
                       {isOwner && !editingAbout && (
-                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6" onClick={() => { setTempAbout(aboutText); setEditingAbout(true); }}>
+                        <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/about:opacity-100 focus:opacity-100 transition-opacity" onClick={() => { setTempAbout(aboutText); setEditingAbout(true); }}>
                           <Pencil className="h-3 w-3" />
                         </Button>
                       )}
