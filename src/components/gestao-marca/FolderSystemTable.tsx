@@ -78,7 +78,7 @@ export function FolderSystemTable({ isOwner }: Props) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 group/board">
       <div className="rounded-lg border bg-card overflow-hidden">
         <Table>
           <TableHeader>
@@ -152,8 +152,13 @@ export function FolderSystemTable({ isOwner }: Props) {
         </Table>
       </div>
       {isOwner && !adding && !editingId && (
-        <Button variant="outline" size="sm" onClick={() => { setForm({ title: '', url: '', notes: '' }); setAdding(true); }}>
-          <Plus className="h-3.5 w-3.5 mr-1" />Adicionar pasta
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => { setForm({ title: '', url: '', notes: '' }); setAdding(true); }}
+          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover/board:opacity-100 focus-visible:opacity-100 transition-opacity"
+        >
+          <Plus className="h-3 w-3 mr-1" />Adicionar pasta
         </Button>
       )}
     </div>
