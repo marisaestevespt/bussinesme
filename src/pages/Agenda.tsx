@@ -206,7 +206,7 @@ function useSalesActionsAsEvents(range: { from: string; to: string }) {
 }
 
 function useMeetingsAsEvents(range: { from: string; to: string }) {
-  const { userId: user } = { userId: useEffectiveUser().userId } as any;
+  const { userId: user } = useEffectiveUser();
   return useQuery({
     queryKey: ['meetings-as-events', range.from, range.to, user],
     enabled: !!user,
