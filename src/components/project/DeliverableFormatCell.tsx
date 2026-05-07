@@ -36,6 +36,8 @@ interface DeliverableForFormat {
   link_url?: string | null;
   document_url?: string | null;
   document_file_path?: string | null;
+  meeting_title_template?: string | null;
+  sort_order?: number | null;
 }
 
 interface Props {
@@ -171,6 +173,29 @@ export function DeliverableFormatCell({
     setMeetPickerOpen(false);
     toast.success('Reunião ligada');
   };
+
+  // Resolve title from template, replacing {cliente} and {N} (occurrence index
+  // among meeting deliverables sharing the same template in this project).
+  const { data: titleFromTemplate } = useQuery({
+    queryKey: ['deliverable-meeting-title', d.id, d.meeting_title_template, projectId, clientName],
+    enabled: fmt === 'reuniao' && !d.meeting_id && !!d.meeting_title_template,
+    queryFn: async () => {
+      const tpl = d.meeting_title_template!;
+      const { data: siblings } = await (supabase as any)
+        .from('project_deliverables')
+        .select('id, sort_order, meeting_title_template')
+        .eq('project_id', projectId)
+        .eq('meeting_title_template', tpl)
+        .order('sort_order', { ascending: true });
+      const list = (siblings || []) as Array<{ id: string; sort_order: number | null }>;
+      const idx = Math.max(1, list.findIndex(x => x.id === d.id) + 1);
+      return tpl
+        .replace(/\{N\}/g, String(idx))
+        .replace(/\{cliente\}/gi, clientName || '')
+        .trim();
+    },
+  });
+  const resolvedDefaultTitle = titleFromTemplate || d.name;
 
   // ── File upload ───────────────────────────────────────────────────
   const onFileSelected = async (file: File) => {
@@ -331,7 +356,7 @@ export function DeliverableFormatCell({
               defaultProjectName={projectName ?? undefined}
               defaultClientId={clientId ?? undefined}
               defaultClientName={clientName ?? undefined}
-              defaultTitle={d.name}
+              defaultTitle={resolvedDefaultTitle}
               defaultMemberIds={defaultMemberIds}
               defaultDepartment={defaultDepartment ?? undefined}
               onMeetingCreated={(meetingId) => updateFields.mutate({ meeting_id: meetingId })}
