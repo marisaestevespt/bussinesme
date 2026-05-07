@@ -15,6 +15,7 @@ interface Supplier {
   contract_end_date: string | null;
   member_id: string | null;
   expense_description_template: string | null;
+  department: string | null;
 }
 
 interface MemberContract {
@@ -51,7 +52,7 @@ Deno.serve(async (req) => {
     let query = supabase
       .from("suppliers")
       .select(
-        "id,name,default_vat_rate,category,location,contract_start_date,contract_end_date,member_id,expense_description_template",
+        "id,name,default_vat_rate,category,location,contract_start_date,contract_end_date,member_id,expense_description_template,department",
       )
       .eq("is_active", true);
     if (targetSupplierId) query = query.eq("id", targetSupplierId);
@@ -148,6 +149,7 @@ Deno.serve(async (req) => {
             location: s.location || "portugal",
             supplier_id: s.id,
             member_id: s.member_id,
+            department: s.department,
           })
           .select("id")
           .single();
