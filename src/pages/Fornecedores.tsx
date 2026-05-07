@@ -22,6 +22,7 @@ import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { formatEuro } from '@/lib/formatting';
+import { DEPARTMENTS } from '@/lib/departments';
 
 const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
 
@@ -407,6 +408,7 @@ export default function FornecedoresPage() {
         iban: form.iban || null,
         payment_method: form.payment_method || 'transferencia',
         category: form.category || 'outro',
+        department: form.department || null,
         notes: form.notes || null,
         is_active: form.is_active ?? true,
         default_vat_rate: form.default_vat_rate ?? 23,
