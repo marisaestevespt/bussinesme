@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Trash2, RefreshCw, CalendarClock, Pencil, Check, X, Ban } from 'lucide-react';
+import { Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { formatEuro } from '@/lib/formatting';
 import { DEPARTMENTS } from '@/lib/departments';
+import { Link as RouterLink } from 'react-router-dom';
 
 const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
 
