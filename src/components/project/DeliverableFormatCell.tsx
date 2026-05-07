@@ -251,7 +251,7 @@ export function DeliverableFormatCell({
             <button
               type="button"
               onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
-              className="text-[11px] text-primary hover:underline text-left whitespace-normal break-words leading-tight"
+              className="text-[11px] text-primary hover:underline text-left whitespace-nowrap"
               title={linkedMeeting?.title || 'Abrir reunião'}
             >
               {linkedMeeting?.title || 'reunião ligada'}
