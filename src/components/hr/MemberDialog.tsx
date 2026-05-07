@@ -48,6 +48,7 @@ const DEFAULT_MEMBER_FORM = {
   work_areas: [] as string[],
   system_role: 'team_member' as string, // função no sistema (RBAC)
   works_with_clients: false,
+  ss_employer_rate: 0.2375, // taxa SS empresa (só para Equipa Interna)
 };
 
 // Funções do sistema disponíveis para atribuir a um membro de equipa.
@@ -785,6 +786,31 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <Input placeholder="Ex: 40h" value={contract.contracted_hours} onChange={e => setC('contracted_hours', e.target.value)} />
                 </div>
               </div>
+              {contract.contract_type === 'contrato_trabalho' && (
+                <div className="rounded-md border border-border/60 bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <label className="text-xs font-medium">Taxa SS empresa (%)</label>
+                      <p className="text-[10px] text-muted-foreground">Encargo da entidade patronal sobre o salário bruto. Default 23,75% (PT).</p>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="w-24 h-9 text-right"
+                      value={typeof f.ss_employer_rate === 'number' ? (f.ss_employer_rate * 100).toFixed(2) : '23.75'}
+                      onChange={e => set('ss_employer_rate', (parseFloat(e.target.value) || 0) / 100)}
+                    />
+                  </div>
+                  {Number(contract.monthly_value) > 0 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Custo total mensal estimado: <span className="font-semibold text-foreground">
+                        {(Number(contract.monthly_value) * (1 + (Number(f.ss_employer_rate) || 0.2375))).toFixed(2)} €
+                      </span>
+                      {' '}(bruto + SS empresa)
+                    </p>
+                  )}
+                </div>
+              )}
               {contract.contract_type === 'contrato_prestacao' && (
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-xs cursor-pointer">

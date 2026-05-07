@@ -10628,6 +10628,7 @@ export type Database = {
           settlement_date: string | null
           settlement_notes: string | null
           settlement_value: number | null
+          ss_employer_rate: number
           start_date: string | null
           status: string
           updated_at: string
@@ -10671,6 +10672,7 @@ export type Database = {
           settlement_date?: string | null
           settlement_notes?: string | null
           settlement_value?: number | null
+          ss_employer_rate?: number
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -10714,6 +10716,7 @@ export type Database = {
           settlement_date?: string | null
           settlement_notes?: string | null
           settlement_value?: number | null
+          ss_employer_rate?: number
           start_date?: string | null
           status?: string
           updated_at?: string
