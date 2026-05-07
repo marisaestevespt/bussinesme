@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 
 type Entity = 'meeting' | 'client' | 'project';
 
@@ -22,12 +23,14 @@ const PARAM_BY_ENTITY: Record<Entity, string> = {
  */
 export function useDetailAccess(entity: Entity, id: string | null | undefined) {
   const { user, isAdminOrOwner } = useAuth();
+  const { impersonating } = useImpersonation();
   return useQuery({
-    queryKey: ['detail-access', entity, id, user?.id],
+    queryKey: ['detail-access', entity, id, user?.id, impersonating?.member_id ?? null],
     enabled: !!user && !!id,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      if (isAdminOrOwner) return true;
+      // While impersonating, behave as the impersonated member (no admin bypass).
+      if (!impersonating && isAdminOrOwner) return true;
       const fn = FN_BY_ENTITY[entity];
       const { data, error } = await supabase.rpc(fn as any, { [PARAM_BY_ENTITY[entity]]: id } as any);
       if (error) {
@@ -46,13 +49,14 @@ export function useDetailAccess(entity: Entity, id: string | null | undefined) {
  */
 export function useDetailAccessMap(entity: Entity, ids: string[]) {
   const { user, isAdminOrOwner } = useAuth();
+  const { impersonating } = useImpersonation();
   return useQuery({
-    queryKey: ['detail-access-map', entity, ids.slice().sort().join(','), user?.id],
+    queryKey: ['detail-access-map', entity, ids.slice().sort().join(','), user?.id, impersonating?.member_id ?? null],
     enabled: !!user && ids.length > 0,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const map: Record<string, boolean> = {};
-      if (isAdminOrOwner) {
+      if (!impersonating && isAdminOrOwner) {
         ids.forEach((id) => (map[id] = true));
         return map;
       }
