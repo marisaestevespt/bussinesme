@@ -1256,7 +1256,22 @@ function buildEmailHtml(opts: {
     : "";
   return `<!DOCTYPE html>
 <html lang="pt">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${googleFontsLink}</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${googleFontsLink}
+<style>
+.dg-card{margin:18px 0 0;border-radius:14px;background:#fafafa;border:1px solid #efeff1;overflow:hidden}
+.dg-card-inner{padding:18px 22px 16px;border-left:3px solid ${opts.primaryColor}}
+.dg-h2{font-size:13px;font-weight:600;color:#1c1c1e;margin:0 0 12px;font-family:${displayFont};letter-spacing:0.2px}
+.dg-body{font-family:${bodyFont};font-size:14px;color:#3a3a3c;line-height:1.6}
+.dg-tbl{width:100%;border-collapse:collapse;margin:6px 0 2px;table-layout:auto}
+.dg-th{font-size:11px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:0.6px;padding:6px 10px;border-bottom:1px solid #e5e5e7}
+.dg-td{padding:9px 10px;border-bottom:1px solid #efeff1;font-size:13px;color:#1c1c1e;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}
+.dg-l{text-align:left}.dg-r{text-align:right}.dg-c{text-align:center}
+.dg-chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:0.2px;white-space:nowrap}
+.dg-ul{margin:4px 0 0;padding:0;list-style:none}
+.dg-li{padding:8px 0;border-bottom:1px solid #efeff1;font-size:14px;color:#3a3a3c;line-height:1.5}
+.dg-cap{margin:8px 0 4px;font-size:12px;color:#86868b;font-weight:500;text-transform:uppercase;letter-spacing:0.6px}
+</style>
+</head>
 <body style="margin:0;padding:0;background:#f5f5f7;font-family:${bodyFont};font-size:14px;color:#1c1c1e;-webkit-font-smoothing:antialiased">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:40px 16px">
 <tr><td align="center">
@@ -1284,7 +1299,7 @@ function sectionHeader(title: string): string {
   // Each section becomes a soft card with a colored accent rail. The leading
   // "</div></div>" closes the previous card (or the sentinel wrapper opened
   // in buildEmailHtml for the first section).
-  return `</div></div><div style="margin:18px 0 0;border-radius:14px;background:#fafafa;border:1px solid #efeff1;overflow:hidden"><div style="padding:18px 22px 16px;border-left:3px solid %%PRIMARY%%"><h2 style="font-size:13px;font-weight:600;color:#1c1c1e;margin:0 0 12px;font-family:%%DISPLAY_FONT%%;letter-spacing:0.2px;text-transform:none">${title}</h2><div style="font-family:%%BODY_FONT%%;font-size:14px;color:#3a3a3c;line-height:1.6">`;
+  return `</div></div><div class="dg-card"><div class="dg-card-inner"><h2 class="dg-h2">${title}</h2><div class="dg-body">`;
 }
 
 // ─── Table helpers (for richer sections) ──────────────────────────
@@ -1379,14 +1394,17 @@ async function buildWorkTimeSection(
 }
 
 function dataTable(headers: string[], rows: string[][], align?: ("left"|"right"|"center")[]): string {
-  const al = (i: number) => align?.[i] || "left";
+  const al = (i: number) => {
+    const a = align?.[i] || "left";
+    return a === "right" ? "dg-r" : a === "center" ? "dg-c" : "dg-l";
+  };
   const headHtml = headers
-    .map((h, i) => `<th style="text-align:${al(i)};font-size:11px;font-weight:600;color:#86868b;text-transform:uppercase;letter-spacing:0.6px;padding:6px 10px;border-bottom:1px solid #e5e5e7">${esc(h)}</th>`)
+    .map((h, i) => `<th class="dg-th ${al(i)}">${esc(h)}</th>`)
     .join("");
   const bodyHtml = rows
-    .map(r => "<tr>" + r.map((c, i) => `<td style="text-align:${al(i)};padding:9px 10px;border-bottom:1px solid #efeff1;font-size:13px;color:#1c1c1e;vertical-align:top;word-wrap:break-word;overflow-wrap:break-word">${c}</td>`).join("") + "</tr>")
+    .map(r => "<tr>" + r.map((c, i) => `<td class="dg-td ${al(i)}">${c}</td>`).join("") + "</tr>")
     .join("");
-  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;margin:6px 0 2px;table-layout:auto"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+  return `<table class="dg-tbl" cellpadding="0" cellspacing="0" role="presentation"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
 }
 
 // Coloured chip, e.g. priority or overdue badge. Use sparingly inside table cells.
@@ -1399,7 +1417,7 @@ function chip(label: string, color: "red"|"amber"|"green"|"slate"|"primary" = "s
     primary:{ bg: "#eceef1", fg: "#1c1c1e" },
   };
   const p = palette[color] || palette.slate;
-  return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:${p.bg};color:${p.fg};font-size:11px;font-weight:600;letter-spacing:0.2px;white-space:nowrap">${esc(label)}</span>`;
+  return `<span class="dg-chip" style="background:${p.bg};color:${p.fg}">${esc(label)}</span>`;
 }
 
 function priorityChip(prio?: string | null): string {
