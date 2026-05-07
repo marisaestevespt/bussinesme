@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData, Expense, RecurringExpense } from '@/hooks/useFinancialData';
 import type { useQueryClient } from '@tanstack/react-query';
 import { ExpenseStatusSelect } from '../InlineStatusSelect';
+import { VatDeductibleCell } from '../VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
 import { locationLabel } from '@/lib/labelMaps';
 import { getSubscriptionDueDate, canRenderSubscriptionForMonth } from './helpers';
@@ -64,6 +65,13 @@ export function SubRow({ sub, linkedExpense, month, currentYear, fin, onExpenseC
       <TableCell className="text-right">{formatEuro(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{formatEuro(displayTotal)}</TableCell>
+      <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+        {linkedExpense ? (
+          <VatDeductibleCell expense={linkedExpense} />
+        ) : (
+          <span className="text-muted-foreground">{formatEuro(Math.max(0, (displayTotal || 0) - (displayBase || 0)))}</span>
+        )}
+      </TableCell>
     </TableRow>
   );
 }
@@ -125,6 +133,13 @@ export function ContractRow({ contract, linkedExpense, month, currentYear, fin, 
       <TableCell className="text-right">{formatEuro(baseValue)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{formatEuro(totalWithVat)}</TableCell>
+      <TableCell className="text-right" onClick={e => e.stopPropagation()}>
+        {linkedExpense ? (
+          <VatDeductibleCell expense={linkedExpense} />
+        ) : (
+          <span className="text-muted-foreground">{formatEuro(Math.max(0, (totalWithVat || 0) - (baseValue || 0)))}</span>
+        )}
+      </TableCell>
     </TableRow>
   );
 }
