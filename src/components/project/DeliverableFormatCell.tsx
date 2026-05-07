@@ -174,16 +174,27 @@ export function DeliverableFormatCell({
     toast.success('Reunião ligada');
   };
 
-  // Resolve title from template, replacing {cliente} and {N} (occurrence index
-  // among meeting deliverables sharing the same template in this project).
-  const { data: titleFromTemplate } = useQuery({
-    queryKey: ['deliverable-meeting-title', d.id, d.meeting_title_template, projectId, clientName],
-    // Wait until clientName is resolved to avoid caching a title with an empty {cliente}.
-    enabled:
-      fmt === 'reuniao' &&
-      !d.meeting_id &&
-      !!d.meeting_title_template &&
-      (!/\{cliente\}/i.test(d.meeting_title_template || '') || !!clientName),
+  // Fallback: fetch the project's client full_name directly when not provided
+  // (some callers pass null because the embedded join `clients(...)` is dropped by RLS).
+  const { data: fetchedClientName } = useQuery({
+    queryKey: ['deliverable-client-name', projectId],
+    enabled: fmt === 'reuniao' && !d.meeting_id && !clientName && !!projectId,
+    queryFn: async () => {
+      const { data: proj } = await (supabase as any)
+        .from('projects').select('client_id').eq('id', projectId).maybeSingle();
+      const cid = proj?.client_id;
+      if (!cid) return '';
+      const { data: cli } = await (supabase as any)
+        .from('clients').select('full_name').eq('id', cid).maybeSingle();
+      return (cli?.full_name as string | undefined) || '';
+    },
+  });
+  const effectiveClientName = clientName || fetchedClientName || '';
+
+  // Resolve {N} = occurrence index among meeting deliverables sharing the same template.
+  const { data: occurrenceIndex } = useQuery({
+    queryKey: ['deliverable-meeting-occurrence', d.id, d.meeting_title_template, projectId],
+    enabled: fmt === 'reuniao' && !d.meeting_id && !!d.meeting_title_template,
     queryFn: async () => {
       const tpl = d.meeting_title_template!;
       const { data: siblings } = await (supabase as any)
@@ -192,15 +203,23 @@ export function DeliverableFormatCell({
         .eq('project_id', projectId)
         .eq('meeting_title_template', tpl)
         .order('sort_order', { ascending: true });
-      const list = (siblings || []) as Array<{ id: string; sort_order: number | null }>;
-      const idx = Math.max(1, list.findIndex(x => x.id === d.id) + 1);
-      return tpl
-        .replace(/\{N\}/g, String(idx))
-        .replace(/\{cliente\}/gi, clientName || '')
-        .trim();
+      const list = (siblings || []) as Array<{ id: string }>;
+      return Math.max(1, list.findIndex(x => x.id === d.id) + 1);
     },
   });
-  const resolvedDefaultTitle = titleFromTemplate || d.name;
+
+  // Compute the resolved title synchronously from whatever we have right now.
+  // This guarantees the meeting dialog always opens with a pre-filled title.
+  const resolvedDefaultTitle = (() => {
+    const tpl = d.meeting_title_template;
+    if (!tpl) return d.name;
+    const idx = occurrenceIndex ?? 1;
+    return tpl
+      .replace(/\{N\}/g, String(idx))
+      .replace(/\{cliente\}/gi, effectiveClientName)
+      .replace(/\s+\|\s+(?=\||$)/g, ' ') // tidy empty segments when {cliente} is missing
+      .trim();
+  })();
 
   // ── File upload ───────────────────────────────────────────────────
   const onFileSelected = async (file: File) => {
