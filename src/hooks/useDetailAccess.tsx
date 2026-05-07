@@ -30,7 +30,13 @@ export function useDetailAccess(entity: Entity, id: string | null | undefined) {
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       // While impersonating, behave as the impersonated member (no admin bypass).
-      if (!impersonating && isAdminOrOwner) return true;
+      // The SQL RPCs evaluate auth.uid() (the real owner) so they would always
+      // return true — we have to validate client-side using the impersonated
+      // member's profile_id / user_id.
+      if (impersonating) {
+        return await checkAccessAsImpersonated(entity, id!, impersonating);
+      }
+      if (isAdminOrOwner) return true;
       const fn = FN_BY_ENTITY[entity];
       const { data, error } = await supabase.rpc(fn as any, { [PARAM_BY_ENTITY[entity]]: id } as any);
       if (error) {
@@ -56,7 +62,14 @@ export function useDetailAccessMap(entity: Entity, ids: string[]) {
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const map: Record<string, boolean> = {};
-      if (!impersonating && isAdminOrOwner) {
+      if (impersonating) {
+        const results = await Promise.all(
+          ids.map(async (id) => [id, await checkAccessAsImpersonated(entity, id, impersonating)] as const),
+        );
+        results.forEach(([id, ok]) => (map[id] = ok));
+        return map;
+      }
+      if (isAdminOrOwner) {
         ids.forEach((id) => (map[id] = true));
         return map;
       }
