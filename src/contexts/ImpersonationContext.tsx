@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface ImpersonatedMember {
   member_id: string;
   user_id: string | null;
+  profile_id: string | null;
   full_name: string;
   role_title: string | null;
 }
@@ -73,6 +74,7 @@ export function ImpersonationProvider({ children }: { children: ReactNode }) {
       const next: ImpersonatedMember = {
         member_id: member.id,
         user_id: userId,
+        profile_id: member.profile_id ?? null,
         full_name: member.full_name,
         role_title: member.role_title,
       };
