@@ -8938,6 +8938,7 @@ export type Database = {
           link_url: string | null
           linked_sop_id: string | null
           meeting_id: string | null
+          meeting_title_template: string | null
           name: string
           offset_days: number
           offset_trigger: string
@@ -8974,6 +8975,7 @@ export type Database = {
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
+          meeting_title_template?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
@@ -9010,6 +9012,7 @@ export type Database = {
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
+          meeting_title_template?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
