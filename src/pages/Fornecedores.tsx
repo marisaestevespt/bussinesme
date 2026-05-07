@@ -1086,7 +1086,8 @@ export default function FornecedoresPage() {
                 </div>
               )}
 
-              {/* Recurring expense link — create NEW recurring */}
+              {/* Recurring expense link — create NEW recurring (hidden for member-linked suppliers) */}
+              {!linkedContract?.contract && (
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1152,6 +1153,7 @@ export default function FornecedoresPage() {
                   </div>
                 )}
               </div>
+              )}
 
               {/* Documents */}
               <div className="space-y-2">
