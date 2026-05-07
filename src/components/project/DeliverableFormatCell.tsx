@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Video, CheckSquare, User, Link2, FileText, Plus, Upload,
-  ExternalLink, Unlink, ChevronDown, Paperclip,
+  ExternalLink, Unlink, ChevronDown, Paperclip, Copy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
@@ -373,6 +373,21 @@ export function DeliverableFormatCell({
           </div>
         ) : (
           <div className="flex items-center gap-0.5">
+            {d.meeting_title_template && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(resolvedDefaultTitle);
+                  toast.success('Título copiado');
+                }}
+                className="text-[10px] inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted/60 hover:bg-muted text-muted-foreground max-w-[260px]"
+                title={`Copiar título sugerido:\n${resolvedDefaultTitle}`}
+              >
+                <Copy className="h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">{resolvedDefaultTitle}</span>
+              </button>
+            )}
             <NewMeetingButton
               skipPicker
               forcedType={'projeto' as any}
