@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -52,6 +53,8 @@ function TabLoader() {
 
 export default function SecretariaPage() {
   const { user, isOwner } = useAuth();
+  const { impersonating } = useImpersonation();
+  const effectiveIsOwner = isOwner && !impersonating;
   const navigate = useNavigate();
   const profile = useMyProfile();
   const teamMember = useMyTeamMember();
@@ -252,7 +255,7 @@ export default function SecretariaPage() {
               </Card>
             )}
 
-            {isOwner && (
+            {effectiveIsOwner && (
               <Suspense fallback={null}>
                 <SecretariaConteudos />
               </Suspense>
