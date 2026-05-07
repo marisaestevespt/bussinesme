@@ -238,6 +238,7 @@ async function buildOwnerDigest(
   // (helper declared below)
   let html = "";
   let hasContent = false;
+  const empty = () => `<p style="color:#999;font-style:italic;margin:4px 0 0">Sem registos.</p>`;
 
   // ── Reuniões do dia (primeiro — o que vai acontecer) ──
   if (sections.reunioes_dia) {
@@ -248,15 +249,17 @@ async function buildOwnerDigest(
       .lte("date_time", todayStr + "T23:59:59")
       .order("date_time");
 
+    hasContent = true;
+    html += sectionHeader("📅 Reuniões do dia");
     if (meetings?.length) {
-      hasContent = true;
-      html += sectionHeader("📅 Reuniões do dia");
       html += "<ul>";
       for (const m of meetings) {
         const time = new Date(m.date_time).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
         html += `<li>${time} — ${esc(m.title)}${m.client_name ? ` (${esc(m.client_name)})` : ""}</li>`;
       }
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -270,9 +273,9 @@ async function buildOwnerDigest(
       .gte("deadline", todayStr)
       .lte("deadline", todayStr);
 
+    hasContent = true;
+    html += sectionHeader("📋 Tarefas da equipa para hoje");
     if (tasks?.length) {
-      hasContent = true;
-      html += sectionHeader("📋 Tarefas da equipa para hoje");
       const sorted = sortByPriorityThenDeadline(tasks as any[]);
       const rows = sorted.map((t: any) => [
         esc(t.name),
@@ -280,6 +283,8 @@ async function buildOwnerDigest(
         priorityChip(t.priority),
       ]);
       html += dataTable(["Tarefa", "Responsável", "Prioridade"], rows, ["left", "left", "left"]);
+    } else {
+      html += empty();
     }
   }
 
@@ -293,9 +298,9 @@ async function buildOwnerDigest(
       .lt("deadline", todayStr)
       .not("deadline", "is", null);
 
+    hasContent = true;
+    html += sectionHeader("⚠️ Tarefas em atraso");
     if (tasks?.length) {
-      hasContent = true;
-      html += sectionHeader("⚠️ Tarefas em atraso");
       // Mais atrasadas primeiro
       const sorted = [...tasks].sort((a: any, b: any) => (a.deadline || "").localeCompare(b.deadline || ""));
       const rows = sorted.map((t: any) => {
@@ -308,6 +313,8 @@ async function buildOwnerDigest(
         ];
       });
       html += dataTable(["Tarefa", "Responsável", "Prioridade", "Atraso"], rows, ["left", "left", "left", "right"]);
+    } else {
+      html += empty();
     }
   }
 
@@ -320,9 +327,9 @@ async function buildOwnerDigest(
       .not("next_followup", "is", null)
       .not("status", "in", '("ganho","perdido")');
 
+    hasContent = true;
+    html += sectionHeader("📞 Follow-ups de leads pendentes");
     if (leads?.length) {
-      hasContent = true;
-      html += sectionHeader("📞 Follow-ups de leads pendentes");
       html += "<ul>";
       for (const l of leads) {
         const isToday = l.next_followup === todayStr;
@@ -330,6 +337,8 @@ async function buildOwnerDigest(
         html += `<li>${esc(l.name)} <span style="color:#888">(${label})</span></li>`;
       }
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -371,12 +380,14 @@ async function buildOwnerDigest(
       }
     }
 
+    hasContent = true;
+    html += sectionHeader("🎉 Aniversários próximos");
     if (items.length) {
-      hasContent = true;
-      html += sectionHeader("🎉 Aniversários próximos");
       html += "<ul>";
       for (const item of items) html += `<li>${item}</li>`;
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -395,9 +406,9 @@ async function buildOwnerDigest(
       .lte("end_of_cycle", thirtyStr)
       .order("end_of_cycle");
 
+    hasContent = true;
+    html += sectionHeader("🔄 Renovações próximas");
     if (renewals?.length) {
-      hasContent = true;
-      html += sectionHeader("🔄 Renovações próximas");
       html += "<ul>";
       for (const r of renewals) {
         const days = daysDiff(todayStr, r.end_of_cycle);
@@ -405,6 +416,8 @@ async function buildOwnerDigest(
         html += `<li>${esc(r.full_name)} — ${label}</li>`;
       }
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -417,11 +430,11 @@ async function buildOwnerDigest(
       .gte("deadline", todayStr)
       .lte("deadline", todayStr);
 
+    hasContent = true;
+    html += sectionHeader("🔄 Rotinas do dia");
     if (routines?.length) {
-      hasContent = true;
       const done = routines.filter((r: Row) => r.status === "done" || r.status === "concluida");
       const todo = routines.filter((r: Row) => r.status !== "done" && r.status !== "concluida");
-      html += sectionHeader("🔄 Rotinas do dia");
       html += `<p>${done.length} feitas de ${routines.length}</p>`;
       if (todo.length) {
         html += "<p><em>Por fazer:</em></p><ul>";
@@ -431,6 +444,8 @@ async function buildOwnerDigest(
         }
         html += "</ul>";
       }
+    } else {
+      html += empty();
     }
   }
 
@@ -442,11 +457,13 @@ async function buildOwnerDigest(
       .gte("created_at", todayStr + "T00:00:00")
       .lte("created_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("💰 Vendas registadas hoje");
     if (sales?.length) {
-      hasContent = true;
       const total = sales.reduce((s: number, v: Row) => s + (v.invoice_total || 0), 0);
-      html += sectionHeader("💰 Vendas registadas hoje");
       html += `<p><strong>${sales.length}</strong> venda(s) · Total: <strong>${formatCurrency(total)}</strong></p>`;
+    } else {
+      html += empty();
     }
   }
 
@@ -458,10 +475,12 @@ async function buildOwnerDigest(
       .gte("created_at", todayStr + "T00:00:00")
       .lte("created_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("🎯 Leads novas no CRM");
     if (leads?.length) {
-      hasContent = true;
-      html += sectionHeader("🎯 Leads novas no CRM");
       html += `<p><strong>${leads.length}</strong> lead(s): ${leads.map((l: Row) => esc(l.name)).join(", ")}</p>`;
+    } else {
+      html += empty();
     }
   }
 
@@ -474,15 +493,17 @@ async function buildOwnerDigest(
       .gte("actual_date", todayStr)
       .lte("actual_date", todayStr);
 
+    hasContent = true;
+    html += sectionHeader("⭐ NPS recebidos");
     if (nps?.length) {
-      hasContent = true;
-      html += sectionHeader("⭐ NPS recebidos");
       html += "<ul>";
       for (const n of nps) {
         const clientName = (n as Row).clients?.full_name || "—";
         html += `<li>Score: ${n.nps_score} — ${esc(clientName)}</li>`;
       }
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -494,10 +515,10 @@ async function buildOwnerDigest(
       .in("status", ["tudo_ok", "pago_falta_fatura"])
       .eq("payment_date", todayStr);
 
+    hasContent = true;
+    html += sectionHeader("💳 Pagamentos recebidos hoje");
     if (payments?.length) {
-      hasContent = true;
       const total = payments.reduce((s: number, p: Row) => s + (p.invoice_total || 0), 0);
-      html += sectionHeader("💳 Pagamentos recebidos hoje");
       html += `<p>Total: <strong>${formatCurrency(total)}</strong></p>`;
       const rows = (payments as any[]).map((p: any) => [
         esc(p.client || "—"),
@@ -505,6 +526,8 @@ async function buildOwnerDigest(
         `<strong>${formatCurrency(p.invoice_total || 0)}</strong>`,
       ]);
       html += dataTable(["Cliente", "Produto/Serviço", "Valor"], rows, ["left", "left", "right"]);
+    } else {
+      html += empty();
     }
   }
 
@@ -523,10 +546,10 @@ async function buildOwnerDigest(
       .lte("expense_date", sevenStr)
       .order("expense_date", { ascending: true });
 
+    hasContent = true;
+    html += sectionHeader("🧾 Contas a pagar (próximos 7 dias)");
     if (expenses?.length) {
-      hasContent = true;
       const total = (expenses as Row[]).reduce((s: number, e: Row) => s + (Number(e.total_with_vat) || 0), 0);
-      html += sectionHeader("🧾 Contas a pagar (próximos 7 dias)");
       html += `<p>Total pendente: <strong>${formatCurrency(total)}</strong> · ${expenses.length} despesa(s)</p>`;
       const rows = (expenses as any[]).map((e: any) => {
         const supplier = e.suppliers?.name || "—";
@@ -545,6 +568,8 @@ async function buildOwnerDigest(
         ];
       });
       html += dataTable(["Despesa", "Fornecedor", "Vencimento", "Valor"], rows, ["left", "left", "left", "right"]);
+    } else {
+      html += empty();
     }
   }
 
@@ -557,14 +582,16 @@ async function buildOwnerDigest(
       .gte("updated_at", todayStr + "T00:00:00")
       .lte("updated_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("🏁 Projetos fechados hoje");
     if (closed?.length) {
-      hasContent = true;
-      html += sectionHeader("🏁 Projetos fechados hoje");
       html += "<ul>";
       for (const p of closed) {
         html += `<li>${esc(p.name)}${p.client_name ? ` <span style="color:#888">(${esc(p.client_name)})</span>` : ""}</li>`;
       }
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -576,21 +603,25 @@ async function buildOwnerDigest(
       .gte("created_at", todayStr + "T00:00:00")
       .lte("created_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("🆕 Projetos criados hoje");
     if (created?.length) {
-      hasContent = true;
-      html += sectionHeader("🆕 Projetos criados hoje");
       html += "<ul>";
       for (const p of created) {
         html += `<li>${esc(p.name)}${p.client_name ? ` <span style="color:#888">(${esc(p.client_name)})</span>` : ""}</li>`;
       }
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
   // ── Tempo trabalhado hoje (equipa) ──
   if (sections.tempo_trabalhado !== false) {
     const wt = await buildWorkTimeSection(supabase, todayStr, todayStr, 'team', { title: "⏱️ Tempo trabalhado hoje" });
-    if (wt) { hasContent = true; html += wt; }
+    hasContent = true;
+    if (wt) { html += wt; }
+    else { html += sectionHeader("⏱️ Tempo trabalhado hoje") + empty(); }
   }
 
   // ── Resumo por membro ──
@@ -600,9 +631,9 @@ async function buildOwnerDigest(
       .select("id, full_name, profile_id, status")
       .eq("status", "activo");
 
+    hasContent = true;
+    html += sectionHeader("👥 Resumo por membro");
     if (members?.length) {
-      hasContent = true;
-      html += sectionHeader("👥 Resumo por membro");
       for (const m of members) {
         if (!m.profile_id) continue;
 
@@ -627,6 +658,8 @@ async function buildOwnerDigest(
         html += `<p style="margin-top:8px"><strong>${esc(m.full_name)}</strong>: `;
         html += `${todayTasks?.length || 0} para hoje, ${overdue?.length || 0} em atraso</p>`;
       }
+    } else {
+      html += empty();
     }
   }
 
@@ -634,9 +667,11 @@ async function buildOwnerDigest(
   if (sections.prazos_fiscais) {
     try {
       const fiscalHtml = await buildFiscalDeadlinesSection(supabase, now);
+      hasContent = true;
       if (fiscalHtml) {
-        hasContent = true;
         html += fiscalHtml;
+      } else {
+        html += sectionHeader("📋 Prazos fiscais") + empty();
       }
     } catch (err) {
       console.error("[send-digest] fiscal section failed:", err);
