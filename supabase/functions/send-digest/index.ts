@@ -1464,3 +1464,31 @@ function hslToHex(hsl: string): string {
     return "#6366f1";
   }
 }
+
+// ─── Fiscal Deadlines Section ─────────────────────────────
+// Lê fiscal_monthly_checks (verificações mensais) e mostra as que ainda
+// não foram marcadas no mês corrente, mais alertas do mês anterior em atraso.
+async function buildFiscalDeadlinesSection(
+  supabase: SupabaseAdmin,
+  now: Date
+): Promise<string> {
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  const { data: thisMonth } = await supabase
+    .from("fiscal_monthly_checks")
+    .select("check_key, checked")
+    .eq("year", year)
+    .eq("month", month);
+
+  const pending = (thisMonth || []).filter((r: Row) => !r.checked);
+  if (!pending.length) return "";
+
+  let html = `<h3 style="margin:18px 0 8px;font-size:14px">📋 Prazos fiscais — ${month}/${year}</h3>`;
+  html += `<ul style="margin:0;padding-left:18px">`;
+  for (const p of pending) {
+    html += `<li>${esc(String(p.check_key))}</li>`;
+  }
+  html += `</ul>`;
+  return html;
+}
