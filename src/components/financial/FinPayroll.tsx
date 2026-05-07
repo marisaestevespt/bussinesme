@@ -38,6 +38,7 @@ type ContractWithMember = {
     full_name: string;
     role_title: string | null;
     department: string | null;
+    ss_employer_rate: number | null;
   } | null;
 };
 
@@ -47,7 +48,7 @@ export function FinPayroll({ currentYear }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('member_contracts')
-        .select('*, team_members(id, full_name, role_title, department)')
+        .select('*, team_members(id, full_name, role_title, department, ss_employer_rate)')
         .order('start_date', { ascending: false });
       return (data || []) as ContractWithMember[];
     },
@@ -89,6 +90,13 @@ export function FinPayroll({ currentYear }: Props) {
     .filter(c => c.status === 'ativo')
     .reduce((s, c) => s + (c.monthly_value || 0), 0);
 
+  const totalTrabalhoCusto = (grouped['contrato_trabalho'] || [])
+    .filter(c => c.status === 'ativo')
+    .reduce((s, c) => {
+      const rate = c.team_members?.ss_employer_rate ?? 0.2375;
+      return s + (c.monthly_value || 0) * (1 + Number(rate));
+    }, 0);
+
   const totalPrestacao = (grouped['contrato_prestacao'] || [])
     .filter(c => c.status === 'ativo')
     .reduce((s, c) => s + (c.monthly_value || 0), 0);
@@ -110,6 +118,8 @@ export function FinPayroll({ currentYear }: Props) {
                 <TableHead>Nome</TableHead>
                 <TableHead>Função</TableHead>
                 <TableHead className="text-right">Valor Mensal</TableHead>
+                {type === 'contrato_trabalho' && <TableHead className="text-right">SS Empresa</TableHead>}
+                {type === 'contrato_trabalho' && <TableHead className="text-right">Custo Total</TableHead>}
                 <TableHead>Dia Pgto.</TableHead>
                 <TableHead>Início</TableHead>
                 <TableHead>Fim</TableHead>
@@ -119,14 +129,25 @@ export function FinPayroll({ currentYear }: Props) {
             </TableHeader>
             <TableBody>
               {contracts.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem registos</TableCell></TableRow>
+                <TableRow><TableCell colSpan={type === 'contrato_trabalho' ? 10 : 8} className="text-center text-muted-foreground py-8">Sem registos</TableCell></TableRow>
               ) : contracts.map(c => {
                 const st = STATUS_LABELS[c.status] || { label: c.status, className: '' };
+                const ssRate = Number(c.team_members?.ss_employer_rate ?? 0.2375);
+                const ssValue = (c.monthly_value || 0) * ssRate;
+                const totalCost = (c.monthly_value || 0) + ssValue;
                 return (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.team_members?.full_name || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{c.team_members?.role_title || '—'}</TableCell>
                     <TableCell className="text-right font-medium">{c.monthly_value ? formatEuro(c.monthly_value) : '—'}</TableCell>
+                    {type === 'contrato_trabalho' && (
+                      <TableCell className="text-right text-muted-foreground">
+                        {c.monthly_value ? `${formatEuro(ssValue)} (${(ssRate * 100).toFixed(2)}%)` : '—'}
+                      </TableCell>
+                    )}
+                    {type === 'contrato_trabalho' && (
+                      <TableCell className="text-right font-semibold">{c.monthly_value ? formatEuro(totalCost) : '—'}</TableCell>
+                    )}
                     <TableCell>{c.payment_day ? `Dia ${c.payment_day}` : '—'}</TableCell>
                     <TableCell>{formatDate(c.start_date)}</TableCell>
                     <TableCell>{formatDate(c.end_date)}</TableCell>
@@ -148,7 +169,11 @@ export function FinPayroll({ currentYear }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Mensal (Ativos)</p><p className="text-lg font-bold">{formatEuro(totalMensal)}</p></CardContent></Card>
         {hasContratoTrabalho && (
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Colaboradores Fixos</p><p className="text-lg font-bold">{formatEuro(totalTrabalho)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4">
+            <p className="text-xs text-muted-foreground">Colaboradores Internos</p>
+            <p className="text-lg font-bold">{formatEuro(totalTrabalhoCusto)}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Custo total c/ SS empresa · bruto: {formatEuro(totalTrabalho)}</p>
+          </CardContent></Card>
         )}
         {hasPrestacao && (
           <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Prestadores de Serviços</p><p className="text-lg font-bold">{formatEuro(totalPrestacao)}</p></CardContent></Card>
