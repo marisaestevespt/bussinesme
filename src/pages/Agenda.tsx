@@ -666,7 +666,7 @@ function EventFormDialog({
   const { data: clientsList = [] } = useQuery({
     queryKey: ['clients-list-agenda'],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
+      const { data } = await supabase.from('clients').select('id, full_name').eq('status', 'ativo').order('full_name');
       return (data || []) as { id: string; full_name: string }[];
     },
   });

@@ -173,7 +173,7 @@ export default function TarefasPage() {
   const { data: clients = [] } = useQuery({
     queryKey: ['clients-list-simple'],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
+      const { data } = await supabase.from('clients').select('id, full_name').eq('status', 'ativo').order('full_name');
       return data || [];
     },
   });
