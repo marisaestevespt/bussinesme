@@ -375,7 +375,7 @@ export function DeliverableFormatCell({
           <div className="flex items-center gap-0.5">
             <NewMeetingButton
               skipPicker
-              forcedType={'recorrente' as any}
+              forcedType={'projeto' as any}
               defaultProjectId={projectId}
               defaultProjectName={projectName ?? undefined}
               defaultClientId={clientId ?? undefined}
