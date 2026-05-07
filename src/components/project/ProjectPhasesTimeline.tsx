@@ -978,7 +978,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                       {/* Header de colunas */}
                       <div
                         className="grid items-center gap-2 px-3 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium"
-                        style={{ gridTemplateColumns: '16px minmax(0,1fr) 120px 120px 110px 90px 70px' }}
+                        style={{ gridTemplateColumns: '16px minmax(0,1fr) 120px 120px 110px 140px 110px' }}
                       >
                         <span />
                         <span>Entrega</span>
@@ -994,7 +994,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                         const delStatusConfig = { bg: _delInfo.color, label: _delInfo.label };
                         return (
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
-                            <div className="grid items-center gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 120px 120px 110px 90px 70px' }}>
+                            <div className="grid items-center gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 120px 120px 110px 140px 110px' }}>
                               {isEditingThis ? (
                                 <div className="col-span-7 flex items-center gap-2">
                                   <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
@@ -1099,22 +1099,22 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                     />
                                   </div>
                                   {/* Ações */}
-                                  <div className="opacity-0 group-hover/del:opacity-100 flex items-center justify-end gap-0.5 transition-opacity">
-                                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => startEditDel(d)}>
-                                      <Pencil className="h-2.5 w-2.5" />
+                                  <div className="opacity-0 group-hover/del:opacity-100 flex items-center justify-end gap-1 transition-opacity">
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => startEditDel(d)} title="Editar nome">
+                                      <Pencil className="h-3 w-3" />
                                     </Button>
                                     {di > 0 && (
-                                      <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'up' })}>
-                                        <ChevronUp className="h-2.5 w-2.5" />
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'up' })} title="Subir">
+                                        <ChevronUp className="h-3 w-3" />
                                       </Button>
                                     )}
                                     {di < phaseDeliverables.length - 1 && (
-                                      <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'down' })}>
-                                        <ChevronDown className="h-2.5 w-2.5" />
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'down' })} title="Descer">
+                                        <ChevronDown className="h-3 w-3" />
                                       </Button>
                                     )}
-                                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0 text-destructive" onClick={() => deleteDeliverable.mutate(d.id)}>
-                                      <Trash2 className="h-2.5 w-2.5" />
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => deleteDeliverable.mutate(d.id)} title="Eliminar">
+                                      <Trash2 className="h-3 w-3" />
                                     </Button>
                                   </div>
                                 </>
