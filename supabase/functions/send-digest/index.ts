@@ -542,7 +542,7 @@ async function buildOwnerDigest(
     const { data: expenses } = await supabase
       .from("financial_expenses")
       .select("expense_name, description, total_with_vat, expense_date, status, supplier_id, suppliers(name)")
-      .in("status", ["por_pagar", "pendente"])
+      .eq("status", "por_pagar")
       .lte("expense_date", sevenStr)
       .order("expense_date", { ascending: true });
 
