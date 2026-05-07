@@ -118,3 +118,12 @@ export function useImpersonation() {
   if (!ctx) throw new Error('useImpersonation must be used within ImpersonationProvider');
   return ctx;
 }
+
+/**
+ * Non-throwing variant — safe to call from providers/hooks that may render
+ * outside the ImpersonationProvider (e.g. useAuth, which sits above it in
+ * the tree). Returns null when the provider is not mounted.
+ */
+export function useImpersonationOptional() {
+  return useContext(ImpersonationContext) ?? null;
+}

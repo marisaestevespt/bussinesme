@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useImpersonationOptional } from '@/contexts/ImpersonationContext';
 
 interface AuthContextType {
   user: User | null;
@@ -89,5 +90,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within AuthProvider');
+  // While the real Owner is impersonating a member, demote the role flags so
+  // that every component gated off useAuth() (sidebar sections, action
+  // buttons, owner-only UI, etc.) reflects what the member would actually
+  // see. The real user/session are kept intact so queries still authenticate.
+  const imp = useImpersonationOptional();
+  if (imp?.impersonating) {
+    return {
+      ...context,
+      isOwner: false,
+      isAdmin: false,
+      isAdminOrOwner: false,
+    };
+  }
   return context;
 }
