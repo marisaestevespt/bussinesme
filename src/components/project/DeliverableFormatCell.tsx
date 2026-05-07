@@ -178,7 +178,12 @@ export function DeliverableFormatCell({
   // among meeting deliverables sharing the same template in this project).
   const { data: titleFromTemplate } = useQuery({
     queryKey: ['deliverable-meeting-title', d.id, d.meeting_title_template, projectId, clientName],
-    enabled: fmt === 'reuniao' && !d.meeting_id && !!d.meeting_title_template,
+    // Wait until clientName is resolved to avoid caching a title with an empty {cliente}.
+    enabled:
+      fmt === 'reuniao' &&
+      !d.meeting_id &&
+      !!d.meeting_title_template &&
+      (!/\{cliente\}/i.test(d.meeting_title_template || '') || !!clientName),
     queryFn: async () => {
       const tpl = d.meeting_title_template!;
       const { data: siblings } = await (supabase as any)
