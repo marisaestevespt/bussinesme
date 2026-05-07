@@ -477,6 +477,7 @@ export function useMemberSave() {
           contract_end_date: supplier.contract_end_date,
           is_active: true,
           member_id: memberId,
+          department: (supplier as any).department || null,
         } as TablesInsert<'suppliers'>)
         .select('id')
         .single();
