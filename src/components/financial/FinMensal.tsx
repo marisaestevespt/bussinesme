@@ -73,8 +73,18 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         .from('member_contracts')
         .select('*, team_members(id, full_name, role_title)')
         .in('status', ['ativo'])
-        .neq('contract_type', 'contrato_prestacao');
-      return (data || []) as ContractLike[];
+        .not('contract_type', 'in', '(contrato_prestacao,prestacao_servicos)');
+      const contracts = (data || []) as ContractLike[];
+      // Defesa extra: se um membro já tem fornecedor ativo, não duplicar via contrato
+      const memberIds = contracts.map(c => c.member_id).filter(Boolean);
+      if (memberIds.length === 0) return contracts;
+      const { data: sups } = await supabase
+        .from('suppliers')
+        .select('member_id')
+        .in('member_id', memberIds as string[])
+        .eq('is_active', true);
+      const supMemberIds = new Set((sups || []).map(s => s.member_id));
+      return contracts.filter(c => !supMemberIds.has(c.member_id));
     },
   });
 
