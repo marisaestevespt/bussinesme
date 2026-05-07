@@ -235,6 +235,7 @@ async function buildOwnerDigest(
   todayStr: string,
   now: Date
 ): Promise<string> {
+  // (helper declared below)
   let html = "";
   let hasContent = false;
 
