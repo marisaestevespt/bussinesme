@@ -9,7 +9,6 @@ export interface TemplateEntry {
   previewData?: Record<string, any>
 }
 
-import { template as welcomeMember } from './welcome-member.tsx'
 import { template as welcomeClient } from './welcome-client.tsx'
 import { template as clientOffboarding } from './client-offboarding.tsx'
 import { template as paymentReminder } from './payment-reminder.tsx'
@@ -21,7 +20,6 @@ import { template as ownerEodDigest } from './owner-eod-digest.tsx'
 import { template as memberEodDigest } from './member-eod-digest.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
-  'welcome-member': welcomeMember,
   'welcome-client': welcomeClient,
   'client-offboarding': clientOffboarding,
   'payment-reminder': paymentReminder,
