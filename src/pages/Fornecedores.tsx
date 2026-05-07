@@ -1032,9 +1032,9 @@ export default function FornecedoresPage() {
                   <p className="text-xs text-muted-foreground">
                     Este fornecedor é gerado a partir do contrato do membro. Para alterar valor, IVA, dia ou data de fim, edita o contrato — as despesas futuras são regeneradas automaticamente.
                   </p>
-                  <RouterLink to={`/hub/equipa/${form.member_id}`}>
+                  <RouterLink to={`/hub-equipa?member=${form.member_id}`}>
                     <Button type="button" variant="outline" size="sm">
-                      <ExternalLink className="h-3.5 w-3.5 mr-1" /> Editar contrato do membro
+                      <ExternalLink className="h-3.5 w-3.5 mr-1" /> Ir ao membro
                     </Button>
                   </RouterLink>
                 </div>
