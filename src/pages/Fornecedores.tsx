@@ -1005,7 +1005,42 @@ export default function FornecedoresPage() {
               </div>
 
               {/* Existing recurring expense summary */}
-              {form._existingRecurring && (
+              {linkedContract?.contract && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-medium">Ligado ao contrato de {linkedContract.member?.full_name}</Label>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Valor mensal</p>
+                      <p className="font-medium">{formatEuro(Number(linkedContract.contract.monthly_value) || 0)}{linkedContract.contract.value_includes_vat ? ' c/IVA' : ' s/IVA'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Dia pagamento</p>
+                      <p className="font-medium">{linkedContract.contract.payment_day || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Estado</p>
+                      <p className="font-medium capitalize">{linkedContract.contract.status || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Fim contrato</p>
+                      <p className="font-medium">{linkedContract.contract.end_date || '—'}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Este fornecedor é gerado a partir do contrato do membro. Para alterar valor, IVA, dia ou data de fim, edita o contrato — as despesas futuras são regeneradas automaticamente.
+                  </p>
+                  <RouterLink to={`/hub/equipa/${form.member_id}`}>
+                    <Button type="button" variant="outline" size="sm">
+                      <ExternalLink className="h-3.5 w-3.5 mr-1" /> Editar contrato do membro
+                    </Button>
+                  </RouterLink>
+                </div>
+              )}
+
+              {form._existingRecurring && !linkedContract?.contract && (
                 <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-3">
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 text-primary" />
