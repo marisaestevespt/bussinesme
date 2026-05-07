@@ -13,38 +13,79 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (!isAuthorizedCronCall(req)) {
-    return new Response(JSON.stringify({ error: "Forbidden" }), {
-      status: 403,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+  // Parse optional body for test mode
+  let testMode = false;
+  let testUserId: string | null = null;
+  let testDigestType: "morning" | "eod" | null = null;
+  if (req.method === "POST") {
+    try {
+      const body = await req.json();
+      if (body?.test === true) {
+        testMode = true;
+        testUserId = body.userId || null;
+        testDigestType = body.digestType || null;
+      }
+    } catch {
+      // no body / not JSON — ignore
+    }
+  }
+
+  // Auth: cron service-role OR (in test mode) any authenticated Supabase JWT
+  const authHeader = req.headers.get("Authorization") || "";
+  const isCron = isAuthorizedCronCall(req);
+  if (!isCron) {
+    if (!testMode || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   }
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Get current hour (UTC) - adjust for Portugal timezone (UTC+0/+1)
+    // In test mode, validate the caller's JWT and force userId to themselves.
+    if (testMode) {
+      const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+      const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr || !userData?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      testUserId = userData.user.id;
+    }
+
     const now = new Date();
     const currentHour = now.getUTCHours();
     const currentMinute = now.getUTCMinutes();
     const currentTimeStr = `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}:00`;
 
-    // Match digests where send_time hour matches current hour
     const hourStr = `${String(currentHour).padStart(2, "0")}:00:00`;
     const hourEnd = `${String(currentHour).padStart(2, "0")}:59:59`;
 
-    const { data: digests, error: digestErr } = await supabase
+    let digestQuery = supabase
       .from("digest_settings")
-      .select("*")
-      .eq("enabled", true)
-      .gte("send_time", hourStr)
-      .lte("send_time", hourEnd);
+      .select("*, profiles!inner(user_id)")
+      .eq("enabled", true);
+
+    if (testMode && testUserId) {
+      // Filter by auth user_id via profiles join
+      digestQuery = digestQuery.eq("profiles.user_id", testUserId);
+      if (testDigestType) digestQuery = digestQuery.eq("digest_type", testDigestType);
+    } else {
+      digestQuery = digestQuery.gte("send_time", hourStr).lte("send_time", hourEnd);
+    }
+
+    const { data: digests, error: digestErr } = await digestQuery;
 
     if (digestErr) throw digestErr;
     if (!digests || digests.length === 0) {
       return new Response(
-        JSON.stringify({ message: "No digests to send this hour" }),
+        JSON.stringify({ message: testMode ? "No matching digest settings (activa o digest primeiro)" : "No digests to send this hour" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -75,10 +116,8 @@ Deno.serve(async (req) => {
     const dayOfWeek = jsDow === 0 ? 7 : jsDow; // 1=Mon, 7=Sun
     const dayOfMonth = now.getDate();
 
-    // ── Skip weekends (Saturday=6, Sunday=0) ──
-    // Digests só são enviados em dias úteis, independentemente do tipo (owner/membro)
-    // ou frequência. Evita "ruído" ao fim de semana.
-    if (jsDow === 0 || jsDow === 6) {
+    // ── Skip weekends (Saturday=6, Sunday=0) — ignored in test mode ──
+    if (!testMode && (jsDow === 0 || jsDow === 6)) {
       return new Response(
         JSON.stringify({ message: "Skipped: weekend", dow: jsDow }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -89,9 +128,11 @@ Deno.serve(async (req) => {
 
     for (const digest of digests) {
       try {
-        // Check frequency match
-        if (digest.frequency === "semanal" && digest.send_day_of_week !== dayOfWeek) continue;
-        if (digest.frequency === "mensal" && digest.send_day_of_month !== dayOfMonth) continue;
+        // Check frequency match (skipped in test mode for instant preview)
+        if (!testMode) {
+          if (digest.frequency === "semanal" && digest.send_day_of_week !== dayOfWeek) continue;
+          if (digest.frequency === "mensal" && digest.send_day_of_month !== dayOfMonth) continue;
+        }
 
         // Get user profile and email
         const { data: profile } = await supabase
@@ -155,10 +196,13 @@ Deno.serve(async (req) => {
         const templateName = digest.is_owner_digest
           ? (isEod ? "owner-eod-digest" : "owner-digest")
           : (isEod ? "member-eod-digest" : "member-digest");
+        const idempotencyKey = testMode
+          ? `digest-test-${digest.id}-${Date.now()}`
+          : `digest-${digest.id}-${todayStr}-${isEod ? "eod" : "am"}`;
         const sendResult = await sendTransactionalEmail({
           templateName,
           recipientEmail: authUser.email,
-          idempotencyKey: `digest-${digest.id}-${todayStr}-${isEod ? "eod" : "am"}`,
+          idempotencyKey,
           templateData: { subject, html },
         });
         if (!sendResult.ok) {
