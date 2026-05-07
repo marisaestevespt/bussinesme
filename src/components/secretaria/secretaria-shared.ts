@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyProfileId } from '@/hooks/useMyProfileId';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { TASK_STATUSES, getTaskStatusInfo } from '@/lib/taskStatus';
 import { PROJECT_STATUSES as CANON_PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
@@ -54,22 +55,34 @@ export function formatTimer(s: number) {
 
 export function useMyProfile() {
   const { user } = useAuth();
+  const { impersonating } = useImpersonation();
+  const userId = impersonating?.user_id || user?.id;
   return useQuery({
-    queryKey: ['my-profile', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-profile', userId, impersonating?.member_id],
+    enabled: !!userId,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('user_id', user!.id).maybeSingle();
+      // When impersonating a member without user_id, fetch by profile_id
+      if (impersonating && !impersonating.user_id && impersonating.profile_id) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', impersonating.profile_id).maybeSingle();
+        return data;
+      }
+      const { data } = await supabase.from('profiles').select('*').eq('user_id', userId!).maybeSingle();
       return data;
     },
   });
 }
 
 export function useMyTeamMember() {
+  const { impersonating } = useImpersonation();
   const profile = useMyProfile();
   return useQuery({
-    queryKey: ['my-team-member', profile.data?.id],
-    enabled: !!profile.data?.id,
+    queryKey: ['my-team-member', profile.data?.id, impersonating?.member_id],
+    enabled: !!profile.data?.id || !!impersonating?.member_id,
     queryFn: async () => {
+      if (impersonating?.member_id) {
+        const { data } = await supabase.from('team_members').select('*').eq('id', impersonating.member_id).maybeSingle();
+        return data;
+      }
       const { data } = await supabase
         .from('team_members')
         .select('*')
@@ -82,24 +95,27 @@ export function useMyTeamMember() {
 
 export function useMyTasks() {
   const { user } = useAuth();
+  const { impersonating } = useImpersonation();
+  const effectiveUserId = impersonating?.user_id || user?.id;
   const profileQ = useQuery({
-    queryKey: ['my-profile-id', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-profile-id-effective', effectiveUserId, impersonating?.profile_id],
+    enabled: !!effectiveUserId || !!impersonating?.profile_id,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      if (impersonating?.profile_id) return impersonating.profile_id;
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', effectiveUserId!).maybeSingle();
       return data?.id as string | null;
     },
   });
   const profileId = profileQ.data;
-  const userId = user?.id;
+  const userId = effectiveUserId;
   const assigneeIds = userId
     ? [userId, ...(profileId && profileId !== userId ? [profileId] : [])]
     : [];
 
   return useQuery({
-    queryKey: ['my-tasks', user?.id, profileId],
-    enabled: !!user?.id,
+    queryKey: ['my-tasks', userId, profileId, impersonating?.member_id],
+    enabled: assigneeIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase.from('tasks').select('*').in('assigned_to', assigneeIds).order('deadline');
       return data || [];
@@ -109,19 +125,22 @@ export function useMyTasks() {
 
 export function useMyProjects() {
   const { user } = useAuth();
+  const { impersonating } = useImpersonation();
+  const effectiveUserId = impersonating?.user_id || user?.id;
   const profileQ = useQuery({
-    queryKey: ['my-profile-id', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-profile-id-effective', effectiveUserId, impersonating?.profile_id],
+    enabled: !!effectiveUserId || !!impersonating?.profile_id,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      if (impersonating?.profile_id) return impersonating.profile_id;
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', effectiveUserId!).maybeSingle();
       return data?.id as string | null;
     },
   });
   const profileId = profileQ.data;
   return useQuery({
-    queryKey: ['my-projects', user?.id, profileId],
-    enabled: !!user?.id && !!profileId,
+    queryKey: ['my-projects', effectiveUserId, profileId, impersonating?.member_id],
+    enabled: !!profileId,
     queryFn: async () => {
       const { data: memberRows } = await supabase.from('project_members').select('project_id').eq('profile_id', profileId!);
       if (!memberRows?.length) return [];
@@ -134,19 +153,22 @@ export function useMyProjects() {
 
 export function useMyMeetings() {
   const { user } = useAuth();
+  const { impersonating } = useImpersonation();
+  const effectiveUserId = impersonating?.user_id || user?.id;
   const profileQ = useQuery({
-    queryKey: ['my-profile-id', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-profile-id-effective', effectiveUserId, impersonating?.profile_id],
+    enabled: !!effectiveUserId || !!impersonating?.profile_id,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      if (impersonating?.profile_id) return impersonating.profile_id;
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', effectiveUserId!).maybeSingle();
       return data?.id as string | null;
     },
   });
   const profileId = profileQ.data;
   return useQuery({
-    queryKey: ['my-meetings', user?.id, profileId],
-    enabled: !!user?.id && !!profileId,
+    queryKey: ['my-meetings', effectiveUserId, profileId, impersonating?.member_id],
+    enabled: !!profileId,
     queryFn: async () => {
       // Apanha reuniões onde sou participante OU organizador (created_by)
       const { data: partRows } = await supabase
@@ -155,11 +177,14 @@ export function useMyMeetings() {
         .eq('profile_id', profileId!);
       const partIds = (partRows || []).map(r => r.meeting_id);
 
-      const { data: ownedRows } = await supabase
-        .from('meetings')
-        .select('id')
-        .eq('created_by', user!.id);
-      const ownedIds = (ownedRows || []).map(r => r.id);
+      let ownedIds: string[] = [];
+      if (effectiveUserId) {
+        const { data: ownedRows } = await supabase
+          .from('meetings')
+          .select('id')
+          .eq('created_by', effectiveUserId);
+        ownedIds = (ownedRows || []).map(r => r.id);
+      }
 
       const allIds = Array.from(new Set([...partIds, ...ownedIds]));
       if (!allIds.length) return [];
@@ -206,11 +231,13 @@ export function useProfiles() {
 }
 
 export function useMonthRoutineTasks() {
-  const { data: profileId } = useMyProfileId();
+  const { impersonating } = useImpersonation();
+  const myProfile = useMyProfileId();
+  const profileId = impersonating?.profile_id || myProfile.data;
   const mStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
   const mEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
   return useQuery({
-    queryKey: ['routine-tasks-month', profileId, mStart],
+    queryKey: ['routine-tasks-month', profileId, mStart, impersonating?.member_id],
     enabled: !!profileId,
     queryFn: async () => {
       const { data } = await supabase
