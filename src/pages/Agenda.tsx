@@ -27,6 +27,7 @@ import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { useEffectiveUser } from '@/hooks/useEffectiveUser';
 import { toast } from 'sonner';
 import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
@@ -1203,14 +1204,14 @@ export default function AgendaPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [typesManagerOpen, setTypesManagerOpen] = useState(false);
 
-  const { isOwner, user } = useAuth();
+  const { userId: effUserId, isOwner: effIsOwner } = useEffectiveUser();
   // Fetch range: -6 / +18 months around cursor (covers Year view + recurring base)
   const [cursor, setCursor] = useState<Date>(new Date());
   const fetchRange = useMemo(() => ({
     from: format(subMonths(cursor, 6), 'yyyy-MM-dd'),
     to: format(addMonths(cursor, 18), 'yyyy-MM-dd'),
   }), [cursor.getFullYear(), cursor.getMonth()]);
-  const { data: events = [], isLoading } = useEvents(user?.id, isOwner, fetchRange);
+  const { data: events = [], isLoading } = useEvents(effUserId ?? undefined, effIsOwner, fetchRange);
   const { data: meetingEvents = [] } = useMeetingsAsEvents(fetchRange);
   const { data: salesActionEvents = [] } = useSalesActionsAsEvents(fetchRange);
   const { data: types = [] } = useEventTypes();
