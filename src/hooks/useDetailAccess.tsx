@@ -49,10 +49,46 @@ async function checkAccessAsImpersonated(
     return false;
   }
 
-  // For clients/projects, fall back to letting it through — the underlying
-  // RLS already restricts the row reads, and we don't have a clean
-  // member-scoped check here. (Refine later if needed.)
-  return true;
+  if (entity === 'project') {
+    if (!profileId) return false;
+    // Member of project?
+    const { data: pm } = await supabase
+      .from('project_members')
+      .select('id')
+      .eq('project_id', id)
+      .eq('profile_id', profileId)
+      .maybeSingle();
+    if (pm) return true;
+    // Or assigned to the project's client
+    const { data: proj } = await supabase
+      .from('projects')
+      .select('client_id')
+      .eq('id', id)
+      .maybeSingle();
+    if (proj?.client_id) {
+      const { data: ca } = await supabase
+        .from('client_assignments')
+        .select('id')
+        .eq('client_id', proj.client_id)
+        .eq('profile_id', profileId)
+        .maybeSingle();
+      if (ca) return true;
+    }
+    return false;
+  }
+
+  if (entity === 'client') {
+    if (!profileId) return false;
+    const { data } = await supabase
+      .from('client_assignments')
+      .select('id')
+      .eq('client_id', id)
+      .eq('profile_id', profileId)
+      .maybeSingle();
+    return Boolean(data);
+  }
+
+  return false;
 }
 
 
