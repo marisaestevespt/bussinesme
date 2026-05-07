@@ -1205,6 +1205,7 @@ export default function AgendaPage() {
   const [typesManagerOpen, setTypesManagerOpen] = useState(false);
 
   const { userId: effUserId, isOwner: effIsOwner } = useEffectiveUser();
+  const isOwner = effIsOwner;
   // Fetch range: -6 / +18 months around cursor (covers Year view + recurring base)
   const [cursor, setCursor] = useState<Date>(new Date());
   const fetchRange = useMemo(() => ({
