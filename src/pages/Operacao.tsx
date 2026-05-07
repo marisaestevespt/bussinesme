@@ -30,6 +30,7 @@ import { isDeliverableDone, computeProjectProgressFromSources } from '@/lib/proj
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { useImpersonation } from '@/contexts/ImpersonationContext';
 
 import {
   Project, Task, Client, Profile, ProjectMember, TaskFilters,
@@ -41,6 +42,8 @@ import {
 
 export default function OperacaoPage() {
   const [clientFilters, setClientFilters] = useState<TaskFilters>(EMPTY_FILTERS);
+  const { impersonating } = useImpersonation();
+  const impersonatedProfileId = impersonating?.profile_id ?? null;
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const activeTab = tabParam === 'interno' || tabParam === 'analise' ? tabParam : 'clientes';
@@ -63,12 +66,20 @@ export default function OperacaoPage() {
   });
 
   const { data: tasks = [] } = useQuery({
-    queryKey: ['op-tasks'],
+    queryKey: ['op-tasks', impersonatedProfileId],
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from('tasks')
         .select('id,name,status,priority,deadline,assigned_to,project_id,department')
         .order('deadline', { ascending: true });
+      if (impersonating) {
+        // Quando estamos a ver a app como um membro, só mostramos tarefas
+        // atribuídas a esse membro (mesmo critério usado para abrir o detalhe).
+        q = impersonatedProfileId
+          ? q.eq('assigned_to', impersonatedProfileId)
+          : q.eq('assigned_to', '00000000-0000-0000-0000-000000000000');
+      }
+      const { data } = await q;
       return (data || []) as Task[];
     },
   });
