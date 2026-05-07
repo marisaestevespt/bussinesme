@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useImpersonationOptional } from '@/contexts/ImpersonationContext';
+import { ImpersonationContext } from '@/contexts/impersonation-context-object';
 
 interface AuthContextType {
   user: User | null;
@@ -94,7 +94,7 @@ export function useAuth() {
   // that every component gated off useAuth() (sidebar sections, action
   // buttons, owner-only UI, etc.) reflects what the member would actually
   // see. The real user/session are kept intact so queries still authenticate.
-  const imp = useImpersonationOptional();
+  const imp = useContext(ImpersonationContext);
   if (imp?.impersonating) {
     return {
       ...context,

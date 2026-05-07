@@ -1,26 +1,9 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-
-interface ImpersonatedMember {
-  member_id: string;
-  user_id: string | null;
-  profile_id: string | null;
-  full_name: string;
-  role_title: string | null;
-}
-
-interface ImpersonationContextType {
-  /** When set, the app should render permissions/queries as this member. */
-  impersonating: ImpersonatedMember | null;
-  loading: boolean;
-  startImpersonation: (memberId: string) => Promise<void>;
-  stopImpersonation: () => Promise<void>;
-}
+import { ImpersonationContext, type ImpersonatedMember } from './impersonation-context-object';
 
 const STORAGE_KEY = 'lirah_impersonation';
-
-const ImpersonationContext = createContext<ImpersonationContextType | undefined>(undefined);
 
 export function ImpersonationProvider({ children }: { children: ReactNode }) {
   const { user, isOwner } = useAuth();
