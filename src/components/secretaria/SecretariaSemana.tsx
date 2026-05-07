@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText } from 'lucide-react';
+import { FileText, Calendar as CalendarIcon, ChevronDown, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
 import { MyTasksTable } from './MyTasksTable';
@@ -20,6 +21,7 @@ const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 export default function SecretariaSemana() {
   const navigate = useNavigate();
   const [cursor, setCursor] = useState<Date>(today);
+  const [showAgenda, setShowAgenda] = useState(false);
   const meetings = useMyMeetings();
   const timeEntries = useMyTimeEntries();
   const routineTasks = useMonthRoutineTasks();
@@ -59,25 +61,39 @@ export default function SecretariaSemana() {
 
       <Card>
         <CardContent className="p-0">
-          <AgendaCalendarView
-            storageKey="agenda-secretaria-semana"
-            cursor={cursor}
-            onCursorChange={setCursor}
-            events={events}
-            types={types}
-            typeItems={typeItems}
-            autoTypeItems={autoTypeItems}
-            productItems={productItems}
-            isEventVisible={isEventVisible}
-            onEventClick={handleEventClick}
-            defaultMode="week"
-            onAutoItemRename={(id, name) => {
-              const key = id === 'meta:meeting' ? 'meeting'
-                        : id === 'meta:sales'   ? 'sales'
-                        : id === 'meta:feriado' ? 'feriado' : null;
-              if (key) renameAutoLabel(key, name);
-            }}
-          />
+          <Button
+            variant="ghost"
+            onClick={() => setShowAgenda((v) => !v)}
+            className="w-full justify-between rounded-none px-4 py-3 h-auto"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <CalendarIcon className="h-4 w-4" /> Ver agenda de negócio
+            </span>
+            {showAgenda ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+          {showAgenda && (
+            <div className="border-t">
+              <AgendaCalendarView
+                storageKey="agenda-secretaria-semana"
+                cursor={cursor}
+                onCursorChange={setCursor}
+                events={events}
+                types={types}
+                typeItems={typeItems}
+                autoTypeItems={autoTypeItems}
+                productItems={productItems}
+                isEventVisible={isEventVisible}
+                onEventClick={handleEventClick}
+                defaultMode="week"
+                onAutoItemRename={(id, name) => {
+                  const key = id === 'meta:meeting' ? 'meeting'
+                            : id === 'meta:sales'   ? 'sales'
+                            : id === 'meta:feriado' ? 'feriado' : null;
+                  if (key) renameAutoLabel(key, name);
+                }}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
