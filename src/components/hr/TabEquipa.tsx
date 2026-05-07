@@ -15,8 +15,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTeamData } from '@/hooks/useTeamData';
 import { useMemberSave } from '@/hooks/useMemberSave';
+import type { PrestadorPendingReview } from '@/hooks/useMemberSave';
 import { MemberDialog } from '@/components/hr/MemberDialog';
 import { MemberDetailSheet } from '@/components/hr/MemberDetailSheet';
+import { SupplierReviewDialog } from '@/components/hr/SupplierReviewDialog';
 import { DeptBadge, getInitials } from '@/components/hr/team-helpers';
 
 // Members list with active/ex toggle and inline offboarding flow.
@@ -28,7 +30,8 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [reassignments, setReassignments] = useState<Record<string, string>>({});
   const [settlementValue, setSettlementValue] = useState('');
   const [settlementNotes, setSettlementNotes] = useState('');
-  const { saveMember } = useMemberSave();
+  const { saveMember, finalizeSupplierForPrestador } = useMemberSave();
+  const [supplierReview, setSupplierReview] = useState<PrestadorPendingReview | null>(null);
   const qc = useQueryClient();
   const allMembers = team.members.data || [];
   const activeMembers = allMembers.filter((m: any) => m.status === 'ativo');
@@ -195,7 +198,37 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           ))}
         </div>
       )}
-      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={saveMember} />}
+      {dialog !== null && (
+        <MemberDialog
+          open
+          onClose={() => setDialog(null)}
+          initial={dialog}
+          onSave={async (payload: any) => {
+            const result = await saveMember(payload);
+            if (result?.prestadorPending) setSupplierReview(result.prestadorPending);
+          }}
+        />
+      )}
+      {supplierReview && (
+        <SupplierReviewDialog
+          open
+          memberName={supplierReview.memberName}
+          initial={supplierReview.draft}
+          onCancel={() => {
+            toast.info('Podes criar a ficha de fornecedor mais tarde em Fornecedores.');
+            setSupplierReview(null);
+          }}
+          onConfirm={async (draft) => {
+            const ok = await finalizeSupplierForPrestador({
+              memberId: supplierReview.memberId,
+              memberName: supplierReview.memberName,
+              contract: supplierReview.contract,
+              supplier: draft,
+            });
+            if (ok) setSupplierReview(null);
+          }}
+        />
+      )}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} onOffboard={(m: any) => { setSelected(null); handleStartOffboarding(m); }} />}
 
       <Dialog open={!!offboardingDialog} onOpenChange={() => setOffboardingDialog(null)}>
