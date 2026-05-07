@@ -631,10 +631,14 @@ async function buildOwnerDigest(
 
   // ── Prazos Fiscais ──
   if (sections.prazos_fiscais) {
-    const fiscalHtml = await buildFiscalDeadlinesSection(supabase, todayStr);
-    if (fiscalHtml) {
-      hasContent = true;
-      html += fiscalHtml;
+    try {
+      const fiscalHtml = await buildFiscalDeadlinesSection(supabase, now);
+      if (fiscalHtml) {
+        hasContent = true;
+        html += fiscalHtml;
+      }
+    } catch (err) {
+      console.error("[send-digest] fiscal section failed:", err);
     }
   }
 
