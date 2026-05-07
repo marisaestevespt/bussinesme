@@ -1153,6 +1153,7 @@ export default function FornecedoresPage() {
                   </div>
                 )}
               </div>
+              )}
 
               {/* Documents */}
               <div className="space-y-2">
