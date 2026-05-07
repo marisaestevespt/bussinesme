@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Trash2, RefreshCw, CalendarClock, Pencil, Check, X, Ban } from 'lucide-react';
+import { Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { formatEuro } from '@/lib/formatting';
 import { DEPARTMENTS } from '@/lib/departments';
+import { Link as RouterLink } from 'react-router-dom';
 
 const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
 
@@ -192,6 +194,28 @@ export default function FornecedoresPage() {
         ...expense,
         status: normalizeUnpaidExpenseStatus(expense.status, expense.expense_date),
       }));
+    },
+  });
+
+  // Linked member contract (when supplier was created from a prestador)
+  const { data: linkedContract } = useQuery({
+    queryKey: ['supplier-linked-contract', form?.member_id],
+    enabled: !!form?.id && !!form?.member_id,
+    queryFn: async () => {
+      const { data: member } = await supabase
+        .from('team_members')
+        .select('id, full_name')
+        .eq('id', form.member_id)
+        .maybeSingle();
+      const { data: contract } = await supabase
+        .from('member_contracts')
+        .select('id, contract_type, monthly_value, payment_day, value_includes_vat, status, start_date, end_date')
+        .eq('member_id', form.member_id)
+        .in('contract_type', ['prestacao_servicos', 'contrato_prestacao'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return { member, contract };
     },
   });
 
@@ -981,7 +1005,42 @@ export default function FornecedoresPage() {
               </div>
 
               {/* Existing recurring expense summary */}
-              {form._existingRecurring && (
+              {linkedContract?.contract && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-medium">Ligado ao contrato de {linkedContract.member?.full_name}</Label>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Valor mensal</p>
+                      <p className="font-medium">{formatEuro(Number(linkedContract.contract.monthly_value) || 0)}{linkedContract.contract.value_includes_vat ? ' c/IVA' : ' s/IVA'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Dia pagamento</p>
+                      <p className="font-medium">{linkedContract.contract.payment_day || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Estado</p>
+                      <p className="font-medium capitalize">{linkedContract.contract.status || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Fim contrato</p>
+                      <p className="font-medium">{linkedContract.contract.end_date || '—'}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Este fornecedor é gerado a partir do contrato do membro. Para alterar valor, IVA, dia ou data de fim, edita o contrato — as despesas futuras são regeneradas automaticamente.
+                  </p>
+                  <RouterLink to={`/hub-equipa?member=${form.member_id}`}>
+                    <Button type="button" variant="outline" size="sm">
+                      <ExternalLink className="h-3.5 w-3.5 mr-1" /> Ir ao membro
+                    </Button>
+                  </RouterLink>
+                </div>
+              )}
+
+              {form._existingRecurring && !linkedContract?.contract && (
                 <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-3">
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 text-primary" />
