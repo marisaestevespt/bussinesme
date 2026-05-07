@@ -43,6 +43,34 @@ type ContractFormPayload = Record<string, unknown> & {
 
 type ExpenseInsertPayload = TablesInsert<'financial_expenses'> & { supplier_id?: string };
 
+export interface SupplierDraft {
+  name: string;
+  nif: string;
+  email: string;
+  phone: string;
+  iban: string;
+  address: string;
+  payment_method: string;
+  default_vat_rate: number;
+  service: string;
+  category: string;
+  contract_start_date: string | null;
+  contract_end_date: string | null;
+}
+
+export interface PrestadorPendingReview {
+  memberId: string;
+  memberName: string;
+  contract: ContractFormPayload;
+  draft: SupplierDraft;
+}
+
+export interface SaveMemberResult {
+  memberId: string | undefined;
+  isNew: boolean;
+  prestadorPending: PrestadorPendingReview | null;
+}
+
 // Module keys that belong to each department
 const ALL_DEPT_MODULES = ['marketing', 'comercial', 'clientes', 'financeiro', 'operacao', 'produtos', 'recursos-humanos', 'equipa', 'planeamento', 'weekly-align', 'gestao-equipa-ceo'];
 
@@ -93,10 +121,11 @@ async function autoAssignPermissions(memberId: string, departments: string[]) {
 export function useMemberSave() {
   const qc = useQueryClient();
 
-  const saveMember = async ({ member, contract: contractData }: { member: MemberFormPayload; contract: ContractFormPayload | null }) => {
+  const saveMember = async ({ member, contract: contractData }: { member: MemberFormPayload; contract: ContractFormPayload | null }): Promise<SaveMemberResult | undefined> => {
     try {
       const isNew = !member.id;
       let memberId = member.id;
+      let prestadorPending: PrestadorPendingReview | null = null;
 
       // Strip transient UI-only fields before DB operations
       const { deptExtraPages: _dep, sensitiveAccess: _sa, system_role: _sr, ...dbFields } = member;
@@ -129,7 +158,9 @@ export function useMemberSave() {
         const contractedHoursStr = contractData.contracted_hours != null && contractData.contracted_hours !== ''
           ? String(contractData.contracted_hours)
           : null;
-        const isPrestacao = contractData.contract_type === 'contrato_prestacao';
+        // Aceitar ambos os aliases (legacy `prestacao_servicos` ainda aparece em contratos existentes)
+        const isPrestacao = contractData.contract_type === 'contrato_prestacao'
+          || contractData.contract_type === 'prestacao_servicos';
 
         // Block contract type change away from prestação if member is the configured accountant
         if (!isNew && contractData.id && !isPrestacao) {
@@ -165,29 +196,6 @@ export function useMemberSave() {
             use_custom_payment_start: !!contractData.use_custom_payment_start,
           });
 
-          // === AUTO-CREATE SUPPLIER for prestadores ===
-          let supplierId: string | null = null;
-          if (isPrestacao) {
-            const { data: supplierData, error: supplierErr } = await supabase.from('suppliers').insert({
-              name: member.full_name,
-              nif: member.identification || null,
-              email: member.email || null,
-              phone: member.whatsapp || null,
-              iban: member.iban || null,
-              address: member.fiscal_address || null,
-              category: 'freelancer',
-              payment_method: member.payment_method || null,
-              default_vat_rate: contractData.value_includes_vat ? 23 : 23,
-              contract_start_date: contractData.start_date || null,
-              contract_end_date: contractData.end_date || null,
-              is_active: true,
-              member_id: memberId,
-            } as TablesInsert<'suppliers'>).select('id').single();
-            if (!supplierErr && supplierData) {
-              supplierId = supplierData.id;
-            }
-          }
-
           // Generate payments
           let numPayments = 0;
           if (contractData.duration === 'unica') numPayments = 1;
@@ -212,7 +220,7 @@ export function useMemberSave() {
               totalWithVat = v.totalWithVat;
             }
 
-            const payments = [];
+            const payments: { member_id: string; month: number; year: number; gross_value: number; net_value: number; payment_type: string; status: string }[] = [];
             for (let i = 0; i < numPayments; i++) {
               const payMonth = ((startDate.getMonth() + i) % 12) + 1;
               const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
@@ -225,26 +233,48 @@ export function useMemberSave() {
             }
             await supabase.from('member_payments').insert(payments);
 
-            // === AUTO-CREATE FINANCIAL_EXPENSES ===
-            for (const p of payments) {
+            if (isPrestacao) {
+              // Não criamos despesas/supplier aqui — vamos abrir um dialog
+              // de revisão da ficha de fornecedor depois de gravar o membro.
+              prestadorPending = {
+                memberId: memberId!,
+                memberName: String(member.full_name || ''),
+                contract: contractData,
+                draft: {
+                  name: String(member.full_name || ''),
+                  nif: String(member.identification || ''),
+                  email: String(member.email || ''),
+                  phone: String(member.whatsapp || ''),
+                  iban: String(member.iban || ''),
+                  address: String(member.fiscal_address || ''),
+                  payment_method: String(member.payment_method || 'transferencia'),
+                  default_vat_rate: 23,
+                  service: String(member.role_title || 'Prestação de serviços'),
+                  category: 'freelancer',
+                  contract_start_date: contractData.start_date || null,
+                  contract_end_date: contractData.end_date || null,
+                },
+              };
+            } else {
+              // === AUTO-CREATE FINANCIAL_EXPENSES (apenas para ordenados) ===
+              for (const p of payments) {
               const expMonth = p.month;
               const expQuarter = Math.ceil(expMonth / 3);
               const expDate = `${p.year}-${String(p.month).padStart(2, '0')}-${String(paymentDay).padStart(2, '0')}`;
 
               const expensePayload: ExpenseInsertPayload = {
                 description: `Pagamento — ${member.full_name} — ${String(p.month).padStart(2, '0')}/${p.year}`,
-                category: isPrestacao ? 'prestadores' : 'ordenados',
-                base_value: isPrestacao ? baseValue : p.gross_value,
-                vat_rate: isPrestacao ? vatRate : 0,
-                total_with_vat: isPrestacao ? totalWithVat : p.gross_value,
+                category: 'ordenados',
+                base_value: p.gross_value,
+                vat_rate: 0,
+                total_with_vat: p.gross_value,
                 expense_date: expDate,
                 status: 'por_pagar',
-                source_type: isPrestacao ? 'contractor' : 'payroll',
+                source_type: 'payroll',
                 expense_month: expMonth,
                 expense_quarter: expQuarter,
                 expense_year: p.year,
                 location: 'portugal',
-                ...(supplierId ? { supplier_id: supplierId } : {}),
               };
 
               const { data: expData, error: expError } = await supabase
@@ -253,20 +283,8 @@ export function useMemberSave() {
                 .select('id')
                 .single();
 
-              // Create payroll/contractor entry linked to expense
+              // Create payroll entry linked to expense
               if (!expError && expData) {
-                if (isPrestacao) {
-                  await supabase.from('financial_contractors').insert({
-                    contractor_name: member.full_name,
-                    month: p.month,
-                    year: p.year,
-                    value: totalWithVat,
-                    service: member.role_title || 'Prestação de serviços',
-                    location: 'portugal',
-                    status: 'por_pagar',
-                    expense_id: expData.id,
-                  } satisfies TablesInsert<'financial_contractors'>);
-                } else {
                   await supabase.from('financial_payroll').insert({
                     collaborator_name: member.full_name,
                     month: p.month, year: p.year,
@@ -276,9 +294,11 @@ export function useMemberSave() {
                     ss_employee: 0, ss_employer: 0,
                     expense_id: expData.id,
                   });
-                }
+              }
               }
             }
+            // Mantemos baseValue/vatRate/totalWithVat só para o ramo de ordenados
+            void baseValue; void vatRate; void totalWithVat;
           }
         } else if (contractData.id) {
           // Update existing contract
@@ -408,12 +428,134 @@ export function useMemberSave() {
       }
 
       qc.invalidateQueries({ queryKey: ['team'] });
-      toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
+      if (!prestadorPending) {
+        toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
+      }
+      return { memberId, isNew, prestadorPending };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error('Erro ao guardar: ' + msg);
+      return undefined;
     }
   };
 
-  return { saveMember };
+  /**
+   * Cria o supplier ligado ao membro e gera as despesas (com IVA) e linhas
+   * em financial_contractors para todos os pagamentos futuros já gerados em
+   * member_payments. Chamado depois de o owner confirmar o dialog de revisão.
+   */
+  const finalizeSupplierForPrestador = async ({
+    memberId,
+    memberName,
+    contract,
+    supplier,
+  }: {
+    memberId: string;
+    memberName: string;
+    contract: ContractFormPayload;
+    supplier: SupplierDraft;
+  }): Promise<boolean> => {
+    try {
+      const paymentDay = parseInt(String(contract.payment_day ?? '')) || 1;
+      const includesVat = !!contract.value_includes_vat;
+      const vatRate = Number(supplier.default_vat_rate) || 0;
+
+      // 1) supplier
+      const { data: supplierData, error: supplierErr } = await supabase
+        .from('suppliers')
+        .insert({
+          name: supplier.name || memberName,
+          nif: supplier.nif || null,
+          email: supplier.email || null,
+          phone: supplier.phone || null,
+          iban: supplier.iban || null,
+          address: supplier.address || null,
+          category: supplier.category || 'freelancer',
+          payment_method: supplier.payment_method || null,
+          default_vat_rate: vatRate,
+          contract_start_date: supplier.contract_start_date,
+          contract_end_date: supplier.contract_end_date,
+          is_active: true,
+          member_id: memberId,
+        } as TablesInsert<'suppliers'>)
+        .select('id')
+        .single();
+      if (supplierErr || !supplierData) {
+        throw supplierErr ?? new Error('Falha a criar fornecedor');
+      }
+      const supplierId = supplierData.id;
+
+      // 2) generate financial_expenses + financial_contractors for every
+      //    member_payment that doesn't yet have a matching contractor expense
+      const { data: pays = [] } = await supabase
+        .from('member_payments')
+        .select('id, month, year, gross_value, net_value')
+        .eq('member_id', memberId);
+
+      for (const p of pays || []) {
+        // Skip se já houver uma despesa contractor para este mês
+        const { data: exists } = await supabase
+          .from('financial_expenses')
+          .select('id')
+          .eq('member_id', memberId)
+          .eq('expense_month', p.month)
+          .eq('expense_year', p.year)
+          .eq('source_type', 'contractor')
+          .maybeSingle();
+        if (exists) continue;
+
+        const v = vatBreakdown(Number(p.gross_value) || 0, vatRate, includesVat);
+        const expMonth = p.month;
+        const expQuarter = Math.ceil(expMonth / 3);
+        const expDate = `${p.year}-${String(p.month).padStart(2, '0')}-${String(paymentDay).padStart(2, '0')}`;
+
+        const expensePayload: ExpenseInsertPayload = {
+          description: `Pagamento — ${memberName} — ${String(p.month).padStart(2, '0')}/${p.year}`,
+          category: 'prestadores',
+          base_value: v.baseValue,
+          vat_rate: v.vatRate,
+          total_with_vat: v.totalWithVat,
+          expense_date: expDate,
+          status: 'por_pagar',
+          source_type: 'contractor',
+          expense_month: expMonth,
+          expense_quarter: expQuarter,
+          expense_year: p.year,
+          location: 'portugal',
+          supplier_id: supplierId,
+          member_id: memberId,
+        } as ExpenseInsertPayload;
+
+        const { data: expData, error: expError } = await supabase
+          .from('financial_expenses')
+          .insert(expensePayload)
+          .select('id')
+          .single();
+        if (!expError && expData) {
+          await supabase.from('financial_contractors').insert({
+            contractor_name: memberName,
+            month: p.month,
+            year: p.year,
+            value: v.totalWithVat,
+            service: supplier.service || 'Prestação de serviços',
+            location: 'portugal',
+            status: 'por_pagar',
+            expense_id: expData.id,
+          } satisfies TablesInsert<'financial_contractors'>);
+        }
+      }
+
+      qc.invalidateQueries({ queryKey: ['team'] });
+      qc.invalidateQueries({ queryKey: ['suppliers'] });
+      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      toast.success('Fornecedor criado e pagamentos gerados com IVA!');
+      return true;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error('Erro a criar fornecedor: ' + msg);
+      return false;
+    }
+  };
+
+  return { saveMember, finalizeSupplierForPrestador };
 }
