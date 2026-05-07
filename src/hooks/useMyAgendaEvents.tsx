@@ -35,9 +35,11 @@ type SalesActionLite = Pick<
 export function useMyAgendaEvents(range: { from: string; to: string }, cursor: Date) {
   const { user } = useAuth();
   const { impersonating } = useImpersonation();
-  // When impersonating, treat the impersonated member's user_id as the "current user"
-  // for all agenda/meeting filters. Falls back to the real user otherwise.
-  const effectiveUserId = impersonating?.user_id || user?.id;
+  // When impersonating, treat the impersonated member as the "current user" for
+  // all agenda/meeting filters. We must NEVER fall back to the real owner's
+  // identity here, otherwise the owner's events leak into the impersonated view.
+  const effectiveUserId = impersonating ? (impersonating.user_id ?? null) : (user?.id ?? null);
+  const impersonatedProfileId = impersonating?.profile_id ?? null;
 
   const { data: types = [] } = useQuery({
     queryKey: ['event_types'],
@@ -54,10 +56,12 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
 
   // Resolve profile.id once
   const profileQ = useQuery({
-    queryKey: ['my-profile-id', effectiveUserId],
-    enabled: !!effectiveUserId,
+    queryKey: ['my-profile-id', effectiveUserId, impersonatedProfileId],
+    enabled: !!effectiveUserId || !!impersonatedProfileId,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
+      if (impersonatedProfileId) return impersonatedProfileId;
+      if (!effectiveUserId) return null;
       const { data } = await supabase.from('profiles').select('id').eq('user_id', effectiveUserId!).maybeSingle();
       return data?.id as string | null;
     },
@@ -67,9 +71,9 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
   // 1. Events the user created or is a participant of
   const eventsQ = useQuery({
     queryKey: ['my-agenda-events', effectiveUserId, profileId, range.from, range.to],
-    enabled: !!effectiveUserId && !!profileId,
+    enabled: !!profileId,
     queryFn: async () => {
-      const profileIds = [effectiveUserId!, profileId!].filter(Boolean) as string[];
+      const profileIds = [effectiveUserId, profileId].filter(Boolean) as string[];
       const { data: parts } = await supabase
         .from('event_members')
         .select('event_id')
@@ -80,9 +84,13 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
         `and(start_date.gte.${range.from},start_date.lte.${range.to}),and(end_date.gte.${range.from},end_date.lte.${range.to}),and(start_date.lte.${range.from},end_date.gte.${range.to}),and(recurrence_type.not.is.null,start_date.lte.${range.to})`
       );
 
-      const { data: created = [] } = await inRange(
-        supabase.from('events').select('*').eq('created_by', effectiveUserId!)
-      );
+      let created: EventRow[] = [];
+      if (effectiveUserId) {
+        const { data } = await inRange(
+          supabase.from('events').select('*').eq('created_by', effectiveUserId)
+        );
+        created = (data || []) as EventRow[];
+      }
       let participant: EventRow[] = [];
       if (partIds.length > 0) {
         const { data } = await inRange(
@@ -91,7 +99,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
         participant = (data || []) as EventRow[];
       }
       const map = new Map<string, EventRow>();
-      for (const ev of [...((created || []) as EventRow[]), ...participant]) map.set(ev.id, ev);
+      for (const ev of [...created, ...participant]) map.set(ev.id, ev);
       return Array.from(map.values());
     },
   });
@@ -101,7 +109,7 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
     queryKey: ['my-agenda-meetings', effectiveUserId, profileId, range.from, range.to],
     enabled: !!profileId,
     queryFn: async () => {
-      const profileIds = [effectiveUserId!, profileId!].filter(Boolean) as string[];
+      const profileIds = [effectiveUserId, profileId].filter(Boolean) as string[];
       const { data: parts } = await supabase
         .from('meeting_participants')
         .select('meeting_id')
@@ -118,15 +126,19 @@ export function useMyAgendaEvents(range: { from: string; to: string }, cursor: D
           .lte('date_time', range.to + 'T23:59:59');
         participated = (data || []) as MeetingLite[];
       }
-      const { data: created = [] } = await supabase
-        .from('meetings')
-        .select('id,title,date_time,status,meeting_url,client_name,department,project_name,product_id,product_name')
-        .eq('created_by', effectiveUserId!)
-        .gte('date_time', range.from + 'T00:00:00')
-        .lte('date_time', range.to + 'T23:59:59');
+      let created: MeetingLite[] = [];
+      if (effectiveUserId) {
+        const { data } = await supabase
+          .from('meetings')
+          .select('id,title,date_time,status,meeting_url,client_name,department,project_name,product_id,product_name')
+          .eq('created_by', effectiveUserId)
+          .gte('date_time', range.from + 'T00:00:00')
+          .lte('date_time', range.to + 'T23:59:59');
+        created = (data || []) as MeetingLite[];
+      }
 
       const map = new Map<string, MeetingLite>();
-      for (const m of [...participated, ...((created || []) as MeetingLite[])]) map.set(m.id, m);
+      for (const m of [...participated, ...created]) map.set(m.id, m);
       return Array.from(map.values());
     },
   });
