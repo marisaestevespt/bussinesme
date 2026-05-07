@@ -12012,6 +12012,10 @@ export type Database = {
         Args: { _project_id: string }
         Returns: Json
       }
+      sync_supplier_expenses_from_contract: {
+        Args: { p_member_id: string; p_supplier_id: string }
+        Returns: undefined
+      }
       test_payment_sync_e2e: {
         Args: never
         Returns: {
