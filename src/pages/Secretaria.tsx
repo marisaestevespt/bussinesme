@@ -252,9 +252,11 @@ export default function SecretariaPage() {
               </Card>
             )}
 
-            <Suspense fallback={null}>
-              <SecretariaConteudos />
-            </Suspense>
+            {isOwner && (
+              <Suspense fallback={null}>
+                <SecretariaConteudos />
+              </Suspense>
+            )}
 
             <DashboardPersonalWidgets userId={user?.id} />
 
