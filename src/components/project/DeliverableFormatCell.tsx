@@ -237,14 +237,28 @@ export function DeliverableFormatCell({
       )}
       {fmt === 'reuniao' && (
         d.meeting_id ? (
-          <button
-            type="button"
-            onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
-            className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-primary"
-            title="Abrir reunião"
-          >
-            <ExternalLink className="h-3 w-3" />
-          </button>
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
+              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-primary"
+              title="Abrir reunião"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm('Desligar a reunião desta entrega? A reunião não é apagada.')) {
+                  updateFields.mutate({ meeting_id: null });
+                }
+              }}
+              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground"
+              title="Desligar reunião"
+            >
+              <Unlink className="h-3 w-3" />
+            </button>
+          </div>
         ) : (
           <div className="flex items-center gap-0.5">
             <NewMeetingButton
