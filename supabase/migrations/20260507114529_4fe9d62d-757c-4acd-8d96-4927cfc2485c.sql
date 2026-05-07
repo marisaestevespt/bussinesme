@@ -1,0 +1,2 @@
+ALTER TABLE public.digest_settings DROP CONSTRAINT IF EXISTS digest_settings_user_id_is_owner_digest_key;
+CREATE UNIQUE INDEX IF NOT EXISTS digest_settings_user_owner_type_key ON public.digest_settings (user_id, is_owner_digest, COALESCE(digest_type, 'morning'));
