@@ -210,10 +210,12 @@ export default function ConteudoDetailPage() {
       }
 
       // Sync content task (create or update)
-      if (form.status !== 'publicado') {
+      // 'agendado' e 'publicado' = trabalho criativo concluído → fechar tarefa
+      const isDone = form.status === 'publicado' || form.status === 'agendado';
+      if (!isDone) {
         await syncContentTask(id, form.title, form.status, form.assigned_to || null);
       } else {
-        // Mark task as done when content is published
+        // Mark task as done when content is scheduled or published
         const { data: activeTasks } = await supabase
           .from('tasks')
           .select('id')
