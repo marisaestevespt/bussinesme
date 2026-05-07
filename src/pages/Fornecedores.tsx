@@ -197,6 +197,28 @@ export default function FornecedoresPage() {
     },
   });
 
+  // Linked member contract (when supplier was created from a prestador)
+  const { data: linkedContract } = useQuery({
+    queryKey: ['supplier-linked-contract', form?.member_id],
+    enabled: !!form?.id && !!form?.member_id,
+    queryFn: async () => {
+      const { data: member } = await supabase
+        .from('team_members')
+        .select('id, full_name')
+        .eq('id', form.member_id)
+        .maybeSingle();
+      const { data: contract } = await supabase
+        .from('member_contracts')
+        .select('id, contract_type, monthly_value, payment_day, value_includes_vat, status, start_date, end_date')
+        .eq('member_id', form.member_id)
+        .in('contract_type', ['prestacao_servicos', 'contrato_prestacao'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return { member, contract };
+    },
+  });
+
   // Cancel recurrence: mark rule as cancelled + delete future (and optionally current month) unpaid expenses
   const cancelRecurrence = useMutation({
     mutationFn: async ({ supplierId, includeCurrentMonth, adjustedValue }: { supplierId: string; includeCurrentMonth: boolean; adjustedValue?: number }) => {
