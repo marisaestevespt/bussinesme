@@ -192,7 +192,7 @@ export function DeliverableFormatCell({
 
   // ── Render badge with format menu ─────────────────────────────────
   return (
-    <div className="flex items-center gap-1 min-w-0">
+    <div className="flex items-center gap-1.5 min-w-0">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
