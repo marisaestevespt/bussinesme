@@ -4,8 +4,10 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Mail, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Mail, Moon, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const OWNER_SECTION_LABELS: Record<string, string> = {
   reunioes_dia: 'Reuniões do dia',
@@ -118,6 +120,30 @@ function DigestSection({
     }
   };
 
+  const [sendingTest, setSendingTest] = useState(false);
+  const handleSendNow = async () => {
+    setSendingTest(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-digest', {
+        body: { test: true, digestType: type },
+      });
+      if (error) throw error;
+      const result = data as any;
+      const first = result?.results?.[0];
+      if (first && first.sent === false) {
+        toast.error(`Falhou: ${first.error || 'erro desconhecido'}`);
+      } else if (result?.processed > 0) {
+        toast.success('Digest enviado! Verifica o email em alguns segundos.');
+      } else {
+        toast.message(result?.message || 'Sem digest para enviar');
+      }
+    } catch (err: any) {
+      toast.error(`Erro: ${err?.message || 'falhou o envio'}`);
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -162,6 +188,23 @@ function DigestSection({
             <p className="text-xs text-muted-foreground">
               O resumo é enviado diariamente à hora configurada.
             </p>
+          </div>
+
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSendNow}
+              disabled={sendingTest}
+            >
+              {sendingTest ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Enviar digest agora (teste)
+            </Button>
           </div>
 
           <Separator />
