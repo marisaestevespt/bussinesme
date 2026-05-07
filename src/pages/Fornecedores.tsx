@@ -842,6 +842,18 @@ export default function FornecedoresPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div><Label>Departamento</Label>
+                <Select value={form.department || '__none__'} onValueChange={v => setForm((f: any) => ({ ...f, department: v === '__none__' ? null : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Sem departamento" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem departamento</SelectItem>
+                    {DEPARTMENTS.map(d => (
+                      <SelectItem key={d.value} value={d.value}>{d.icon} {d.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">Será aplicado às despesas futuras geradas para este fornecedor.</p>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><Label>Localização</Label>
                   <Select value={form.location || 'portugal'} onValueChange={v => setForm((f: any) => ({ ...f, location: v, default_vat_rate: v !== 'portugal' ? 0 : (f.default_vat_rate || 23) }))}>
