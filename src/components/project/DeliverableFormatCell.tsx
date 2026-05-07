@@ -97,6 +97,16 @@ export function DeliverableFormatCell({
       return data as { id: string } | null;
     },
   });
+  // Lookup linked meeting title to display in the cell
+  const { data: linkedMeeting } = useQuery({
+    queryKey: ['deliverable-linked-meeting', d.meeting_id],
+    enabled: fmt === 'reuniao' && !!d.meeting_id,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('meetings').select('id, title, date_time').eq('id', d.meeting_id!).maybeSingle();
+      return data as { id: string; title: string | null; date_time: string | null } | null;
+    },
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -237,11 +247,19 @@ export function DeliverableFormatCell({
       )}
       {fmt === 'reuniao' && (
         d.meeting_id ? (
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1 min-w-0">
             <button
               type="button"
               onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
-              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-primary"
+              className="text-[11px] truncate text-primary hover:underline max-w-[160px] text-left"
+              title={linkedMeeting?.title || 'Abrir reunião'}
+            >
+              {linkedMeeting?.title || 'reunião ligada'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
+              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-primary shrink-0"
               title="Abrir reunião"
             >
               <ExternalLink className="h-3 w-3" />
@@ -253,7 +271,7 @@ export function DeliverableFormatCell({
                   updateFields.mutate({ meeting_id: null });
                 }
               }}
-              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground"
+              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground shrink-0"
               title="Desligar reunião"
             >
               <Unlink className="h-3 w-3" />
