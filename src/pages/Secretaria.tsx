@@ -64,7 +64,8 @@ export default function SecretariaPage() {
   const onboarding = useMyOnboarding(teamMember.data?.id);
   const qc = useQueryClient();
 
-  const firstName = profile.data?.full_name?.split(' ')[0] || 'Utilizador';
+  const displayName = impersonating?.full_name || teamMember.data?.full_name || profile.data?.full_name || '';
+  const firstName = displayName.split(' ')[0] || 'Utilizador';
 
   // Absence conflict alerts (owner only, hidden during impersonation)
   const absenceAlerts = useQuery({

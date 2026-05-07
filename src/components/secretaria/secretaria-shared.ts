@@ -58,8 +58,8 @@ export function useMyProfile() {
   const { impersonating } = useImpersonation();
   const userId = impersonating?.user_id || user?.id;
   return useQuery({
-    queryKey: ['my-profile', userId, impersonating?.member_id],
-    enabled: !!userId,
+    queryKey: ['my-profile', userId, impersonating?.member_id, impersonating?.profile_id],
+    enabled: !!userId || !!impersonating?.profile_id,
     queryFn: async () => {
       // When impersonating a member without user_id, fetch by profile_id
       if (impersonating && !impersonating.user_id && impersonating.profile_id) {
