@@ -528,7 +528,10 @@ export function MeetingFormDialog({
       const tpl = getMeetingTemplate(initialMeetingType as string);
       if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
     }
-    if (defaultTitle && !title) setTitle(defaultTitle);
+    // Always sync the title to the latest defaultTitle when the dialog opens,
+    // so a late-resolved template (e.g. from a deliverable's meeting_title_template)
+    // overrides the initial fallback that was captured at mount time.
+    if (defaultTitle) setTitle(defaultTitle);
     if (defaultDepartment && !department) setDepartment(defaultDepartment);
     if (defaultMemberIds && defaultMemberIds.length > 0 && selectedMembers.length === 0) {
       setSelectedMembers(defaultMemberIds);
