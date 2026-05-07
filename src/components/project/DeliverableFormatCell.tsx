@@ -256,26 +256,71 @@ export function DeliverableFormatCell({
             >
               {linkedMeeting?.title || 'reunião ligada'}
             </button>
-            <button
-              type="button"
-              onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
-              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-primary shrink-0"
-              title="Abrir reunião"
-            >
-              <ExternalLink className="h-3 w-3" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (confirm('Desligar a reunião desta entrega? A reunião não é apagada.')) {
-                  updateFields.mutate({ meeting_id: null });
-                }
-              }}
-              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground shrink-0"
-              title="Desligar reunião"
-            >
-              <Unlink className="h-3 w-3" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground shrink-0"
+                  title="Opções da reunião"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem className="text-xs gap-2" onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}>
+                  <ExternalLink className="h-3.5 w-3.5" /> Abrir reunião
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-xs gap-2" onClick={() => setMeetPickerOpen(true)}>
+                  <Paperclip className="h-3.5 w-3.5" /> Trocar reunião…
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-xs gap-2 text-destructive focus:text-destructive"
+                  onClick={() => {
+                    if (confirm('Desligar a reunião desta entrega? A reunião não é apagada.')) {
+                      updateFields.mutate({ meeting_id: null });
+                    }
+                  }}
+                >
+                  <Unlink className="h-3.5 w-3.5" /> Desligar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Popover open={meetPickerOpen} onOpenChange={setMeetPickerOpen}>
+              <PopoverTrigger asChild>
+                <span className="sr-only" />
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-72 p-2 max-h-80 overflow-auto">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground px-1 pb-1.5">
+                  Reuniões deste projeto
+                </div>
+                {projectMeetings.length === 0 ? (
+                  <div className="text-xs text-muted-foreground p-2">Sem reuniões neste projeto.</div>
+                ) : (
+                  <div className="space-y-0.5">
+                    {projectMeetings.map((m: any) => {
+                      const isCurrent = m.id === d.meeting_id;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => { if (!isCurrent) linkExisting(m.id); else setMeetPickerOpen(false); }}
+                          className="w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded text-xs hover:bg-muted"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate font-medium">{m.title || '(sem título)'}</div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {m.date_time ? new Date(m.date_time).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data'}
+                            </div>
+                          </div>
+                          {isCurrent && <span className="text-[9px] text-primary shrink-0">atual</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
           </div>
         ) : (
           <div className="flex items-center gap-0.5">
