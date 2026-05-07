@@ -152,23 +152,21 @@ Deno.serve(async (req) => {
           isOwner: digest.is_owner_digest,
         });
 
-        // Send via transactional email if available, otherwise log
-        try {
-          const templateName = digest.is_owner_digest
-            ? (isEod ? "owner-eod-digest" : "owner-digest")
-            : (isEod ? "member-eod-digest" : "member-digest");
-          await sendTransactionalEmail({
-            templateName,
-            recipientEmail: authUser.email,
-            idempotencyKey: `digest-${digest.id}-${todayStr}-${isEod ? "eod" : "am"}`,
-            templateData: { subject, html },
-          });
-        } catch {
-          // If transactional email not set up yet, just log
-          console.log(`Would send digest to ${authUser.email}: ${subject}`);
+        const templateName = digest.is_owner_digest
+          ? (isEod ? "owner-eod-digest" : "owner-digest")
+          : (isEod ? "member-eod-digest" : "member-digest");
+        const sendResult = await sendTransactionalEmail({
+          templateName,
+          recipientEmail: authUser.email,
+          idempotencyKey: `digest-${digest.id}-${todayStr}-${isEod ? "eod" : "am"}`,
+          templateData: { subject, html },
+        });
+        if (!sendResult.ok) {
+          console.error(`[send-digest] Failed to send ${templateName} to ${authUser.email}:`, sendResult.status, sendResult.details);
+          results.push({ userId: digest.user_id, sent: false, error: `${sendResult.status}: ${sendResult.details}` });
+        } else {
+          results.push({ userId: digest.user_id, sent: true });
         }
-
-        results.push({ userId: digest.user_id, sent: true });
       } catch (err: unknown) {
         results.push({ userId: digest.user_id, sent: false, error: (err instanceof Error ? err.message : String(err)) });
       }
