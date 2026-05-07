@@ -66,10 +66,10 @@ export default function SecretariaPage() {
 
   const firstName = profile.data?.full_name?.split(' ')[0] || 'Utilizador';
 
-  // Absence conflict alerts (owner only)
+  // Absence conflict alerts (owner only, hidden during impersonation)
   const absenceAlerts = useQuery({
     queryKey: ['absence-alerts'],
-    enabled: isOwner,
+    enabled: effectiveIsOwner,
     queryFn: async () => {
       const todayStr = format(new Date(), 'yyyy-MM-dd');
       const { data: absences } = await supabase
@@ -229,7 +229,7 @@ export default function SecretariaPage() {
             </div>
 
             {/* Absence alerts for owner */}
-            {isOwner && (absenceAlerts.data || []).length > 0 && (
+            {effectiveIsOwner && (absenceAlerts.data || []).length > 0 && (
               <Card className="border-destructive/30 bg-destructive/5">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2 text-destructive">
@@ -261,7 +261,7 @@ export default function SecretariaPage() {
               </Suspense>
             )}
 
-            <DashboardPersonalWidgets userId={user?.id} />
+            <DashboardPersonalWidgets userId={impersonating?.user_id || user?.id} />
 
             {/* Bottom utility buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
