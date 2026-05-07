@@ -340,60 +340,8 @@ Deno.serve(async (req) => {
         }
       }
 
-      // ── Send welcome-member transactional email ──
-      let welcome_email_sent = false;
-      try {
-        // Fetch brand settings for the email template
-        const { data: brandSettings } = await supabase
-          .from("business_settings")
-          .select("business_name, primary_color, primary_foreground, text_color, accent_color, font_display, font_body, logo_url")
-          .limit(1)
-          .maybeSingle();
-
-        // Fetch custom overrides from email_template_settings
-        const { data: emailOverrides } = await supabase
-          .from("email_template_settings")
-          .select("*")
-          .eq("template_key", "welcome-member")
-          .maybeSingle();
-
-        const ownerProfile = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("user_id", caller.id)
-          .maybeSingle();
-
-        await sendTransactionalEmail({
-          templateName: "welcome-member",
-          recipientEmail: email,
-          idempotencyKey: `welcome-member-${newUser.user.id}`,
-          templateData: {
-              memberName: full_name.split(" ")[0],
-              inviteUrl: invite_url,
-              ownerName: ownerProfile?.data?.full_name?.split(" ")[0] || "a equipa",
-              businessName: brandSettings?.business_name || undefined,
-              whatsappTeamUrl: whatsapp_team_url || undefined,
-              whatsappDeptUrl: whatsapp_dept_url || undefined,
-              departmentName: department_name || undefined,
-              primaryColor: emailOverrides?.primary_color || brandSettings?.primary_color || undefined,
-              primaryForeground: emailOverrides?.primary_foreground || brandSettings?.primary_foreground || undefined,
-              textColor: emailOverrides?.text_color || brandSettings?.text_color || undefined,
-              accentColor: emailOverrides?.muted_color || brandSettings?.accent_color || undefined,
-              fontDisplay: emailOverrides?.font_display || brandSettings?.font_display || undefined,
-              fontBody: emailOverrides?.font_body || brandSettings?.font_body || undefined,
-              logoUrl: brandSettings?.logo_url || undefined,
-              // Custom text overrides
-              customTitle: emailOverrides?.title_text || undefined,
-              customSubtitle: emailOverrides?.subtitle_text || undefined,
-              customCta: emailOverrides?.cta_text || undefined,
-              customFooter: emailOverrides?.footer_text || undefined,
-              customEmoji: emailOverrides?.emoji || undefined,
-            },
-        });
-        welcome_email_sent = true;
-      } catch (welcomeErr) {
-        console.error("Failed to send welcome-member email:", welcomeErr);
-      }
+      // Welcome email intentionally not sent — onboarding is handled in person.
+      const welcome_email_sent = false;
 
       return new Response(
         JSON.stringify({
