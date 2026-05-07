@@ -135,9 +135,9 @@ export function DeliverableFormatCell({
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from('meetings')
-        .select('id, title, scheduled_at, type')
+        .select('id, title, date_time')
         .eq('project_id', projectId)
-        .order('scheduled_at', { ascending: false })
+        .order('date_time', { ascending: false })
         .limit(50);
       return (data || []) as any[];
     },
@@ -302,7 +302,7 @@ export function DeliverableFormatCell({
                           <div className="min-w-0 flex-1">
                             <div className="truncate font-medium">{m.title || '(sem título)'}</div>
                             <div className="text-[10px] text-muted-foreground">
-                              {m.scheduled_at ? new Date(m.scheduled_at).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data'}
+                              {m.date_time ? new Date(m.date_time).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data'}
                             </div>
                           </div>
                           {linked && <span className="text-[9px] text-warning shrink-0">já ligada</span>}
