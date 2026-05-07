@@ -10154,6 +10154,7 @@ export type Database = {
           contract_start_date: string | null
           created_at: string | null
           default_vat_rate: number | null
+          department: string | null
           documents: Json | null
           email: string | null
           expense_description_template: string | null
@@ -10180,6 +10181,7 @@ export type Database = {
           contract_start_date?: string | null
           created_at?: string | null
           default_vat_rate?: number | null
+          department?: string | null
           documents?: Json | null
           email?: string | null
           expense_description_template?: string | null
@@ -10206,6 +10208,7 @@ export type Database = {
           contract_start_date?: string | null
           created_at?: string | null
           default_vat_rate?: number | null
+          department?: string | null
           documents?: Json | null
           email?: string | null
           expense_description_template?: string | null
