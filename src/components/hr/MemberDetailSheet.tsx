@@ -105,29 +105,7 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
     }
   };
 
-  const handleResendWelcome = async () => {
-    if (!member?.email) {
-      toast.error('Este membro não tem email definido.');
-      return;
-    }
-    setResendingWelcome(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-invite-link', {
-        body: { email: member.email, send_welcome: true },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (data?.welcome_email_sent) {
-        toast.success(`Email de boas-vindas re-enviado para ${member.email}`);
-      } else {
-        toast.warning('Link gerado mas o email não foi enviado. Vê os logs.');
-      }
-    } catch (err: any) {
-      toast.error('Erro: ' + (err.message || err));
-    } finally {
-      setResendingWelcome(false);
-    }
-  };
+  // Onboarding is handled in person — no welcome email is sent for team members.
 
   const memberTasks = useQuery({
     queryKey: ['member-tasks', member?.profile_id],
@@ -253,18 +231,6 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
                 >
                   {generatingLink ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2 className="h-3 w-3" />}
                   Copiar link de convite
-                </Button>
-              )}
-              {member.email && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs gap-2"
-                  onClick={handleResendWelcome}
-                  disabled={resendingWelcome}
-                >
-                  {resendingWelcome ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-                  Re-enviar boas-vindas
                 </Button>
               )}
               {member.status === 'ativo' && onOffboard && (
