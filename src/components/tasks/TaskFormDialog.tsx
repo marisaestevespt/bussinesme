@@ -116,7 +116,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     queryKey: ['clients-list-simple'],
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
+      const { data } = await supabase.from('clients').select('id, full_name').eq('status', 'ativo').order('full_name');
       return data || [];
     },
   });

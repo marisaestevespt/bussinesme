@@ -111,7 +111,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
 
   const clientsListQ = useQuery({
     queryKey: ['clients_list'],
-    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name').order('full_name'); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name').eq('status', 'ativo').order('full_name'); return data || []; },
   });
 
   const projectCostQ = useQuery({

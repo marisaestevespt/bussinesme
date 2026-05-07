@@ -224,7 +224,7 @@ export default function SopDetailPage() {
   });
   const { data: clientsList = [] } = useQuery({
     queryKey: ['clients-list'],
-    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name'); return data || []; },
+    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name').eq('status', 'ativo'); return data || []; },
   });
   const { data: projectsList = [] } = useQuery({
     queryKey: ['projects-list'],
