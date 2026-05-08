@@ -60,8 +60,16 @@ Deno.serve(async (req) => {
     }
 
     const now = new Date();
-    const currentHour = now.getUTCHours();
-    const currentMinute = now.getUTCMinutes();
+    // send_time is stored in Europe/Lisbon local time (matches what the user
+    // configures in Definições). Convert "now" to Lisbon time before matching.
+    const lisbonParts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Lisbon",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(now);
+    const currentHour = parseInt(lisbonParts.find((p) => p.type === "hour")!.value, 10);
+    const currentMinute = parseInt(lisbonParts.find((p) => p.type === "minute")!.value, 10);
     const currentTimeStr = `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}:00`;
 
     const hourStr = `${String(currentHour).padStart(2, "0")}:00:00`;
