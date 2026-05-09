@@ -11,6 +11,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { BrandFontPicker } from '@/components/shared/BrandFontPicker';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { ImageIcon } from 'lucide-react';
+import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
+import { Sparkles, Palette as PaletteIcon, Globe, FolderOpen } from 'lucide-react';
 
 /* ── color helpers (HEX <-> HSL triplet "H S% L%") ── */
 
@@ -330,10 +332,34 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
-      <div className="pt-2">
-        <h3 className="text-sm font-semibold text-foreground">Estratégia da Marca</h3>
-        <p className="text-xs text-muted-foreground">O que esta marca representa antes de qualquer desenho.</p>
-      </div>
+      <EntityTabs defaultValue="estrategia" className="space-y-6">
+        <EntityTabsList className="w-full justify-start">
+          <EntityTabsTrigger value="estrategia">
+            <Sparkles className="h-3.5 w-3.5 mr-1.5 inline" />
+            Estratégia
+          </EntityTabsTrigger>
+          <EntityTabsTrigger value="visual">
+            <PaletteIcon className="h-3.5 w-3.5 mr-1.5 inline" />
+            Identidade Visual
+          </EntityTabsTrigger>
+          {onUpdatePortalBranding && (
+            <EntityTabsTrigger value="portal">
+              <Globe className="h-3.5 w-3.5 mr-1.5 inline" />
+              Portal do Cliente
+            </EntityTabsTrigger>
+          )}
+          <EntityTabsTrigger value="recursos">
+            <FolderOpen className="h-3.5 w-3.5 mr-1.5 inline" />
+            Recursos & Notas
+          </EntityTabsTrigger>
+        </EntityTabsList>
+
+        {/* ─────────────────────── ESTRATÉGIA ─────────────────────── */}
+        <EntityTabsContent value="estrategia" className="space-y-6 mt-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Estratégia da Marca</h3>
+            <p className="text-xs text-muted-foreground">O que esta marca representa antes de qualquer desenho.</p>
+          </div>
       <Card>
         <CardHeader><CardTitle className="text-base">Posicionamento & Mensagem</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -467,11 +493,14 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           </div>
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      <div className="pt-2">
-        <h3 className="text-sm font-semibold text-foreground">Identidade Visual</h3>
-        <p className="text-xs text-muted-foreground">Como a marca se mostra: cores, tipografia, logos, assets.</p>
-      </div>
+        {/* ─────────────────────── IDENTIDADE VISUAL ─────────────────────── */}
+        <EntityTabsContent value="visual" className="space-y-6 mt-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Identidade Visual</h3>
+            <p className="text-xs text-muted-foreground">Como a marca se mostra: cores, tipografia, logos, assets.</p>
+          </div>
       <Card>
         <CardHeader><CardTitle className="text-base">Identidade Visual</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -617,12 +646,15 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           {renderLinkList('visual_assets', 'Assets Visuais (logos, mood board, ícones, etc.)', 'https://...')}
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      <div className="pt-2">
-        <h3 className="text-sm font-semibold text-foreground">Aplicações & Recursos</h3>
-        <p className="text-xs text-muted-foreground">Onde a marca vive — portal do cliente, pastas e notas internas.</p>
-      </div>
-      {onUpdatePortalBranding && (
+        {/* ─────────────────────── PORTAL DO CLIENTE ─────────────────────── */}
+        {onUpdatePortalBranding && (
+        <EntityTabsContent value="portal" className="space-y-6 mt-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Portal do Cliente</h3>
+            <p className="text-xs text-muted-foreground">Personaliza o espaço onde o cliente entra.</p>
+          </div>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Portal do Cliente</CardTitle>
@@ -995,8 +1027,15 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             </div>
           </CardContent>
         </Card>
-      )}
+        </EntityTabsContent>
+        )}
 
+        {/* ─────────────────────── RECURSOS & NOTAS ─────────────────────── */}
+        <EntityTabsContent value="recursos" className="space-y-6 mt-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Recursos & Notas</h3>
+            <p className="text-xs text-muted-foreground">Pastas externas e notas internas sobre a marca.</p>
+          </div>
       <Card>
         <CardHeader><CardTitle className="text-base">Pastas & Recursos Externos</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -1016,6 +1055,8 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
           />
         </CardContent>
       </Card>
+        </EntityTabsContent>
+      </EntityTabs>
     </div>
   );
 }
