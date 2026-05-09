@@ -92,7 +92,7 @@ export default function FinanceiroPage() {
                   <Wallet className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Saldo geral acumulado até hoje (c/ IVA — bate com banco)</p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Saldo geral</p>
                   <p className={`text-2xl font-bold ${lifetime.data.saldo >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {formatEuro(lifetime.data.saldo)}
                   </p>
