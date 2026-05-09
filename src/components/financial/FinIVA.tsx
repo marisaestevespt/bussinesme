@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -233,15 +233,18 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   };
 
   return (
-    <div className="space-y-6 mt-4">
+    <div className="space-y-10 mt-4">
       <div className="flex items-center justify-end gap-2">
         <Button size="sm" variant="outline" onClick={handleExportCsv}><Download className="h-3.5 w-3.5 mr-1" /> CSV</Button>
         <Button size="sm" variant="outline" onClick={() => { exportPdf(`IVA — ${currentYear}`, 'fin-iva-export'); toast.success('PDF a gerar...'); }}><Download className="h-3.5 w-3.5 mr-1" /> PDF</Button>
       </div>
-      <div id="fin-iva-export">
+      <div id="fin-iva-export" className="space-y-10">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">IVA — {currentYear}</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Mensal + fecho trimestral com registo do pagamento à AT.
+          </p>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -252,12 +255,17 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 <TableHead className="text-right">IVA Pago</TableHead>
                 <TableHead className="text-right">IVA a Deduzir</TableHead>
                 <TableHead className="text-right">Balanço</TableHead>
-                <TableHead />
+                <TableHead className="text-right">Pagamento</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {balanco.map((d, i) => (
-                <TableRow key={i}>
+              {balanco.map((d, i) => {
+                const isQuarterEnd = (i + 1) % 3 === 0;
+                const qIdx = Math.floor(i / 3);
+                const qRow = isQuarterEnd ? quarterRows[qIdx] : null;
+                return (
+                <Fragment key={i}>
+                <TableRow>
                   <TableCell className="font-medium">{d.mes}</TableCell>
                   <TableCell
  className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
@@ -273,12 +281,58 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   </TableCell>
                   <TableCell className="text-right font-medium text-primary">{formatEuro(d.deduzir)}</TableCell>
                   <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-warning' : d.balanco < 0 ? 'text-success' : ''}`}>{formatEuro(d.balanco)}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     {d.balanco > 0 && <Badge variant="outline" className="bg-warning/10 text-warning text-xs">A entregar</Badge>}
                     {d.balanco < 0 && <Badge variant="outline" className="bg-success/10 text-success text-xs">A recuperar</Badge>}
                   </TableCell>
                 </TableRow>
-              ))}
+                {qRow && (
+                  <TableRow className="bg-muted/40 border-y">
+                    <TableCell className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                      Fecho {qRow.label}
+                    </TableCell>
+                    <TableCell colSpan={2} className="text-right text-xs text-muted-foreground">
+                      {qRow.payment?.paid_date ? `Pago em ${new Date(qRow.payment.paid_date).toLocaleDateString('pt-PT')}` : 'Por pagar'}
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-muted-foreground">
+                      {qRow.payment ? `Pago: ${formatEuro(Number(qRow.payment.paid_amount))}` : ''}
+                    </TableCell>
+                    <TableCell className={`text-right font-semibold ${qRow.calculado > 0 ? 'text-warning' : qRow.calculado < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                      {formatEuro(qRow.calculado)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {qRow.payment ? (
+                        <div className="flex items-center justify-end gap-1">
+                          <Badge variant="outline" className="bg-success/10 text-success">
+                            <Check className="h-3 w-3 mr-1" /> Pago
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => unmarkPaidMutation.mutate({ id: qRow.payment!.id, expense_id: qRow.payment!.expense_id })}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setPayQuarter({ q: qRow.q, calculado: qRow.calculado });
+                            setPayAmount(qRow.calculado > 0 ? qRow.calculado.toFixed(2) : '');
+                            setPayDate(new Date().toISOString().slice(0, 10));
+                          }}
+                        >
+                          Marcar pago
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )}
+                </Fragment>
+                );
+              })}
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
                 <TableCell className="text-right">{formatEuro(totalCobrado)}</TableCell>
@@ -297,73 +351,6 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
         documents={ivaDocuments}
         onUpdate={handleDocsUpdate}
       />
-
-      {/* Pagamentos trimestrais */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Pagamentos por Trimestre — {currentYear}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Trimestre</TableHead>
-                <TableHead className="text-right">Calculado (a entregar)</TableHead>
-                <TableHead className="text-right">Pago</TableHead>
-                <TableHead className="text-right">Valor pago</TableHead>
-                <TableHead className="text-right">Data</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quarterRows.map(row => (
-                <TableRow key={row.q}>
-                  <TableCell className="font-medium">{row.label}</TableCell>
-                  <TableCell className={`text-right ${row.calculado > 0 ? 'text-warning' : row.calculado < 0 ? 'text-success' : 'text-muted-foreground'}`}>
-                    {formatEuro(row.calculado)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {row.payment ? (
-                      <Badge variant="outline" className="bg-success/10 text-success">
-                        <Check className="h-3 w-3 mr-1" /> Pago
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-muted text-muted-foreground">Não pago</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">{row.payment ? formatEuro(Number(row.payment.paid_amount)) : '—'}</TableCell>
-                  <TableCell className="text-right text-sm text-muted-foreground">
-                    {row.payment?.paid_date ? new Date(row.payment.paid_date).toLocaleDateString('pt-PT') : '—'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {row.payment ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => unmarkPaidMutation.mutate({ id: row.payment!.id, expense_id: row.payment!.expense_id })}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setPayQuarter({ q: row.q, calculado: row.calculado });
-                          setPayAmount(row.calculado > 0 ? row.calculado.toFixed(2) : '');
-                          setPayDate(new Date().toISOString().slice(0, 10));
-                        }}
-                      >
-                        Marcar pago
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
 
       {/* Auto-liquidação UE */}
       {autoLiquidacao.hasAny && (
