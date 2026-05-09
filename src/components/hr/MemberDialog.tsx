@@ -372,14 +372,11 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   // Auto-fill everything when ENI + Owner is selected
   const applyOwnerDefaults = useCallback(() => {
     const allDepts = DEPARTMENTS.map(d => d.value);
-    const allAreas = WORK_AREAS.map(wa => wa.value);
     const allSensitive: Record<string, boolean> = {};
     SENSITIVE_CATEGORIES.forEach(cat => { allSensitive[cat.key] = true; });
     setF((prev: any) => ({
       ...prev,
       departments: allDepts,
-      department: allDepts[0] || '',
-      work_areas: allAreas,
       sensitiveAccess: allSensitive,
       system_role: 'admin',
     }));
