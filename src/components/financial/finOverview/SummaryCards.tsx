@@ -14,8 +14,8 @@ interface SummaryProps {
 export function SummaryCards({ totalEntradas, totalSaidas, resultado, margem, avgEntradas, avgSaidas }: SummaryProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas</p><p className="text-lg sm:text-xl font-bold text-success">{formatEuro(totalEntradas)}</p></CardContent></Card>
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas</p><p className="text-lg sm:text-xl font-bold text-destructive">{formatEuro(totalSaidas)}</p></CardContent></Card>
+      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas (s/ IVA)</p><p className="text-lg sm:text-xl font-bold text-success">{formatEuro(totalEntradas)}</p></CardContent></Card>
+      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas (s/ IVA)</p><p className="text-lg sm:text-xl font-bold text-destructive">{formatEuro(totalSaidas)}</p></CardContent></Card>
       <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(resultado)}</p></CardContent></Card>
       <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Margem</p><p className={`text-lg sm:text-xl font-bold ${margem >= 0 ? 'text-success' : 'text-destructive'}`}>{margem}%</p></CardContent></Card>
       <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-lg sm:text-xl font-bold">{formatEuro(avgEntradas)}</p></CardContent></Card>
