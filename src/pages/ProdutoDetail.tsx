@@ -769,7 +769,6 @@ export default function ProdutoDetailPage() {
                 pitch={(form as any).sales_pitch || ''}
                 benefits={((form as any).sales_benefits || []) as Array<{ title: string; description: string }>}
                 materials={((form as any).sales_materials || []) as Array<{ name: string; url: string; type: string }>}
-                faqs={((form as any).sales_faqs || []) as Array<{ question: string; answer: string }>}
                 objections={((form as any).sales_objections || []) as Array<{ objection: string; response: string }>}
                 caseStudies={((form as any).sales_case_studies || []) as Array<{ client: string; result: string; description: string }>}
                 isOwner={isOwner}

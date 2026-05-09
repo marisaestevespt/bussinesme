@@ -1119,7 +1119,7 @@ function ProjetoDetailInner() {
                     const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
                     const base = local.type === 'cliente_servico_mensal' ? [
                       { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes da Avença', filled: hasText(local.diretrizes) },
-                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Calendário Editorial', filled: hasText(local.cronograma) },
+                      { key: '__agenda__' as SubPage, icon: CalendarIcon, label: 'Calendário Editorial', filled: false },
                       { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
                     ] : [
                       { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição', filled: hasText(local.objetivo) },
@@ -1128,7 +1128,16 @@ function ProjetoDetailInner() {
                       { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
                     ];
                     return base.map(({ key, icon: Icon, label, filled }) => (
-                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
+                    <button key={key} onClick={() => {
+                      if (key === ('__agenda__' as SubPage)) {
+                        const params = new URLSearchParams();
+                        if (resolvedClientId) params.set('client_id', resolvedClientId);
+                        if (local.client_name) params.set('client_name', local.client_name);
+                        navigate(`/hub/agenda?${params.toString()}`);
+                      } else {
+                        setSubPage(key);
+                      }
+                    }} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
                       <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
                         <Icon className="h-5 w-5 text-primary" />
                       </div>

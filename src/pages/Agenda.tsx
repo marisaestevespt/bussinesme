@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
@@ -1196,6 +1197,9 @@ const AGENDA_DEFAULT_VIEWS: DefaultView[] = [
 const AGENDA_MODE_KEY = 'agenda:viewMode';
 
 export default function AgendaPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clientIdFilter = searchParams.get('client_id');
+  const clientNameFilter = searchParams.get('client_name');
   const { allViews, addView, renameView, deleteView } = useUserViews('agenda', AGENDA_DEFAULT_VIEWS);
   const [view, setView] = useState<string>('calendar');
   const [formOpen, setFormOpen] = useState(false);
@@ -1263,7 +1267,19 @@ export default function AgendaPage() {
   };
 
   // Merge events + meetings into a single sorted list
-  const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const allEventsRawUnfiltered = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  // Apply optional URL-based client filter (used by shortcuts from project pages)
+  const allEventsRaw = useMemo(() => {
+    if (!clientIdFilter && !clientNameFilter) return allEventsRawUnfiltered;
+    const norm = (s: string | null | undefined) => (s ?? '').trim().toLocaleLowerCase('pt-PT');
+    return allEventsRawUnfiltered.filter(ev => {
+      const cid = (ev as any).client_id as string | null | undefined;
+      const cname = (ev as any).client_name as string | null | undefined;
+      if (clientIdFilter && cid && cid === clientIdFilter) return true;
+      if (clientNameFilter && cname && norm(cname) === norm(clientNameFilter)) return true;
+      return false;
+    });
+  }, [allEventsRawUnfiltered, clientIdFilter, clientNameFilter]);
   // Product brand colour ALWAYS takes precedence over the event-type colour
   // when an event is linked to a product (per business rule).
   // When an event only knows the client (no product_id), we look up the
@@ -1322,6 +1338,25 @@ export default function AgendaPage() {
       <div className="space-y-6">
         <BackNavigation />
         <PageHeader title="Agenda do Negócio" />
+        {(clientIdFilter || clientNameFilter) && (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+            <span className="text-foreground">
+              📌 Filtrado pelo cliente: <strong>{clientNameFilter || clientIdFilter}</strong>
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.delete('client_id');
+                next.delete('client_name');
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              <X className="h-4 w-4 mr-1" /> Limpar filtro
+            </Button>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div />
           <div className="flex items-center gap-3">

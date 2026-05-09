@@ -197,7 +197,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       if (productName) {
         const { data: matchedProduct } = await supabase
           .from('products')
-          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode')
+          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode, estimated_project_hours')
           .eq('name', productName)
           .maybeSingle();
 
@@ -226,6 +226,9 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           deadline: projectMode === 'recorrente' ? null : deadline,
           project_mode: projectMode,
           task_mode: taskMode,
+          budgeted_minutes: (matchedProduct as any)?.estimated_project_hours
+            ? Math.round(Number((matchedProduct as any).estimated_project_hours) * 60)
+            : null,
         } as any).select('id').single();
 
         createdProjectId = newProject?.id || null;
