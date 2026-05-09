@@ -81,7 +81,14 @@ export default function ProdutoDetailPage() {
   }
 
   const update = (field: string, value: unknown) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm(prev => {
+      const next: any = { ...prev, [field]: value };
+      // Mantém default_project_mode sincronizado automaticamente (derivado de tipo + venda)
+      if (field === 'product_type' || field === 'sales_type') {
+        next.default_project_mode = deriveProjectMode(next.product_type, next.sales_type);
+      }
+      return next;
+    });
   };
 
   const save = async () => {
