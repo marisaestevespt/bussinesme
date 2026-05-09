@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, AlertTriangle, Check, X } from 'lucide-react';
+import { Download, AlertTriangle, Check, X, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -157,30 +157,40 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const [payDate, setPayDate] = useState('');
 
   const markPaidMutation = useMutation({
-    mutationFn: async ({ q, amount, date }: { q: number; amount: number; date: string }) => {
-      // 1) Criar despesa do tipo "tax" (entra no saldo, fica fora do operacional)
+    mutationFn: async ({ q, amount, date, existingExpenseId }: { q: number; amount: number; date: string; existingExpenseId?: string | null }) => {
       const d = new Date(date);
-      const { data: expense, error: expErr } = await supabase
-        .from('financial_expenses')
-        .insert({
-          description: `IVA T${q}/${currentYear}`,
-          expense_name: `IVA T${q}/${currentYear}`,
-          category: 'impostos',
-          base_value: amount,
-          vat_rate: 0,
-          total_with_vat: amount,
-          expense_date: date,
-          expense_month: d.getMonth() + 1,
-          expense_quarter: Math.floor(d.getMonth() / 3) + 1,
-          expense_year: d.getFullYear(),
-          source_type: 'tax',
-          status: 'tudo_ok',
-        })
-        .select()
-        .single();
-      if (expErr) throw expErr;
+      const expensePayload = {
+        description: `IVA T${q}/${currentYear}`,
+        expense_name: `IVA T${q}/${currentYear}`,
+        category: 'impostos',
+        base_value: amount,
+        vat_rate: 0,
+        total_with_vat: amount,
+        expense_date: date,
+        expense_month: d.getMonth() + 1,
+        expense_quarter: Math.floor(d.getMonth() / 3) + 1,
+        expense_year: d.getFullYear(),
+        source_type: 'tax',
+        status: 'tudo_ok',
+      };
 
-      // 2) Criar/atualizar registo em iva_payments
+      let expenseId = existingExpenseId || null;
+      if (expenseId) {
+        const { error: updErr } = await supabase
+          .from('financial_expenses')
+          .update(expensePayload)
+          .eq('id', expenseId);
+        if (updErr) throw updErr;
+      } else {
+        const { data: expense, error: expErr } = await supabase
+          .from('financial_expenses')
+          .insert(expensePayload)
+          .select()
+          .single();
+        if (expErr) throw expErr;
+        expenseId = expense.id;
+      }
+
       const { error: payErr } = await supabase
         .from('iva_payments')
         .upsert({
@@ -188,7 +198,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
           quarter: q,
           paid_amount: amount,
           paid_date: date,
-          expense_id: expense.id,
+          expense_id: expenseId,
         }, { onConflict: 'year,quarter' });
       if (payErr) throw payErr;
     },
@@ -196,10 +206,11 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
       queryClient.invalidateQueries({ queryKey: ['iva-payments'] });
       queryClient.invalidateQueries({ queryKey: ['fin-lifetime-balance'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success('Pagamento de IVA registado');
+      toast.success('Pagamento de IVA atualizado');
       setPayQuarter(null);
       setPayAmount('');
       setPayDate('');
+      setEditingExpenseId(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
