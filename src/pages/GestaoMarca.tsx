@@ -88,6 +88,31 @@ async function getBrandFileDisplayUrl(value: string | null | undefined): Promise
   return data.publicUrl;
 }
 
+async function downloadBrandFile(url: string, filename: string) {
+  try {
+    const path = extractBrandFilePath(url);
+    let blob: Blob | null = null;
+    if (path) {
+      const { data, error } = await supabase.storage.from(BRAND_FILES_BUCKET).download(path);
+      if (!error && data) blob = data;
+    }
+    if (!blob) {
+      const res = await fetch(url);
+      blob = await res.blob();
+    }
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = filename || 'ficheiro';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  } catch {
+    toast.error('Não consegui transferir o ficheiro.');
+  }
+}
+
 export default function GestaoMarcaPage() {
   const navigate = useNavigate();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
