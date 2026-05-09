@@ -1076,7 +1076,7 @@ export default function GestaoMarcaPage() {
                   placeholder="Nova crença..."
                   onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
                 />
-              ) : selectedKanban.title?.toLowerCase().includes('express') ? (
+              ) : selectedKanban.title?.toLowerCase().includes('express') || selectedKanban.title?.toLowerCase().includes('ícone') || selectedKanban.title?.toLowerCase().includes('icone') ? (
                 <BulletListEditor
                   itemId={selectedKanban.id}
                   initial={selectedKanban.content || ''}
