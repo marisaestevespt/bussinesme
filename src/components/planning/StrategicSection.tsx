@@ -93,7 +93,13 @@ export function StrategicSection() {
     },
   });
   const settings = settingsQuery.data as any;
-  const valuesList: string[] = useMemo(() => Array.isArray(settings?.values_list) ? settings.values_list : [], [settings]);
+  // values_list pode ter dois formatos: string[] (legado) ou {name, description}[] (novo, vindo da Marca)
+  const valuesList: Array<{ name: string; description?: string }> = useMemo(() => {
+    const raw = Array.isArray(settings?.values_list) ? settings.values_list : [];
+    return raw.map((v: any) =>
+      typeof v === 'string' ? { name: v } : { name: v?.name || '', description: v?.description }
+    ).filter(v => v.name);
+  }, [settings]);
   const [newValue, setNewValue] = useState('');
 
   const saveSettings = useMutation({
