@@ -13,15 +13,13 @@ type MemberFormPayload = Record<string, unknown> & {
   whatsapp?: string | null;
   iban?: string | null;
   fiscal_address?: string | null;
-  payment_method?: string | null;
   role_title?: string | null;
   work_schedule?: string | null;
-  department?: string | null;
   departments?: string[];
-  deptExtraPages?: Record<string, string[]>;
   sensitiveAccess?: Record<string, boolean>;
   system_role?: string;
   profile_id?: string | null;
+  birthday?: string | null;
 };
 
 type ContractFormPayload = Record<string, unknown> & {
@@ -39,6 +37,8 @@ type ContractFormPayload = Record<string, unknown> & {
   use_custom_payment_start?: boolean;
   payment_start_date?: string | null;
   duration?: string;
+  ss_employer_rate?: number | string;
+  payment_method?: string | null;
 };
 
 type ExpenseInsertPayload = TablesInsert<'financial_expenses'> & { supplier_id?: string };
@@ -128,25 +128,49 @@ export function useMemberSave() {
       let prestadorPending: PrestadorPendingReview | null = null;
 
       // Strip transient UI-only fields before DB operations
-      const { deptExtraPages: _dep, sensitiveAccess: _sa, system_role: _sr, ...dbFields } = member;
+      const { sensitiveAccess: _sa, system_role: _sr, ...dbFields } = member;
       const systemRole: string | undefined = member.system_role;
 
+      // Derive fields that are no longer edited directly in the form
+      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? (member.departments as string[])
+        : [];
+      const ct = (contractData?.contract_type as string) || 'contrato_trabalho';
+      const derivedMemberType =
+        ct === 'contrato_prestacao' || ct === 'prestacao_servicos' ? 'prestador_servicos'
+        : ct === 'acordo' ? 'colaborador_fixo' // sócio também usa colaborador_fixo (CHECK constraint)
+        : 'colaborador_fixo';
+      const contractStatus = (contractData?.status as string) || 'ativo';
+      const derivedMemberStatus =
+        contractStatus === 'ativo' || contractStatus === 'em_renovacao' ? 'ativo'
+        : contractStatus === 'terminado' ? 'inativo'
+        : (member as any).status || 'ativo';
+
+      // Mirror legacy columns on team_members so other readers (FinPayroll etc.) keep working
+      const derived: Record<string, unknown> = {
+        department: depts[0] || null,
+        departments: depts,
+        work_areas: depts,
+        member_type: derivedMemberType,
+        status: derivedMemberStatus,
+        start_date: contractData?.start_date || null,
+        ss_employer_rate: contractData?.ss_employer_rate ?? 0.2375,
+        payment_method: contractData?.payment_method ?? null,
+      };
+
       if (isNew) {
-        const payload = cleanPayload({ ...dbFields });
+        const payload = cleanPayload({ ...dbFields, ...derived });
         delete payload.id;
         const { data, error } = await supabase.from('team_members').insert(payload as unknown as TablesInsert<'team_members'>).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
-        const payload = cleanPayload(dbFields);
+        const payload = cleanPayload({ ...dbFields, ...derived });
         const { error } = await supabase.from('team_members').update(payload as unknown as Partial<TablesInsert<'team_members'>>).eq('id', member.id!);
         if (error) throw error;
       }
 
       // Auto-assign permissions based on departments
-      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
-        ? member.departments
-        : (member.department ? [member.department] : []);
       if (depts.length > 0) {
         await autoAssignPermissions(memberId, depts);
       }
@@ -194,6 +218,8 @@ export function useMemberSave() {
             value_includes_vat: !!contractData.value_includes_vat,
             payment_start_date: contractData.use_custom_payment_start ? (contractData.payment_start_date || null) : null,
             use_custom_payment_start: !!contractData.use_custom_payment_start,
+            ss_employer_rate: Number(contractData.ss_employer_rate ?? 0.2375),
+            payment_method: contractData.payment_method || null,
           });
 
           // Generate payments
@@ -247,7 +273,7 @@ export function useMemberSave() {
                   phone: String(member.whatsapp || ''),
                   iban: String(member.iban || ''),
                   address: String(member.fiscal_address || ''),
-                  payment_method: String(member.payment_method || 'transferencia'),
+                  payment_method: String((contractData?.payment_method as string) || 'transferencia'),
                   default_vat_rate: 23,
                   service: String(member.role_title || 'Prestação de serviços'),
                   category: 'freelancer',
@@ -315,6 +341,8 @@ export function useMemberSave() {
             value_includes_vat: !!contractData.value_includes_vat,
             payment_start_date: contractData.use_custom_payment_start ? (contractData.payment_start_date || null) : null,
             use_custom_payment_start: !!contractData.use_custom_payment_start,
+            ss_employer_rate: Number(contractData.ss_employer_rate ?? 0.2375),
+            payment_method: contractData.payment_method || null,
           }).eq('id', contractData.id);
         } else if (!isNew) {
           // No existing contract but editing — create one
@@ -328,6 +356,8 @@ export function useMemberSave() {
             value_includes_vat: !!contractData.value_includes_vat,
             payment_start_date: contractData.use_custom_payment_start ? (contractData.payment_start_date || null) : null,
             use_custom_payment_start: !!contractData.use_custom_payment_start,
+            ss_employer_rate: Number(contractData.ss_employer_rate ?? 0.2375),
+            payment_method: contractData.payment_method || null,
           });
         }
       }
@@ -343,7 +373,7 @@ export function useMemberSave() {
               phone: member.whatsapp || null,
               work_schedule: member.work_schedule || null,
               team_member_id: memberId,
-              department: member.department || null,
+              department: depts[0] || null,
             },
           });
           if (authError) {
@@ -378,19 +408,6 @@ export function useMemberSave() {
         } catch (authErr: unknown) {
           console.error('Auth creation failed:', authErr);
           toast.error('Membro criado mas sem conta de acesso');
-        }
-      }
-
-      // Apply inline extra pages
-      const deptExtraPages: Record<string, string[]> = member.deptExtraPages || {};
-      const allExtraModules = new Set<string>();
-      Object.values(deptExtraPages).forEach(pages => pages.forEach(p => allExtraModules.add(p)));
-      if (allExtraModules.size > 0) {
-        const roleName = `dept_${[...depts].sort().join('_')}`;
-        const { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
-        if (role) {
-          const perms = [...allExtraModules].map(mk => ({ custom_role_id: role.id, module_key: mk, can_view: true }));
-          await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
         }
       }
 

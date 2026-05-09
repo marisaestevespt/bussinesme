@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  CONTRACT_TYPES, CONTRACT_STATUSES, WORK_AREAS,
+  CONTRACT_STATUSES,
 } from '@/hooks/useTeamData';
 import { DEPARTMENTS } from '@/lib/departments';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
@@ -36,19 +36,12 @@ const DEFAULT_MEMBER_FORM = {
   identification: '',
   iban: '',
   fiscal_address: '',
-  payment_method: '',
-  status: 'ativo',
-  member_type: 'colaborador_fixo',
-  department: '',
   departments: [] as string[],
-  deptExtraPages: {} as Record<string, string[]>,
   sensitiveAccess: {} as Record<string, boolean>,
-  start_date: '',
+  birthday: '',
   responsibilities: '',
-  work_areas: [] as string[],
   system_role: 'team_member' as string, // função no sistema (RBAC)
   works_with_clients: false,
-  ss_employer_rate: 0.2375, // taxa SS empresa (só para Equipa Interna)
 };
 
 // Funções do sistema disponíveis para atribuir a um membro de equipa.
@@ -75,16 +68,16 @@ const PAYMENT_METHOD_OPTIONS = [
 
 // Vínculo unificado: controla simultaneamente member_type e contract_type
 const BOND_OPTIONS = [
-  { value: 'interno',    label: 'Equipa Interna',  hint: 'Contrato de trabalho',           member_type: 'colaborador_fixo',     contract_type: 'contrato_trabalho' },
-  { value: 'freelancer', label: 'Freelancer',      hint: 'Prestação de serviços',          member_type: 'prestador_servicos',   contract_type: 'contrato_prestacao' },
-  { value: 'socio',      label: 'Sócio',           hint: 'Acordo de sociedade',            member_type: 'socio',                contract_type: 'acordo' },
-  { value: 'outro',      label: 'Outro',           hint: 'Outro tipo de vínculo',          member_type: 'colaborador_fixo',     contract_type: 'outro' },
+  { value: 'interno',    label: 'Equipa Interna',  hint: 'Contrato de trabalho',           contract_type: 'contrato_trabalho' },
+  { value: 'freelancer', label: 'Freelancer',      hint: 'Prestação de serviços',          contract_type: 'contrato_prestacao' },
+  { value: 'socio',      label: 'Sócio',           hint: 'Acordo de sociedade',            contract_type: 'acordo' },
+  { value: 'outro',      label: 'Outro',           hint: 'Outro tipo de vínculo',          contract_type: 'outro' },
 ];
 
-function bondFromTypes(memberType: string, contractType: string): string {
-  if (memberType === 'prestador_servicos' || contractType === 'contrato_prestacao') return 'freelancer';
-  if (memberType === 'socio') return 'socio';
-  if (contractType === 'outro' || contractType === 'acordo') return memberType === 'socio' ? 'socio' : 'outro';
+function bondFromContractType(contractType: string): string {
+  if (contractType === 'contrato_prestacao' || contractType === 'prestacao_servicos') return 'freelancer';
+  if (contractType === 'acordo') return 'socio';
+  if (contractType === 'outro') return 'outro';
   return 'interno';
 }
 
@@ -245,6 +238,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     value_includes_vat: false,
     payment_start_date: '', // if different from contract start
     use_custom_payment_start: false,
+    ss_employer_rate: 0.2375,
+    payment_method: '',
   });
   const [contractLoaded, setContractLoaded] = useState(false);
 
@@ -345,6 +340,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             value_includes_vat: !!c.value_includes_vat,
             payment_start_date: c.payment_start_date || '',
             use_custom_payment_start: !!c.use_custom_payment_start,
+            ss_employer_rate: typeof (c as any).ss_employer_rate === 'number' ? (c as any).ss_employer_rate : 0.2375,
+            payment_method: (c as any).payment_method || (initial as any)?.payment_method || '',
           });
         }
         setContractLoaded(true);
@@ -365,6 +362,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
         value_includes_vat: false,
         payment_start_date: '',
         use_custom_payment_start: false,
+        ss_employer_rate: 0.2375,
+        payment_method: '',
       });
       setContractLoaded(true);
     }
@@ -373,14 +372,11 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   // Auto-fill everything when ENI + Owner is selected
   const applyOwnerDefaults = useCallback(() => {
     const allDepts = DEPARTMENTS.map(d => d.value);
-    const allAreas = WORK_AREAS.map(wa => wa.value);
     const allSensitive: Record<string, boolean> = {};
     SENSITIVE_CATEGORIES.forEach(cat => { allSensitive[cat.key] = true; });
     setF((prev: any) => ({
       ...prev,
       departments: allDepts,
-      department: allDepts[0] || '',
-      work_areas: allAreas,
       sensitiveAccess: allSensitive,
       system_role: 'admin',
     }));
@@ -409,7 +405,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
 
   const handleStartDateChange = (v: string) => {
     setC('start_date', v);
-    set('start_date', v);
     setC('end_date', calcEndDate(v, contract.duration));
   };
 
@@ -561,9 +556,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-xs text-muted-foreground">Data de nascimento</label>
-                <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+                <Input type="date" value={f.birthday || ''} onChange={e => set('birthday', e.target.value)} />
               </div>
-              <div></div>
+              <div />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
@@ -601,8 +596,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                         type="button"
                         onClick={() => {
                           set('departments', p.depts);
-                          set('department', p.depts[0] || '');
-                          set('work_areas', p.depts);
                           set('works_with_clients', p.wwc);
                         }}
                         className="text-[11px] rounded-full border border-border px-2.5 py-1 hover:border-primary hover:bg-primary/5 transition-colors"
@@ -617,7 +610,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <p className="text-[10px] text-muted-foreground">Define em que áreas do negócio este membro trabalha. Controla também o acesso a essas secções do sistema.</p>
                   <div className="space-y-1 mt-1.5">
                     {DEPARTMENTS.map(d => {
-                      const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
+                      const depts: string[] = Array.isArray(f.departments) ? f.departments : [];
                       const checked = depts.includes(d.value);
                       return (
                         <label key={d.value} className={cn(
@@ -627,9 +620,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                           <Checkbox checked={checked} onCheckedChange={(v) => {
                             const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
                             set('departments', next);
-                            set('department', next[0] || '');
-                            // Sincroniza work_areas com departments para manter compatibilidade
-                            set('work_areas', next);
                           }} />
                           <span>{d.icon} {d.label}</span>
                         </label>
@@ -746,11 +736,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                 <span className="text-xs text-muted-foreground font-medium">Vínculo</span>
                 <p className="text-[10px] text-muted-foreground">Define o tipo de relação e o contrato associado.</p>
                 <Select
-                  value={bondFromTypes(f.member_type, contract.contract_type)}
+                  value={bondFromContractType(contract.contract_type)}
                   onValueChange={(v) => {
                     const opt = BOND_OPTIONS.find(o => o.value === v);
                     if (!opt) return;
-                    set('member_type', opt.member_type);
                     setC('contract_type', opt.contract_type);
                   }}
                 >
@@ -797,14 +786,14 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                       type="number"
                       step="0.01"
                       className="w-24 h-9 text-right"
-                      value={typeof f.ss_employer_rate === 'number' ? (f.ss_employer_rate * 100).toFixed(2) : '23.75'}
-                      onChange={e => set('ss_employer_rate', (parseFloat(e.target.value) || 0) / 100)}
+                      value={typeof contract.ss_employer_rate === 'number' ? (contract.ss_employer_rate * 100).toFixed(2) : '23.75'}
+                      onChange={e => setC('ss_employer_rate', (parseFloat(e.target.value) || 0) / 100)}
                     />
                   </div>
                   {Number(contract.monthly_value) > 0 && (
                     <p className="text-[11px] text-muted-foreground">
                       Custo total mensal estimado: <span className="font-semibold text-foreground">
-                        {(Number(contract.monthly_value) * (1 + (Number(f.ss_employer_rate) || 0.2375))).toFixed(2)} €
+                        {(Number(contract.monthly_value) * (1 + (Number(contract.ss_employer_rate) || 0.2375))).toFixed(2)} €
                       </span>
                       {' '}(bruto + SS empresa)
                     </p>
@@ -819,7 +808,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   </label>
                   <div>
                     <label className="text-xs text-muted-foreground">Método de pagamento</label>
-                    <Select value={f.payment_method || ''} onValueChange={v => set('payment_method', v)}>
+                    <Select value={contract.payment_method || ''} onValueChange={v => setC('payment_method', v)}>
                       <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                       <SelectContent>
                         {PAYMENT_METHOD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
@@ -858,12 +847,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               )}
               <div>
                 <label className="text-xs text-muted-foreground">Status do contrato</label>
-                <Select value={contract.status} onValueChange={v => {
-                  setC('status', v);
-                  // Status do membro deriva do contrato: contrato ativo → membro ativo, terminado → inativo
-                  if (v === 'ativo' || v === 'em_renovacao') set('status', 'ativo');
-                  else if (v === 'terminado') set('status', 'inativo');
-                }}>
+                <Select value={contract.status} onValueChange={v => setC('status', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
