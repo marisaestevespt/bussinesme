@@ -869,7 +869,7 @@ export function MeetingFormDialog({
 
               <div>
                 <Label>Link de acesso</Label>
-                <Input value={meetingUrl} onChange={e => setMeetingUrl(e.target.value)} placeholder="https://meet.google.com/..." />
+                <Input value={meetingUrl} onChange={e => setMeetingUrl(e.target.value)} placeholder="https://zoom.us/j/..." />
               </div>
 
               <div>
