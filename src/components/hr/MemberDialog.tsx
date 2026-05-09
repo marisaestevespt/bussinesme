@@ -56,6 +56,18 @@ const SYSTEM_ROLE_OPTIONS = [
   { value: 'viewer',      label: 'Visualizador',     hint: 'Só pode ver, não pode editar nada.' },
 ];
 
+// Permissões sensíveis sugeridas por função no sistema.
+// Aplicadas automaticamente como ponto de partida (utilizador pode ajustar).
+const SENSITIVE_DEFAULTS_BY_ROLE: Record<string, string[]> = {
+  admin:       ['financial_values', 'payroll', 'fiscal_data', 'contracts', 'client_payments'],
+  accountant:  ['financial_values', 'fiscal_data', 'client_payments'],
+  hr:          ['payroll', 'contracts'],
+  admin_staff: ['fiscal_data'],
+  sales:       ['client_payments'],
+  team_member: [],
+  viewer:      [],
+};
+
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'mbway', label: 'MB WAY' },
