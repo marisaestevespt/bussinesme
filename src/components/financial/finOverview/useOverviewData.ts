@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { sumRevenue } from '@/lib/salesCalculations';
 import { EXPENSE_INSIGHT_EXCLUDED, expenseLabel } from '@/lib/financialCategories';
 import { ML } from './sections';
 
@@ -31,22 +30,23 @@ export function useOverviewData(sales: SaleLike[], expenses: ExpenseLike[], year
   const yearSales = useMemo(() => sales.filter(s => s.sale_year === year), [sales, year]);
   const yearExpenses = useMemo(() => expenses.filter(e => e.expense_year === year), [expenses, year]);
 
-  const totalEntradas = sumRevenue(yearSales);
-  const totalBaseEntradas = yearSales.reduce((s, v) => s + v.base_value, 0);
-  const totalSaidas = yearExpenses.reduce((s, v) => s + v.total_with_vat, 0);
-  const totalBaseSaidas = yearExpenses.reduce((s, v) => s + v.base_value, 0);
+  // Totais sem IVA (base): a contabilidade interna ignora IVA.
+  const totalEntradas = yearSales.reduce((s, v) => s + v.base_value, 0);
+  const totalSaidas = yearExpenses.reduce((s, v) => s + v.base_value, 0);
+  const totalRevenueWithVat = yearSales.reduce((s, v) => s + (v.invoice_total ?? v.base_value), 0);
+  const totalExpensesWithVat = yearExpenses.reduce((s, v) => s + v.total_with_vat, 0);
   const resultado = totalEntradas - totalSaidas;
   const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
 
-  const ivaCobrado = totalEntradas - totalBaseEntradas;
-  const ivaPago = totalSaidas - totalBaseSaidas;
+  const ivaCobrado = totalRevenueWithVat - totalEntradas;
+  const ivaPago = totalExpensesWithVat - totalSaidas;
   const ivaBalanco = Math.round((ivaCobrado - ivaPago) * 100) / 100;
 
   const productInsights = useMemo(() => {
     const byProduct = new Map<string, number>();
     yearSales.forEach(s => {
       const name = s.product || 'Sem produto';
-      byProduct.set(name, (byProduct.get(name) || 0) + s.invoice_total);
+      byProduct.set(name, (byProduct.get(name) || 0) + s.base_value);
     });
     const sorted = [...byProduct.entries()].sort((a, b) => b[1] - a[1]);
     return {
@@ -66,7 +66,7 @@ export function useOverviewData(sales: SaleLike[], expenses: ExpenseLike[], year
     yearExpenses.forEach(e => {
       const cat = e.category;
       if (!cat || EXPENSE_INSIGHT_EXCLUDED.has(cat)) return;
-      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+      byCat.set(cat, (byCat.get(cat) || 0) + e.base_value);
     });
     const sorted = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
     return {
@@ -80,11 +80,11 @@ export function useOverviewData(sales: SaleLike[], expenses: ExpenseLike[], year
       const m = i + 1;
       const monthSales = yearSales.filter(s => s.sale_month === m);
       const monthExp = yearExpenses.filter(e => e.expense_month === m);
-      const ent = sumRevenue(monthSales);
       const entBase = monthSales.reduce((s, v) => s + v.base_value, 0);
-      const sai = monthExp.reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = monthExp.reduce((s, v) => s + v.base_value, 0);
-      return { mes: ML[i], entradas: ent, saidas: sai, resultado: ent - sai, ivaCobrado: ent - entBase, ivaPago: sai - saiBase };
+      const entVat = monthSales.reduce((s, v) => s + (v.invoice_total ?? v.base_value), 0);
+      const saiVat = monthExp.reduce((s, v) => s + v.total_with_vat, 0);
+      return { mes: ML[i], entradas: entBase, saidas: saiBase, resultado: entBase - saiBase, ivaCobrado: entVat - entBase, ivaPago: saiVat - saiBase };
     });
   }, [yearSales, yearExpenses]);
 
@@ -92,7 +92,7 @@ export function useOverviewData(sales: SaleLike[], expenses: ExpenseLike[], year
     const byProduct = new Map<string, number>();
     yearSales.forEach(s => {
       const name = s.product || 'Sem produto';
-      byProduct.set(name, (byProduct.get(name) || 0) + s.invoice_total);
+      byProduct.set(name, (byProduct.get(name) || 0) + s.base_value);
     });
     return [...byProduct.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [yearSales]);
@@ -101,15 +101,15 @@ export function useOverviewData(sales: SaleLike[], expenses: ExpenseLike[], year
     const byCat = new Map<string, number>();
     yearExpenses.forEach(e => {
       const cat = expenseLabel(e.category || 'outro');
-      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+      byCat.set(cat, (byCat.get(cat) || 0) + e.base_value);
     });
     return [...byCat.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [yearExpenses]);
 
   const quarterlyData = useMemo(() => {
     return QUARTERS.map(q => {
-      const ent = sumRevenue(yearSales.filter(s => q.months.includes(s.sale_month || 0)));
-      const sai = yearExpenses.filter(e => q.months.includes(e.expense_month || 0)).reduce((s, v) => s + v.total_with_vat, 0);
+      const ent = yearSales.filter(s => q.months.includes(s.sale_month || 0)).reduce((s, v) => s + v.base_value, 0);
+      const sai = yearExpenses.filter(e => q.months.includes(e.expense_month || 0)).reduce((s, v) => s + v.base_value, 0);
       const res = ent - sai;
       return { label: q.label, entradas: ent, saidas: sai, resultado: res, margem: ent > 0 ? Math.round(res / ent * 10000) / 100 : 0 };
     });
