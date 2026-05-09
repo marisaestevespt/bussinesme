@@ -196,6 +196,45 @@ Deno.serve(async (req) => {
 
     // For each target date, check if task already exists (avoid duplicates)
     for (const dateStr of targetDates) {
+      const isMeeting = (routine as any).format === 'reuniao';
+
+      if (isMeeting) {
+        // Avoid duplicate meeting for the same routine + date
+        const { data: existingMeeting } = await supabase
+          .from('meetings')
+          .select('id')
+          .eq('routine_id', routine.id)
+          .gte('date_time', `${dateStr}T00:00:00`)
+          .lte('date_time', `${dateStr}T23:59:59`)
+          .limit(1);
+        if (existingMeeting && existingMeeting.length > 0) continue;
+
+        const startTime = (routine.hour_time && String(routine.hour_time).slice(0, 5)) || '09:00';
+        const dt = `${dateStr}T${startTime}:00`;
+        const planned =
+          (routine as any).estimated_minutes ??
+          (routine.estimated_time != null ? Math.round(Number(routine.estimated_time) * 60) : null);
+
+        const { error: meetErr } = await supabase.from('meetings').insert({
+          title: routine.title,
+          date_time: new Date(dt).toISOString(),
+          status: 'por_confirmar',
+          meeting_type: 'recorrente',
+          department: routine.department || null,
+          project_id: routine.project_id || null,
+          routine_id: routine.id,
+          planned_duration_minutes: planned,
+          duration_minutes: planned,
+          created_by: routine.created_by || null,
+        });
+        if (meetErr) {
+          console.error(`Error creating meeting for routine ${routine.id} on ${dateStr}:`, meetErr);
+        } else {
+          createdCount++;
+        }
+        continue;
+      }
+
       const { data: existing } = await supabase
         .from("tasks")
         .select("id")

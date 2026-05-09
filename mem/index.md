@@ -66,6 +66,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Member offboarding](mem://features/member-offboarding.md) — Team member offboarding: reassignment, settlement, auto-revoke, ex-members tab
 - [Deliverable↔task sync](mem://features/deliverable-task-sync.md) — Entregas com responsible_type=equipa auto-geram tarefas ligadas via trigger; conclusão sincroniza nos dois sentidos
 - [Batching focus blocks](mem://features/batching-focus-blocks.md) — Secretária tab "Blocos de Foco": agrupa tarefas por cliente/projeto/área para deep-work batched sessions
+- [Meeting duration planned/actual](mem://features/meeting-duration-planned-actual.md) — Reuniões com previsto vs real; rotinas com format + estimated_minutes; cascata na criação
 - [Mobile optimization](mem://features/mobile-optimization.md) — Padrões mobile: tabela contida, grids responsivos, bottom nav 5-col, TabsBar hidden <sm
 - [Overdue counting](mem://features/overdue-counting.md) — Regras únicas de contagem "Em atraso": usar isTaskOverdue/completed, e filtrar fontes unified por responsável (NPS/ações só Owner; marcos por responsible_id)
 - [Cards cover pattern](mem://design/cards-cover-pattern.md) — Padrão de capas em galerias: fallback sóbrio (ícone Lucide) + upload por hover (Owner) + bucket público dedicado com cover_url

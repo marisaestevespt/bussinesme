@@ -464,6 +464,7 @@ export function MeetingFormDialog({
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
   defaultProjectId, defaultProjectName, defaultTitle,
   defaultMemberIds, defaultDepartment,
+  defaultPlannedMinutes,
   initialMeetingType,
   onMeetingCreated, navigateAfterCreate = true,
 }: {
@@ -476,6 +477,8 @@ export function MeetingFormDialog({
   defaultMemberIds?: string[];
   /** Pre-fill department (used as fallback when none derived from defaults). */
   defaultDepartment?: string;
+  /** Pre-fill the planned duration (minutes). Falls back to template default. */
+  defaultPlannedMinutes?: number | null;
   /** Pre-select a meeting type (skips the type-picker step inside the dialog). */
   initialMeetingType?: MeetingType;
   /** Called with the created meeting id BEFORE any navigation, so the caller can do follow-up writes (e.g. linking to a deliverable). */
@@ -503,6 +506,10 @@ export function MeetingFormDialog({
   const [department, setDepartment] = useState(defaultDepartment || (hasDefaults ? 'clientes' : ''));
   const [selectedMembers, setSelectedMembers] = useState<string[]>(defaultMemberIds ?? []);
   const [meetingUrl, setMeetingUrl] = useState('');
+  // Planned duration in minutes (cascade: caller default → template default → empty)
+  const initialPlanned = (defaultPlannedMinutes ?? null) ||
+    (initialMeetingType ? (getMeetingTemplate(initialMeetingType as string)?.defaultDurationMinutes ?? null) : null);
+  const [plannedMinutes, setPlannedMinutes] = useState<number | ''>(initialPlanned ?? '');
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
   const [pendingClientProjects, setPendingClientProjects] = useState<ProjectOption[]>([]);
   // Visibility in client portal — defaults to true so existing flow is preserved.
@@ -536,8 +543,12 @@ export function MeetingFormDialog({
     if (defaultMemberIds && defaultMemberIds.length > 0 && selectedMembers.length === 0) {
       setSelectedMembers(defaultMemberIds);
     }
+    // Planned minutes: prefer caller-provided default, else the template default
+    const tplPlanned = initialMeetingType ? getMeetingTemplate(initialMeetingType as string)?.defaultDurationMinutes : undefined;
+    const want = defaultPlannedMinutes ?? tplPlanned ?? null;
+    if (want != null && plannedMinutes === '') setPlannedMinutes(want);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialMeetingType, defaultTitle, defaultDepartment, defaultMemberIds]);
+  }, [open, initialMeetingType, defaultTitle, defaultDepartment, defaultMemberIds, defaultPlannedMinutes]);
 
   const resetForm = () => {
     setStep(skipTypeStep ? 'form' : 'type');
@@ -546,6 +557,7 @@ export function MeetingFormDialog({
     setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []);
     setDepartment(defaultDepartment || (hasDefaults ? 'clientes' : ''));
     setSelectedMembers(defaultMemberIds ?? []); setMeetingUrl('');
+    setPlannedMinutes(initialPlanned ?? '');
     setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceStartDate(undefined); setRecurrenceEndDate(defaultRecurrenceEndDate);
     setHolidayOverrides({});
     setVisibleInPortal(true);
@@ -695,6 +707,9 @@ export function MeetingFormDialog({
         recurrence_frequency: isRecurring ? recurrenceFrequency : null,
         recurrence_end_date: isRecurring && recurrenceEndDate ? format(recurrenceEndDate, 'yyyy-MM-dd') : null,
         visible_in_portal: visibleInPortal,
+        planned_duration_minutes: plannedMinutes === '' ? null : Number(plannedMinutes),
+        // Keep legacy field in sync with planned for backward-compat readers
+        duration_minutes: plannedMinutes === '' ? null : Number(plannedMinutes),
       };
 
       // Apply template default agenda (discussion_points) when creating from a template
@@ -855,6 +870,20 @@ export function MeetingFormDialog({
               <div>
                 <Label>Link de acesso</Label>
                 <Input value={meetingUrl} onChange={e => setMeetingUrl(e.target.value)} placeholder="https://meet.google.com/..." />
+              </div>
+
+              <div>
+                <Label>Tempo previsto (min)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={plannedMinutes}
+                  onChange={e => setPlannedMinutes(e.target.value === '' ? '' : (parseInt(e.target.value) || 0))}
+                  placeholder="Ex: 60"
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Duração estimada da reunião. O tempo real é registado depois, no detalhe.
+                </p>
               </div>
 
               <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />

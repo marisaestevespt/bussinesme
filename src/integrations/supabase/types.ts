@@ -5830,6 +5830,7 @@ export type Database = {
       }
       meetings: {
         Row: {
+          actual_duration_minutes: number | null
           client_actions: Json | null
           client_id: string | null
           client_name: string | null
@@ -5851,6 +5852,7 @@ export type Database = {
           meeting_url: string | null
           owner_actions: Json | null
           parent_meeting_id: string | null
+          planned_duration_minutes: number | null
           portal_notes: string | null
           priorities: Json | null
           product_id: string | null
@@ -5859,6 +5861,7 @@ export type Database = {
           project_name: string | null
           recurrence_end_date: string | null
           recurrence_frequency: string | null
+          routine_id: string | null
           status: Database["public"]["Enums"]["meeting_status"]
           title: string
           transcript_url: string | null
@@ -5867,6 +5870,7 @@ export type Database = {
           with_meet: boolean
         }
         Insert: {
+          actual_duration_minutes?: number | null
           client_actions?: Json | null
           client_id?: string | null
           client_name?: string | null
@@ -5888,6 +5892,7 @@ export type Database = {
           meeting_url?: string | null
           owner_actions?: Json | null
           parent_meeting_id?: string | null
+          planned_duration_minutes?: number | null
           portal_notes?: string | null
           priorities?: Json | null
           product_id?: string | null
@@ -5896,6 +5901,7 @@ export type Database = {
           project_name?: string | null
           recurrence_end_date?: string | null
           recurrence_frequency?: string | null
+          routine_id?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title: string
           transcript_url?: string | null
@@ -5904,6 +5910,7 @@ export type Database = {
           with_meet?: boolean
         }
         Update: {
+          actual_duration_minutes?: number | null
           client_actions?: Json | null
           client_id?: string | null
           client_name?: string | null
@@ -5925,6 +5932,7 @@ export type Database = {
           meeting_url?: string | null
           owner_actions?: Json | null
           parent_meeting_id?: string | null
+          planned_duration_minutes?: number | null
           portal_notes?: string | null
           priorities?: Json | null
           product_id?: string | null
@@ -5933,6 +5941,7 @@ export type Database = {
           project_name?: string | null
           recurrence_end_date?: string | null
           recurrence_frequency?: string | null
+          routine_id?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title?: string
           transcript_url?: string | null
@@ -5974,6 +5983,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "planning_routines"
             referencedColumns: ["id"]
           },
         ]
@@ -6919,7 +6935,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           department: string | null
+          estimated_minutes: number | null
           estimated_time: number | null
+          format: string
           hour_time: string | null
           icon: Json | null
           id: string
@@ -6939,7 +6957,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           department?: string | null
+          estimated_minutes?: number | null
           estimated_time?: number | null
+          format?: string
           hour_time?: string | null
           icon?: Json | null
           id?: string
@@ -6959,7 +6979,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           department?: string | null
+          estimated_minutes?: number | null
           estimated_time?: number | null
+          format?: string
           hour_time?: string | null
           icon?: Json | null
           id?: string
@@ -9789,6 +9811,7 @@ export type Database = {
           decisoes: Json | null
           department: string
           departments: string[] | null
+          estimated_minutes: number | null
           estimated_time: number | null
           icon: Json | null
           id: string
@@ -9823,6 +9846,7 @@ export type Database = {
           decisoes?: Json | null
           department?: string
           departments?: string[] | null
+          estimated_minutes?: number | null
           estimated_time?: number | null
           icon?: Json | null
           id?: string
@@ -9857,6 +9881,7 @@ export type Database = {
           decisoes?: Json | null
           department?: string
           departments?: string[] | null
+          estimated_minutes?: number | null
           estimated_time?: number | null
           icon?: Json | null
           id?: string

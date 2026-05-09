@@ -383,6 +383,7 @@ export function DeliverableFormatCell({
               defaultTitle={resolvedDefaultTitle}
               defaultMemberIds={defaultMemberIds}
               defaultDepartment={defaultDepartment ?? undefined}
+              defaultPlannedMinutes={(d as any).estimated_minutes ?? null}
               onMeetingCreated={(meetingId) => updateFields.mutate({ meeting_id: meetingId })}
             >
               <button

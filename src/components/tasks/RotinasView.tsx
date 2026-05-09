@@ -51,6 +51,8 @@ export function RotinasView() {
   const [department, setDepartment] = useState('');
   const [sopId, setSopId] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
+  const [format, setFormat] = useState<'tarefa' | 'reuniao' | 'entrega'>('tarefa');
+  const [estimatedMinutes, setEstimatedMinutes] = useState('');
   const [hourTime, setHourTime] = useState('');
   const [adjustBizDay, setAdjustBizDay] = useState(true);
   const [active, setActive] = useState(true);
@@ -151,6 +153,7 @@ export function RotinasView() {
     setEditing(null);
     setTitle(''); setRecurrenceType('semanal'); setWeekday(null); setMonthDay(null);
     setRoleFunction(''); setDepartment(''); setSopId(''); setEstimatedTime('');
+    setFormat('tarefa'); setEstimatedMinutes('');
     setHourTime(''); setAdjustBizDay(true); setActive(true);
     setDialogOpen(true);
   }
@@ -161,6 +164,8 @@ export function RotinasView() {
     setWeekday(r.weekday); setMonthDay(r.month_day);
     setRoleFunction(r.role_function || ''); setDepartment(r.department || '');
     setSopId(r.sop_id || ''); setEstimatedTime(r.estimated_time != null ? String(r.estimated_time) : '');
+    setFormat((r.format as any) || 'tarefa');
+    setEstimatedMinutes(r.estimated_minutes != null ? String(r.estimated_minutes) : '');
     setHourTime(r.hour_time || ''); setAdjustBizDay(r.adjust_to_business_day); setActive(r.active);
     setDialogOpen(true);
   }
@@ -188,6 +193,8 @@ export function RotinasView() {
       department: department || null,
       sop_id: sopId || null,
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      format,
+      estimated_minutes: estimatedMinutes ? parseInt(estimatedMinutes) : (estimatedTime ? Math.round(parseFloat(estimatedTime) * 60) : null),
       hour_time: hourTime || null,
       adjust_to_business_day: adjustBizDay,
       active,
@@ -366,6 +373,34 @@ export function RotinasView() {
               <div>
                 <Label>Tempo estimado (horas)</Label>
                 <Input type="number" step="0.5" min="0" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)} placeholder="Ex: 1.5" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Formato</Label>
+                <Select value={format} onValueChange={v => setFormat(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tarefa">Tarefa</SelectItem>
+                    <SelectItem value="reuniao">Reunião</SelectItem>
+                    <SelectItem value="entrega">Entrega</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Reuniões geram entradas no separador Reuniões com o tempo previsto.
+                </p>
+              </div>
+              <div>
+                <Label>Tempo previsto (min)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={estimatedMinutes}
+                  onChange={e => setEstimatedMinutes(e.target.value)}
+                  placeholder={estimatedTime ? String(Math.round(parseFloat(estimatedTime) * 60)) : 'Ex: 45'}
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">Usado para reuniões e análise de capacidade.</p>
               </div>
             </div>
 

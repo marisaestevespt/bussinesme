@@ -93,6 +93,8 @@ interface MeetingFull {
   final_notes: string[];
   created_by: string | null;
   duration_minutes: number;
+  planned_duration_minutes: number | null;
+  actual_duration_minutes: number | null;
   parent_meeting_id: string | null;
   is_recurring: boolean;
   recurrence_frequency: string | null;
@@ -128,6 +130,8 @@ function useMeeting(id: string) {
         client_actions: Array.isArray(raw.client_actions) ? raw.client_actions as CheckItem[] : [],
         final_notes: Array.isArray(raw.final_notes) ? raw.final_notes as string[] : [],
         duration_minutes: raw.duration_minutes || 0,
+        planned_duration_minutes: raw.planned_duration_minutes ?? raw.duration_minutes ?? null,
+        actual_duration_minutes: raw.actual_duration_minutes ?? null,
         documents: Array.isArray(raw.documents) ? raw.documents as MeetingDocument[] : [],
       } as MeetingFull;
     },
@@ -459,6 +463,7 @@ function ReuniaoDetailPageInner() {
   // Fields that make sense to propagate across the whole series
   const SERIES_PROPAGABLE_FIELDS = new Set([
     'title', 'meeting_url', 'meeting_type', 'duration_minutes',
+    'planned_duration_minutes',
     'department', 'client_id', 'client_name', 'project_id', 'project_name',
     'product_id', 'product_name',
   ]);
@@ -496,7 +501,9 @@ function ReuniaoDetailPageInner() {
         owner_actions: m.owner_actions as any,
         client_actions: m.client_actions as any,
         final_notes: m.final_notes as any,
-        duration_minutes: m.duration_minutes,
+        duration_minutes: m.actual_duration_minutes ?? m.planned_duration_minutes ?? m.duration_minutes,
+        planned_duration_minutes: m.planned_duration_minutes,
+        actual_duration_minutes: m.actual_duration_minutes,
         documents: m.documents as any,
       } as Record<string, any>;
       const { error } = await supabase.from('meetings').update(fullPatch as any).eq('id', m.id);
@@ -867,17 +874,45 @@ function ReuniaoDetailPageInner() {
             </Select>
           </EntityProperty>
 
-          <EntityProperty icon={Clock} label="Duração">
+          <EntityProperty icon={Clock} label="Tempo previsto">
             <div className="flex items-center gap-2">
               <Input
                 type="number"
                 min={0}
-                value={m.duration_minutes || ''}
-                onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
+                value={m.planned_duration_minutes ?? ''}
+                onChange={e => {
+                  const v = e.target.value === '' ? null : (parseInt(e.target.value) || 0);
+                  update({ planned_duration_minutes: v as any });
+                }}
                 placeholder="—"
                 className={cn(inlineInputClass, 'w-16')}
               />
               <span className="text-xs text-muted-foreground">min</span>
+            </div>
+          </EntityProperty>
+
+          <EntityProperty icon={Clock} label="Tempo real">
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                value={m.actual_duration_minutes ?? ''}
+                onChange={e => {
+                  const v = e.target.value === '' ? null : (parseInt(e.target.value) || 0);
+                  update({ actual_duration_minutes: v as any });
+                }}
+                placeholder="—"
+                className={cn(inlineInputClass, 'w-16')}
+              />
+              <span className="text-xs text-muted-foreground">min</span>
+              {m.planned_duration_minutes && m.actual_duration_minutes ? (
+                (() => {
+                  const delta = (m.actual_duration_minutes || 0) - (m.planned_duration_minutes || 0);
+                  const pct = Math.round((delta / m.planned_duration_minutes!) * 100);
+                  const cls = delta > 0 ? 'text-destructive' : delta < 0 ? 'text-success' : 'text-muted-foreground';
+                  return <span className={cn('text-[10px] font-medium', cls)}>{delta > 0 ? '+' : ''}{pct}%</span>;
+                })()
+              ) : null}
             </div>
           </EntityProperty>
 
