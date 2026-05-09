@@ -197,7 +197,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       if (productName) {
         const { data: matchedProduct } = await supabase
           .from('products')
-          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode, estimated_project_hours')
+          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode, task_modes, session_count, session_duration_minutes, estimated_project_hours')
           .eq('name', productName)
           .maybeSingle();
 
@@ -226,6 +226,9 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           deadline: projectMode === 'recorrente' ? null : deadline,
           project_mode: projectMode,
           task_mode: taskMode,
+          task_modes: (matchedProduct as any)?.task_modes || [taskMode],
+          session_count: (matchedProduct as any)?.session_count ?? null,
+          session_duration_minutes: (matchedProduct as any)?.session_duration_minutes ?? null,
           budgeted_minutes: (matchedProduct as any)?.estimated_project_hours
             ? Math.round(Number((matchedProduct as any).estimated_project_hours) * 60)
             : null,
@@ -234,7 +237,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         createdProjectId = newProject?.id || null;
 
         if (matchedProduct?.product_type) {
-          const projetoTypes = ['projeto_1_1', 'servico_pontual', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo', 'workshop'];
+          const projetoTypes = ['projeto_1_1', 'servico_pontual', 'consulta', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo', 'workshop'];
           let portalType: 'projeto_unico' | 'servico_mensal' | null = null;
           if (projetoTypes.includes(matchedProduct.product_type)) portalType = 'projeto_unico';
           else if (matchedProduct.product_type === 'servico_mensal') portalType = 'servico_mensal';
