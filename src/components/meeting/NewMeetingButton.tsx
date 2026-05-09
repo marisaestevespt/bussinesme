@@ -16,6 +16,8 @@ interface Props {
   defaultMemberIds?: string[];
   /** Pre-fill department. */
   defaultDepartment?: string;
+  /** Pre-fill the planned duration in minutes (cascade from deliverable/routine). */
+  defaultPlannedMinutes?: number | null;
   /** When true, renders nothing visible — caller controls the trigger via children */
   children?: ReactNode;
   /** Button props for the default trigger */
@@ -39,7 +41,7 @@ interface Props {
  */
 export function NewMeetingButton({
   defaultClientId, defaultClientName, defaultProjectId, defaultProjectName,
-  defaultTitle, defaultMemberIds, defaultDepartment,
+  defaultTitle, defaultMemberIds, defaultDepartment, defaultPlannedMinutes,
   children, size = 'sm', variant = 'default', label = 'Nova Reunião', className,
   skipPicker, forcedType,
   onMeetingCreated, navigateAfterCreate,
@@ -126,6 +128,7 @@ export function NewMeetingButton({
         defaultTitle={defaultTitle}
         defaultMemberIds={defaultMemberIds}
         defaultDepartment={defaultDepartment}
+        defaultPlannedMinutes={defaultPlannedMinutes ?? null}
         initialMeetingType={pickedType as any}
         onMeetingCreated={onMeetingCreated}
         navigateAfterCreate={navigateAfterCreate}
