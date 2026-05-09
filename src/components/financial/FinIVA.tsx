@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, AlertTriangle, Check, X } from 'lucide-react';
+import { Download, AlertTriangle, Check, X, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -155,32 +155,43 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const [payQuarter, setPayQuarter] = useState<{ q: number; calculado: number } | null>(null);
   const [payAmount, setPayAmount] = useState('');
   const [payDate, setPayDate] = useState('');
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   const markPaidMutation = useMutation({
-    mutationFn: async ({ q, amount, date }: { q: number; amount: number; date: string }) => {
-      // 1) Criar despesa do tipo "tax" (entra no saldo, fica fora do operacional)
+    mutationFn: async ({ q, amount, date, existingExpenseId }: { q: number; amount: number; date: string; existingExpenseId?: string | null }) => {
       const d = new Date(date);
-      const { data: expense, error: expErr } = await supabase
-        .from('financial_expenses')
-        .insert({
-          description: `IVA T${q}/${currentYear}`,
-          expense_name: `IVA T${q}/${currentYear}`,
-          category: 'impostos',
-          base_value: amount,
-          vat_rate: 0,
-          total_with_vat: amount,
-          expense_date: date,
-          expense_month: d.getMonth() + 1,
-          expense_quarter: Math.floor(d.getMonth() / 3) + 1,
-          expense_year: d.getFullYear(),
-          source_type: 'tax',
-          status: 'tudo_ok',
-        })
-        .select()
-        .single();
-      if (expErr) throw expErr;
+      const expensePayload = {
+        description: `IVA T${q}/${currentYear}`,
+        expense_name: `IVA T${q}/${currentYear}`,
+        category: 'impostos',
+        base_value: amount,
+        vat_rate: 0,
+        total_with_vat: amount,
+        expense_date: date,
+        expense_month: d.getMonth() + 1,
+        expense_quarter: Math.floor(d.getMonth() / 3) + 1,
+        expense_year: d.getFullYear(),
+        source_type: 'tax',
+        status: 'tudo_ok',
+      };
 
-      // 2) Criar/atualizar registo em iva_payments
+      let expenseId = existingExpenseId || null;
+      if (expenseId) {
+        const { error: updErr } = await supabase
+          .from('financial_expenses')
+          .update(expensePayload)
+          .eq('id', expenseId);
+        if (updErr) throw updErr;
+      } else {
+        const { data: expense, error: expErr } = await supabase
+          .from('financial_expenses')
+          .insert(expensePayload)
+          .select()
+          .single();
+        if (expErr) throw expErr;
+        expenseId = expense.id;
+      }
+
       const { error: payErr } = await supabase
         .from('iva_payments')
         .upsert({
@@ -188,7 +199,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
           quarter: q,
           paid_amount: amount,
           paid_date: date,
-          expense_id: expense.id,
+          expense_id: expenseId,
         }, { onConflict: 'year,quarter' });
       if (payErr) throw payErr;
     },
@@ -196,10 +207,11 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
       queryClient.invalidateQueries({ queryKey: ['iva-payments'] });
       queryClient.invalidateQueries({ queryKey: ['fin-lifetime-balance'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success('Pagamento de IVA registado');
+      toast.success('Pagamento de IVA atualizado');
       setPayQuarter(null);
       setPayAmount('');
       setPayDate('');
+      setEditingExpenseId(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -309,6 +321,18 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => {
+                              setPayQuarter({ q: qRow.q, calculado: qRow.calculado });
+                              setPayAmount(Number(qRow.payment!.paid_amount).toFixed(2));
+                              setPayDate(qRow.payment!.paid_date || new Date().toISOString().slice(0, 10));
+                              setEditingExpenseId(qRow.payment!.expense_id);
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => unmarkPaidMutation.mutate({ id: qRow.payment!.id, expense_id: qRow.payment!.expense_id })}
                           >
                             <X className="h-3.5 w-3.5" />
@@ -322,6 +346,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                             setPayQuarter({ q: qRow.q, calculado: qRow.calculado });
                             setPayAmount(qRow.calculado > 0 ? qRow.calculado.toFixed(2) : '');
                             setPayDate(new Date().toISOString().slice(0, 10));
+                            setEditingExpenseId(null);
                           }}
                         >
                           Marcar pago
@@ -488,10 +513,10 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
       </Dialog>
 
       {/* Dialog: marcar trimestre como pago */}
-      <Dialog open={payQuarter !== null} onOpenChange={(o) => !o && setPayQuarter(null)}>
+      <Dialog open={payQuarter !== null} onOpenChange={(o) => { if (!o) { setPayQuarter(null); setEditingExpenseId(null); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-base">Registar pagamento de IVA — T{payQuarter?.q}/{currentYear}</DialogTitle>
+            <DialogTitle className="text-base">{editingExpenseId ? 'Editar' : 'Registar'} pagamento de IVA — T{payQuarter?.q}/{currentYear}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="text-xs text-muted-foreground">
@@ -506,11 +531,11 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
               <Input id="pay-date" type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" size="sm" onClick={() => setPayQuarter(null)}>Cancelar</Button>
+              <Button variant="ghost" size="sm" onClick={() => { setPayQuarter(null); setEditingExpenseId(null); }}>Cancelar</Button>
               <Button
                 size="sm"
                 disabled={!payAmount || !payDate || markPaidMutation.isPending}
-                onClick={() => markPaidMutation.mutate({ q: payQuarter!.q, amount: Number(payAmount), date: payDate })}
+                onClick={() => markPaidMutation.mutate({ q: payQuarter!.q, amount: Number(payAmount), date: payDate, existingExpenseId: editingExpenseId })}
               >
                 Confirmar
               </Button>
