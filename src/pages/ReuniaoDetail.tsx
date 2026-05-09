@@ -874,17 +874,45 @@ function ReuniaoDetailPageInner() {
             </Select>
           </EntityProperty>
 
-          <EntityProperty icon={Clock} label="Duração">
+          <EntityProperty icon={Clock} label="Tempo previsto">
             <div className="flex items-center gap-2">
               <Input
                 type="number"
                 min={0}
-                value={m.duration_minutes || ''}
-                onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
+                value={m.planned_duration_minutes ?? ''}
+                onChange={e => {
+                  const v = e.target.value === '' ? null : (parseInt(e.target.value) || 0);
+                  update({ planned_duration_minutes: v as any });
+                }}
                 placeholder="—"
                 className={cn(inlineInputClass, 'w-16')}
               />
               <span className="text-xs text-muted-foreground">min</span>
+            </div>
+          </EntityProperty>
+
+          <EntityProperty icon={Clock} label="Tempo real">
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                value={m.actual_duration_minutes ?? ''}
+                onChange={e => {
+                  const v = e.target.value === '' ? null : (parseInt(e.target.value) || 0);
+                  update({ actual_duration_minutes: v as any });
+                }}
+                placeholder="—"
+                className={cn(inlineInputClass, 'w-16')}
+              />
+              <span className="text-xs text-muted-foreground">min</span>
+              {m.planned_duration_minutes && m.actual_duration_minutes ? (
+                (() => {
+                  const delta = (m.actual_duration_minutes || 0) - (m.planned_duration_minutes || 0);
+                  const pct = Math.round((delta / m.planned_duration_minutes!) * 100);
+                  const cls = delta > 0 ? 'text-destructive' : delta < 0 ? 'text-success' : 'text-muted-foreground';
+                  return <span className={cn('text-[10px] font-medium', cls)}>{delta > 0 ? '+' : ''}{pct}%</span>;
+                })()
+              ) : null}
             </div>
           </EntityProperty>
 
