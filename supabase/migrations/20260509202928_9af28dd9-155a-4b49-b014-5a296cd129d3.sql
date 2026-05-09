@@ -1,0 +1,1 @@
+ALTER TABLE public.brand_visual_files ADD COLUMN IF NOT EXISTS caption text;

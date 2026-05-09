@@ -639,6 +639,7 @@ export type Database = {
       }
       brand_visual_files: {
         Row: {
+          caption: string | null
           card_id: string
           created_at: string
           file_name: string
@@ -647,6 +648,7 @@ export type Database = {
           id: string
         }
         Insert: {
+          caption?: string | null
           card_id: string
           created_at?: string
           file_name: string
@@ -655,6 +657,7 @@ export type Database = {
           id?: string
         }
         Update: {
+          caption?: string | null
           card_id?: string
           created_at?: string
           file_name?: string
