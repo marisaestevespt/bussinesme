@@ -1071,7 +1071,7 @@ function ReuniaoDetailPageInner() {
               <Input
                 value=""
                 onChange={e => update({ meeting_url: e.target.value || null })}
-                placeholder="Adicionar link..."
+                placeholder="https://zoom.us/j/..."
                 className={inlineInputClass}
               />
             )}
