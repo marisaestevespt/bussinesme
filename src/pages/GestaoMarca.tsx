@@ -1326,6 +1326,16 @@ export default function GestaoMarcaPage() {
                           )}
                         </div>
                         <p className="text-[10px] text-muted-foreground p-1.5 truncate">{file.file_name}</p>
+                        {isOwner ? (
+                          <Input
+                            defaultValue={file.caption || ''}
+                            placeholder="Adicionar legenda..."
+                            className="h-7 text-xs rounded-none border-0 border-t bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                            onBlur={e => { if ((e.target.value || '') !== (file.caption || '')) updateVisualCaption(file.id, e.target.value); }}
+                          />
+                        ) : file.caption ? (
+                          <p className="text-[11px] text-foreground/80 px-1.5 pb-1.5 italic line-clamp-2">{file.caption}</p>
+                        ) : null}
                       </div>
                     ))}
                   </div>
@@ -1338,19 +1348,31 @@ export default function GestaoMarcaPage() {
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Ficheiros</p>
                   <div className="space-y-2">
                     {visualFiles.filter(f => f.file_type === 'file').map(file => (
-                      <div key={file.id} className="flex items-center gap-2 group">
-                        <a href={visualDisplayUrls[file.file_url] || file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
-                          <FileText className="h-3.5 w-3.5 shrink-0" />
-                          {file.file_name}
-                        </a>
-                        <Button variant="ghost" aria-label="Transferir" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => downloadBrandFile(visualDisplayUrls[file.file_url] || file.file_url, file.file_name)}>
-                          <Download className="h-3 w-3" />
-                        </Button>
-                        {isOwner && (
-                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
+                      <div key={file.id} className="group space-y-1">
+                        <div className="flex items-center gap-2">
+                          <a href={visualDisplayUrls[file.file_url] || file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
+                            <FileText className="h-3.5 w-3.5 shrink-0" />
+                            {file.file_name}
+                          </a>
+                          <Button variant="ghost" aria-label="Transferir" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => downloadBrandFile(visualDisplayUrls[file.file_url] || file.file_url, file.file_name)}>
+                            <Download className="h-3 w-3" />
                           </Button>
-                        )}
+                          {isOwner && (
+                            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                        {isOwner ? (
+                          <Input
+                            defaultValue={file.caption || ''}
+                            placeholder="Adicionar legenda..."
+                            className="h-7 text-xs ml-5"
+                            onBlur={e => { if ((e.target.value || '') !== (file.caption || '')) updateVisualCaption(file.id, e.target.value); }}
+                          />
+                        ) : file.caption ? (
+                          <p className="text-xs text-muted-foreground italic ml-5">{file.caption}</p>
+                        ) : null}
                       </div>
                     ))}
                   </div>
