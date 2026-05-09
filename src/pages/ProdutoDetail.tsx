@@ -720,7 +720,6 @@ export default function ProdutoDetailPage() {
             {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
             {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
             {canSeeSection('branding') && <SectionButton sectionKey="branding" label="Branding" />}
-            {canSeeSection('branding') && <SectionButton sectionKey="portal-template" label="Portal Template" />}
             {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade" />}
             {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
             {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
@@ -840,26 +839,16 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'branding' && (
-            <ProductBrandingSection
-              branding={((form as any).branding || {}) as Record<string, unknown>}
-              isOwner={isOwner}
-              onUpdate={(next) => update('branding', next)}
-              portalBranding={((form as any).portal_branding || {}) as Record<string, unknown>}
-              onUpdatePortalBranding={(next) => update('portal_branding', next)}
-              productId={id!}
-              calendarColor={(form as any).calendar_color ?? null}
-              onUpdateCalendarColor={(next) => update('calendar_color', next)}
-            />
-          )}
-
-          {openSection === 'portal-template' && (
             <div className="space-y-6">
-              <ProductPortalTemplateSection
-                faqs={((form as any).portal_faqs_template || []) as any[]}
-                materials={((form as any).portal_materials_template || []) as any[]}
-                timeline={((form as any).portal_timeline_template || []) as any[]}
+              <ProductBrandingSection
+                branding={((form as any).branding || {}) as Record<string, unknown>}
                 isOwner={isOwner}
-                onUpdate={(field, value) => update(field, value)}
+                onUpdate={(next) => update('branding', next)}
+                portalBranding={((form as any).portal_branding || {}) as Record<string, unknown>}
+                onUpdatePortalBranding={(next) => update('portal_branding', next)}
+                productId={id!}
+                calendarColor={(form as any).calendar_color ?? null}
+                onUpdateCalendarColor={(next) => update('calendar_color', next)}
               />
               {id && id !== 'novo' && (
                 <ProductWelcomeEmailSection
