@@ -130,6 +130,7 @@ export default function GestaoMarcaPage() {
   const [visualLinkLabel, setVisualLinkLabel] = useState('');
   const [visualLinkUrl, setVisualLinkUrl] = useState('');
   const [showFolderSystem, setShowFolderSystem] = useState(false);
+  const [visualDisplayUrls, setVisualDisplayUrls] = useState<Record<string, string>>({});
 
   // Competitors
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
@@ -206,6 +207,28 @@ export default function GestaoMarcaPage() {
 
   const folders = brandLinks.filter(l => l.type === 'folder');
   const shortcuts = brandLinks.filter(l => l.type === 'shortcut');
+
+  useEffect(() => {
+    let cancelled = false;
+    const imageFiles = visualFiles.filter(file => file.file_type === 'image');
+    const values = [
+      ...visualCards.map(card => card.cover_url).filter(Boolean),
+      selectedVisual?.cover_url,
+      ...imageFiles.map(file => file.file_url),
+    ].filter(Boolean) as string[];
+
+    if (values.length === 0) {
+      setVisualDisplayUrls({});
+      return;
+    }
+
+    Promise.all(values.map(async value => [value, await getBrandFileDisplayUrl(value)] as const)).then(entries => {
+      if (cancelled) return;
+      setVisualDisplayUrls(Object.fromEntries(entries.map(([source, display]) => [source, display || source])));
+    });
+
+    return () => { cancelled = true; };
+  }, [visualCards, selectedVisual?.cover_url, visualFiles]);
 
   // ── PUV ──
 
