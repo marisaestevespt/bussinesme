@@ -42,6 +42,10 @@ interface Phase {
   offset_days?: number | null;
   offset_trigger?: string;
   is_onboarding?: boolean;
+  is_recurring?: boolean;
+  recurrence_frequency?: string | null;
+  recurrence_anchor_day?: number | null;
+  recurrence_lead_days?: number | null;
 }
 
 interface Props {
