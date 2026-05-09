@@ -51,6 +51,17 @@ import { BrandIdentitySync } from '@/components/gestao-marca/BrandIdentitySync';
 import { safeUrl } from '@/lib/url';
 
 
+/** Sanitize filename for Supabase Storage (no spaces, accents, or unsafe chars). */
+function sanitizeStorageName(raw: string): string {
+  const stripped = (raw || 'file').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim();
+  const dot = stripped.lastIndexOf('.');
+  const base = dot > 0 ? stripped.slice(0, dot) : stripped;
+  const ext = dot > 0 ? stripped.slice(dot).toLowerCase() : '';
+  const safeBase = (base || 'file').replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').replace(/^[._-]+|[._-]+$/g, '').slice(0, 120);
+  const safeExt = ext.replace(/[^\w.]+/g, '');
+  return (safeBase || 'file') + safeExt;
+}
+
 export default function GestaoMarcaPage() {
   const navigate = useNavigate();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
@@ -313,9 +324,9 @@ export default function GestaoMarcaPage() {
     setUploadingVisual(true);
     const files = Array.from(e.target.files);
     for (const file of files) {
-      const ext = file.name.split('.').pop();
-      const path = `visual/${selectedVisual.id}/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file);
+      const safeName = sanitizeStorageName(file.name);
+      const path = `visual/${selectedVisual.id}/${Date.now()}-${safeName}`;
+      const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file, { contentType: file.type || undefined });
       if (uploadError) { toast.error(`Erro ao carregar ${file.name}`); continue; }
       const { data: { publicUrl } } = supabase.storage.from('brand-files').getPublicUrl(path);
       await supabase.from('brand_visual_files').insert({
@@ -335,8 +346,9 @@ export default function GestaoMarcaPage() {
     if (!e.target.files?.[0] || !selectedVisual) return;
     setUploadingVisual(true);
     const file = e.target.files[0];
-    const path = `covers/${selectedVisual.id}/${Date.now()}-${file.name}`;
-    const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file);
+    const safeName = sanitizeStorageName(file.name);
+    const path = `covers/${selectedVisual.id}/${Date.now()}-${safeName}`;
+    const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file, { contentType: file.type || undefined });
     if (uploadError) { toast.error('Erro ao carregar capa'); setUploadingVisual(false); return; }
     const { data: { publicUrl } } = supabase.storage.from('brand-files').getPublicUrl(path);
     await supabase.from('brand_visual_cards').update({ cover_url: publicUrl } as any).eq('id', selectedVisual.id);
