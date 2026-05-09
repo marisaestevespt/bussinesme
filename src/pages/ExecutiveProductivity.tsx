@@ -91,7 +91,7 @@ export default function ExecutiveProductivity() {
   const meetingsQ = useQuery({
     queryKey: ['meetings-for-productivity'],
     queryFn: async () => {
-      const { data } = await supabase.from('meetings').select('id, title, date_time, duration_minutes, client_id, project_id, status');
+      const { data } = await supabase.from('meetings').select('id, title, date_time, duration_minutes, planned_duration_minutes, actual_duration_minutes, client_id, project_id, status');
       return (data || []) as any[];
     },
   });
@@ -126,10 +126,11 @@ export default function ExecutiveProductivity() {
     // Create virtual entries from meetings with duration
     const meetingEntries: any[] = [];
     meetings.forEach((meeting: any) => {
-      if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
+      const minutes = meeting.actual_duration_minutes ?? meeting.planned_duration_minutes ?? meeting.duration_minutes;
+      if (!minutes || minutes <= 0) return;
       if (meeting.status === 'por_confirmar') return; // only count confirmed/completed meetings
 
-      const durationHours = Number((meeting.duration_minutes / 60).toFixed(2));
+      const durationHours = Number((minutes / 60).toFixed(2));
       const entryDate = format(new Date(meeting.date_time), 'yyyy-MM-dd');
 
       // Get participants for this meeting
