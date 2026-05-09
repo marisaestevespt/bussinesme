@@ -4,12 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, ExternalLink, FileText, MessageCircle, Shield, Sparkles, Quote, Megaphone } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, FileText, Shield, Sparkles, Quote, Megaphone } from 'lucide-react';
 import { useDeleteWithConfirm } from '@/hooks/useDeleteWithConfirm';
 
 type Benefit       = { title: string; description: string };
 type Material      = { name: string; url: string; type: string };
-type Faq           = { question: string; answer: string };
 type Objection     = { objection: string; response: string };
 type CaseStudy     = { client: string; result: string; description: string };
 
@@ -18,7 +17,6 @@ interface Props {
   pitch: string;
   benefits: Benefit[];
   materials: Material[];
-  faqs: Faq[];
   objections: Objection[];
   caseStudies: CaseStudy[];
   isOwner: boolean;
@@ -26,7 +24,7 @@ interface Props {
 }
 
 export function ProductSalesKitSection({
-  presentationUrl, pitch, benefits, materials, faqs, objections, caseStudies, isOwner, onUpdate,
+  presentationUrl, pitch, benefits, materials, objections, caseStudies, isOwner, onUpdate,
 }: Props) {
   const confirmDelete = useDeleteWithConfirm();
 
@@ -151,47 +149,12 @@ export function ProductSalesKitSection({
         </CardContent>
       </Card>
 
-      {/* ─── FAQs ──────────────────────────────────────────────── */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MessageCircle className="h-4 w-4 text-primary" />
-            FAQs comerciais (para o vendedor responder)
-          </CardTitle>
-          {isOwner && (
-            <Button size="sm" variant="outline" onClick={() => onUpdate('sales_faqs', [...faqs, { question: '', answer: '' }])}>
-              <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {faqs.length === 0 && <p className="text-xs text-muted-foreground">Sem FAQs.</p>}
-          {faqs.map((f, i) => (
-            <div key={i} className="grid grid-cols-[1fr_auto] gap-2 items-start border border-border/50 rounded-md p-3">
-              <div className="space-y-2 min-w-0">
-                <Input value={f.question} placeholder="Pergunta do cliente" disabled={!isOwner}
-                  onChange={e => onUpdate('sales_faqs', updateAt(faqs, i, { question: e.target.value }))} />
-                <Textarea value={f.answer} placeholder="Resposta a dar" rows={2} disabled={!isOwner}
-                  onChange={e => onUpdate('sales_faqs', updateAt(faqs, i, { answer: e.target.value }))} />
-              </div>
-              {isOwner && (
-                <Button size="sm" variant="ghost"
-                  onClick={() => confirmDelete({ entity: 'FAQ', name: f.question }, () =>
-                    onUpdate('sales_faqs', removeAt(faqs, i)))}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
       {/* ─── Objeções ──────────────────────────────────────────── */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Shield className="h-4 w-4 text-warning" />
-            Objeções e respostas
+            Perguntas e Objeções de Venda
           </CardTitle>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_objections', [...objections, { objection: '', response: '' }])}>
