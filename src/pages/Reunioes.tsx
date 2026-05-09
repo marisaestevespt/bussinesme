@@ -545,7 +545,7 @@ export function MeetingFormDialog({
     }
     // Planned minutes: prefer caller-provided default, else the template default
     const tplPlanned = initialMeetingType ? getMeetingTemplate(initialMeetingType as string)?.defaultDurationMinutes : undefined;
-    const want = (defaultPlannedMinutes ?? null) ?? (tplPlanned ?? null);
+    const want = defaultPlannedMinutes ?? tplPlanned ?? null;
     if (want != null && plannedMinutes === '') setPlannedMinutes(want);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialMeetingType, defaultTitle, defaultDepartment, defaultMemberIds, defaultPlannedMinutes]);
