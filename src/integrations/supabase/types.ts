@@ -5861,6 +5861,7 @@ export type Database = {
           project_name: string | null
           recurrence_end_date: string | null
           recurrence_frequency: string | null
+          routine_id: string | null
           status: Database["public"]["Enums"]["meeting_status"]
           title: string
           transcript_url: string | null
@@ -5900,6 +5901,7 @@ export type Database = {
           project_name?: string | null
           recurrence_end_date?: string | null
           recurrence_frequency?: string | null
+          routine_id?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title: string
           transcript_url?: string | null
@@ -5939,6 +5941,7 @@ export type Database = {
           project_name?: string | null
           recurrence_end_date?: string | null
           recurrence_frequency?: string | null
+          routine_id?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title?: string
           transcript_url?: string | null
@@ -5980,6 +5983,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "planning_routines"
             referencedColumns: ["id"]
           },
         ]
