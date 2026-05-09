@@ -42,9 +42,9 @@ export async function calcTotalTime(projectId: string): Promise<number> {
     const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
     taskTime = (data || []) as { duration: number }[];
   }
-  const { data: meetingDurations } = await supabase.from('meetings').select('duration_minutes').eq('project_id', projectId);
+  const { data: meetingDurations } = await supabase.from('meetings').select('duration_minutes, planned_duration_minutes, actual_duration_minutes').eq('project_id', projectId);
   const meetingTime = (meetingDurations || []).reduce(
-    (sum, m) => sum + ((m as { duration_minutes: number | null }).duration_minutes || 0),
+    (sum, m: any) => sum + (m.actual_duration_minutes ?? m.planned_duration_minutes ?? m.duration_minutes ?? 0),
     0,
   );
   const timeEntryTotal = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
