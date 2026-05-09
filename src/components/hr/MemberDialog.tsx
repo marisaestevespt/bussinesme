@@ -340,6 +340,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             value_includes_vat: !!c.value_includes_vat,
             payment_start_date: c.payment_start_date || '',
             use_custom_payment_start: !!c.use_custom_payment_start,
+            ss_employer_rate: typeof (c as any).ss_employer_rate === 'number' ? (c as any).ss_employer_rate : 0.2375,
+            payment_method: (c as any).payment_method || (initial as any)?.payment_method || '',
           });
         }
         setContractLoaded(true);
@@ -360,6 +362,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
         value_includes_vat: false,
         payment_start_date: '',
         use_custom_payment_start: false,
+        ss_employer_rate: 0.2375,
+        payment_method: '',
       });
       setContractLoaded(true);
     }
