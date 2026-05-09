@@ -700,6 +700,7 @@ function ProjetoDetailInner() {
     local.type === 'interno'
   ) {
     const taskMode: string = (local as any).task_mode || 'fases';
+    const taskModes: string[] = (local as any).task_modes || [taskMode];
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -788,19 +789,29 @@ function ProjetoDetailInner() {
                 </SelectContent>
               </Select>
             </div>
-            {/* Modo Operacional */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><CheckSquare className="h-4 w-4" /> Operação</span>
-              <Select value={taskMode} onValueChange={v => updateField('task_mode', v)}>
-                <SelectTrigger className="w-64 h-8"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
-                  <SelectItem value="tarefas_fixas">🔁 Entregas Recorrentes</SelectItem>
-                  <SelectItem value="tarefas_livres">
-                    {isServicoMensal ? '✏️ Rotinas + Tarefas Livres' : '✏️ Tarefas Livres'}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Modo Operacional (combinável) */}
+            <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-1"><CheckSquare className="h-4 w-4" /> Operação</span>
+              <div className="flex flex-col gap-1.5">
+                {TASK_MODE_OPTIONS.map(opt => {
+                  const checked = taskModes.includes(opt.value);
+                  return (
+                    <label key={opt.value} className="flex items-start gap-2 cursor-pointer text-sm">
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          const next = v
+                            ? Array.from(new Set([...taskModes, opt.value]))
+                            : taskModes.filter(m => m !== opt.value);
+                          updateField('task_modes', next.length > 0 ? next : ['fases']);
+                        }}
+                        className="mt-0.5"
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
             {/* Orçamento de tempo — junto à Operação */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
