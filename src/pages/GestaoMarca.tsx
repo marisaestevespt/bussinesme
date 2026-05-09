@@ -848,7 +848,7 @@ export default function GestaoMarcaPage() {
             ? 'sm:max-w-[1200px] w-[95vw]'
             : selectedKanban?.title?.includes('Competitiva') || selectedKanban?.title?.includes('Concorrência')
               ? 'sm:max-w-5xl'
-              : 'sm:max-w-3xl'
+              : 'sm:max-w-4xl'
         )}>
           <DialogHeader>
             <DialogTitle>{selectedKanban?.title}</DialogTitle>
