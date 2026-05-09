@@ -8643,7 +8643,6 @@ export type Database = {
           renewal_advance_days: number | null
           sales_benefits: Json
           sales_case_studies: Json
-          sales_faqs: Json
           sales_materials: Json
           sales_objections: Json
           sales_page: Json
@@ -8692,7 +8691,6 @@ export type Database = {
           renewal_advance_days?: number | null
           sales_benefits?: Json
           sales_case_studies?: Json
-          sales_faqs?: Json
           sales_materials?: Json
           sales_objections?: Json
           sales_page?: Json
@@ -8741,7 +8739,6 @@ export type Database = {
           renewal_advance_days?: number | null
           sales_benefits?: Json
           sales_case_studies?: Json
-          sales_faqs?: Json
           sales_materials?: Json
           sales_objections?: Json
           sales_page?: Json
