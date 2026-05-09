@@ -28,7 +28,7 @@ import {
 } from '@dnd-kit/sortable';
 import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
-  Trash2, Upload, FileText, Image as ImageIcon,
+  Trash2, Upload, FileText, Image as ImageIcon, Download,
   Target, Sparkles, BarChart3,
 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -86,6 +86,31 @@ async function getBrandFileDisplayUrl(value: string | null | undefined): Promise
 
   const { data } = supabase.storage.from(BRAND_FILES_BUCKET).getPublicUrl(path);
   return data.publicUrl;
+}
+
+async function downloadBrandFile(url: string, filename: string) {
+  try {
+    const path = extractBrandFilePath(url);
+    let blob: Blob | null = null;
+    if (path) {
+      const { data, error } = await supabase.storage.from(BRAND_FILES_BUCKET).download(path);
+      if (!error && data) blob = data;
+    }
+    if (!blob) {
+      const res = await fetch(url);
+      blob = await res.blob();
+    }
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = filename || 'ficheiro';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  } catch {
+    toast.error('Não consegui transferir o ficheiro.');
+  }
 }
 
 export default function GestaoMarcaPage() {
@@ -1250,6 +1275,23 @@ export default function GestaoMarcaPage() {
                 </div>
               )}
 
+              {visualFiles.filter(f => f.file_type !== 'link').length > 0 && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const items = visualFiles.filter(f => f.file_type !== 'link');
+                      for (const f of items) {
+                        await downloadBrandFile(visualDisplayUrls[f.file_url] || f.file_url, f.file_name);
+                      }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1" />Transferir tudo
+                  </Button>
+                </div>
+              )}
+
               {/* Image grid */}
               {visualFiles.filter(f => f.file_type === 'image').length > 0 && (
                 <div className="space-y-2">
@@ -1258,16 +1300,26 @@ export default function GestaoMarcaPage() {
                     {visualFiles.filter(f => f.file_type === 'image').map(file => (
                       <div key={file.id} className="relative group rounded-lg overflow-hidden border">
                         <img src={visualDisplayUrls[file.file_url] || file.file_url} alt={file.file_name} className="w-full aspect-square object-cover" />
-                        {isOwner && (
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 hq-transition">
                           <Button
-                            variant="destructive"
-                            aria-label="Eliminar" size="icon"
-                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
-                            onClick={() => deleteVisualFile(file.id)}
+                            variant="secondary"
+                            aria-label="Transferir" size="icon"
+                            className="h-6 w-6"
+                            onClick={() => downloadBrandFile(visualDisplayUrls[file.file_url] || file.file_url, file.file_name)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Download className="h-3 w-3" />
                           </Button>
-                        )}
+                          {isOwner && (
+                            <Button
+                              variant="destructive"
+                              aria-label="Eliminar" size="icon"
+                              className="h-6 w-6"
+                              onClick={() => deleteVisualFile(file.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                         <p className="text-[10px] text-muted-foreground p-1.5 truncate">{file.file_name}</p>
                       </div>
                     ))}
@@ -1286,6 +1338,9 @@ export default function GestaoMarcaPage() {
                           <FileText className="h-3.5 w-3.5 shrink-0" />
                           {file.file_name}
                         </a>
+                        <Button variant="ghost" aria-label="Transferir" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => downloadBrandFile(visualDisplayUrls[file.file_url] || file.file_url, file.file_name)}>
+                          <Download className="h-3 w-3" />
+                        </Button>
                         {isOwner && (
                           <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
