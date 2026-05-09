@@ -139,7 +139,6 @@ export default function ProdutoDetailPage() {
   const { data: onboardingTemplate = [] } = useQuery(subQueryOpts('product-onboarding-template', 'product_onboarding_templates', 'product_id', isNew ? undefined : id, 'sort_order'));
   const { data: deliverableTemplates = [] } = useQuery(subQueryOpts('product-deliverable-templates', 'product_deliverable_templates', 'product_id', isNew ? undefined : id, 'sort_order'));
   const { data: offboardingTemplate = [] } = useQuery(subQueryOpts('product-offboarding-template', 'product_offboarding_templates', 'product_id', isNew ? undefined : id, 'sort_order'));
-  const { data: projectTemplate = [] } = useQuery(subQueryOpts('product-project-template', 'product_project_templates', 'product_id', isNew ? undefined : id, 'sort_order'));
   const { data: productPaymentMethods = [] } = useQuery(subQueryOpts('product-payment-methods', 'product_payment_methods', 'product_id', isNew ? undefined : id));
   const { data: salesActions = [] } = useQuery(subQueryOpts('product-sales-actions', 'commercial_sales_actions', 'product', form.name));
   const { data: productContents = [] } = useQuery({
@@ -814,10 +813,8 @@ export default function ProdutoDetailPage() {
           {openSection === 'processos' && (
             <ProductProcessosSection
               productSops={productSops}
-              projectTemplate={projectTemplate}
               isOwner={isOwner}
               productId={id!}
-              onAddProjectTask={() => addRow.mutate({ table: 'product_project_templates', data: { product_id: id, task_name: '' } })}
               onUpdateRow={(table, rowId, data) => updateRow.mutate({ table, id: rowId, data })}
               onDeleteRow={(table, rowId) => deleteRow.mutate({ table, id: rowId })}
             />
