@@ -8704,9 +8704,6 @@ export type Database = {
           monthly_hours_per_client: number | null
           name: string
           portal_branding: Json
-          portal_faqs_template: Json
-          portal_materials_template: Json
-          portal_timeline_template: Json
           product_type: string | null
           renewal_advance_days: number | null
           sales_benefits: Json
@@ -8758,9 +8755,6 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name: string
           portal_branding?: Json
-          portal_faqs_template?: Json
-          portal_materials_template?: Json
-          portal_timeline_template?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
@@ -8812,9 +8806,6 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name?: string
           portal_branding?: Json
-          portal_faqs_template?: Json
-          portal_materials_template?: Json
-          portal_timeline_template?: Json
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
@@ -12038,7 +12029,7 @@ export type Database = {
           sample_count: number
         }[]
       }
-      sync_portal_with_product_template: {
+      sync_portal_faqs_from_product: {
         Args: { _portal_id: string }
         Returns: undefined
       }
