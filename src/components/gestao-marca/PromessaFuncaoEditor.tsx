@@ -36,29 +36,32 @@ export function PromessaFuncaoEditor({ itemId, initial, isOwner, onSaved }: Prop
     onSaved?.(serialized);
   };
 
-  const Field = ({ label, value, key: k, placeholder }: { label: string; value: string; key: 'promessa' | 'funcao'; placeholder: string }) => (
-    <div className="rounded-lg border bg-card p-5 space-y-2">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</h4>
-      {isOwner ? (
-        <Textarea
-          value={value}
-          onChange={e => setState(prev => ({ ...prev, [k]: e.target.value }))}
-          onBlur={() => persist(state)}
-          placeholder={placeholder}
-          className="min-h-[120px] text-base border-transparent bg-transparent shadow-none focus-visible:border-input focus-visible:bg-background resize-y px-2"
-        />
-      ) : value ? (
-        <p className="text-base text-foreground whitespace-pre-wrap">{value}</p>
-      ) : (
-        <p className="text-sm text-muted-foreground italic">Por definir.</p>
-      )}
-    </div>
-  );
+  const renderField = (label: string, fieldKey: 'promessa' | 'funcao', placeholder: string) => {
+    const value = state[fieldKey];
+    return (
+      <div className="rounded-lg border bg-card p-5 space-y-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</h4>
+        {isOwner ? (
+          <Textarea
+            value={value}
+            onChange={e => setState(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+            onBlur={() => persist(state)}
+            placeholder={placeholder}
+            className="min-h-[120px] text-base border-transparent bg-transparent shadow-none focus-visible:border-input focus-visible:bg-background resize-y px-2"
+          />
+        ) : value ? (
+          <p className="text-base text-foreground whitespace-pre-wrap">{value}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">Por definir.</p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <Field label="A nossa promessa" value={state.promessa} key="promessa" placeholder="O que prometemos entregar..." />
-      <Field label="A nossa função" value={state.funcao} key="funcao" placeholder="A função que cumprimos no mercado..." />
+      {renderField('A nossa promessa', 'promessa', 'O que prometemos entregar...')}
+      {renderField('A nossa função', 'funcao', 'A função que cumprimos no mercado...')}
     </div>
   );
 }
