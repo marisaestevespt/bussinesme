@@ -30,7 +30,6 @@ import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSectio
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
-import { ProductPortalTemplateSection } from '@/components/product/ProductPortalTemplateSection';
 import { ProductWelcomeEmailSection } from '@/components/product/ProductWelcomeEmailSection';
 import { ProductProjectsSection } from '@/components/product/ProductProjectsSection';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
@@ -590,8 +589,8 @@ export default function ProdutoDetailPage() {
               {isOwner && <Button variant="outline" size="sm" className="mt-1" onClick={() => update('included_items', [...includedItems, ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar item</Button>}
             </div>
             <div className="pt-4 border-t">
-              <h4 className="text-sm font-semibold mb-2">FAQs (cliente final / portal)</h4>
-              <p className="text-xs text-muted-foreground mb-2">Visíveis ao cliente — usadas no portal e materiais públicos. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
+              <h4 className="text-sm font-semibold mb-2">FAQs do Portal do Cliente</h4>
+              <p className="text-xs text-muted-foreground mb-2">Estas FAQs aparecem automaticamente no portal de todos os clientes deste produto. Alterações aqui propagam-se em tempo real. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
               <Accordion type="multiple" className="w-full">
                 {faqs.map((faq, i) => (
                   <AccordionItem key={i} value={`faq-${i}`}>
