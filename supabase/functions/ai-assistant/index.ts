@@ -522,6 +522,7 @@ async function normalizeFilters(
 function inferProductType(text: string): string | null {
   const normalized = text.toLowerCase();
   if (normalized.includes("subscri") || normalized.includes("mensal")) return "servico_mensal";
+  if (normalized.includes("consulta ") || normalized.includes("consultas") || /\bconsulta\b/.test(normalized)) return "consulta";
   if (normalized.includes("grupo")) {
     if (normalized.includes("consult")) return "consultoria_grupo";
     if (normalized.includes("mentoria")) return "mentoria_grupo";

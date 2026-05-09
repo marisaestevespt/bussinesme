@@ -24,6 +24,7 @@ export const ESCADA_OPTIONS = [
 ] as const;
 
 export const PRODUCT_TYPE_OPTIONS = [
+  { value: 'consulta', label: 'Consulta (sessão única)' },
   { value: 'consultoria_individual', label: 'Consultoria Individual' },
   { value: 'consultoria_grupo', label: 'Consultoria em Grupo' },
   { value: 'mentoria_individual', label: 'Mentoria Individual' },
@@ -35,6 +36,27 @@ export const PRODUCT_TYPE_OPTIONS = [
   { value: 'template', label: 'Template' },
   { value: 'ebook', label: 'E-book' },
 ] as const;
+
+/**
+ * Modos operacionais combináveis (multi-select).
+ * Substitui o antigo `task_mode` único — `task_mode` continua sincronizado
+ * (= primeiro valor do array) por trigger DB para retrocompatibilidade.
+ */
+export const TASK_MODE_OPTIONS = [
+  { value: 'fases', label: 'Fases & Entregáveis', description: 'Projeto com início, meio e fim, organizado por fases.' },
+  { value: 'tarefas_fixas', label: 'Tarefas Fixas Recorrentes', description: 'Tarefas que se repetem sempre na mesma cadência (semanal, mensal…).' },
+  { value: 'tarefas_livres', label: 'Tarefas Livres', description: 'Tarefas ad-hoc adicionadas conforme necessário.' },
+] as const;
+
+/** Tipos onde faz sentido perguntar nº de sessões. */
+export const SESSION_BASED_TYPES = new Set([
+  'consulta',
+  'consultoria_individual',
+  'consultoria_grupo',
+  'mentoria_individual',
+  'mentoria_grupo',
+  'workshop',
+]);
 
 export const SALES_TYPE_OPTIONS = [
   { value: 'perpetuo', label: 'Perpétuo' },

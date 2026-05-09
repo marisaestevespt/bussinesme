@@ -15,7 +15,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock } from 'lucide-react';
 import { toast } from 'sonner';
-import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
+import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, Product } from '@/hooks/useProducts';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -490,15 +491,60 @@ export default function ProdutoDetailPage() {
                     </Select>
                   </Row>
                   <Row icon={Settings2} label="Modo Operacional (Entregas)">
-                    <Select value={(form as any).task_mode || 'fases'} onValueChange={v => update('task_mode', v)} disabled={!isOwner}>
-                      <SelectTrigger className={inlineTrigger}><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
-                        <SelectItem value="tarefas_fixas">📋 Tarefas Fixas Mensais</SelectItem>
-                        <SelectItem value="tarefas_livres">✏️ Tarefas Livres</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-1.5 py-1">
+                      {TASK_MODE_OPTIONS.map(opt => {
+                        const modes: string[] = (form as any).task_modes || [(form as any).task_mode || 'fases'];
+                        const checked = modes.includes(opt.value);
+                        return (
+                          <label key={opt.value} className="flex items-start gap-2 cursor-pointer">
+                            <Checkbox
+                              checked={checked}
+                              disabled={!isOwner}
+                              onCheckedChange={(v) => {
+                                const next = v
+                                  ? Array.from(new Set([...modes, opt.value]))
+                                  : modes.filter((m: string) => m !== opt.value);
+                                update('task_modes', next.length > 0 ? next : ['fases']);
+                              }}
+                              className="mt-0.5"
+                            />
+                            <span className="text-sm leading-tight">
+                              <span className="font-medium">{opt.label}</span>
+                              <span className="block text-[11px] text-muted-foreground">{opt.description}</span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                      <p className="text-[11px] text-muted-foreground italic mt-1">Podes combinar vários modos.</p>
+                    </div>
                   </Row>
+                  {SESSION_BASED_TYPES.has(form.product_type || '') && (
+                    <>
+                      <Row icon={Users} label={form.product_type === 'consulta' ? 'Sessões (sempre 1)' : 'Nº de sessões'}>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={form.product_type === 'consulta' ? 1 : ((form as any).session_count ?? '')}
+                          onChange={e => update('session_count', e.target.value ? Number(e.target.value) : null)}
+                          placeholder="Ex: 6"
+                          className={inlineInput}
+                          readOnly={!isOwner || form.product_type === 'consulta'}
+                        />
+                      </Row>
+                      <Row icon={Clock} label="Duração de cada sessão (min)">
+                        <Input
+                          type="number"
+                          min={15}
+                          step={15}
+                          value={(form as any).session_duration_minutes ?? ''}
+                          onChange={e => update('session_duration_minutes', e.target.value ? Number(e.target.value) : null)}
+                          placeholder="Ex: 60"
+                          className={inlineInput}
+                          readOnly={!isOwner}
+                        />
+                      </Row>
+                    </>
+                  )}
 
                   {/* ── Detalhes Comerciais ── */}
                   <SectionTitle>Detalhes Comerciais</SectionTitle>

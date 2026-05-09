@@ -9,6 +9,7 @@ export interface ProjectHealthInput {
   id: string;
   type?: string | null;
   task_mode?: string | null;
+  task_modes?: string[] | null;
   project_mode?: string | null;
   deadline?: string | null;
   start_date?: string | null;
@@ -42,7 +43,11 @@ export function computeProjectHealth(
   today: Date,
   progressOverride?: number | null,
 ): ProjectHealthResult {
-  const isTarefasLivres = project.task_mode === 'tarefas_livres';
+  const modes = project.task_modes && project.task_modes.length > 0
+    ? project.task_modes
+    : (project.task_mode ? [project.task_mode] : []);
+  // Considera "tarefas livres" sempre que esse modo estiver ativo (mesmo combinado com fases/recorrentes).
+  const isTarefasLivres = modes.includes('tarefas_livres') && !modes.includes('fases');
   const isRecorrenteMensal =
     project.type === 'cliente_servico_mensal' && project.project_mode === 'recorrente';
   const useOverdueOnly = isTarefasLivres || isRecorrenteMensal;
