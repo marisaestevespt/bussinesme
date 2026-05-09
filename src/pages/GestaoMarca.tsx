@@ -38,6 +38,7 @@ import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
 import type { KanbanItem } from '@/components/gestao-marca/types';
 import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEditor';
 import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
+import { PromessaFuncaoEditor } from '@/components/gestao-marca/PromessaFuncaoEditor';
 import { BulletListEditor } from '@/components/gestao-marca/BulletListEditor';
 import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
 import { PersonalidadeUniversoBoard } from '@/components/gestao-marca/PersonalidadeUniversoBoard';
