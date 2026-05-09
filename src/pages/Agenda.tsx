@@ -1267,7 +1267,19 @@ export default function AgendaPage() {
   };
 
   // Merge events + meetings into a single sorted list
-  const allEventsRaw = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const allEventsRawUnfiltered = [...events, ...meetingEvents, ...salesActionEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  // Apply optional URL-based client filter (used by shortcuts from project pages)
+  const allEventsRaw = useMemo(() => {
+    if (!clientIdFilter && !clientNameFilter) return allEventsRawUnfiltered;
+    const norm = (s: string | null | undefined) => (s ?? '').trim().toLocaleLowerCase('pt-PT');
+    return allEventsRawUnfiltered.filter(ev => {
+      const cid = (ev as any).client_id as string | null | undefined;
+      const cname = (ev as any).client_name as string | null | undefined;
+      if (clientIdFilter && cid && cid === clientIdFilter) return true;
+      if (clientNameFilter && cname && norm(cname) === norm(clientNameFilter)) return true;
+      return false;
+    });
+  }, [allEventsRawUnfiltered, clientIdFilter, clientNameFilter]);
   // Product brand colour ALWAYS takes precedence over the event-type colour
   // when an event is linked to a product (per business rule).
   // When an event only knows the client (no product_id), we look up the
