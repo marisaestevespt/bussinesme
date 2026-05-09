@@ -473,6 +473,11 @@ export default function GestaoMarcaPage() {
     toast.success('Ficheiro removido');
   };
 
+  const updateVisualCaption = async (fileId: string, caption: string) => {
+    await supabase.from('brand_visual_files').update({ caption: caption.trim() || null } as any).eq('id', fileId);
+    queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual?.id] });
+  };
+
   const addVisualLink = async () => {
     if (!visualLinkLabel.trim() || !visualLinkUrl.trim() || !selectedVisual) return;
     await supabase.from('brand_visual_files').insert({
