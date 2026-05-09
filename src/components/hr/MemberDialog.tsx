@@ -36,19 +36,12 @@ const DEFAULT_MEMBER_FORM = {
   identification: '',
   iban: '',
   fiscal_address: '',
-  payment_method: '',
-  status: 'ativo',
-  member_type: 'colaborador_fixo',
-  department: '',
   departments: [] as string[],
-  deptExtraPages: {} as Record<string, string[]>,
   sensitiveAccess: {} as Record<string, boolean>,
-  start_date: '',
+  birthday: '',
   responsibilities: '',
-  work_areas: [] as string[],
   system_role: 'team_member' as string, // função no sistema (RBAC)
   works_with_clients: false,
-  ss_employer_rate: 0.2375, // taxa SS empresa (só para Equipa Interna)
 };
 
 // Funções do sistema disponíveis para atribuir a um membro de equipa.
@@ -75,16 +68,16 @@ const PAYMENT_METHOD_OPTIONS = [
 
 // Vínculo unificado: controla simultaneamente member_type e contract_type
 const BOND_OPTIONS = [
-  { value: 'interno',    label: 'Equipa Interna',  hint: 'Contrato de trabalho',           member_type: 'colaborador_fixo',     contract_type: 'contrato_trabalho' },
-  { value: 'freelancer', label: 'Freelancer',      hint: 'Prestação de serviços',          member_type: 'prestador_servicos',   contract_type: 'contrato_prestacao' },
-  { value: 'socio',      label: 'Sócio',           hint: 'Acordo de sociedade',            member_type: 'socio',                contract_type: 'acordo' },
-  { value: 'outro',      label: 'Outro',           hint: 'Outro tipo de vínculo',          member_type: 'colaborador_fixo',     contract_type: 'outro' },
+  { value: 'interno',    label: 'Equipa Interna',  hint: 'Contrato de trabalho',           contract_type: 'contrato_trabalho' },
+  { value: 'freelancer', label: 'Freelancer',      hint: 'Prestação de serviços',          contract_type: 'contrato_prestacao' },
+  { value: 'socio',      label: 'Sócio',           hint: 'Acordo de sociedade',            contract_type: 'acordo' },
+  { value: 'outro',      label: 'Outro',           hint: 'Outro tipo de vínculo',          contract_type: 'outro' },
 ];
 
-function bondFromTypes(memberType: string, contractType: string): string {
-  if (memberType === 'prestador_servicos' || contractType === 'contrato_prestacao') return 'freelancer';
-  if (memberType === 'socio') return 'socio';
-  if (contractType === 'outro' || contractType === 'acordo') return memberType === 'socio' ? 'socio' : 'outro';
+function bondFromContractType(contractType: string): string {
+  if (contractType === 'contrato_prestacao' || contractType === 'prestacao_servicos') return 'freelancer';
+  if (contractType === 'acordo') return 'socio';
+  if (contractType === 'outro') return 'outro';
   return 'interno';
 }
 
