@@ -183,6 +183,28 @@ export default function SecretariaProdutividade() {
     return total;
   }, [myMeetings.data, tasks.data, periodStart, periodEnd]);
 
+  // Variância previsto vs real
+  const variancePct = plannedHours > 0
+    ? Math.round(((totalHours - plannedHours) / plannedHours) * 100)
+    : null;
+  const varianceLabel = variancePct === null
+    ? null
+    : variancePct === 0
+      ? 'No alvo'
+      : variancePct > 0
+        ? `+${variancePct}% acima do previsto`
+        : `${variancePct}% abaixo do previsto`;
+  const varianceTone = variancePct === null
+    ? 'text-muted-foreground'
+    : Math.abs(variancePct) <= 10
+      ? 'text-success'
+      : Math.abs(variancePct) <= 25
+        ? 'text-warning'
+        : 'text-destructive';
+  const progressPct = plannedHours > 0
+    ? Math.min(100, Math.round((totalHours / plannedHours) * 100))
+    : 0;
+
   const completedTasks = useMemo(() => allTasks.filter((t: any) => isTaskDone(t) && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: periodStart, end: periodEnd })), [allTasks, periodStart, periodEnd]);
   const overdueTasks = allTasks.filter((t: any) => isTaskOverdue(t, today));
 
@@ -286,8 +308,33 @@ export default function SecretariaProdutividade() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-2xl font-bold">{Math.round(totalHours * 10) / 10}h</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas previstas</p><p className="text-2xl font-bold text-primary">{Math.round(plannedHours * 10) / 10}h</p><p className="text-[10px] text-muted-foreground mt-1">Reuniões + tarefas planeadas</p></CardContent></Card>
+        <Card><CardContent className="pt-4">
+          <p className="text-xs text-muted-foreground">Horas registadas</p>
+          <p className="text-2xl font-bold">{Math.round(totalHours * 10) / 10}h</p>
+          {varianceLabel && (
+            <p className={cn('text-[10px] mt-1 font-medium', varianceTone)}>{varianceLabel}</p>
+          )}
+        </CardContent></Card>
+        <Card><CardContent className="pt-4">
+          <p className="text-xs text-muted-foreground">Horas previstas</p>
+          <p className="text-2xl font-bold text-primary">{Math.round(plannedHours * 10) / 10}h</p>
+          {plannedHours > 0 ? (
+            <div className="mt-2 space-y-1">
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-all',
+                    variancePct !== null && variancePct > 25 ? 'bg-destructive' : variancePct !== null && variancePct > 10 ? 'bg-warning' : 'bg-primary'
+                  )}
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">Reuniões + tarefas planeadas</p>
+            </div>
+          ) : (
+            <p className="text-[10px] text-muted-foreground mt-1">Reuniões + tarefas planeadas</p>
+          )}
+        </CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas concluídas</p><p className="text-2xl font-bold">{completedTasks.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Média horas/dia</p><p className="text-2xl font-bold">{avgPerDay}h</p></CardContent></Card>
