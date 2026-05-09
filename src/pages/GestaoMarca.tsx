@@ -1283,16 +1283,26 @@ export default function GestaoMarcaPage() {
                     {visualFiles.filter(f => f.file_type === 'image').map(file => (
                       <div key={file.id} className="relative group rounded-lg overflow-hidden border">
                         <img src={visualDisplayUrls[file.file_url] || file.file_url} alt={file.file_name} className="w-full aspect-square object-cover" />
-                        {isOwner && (
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 hq-transition">
                           <Button
-                            variant="destructive"
-                            aria-label="Eliminar" size="icon"
-                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
-                            onClick={() => deleteVisualFile(file.id)}
+                            variant="secondary"
+                            aria-label="Transferir" size="icon"
+                            className="h-6 w-6"
+                            onClick={() => downloadBrandFile(visualDisplayUrls[file.file_url] || file.file_url, file.file_name)}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Download className="h-3 w-3" />
                           </Button>
-                        )}
+                          {isOwner && (
+                            <Button
+                              variant="destructive"
+                              aria-label="Eliminar" size="icon"
+                              className="h-6 w-6"
+                              onClick={() => deleteVisualFile(file.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                         <p className="text-[10px] text-muted-foreground p-1.5 truncate">{file.file_name}</p>
                       </div>
                     ))}
@@ -1311,6 +1321,9 @@ export default function GestaoMarcaPage() {
                           <FileText className="h-3.5 w-3.5 shrink-0" />
                           {file.file_name}
                         </a>
+                        <Button variant="ghost" aria-label="Transferir" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => downloadBrandFile(visualDisplayUrls[file.file_url] || file.file_url, file.file_name)}>
+                          <Download className="h-3 w-3" />
+                        </Button>
                         {isOwner && (
                           <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteVisualFile(file.id)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
