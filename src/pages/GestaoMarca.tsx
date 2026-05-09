@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import * as React from 'react';
 import DOMPurify from 'dompurify';
 import { useNavigate } from 'react-router-dom';
@@ -207,27 +207,30 @@ export default function GestaoMarcaPage() {
   const folders = brandLinks.filter(l => l.type === 'folder');
   const shortcuts = brandLinks.filter(l => l.type === 'shortcut');
 
-  useEffect(() => {
-    let cancelled = false;
-    const storedFiles = visualFiles.filter(file => file.file_type !== 'link');
+  const visualUrlsKey = useMemo(() => {
     const values = [
       ...visualCards.map(card => card.cover_url).filter(Boolean),
       selectedVisual?.cover_url,
-      ...storedFiles.map(file => file.file_url),
+      ...visualFiles.filter(f => f.file_type !== 'link').map(f => f.file_url),
     ].filter(Boolean) as string[];
+    return Array.from(new Set(values)).sort().join('|');
+  }, [visualCards, selectedVisual?.cover_url, visualFiles]);
 
-    if (values.length === 0) {
+  useEffect(() => {
+    if (!visualUrlsKey) {
       setVisualDisplayUrls({});
       return;
     }
-
-    Promise.all(values.map(async value => [value, await getBrandFileDisplayUrl(value)] as const)).then(entries => {
-      if (cancelled) return;
-      setVisualDisplayUrls(Object.fromEntries(entries.map(([source, display]) => [source, display || source])));
-    });
-
-    return () => { cancelled = true; };
-  }, [visualCards, selectedVisual?.cover_url, visualFiles]);
+    const values = visualUrlsKey.split('|');
+    const next: Record<string, string> = {};
+    for (const value of values) {
+      const path = extractBrandFilePath(value);
+      if (!path) { next[value] = value; continue; }
+      const { data } = supabase.storage.from(BRAND_FILES_BUCKET).getPublicUrl(path);
+      next[value] = data.publicUrl || value;
+    }
+    setVisualDisplayUrls(next);
+  }, [visualUrlsKey]);
 
   // ── PUV ──
 
