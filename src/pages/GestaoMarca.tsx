@@ -829,7 +829,7 @@ export default function GestaoMarcaPage() {
                   >
                     <div className="aspect-square bg-muted/40 flex items-center justify-center overflow-hidden">
                       {card.cover_url ? (
-                        <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
+                        <img src={visualDisplayUrls[card.cover_url] || card.cover_url} alt={card.title} className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
                       )}
@@ -1181,7 +1181,7 @@ export default function GestaoMarcaPage() {
               {/* Cover */}
               <div className="aspect-video bg-muted/30 rounded-lg overflow-hidden relative group flex items-center justify-center">
                 {selectedVisual.cover_url ? (
-                  <img src={selectedVisual.cover_url} alt={selectedVisual.title} className="w-full h-full object-cover" />
+                  <img src={visualDisplayUrls[selectedVisual.cover_url] || selectedVisual.cover_url} alt={selectedVisual.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center text-muted-foreground/40">
                     <ImageIcon className="h-12 w-12 mx-auto mb-2" />
@@ -1255,7 +1255,7 @@ export default function GestaoMarcaPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {visualFiles.filter(f => f.file_type === 'image').map(file => (
                       <div key={file.id} className="relative group rounded-lg overflow-hidden border">
-                        <img src={file.file_url} alt={file.file_name} className="w-full aspect-square object-cover" />
+                        <img src={visualDisplayUrls[file.file_url] || file.file_url} alt={file.file_name} className="w-full aspect-square object-cover" />
                         {isOwner && (
                           <Button
                             variant="destructive"
