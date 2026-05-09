@@ -93,7 +93,13 @@ export function StrategicSection() {
     },
   });
   const settings = settingsQuery.data as any;
-  const valuesList: string[] = useMemo(() => Array.isArray(settings?.values_list) ? settings.values_list : [], [settings]);
+  // values_list pode ter dois formatos: string[] (legado) ou {name, description}[] (novo, vindo da Marca)
+  const valuesList: Array<{ name: string; description?: string }> = useMemo(() => {
+    const raw = Array.isArray(settings?.values_list) ? settings.values_list : [];
+    return raw.map((v: any) =>
+      typeof v === 'string' ? { name: v } : { name: v?.name || '', description: v?.description }
+    ).filter(v => v.name);
+  }, [settings]);
   const [newValue, setNewValue] = useState('');
 
   const saveSettings = useMutation({
@@ -227,8 +233,13 @@ export function StrategicSection() {
                     <p className="text-sm italic text-muted-foreground">Adiciona os valores que guiam a equipa. Ex: Transparência, Excelência, Empatia.</p>
                   )}
                   {valuesList.map((v, idx) => (
-                    <Badge key={idx} variant="secondary" className="gap-1.5 px-2.5 py-1 text-sm group">
-                      {v}
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="gap-1.5 px-2.5 py-1 text-sm group"
+                      title={v.description || undefined}
+                    >
+                      {v.name}
                       <button
                         onClick={() => saveSettings.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
                         className="opacity-50 group-hover:opacity-100 hover:text-destructive transition-opacity"
@@ -246,7 +257,7 @@ export function StrategicSection() {
                     className="h-9"
                     onKeyDown={e => {
                       if (e.key === 'Enter' && newValue.trim()) {
-                        saveSettings.mutate({ values_list: [...valuesList, newValue.trim()] });
+                        saveSettings.mutate({ values_list: [...valuesList, { name: newValue.trim() }] });
                         setNewValue('');
                       }
                     }}
@@ -256,7 +267,7 @@ export function StrategicSection() {
                     variant="outline"
                     onClick={() => {
                       if (newValue.trim()) {
-                        saveSettings.mutate({ values_list: [...valuesList, newValue.trim()] });
+                        saveSettings.mutate({ values_list: [...valuesList, { name: newValue.trim() }] });
                         setNewValue('');
                       }
                     }}
