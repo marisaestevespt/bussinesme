@@ -175,6 +175,8 @@ Deno.serve(async (req) => {
       product_name: parent.product_name,
       department: parent.department,
       duration_minutes: parent.duration_minutes,
+      planned_duration_minutes: parent.planned_duration_minutes ?? parent.duration_minutes ?? null,
+      actual_duration_minutes: null,
       meeting_url: parent.meeting_url,
       created_by: parent.created_by,
       parent_meeting_id: parent.id,
