@@ -59,8 +59,8 @@ export default function FinanceiroPage() {
       const cy = now.getFullYear();
       const cm = now.getMonth() + 1;
       const [salesRes, expRes] = await Promise.all([
-        supabase.from('commercial_sales').select('base_value, status, sale_year, sale_month'),
-        supabase.from('financial_expenses').select('base_value, status, expense_year, expense_month'),
+        supabase.from('commercial_sales').select('invoice_total, base_value, status, sale_year, sale_month'),
+        supabase.from('financial_expenses').select('total_with_vat, base_value, status, expense_year, expense_month'),
       ]);
       const upTo = <T extends { sale_year?: number | null; sale_month?: number | null; expense_year?: number | null; expense_month?: number | null }>(items: T[], yKey: 'sale_year' | 'expense_year', mKey: 'sale_month' | 'expense_month') =>
         items.filter(i => {
@@ -71,8 +71,8 @@ export default function FinanceiroPage() {
         });
       const allSales = upTo(excludeCancelled(salesRes.data || []), 'sale_year', 'sale_month');
       const allExp = upTo(excludeCancelled(expRes.data || []), 'expense_year', 'expense_month');
-      const entradas = allSales.reduce((s, v) => s + Number(v.base_value || 0), 0);
-      const saidas = allExp.reduce((s, v) => s + Number(v.base_value || 0), 0);
+      const entradas = allSales.reduce((s, v) => s + Number(v.invoice_total ?? v.base_value ?? 0), 0);
+      const saidas = allExp.reduce((s, v) => s + Number(v.total_with_vat ?? v.base_value ?? 0), 0);
       return { entradas, saidas, saldo: entradas - saidas };
     },
   });
@@ -92,7 +92,7 @@ export default function FinanceiroPage() {
                   <Wallet className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Saldo geral acumulado até hoje (s/ IVA)</p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Saldo geral acumulado até hoje (c/ IVA — bate com banco)</p>
                   <p className={`text-2xl font-bold ${lifetime.data.saldo >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {formatEuro(lifetime.data.saldo)}
                   </p>
