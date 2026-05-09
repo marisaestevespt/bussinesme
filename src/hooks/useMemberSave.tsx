@@ -273,7 +273,7 @@ export function useMemberSave() {
                   phone: String(member.whatsapp || ''),
                   iban: String(member.iban || ''),
                   address: String(member.fiscal_address || ''),
-                  payment_method: String(member.payment_method || 'transferencia'),
+                  payment_method: String((contractData?.payment_method as string) || 'transferencia'),
                   default_vat_rate: 23,
                   service: String(member.role_title || 'Prestação de serviços'),
                   category: 'freelancer',
