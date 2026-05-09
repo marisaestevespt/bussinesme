@@ -707,6 +707,9 @@ export function MeetingFormDialog({
         recurrence_frequency: isRecurring ? recurrenceFrequency : null,
         recurrence_end_date: isRecurring && recurrenceEndDate ? format(recurrenceEndDate, 'yyyy-MM-dd') : null,
         visible_in_portal: visibleInPortal,
+        planned_duration_minutes: plannedMinutes === '' ? null : Number(plannedMinutes),
+        // Keep legacy field in sync with planned for backward-compat readers
+        duration_minutes: plannedMinutes === '' ? null : Number(plannedMinutes),
       };
 
       // Apply template default agenda (discussion_points) when creating from a template
