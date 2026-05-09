@@ -25,7 +25,7 @@ const ROWS: Array<{ left: string; right?: string }> = [
 export function PersonalidadePalavrasLayout({ itemId, isOwner }: { itemId: string; isOwner: boolean }) {
   const qc = useQueryClient();
 
-  const { data: sections = [] } = useQuery({
+  const { data: sections = [], isSuccess } = useQuery({
     queryKey: ['brand-kanban-sections', itemId],
     queryFn: async () => {
       const { data } = await (supabase as any)
@@ -39,7 +39,7 @@ export function PersonalidadePalavrasLayout({ itemId, isOwner }: { itemId: strin
 
   // Ensure fixed sections exist (create missing ones, owner only)
   useEffect(() => {
-    if (!isOwner) return;
+    if (!isOwner || !isSuccess) return;
     const missing = FIXED_SECTIONS.filter(f => !sections.some(s => s.title === f.title));
     if (missing.length === 0) return;
     (async () => {
@@ -50,7 +50,7 @@ export function PersonalidadePalavrasLayout({ itemId, isOwner }: { itemId: strin
       const { error } = await (supabase as any).from('brand_kanban_sections').insert(rows);
       if (!error) qc.invalidateQueries({ queryKey: ['brand-kanban-sections', itemId] });
     })();
-  }, [sections, itemId, isOwner, qc]);
+  }, [sections, itemId, isOwner, isSuccess, qc]);
 
   const byKey = (key: string) => {
     const fixed = FIXED_SECTIONS.find(f => f.key === key);
