@@ -610,7 +610,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <p className="text-[10px] text-muted-foreground">Define em que áreas do negócio este membro trabalha. Controla também o acesso a essas secções do sistema.</p>
                   <div className="space-y-1 mt-1.5">
                     {DEPARTMENTS.map(d => {
-                      const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
+                      const depts: string[] = Array.isArray(f.departments) ? f.departments : [];
                       const checked = depts.includes(d.value);
                       return (
                         <label key={d.value} className={cn(
