@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -178,6 +178,24 @@ interface ArquivoSectionProps {
 
 export function ProductArquivoSection({ productDocuments, archiveNotes, brainstormingContent, isOwner, productId, onUpdateField }: ArquivoSectionProps) {
   const [view, setView] = useState<'gallery' | 'documentos' | 'notas' | 'brainstorming'>('gallery');
+  const navigate = useNavigate();
+  const [projectBrainstorms, setProjectBrainstorms] = useState<Array<{ id: string; name: string; client_name: string | null; brainstorming: string }>>([]);
+
+  useEffect(() => {
+    if (view !== 'brainstorming' || !productId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, client_name, brainstorming')
+        .eq('product_id', productId)
+        .not('brainstorming', 'is', null);
+      if (cancelled) return;
+      const rows = (data || []).filter((p: any) => (p.brainstorming || '').replace(/<[^>]+>/g, '').trim().length > 0);
+      setProjectBrainstorms(rows as any);
+    })();
+    return () => { cancelled = true; };
+  }, [view, productId]);
 
   if (view === 'documentos') {
     return (
@@ -228,6 +246,34 @@ export function ProductArquivoSection({ productDocuments, archiveNotes, brainsto
           uploadFolder={`brainstorming/${productId}`}
           variant="full"
         />
+        {projectBrainstorms.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" /> Brainstorms de Projetos ({projectBrainstorms.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-xs text-muted-foreground">Brainstorms feitos em projetos internos associados a este produto.</p>
+              {projectBrainstorms.map((p) => {
+                const preview = (p.brainstorming || '').replace(/<[^>]+>/g, '').slice(0, 140);
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => navigate(`/hub/projetos/${p.id}`)}
+                    className="w-full text-left p-3 rounded-md border hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">{p.name}</span>
+                      {p.client_name && <Badge variant="outline" className="text-[10px]">{p.client_name}</Badge>}
+                    </div>
+                    {preview && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{preview}</p>}
+                  </button>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
