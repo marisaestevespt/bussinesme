@@ -1338,6 +1338,25 @@ export default function AgendaPage() {
       <div className="space-y-6">
         <BackNavigation />
         <PageHeader title="Agenda do Negócio" />
+        {(clientIdFilter || clientNameFilter) && (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+            <span className="text-foreground">
+              📌 Filtrado pelo cliente: <strong>{clientNameFilter || clientIdFilter}</strong>
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.delete('client_id');
+                next.delete('client_name');
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              <X className="h-4 w-4 mr-1" /> Limpar filtro
+            </Button>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div />
           <div className="flex items-center gap-3">
