@@ -28,7 +28,7 @@ import {
 } from '@dnd-kit/sortable';
 import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
-  Trash2, Upload, FileText, Image as ImageIcon,
+  Trash2, Upload, FileText, Image as ImageIcon, Download,
   Target, Sparkles, BarChart3,
 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
