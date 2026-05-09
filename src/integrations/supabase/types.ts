@@ -5193,6 +5193,53 @@ export type Database = {
         }
         Relationships: []
       }
+      iva_payments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expense_id: string | null
+          id: string
+          notes: string | null
+          paid_amount: number
+          paid_date: string | null
+          quarter: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          paid_date?: string | null
+          quarter: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          paid_date?: string | null
+          quarter?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iva_payments_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "financial_expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_settings: {
         Row: {
           area: string
