@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
