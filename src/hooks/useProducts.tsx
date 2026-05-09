@@ -67,6 +67,19 @@ export const SALES_TYPE_OPTIONS = [
   { value: 'gratuito', label: 'Gratuito' },
 ] as const;
 
+/**
+ * Deriva o modo do projeto (pontual / recorrente) a partir do tipo de produto
+ * e tipo de vendas. Substitui o antigo campo manual `default_project_mode`.
+ */
+export function deriveProjectMode(
+  product_type?: string | null,
+  sales_type?: string | null,
+): 'pontual' | 'recorrente' {
+  if (product_type === 'servico_mensal') return 'recorrente';
+  if (sales_type === 'avenca_mensal' || sales_type === 'subscricao') return 'recorrente';
+  return 'pontual';
+}
+
 export function useProducts() {
   const qc = useQueryClient();
 

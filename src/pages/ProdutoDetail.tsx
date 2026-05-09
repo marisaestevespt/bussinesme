@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock } from 'lucide-react';
 import { toast } from 'sonner';
-import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, Product } from '@/hooks/useProducts';
+import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, deriveProjectMode, Product } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
 import { useAuth } from '@/hooks/useAuth';
@@ -81,7 +81,14 @@ export default function ProdutoDetailPage() {
   }
 
   const update = (field: string, value: unknown) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm(prev => {
+      const next: any = { ...prev, [field]: value };
+      // Mantém default_project_mode sincronizado automaticamente (derivado de tipo + venda)
+      if (field === 'product_type' || field === 'sales_type') {
+        next.default_project_mode = deriveProjectMode(next.product_type, next.sales_type);
+      }
+      return next;
+    });
   };
 
   const save = async () => {
@@ -481,15 +488,6 @@ export default function ProdutoDetailPage() {
 
                   {/* ── Configuração de Projeto ── */}
                   <SectionTitle>Configuração de Projeto</SectionTitle>
-                  <Row icon={Layers} label="Modo do Projeto">
-                    <Select value={(form as any).default_project_mode || 'pontual'} onValueChange={v => update('default_project_mode', v)} disabled={!isOwner}>
-                      <SelectTrigger className={inlineTrigger}><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pontual">📌 Pontual</SelectItem>
-                        <SelectItem value="recorrente">🔄 Recorrente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Row>
                   <Row icon={Settings2} label="Modo Operacional (Entregas)">
                     <div className="flex flex-col gap-1.5 py-1">
                       {TASK_MODE_OPTIONS.map(opt => {
@@ -795,7 +793,7 @@ export default function ProdutoDetailPage() {
               deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string; is_recurring?: boolean }>}
               isOwner={isOwner}
               productId={id!}
-              isRecurring={form.default_project_mode === 'recorrente'}
+              isRecurring={deriveProjectMode(form.product_type, form.sales_type) === 'recorrente'}
               onAdd={() => addRow.mutate({ table: 'product_deliverable_templates', data: { product_id: id, name: '', sort_order: deliverableTemplates.length } })}
               onUpdate={(rowId, data) => updateRow.mutate({ table: 'product_deliverable_templates', id: rowId, data })}
               onDelete={(rowId) => deleteRow.mutate({ table: 'product_deliverable_templates', id: rowId })}
