@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -264,8 +264,8 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 const qIdx = Math.floor(i / 3);
                 const qRow = isQuarterEnd ? quarterRows[qIdx] : null;
                 return (
-                <>
-                <TableRow key={i}>
+                <Fragment key={i}>
+                <TableRow>
                   <TableCell className="font-medium">{d.mes}</TableCell>
                   <TableCell
  className="text-right cursor-pointer hover:text-primary underline decoration-dotted underline-offset-2"
@@ -287,7 +287,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   </TableCell>
                 </TableRow>
                 {qRow && (
-                  <TableRow key={`q-${qRow.q}`} className="bg-muted/40 border-y">
+                  <TableRow className="bg-muted/40 border-y">
                     <TableCell className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
                       Fecho {qRow.label}
                     </TableCell>
@@ -330,7 +330,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                     </TableCell>
                   </TableRow>
                 )}
-                </>
+                </Fragment>
                 );
               })}
               <TableRow className="border-t-2 font-semibold">
