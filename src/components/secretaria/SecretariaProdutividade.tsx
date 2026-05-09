@@ -120,13 +120,14 @@ export default function SecretariaProdutividade() {
     const meetingEntries: any[] = [];
     const now = new Date();
     (myMeetings.data || []).forEach((meeting: any) => {
-      if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
+      const minutes = meeting.actual_duration_minutes ?? meeting.planned_duration_minutes ?? meeting.duration_minutes;
+      if (!minutes || minutes <= 0) return;
       if (meeting.status === 'por_confirmar') return;
       // Apenas reuniões já decorridas contam como horas registadas
       const meetingDate = new Date(meeting.date_time);
       if (meetingDate > now) return;
 
-      const durationHours = Number((meeting.duration_minutes / 60).toFixed(2));
+      const durationHours = Number((minutes / 60).toFixed(2));
       const entryDate = format(new Date(meeting.date_time), 'yyyy-MM-dd');
 
       meetingEntries.push({
@@ -161,12 +162,13 @@ export default function SecretariaProdutividade() {
     let total = 0;
 
     (myMeetings.data || []).forEach((meeting: any) => {
-      if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
+      const minutes = meeting.planned_duration_minutes ?? meeting.duration_minutes;
+      if (!minutes || minutes <= 0) return;
       if (meeting.status === 'por_confirmar' || meeting.status === 'cancelada') return;
       const md = new Date(meeting.date_time);
       if (md <= now) return;
       if (!isWithinInterval(md, { start: periodStart, end: periodEnd })) return;
-      total += meeting.duration_minutes / 60;
+      total += minutes / 60;
     });
 
     (tasks.data || []).forEach((t: any) => {
