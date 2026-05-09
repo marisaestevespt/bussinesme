@@ -218,6 +218,8 @@ export function useMemberSave() {
             value_includes_vat: !!contractData.value_includes_vat,
             payment_start_date: contractData.use_custom_payment_start ? (contractData.payment_start_date || null) : null,
             use_custom_payment_start: !!contractData.use_custom_payment_start,
+            ss_employer_rate: Number(contractData.ss_employer_rate ?? 0.2375),
+            payment_method: contractData.payment_method || null,
           });
 
           // Generate payments
@@ -339,6 +341,8 @@ export function useMemberSave() {
             value_includes_vat: !!contractData.value_includes_vat,
             payment_start_date: contractData.use_custom_payment_start ? (contractData.payment_start_date || null) : null,
             use_custom_payment_start: !!contractData.use_custom_payment_start,
+            ss_employer_rate: Number(contractData.ss_employer_rate ?? 0.2375),
+            payment_method: contractData.payment_method || null,
           }).eq('id', contractData.id);
         } else if (!isNew) {
           // No existing contract but editing — create one
@@ -352,6 +356,8 @@ export function useMemberSave() {
             value_includes_vat: !!contractData.value_includes_vat,
             payment_start_date: contractData.use_custom_payment_start ? (contractData.payment_start_date || null) : null,
             use_custom_payment_start: !!contractData.use_custom_payment_start,
+            ss_employer_rate: Number(contractData.ss_employer_rate ?? 0.2375),
+            payment_method: contractData.payment_method || null,
           });
         }
       }
