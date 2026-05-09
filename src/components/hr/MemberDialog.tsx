@@ -408,7 +408,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
 
   const handleStartDateChange = (v: string) => {
     setC('start_date', v);
-    set('start_date', v);
     setC('end_date', calcEndDate(v, contract.duration));
   };
 
@@ -560,9 +559,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-xs text-muted-foreground">Data de nascimento</label>
-                <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+                <Input type="date" value={f.birthday || ''} onChange={e => set('birthday', e.target.value)} />
               </div>
-              <div></div>
+              <div />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
