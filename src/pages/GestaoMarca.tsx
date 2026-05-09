@@ -210,11 +210,11 @@ export default function GestaoMarcaPage() {
 
   useEffect(() => {
     let cancelled = false;
-    const imageFiles = visualFiles.filter(file => file.file_type === 'image');
+    const storedFiles = visualFiles.filter(file => file.file_type !== 'link');
     const values = [
       ...visualCards.map(card => card.cover_url).filter(Boolean),
       selectedVisual?.cover_url,
-      ...imageFiles.map(file => file.file_url),
+      ...storedFiles.map(file => file.file_url),
     ].filter(Boolean) as string[];
 
     if (values.length === 0) {
@@ -1280,7 +1280,7 @@ export default function GestaoMarcaPage() {
                   <div className="space-y-2">
                     {visualFiles.filter(f => f.file_type === 'file').map(file => (
                       <div key={file.id} className="flex items-center gap-2 group">
-                        <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
+                        <a href={visualDisplayUrls[file.file_url] || file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
                           <FileText className="h-3.5 w-3.5 shrink-0" />
                           {file.file_name}
                         </a>
