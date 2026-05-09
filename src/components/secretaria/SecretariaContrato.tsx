@@ -9,6 +9,27 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { FileText, Download, ExternalLink } from 'lucide-react';
 import { useMyTeamMember } from './secretaria-shared';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { isPaidExpenseStatus } from '@/lib/expenseStatus';
+
+const STATUS_LABEL: Record<string, string> = {
+  tudo_ok: 'Pago',
+  pago_falta_fatura: 'Pago (s/ fatura)',
+  pendente: 'Pendente',
+  em_atraso: 'Em atraso',
+  por_pagar: 'Por pagar',
+};
+
+function statusVariant(status?: string | null): 'default' | 'destructive' | 'secondary' | 'outline' {
+  if (isPaidExpenseStatus(status)) return 'default';
+  if (status === 'em_atraso') return 'destructive';
+  if (status === 'pendente') return 'secondary';
+  return 'outline';
+}
+
+function statusLabel(status?: string | null) {
+  if (!status) return 'Por pagar';
+  return STATUS_LABEL[status] || status;
+}
 
 export default function SecretariaContrato() {
   const teamMember = useMyTeamMember();
@@ -48,13 +69,11 @@ export default function SecretariaContrato() {
         expenses = expData || [];
       }
 
-      // Normalizar saídas para o mesmo shape
+      // Normalizar saídas para o mesmo shape (mantém o status original)
       const normalizedExpenses = expenses.map((e: any) => {
         const docs = Array.isArray(e.documents) ? e.documents : [];
         const firstDoc = docs[0];
         const docUrl = typeof firstDoc === 'string' ? firstDoc : firstDoc?.url || firstDoc?.file_url || null;
-        // Mapear status das saídas ('tudo_ok'/'pago' = pago; resto = por pagar)
-        const isPaid = e.status === 'pago' || e.status === 'tudo_ok';
         return {
           id: `exp-${e.id}`,
           source: 'expense' as const,
@@ -63,7 +82,7 @@ export default function SecretariaContrato() {
           payment_type: 'ordenado',
           gross_value: Number(e.total_with_vat || e.base_value || 0),
           net_value: Number(e.base_value || 0),
-          status: isPaid ? 'pago' : 'por_pagar',
+          status: e.status || 'por_pagar',
           document_url: docUrl,
           description: e.description,
           expense_date: e.expense_date,
@@ -91,7 +110,9 @@ export default function SecretariaContrato() {
   });
 
   const currentYear = new Date().getFullYear();
-  const yearTotal = (payments.data || []).filter(p => p.year === currentYear && p.status === 'pago').reduce((s, p) => s + Number(p.net_value || 0), 0);
+  const yearTotal = (payments.data || [])
+    .filter(p => p.year === currentYear && isPaidExpenseStatus(p.status))
+    .reduce((s, p) => s + Number(p.net_value || 0), 0);
   const activeContract = (contracts.data || []).find(c => c.status === 'ativo');
 
   const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -143,7 +164,7 @@ export default function SecretariaContrato() {
                   <TableCell className="text-sm capitalize">{p.payment_type?.replace('_', ' ')}</TableCell>
                   <TableCell className="text-sm">{Number(p.gross_value).toFixed(2)} €</TableCell>
                   <TableCell className="text-sm font-medium">{Number(p.net_value).toFixed(2)} €</TableCell>
-                  <TableCell><Badge variant={p.status === 'pago' ? 'default' : 'outline'} className="text-[10px]">{p.status === 'pago' ? 'Pago' : 'Por Pagar'}</Badge></TableCell>
+                  <TableCell><Badge variant={statusVariant(p.status)} className="text-[10px]">{statusLabel(p.status)}</Badge></TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -163,7 +184,7 @@ export default function SecretariaContrato() {
                 <div><p className="text-xs text-muted-foreground">Tipo</p><p className="font-medium capitalize">{selectedPayment.payment_type?.replace('_', ' ')}</p></div>
                 <div><p className="text-xs text-muted-foreground">Valor Bruto</p><p className="font-medium">{Number(selectedPayment.gross_value).toFixed(2)} €</p></div>
                 <div><p className="text-xs text-muted-foreground">Valor Líquido</p><p className="font-medium">{Number(selectedPayment.net_value).toFixed(2)} €</p></div>
-                <div><p className="text-xs text-muted-foreground">Status</p><Badge variant={selectedPayment.status === 'pago' ? 'default' : 'outline'}>{selectedPayment.status === 'pago' ? 'Pago' : 'Por Pagar'}</Badge></div>
+                <div><p className="text-xs text-muted-foreground">Status</p><Badge variant={statusVariant(selectedPayment.status)}>{statusLabel(selectedPayment.status)}</Badge></div>
               </div>
 
               {selectedPayment.document_url ? (
