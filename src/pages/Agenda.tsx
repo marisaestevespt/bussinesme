@@ -1197,6 +1197,9 @@ const AGENDA_DEFAULT_VIEWS: DefaultView[] = [
 const AGENDA_MODE_KEY = 'agenda:viewMode';
 
 export default function AgendaPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const clientIdFilter = searchParams.get('client_id');
+  const clientNameFilter = searchParams.get('client_name');
   const { allViews, addView, renameView, deleteView } = useUserViews('agenda', AGENDA_DEFAULT_VIEWS);
   const [view, setView] = useState<string>('calendar');
   const [formOpen, setFormOpen] = useState(false);
