@@ -378,10 +378,9 @@ export default function GestaoMarcaPage() {
       const path = `visual/${selectedVisual.id}/${Date.now()}-${safeName}`;
       const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file, { contentType: file.type || undefined });
       if (uploadError) { toast.error(`Erro ao carregar ${file.name}`); continue; }
-      const { data: { publicUrl } } = supabase.storage.from('brand-files').getPublicUrl(path);
       await supabase.from('brand_visual_files').insert({
         card_id: selectedVisual.id,
-        file_url: publicUrl,
+        file_url: path,
         file_name: file.name,
         file_type: type,
       } as any);
@@ -400,9 +399,8 @@ export default function GestaoMarcaPage() {
     const path = `covers/${selectedVisual.id}/${Date.now()}-${safeName}`;
     const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file, { contentType: file.type || undefined });
     if (uploadError) { toast.error('Erro ao carregar capa'); setUploadingVisual(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from('brand-files').getPublicUrl(path);
-    await supabase.from('brand_visual_cards').update({ cover_url: publicUrl } as any).eq('id', selectedVisual.id);
-    setSelectedVisual(prev => prev ? { ...prev, cover_url: publicUrl } : null);
+    await supabase.from('brand_visual_cards').update({ cover_url: path } as any).eq('id', selectedVisual.id);
+    setSelectedVisual(prev => prev ? { ...prev, cover_url: path } : null);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
     setUploadingVisual(false);
     toast.success('Capa atualizada');
