@@ -17,6 +17,7 @@ interface ExpenseLike {
   expense_month: number | null;
   expense_year: number | null;
   category: string | null;
+  source_type?: string | null;
 }
 
 const QUARTERS = [
@@ -28,7 +29,12 @@ const QUARTERS = [
 
 export function useOverviewData(sales: SaleLike[], expenses: ExpenseLike[], year: number) {
   const yearSales = useMemo(() => sales.filter(s => s.sale_year === year), [sales, year]);
-  const yearExpenses = useMemo(() => expenses.filter(e => e.expense_year === year), [expenses, year]);
+  // Excluir despesas de impostos (source_type='tax') do operacional —
+  // contam para o saldo bancário mas não para margem/categorias operacionais.
+  const yearExpenses = useMemo(
+    () => expenses.filter(e => e.expense_year === year && e.source_type !== 'tax'),
+    [expenses, year],
+  );
 
   // Totais sem IVA (base): a contabilidade interna ignora IVA.
   const totalEntradas = yearSales.reduce((s, v) => s + v.base_value, 0);
