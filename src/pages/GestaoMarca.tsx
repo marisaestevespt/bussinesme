@@ -1275,6 +1275,23 @@ export default function GestaoMarcaPage() {
                 </div>
               )}
 
+              {visualFiles.filter(f => f.file_type !== 'link').length > 0 && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const items = visualFiles.filter(f => f.file_type !== 'link');
+                      for (const f of items) {
+                        await downloadBrandFile(visualDisplayUrls[f.file_url] || f.file_url, f.file_name);
+                      }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1" />Transferir tudo
+                  </Button>
+                </div>
+              )}
+
               {/* Image grid */}
               {visualFiles.filter(f => f.file_type === 'image').length > 0 && (
                 <div className="space-y-2">
