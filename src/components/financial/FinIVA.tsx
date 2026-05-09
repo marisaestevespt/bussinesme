@@ -155,6 +155,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const [payQuarter, setPayQuarter] = useState<{ q: number; calculado: number } | null>(null);
   const [payAmount, setPayAmount] = useState('');
   const [payDate, setPayDate] = useState('');
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   const markPaidMutation = useMutation({
     mutationFn: async ({ q, amount, date, existingExpenseId }: { q: number; amount: number; date: string; existingExpenseId?: string | null }) => {
@@ -320,6 +321,18 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => {
+                              setPayQuarter({ q: qRow.q, calculado: qRow.calculado });
+                              setPayAmount(Number(qRow.payment!.paid_amount).toFixed(2));
+                              setPayDate(qRow.payment!.paid_date || new Date().toISOString().slice(0, 10));
+                              setEditingExpenseId(qRow.payment!.expense_id);
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => unmarkPaidMutation.mutate({ id: qRow.payment!.id, expense_id: qRow.payment!.expense_id })}
                           >
                             <X className="h-3.5 w-3.5" />
@@ -333,6 +346,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                             setPayQuarter({ q: qRow.q, calculado: qRow.calculado });
                             setPayAmount(qRow.calculado > 0 ? qRow.calculado.toFixed(2) : '');
                             setPayDate(new Date().toISOString().slice(0, 10));
+                            setEditingExpenseId(null);
                           }}
                         >
                           Marcar pago
@@ -499,10 +513,10 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
       </Dialog>
 
       {/* Dialog: marcar trimestre como pago */}
-      <Dialog open={payQuarter !== null} onOpenChange={(o) => !o && setPayQuarter(null)}>
+      <Dialog open={payQuarter !== null} onOpenChange={(o) => { if (!o) { setPayQuarter(null); setEditingExpenseId(null); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-base">Registar pagamento de IVA — T{payQuarter?.q}/{currentYear}</DialogTitle>
+            <DialogTitle className="text-base">{editingExpenseId ? 'Editar' : 'Registar'} pagamento de IVA — T{payQuarter?.q}/{currentYear}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="text-xs text-muted-foreground">
@@ -517,11 +531,11 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
               <Input id="pay-date" type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" size="sm" onClick={() => setPayQuarter(null)}>Cancelar</Button>
+              <Button variant="ghost" size="sm" onClick={() => { setPayQuarter(null); setEditingExpenseId(null); }}>Cancelar</Button>
               <Button
                 size="sm"
                 disabled={!payAmount || !payDate || markPaidMutation.isPending}
-                onClick={() => markPaidMutation.mutate({ q: payQuarter!.q, amount: Number(payAmount), date: payDate })}
+                onClick={() => markPaidMutation.mutate({ q: payQuarter!.q, amount: Number(payAmount), date: payDate, existingExpenseId: editingExpenseId })}
               >
                 Confirmar
               </Button>
