@@ -30,7 +30,6 @@ import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSectio
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
-import { ProductPortalTemplateSection } from '@/components/product/ProductPortalTemplateSection';
 import { ProductWelcomeEmailSection } from '@/components/product/ProductWelcomeEmailSection';
 import { ProductProjectsSection } from '@/components/product/ProductProjectsSection';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
@@ -590,8 +589,8 @@ export default function ProdutoDetailPage() {
               {isOwner && <Button variant="outline" size="sm" className="mt-1" onClick={() => update('included_items', [...includedItems, ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar item</Button>}
             </div>
             <div className="pt-4 border-t">
-              <h4 className="text-sm font-semibold mb-2">FAQs (cliente final / portal)</h4>
-              <p className="text-xs text-muted-foreground mb-2">Visíveis ao cliente — usadas no portal e materiais públicos. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
+              <h4 className="text-sm font-semibold mb-2">FAQs do Portal do Cliente</h4>
+              <p className="text-xs text-muted-foreground mb-2">Estas FAQs aparecem automaticamente no portal de todos os clientes deste produto. Alterações aqui propagam-se em tempo real. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
               <Accordion type="multiple" className="w-full">
                 {faqs.map((faq, i) => (
                   <AccordionItem key={i} value={`faq-${i}`}>
@@ -720,7 +719,6 @@ export default function ProdutoDetailPage() {
             {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
             {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
             {canSeeSection('branding') && <SectionButton sectionKey="branding" label="Branding" />}
-            {canSeeSection('branding') && <SectionButton sectionKey="portal-template" label="Portal Template" />}
             {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade" />}
             {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
             {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
@@ -840,26 +838,16 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'branding' && (
-            <ProductBrandingSection
-              branding={((form as any).branding || {}) as Record<string, unknown>}
-              isOwner={isOwner}
-              onUpdate={(next) => update('branding', next)}
-              portalBranding={((form as any).portal_branding || {}) as Record<string, unknown>}
-              onUpdatePortalBranding={(next) => update('portal_branding', next)}
-              productId={id!}
-              calendarColor={(form as any).calendar_color ?? null}
-              onUpdateCalendarColor={(next) => update('calendar_color', next)}
-            />
-          )}
-
-          {openSection === 'portal-template' && (
             <div className="space-y-6">
-              <ProductPortalTemplateSection
-                faqs={((form as any).portal_faqs_template || []) as any[]}
-                materials={((form as any).portal_materials_template || []) as any[]}
-                timeline={((form as any).portal_timeline_template || []) as any[]}
+              <ProductBrandingSection
+                branding={((form as any).branding || {}) as Record<string, unknown>}
                 isOwner={isOwner}
-                onUpdate={(field, value) => update(field, value)}
+                onUpdate={(next) => update('branding', next)}
+                portalBranding={((form as any).portal_branding || {}) as Record<string, unknown>}
+                onUpdatePortalBranding={(next) => update('portal_branding', next)}
+                productId={id!}
+                calendarColor={(form as any).calendar_color ?? null}
+                onUpdateCalendarColor={(next) => update('calendar_color', next)}
               />
               {id && id !== 'novo' && (
                 <ProductWelcomeEmailSection
