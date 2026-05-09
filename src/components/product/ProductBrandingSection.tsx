@@ -338,7 +338,7 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             Estratégia
           </EntityTabsTrigger>
           <EntityTabsTrigger value="visual">
-            <PaletteIcon className="h-3.5 w-3.5 mr-1.5 inline" />
+            <Palette className="h-3.5 w-3.5 mr-1.5 inline" />
             Identidade Visual
           </EntityTabsTrigger>
           {onUpdatePortalBranding && (
