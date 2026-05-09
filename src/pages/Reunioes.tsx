@@ -872,6 +872,20 @@ export function MeetingFormDialog({
                 <Input value={meetingUrl} onChange={e => setMeetingUrl(e.target.value)} placeholder="https://meet.google.com/..." />
               </div>
 
+              <div>
+                <Label>Tempo previsto (min)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={plannedMinutes}
+                  onChange={e => setPlannedMinutes(e.target.value === '' ? '' : (parseInt(e.target.value) || 0))}
+                  placeholder="Ex: 60"
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Duração estimada da reunião. O tempo real é registado depois, no detalhe.
+                </p>
+              </div>
+
               <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
 
               {/* Client */}
