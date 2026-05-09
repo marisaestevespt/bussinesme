@@ -62,6 +62,32 @@ function sanitizeStorageName(raw: string): string {
   return (safeBase || 'file') + safeExt;
 }
 
+const BRAND_FILES_BUCKET = 'brand-files';
+
+function extractBrandFilePath(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (!value.startsWith('http')) return value.replace(/^\/+/, '');
+
+  try {
+    const pathname = new URL(value).pathname;
+    const marker = `/storage/v1/object/public/${BRAND_FILES_BUCKET}/`;
+    const index = pathname.indexOf(marker);
+    if (index === -1) return null;
+    return decodeURIComponent(pathname.slice(index + marker.length));
+  } catch {
+    return null;
+  }
+}
+
+async function getBrandFileDisplayUrl(value: string | null | undefined): Promise<string | null> {
+  if (!value) return null;
+  const path = extractBrandFilePath(value);
+  if (!path) return value;
+
+  const { data } = supabase.storage.from(BRAND_FILES_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export default function GestaoMarcaPage() {
   const navigate = useNavigate();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
@@ -103,6 +129,7 @@ export default function GestaoMarcaPage() {
   const [visualLinkLabel, setVisualLinkLabel] = useState('');
   const [visualLinkUrl, setVisualLinkUrl] = useState('');
   const [showFolderSystem, setShowFolderSystem] = useState(false);
+  const [visualDisplayUrls, setVisualDisplayUrls] = useState<Record<string, string>>({});
 
   // Competitors
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
@@ -179,6 +206,28 @@ export default function GestaoMarcaPage() {
 
   const folders = brandLinks.filter(l => l.type === 'folder');
   const shortcuts = brandLinks.filter(l => l.type === 'shortcut');
+
+  useEffect(() => {
+    let cancelled = false;
+    const storedFiles = visualFiles.filter(file => file.file_type !== 'link');
+    const values = [
+      ...visualCards.map(card => card.cover_url).filter(Boolean),
+      selectedVisual?.cover_url,
+      ...storedFiles.map(file => file.file_url),
+    ].filter(Boolean) as string[];
+
+    if (values.length === 0) {
+      setVisualDisplayUrls({});
+      return;
+    }
+
+    Promise.all(values.map(async value => [value, await getBrandFileDisplayUrl(value)] as const)).then(entries => {
+      if (cancelled) return;
+      setVisualDisplayUrls(Object.fromEntries(entries.map(([source, display]) => [source, display || source])));
+    });
+
+    return () => { cancelled = true; };
+  }, [visualCards, selectedVisual?.cover_url, visualFiles]);
 
   // ── PUV ──
 
@@ -328,10 +377,9 @@ export default function GestaoMarcaPage() {
       const path = `visual/${selectedVisual.id}/${Date.now()}-${safeName}`;
       const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file, { contentType: file.type || undefined });
       if (uploadError) { toast.error(`Erro ao carregar ${file.name}`); continue; }
-      const { data: { publicUrl } } = supabase.storage.from('brand-files').getPublicUrl(path);
       await supabase.from('brand_visual_files').insert({
         card_id: selectedVisual.id,
-        file_url: publicUrl,
+        file_url: path,
         file_name: file.name,
         file_type: type,
       } as any);
@@ -350,9 +398,8 @@ export default function GestaoMarcaPage() {
     const path = `covers/${selectedVisual.id}/${Date.now()}-${safeName}`;
     const { error: uploadError } = await supabase.storage.from('brand-files').upload(path, file, { contentType: file.type || undefined });
     if (uploadError) { toast.error('Erro ao carregar capa'); setUploadingVisual(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from('brand-files').getPublicUrl(path);
-    await supabase.from('brand_visual_cards').update({ cover_url: publicUrl } as any).eq('id', selectedVisual.id);
-    setSelectedVisual(prev => prev ? { ...prev, cover_url: publicUrl } : null);
+    await supabase.from('brand_visual_cards').update({ cover_url: path } as any).eq('id', selectedVisual.id);
+    setSelectedVisual(prev => prev ? { ...prev, cover_url: path } : null);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
     setUploadingVisual(false);
     toast.success('Capa atualizada');
@@ -781,7 +828,7 @@ export default function GestaoMarcaPage() {
                   >
                     <div className="aspect-square bg-muted/40 flex items-center justify-center overflow-hidden">
                       {card.cover_url ? (
-                        <img src={card.cover_url} alt={card.title} className="w-full h-full object-cover" />
+                        <img src={visualDisplayUrls[card.cover_url] || card.cover_url} alt={card.title} className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
                       )}
@@ -1133,7 +1180,7 @@ export default function GestaoMarcaPage() {
               {/* Cover */}
               <div className="aspect-video bg-muted/30 rounded-lg overflow-hidden relative group flex items-center justify-center">
                 {selectedVisual.cover_url ? (
-                  <img src={selectedVisual.cover_url} alt={selectedVisual.title} className="w-full h-full object-cover" />
+                  <img src={visualDisplayUrls[selectedVisual.cover_url] || selectedVisual.cover_url} alt={selectedVisual.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center text-muted-foreground/40">
                     <ImageIcon className="h-12 w-12 mx-auto mb-2" />
@@ -1207,7 +1254,7 @@ export default function GestaoMarcaPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {visualFiles.filter(f => f.file_type === 'image').map(file => (
                       <div key={file.id} className="relative group rounded-lg overflow-hidden border">
-                        <img src={file.file_url} alt={file.file_name} className="w-full aspect-square object-cover" />
+                        <img src={visualDisplayUrls[file.file_url] || file.file_url} alt={file.file_name} className="w-full aspect-square object-cover" />
                         {isOwner && (
                           <Button
                             variant="destructive"
@@ -1232,7 +1279,7 @@ export default function GestaoMarcaPage() {
                   <div className="space-y-2">
                     {visualFiles.filter(f => f.file_type === 'file').map(file => (
                       <div key={file.id} className="flex items-center gap-2 group">
-                        <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
+                        <a href={visualDisplayUrls[file.file_url] || file.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
                           <FileText className="h-3.5 w-3.5 shrink-0" />
                           {file.file_name}
                         </a>
