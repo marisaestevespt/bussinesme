@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Plus, X, ExternalLink, Upload, Palette, Pencil, Check, FileText, Link2 } from 'lucide-react';
+import { Plus, X, ExternalLink, Upload, Palette, Pencil, Check, FileText, Link2, Sparkles, Globe, FolderOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,7 +12,6 @@ import { BrandFontPicker } from '@/components/shared/BrandFontPicker';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { ImageIcon } from 'lucide-react';
 import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
-import { Sparkles, Palette as PaletteIcon, Globe, FolderOpen } from 'lucide-react';
 
 /* ── color helpers (HEX <-> HSL triplet "H S% L%") ── */
 
