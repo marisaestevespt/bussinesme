@@ -27,7 +27,7 @@ export function ProductProjectsSection({ productId, productName }: { productId: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, name, type, status, deadline, client_id, progress, clients(name)')
+        .select('id, name, type, status, deadline, client_id, client_name, progress')
         .eq('product_id', productId)
         .is('archived_at', null)
         .order('created_at', { ascending: false });
@@ -35,7 +35,7 @@ export function ProductProjectsSection({ productId, productName }: { productId: 
       return (data || []).map((p: any) => ({
         id: p.id, name: p.name, type: p.type, status: p.status,
         deadline: p.deadline, client_id: p.client_id,
-        client_name: p.clients?.name ?? null, progress: p.progress,
+        client_name: p.client_name ?? null, progress: p.progress,
       })) as ProjectRow[];
     },
     enabled: !!productId,
