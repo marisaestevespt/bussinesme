@@ -238,6 +238,8 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     value_includes_vat: false,
     payment_start_date: '', // if different from contract start
     use_custom_payment_start: false,
+    ss_employer_rate: 0.2375,
+    payment_method: '',
   });
   const [contractLoaded, setContractLoaded] = useState(false);
 
