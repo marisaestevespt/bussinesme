@@ -378,6 +378,34 @@ export function RotinasView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <Label>Formato</Label>
+                <Select value={format} onValueChange={v => setFormat(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tarefa">Tarefa</SelectItem>
+                    <SelectItem value="reuniao">Reunião</SelectItem>
+                    <SelectItem value="entrega">Entrega</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Reuniões geram entradas no separador Reuniões com o tempo previsto.
+                </p>
+              </div>
+              <div>
+                <Label>Tempo previsto (min)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={estimatedMinutes}
+                  onChange={e => setEstimatedMinutes(e.target.value)}
+                  placeholder={estimatedTime ? String(Math.round(parseFloat(estimatedTime) * 60)) : 'Ex: 45'}
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">Usado para reuniões e análise de capacidade.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <Label>Hora (opcional)</Label>
                 <Input type="time" value={hourTime} onChange={e => setHourTime(e.target.value)} />
                 <p className="text-[10px] text-muted-foreground mt-0.5">Deixa vazio se não tem hora fixa</p>
