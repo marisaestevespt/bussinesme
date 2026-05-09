@@ -9,6 +9,7 @@
 export type ProductType =
   | 'projeto_1_1'
   | 'servico_pontual'
+  | 'consulta'
   | 'consultoria_individual'
   | 'consultoria_grupo'
   | 'mentoria_individual'
@@ -22,6 +23,7 @@ export type PortalType = 'projeto_unico' | 'servico_mensal' | null;
 const PROJETO_TYPES: ProductType[] = [
   'projeto_1_1',
   'servico_pontual',
+  'consulta',
   'consultoria_individual',
   'consultoria_grupo',
   'mentoria_individual',
