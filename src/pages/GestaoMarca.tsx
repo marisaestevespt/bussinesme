@@ -1301,7 +1301,7 @@ export default function GestaoMarcaPage() {
               {visualFiles.filter(f => f.file_type === 'image').length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Imagens</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-3xl">
                     {visualFiles.filter(f => f.file_type === 'image').map(file => (
                       <div key={file.id} className="relative group rounded-lg overflow-hidden border">
                         <img src={visualDisplayUrls[file.file_url] || file.file_url} alt={file.file_name} className="w-full aspect-square object-cover" />
