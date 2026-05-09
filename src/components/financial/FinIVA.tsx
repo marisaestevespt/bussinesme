@@ -5,7 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, AlertTriangle } from 'lucide-react';
+import { Download, AlertTriangle, Check, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
@@ -119,6 +123,103 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const totalDeduzir = balanco.reduce((s, d) => s + d.deduzir, 0);
   const totalBalanco = balanco.reduce((s, d) => s + d.balanco, 0);
 
+  // ===== Pagamentos trimestrais =====
+  const queryClient = useQueryClient();
+  const ivaPaymentsQuery = useQuery({
+    queryKey: ['iva-payments', currentYear],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('iva_payments')
+        .select('*')
+        .eq('year', currentYear);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const QUARTERS = [
+    { q: 1, label: 'T1 (Jan-Mar)', months: [0, 1, 2] },
+    { q: 2, label: 'T2 (Abr-Jun)', months: [3, 4, 5] },
+    { q: 3, label: 'T3 (Jul-Set)', months: [6, 7, 8] },
+    { q: 4, label: 'T4 (Out-Dez)', months: [9, 10, 11] },
+  ];
+
+  const quarterRows = useMemo(() => {
+    return QUARTERS.map(({ q, label, months }) => {
+      const calculado = months.reduce((s, i) => s + balanco[i].balanco, 0);
+      const payment = (ivaPaymentsQuery.data || []).find(p => p.quarter === q);
+      return { q, label, calculado, payment };
+    });
+  }, [balanco, ivaPaymentsQuery.data]);
+
+  const [payQuarter, setPayQuarter] = useState<{ q: number; calculado: number } | null>(null);
+  const [payAmount, setPayAmount] = useState('');
+  const [payDate, setPayDate] = useState('');
+
+  const markPaidMutation = useMutation({
+    mutationFn: async ({ q, amount, date }: { q: number; amount: number; date: string }) => {
+      // 1) Criar despesa do tipo "tax" (entra no saldo, fica fora do operacional)
+      const d = new Date(date);
+      const { data: expense, error: expErr } = await supabase
+        .from('financial_expenses')
+        .insert({
+          description: `IVA T${q}/${currentYear}`,
+          expense_name: `IVA T${q}/${currentYear}`,
+          category: 'impostos',
+          base_value: amount,
+          vat_rate: 0,
+          total_with_vat: amount,
+          expense_date: date,
+          expense_month: d.getMonth() + 1,
+          expense_quarter: Math.floor(d.getMonth() / 3) + 1,
+          expense_year: d.getFullYear(),
+          source_type: 'tax',
+          status: 'tudo_ok',
+        })
+        .select()
+        .single();
+      if (expErr) throw expErr;
+
+      // 2) Criar/atualizar registo em iva_payments
+      const { error: payErr } = await supabase
+        .from('iva_payments')
+        .upsert({
+          year: currentYear,
+          quarter: q,
+          paid_amount: amount,
+          paid_date: date,
+          expense_id: expense.id,
+        }, { onConflict: 'year,quarter' });
+      if (payErr) throw payErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['iva-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['fin-lifetime-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success('Pagamento de IVA registado');
+      setPayQuarter(null);
+      setPayAmount('');
+      setPayDate('');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const unmarkPaidMutation = useMutation({
+    mutationFn: async (payment: { id: string; expense_id: string | null }) => {
+      if (payment.expense_id) {
+        await supabase.from('financial_expenses').delete().eq('id', payment.expense_id);
+      }
+      await supabase.from('iva_payments').delete().eq('id', payment.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['iva-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['fin-lifetime-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success('Pagamento removido');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Detail data for popups
   const cobradoDetail = cobradoMonth !== null ? ivaCobrado[cobradoMonth] : null;
   const pagoDetail = pagoMonth !== null ? ivaPago[pagoMonth] : null;
@@ -196,6 +297,73 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
         documents={ivaDocuments}
         onUpdate={handleDocsUpdate}
       />
+
+      {/* Pagamentos trimestrais */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Pagamentos por Trimestre — {currentYear}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Trimestre</TableHead>
+                <TableHead className="text-right">Calculado (a entregar)</TableHead>
+                <TableHead className="text-right">Pago</TableHead>
+                <TableHead className="text-right">Valor pago</TableHead>
+                <TableHead className="text-right">Data</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {quarterRows.map(row => (
+                <TableRow key={row.q}>
+                  <TableCell className="font-medium">{row.label}</TableCell>
+                  <TableCell className={`text-right ${row.calculado > 0 ? 'text-warning' : row.calculado < 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                    {formatEuro(row.calculado)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {row.payment ? (
+                      <Badge variant="outline" className="bg-success/10 text-success">
+                        <Check className="h-3 w-3 mr-1" /> Pago
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-muted text-muted-foreground">Não pago</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">{row.payment ? formatEuro(Number(row.payment.paid_amount)) : '—'}</TableCell>
+                  <TableCell className="text-right text-sm text-muted-foreground">
+                    {row.payment?.paid_date ? new Date(row.payment.paid_date).toLocaleDateString('pt-PT') : '—'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {row.payment ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => unmarkPaidMutation.mutate({ id: row.payment!.id, expense_id: row.payment!.expense_id })}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setPayQuarter({ q: row.q, calculado: row.calculado });
+                          setPayAmount(row.calculado > 0 ? row.calculado.toFixed(2) : '');
+                          setPayDate(new Date().toISOString().slice(0, 10));
+                        }}
+                      >
+                        Marcar pago
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Auto-liquidação UE */}
       {autoLiquidacao.hasAny && (
@@ -329,6 +497,38 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
               </TableBody>
             </Table>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: marcar trimestre como pago */}
+      <Dialog open={payQuarter !== null} onOpenChange={(o) => !o && setPayQuarter(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Registar pagamento de IVA — T{payQuarter?.q}/{currentYear}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              Valor calculado: <strong>{formatEuro(payQuarter?.calculado || 0)}</strong>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="pay-amount" className="text-xs">Valor efetivamente pago (€)</Label>
+              <Input id="pay-amount" type="number" step="0.01" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="pay-date" className="text-xs">Data do pagamento</Label>
+              <Input id="pay-date" type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" size="sm" onClick={() => setPayQuarter(null)}>Cancelar</Button>
+              <Button
+                size="sm"
+                disabled={!payAmount || !payDate || markPaidMutation.isPending}
+                onClick={() => markPaidMutation.mutate({ q: payQuarter!.q, amount: Number(payAmount), date: payDate })}
+              >
+                Confirmar
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       </div>
