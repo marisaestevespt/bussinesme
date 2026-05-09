@@ -373,7 +373,7 @@ export function useMemberSave() {
               phone: member.whatsapp || null,
               work_schedule: member.work_schedule || null,
               team_member_id: memberId,
-              department: member.department || null,
+              department: depts[0] || null,
             },
           });
           if (authError) {
