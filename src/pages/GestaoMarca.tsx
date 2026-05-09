@@ -62,6 +62,33 @@ function sanitizeStorageName(raw: string): string {
   return (safeBase || 'file') + safeExt;
 }
 
+const BRAND_FILES_BUCKET = 'brand-files';
+const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 7;
+
+function extractBrandFilePath(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (!value.startsWith('http')) return value.replace(/^\/+/, '');
+
+  try {
+    const pathname = new URL(value).pathname;
+    const marker = `/storage/v1/object/public/${BRAND_FILES_BUCKET}/`;
+    const index = pathname.indexOf(marker);
+    if (index === -1) return null;
+    return decodeURIComponent(pathname.slice(index + marker.length));
+  } catch {
+    return null;
+  }
+}
+
+async function getBrandFileDisplayUrl(value: string | null | undefined): Promise<string | null> {
+  if (!value) return null;
+  const path = extractBrandFilePath(value);
+  if (!path) return value;
+
+  const { data, error } = await supabase.storage.from(BRAND_FILES_BUCKET).createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+  return error ? value : data.signedUrl;
+}
+
 export default function GestaoMarcaPage() {
   const navigate = useNavigate();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
