@@ -56,6 +56,18 @@ const SYSTEM_ROLE_OPTIONS = [
   { value: 'viewer',      label: 'Visualizador',     hint: 'Só pode ver, não pode editar nada.' },
 ];
 
+// Permissões sensíveis sugeridas por função no sistema.
+// Aplicadas automaticamente como ponto de partida (utilizador pode ajustar).
+const SENSITIVE_DEFAULTS_BY_ROLE: Record<string, string[]> = {
+  admin:       ['financial_values', 'payroll', 'fiscal_data', 'contracts', 'client_payments'],
+  accountant:  ['financial_values', 'fiscal_data', 'client_payments'],
+  hr:          ['payroll', 'contracts'],
+  admin_staff: ['fiscal_data'],
+  sales:       ['client_payments'],
+  team_member: [],
+  viewer:      [],
+};
+
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'mbway', label: 'MB WAY' },
@@ -558,13 +570,15 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                 <label className="text-xs text-muted-foreground">Data de nascimento</label>
                 <Input type="date" value={f.birthday || ''} onChange={e => set('birthday', e.target.value)} />
               </div>
-              <div />
+              <div>
+                <label className="text-xs text-muted-foreground">NIF / Identificação</label>
+                <Input placeholder="NIF" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
               <Input placeholder="IBAN" value={f.iban || ''} onChange={e => set('iban', e.target.value)} />
+              <Input placeholder="Morada fiscal" value={f.fiscal_address || ''} onChange={e => set('fiscal_address', e.target.value)} />
             </div>
-            <Input placeholder="Morada fiscal" value={f.fiscal_address || ''} onChange={e => set('fiscal_address', e.target.value)} />
           </div>
 
           {isOwnerRole ? (
@@ -581,7 +595,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 O que faz</h3>
                 <div>
-                  <span className="text-xs text-muted-foreground font-medium">Atalhos rápidos</span>
+                  <span className="text-xs text-muted-foreground font-medium">Perfil rápido</span>
                   <p className="text-[10px] text-muted-foreground">Aplica em 1 clique departamento(s) + modo de trabalho típico. Podes ajustar depois.</p>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {[
@@ -639,7 +653,16 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                 <div className="space-y-2">
                   <span className="text-xs text-muted-foreground font-medium">Função no sistema</span>
                   <p className="text-[10px] text-muted-foreground">Controla o nível de acesso técnico. Diferente do cargo (descritivo).</p>
-                  <Select value={f.system_role || 'team_member'} onValueChange={(v) => set('system_role', v)}>
+                  <Select value={f.system_role || 'team_member'} onValueChange={(v) => {
+                    set('system_role', v);
+                    // Aplica defaults de permissões sensíveis para esta função (preserva o que já está ON).
+                    const defaults = SENSITIVE_DEFAULTS_BY_ROLE[v] || [];
+                    if (defaults.length > 0) {
+                      const current = { ...(f.sensitiveAccess || {}) };
+                      defaults.forEach(k => { if (current[k] === undefined) current[k] = true; });
+                      set('sensitiveAccess', current);
+                    }
+                  }}>
                     <SelectTrigger className="h-9 text-xs">
                       <SelectValue placeholder="Membro de equipa" />
                     </SelectTrigger>
