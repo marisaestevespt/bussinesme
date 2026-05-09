@@ -745,11 +745,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                 <span className="text-xs text-muted-foreground font-medium">Vínculo</span>
                 <p className="text-[10px] text-muted-foreground">Define o tipo de relação e o contrato associado.</p>
                 <Select
-                  value={bondFromTypes(f.member_type, contract.contract_type)}
+                  value={bondFromContractType(contract.contract_type)}
                   onValueChange={(v) => {
                     const opt = BOND_OPTIONS.find(o => o.value === v);
                     if (!opt) return;
-                    set('member_type', opt.member_type);
                     setC('contract_type', opt.contract_type);
                   }}
                 >
