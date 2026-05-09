@@ -6006,8 +6006,10 @@ export type Database = {
           monthly_value: number | null
           notes: string | null
           payment_day: number | null
+          payment_method: string | null
           payment_start_date: string | null
           previous_contract_id: string | null
+          ss_employer_rate: number
           start_date: string | null
           status: string
           updated_at: string
@@ -6025,8 +6027,10 @@ export type Database = {
           monthly_value?: number | null
           notes?: string | null
           payment_day?: number | null
+          payment_method?: string | null
           payment_start_date?: string | null
           previous_contract_id?: string | null
+          ss_employer_rate?: number
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -6044,8 +6048,10 @@ export type Database = {
           monthly_value?: number | null
           notes?: string | null
           payment_day?: number | null
+          payment_method?: string | null
           payment_start_date?: string | null
           previous_contract_id?: string | null
+          ss_employer_rate?: number
           start_date?: string | null
           status?: string
           updated_at?: string
