@@ -28,15 +28,13 @@ import { getSopStatusInfo } from '@/lib/sopStatus';
 
 interface ProcessosSectionProps {
   productSops: Array<Record<string, unknown>>;
-  projectTemplate: Array<Record<string, unknown>>;
   isOwner: boolean;
   productId: string;
-  onAddProjectTask: () => void;
   onUpdateRow: (table: string, id: string, data: Record<string, unknown>) => void;
   onDeleteRow: (table: string, id: string) => void;
 }
 
-export function ProductProcessosSection({ productSops, projectTemplate, isOwner, productId, onAddProjectTask, onUpdateRow, onDeleteRow }: ProcessosSectionProps) {
+export function ProductProcessosSection({ productSops, isOwner, productId, onUpdateRow, onDeleteRow }: ProcessosSectionProps) {
   const navigate = useNavigate();
 
   return (
@@ -68,91 +66,6 @@ export function ProductProcessosSection({ productSops, projectTemplate, isOwner,
               })}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle className="text-base">Template de Projeto</CardTitle>
-          {isOwner && (
-            <Button size="sm" variant="outline" onClick={onAddProjectTask}>
-              <Plus className="h-3 w-3 mr-1" /> Adicionar Tarefa
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          <p className="text-xs text-muted-foreground mb-3">Tarefas que serão criadas automaticamente no projeto de cada cliente deste produto.</p>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[180px]">Tarefa</TableHead>
-                  <TableHead className="min-w-[120px]">Regra</TableHead>
-                  <TableHead className="min-w-[120px]">Responsável (Função)</TableHead>
-                  <TableHead className="min-w-[90px]">Prioridade</TableHead>
-                  <TableHead className="min-w-[100px]">Departamento</TableHead>
-                  <TableHead className="w-[60px]">Subtarefa</TableHead>
-                  <TableHead className="w-[80px]">Tempo Est. (h)</TableHead>
-                  <TableHead className="min-w-[140px]">Notas</TableHead>
-                  {isOwner && <TableHead className="w-10" />}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {projectTemplate.length === 0 && (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-4">Sem tarefas no template</TableCell></TableRow>
-                )}
-                {projectTemplate.map((t) => (
-                  <TableRow key={t.id as string} className={t.is_subtask ? 'bg-muted/30' : ''}>
-                    <TableCell>
-                      <Input defaultValue={(t.task_name as string) || ''} placeholder="Nome da tarefa" onBlur={e => onUpdateRow('product_project_templates', t.id as string, { task_name: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                    </TableCell>
-                    <TableCell>
-                      <Input defaultValue={(t.rule as string) || ''} placeholder="Ex: +5 dias" onBlur={e => onUpdateRow('product_project_templates', t.id as string, { rule: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                    </TableCell>
-                    <TableCell>
-                      <Input defaultValue={(t.responsible as string) || ''} placeholder="Ex: Designer" onBlur={e => onUpdateRow('product_project_templates', t.id as string, { responsible: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                    </TableCell>
-                    <TableCell>
-                      {isOwner ? (
-                        <Select defaultValue={(t.priority as string) || 'media'} onValueChange={v => onUpdateRow('product_project_templates', t.id as string, { priority: v })}>
-                          <SelectTrigger className="h-7 text-xs border-none shadow-none p-0">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="baixa">Baixa</SelectItem>
-                            <SelectItem value="media">Média</SelectItem>
-                            <SelectItem value="alta">Alta</SelectItem>
-                            <SelectItem value="urgente">Urgente</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <span className="text-xs capitalize">{(t.priority as string) || 'media'}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Input defaultValue={(t.department as string) || ''} placeholder="Departamento" onBlur={e => onUpdateRow('product_project_templates', t.id as string, { department: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Checkbox
-                        checked={!!t.is_subtask}
-                        onCheckedChange={v => isOwner && onUpdateRow('product_project_templates', t.id as string, { is_subtask: !!v })}
-                        disabled={!isOwner}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input type="number" step="0.5" defaultValue={t.estimated_time != null ? String(t.estimated_time) : ''} placeholder="h" onBlur={e => onUpdateRow('product_project_templates', t.id as string, { estimated_time: e.target.value ? Number(e.target.value) : null })} className="border-none shadow-none h-auto p-0 text-sm w-16" readOnly={!isOwner} />
-                    </TableCell>
-                    <TableCell>
-                      <Input defaultValue={(t.notes as string) || ''} placeholder="Notas..." onBlur={e => onUpdateRow('product_project_templates', t.id as string, { notes: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                    </TableCell>
-                    {isOwner && (
-                      <TableCell><Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => onDeleteRow('product_project_templates', t.id as string)}><Trash2 className="h-3 w-3" /></Button></TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
         </CardContent>
       </Card>
 
