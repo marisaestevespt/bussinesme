@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Plus, X, GripVertical } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -95,18 +95,15 @@ export function BulletListEditor({ itemId, initial, isOwner, placeholder, onSave
         ))}
       </ul>
       {isOwner && (
-        <div className="flex gap-2 pt-2 border-t">
-          <Textarea
+        <div className="flex items-center gap-1 pt-1.5 mt-1 border-t border-border/60">
+          <Plus className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0 ml-0.5" />
+          <Input
             value={draft}
             onChange={e => setDraft(e.target.value)}
-            placeholder={placeholder || 'Nova crença...'}
-            rows={2}
-            className="min-h-[40px] text-sm resize-y"
-            onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); add(); } }}
+            placeholder={placeholder || 'Adicionar...'}
+            className="h-7 text-sm border-transparent bg-transparent shadow-none focus-visible:border-input focus-visible:bg-background px-1.5"
+            onKeyDown={e => { if (e.key === 'Enter' && draft.trim()) { e.preventDefault(); add(); } }}
           />
-          <Button size="sm" className="h-8" onClick={add} disabled={!draft.trim()}>
-            <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
-          </Button>
         </div>
       )}
     </div>
