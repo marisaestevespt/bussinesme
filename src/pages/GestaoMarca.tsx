@@ -51,6 +51,17 @@ import { BrandIdentitySync } from '@/components/gestao-marca/BrandIdentitySync';
 import { safeUrl } from '@/lib/url';
 
 
+/** Sanitize filename for Supabase Storage (no spaces, accents, or unsafe chars). */
+function sanitizeStorageName(raw: string): string {
+  const stripped = (raw || 'file').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim();
+  const dot = stripped.lastIndexOf('.');
+  const base = dot > 0 ? stripped.slice(0, dot) : stripped;
+  const ext = dot > 0 ? stripped.slice(dot).toLowerCase() : '';
+  const safeBase = (base || 'file').replace(/[^\w.-]+/g, '_').replace(/_+/g, '_').replace(/^[._-]+|[._-]+$/g, '').slice(0, 120);
+  const safeExt = ext.replace(/[^\w.]+/g, '');
+  return (safeBase || 'file') + safeExt;
+}
+
 export default function GestaoMarcaPage() {
   const navigate = useNavigate();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
