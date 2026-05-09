@@ -578,12 +578,16 @@ export default function ProdutoDetailPage() {
                   <Row icon={Wallet} label={ticketType === 'fixo' ? 'Ticket (€)' : 'Ticket Médio (€)'}>
                     <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder={ticketType === 'fixo' ? 'Ex: 480€' : 'Ex: 400-480€'} className={inlineInput} readOnly={!isOwner} />
                   </Row>
-                  <Row icon={Clock} label="Horas/mês por cliente (Métricas)">
-                    <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className={inlineInput} readOnly={!isOwner} />
-                  </Row>
-                  <Row icon={Clock} label="Horas por projeto pontual">
-                    <Input type="number" value={(form as any).estimated_project_hours ?? ''} onChange={e => update('estimated_project_hours', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 35" className={inlineInput} readOnly={!isOwner} />
-                  </Row>
+                  {form.product_type === 'servico_mensal' && (
+                    <Row icon={Clock} label="Horas/mês por cliente (Métricas)">
+                      <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className={inlineInput} readOnly={!isOwner} />
+                    </Row>
+                  )}
+                  {form.product_type && !['servico_mensal', 'curso', 'ebook', 'template'].includes(form.product_type) && (
+                    <Row icon={Clock} label="Horas por projeto pontual">
+                      <Input type="number" value={(form as any).estimated_project_hours ?? ''} onChange={e => update('estimated_project_hours', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 35" className={inlineInput} readOnly={!isOwner} />
+                    </Row>
+                  )}
                   <Row icon={Users} label="Máx. clientes simultâneos (Métricas)">
                     <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
                   </Row>
