@@ -8706,8 +8706,11 @@ export type Database = {
           sales_pitch: string | null
           sales_presentation_url: string | null
           sales_type: string | null
+          session_count: number | null
+          session_duration_minutes: number | null
           status: string
           task_mode: string
+          task_modes: string[]
           ticket: string | null
           ticket_type: string
           updated_at: string
@@ -8754,8 +8757,11 @@ export type Database = {
           sales_pitch?: string | null
           sales_presentation_url?: string | null
           sales_type?: string | null
+          session_count?: number | null
+          session_duration_minutes?: number | null
           status?: string
           task_mode?: string
+          task_modes?: string[]
           ticket?: string | null
           ticket_type?: string
           updated_at?: string
@@ -8802,8 +8808,11 @@ export type Database = {
           sales_pitch?: string | null
           sales_presentation_url?: string | null
           sales_type?: string | null
+          session_count?: number | null
+          session_duration_minutes?: number | null
           status?: string
           task_mode?: string
+          task_modes?: string[]
           ticket?: string | null
           ticket_type?: string
           updated_at?: string
@@ -9279,9 +9288,12 @@ export type Database = {
           project_mode: string
           project_notes: string | null
           recursos: string | null
+          session_count: number | null
+          session_duration_minutes: number | null
           start_date: string | null
           status: string
           task_mode: string
+          task_modes: string[]
           total_time_minutes: number | null
           type: string
           updated_at: string
@@ -9320,9 +9332,12 @@ export type Database = {
           project_mode?: string
           project_notes?: string | null
           recursos?: string | null
+          session_count?: number | null
+          session_duration_minutes?: number | null
           start_date?: string | null
           status?: string
           task_mode?: string
+          task_modes?: string[]
           total_time_minutes?: number | null
           type?: string
           updated_at?: string
@@ -9361,9 +9376,12 @@ export type Database = {
           project_mode?: string
           project_notes?: string | null
           recursos?: string | null
+          session_count?: number | null
+          session_duration_minutes?: number | null
           start_date?: string | null
           status?: string
           task_mode?: string
+          task_modes?: string[]
           total_time_minutes?: number | null
           type?: string
           updated_at?: string
