@@ -55,12 +55,22 @@ export default function FinanceiroPage() {
   const lifetime = useQuery({
     queryKey: ['fin-lifetime-balance'],
     queryFn: async () => {
+      const now = new Date();
+      const cy = now.getFullYear();
+      const cm = now.getMonth() + 1;
       const [salesRes, expRes] = await Promise.all([
-        supabase.from('commercial_sales').select('base_value, status'),
-        supabase.from('financial_expenses').select('base_value, status'),
+        supabase.from('commercial_sales').select('base_value, status, sale_year, sale_month'),
+        supabase.from('financial_expenses').select('base_value, status, expense_year, expense_month'),
       ]);
-      const allSales = excludeCancelled(salesRes.data || []);
-      const allExp = excludeCancelled(expRes.data || []);
+      const upTo = <T extends { sale_year?: number | null; sale_month?: number | null; expense_year?: number | null; expense_month?: number | null }>(items: T[], yKey: 'sale_year' | 'expense_year', mKey: 'sale_month' | 'expense_month') =>
+        items.filter(i => {
+          const y = i[yKey] as number | null | undefined;
+          const m = i[mKey] as number | null | undefined;
+          if (!y || !m) return false;
+          return y < cy || (y === cy && m <= cm);
+        });
+      const allSales = upTo(excludeCancelled(salesRes.data || []), 'sale_year', 'sale_month');
+      const allExp = upTo(excludeCancelled(expRes.data || []), 'expense_year', 'expense_month');
       const entradas = allSales.reduce((s, v) => s + Number(v.base_value || 0), 0);
       const saidas = allExp.reduce((s, v) => s + Number(v.base_value || 0), 0);
       return { entradas, saidas, saldo: entradas - saidas };
@@ -82,7 +92,7 @@ export default function FinanceiroPage() {
                   <Wallet className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Saldo geral acumulado (s/ IVA)</p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Saldo geral acumulado até hoje (s/ IVA)</p>
                   <p className={`text-2xl font-bold ${lifetime.data.saldo >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {formatEuro(lifetime.data.saldo)}
                   </p>
