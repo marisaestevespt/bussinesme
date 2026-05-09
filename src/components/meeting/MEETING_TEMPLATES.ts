@@ -22,6 +22,7 @@ export const MEETING_TEMPLATES: MeetingTemplate[] = [
     label: 'Reunião recorrente',
     description: 'Encontros periódicos da equipa',
     icon: Repeat,
+    defaultDurationMinutes: 30,
     defaultAgenda: [
       'Revisão da semana anterior',
       'Pontos em curso',
@@ -34,6 +35,7 @@ export const MEETING_TEMPLATES: MeetingTemplate[] = [
     label: 'Reunião de projeto',
     description: 'Alinhamento sobre um projeto interno',
     icon: FolderOpen,
+    defaultDurationMinutes: 45,
     defaultAgenda: [
       'Status atual do projeto',
       'Entregáveis em curso',
@@ -46,6 +48,7 @@ export const MEETING_TEMPLATES: MeetingTemplate[] = [
     label: 'Reunião com cliente',
     description: 'Encontro com um cliente ativo',
     icon: UserCheck,
+    defaultDurationMinutes: 60,
     defaultAgenda: [
       'Pontos do cliente',
       'Status do projeto',
@@ -59,6 +62,7 @@ export const MEETING_TEMPLATES: MeetingTemplate[] = [
     label: 'Reunião inicial',
     description: 'Primeira reunião com o cliente (kickoff)',
     icon: Handshake,
+    defaultDurationMinutes: 60,
     defaultAgenda: [
       'Apresentações e contexto',
       'Objetivos e expectativas',
@@ -72,6 +76,7 @@ export const MEETING_TEMPLATES: MeetingTemplate[] = [
     label: 'Reunião de diagnóstico',
     description: 'Lead ou potencial cliente — comercial',
     icon: Users,
+    defaultDurationMinutes: 45,
     defaultAgenda: [
       'Contexto do lead e desafio atual',
       'Objetivos e resultado desejado',
