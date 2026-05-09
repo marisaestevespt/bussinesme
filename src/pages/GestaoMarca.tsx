@@ -38,6 +38,7 @@ import { LogoFramer } from '@/components/gestao-marca/LogoFramer';
 import type { KanbanItem } from '@/components/gestao-marca/types';
 import { KanbanSectionsEditor } from '@/components/gestao-marca/KanbanSectionsEditor';
 import { SingleLineEditor } from '@/components/gestao-marca/SingleLineEditor';
+import { PromessaFuncaoEditor } from '@/components/gestao-marca/PromessaFuncaoEditor';
 import { BulletListEditor } from '@/components/gestao-marca/BulletListEditor';
 import { ArchetypesBoard } from '@/components/gestao-marca/ArchetypesBoard';
 import { PersonalidadeUniversoBoard } from '@/components/gestao-marca/PersonalidadeUniversoBoard';
@@ -1054,7 +1055,14 @@ export default function GestaoMarcaPage() {
                   </Button>
                 </div>
               ) : null}
-              {selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') || selectedKanban.title?.includes('Proposta') || selectedKanban.title?.includes('Movimento') || selectedKanban.title?.includes('Transformaç') || selectedKanban.title?.includes('transformaç') || selectedKanban.title?.includes('Convite') || selectedKanban.title?.includes('convite') || selectedKanban.title?.toLowerCase().includes('propósito') || selectedKanban.title?.toLowerCase().includes('proposito') || selectedKanban.title?.toLowerCase().includes('história') || selectedKanban.title?.toLowerCase().includes('historia') ? (
+              {selectedKanban.title?.toLowerCase().includes('promessa') && (selectedKanban.title?.toLowerCase().includes('função') || selectedKanban.title?.toLowerCase().includes('funcao')) ? (
+                <PromessaFuncaoEditor
+                  itemId={selectedKanban.id}
+                  initial={selectedKanban.content || ''}
+                  isOwner={isOwner}
+                  onSaved={(val) => setSelectedKanban(prev => prev ? { ...prev, content: val } : null)}
+                />
+              ) : selectedKanban.title?.includes('Assinatura') || selectedKanban.title?.includes('promessa') || selectedKanban.title?.includes('Proposta') || selectedKanban.title?.includes('Movimento') || selectedKanban.title?.includes('Transformaç') || selectedKanban.title?.includes('transformaç') || selectedKanban.title?.includes('Convite') || selectedKanban.title?.includes('convite') || selectedKanban.title?.toLowerCase().includes('propósito') || selectedKanban.title?.toLowerCase().includes('proposito') || selectedKanban.title?.toLowerCase().includes('história') || selectedKanban.title?.toLowerCase().includes('historia') ? (
                 <SingleLineEditor
                   itemId={selectedKanban.id}
                   initial={selectedKanban.content || ''}
