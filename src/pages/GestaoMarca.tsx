@@ -852,7 +852,7 @@ export default function GestaoMarcaPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,120px))] gap-2 justify-start max-w-4xl">
                 {visualCards.map(card => (
                   <Card
                     key={card.id}
