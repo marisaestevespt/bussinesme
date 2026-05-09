@@ -803,7 +803,7 @@ function ProjetoDetailInner() {
                           const next = v
                             ? Array.from(new Set([...taskModes, opt.value]))
                             : taskModes.filter(m => m !== opt.value);
-                          updateField('task_modes', next.length > 0 ? next : ['fases']);
+                          updateField('task_modes' as keyof ProjectFull, next.length > 0 ? next : ['fases']);
                         }}
                         className="mt-0.5"
                       />
