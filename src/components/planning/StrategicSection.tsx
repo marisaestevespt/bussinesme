@@ -233,8 +233,13 @@ export function StrategicSection() {
                     <p className="text-sm italic text-muted-foreground">Adiciona os valores que guiam a equipa. Ex: Transparência, Excelência, Empatia.</p>
                   )}
                   {valuesList.map((v, idx) => (
-                    <Badge key={idx} variant="secondary" className="gap-1.5 px-2.5 py-1 text-sm group">
-                      {v}
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="gap-1.5 px-2.5 py-1 text-sm group"
+                      title={v.description || undefined}
+                    >
+                      {v.name}
                       <button
                         onClick={() => saveSettings.mutate({ values_list: valuesList.filter((_, i) => i !== idx) })}
                         className="opacity-50 group-hover:opacity-100 hover:text-destructive transition-opacity"
@@ -252,7 +257,7 @@ export function StrategicSection() {
                     className="h-9"
                     onKeyDown={e => {
                       if (e.key === 'Enter' && newValue.trim()) {
-                        saveSettings.mutate({ values_list: [...valuesList, newValue.trim()] });
+                        saveSettings.mutate({ values_list: [...valuesList, { name: newValue.trim() }] });
                         setNewValue('');
                       }
                     }}
@@ -262,7 +267,7 @@ export function StrategicSection() {
                     variant="outline"
                     onClick={() => {
                       if (newValue.trim()) {
-                        saveSettings.mutate({ values_list: [...valuesList, newValue.trim()] });
+                        saveSettings.mutate({ values_list: [...valuesList, { name: newValue.trim() }] });
                         setNewValue('');
                       }
                     }}
