@@ -116,8 +116,8 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
   };
 
   const gridClass = layout === 'moodboard'
-    ? 'columns-1 sm:columns-2 md:columns-3 gap-3 max-w-4xl [&>*]:mb-3 [&>*]:break-inside-avoid'
-    : 'grid grid-cols-[repeat(auto-fill,minmax(104px,128px))] gap-2 justify-start max-w-4xl';
+    ? 'columns-2 sm:columns-3 md:columns-4 gap-3 [&>*]:mb-3 [&>*]:break-inside-avoid'
+    : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3';
 
   return (
     <div className="space-y-3">
@@ -156,8 +156,8 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
                     </div>
                   </div>
                 ) : (
-                  <div className="p-1.5 border-t flex items-start justify-between gap-1">
-                    <p className="text-[11px] leading-snug text-foreground flex-1">
+                  <div className="p-2 border-t flex items-start justify-between gap-1.5">
+                    <p className="text-xs text-foreground flex-1">
                       {img.caption || <span className="italic text-muted-foreground">Sem legenda.</span>}
                     </p>
                     {isOwner && (
