@@ -599,8 +599,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                         type="button"
                         onClick={() => {
                           set('departments', p.depts);
-                          set('department', p.depts[0] || '');
-                          set('work_areas', p.depts);
                           set('works_with_clients', p.wwc);
                         }}
                         className="text-[11px] rounded-full border border-border px-2.5 py-1 hover:border-primary hover:bg-primary/5 transition-colors"
@@ -625,9 +623,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                           <Checkbox checked={checked} onCheckedChange={(v) => {
                             const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
                             set('departments', next);
-                            set('department', next[0] || '');
-                            // Sincroniza work_areas com departments para manter compatibilidade
-                            set('work_areas', next);
                           }} />
                           <span>{d.icon} {d.label}</span>
                         </label>
@@ -794,14 +789,14 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                       type="number"
                       step="0.01"
                       className="w-24 h-9 text-right"
-                      value={typeof f.ss_employer_rate === 'number' ? (f.ss_employer_rate * 100).toFixed(2) : '23.75'}
-                      onChange={e => set('ss_employer_rate', (parseFloat(e.target.value) || 0) / 100)}
+                      value={typeof contract.ss_employer_rate === 'number' ? (contract.ss_employer_rate * 100).toFixed(2) : '23.75'}
+                      onChange={e => setC('ss_employer_rate', (parseFloat(e.target.value) || 0) / 100)}
                     />
                   </div>
                   {Number(contract.monthly_value) > 0 && (
                     <p className="text-[11px] text-muted-foreground">
                       Custo total mensal estimado: <span className="font-semibold text-foreground">
-                        {(Number(contract.monthly_value) * (1 + (Number(f.ss_employer_rate) || 0.2375))).toFixed(2)} €
+                        {(Number(contract.monthly_value) * (1 + (Number(contract.ss_employer_rate) || 0.2375))).toFixed(2)} €
                       </span>
                       {' '}(bruto + SS empresa)
                     </p>
@@ -816,7 +811,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   </label>
                   <div>
                     <label className="text-xs text-muted-foreground">Método de pagamento</label>
-                    <Select value={f.payment_method || ''} onValueChange={v => set('payment_method', v)}>
+                    <Select value={contract.payment_method || ''} onValueChange={v => setC('payment_method', v)}>
                       <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                       <SelectContent>
                         {PAYMENT_METHOD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
@@ -855,12 +850,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               )}
               <div>
                 <label className="text-xs text-muted-foreground">Status do contrato</label>
-                <Select value={contract.status} onValueChange={v => {
-                  setC('status', v);
-                  // Status do membro deriva do contrato: contrato ativo → membro ativo, terminado → inativo
-                  if (v === 'ativo' || v === 'em_renovacao') set('status', 'ativo');
-                  else if (v === 'terminado') set('status', 'inativo');
-                }}>
+                <Select value={contract.status} onValueChange={v => setC('status', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
