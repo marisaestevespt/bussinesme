@@ -13,15 +13,13 @@ type MemberFormPayload = Record<string, unknown> & {
   whatsapp?: string | null;
   iban?: string | null;
   fiscal_address?: string | null;
-  payment_method?: string | null;
   role_title?: string | null;
   work_schedule?: string | null;
-  department?: string | null;
   departments?: string[];
-  deptExtraPages?: Record<string, string[]>;
   sensitiveAccess?: Record<string, boolean>;
   system_role?: string;
   profile_id?: string | null;
+  birthday?: string | null;
 };
 
 type ContractFormPayload = Record<string, unknown> & {
@@ -39,6 +37,8 @@ type ContractFormPayload = Record<string, unknown> & {
   use_custom_payment_start?: boolean;
   payment_start_date?: string | null;
   duration?: string;
+  ss_employer_rate?: number | string;
+  payment_method?: string | null;
 };
 
 type ExpenseInsertPayload = TablesInsert<'financial_expenses'> & { supplier_id?: string };
@@ -128,25 +128,49 @@ export function useMemberSave() {
       let prestadorPending: PrestadorPendingReview | null = null;
 
       // Strip transient UI-only fields before DB operations
-      const { deptExtraPages: _dep, sensitiveAccess: _sa, system_role: _sr, ...dbFields } = member;
+      const { sensitiveAccess: _sa, system_role: _sr, ...dbFields } = member;
       const systemRole: string | undefined = member.system_role;
 
+      // Derive fields that are no longer edited directly in the form
+      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? (member.departments as string[])
+        : [];
+      const ct = (contractData?.contract_type as string) || 'contrato_trabalho';
+      const derivedMemberType =
+        ct === 'contrato_prestacao' || ct === 'prestacao_servicos' ? 'prestador_servicos'
+        : ct === 'acordo' ? 'colaborador_fixo' // sócio também usa colaborador_fixo (CHECK constraint)
+        : 'colaborador_fixo';
+      const contractStatus = (contractData?.status as string) || 'ativo';
+      const derivedMemberStatus =
+        contractStatus === 'ativo' || contractStatus === 'em_renovacao' ? 'ativo'
+        : contractStatus === 'terminado' ? 'inativo'
+        : (member as any).status || 'ativo';
+
+      // Mirror legacy columns on team_members so other readers (FinPayroll etc.) keep working
+      const derived: Record<string, unknown> = {
+        department: depts[0] || null,
+        departments: depts,
+        work_areas: depts,
+        member_type: derivedMemberType,
+        status: derivedMemberStatus,
+        start_date: contractData?.start_date || null,
+        ss_employer_rate: contractData?.ss_employer_rate ?? 0.2375,
+        payment_method: contractData?.payment_method ?? null,
+      };
+
       if (isNew) {
-        const payload = cleanPayload({ ...dbFields });
+        const payload = cleanPayload({ ...dbFields, ...derived });
         delete payload.id;
         const { data, error } = await supabase.from('team_members').insert(payload as unknown as TablesInsert<'team_members'>).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
-        const payload = cleanPayload(dbFields);
+        const payload = cleanPayload({ ...dbFields, ...derived });
         const { error } = await supabase.from('team_members').update(payload as unknown as Partial<TablesInsert<'team_members'>>).eq('id', member.id!);
         if (error) throw error;
       }
 
       // Auto-assign permissions based on departments
-      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
-        ? member.departments
-        : (member.department ? [member.department] : []);
       if (depts.length > 0) {
         await autoAssignPermissions(memberId, depts);
       }
