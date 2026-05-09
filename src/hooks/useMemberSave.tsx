@@ -405,19 +405,6 @@ export function useMemberSave() {
         }
       }
 
-      // Apply inline extra pages
-      const deptExtraPages: Record<string, string[]> = member.deptExtraPages || {};
-      const allExtraModules = new Set<string>();
-      Object.values(deptExtraPages).forEach(pages => pages.forEach(p => allExtraModules.add(p)));
-      if (allExtraModules.size > 0) {
-        const roleName = `dept_${[...depts].sort().join('_')}`;
-        const { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
-        if (role) {
-          const perms = [...allExtraModules].map(mk => ({ custom_role_id: role.id, module_key: mk, can_view: true }));
-          await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
-        }
-      }
-
       // Save sensitive access toggles
       const sensitiveAccess: Record<string, boolean> = member.sensitiveAccess || {};
       const sensitiveRows = Object.entries(sensitiveAccess).map(([category, granted]) => ({
