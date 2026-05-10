@@ -306,8 +306,6 @@ Deno.serve(async (req) => {
       // SOPs (children first)
       "sop_step_documents",
       "sop_steps",
-      "sop_onboarding_items",
-      "sop_onboarding_templates",
       "sop_categories",
       "sops",
 
