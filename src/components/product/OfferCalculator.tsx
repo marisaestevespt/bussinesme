@@ -326,6 +326,15 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
   const addCost = useMutation({
     mutationFn: async (type: CostType) => {
+      // Evita criar uma nova linha se já existir uma rascunho (sem nome E sem valor) do mesmo tipo
+      const draft = costs.find(c => c.cost_type === type && !c.cost_name?.trim() && (
+        type === 'horas'
+          ? !(Number(c.hours) || 0) && !(Number(c.hourly_rate) || 0)
+          : !(Number(c.cost_value) || 0)
+      ));
+      if (draft) {
+        throw new Error('Já existe uma linha vazia deste tipo. Preenche-a antes de adicionar outra.');
+      }
       const { error } = await supabase.from('product_costs').insert({
         product_id: productId,
         scenario_id: scenario.id,
@@ -376,18 +385,56 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     return sums;
   }, [costs, scenario]);
 
+  // Conta apenas linhas com valor real preenchido (evita falsa sensação de "configurado")
+  const validCostsCount = useMemo(
+    () => costs.filter(c =>
+      c.cost_type === 'horas'
+        ? (Number(c.hours) || 0) > 0 && (Number(c.hourly_rate) || 0) > 0
+        : (Number(c.cost_value) || 0) > 0
+    ).length,
+    [costs]
+  );
+  const hasCosts = validCostsCount > 0;
+
+  // Custos verdadeiramente fixos (independentes do nº de vendas) — usados só para break-even
   const fixedTotal = useMemo(() =>
     costs.filter(c => c.cost_type === 'one_off' || c.cost_type === 'horas')
          .reduce((s, c) => s + ((c.cost_type === 'horas' ? (Number(c.hours)||0)*(Number(c.hourly_rate)||0) : Number(c.cost_value)||0)), 0),
     [costs]
   );
+  // Custo variável por unidade (acompanha cada venda) — usado no break-even correto
+  const variablePerUnit = breakdown.por_venda + breakdown.recorrente;
 
   const totalPerUnit = breakdown.one_off + breakdown.recorrente + breakdown.por_venda + breakdown.horas;
   const vatPercent = vatRate === 'isento' ? 0 : parseFloat(vatRate) || 23;
   const marginFraction = (Number(scenario.desired_margin) || 0) / 100;
-  const recBase = marginFraction < 1 ? totalPerUnit / (1 - marginFraction) : totalPerUnit;
+
+  // Frações em função do regime fiscal
+  const reg = scenario.tax_regime;
+  const irsRate = (Number(scenario.tax_rate) || 0) / 100;
+  const ssRate  = (Number(scenario.ss_rate)  || 0) / 100;
+  // Simplificado: IRS sobre 75% da receita; SS sobre 70% da receita (aprox. trimestral)
+  const irsBaseSimpl = 0.75;
+  const ssBaseSimpl  = 0.70;
+
+  // ── Preço recomendado: agora resolve para a MARGEM LÍQUIDA real (depois de impostos)
+  // Simplificado: lucro = price*(1 - 0.75·IRS - 0.70·SS) - cost
+  // Organizada:  lucro = (price - cost)·(1 - IRC)
+  // Pretende-se: lucro / price = margem_desejada
+  let recBase = 0;
+  if (hasCosts) {
+    if (reg === 'simplificado') {
+      const taxFrac = irsBaseSimpl * irsRate + ssBaseSimpl * ssRate;
+      const denom = 1 - taxFrac - marginFraction;
+      recBase = denom > 0 ? totalPerUnit / denom : totalPerUnit;
+    } else {
+      // organizada — IRC sobre lucro
+      const denom = 1 - marginFraction / Math.max(1 - irsRate, 0.0001);
+      recBase = denom > 0 ? totalPerUnit / denom : totalPerUnit;
+    }
+  }
   const recWithVat = recBase * (1 + vatPercent / 100);
-  const recMargin = recBase > 0 ? ((recBase - totalPerUnit) / recBase) * 100 : 0;
+  const recMargin = Number(scenario.desired_margin) || 0; // margem líquida alvo
   const floorBase = totalPerUnit;
   const floorWithVat = floorBase * (1 + vatPercent / 100);
 
@@ -395,22 +442,33 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
   const [testPrice, setTestPrice] = useState('');
   const testVal = parseFloat(testPrice) || 0;
   const testWithVat = testVal * (1 + vatPercent / 100);
-  // Frações em função do regime fiscal
-  const reg = scenario.tax_regime;
-  const irsBase = reg === 'simplificado' ? 0.75 : 1.0;     // organizada: base integral
-  const ssBase  = reg === 'simplificado' ? 0.70 : 0.234;   // organizada: TSU patronal aprox.
-  const testIRS = testVal * irsBase * (Number(scenario.tax_rate) / 100);
-  const testSS  = testVal * ssBase  * (Number(scenario.ss_rate)  / 100);
+  // IRS/SS conforme regime
+  let testIRS = 0;
+  let testSS  = 0;
+  if (reg === 'simplificado') {
+    testIRS = testVal * irsBaseSimpl * irsRate;
+    testSS  = testVal * ssBaseSimpl  * ssRate;
+  } else {
+    // Organizada: IRC sobre o lucro (price - custo); SS de empresa/sócio-gerente fora deste cálculo
+    const profitPreTax = Math.max(testVal - totalPerUnit, 0);
+    testIRS = profitPreTax * irsRate;
+    testSS  = 0;
+  }
   const testRealProfit = testVal - testIRS - testSS - totalPerUnit;
-  const testGrossMargin = testVal > 0 ? ((testVal - totalPerUnit) / testVal) * 100 : 0;
-  const breakEvenSales = totalPerUnit > 0 && testVal > totalPerUnit ? Math.ceil(fixedTotal / (testVal - totalPerUnit)) : null;
+  const testNetMargin = testVal > 0 ? (testRealProfit / testVal) * 100 : 0;
+  // Break-even: custos fixos / margem de contribuição por unidade (preço − custo variável)
+  const contribPerUnit = testVal - variablePerUnit;
+  const breakEvenSales = hasCosts && fixedTotal > 0 && contribPerUnit > 0
+    ? Math.ceil(fixedTotal / contribPerUnit)
+    : null;
 
   const verdict = useMemo(() => {
     if (testVal <= 0) return null;
+    if (!hasCosts) return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Sem custos definidos', desc: 'Adiciona pelo menos um custo (com valor > 0) para o sistema poder avaliar este preço. Sem custos, qualquer preço parece lucrativo.' };
     if (testRealProfit < 0) return { icon: TrendingDown, color: 'text-destructive', bg: 'bg-destructive/5 border-destructive/20', label: 'Atenção', desc: 'Este preço não cobre custos + impostos.' };
-    if (testVal >= recBase) return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Bom preço!', desc: `Margem bruta ${testGrossMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
-    return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem bruta ${testGrossMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
-  }, [testVal, testRealProfit, recBase, testGrossMargin]);
+    if (testVal >= recBase) return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Bom preço!', desc: `Margem líquida ${testNetMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
+    return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem líquida ${testNetMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
+  }, [testVal, testRealProfit, recBase, testNetMargin, hasCosts]);
 
   return (
     <div className="space-y-6">
@@ -529,7 +587,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
       </Card>
 
       {/* ── Resultados (preço mínimo + recomendado) ── */}
-      {totalPerUnit > 0 && (
+      {hasCosts && totalPerUnit > 0 && (
         <div className="grid grid-cols-2 gap-4">
           <Card className="border-dashed">
             <CardContent className="pt-4 pb-3 space-y-1">
@@ -546,14 +604,14 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
               <p className="text-lg font-bold text-success">
                 {formatEuro(recBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(recWithVat)} c/ IVA)</span>
               </p>
-              <p className="text-[10px] text-muted-foreground">Margem bruta {recMargin.toFixed(1)}%</p>
+              <p className="text-[10px] text-muted-foreground">Margem líquida alvo {recMargin.toFixed(1)}% (já considera IRS/{reg === 'simplificado' ? 'SS' : 'IRC'})</p>
             </CardContent>
           </Card>
         </div>
       )}
 
       {/* ── Aplicar à ficha do produto ── */}
-      {totalPerUnit > 0 && isOwner && (
+      {hasCosts && totalPerUnit > 0 && isOwner && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="pt-4 pb-4 space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -672,7 +730,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
                     irs: testIRS,
                     social_security: testSS,
                     real_profit: testRealProfit,
-                    gross_margin_pct: testGrossMargin,
+                    net_margin_pct: testNetMargin,
                     recommended_price: recBase,
                     floor_price: floorBase,
                     break_even_sales: breakEvenSales,
