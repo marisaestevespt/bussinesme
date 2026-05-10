@@ -326,6 +326,15 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
   const addCost = useMutation({
     mutationFn: async (type: CostType) => {
+      // Evita criar uma nova linha se já existir uma rascunho (sem nome E sem valor) do mesmo tipo
+      const draft = costs.find(c => c.cost_type === type && !c.cost_name?.trim() && (
+        type === 'horas'
+          ? !(Number(c.hours) || 0) && !(Number(c.hourly_rate) || 0)
+          : !(Number(c.cost_value) || 0)
+      ));
+      if (draft) {
+        throw new Error('Já existe uma linha vazia deste tipo. Preenche-a antes de adicionar outra.');
+      }
       const { error } = await supabase.from('product_costs').insert({
         product_id: productId,
         scenario_id: scenario.id,
