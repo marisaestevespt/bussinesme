@@ -42,6 +42,7 @@ export default function ProdutosPage() {
   const [view, setView] = useState<CollectionView>('grid');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [tab, setTab] = useState<'ativos' | 'off'>('ativos');
   const navigate = useNavigate();
   const { products } = useProducts();
   const sectorConfig = useSectorConfig();
@@ -58,6 +59,7 @@ export default function ProdutosPage() {
   // Filtered items
   const filtered = useMemo(() => {
     let list = items;
+    list = tab === 'off' ? list.filter(p => p.status === 'off') : list.filter(p => p.status !== 'off');
     if (statusFilter) list = list.filter(p => p.status === statusFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -67,7 +69,7 @@ export default function ProdutosPage() {
       );
     }
     return list;
-  }, [items, statusFilter, search]);
+  }, [items, statusFilter, search, tab]);
 
   // Escada de valor — only products with escada set, sorted
   const escadaProducts = useMemo(() => {
@@ -80,12 +82,16 @@ export default function ProdutosPage() {
       });
   }, [items]);
 
-  const statusCards = [
-    { key: 'vendas_ativas', label: 'Vendas Ativas', icon: TrendingUp, color: 'text-success' },
-    { key: 'a_criar', label: 'A Criar', icon: Package, color: 'text-warning' },
-    { key: 'em_ideia', label: 'Em Ideia', icon: Lightbulb, color: 'text-muted-foreground' },
-    { key: 'off', label: 'Off', icon: XCircle, color: 'text-destructive' },
-  ];
+  const statusCards = tab === 'off'
+    ? [{ key: 'off', label: 'Off', icon: XCircle, color: 'text-destructive' }]
+    : [
+        { key: 'vendas_ativas', label: 'Vendas Ativas', icon: TrendingUp, color: 'text-success' },
+        { key: 'a_criar', label: 'A Criar', icon: Package, color: 'text-warning' },
+        { key: 'em_ideia', label: 'Em Ideia', icon: Lightbulb, color: 'text-muted-foreground' },
+      ];
+
+  const activeCount = items.filter(p => p.status !== 'off').length;
+  const offCount = items.filter(p => p.status === 'off').length;
 
   return (
     <AppLayout>
@@ -101,6 +107,26 @@ export default function ProdutosPage() {
             </Button>
           }
         />
+
+        {/* Tabs: Ativos / Off */}
+        <div className="inline-flex rounded-lg border bg-muted/30 p-1">
+          <Button
+            variant={tab === 'ativos' ? 'default' : 'ghost'}
+            size="sm"
+            className="h-8"
+            onClick={() => { setTab('ativos'); setStatusFilter(null); }}
+          >
+            Produtos <span className="ml-1.5 text-xs opacity-70">({activeCount})</span>
+          </Button>
+          <Button
+            variant={tab === 'off' ? 'default' : 'ghost'}
+            size="sm"
+            className="h-8"
+            onClick={() => { setTab('off'); setStatusFilter(null); }}
+          >
+            Off <span className="ml-1.5 text-xs opacity-70">({offCount})</span>
+          </Button>
+        </div>
 
         {/* Summary Cards (filter chips) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
