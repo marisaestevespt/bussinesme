@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Layers, SlidersHorizontal, Percent } from 'lucide-react';
+import { Plus, Trash2, Layers, SlidersHorizontal, Percent, Sliders } from 'lucide-react';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { usePricingDrivers } from '@/hooks/useProductPricing';
+import { useProductModifiers } from '@/hooks/useProductModifiers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ComplexityLevel, VolumeDiscount } from '@/lib/quoteCalculator';
+import type { VolumeDiscount } from '@/lib/quoteCalculator';
 import { formatEuro } from '@/lib/quoteCalculator';
 
 interface Props {
@@ -19,7 +20,6 @@ interface Props {
     base_price?: number | null;
     price_min?: number | null;
     price_max?: number | null;
-    complexity_levels?: ComplexityLevel[] | null;
     volume_discounts?: VolumeDiscount[] | null;
   };
 }
@@ -29,7 +29,6 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
   const [basePrice, setBasePrice] = useState<string>(initial.base_price?.toString() ?? '');
   const [priceMin, setPriceMin] = useState<string>(initial.price_min?.toString() ?? '');
   const [priceMax, setPriceMax] = useState<string>(initial.price_max?.toString() ?? '');
-  const [complexity, setComplexity] = useState<ComplexityLevel[]>(initial.complexity_levels || []);
   const [discounts, setDiscounts] = useState<VolumeDiscount[]>(initial.volume_discounts || []);
   const [saving, setSaving] = useState(false);
 
@@ -37,11 +36,11 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
     setBasePrice(initial.base_price?.toString() ?? '');
     setPriceMin(initial.price_min?.toString() ?? '');
     setPriceMax(initial.price_max?.toString() ?? '');
-    setComplexity(initial.complexity_levels || []);
     setDiscounts(initial.volume_discounts || []);
   }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { drivers, upsert: upsertDriver, remove: removeDriver } = usePricingDrivers(productId);
+  const modifiers = useProductModifiers(productId);
 
   const persistProductFields = async (patch: Record<string, any>) => {
     setSaving(true);
@@ -115,26 +114,73 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           ))}
         </section>
 
-        {/* Complexity multipliers */}
-        <section className="space-y-2">
+        {/* Modificadores livres (multi-dimensão) */}
+        <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Níveis de Complexidade</h4>
+            <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
+              <Sliders className="h-3 w-3" /> Modificadores
+            </h4>
             {isOwner && (
-              <Button size="sm" variant="outline" onClick={() => {
-                const next = [...complexity, { key: `nivel-${complexity.length + 1}`, label: 'Novo nível', multiplier: 1 }];
-                setComplexity(next);
-                persistProductFields({ complexity_levels: next });
-              }}><Plus className="h-3 w-3 mr-1" /> Nível</Button>
+              <Button size="sm" variant="outline" onClick={() => modifiers.addDimension.mutate('Nova dimensão')}>
+                <Plus className="h-3 w-3 mr-1" /> Dimensão
+              </Button>
             )}
           </div>
-          {complexity.length === 0 && <p className="text-xs text-muted-foreground italic">Sem níveis. Ex: Baixa ×1, Média ×1.3, Alta ×1.6.</p>}
-          {complexity.map((c, i) => (
-            <div key={i} className="grid grid-cols-[1fr_120px_auto] gap-2 items-center rounded-md border p-2 bg-muted/20">
-              <Input className="h-8 text-sm" placeholder="Label" value={c.label} onChange={e => { const next = [...complexity]; next[i] = { ...c, label: e.target.value, key: e.target.value.toLowerCase().replace(/\s+/g, '-') }; setComplexity(next); }} onBlur={() => persistProductFields({ complexity_levels: complexity })} disabled={!isOwner} />
-              <Input className="h-8 text-sm" type="number" step="0.1" placeholder="×" value={c.multiplier} onChange={e => { const next = [...complexity]; next[i] = { ...c, multiplier: parseFloat(e.target.value) || 1 }; setComplexity(next); }} onBlur={() => persistProductFields({ complexity_levels: complexity })} disabled={!isOwner} />
-              {isOwner && (
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { const next = complexity.filter((_, j) => j !== i); setComplexity(next); persistProductFields({ complexity_levels: next }); }}><Trash2 className="h-3 w-3" /></Button>
-              )}
+          <p className="text-[11px] text-muted-foreground italic">
+            Cria as tuas próprias dimensões (ex: "Equipa cliente", "Complexidade", "Urgência"). Cada uma tem níveis com multiplicador (×).
+          </p>
+          {(modifiers.query.data || []).length === 0 && (
+            <p className="text-xs text-muted-foreground italic">Sem modificadores. Os multiplicadores compõem-se ao calcular o orçamento.</p>
+          )}
+          {(modifiers.query.data || []).map(dim => (
+            <div key={dim.id} className="rounded-md border bg-muted/10 p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  className="h-8 text-sm font-medium"
+                  defaultValue={dim.name}
+                  onBlur={e => e.target.value !== dim.name && modifiers.updateDimension.mutate({ id: dim.id, name: e.target.value })}
+                  disabled={!isOwner}
+                />
+                {isOwner && (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => modifiers.addLevel.mutate(dim.id)}>
+                      <Plus className="h-3 w-3 mr-1" /> Nível
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => modifiers.removeDimension.mutate(dim.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </>
+                )}
+              </div>
+              {dim.levels.map(lvl => (
+                <div key={lvl.id} className="grid grid-cols-[1fr_120px_auto] gap-2 items-center pl-3">
+                  <Input
+                    className="h-7 text-sm"
+                    placeholder="Label (ex: Baixa)"
+                    defaultValue={lvl.label}
+                    onBlur={e => e.target.value !== lvl.label && modifiers.updateLevel.mutate({ id: lvl.id, patch: { label: e.target.value } })}
+                    disabled={!isOwner}
+                  />
+                  <Input
+                    className="h-7 text-sm"
+                    type="number"
+                    step="0.1"
+                    placeholder="×"
+                    defaultValue={lvl.multiplier}
+                    onBlur={e => {
+                      const v = parseFloat(e.target.value) || 1;
+                      if (v !== Number(lvl.multiplier)) modifiers.updateLevel.mutate({ id: lvl.id, patch: { multiplier: v } });
+                    }}
+                    disabled={!isOwner}
+                  />
+                  {isOwner && (
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => modifiers.removeLevel.mutate(lvl.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {dim.levels.length === 0 && <p className="text-[11px] text-muted-foreground italic pl-3">Sem níveis ainda.</p>}
             </div>
           ))}
         </section>

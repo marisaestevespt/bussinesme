@@ -394,11 +394,23 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
           </div>
         </CardContent>
       </Card>
-      <OfferCalculatorWrapper
-        productId={productId}
-        vatRate={(form.vat_rate as string) || '23'}
-        isOwner={isOwner}
-      />
+      {((form as any).ticket_type || 'fixo') === 'fixo' ? (
+        <OfferCalculatorWrapper
+          productId={productId}
+          vatRate={(form.vat_rate as string) || '23'}
+          isOwner={isOwner}
+        />
+      ) : (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Calculadora de Oferta</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Esta calculadora só está disponível para produtos de <strong>preço fixo</strong> — serve para definir o preço sugerido a partir de custos, margem e impostos.
+              Para produtos de preço variável, configura os <strong>drivers</strong> e <strong>modificadores</strong> na secção de Pricing; o preço é calculado por orçamento na altura da venda.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

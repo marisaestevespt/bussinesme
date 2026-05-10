@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { computeQuote, formatEuro, type DriverInput, type ComplexityLevel, type VolumeDiscount } from '@/lib/quoteCalculator';
+import { computeQuote, formatEuro, type DriverInput, type VolumeDiscount, type ModifierSelection } from '@/lib/quoteCalculator';
 import { useProductQuotes } from '@/hooks/useProductPricing';
+import { useProductModifiers } from '@/hooks/useProductModifiers';
 import { toast } from 'sonner';
 import { Calculator, Save } from 'lucide-react';
 
@@ -28,7 +29,7 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
     queryKey: ['quote-product', productId],
     enabled: open && !!productId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('id, name, ticket_type, base_price, price_min, price_max, complexity_levels, volume_discounts').eq('id', productId).maybeSingle();
+      const { data, error } = await supabase.from('products').select('id, name, ticket_type, base_price, price_min, price_max, volume_discounts').eq('id', productId).maybeSingle();
       if (error) throw error;
       return data as any;
     },
@@ -54,12 +55,14 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
 
   const product = productQ.data;
   const ticketType = (product?.ticket_type || 'fixo') as 'fixo' | 'variavel';
-  const complexityLevels: ComplexityLevel[] = Array.isArray(product?.complexity_levels) ? product.complexity_levels : [];
   const volumeDiscounts: VolumeDiscount[] = Array.isArray(product?.volume_discounts) ? product.volume_discounts : [];
+  const modifiers = useProductModifiers(open ? productId : null);
+  const dimensions = modifiers.query.data || [];
 
   // Variable mode state
   const [driverQty, setDriverQty] = useState<Record<string, number>>({});
-  const [complexityKey, setComplexityKey] = useState<string>('');
+  /** Map<dimension_id, level_id> */
+  const [selectedLevels, setSelectedLevels] = useState<Record<string, string>>({});
   const [manualDiscount, setManualDiscount] = useState<string>('0');
   // Fixed mode state
   const [selectedTierId, setSelectedTierId] = useState<string>('');
@@ -80,15 +83,29 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
     qty: driverQty[d.id] ?? 0,
   })), [driversQ.data, driverQty]);
 
-  const complexity = complexityLevels.find(c => c.key === complexityKey) || null;
+  const selectedModifiers: ModifierSelection[] = useMemo(() => {
+    const out: ModifierSelection[] = [];
+    dimensions.forEach(dim => {
+      const lvlId = selectedLevels[dim.id];
+      const lvl = dim.levels.find(l => l.id === lvlId);
+      if (lvl) out.push({
+        dimension_id: dim.id,
+        dimension_name: dim.name,
+        level_id: lvl.id,
+        level_label: lvl.label,
+        multiplier: Number(lvl.multiplier) || 1,
+      });
+    });
+    return out;
+  }, [dimensions, selectedLevels]);
 
   const result = useMemo(() => computeQuote({
     basePrice: Number(product?.base_price) || 0,
     drivers,
-    complexity,
+    modifiers: selectedModifiers,
     volumeDiscounts,
     manualDiscountPct: parseFloat(manualDiscount) || 0,
-  }), [product?.base_price, drivers, complexity, volumeDiscounts, manualDiscount]);
+  }), [product?.base_price, drivers, selectedModifiers, volumeDiscounts, manualDiscount]);
 
   const selectedTier = tiersQ.data?.find((t: any) => t.id === selectedTierId);
   const fixedTotal = Number(selectedTier?.price) || 0;
@@ -106,8 +123,8 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
         pricing_mode: ticketType,
         drivers_snapshot: ticketType === 'variavel' ? (drivers as any) : ([] as any),
         base_price: ticketType === 'variavel' ? (Number(product?.base_price) || 0) : 0,
-        complexity_key: complexity?.key || null,
-        complexity_multiplier: complexity?.multiplier ?? 1,
+        complexity_key: selectedModifiers.map(m => `${m.dimension_name}:${m.level_label}`).join(' | ') || null,
+        complexity_multiplier: selectedModifiers.reduce((acc, m) => acc * m.multiplier, 1),
         selected_tier_id: ticketType === 'fixo' ? selectedTierId : null,
         discount_pct: ticketType === 'variavel' ? result.applied_discount_pct : 0,
         subtotal: ticketType === 'variavel' ? result.after_multiplier : fixedTotal,
@@ -167,17 +184,17 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
                 ))}
               </div>
             )}
-            {complexityLevels.length > 0 && (
-              <div>
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Complexidade</Label>
-                <Select value={complexityKey} onValueChange={setComplexityKey}>
+            {dimensions.map(dim => dim.levels.length > 0 && (
+              <div key={dim.id}>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">{dim.name}</Label>
+                <Select value={selectedLevels[dim.id] || ''} onValueChange={v => setSelectedLevels(prev => ({ ...prev, [dim.id]: v }))}>
                   <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                   <SelectContent>
-                    {complexityLevels.map(c => <SelectItem key={c.key} value={c.key}>{c.label} (×{c.multiplier})</SelectItem>)}
+                    {dim.levels.map(l => <SelectItem key={l.id} value={l.id}>{l.label} (×{l.multiplier})</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-            )}
+            ))}
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Desconto manual (%)</Label>
               <Input type="number" value={manualDiscount} onChange={e => setManualDiscount(e.target.value)} />

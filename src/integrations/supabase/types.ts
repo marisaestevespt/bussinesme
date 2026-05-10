@@ -8090,6 +8090,79 @@ export type Database = {
           },
         ]
       }
+      product_modifier_dimensions: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          product_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          product_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          product_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_modifier_dimensions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_modifier_levels: {
+        Row: {
+          created_at: string
+          dimension_id: string
+          id: string
+          label: string
+          multiplier: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dimension_id: string
+          id?: string
+          label: string
+          multiplier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dimension_id?: string
+          id?: string
+          label?: string
+          multiplier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_modifier_levels_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "product_modifier_dimensions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_nps_config: {
         Row: {
           cadence_days: number

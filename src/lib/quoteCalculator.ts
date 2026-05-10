@@ -17,6 +17,15 @@ export type ComplexityLevel = {
   multiplier: number;
 };
 
+/** Modificador composto: várias dimensões, cada uma com o nível escolhido. */
+export type ModifierSelection = {
+  dimension_id: string;
+  dimension_name: string;
+  level_id: string;
+  level_label: string;
+  multiplier: number;
+};
+
 export type VolumeDiscount = {
   /** Subtotal threshold (after multiplier) at/above which this discount applies. */
   min_subtotal: number;
@@ -47,6 +56,7 @@ export function computeQuote(opts: {
   basePrice?: number;
   drivers: DriverInput[];
   complexity?: ComplexityLevel | null;
+  modifiers?: ModifierSelection[];
   volumeDiscounts?: VolumeDiscount[];
   manualDiscountPct?: number;
 }): QuoteResult {
@@ -56,7 +66,12 @@ export function computeQuote(opts: {
     0,
   );
   const baseWithDrivers = base + driversSubtotal;
-  const multiplier = Number(opts.complexity?.multiplier ?? 1) || 1;
+  const legacyMultiplier = Number(opts.complexity?.multiplier ?? 1) || 1;
+  const modifiersMultiplier = (opts.modifiers || []).reduce(
+    (acc, m) => acc * (Number(m.multiplier) || 1),
+    1,
+  );
+  const multiplier = legacyMultiplier * modifiersMultiplier;
   const afterMultiplier = baseWithDrivers * multiplier;
 
   const auto = pickVolumeDiscount(afterMultiplier, opts.volumeDiscounts ?? []);
