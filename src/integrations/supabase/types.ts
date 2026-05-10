@@ -1951,14 +1951,12 @@ export type Database = {
           client_files: Json | null
           client_id: string
           client_since: string | null
-          contract_value: number | null
           conversion_date: string | null
           cover_url: string | null
           created_at: string
           created_by: string | null
           current_product: string | null
           current_product_id: string | null
-          current_quote_id: string | null
           documents: string | null
           dp: string | null
           drive_folder_url: string | null
@@ -1990,14 +1988,12 @@ export type Database = {
           client_files?: Json | null
           client_id?: string
           client_since?: string | null
-          contract_value?: number | null
           conversion_date?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
           current_product_id?: string | null
-          current_quote_id?: string | null
           documents?: string | null
           dp?: string | null
           drive_folder_url?: string | null
@@ -2029,14 +2025,12 @@ export type Database = {
           client_files?: Json | null
           client_id?: string
           client_since?: string | null
-          contract_value?: number | null
           conversion_date?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
           current_product_id?: string | null
-          current_quote_id?: string | null
           documents?: string | null
           dp?: string | null
           drive_folder_url?: string | null
@@ -2069,13 +2063,6 @@ export type Database = {
             columns: ["current_product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clients_current_quote_id_fkey"
-            columns: ["current_quote_id"]
-            isOneToOne: false
-            referencedRelation: "product_quotes"
             referencedColumns: ["id"]
           },
           {
