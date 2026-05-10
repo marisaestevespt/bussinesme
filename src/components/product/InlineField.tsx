@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +18,8 @@ interface Props {
   suffix?: string;
   align?: 'left' | 'right';
   bold?: boolean;
+  /** Allow multi-line display + textarea editing (no truncation) */
+  multiline?: boolean;
 }
 
 /**
@@ -25,11 +28,11 @@ interface Props {
  */
 export function InlineField({
   value, onSave, type = 'text', step, placeholder, disabled, className,
-  format, suffix, align = 'left', bold,
+  format, suffix, align = 'left', bold, multiline,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<string>(value?.toString() ?? '');
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => { setDraft(value?.toString() ?? ''); }, [value]);
   useEffect(() => { if (editing) setTimeout(() => ref.current?.focus(), 0); }, [editing]);
@@ -41,9 +44,26 @@ export function InlineField({
   const cancel = () => { setDraft(value?.toString() ?? ''); setEditing(false); };
 
   if (editing && !disabled) {
+    if (multiline) {
+      return (
+        <Textarea
+          ref={ref as React.RefObject<HTMLTextAreaElement>}
+          value={draft}
+          placeholder={placeholder}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); }
+            else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+          }}
+          rows={3}
+          className={cn('text-sm min-h-[72px] resize-y', className)}
+        />
+      );
+    }
     return (
       <Input
-        ref={ref}
+        ref={ref as React.RefObject<HTMLInputElement>}
         type={type}
         step={step}
         value={draft}
@@ -66,18 +86,22 @@ export function InlineField({
       disabled={disabled}
       onClick={() => !disabled && setEditing(true)}
       className={cn(
-        'group h-8 w-full inline-flex items-center gap-1.5 rounded-md px-2 text-sm transition-colors',
+        'group w-full inline-flex items-start gap-1.5 rounded-md px-2 py-1.5 text-sm transition-colors text-left',
         'hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60',
+        !multiline && 'h-8 items-center',
         align === 'right' && 'justify-end',
         bold && 'font-medium',
         className,
       )}
     >
-      <span className={cn('truncate', !display && 'italic text-muted-foreground/70')}>
+      <span className={cn(
+        multiline ? 'whitespace-pre-wrap break-words flex-1' : 'truncate',
+        !display && 'italic text-muted-foreground/70',
+      )}>
         {display || placeholder || '—'}
         {display && suffix ? <span className="text-muted-foreground ml-0.5">{suffix}</span> : null}
       </span>
-      {!disabled && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto shrink-0" />}
+      {!disabled && <Pencil className={cn('h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0', multiline ? 'mt-1' : 'ml-auto')} />}
     </button>
   );
 }
