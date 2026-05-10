@@ -258,6 +258,25 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                   </Button>
                 )}
               </div>
+              <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground space-y-1.5">
+                <p><strong className="text-foreground">O que é o "fator"?</strong> É um multiplicador que aumenta ou reduz o subtotal do orçamento conforme a resposta do cliente. Aplica-se a <em>tudo</em> o que vem dos itens.</p>
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  <div className="rounded bg-background border px-2 py-1.5">
+                    <p className="font-mono text-foreground">× 1.00</p>
+                    <p className="text-[10px]">preço normal (sem alteração)</p>
+                  </div>
+                  <div className="rounded bg-background border px-2 py-1.5">
+                    <p className="font-mono text-success">× 1.20</p>
+                    <p className="text-[10px]">+20% (ex: cliente exigente)</p>
+                  </div>
+                  <div className="rounded bg-background border px-2 py-1.5">
+                    <p className="font-mono text-warning">× 0.85</p>
+                    <p className="text-[10px]">−15% (ex: ONG, amigo)</p>
+                  </div>
+                </div>
+                <p className="pt-1"><strong className="text-foreground">Como decidir o número?</strong> Pensa "quanto mais ou menos quero cobrar a este perfil?". Se queres +30% → escreve <code className="font-mono">1.30</code>. Se queres dar 10% de desconto → <code className="font-mono">0.90</code>.</p>
+                <p>Se tiveres várias perguntas, os fatores <strong>multiplicam-se entre si</strong>. Ex: equipa grande (×1.2) + urgência alta (×1.5) = ×1.80 ao subtotal.</p>
+              </div>
               {dimensionsList.length === 0 ? (
                 <div className="rounded-md border border-dashed p-6 text-center">
                   <p className="text-xs text-muted-foreground">Sem perguntas. Opcional, mas útil para diferenciar clientes.</p>
