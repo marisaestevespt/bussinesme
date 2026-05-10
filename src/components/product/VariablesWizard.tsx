@@ -177,6 +177,9 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                   </Button>
                 )}
               </div>
+              <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+                <strong className="text-foreground">Aqui defines o que cobras ao cliente</strong> — o teu <em>custo interno</em> (quanto te sai uma hora tua a ti) configura-se na sheet <strong>"Custos & Margens"</strong> em <em>"Horas de equipa"</em>, que puxa automaticamente o custo/hora de cada membro.
+              </div>
               {driversList.length === 0 ? (
                 <div className="rounded-md border border-dashed p-6 text-center">
                   <p className="text-xs text-muted-foreground">Sem itens. Começa por adicionar pelo menos um.</p>
@@ -209,11 +212,12 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                             <UnitSelect value={d.unit} disabled={!isOwner}
                               onChange={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v, unit_price: d.unit_price, default_qty: d.default_qty })} />
                           </span>
-                          <span>· cada <strong>{unitLabel}</strong> custa</span>
+                          <span>· <strong className="text-foreground">cobro ao cliente</strong></span>
                           <span className="min-w-[90px]">
                             <InlineField value={d.unit_price} type="number" placeholder="70" suffix="€" align="right" disabled={!isOwner}
                               onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(v) || 0, default_qty: d.default_qty })} />
                           </span>
+                          <span>por <strong>{unitLabel}</strong></span>
                           <span>· quantidade sugerida</span>
                           <span className="min-w-[70px]">
                             <InlineField value={d.default_qty} type="number" placeholder="0" align="right" disabled={!isOwner}
