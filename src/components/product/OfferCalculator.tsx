@@ -572,31 +572,19 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2 border-t">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Modo de amortização</Label>
-              <Select value={scenario.amortization_mode} onValueChange={v => updateScenario.mutate({ amortization_mode: v as AmortMode })} disabled={!isOwner}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vendas">Pelo nº de vendas estimadas</SelectItem>
-                  <SelectItem value="periodo">Pelo período de vida útil</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">
-                {scenario.amortization_mode === 'periodo' ? 'Vendas estimadas (no período)' : 'Vendas estimadas'}
-              </Label>
+              <Label className="text-xs text-muted-foreground">Vendas estimadas</Label>
               <Input type="number" defaultValue={scenario.estimated_sales ?? ''}
                 onBlur={e => updateScenario.mutate({ estimated_sales: e.target.value === '' ? null : Number(e.target.value) })}
                 placeholder="ex: 50" disabled={!isOwner} />
+              <p className="text-[10px] text-muted-foreground">Quantas unidades pensas vender no período abaixo.</p>
             </div>
-            {scenario.amortization_mode === 'periodo' && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Vida útil (meses)</Label>
-                <Input type="number" defaultValue={scenario.lifetime_months ?? ''}
-                  onBlur={e => updateScenario.mutate({ lifetime_months: e.target.value === '' ? null : Number(e.target.value) })}
-                  placeholder="ex: 12" disabled={!isOwner} />
-              </div>
-            )}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Período de venda (meses)</Label>
+              <Input type="number" defaultValue={scenario.lifetime_months ?? 12}
+                onBlur={e => updateScenario.mutate({ lifetime_months: e.target.value === '' ? null : Number(e.target.value) })}
+                placeholder="12" disabled={!isOwner} />
+              <p className="text-[10px] text-muted-foreground">Por defeito 12 meses. Afeta amortização de custos recorrentes.</p>
+            </div>
           </div>
           {hasUnamortizedCosts && (
             <div className="rounded-md border border-warning/40 bg-warning/10 p-2.5 text-xs flex items-start gap-2">
