@@ -617,6 +617,24 @@ export default function ProdutoDetailPage() {
           })()}
         </div>
 
+        {/* Pricing (tiers fixos OU calculadora variável) */}
+        {product?.id && (
+          <div className="pt-2">
+            <ProductPricingEditor
+              productId={product.id}
+              ticketType={(((form as any).ticket_type) || 'fixo') as 'fixo' | 'variavel'}
+              isOwner={isOwner}
+              initial={{
+                base_price: (product as any)?.base_price ?? null,
+                price_min: (product as any)?.price_min ?? null,
+                price_max: (product as any)?.price_max ?? null,
+                complexity_levels: (product as any)?.complexity_levels ?? [],
+                volume_discounts: (product as any)?.volume_discounts ?? [],
+              }}
+            />
+          </div>
+        )}
+
         {/* Sobre o Produto */}
         <EntitySection title="Sobre o Produto" icon={Info} className="pt-2">
           <div className="space-y-4">
