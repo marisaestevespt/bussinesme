@@ -700,20 +700,44 @@ export default function ProdutoDetailPage() {
             <div className="pt-4 border-t">
               <h4 className="text-sm font-semibold mb-2">FAQs do Portal do Cliente</h4>
               <p className="text-xs text-muted-foreground mb-2">Estas FAQs aparecem automaticamente no portal de todos os clientes deste produto. Alterações aqui propagam-se em tempo real. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
-              <Accordion type="multiple" className="w-full">
+              <div className="rounded-md border border-border/60 overflow-hidden">
+                <div className="grid grid-cols-[1fr_2fr_auto] bg-muted/40 text-xs font-medium text-muted-foreground">
+                  <div className="px-3 py-2">Pergunta</div>
+                  <div className="px-3 py-2 border-l border-border/60">Resposta</div>
+                  <div className="w-9 border-l border-border/60" />
+                </div>
+                {faqs.length === 0 && (
+                  <div className="px-3 py-3 text-xs text-muted-foreground italic">Sem FAQs.</div>
+                )}
                 {faqs.map((faq, i) => (
-                  <AccordionItem key={i} value={`faq-${i}`}>
-                    <AccordionTrigger className="text-sm">
-                      <Input value={faq.question} onChange={e => { const next = [...faqs]; next[i] = { ...next[i], question: e.target.value }; update('faqs', next); }} placeholder={`Pergunta ${i + 1}`} className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-sm" onClick={e => e.stopPropagation()} readOnly={!isOwner} />
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <Textarea value={faq.answer} onChange={e => { const next = [...faqs]; next[i] = { ...next[i], answer: e.target.value }; update('faqs', next); }} placeholder="Resposta..." className="min-h-[60px]" readOnly={!isOwner} />
-                      {isOwner && <Button variant="ghost" size="sm" className="mt-1 text-destructive" onClick={() => update('faqs', faqs.filter((_, j) => j !== i))}><Trash2 className="h-3 w-3 mr-1" /> Remover</Button>}
-                    </AccordionContent>
-                  </AccordionItem>
+                  <div key={i} className="group grid grid-cols-[1fr_2fr_auto] border-t border-border/60 items-start">
+                    <div className="px-2 py-1">
+                      <InlineField
+                        value={faq.question}
+                        onSave={v => { const next = [...faqs]; next[i] = { ...next[i], question: v }; update('faqs', next); }}
+                        placeholder={`Pergunta ${i + 1}`}
+                        disabled={!isOwner}
+                      />
+                    </div>
+                    <div className="px-2 py-1 border-l border-border/60">
+                      <InlineField
+                        value={faq.answer}
+                        onSave={v => { const next = [...faqs]; next[i] = { ...next[i], answer: v }; update('faqs', next); }}
+                        placeholder="Resposta"
+                        disabled={!isOwner}
+                      />
+                    </div>
+                    <div className="border-l border-border/60 flex items-center justify-center w-9 h-9">
+                      {isOwner && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => update('faqs', faqs.filter((_, j) => j !== i))}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 ))}
-              </Accordion>
-              {isOwner && <Button variant="outline" size="sm" className="mt-2" onClick={() => update('faqs', [...faqs, { question: '', answer: '' }])}><Plus className="h-3 w-3 mr-1" /> Adicionar FAQ</Button>}
+              </div>
+              {isOwner && <Button variant="ghost" size="sm" className="mt-2 text-muted-foreground hover:text-foreground" onClick={() => update('faqs', [...faqs, { question: '', answer: '' }])}><Plus className="h-3 w-3 mr-1" /> Adicionar FAQ</Button>}
             </div>
           </div>
         </EntitySection>
