@@ -4,10 +4,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles } from 'lucide-react';
+import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS } from '@/hooks/useProducts';
 import { EntityIconDisplay } from '@/components/entity-icon';
+import { useConfirm } from '@/hooks/useConfirm';
 import {
   CollectionPage,
   CollectionHeader,
@@ -44,9 +45,22 @@ export default function ProdutosPage() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'ativos' | 'off'>('ativos');
   const navigate = useNavigate();
-  const { products } = useProducts();
+  const { products, deleteProduct } = useProducts();
+  const confirm = useConfirm();
   const sectorConfig = useSectorConfig();
   const items = products.data || [];
+
+  const handleDelete = async (e: React.MouseEvent, p: { id: string; name: string }) => {
+    e.stopPropagation();
+    const ok = await confirm({
+      title: 'Eliminar produto?',
+      description: `O produto "${p.name}" e os dados associados serão removidos permanentemente.`,
+      confirmText: 'Eliminar',
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    await deleteProduct.mutateAsync(p.id);
+  };
 
   // Status counts
   const statusCounts = useMemo(() => {
