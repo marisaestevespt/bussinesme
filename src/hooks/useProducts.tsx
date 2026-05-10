@@ -29,6 +29,7 @@ export const PRODUCT_TYPE_OPTIONS = [
   { value: 'consultoria_grupo', label: 'Consultoria em Grupo' },
   { value: 'mentoria_individual', label: 'Mentoria Individual' },
   { value: 'mentoria_grupo', label: 'Mentoria em Grupo' },
+  { value: 'programa_implementacao', label: 'Programa de Implementação' },
   { value: 'curso', label: 'Curso Gravado' },
   { value: 'workshop', label: 'Workshop' },
   { value: 'servico_pontual', label: 'Serviço Pontual' },
@@ -55,6 +56,7 @@ export const SESSION_BASED_TYPES = new Set([
   'consultoria_grupo',
   'mentoria_individual',
   'mentoria_grupo',
+  'programa_implementacao',
   'workshop',
 ]);
 

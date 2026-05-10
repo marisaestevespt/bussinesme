@@ -14,6 +14,7 @@ export type ProductType =
   | 'consultoria_grupo'
   | 'mentoria_individual'
   | 'mentoria_grupo'
+  | 'programa_implementacao'
   | 'workshop'
   | 'servico_mensal'
   | string;
@@ -28,6 +29,7 @@ const PROJETO_TYPES: ProductType[] = [
   'consultoria_grupo',
   'mentoria_individual',
   'mentoria_grupo',
+  'programa_implementacao',
   'workshop',
 ];
 

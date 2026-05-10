@@ -13,7 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, deriveProjectMode, Product } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -489,32 +490,48 @@ export default function ProdutoDetailPage() {
                   {/* ── Configuração de Projeto ── */}
                   <SectionTitle>Configuração de Projeto</SectionTitle>
                   <Row icon={Settings2} label="Modo Operacional (Entregas)">
-                    <div className="flex flex-col gap-1.5 py-1">
-                      {TASK_MODE_OPTIONS.map(opt => {
-                        const modes: string[] = (form as any).task_modes || [(form as any).task_mode || 'fases'];
-                        const checked = modes.includes(opt.value);
-                        return (
-                          <label key={opt.value} className="flex items-start gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={checked}
-                              disabled={!isOwner}
-                              onCheckedChange={(v) => {
-                                const next = v
-                                  ? Array.from(new Set([...modes, opt.value]))
-                                  : modes.filter((m: string) => m !== opt.value);
-                                update('task_modes', next.length > 0 ? next : ['fases']);
-                              }}
-                              className="mt-0.5"
-                            />
-                            <span className="text-sm leading-tight">
-                              <span className="font-medium">{opt.label}</span>
-                              <span className="block text-[11px] text-muted-foreground">{opt.description}</span>
-                            </span>
-                          </label>
-                        );
-                      })}
-                      <p className="text-[11px] text-muted-foreground italic mt-1">Podes combinar vários modos.</p>
-                    </div>
+                    {(() => {
+                      const modes: string[] = (form as any).task_modes || [(form as any).task_mode || 'fases'];
+                      const labels = TASK_MODE_OPTIONS.filter(o => modes.includes(o.value)).map(o => o.label);
+                      const summary = labels.length > 0 ? labels.join(' + ') : 'Selecionar…';
+                      return (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className={cn(inlineTrigger, 'justify-between font-normal')} disabled={!isOwner}>
+                              <span className="truncate text-left">{summary}</span>
+                              <ChevronDown className="h-3.5 w-3.5 opacity-50 shrink-0 ml-2" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-2" align="start">
+                            <div className="flex flex-col gap-1">
+                              {TASK_MODE_OPTIONS.map(opt => {
+                                const checked = modes.includes(opt.value);
+                                return (
+                                  <label key={opt.value} className="flex items-start gap-2 cursor-pointer p-2 rounded hover:bg-muted/50">
+                                    <Checkbox
+                                      checked={checked}
+                                      disabled={!isOwner}
+                                      onCheckedChange={(v) => {
+                                        const next = v
+                                          ? Array.from(new Set([...modes, opt.value]))
+                                          : modes.filter((m: string) => m !== opt.value);
+                                        update('task_modes', next.length > 0 ? next : ['fases']);
+                                      }}
+                                      className="mt-0.5"
+                                    />
+                                    <span className="text-sm leading-tight">
+                                      <span className="font-medium">{opt.label}</span>
+                                      <span className="block text-[11px] text-muted-foreground">{opt.description}</span>
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                              <p className="text-[11px] text-muted-foreground italic px-2 pt-1">Podes combinar vários modos.</p>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      );
+                    })()}
                   </Row>
                   {SESSION_BASED_TYPES.has(form.product_type || '') && (
                     <>
