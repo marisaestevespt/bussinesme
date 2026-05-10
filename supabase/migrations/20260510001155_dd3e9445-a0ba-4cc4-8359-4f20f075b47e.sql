@@ -1,0 +1,2 @@
+ALTER TABLE public.product_phases ADD COLUMN IF NOT EXISTS is_offboarding boolean NOT NULL DEFAULT false;
+ALTER TABLE public.project_phases ADD COLUMN IF NOT EXISTS is_offboarding boolean NOT NULL DEFAULT false;
