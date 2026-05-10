@@ -31,6 +31,7 @@ import { ProductMarketingSection } from '@/components/product/ProductMarketingSe
 import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSection, ProductContabilidadeSection } from '@/components/product/ProductSections';
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
+import { ProductPricingEditor } from '@/components/product/ProductPricingEditor';
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
 import { ProductWelcomeEmailSection } from '@/components/product/ProductWelcomeEmailSection';
 import { ProductProjectsSection } from '@/components/product/ProductProjectsSection';
