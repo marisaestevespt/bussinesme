@@ -43,6 +43,7 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntitySection } from '@/components/layout/entity';
 import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -66,6 +67,21 @@ export default function ProdutoDetailPage() {
 
   const { data: product, isLoading } = useProduct(isNew ? undefined : id);
   const { upsertProduct, duplicateProduct, deleteProduct } = useProducts();
+
+  // Capacidade técnica calculada: soma das horas mensais disponíveis da equipa ÷ horas/cliente.
+  // Serve como referência objetiva ao lado do limite estratégico (manual).
+  const { data: teamMonthlyCapacity } = useQuery({
+    queryKey: ['team-monthly-capacity'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('expected_weekly_hours, status')
+        .eq('status', 'active');
+      const weekly = (data ?? []).reduce((s, m: any) => s + (Number(m.expected_weekly_hours) || 0), 0);
+      return Math.round(weekly * 4.33);
+    },
+  });
 
   const [form, setForm] = useState<Partial<Product>>({});
   const [initialized, setInitialized] = useState(false);
@@ -584,8 +600,39 @@ export default function ProdutoDetailPage() {
                       <Input type="number" value={(form as any).estimated_project_hours ?? ''} onChange={e => update('estimated_project_hours', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 35" className={inlineInput} readOnly={!isOwner} />
                     </Row>
                   )}
-                  <Row icon={Users} label="Máx. clientes simultâneos (Métricas)">
-                    <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
+                  <Row
+                    icon={Users}
+                    label={
+                      <span className="inline-flex items-center gap-1">
+                        Limite estratégico de clientes
+                        <TooltipProvider><Tooltip>
+                          <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                          <TooltipContent className="max-w-xs text-xs">
+                            Teto comercial que defines (ex: "máx. 5 clientes para manter qualidade").
+                            Diferente da capacidade técnica, que é calculada a partir das horas da equipa.
+                            Se ficar vazio, o sistema usa a capacidade técnica como teto.
+                          </TooltipContent>
+                        </Tooltip></TooltipProvider>
+                      </span> as any
+                    }
+                  >
+                    <div className="flex flex-col gap-1 w-full">
+                      <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
+                      {(() => {
+                        const hpc = Number(form.monthly_hours_per_client) || 0;
+                        if (!hpc || !teamMonthlyCapacity) return null;
+                        const technical = Math.floor(teamMonthlyCapacity / hpc);
+                        const strategic = Number((form as any).max_simultaneous_clients) || 0;
+                        const overcommit = strategic > 0 && strategic > technical;
+                        return (
+                          <p className={cn('text-[11px]', overcommit ? 'text-destructive' : 'text-muted-foreground')}>
+                            Capacidade técnica estimada: <span className="font-medium">{technical} clientes</span>
+                            {' '}({teamMonthlyCapacity}h/mês equipa ÷ {hpc}h/cliente)
+                            {overcommit && <> — limite estratégico acima da capacidade real</>}
+                          </p>
+                        );
+                      })()}
+                    </div>
                   </Row>
                   <Row icon={Timer} label="Duração do Ciclo">
                     <div className="flex items-center gap-2">
