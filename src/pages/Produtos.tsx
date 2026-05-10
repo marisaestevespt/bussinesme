@@ -8,7 +8,7 @@ import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles, 
 import { useNavigate } from 'react-router-dom';
 import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS } from '@/hooks/useProducts';
 import { EntityIconDisplay } from '@/components/entity-icon';
-import { useConfirm } from '@/hooks/useConfirm';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   CollectionPage,
   CollectionHeader,
