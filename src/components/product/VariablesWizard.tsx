@@ -182,26 +182,50 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                   <p className="text-[11px] text-muted-foreground mt-1">Ex: <em>Horas por semana — 70€/h — 4h sugeridas</em></p>
                 </div>
               ) : (
-                <>
-                  <div className="grid grid-cols-[1fr_100px_110px_110px_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground px-1">
-                    <span>Nome</span><span>Unidade</span><span className="text-right">€/un</span><span className="text-right">Qtd. sug.</span><span></span>
-                  </div>
-                  {driversList.map(d => (
-                    <div key={d.id} className="grid grid-cols-[1fr_100px_110px_110px_auto] gap-2 items-center rounded-md border p-1.5 bg-muted/10">
-                      <InlineField value={d.name} placeholder="Ex: Horas por semana" disabled={!isOwner} bold
-                        onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: v, unit: d.unit, unit_price: d.unit_price, default_qty: d.default_qty })} />
-                      <InlineField value={d.unit || ''} placeholder="h, post…" disabled={!isOwner}
-                        onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v || null, unit_price: d.unit_price, default_qty: d.default_qty })} />
-                      <InlineField value={d.unit_price} type="number" placeholder="70" suffix="€" align="right" disabled={!isOwner}
-                        onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(v) || 0, default_qty: d.default_qty })} />
-                      <InlineField value={d.default_qty} type="number" placeholder="0" align="right" disabled={!isOwner}
-                        onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: d.unit_price, default_qty: parseFloat(v) || 0 })} />
-                      {isOwner && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeDriver.mutate(d.id)}><Trash2 className="h-3 w-3" /></Button>
-                      )}
-                    </div>
-                  ))}
-                </>
+                <div className="space-y-2">
+                  {driversList.map(d => {
+                    const unitLabel = (d.unit || 'unidade').trim();
+                    const subtotal = (Number(d.unit_price) || 0) * (Number(d.default_qty) || 0);
+                    return (
+                      <div key={d.id} className="rounded-md border bg-muted/10 p-3 space-y-2">
+                        {/* Linha 1: nome do item */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Item</p>
+                            <InlineField value={d.name} placeholder="Ex: Horas por semana" disabled={!isOwner} bold
+                              onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: v, unit: d.unit, unit_price: d.unit_price, default_qty: d.default_qty })} />
+                          </div>
+                          {isOwner && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0 mt-4" onClick={() => removeDriver.mutate(d.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                        {/* Linha 2: frase explicativa */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground bg-background rounded-md px-2 py-1.5 border">
+                          <span>Medido em</span>
+                          <span className="min-w-[80px]">
+                            <InlineField value={d.unit || ''} placeholder="h, post, sessão…" disabled={!isOwner}
+                              onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v || null, unit_price: d.unit_price, default_qty: d.default_qty })} />
+                          </span>
+                          <span>· cada <strong>{unitLabel}</strong> custa</span>
+                          <span className="min-w-[90px]">
+                            <InlineField value={d.unit_price} type="number" placeholder="70" suffix="€" align="right" disabled={!isOwner}
+                              onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(v) || 0, default_qty: d.default_qty })} />
+                          </span>
+                          <span>· quantidade sugerida</span>
+                          <span className="min-w-[70px]">
+                            <InlineField value={d.default_qty} type="number" placeholder="0" align="right" disabled={!isOwner}
+                              onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: d.unit_price, default_qty: parseFloat(v) || 0 })} />
+                          </span>
+                          <span className="ml-auto pl-2 border-l text-foreground">
+                            = <strong className="tabular-nums">{formatEuro(subtotal)}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </section>
           )}
