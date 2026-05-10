@@ -22,7 +22,7 @@ import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnost
 import { ArchiveDocumentsView } from '@/components/product/archive/ArchiveDocumentsView';
 import { RichEditor } from '@/components/product/archive/RichEditor';
 import { ProductLinksAggregator } from '@/components/product/ProductLinksAggregator';
-import { ProductPricingEditor } from '@/components/product/ProductPricingEditor';
+import { PricingWorkspace } from '@/components/product/PricingWorkspace';
 
 // ─── Processos Section ─────────────────────────────────────────
 import { getSopStatusInfo } from '@/lib/sopStatus';
@@ -366,10 +366,11 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
         </Button>
       </div>
       {productId && (
-        <ProductPricingEditor
+        <PricingWorkspace
           productId={productId}
           ticketType={((form.ticket_type as string) || 'fixo') as 'fixo' | 'variavel'}
           isOwner={isOwner}
+          vatRate={(form.vat_rate as string) || '23'}
           initial={{
             base_price: (form.base_price as number) ?? null,
             price_min: (form.price_min as number) ?? null,
@@ -418,31 +419,11 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
           </div>
         </CardContent>
       </Card>
-      <OfferCalculatorWrapper
-        productId={productId}
-        vatRate={(form.vat_rate as string) || '23'}
-        isOwner={isOwner}
-      />
       <QuoteCalculatorDialog open={simOpen} onOpenChange={setSimOpen} productId={productId} />
     </div>
   );
 }
 
-// Lazy import wrapper to avoid circular deps
-import { OfferCalculator } from '@/components/product/OfferCalculator';
+// Lazy imports to avoid circular deps
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { QuoteCalculatorDialog } from '@/components/product/QuoteCalculatorDialog';
-
-function OfferCalculatorWrapper(props: {
-  productId: string;
-  vatRate: string;
-  isOwner: boolean;
-}) {
-  return (
-    <OfferCalculator
-      productId={props.productId}
-      vatRate={props.vatRate}
-      isOwner={props.isOwner}
-    />
-  );
-}
