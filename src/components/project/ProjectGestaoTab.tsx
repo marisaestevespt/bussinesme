@@ -274,7 +274,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   return (
     <div className="space-y-6">
       {/* Valor contratado / orçamento de origem */}
-      <ProjectBudgetCard projectId={projectId} productId={(productData as any)?.id || null} clientId={clientId || null} />
+      <ProjectBudgetCard projectId={projectId} clientId={clientId || null} />
 
       {/* Forma de Pagamento + Gerador */}
       <Card className="overflow-hidden">
