@@ -59,7 +59,7 @@ export default function ProdutoDetailPage() {
   const canSeeSection = (key: string) => {
     if (!isSalesOnly) return true;
     const allowed = new Set([
-      'clientes-vendas', 'projetos', 'comercial', 'marketing', 'branding', 'backoffice', 'metricas', 'arquivo',
+      'o-produto', 'clientes-metricas', 'comercial', 'marketing', 'branding', 'backoffice',
     ]);
     return allowed.has(key);
   };
@@ -669,7 +669,22 @@ export default function ProdutoDetailPage() {
 
         {/* Pricing config movido para a secção "Contabilidade & Pricing" */}
 
-        {/* Sobre o Produto */}
+        {/* ═══ SECTION BUTTONS ═══ */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {canSeeSection('o-produto') && <SectionButton sectionKey="o-produto" label="O Produto" />}
+            {canSeeSection('operacao') && <SectionButton sectionKey="operacao" label="Operação" />}
+            {canSeeSection('branding') && <SectionButton sectionKey="branding" label="Branding" />}
+            {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
+            {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
+            {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade & Pricing" />}
+            {canSeeSection('clientes-metricas') && <SectionButton sectionKey="clientes-metricas" label="Clientes & Métricas" />}
+            {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
+            {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
+          </div>
+
+          {openSection === 'o-produto' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
         <EntitySection title="Sobre o Produto" icon={Info} className="pt-2">
           <div className="space-y-4">
             <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
@@ -844,39 +859,25 @@ export default function ProdutoDetailPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+            </div>
+          )}
 
-        {/* ═══ SECTION BUTTONS ═══ */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {canSeeSection('clientes-vendas') && <SectionButton sectionKey="clientes-vendas" label="Clientes e Vendas" />}
-            {canSeeSection('projetos') && <SectionButton sectionKey="projetos" label={sectorConfig.t('projetos')} />}
-            {canSeeSection('entregas') && <SectionButton sectionKey="entregas" label="Entregas" />}
-            {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
-            {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
-            {canSeeSection('branding') && <SectionButton sectionKey="branding" label="Branding" />}
-            {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade & Pricing" />}
-            {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
-            {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
-            {canSeeSection('metricas') && <SectionButton sectionKey="metricas" label="Métricas" />}
-            {canSeeSection('arquivo') && <SectionButton sectionKey="arquivo" label="Arquivo" />}
-          </div>
-
-          {openSection === 'clientes-vendas' && (
+          {openSection === 'clientes-metricas' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductSalesTab productName={form.name || ''} />
               {!isNew && id && (
                 <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
               )}
+              {!isNew && id && (
+                <ProductProjectsSection productId={id} productName={form.name || ''} />
+              )}
+              {!isNew && id && (
+                <ProductMetricsTab productId={id} productName={form.name || ''} isOwner={isOwner} />
+              )}
             </div>
           )}
 
-          {openSection === 'projetos' && !isNew && id && (
-            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-              <ProductProjectsSection productId={id} productName={form.name || ''} />
-            </div>
-          )}
-
-          {openSection === 'entregas' && (
+          {openSection === 'operacao' && (
             <ProductEntregasSection
               deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string; is_recurring?: boolean }>}
               isOwner={isOwner}
@@ -959,17 +960,27 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'backoffice' && (
-            <ProductBackofficeSection
-              usefulLinks={usefulLinks}
-              improvements={improvements}
-              productMeetings={productMeetings}
-              isOwner={isOwner}
-              productId={id!}
-              onAddLink={() => addRow.mutate({ table: 'product_useful_links', data: { product_id: id, name: '', url: '' } })}
-              onAddImprovement={() => addRow.mutate({ table: 'product_improvements', data: { product_id: id, description: '', completed: false, sort_order: improvements.length } })}
-              onUpdateRow={(table, rowId, data) => updateRow.mutate({ table, id: rowId, data })}
-              onDeleteRow={(table, rowId) => deleteRow.mutate({ table, id: rowId })}
-            />
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductBackofficeSection
+                usefulLinks={usefulLinks}
+                improvements={improvements}
+                productMeetings={productMeetings}
+                isOwner={isOwner}
+                productId={id!}
+                onAddLink={() => addRow.mutate({ table: 'product_useful_links', data: { product_id: id, name: '', url: '' } })}
+                onAddImprovement={() => addRow.mutate({ table: 'product_improvements', data: { product_id: id, description: '', completed: false, sort_order: improvements.length } })}
+                onUpdateRow={(table, rowId, data) => updateRow.mutate({ table, id: rowId, data })}
+                onDeleteRow={(table, rowId) => deleteRow.mutate({ table, id: rowId })}
+              />
+              <ProductArquivoSection
+                productDocuments={productDocuments}
+                archiveNotes={form.archive_notes || ''}
+                brainstormingContent={form.brainstorming_content || ''}
+                isOwner={isOwner}
+                productId={id!}
+                onUpdateField={(field, value) => update(field, value)}
+              />
+            </div>
           )}
 
           {openSection === 'branding' && (
@@ -993,23 +1004,6 @@ export default function ProdutoDetailPage() {
                 />
               )}
             </div>
-          )}
-
-          {openSection === 'metricas' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
-              <ProductMetricsTab productId={id!} productName={form.name || ''} isOwner={isOwner} />
-            </div>
-          )}
-
-          {openSection === 'arquivo' && (
-            <ProductArquivoSection
-              productDocuments={productDocuments}
-              archiveNotes={form.archive_notes || ''}
-              brainstormingContent={form.brainstorming_content || ''}
-              isOwner={isOwner}
-              productId={id!}
-              onUpdateField={(field, value) => update(field, value)}
-            />
           )}
         </div>
       </div>
