@@ -919,9 +919,9 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
               Define todos os custos do produto (criação, recorrentes, por venda, horas de equipa) e simula preços com diferentes margens e regimes fiscais.
             </p>
           </div>
-          {isOwner && scenarios.length > 0 && (
+          {isOwner && scenarios.length > 1 && (
             <Button size="sm" variant="outline" onClick={() => addScenario.mutate()}>
-              <Plus className="h-3 w-3 mr-1" /> Novo cenário
+              <Plus className="h-3 w-3 mr-1" /> Nova variante
             </Button>
           )}
         </div>
@@ -930,49 +930,59 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
         {scenarios.length === 0 ? (
           <p className="text-sm text-muted-foreground py-8 text-center">A preparar cenário inicial…</p>
         ) : (
-          <Tabs value={activeId} onValueChange={setActiveId}>
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <TabsList className="flex-wrap h-auto">
-                {scenarios.map(s => (
-                  <TabsTrigger key={s.id} value={s.id} className="text-xs">
-                    {s.name}
-                    {s.is_default && (
-                      <Badge
-                        variant="secondary"
-                        className="ml-1.5 text-[9px] py-0 px-1.5 bg-primary/15 text-primary border border-primary/30"
-                      >
-                        padrão
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {active && isOwner && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    defaultValue={active.name}
-                    onBlur={e => { if (e.target.value !== active.name) renameScenario.mutate({ id: active.id, name: e.target.value }); }}
-                    className="h-7 text-xs w-32"
-                    aria-label="Nome do cenário"
-                  />
-                  {scenarios.length > 1 && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                      if (window.confirm(`Eliminar cenário "${active.name}"? Os custos associados serão removidos.`)) {
-                        deleteScenario.mutate(active.id);
-                      }
-                    }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+          <>
+            {scenarios.length > 1 ? (
+              <Tabs value={activeId} onValueChange={setActiveId}>
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <TabsList className="flex-wrap h-auto">
+                    {scenarios.map(s => (
+                      <TabsTrigger key={s.id} value={s.id} className="text-xs">
+                        {s.name}
+                        {s.is_default && (
+                          <Badge variant="secondary" className="ml-1.5 text-[9px] py-0 px-1.5 bg-primary/15 text-primary border border-primary/30">
+                            padrão
+                          </Badge>
+                        )}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {active && isOwner && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        defaultValue={active.name}
+                        onBlur={e => { if (e.target.value !== active.name) renameScenario.mutate({ id: active.id, name: e.target.value }); }}
+                        className="h-7 text-xs w-32"
+                        aria-label="Nome do cenário"
+                      />
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
+                        if (window.confirm(`Eliminar variante "${active.name}"? Os custos associados serão removidos.`)) {
+                          deleteScenario.mutate(active.id);
+                        }
+                      }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-            {active && (
-              <TabsContent value={active.id} className="mt-0">
+                {active && (
+                  <TabsContent value={active.id} className="mt-0">
+                    <ScenarioPanel scenario={active} productId={productId} vatRate={vatRate} isOwner={isOwner} />
+                  </TabsContent>
+                )}
+              </Tabs>
+            ) : active ? (
+              <>
                 <ScenarioPanel scenario={active} productId={productId} vatRate={vatRate} isOwner={isOwner} />
-              </TabsContent>
-            )}
-          </Tabs>
+                {isOwner && (
+                  <div className="pt-4 mt-6 border-t flex justify-center">
+                    <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => addScenario.mutate()}>
+                      <Plus className="h-3 w-3 mr-1" /> Comparar com outra variante (avançado)
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </>
         )}
       </CardContent>
     </Card>
