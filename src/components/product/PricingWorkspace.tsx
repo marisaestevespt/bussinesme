@@ -23,12 +23,12 @@ interface Props {
 type SheetKey = 'oferta' | 'variaveis';
 
 const SHEETS: Array<{ key: SheetKey; label: string; icon: React.ComponentType<{ className?: string }>; hint: string }> = [
-  { key: 'oferta', label: 'Custos & Margens', icon: Coins, hint: 'Calculadora de Oferta — custos internos e mín/sugerido/máx' },
   { key: 'variaveis', label: 'Variáveis do orçamento', icon: SlidersHorizontal, hint: 'Drivers, perguntas e descontos usados na Calculadora de Orçamento' },
+  { key: 'oferta', label: 'Custos & Margens', icon: Coins, hint: 'Calculadora de Oferta — custos internos e mín/sugerido/máx' },
 ];
 
 export function PricingWorkspace({ productId, ticketType, isOwner, vatRate, initial }: Props) {
-  const [active, setActive] = useState<SheetKey>('oferta');
+  const [active, setActive] = useState<SheetKey>('variaveis');
 
   return (
     <Card className="overflow-hidden">
