@@ -174,6 +174,26 @@ export default function ProdutosPage() {
           </Card>
         )}
 
+        {/* Tabs: Produtos / Off */}
+        <div className="inline-flex rounded-lg border bg-muted/30 p-1">
+          <Button
+            variant={tab === 'ativos' ? 'default' : 'ghost'}
+            size="sm"
+            className="h-8"
+            onClick={() => { setTab('ativos'); setStatusFilter(null); }}
+          >
+            Produtos <span className="ml-1.5 text-xs opacity-70">({activeCount})</span>
+          </Button>
+          <Button
+            variant={tab === 'off' ? 'default' : 'ghost'}
+            size="sm"
+            className="h-8"
+            onClick={() => { setTab('off'); setStatusFilter(null); }}
+          >
+            Off <span className="ml-1.5 text-xs opacity-70">({offCount})</span>
+          </Button>
+        </div>
+
         {/* Toolbar */}
         <CollectionToolbar
           search={search}
