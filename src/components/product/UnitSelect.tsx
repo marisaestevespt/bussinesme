@@ -3,24 +3,68 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 
 /** Common pricing units. Pure display — does not affect math. */
-export const COMMON_UNITS = [
-  { value: 'h', label: 'h (hora)' },
-  { value: 'h/sem', label: 'h/sem (horas por semana)' },
-  { value: 'h/mês', label: 'h/mês (horas por mês)' },
-  { value: 'dia', label: 'dia' },
-  { value: 'semana', label: 'semana' },
-  { value: 'mês', label: 'mês' },
-  { value: 'sessão', label: 'sessão' },
-  { value: 'reunião', label: 'reunião' },
-  { value: 'post', label: 'post' },
-  { value: 'vídeo', label: 'vídeo' },
-  { value: 'artigo', label: 'artigo' },
-  { value: 'página', label: 'página' },
-  { value: 'palavra', label: 'palavra' },
-  { value: 'projeto', label: 'projeto' },
-  { value: 'entregável', label: 'entregável' },
-  { value: 'unidade', label: 'unidade' },
+export const UNIT_GROUPS = [
+  {
+    label: 'Tempo',
+    items: [
+      { value: 'h',       label: 'h (hora)' },
+      { value: 'h/dia',   label: 'h/dia (horas por dia)' },
+      { value: 'h/sem',   label: 'h/sem (horas por semana)' },
+      { value: 'h/mês',   label: 'h/mês (horas por mês)' },
+      { value: 'h/ano',   label: 'h/ano (horas por ano)' },
+      { value: 'min',     label: 'min (minuto)' },
+      { value: 'dia',     label: 'dia' },
+      { value: 'semana',  label: 'semana' },
+      { value: 'mês',     label: 'mês' },
+      { value: 'trimestre', label: 'trimestre' },
+      { value: 'ano',     label: 'ano' },
+    ],
+  },
+  {
+    label: 'Sessões & encontros',
+    items: [
+      { value: 'sessão',   label: 'sessão' },
+      { value: 'reunião',  label: 'reunião' },
+      { value: 'consulta', label: 'consulta' },
+      { value: 'workshop', label: 'workshop' },
+      { value: 'aula',     label: 'aula' },
+      { value: 'evento',   label: 'evento' },
+    ],
+  },
+  {
+    label: 'Conteúdo & criativo',
+    items: [
+      { value: 'post',       label: 'post' },
+      { value: 'post/sem',   label: 'post/sem (posts por semana)' },
+      { value: 'post/mês',   label: 'post/mês (posts por mês)' },
+      { value: 'vídeo',      label: 'vídeo' },
+      { value: 'reel',       label: 'reel' },
+      { value: 'artigo',     label: 'artigo' },
+      { value: 'newsletter', label: 'newsletter' },
+      { value: 'campanha',   label: 'campanha' },
+      { value: 'criativo',   label: 'criativo' },
+      { value: 'página',     label: 'página' },
+      { value: 'palavra',    label: 'palavra' },
+      { value: 'caracter',   label: 'caracter' },
+    ],
+  },
+  {
+    label: 'Trabalho & entregas',
+    items: [
+      { value: 'projeto',     label: 'projeto' },
+      { value: 'entregável',  label: 'entregável' },
+      { value: 'tarefa',      label: 'tarefa' },
+      { value: 'sprint',      label: 'sprint' },
+      { value: 'milestone',   label: 'milestone' },
+      { value: 'utilizador',  label: 'utilizador' },
+      { value: 'licença',     label: 'licença' },
+      { value: 'unidade',     label: 'unidade' },
+    ],
+  },
 ];
+
+/** Flat list (kept for backward compatibility / lookups). */
+export const COMMON_UNITS = UNIT_GROUPS.flatMap(g => g.items);
 
 const CUSTOM = '__custom__';
 
