@@ -417,25 +417,37 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
   const irsBaseSimpl = 0.75;
   const ssBaseSimpl  = 0.70;
 
-  // ── Preço recomendado: agora resolve para a MARGEM LÍQUIDA real (depois de impostos)
+  // ── Preço recomendado: resolve para a MARGEM LÍQUIDA real (depois de impostos)
   // Simplificado: lucro = price*(1 - 0.75·IRS - 0.70·SS) - cost
   // Organizada:  lucro = (price - cost)·(1 - IRC)
   // Pretende-se: lucro / price = margem_desejada
   let recBase = 0;
+  let recInfeasible = false;       // margem desejada matematicamente impossível
+  let maxFeasibleMargin = 1;       // margem líquida máxima possível neste regime
   if (hasCosts) {
     if (reg === 'simplificado') {
       const taxFrac = irsBaseSimpl * irsRate + ssBaseSimpl * ssRate;
+      maxFeasibleMargin = Math.max(0, 1 - taxFrac);
       const denom = 1 - taxFrac - marginFraction;
-      recBase = denom > 0 ? totalPerUnit / denom : totalPerUnit;
+      if (denom > 0) recBase = totalPerUnit / denom;
+      else { recInfeasible = true; recBase = 0; }
     } else {
-      // organizada — IRC sobre lucro
+      maxFeasibleMargin = Math.max(0, 1 - irsRate);
       const denom = 1 - marginFraction / Math.max(1 - irsRate, 0.0001);
-      recBase = denom > 0 ? totalPerUnit / denom : totalPerUnit;
+      if (denom > 0) recBase = totalPerUnit / denom;
+      else { recInfeasible = true; recBase = 0; }
     }
   }
   const recWithVat = recBase * (1 + vatPercent / 100);
   const recMargin = Number(scenario.desired_margin) || 0; // margem líquida alvo
-  const floorBase = totalPerUnit;
+
+  // Preço mínimo para LUCRO ≥ 0 depois de impostos (não apenas cobrir custo)
+  // Simplificado: price*(1 - 0.75·IRS - 0.70·SS) = cost  →  price = cost / (1 - taxFrac)
+  // Organizada: price - cost - (price-cost)*IRC ≥ 0  →  price ≥ cost  (IRC só sobre lucro)
+  const taxFracSimpl = irsBaseSimpl * irsRate + ssBaseSimpl * ssRate;
+  const floorBase = reg === 'simplificado' && taxFracSimpl < 1
+    ? totalPerUnit / (1 - taxFracSimpl)
+    : totalPerUnit;
   const floorWithVat = floorBase * (1 + vatPercent / 100);
 
   // Test price + impostos
