@@ -43,9 +43,9 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
 
   const { drivers, upsert: upsertDriver, remove: removeDriver } = usePricingDrivers(productId);
 
-  const persistProductFields = async (patch: Record<string, unknown>) => {
+  const persistProductFields = async (patch: Record<string, any>) => {
     setSaving(true);
-    const { error } = await supabase.from('products').update(patch).eq('id', productId);
+    const { error } = await supabase.from('products').update(patch as any).eq('id', productId);
     setSaving(false);
     if (error) { toast.error('Erro ao guardar'); return; }
     qc.invalidateQueries({ queryKey: ['products', productId] });
