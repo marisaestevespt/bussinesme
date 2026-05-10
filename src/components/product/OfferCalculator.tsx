@@ -69,6 +69,23 @@ const COST_TYPE_META: Record<CostType, { label: string; icon: typeof Package; co
   horas:      { label: 'Horas de equipa',    icon: ClockIcon,  color: 'text-accent-violet', desc: 'Horas estimadas × custo/hora do membro. Tipo de custo definido pelo modo de amortização.' },
 };
 
+// ─── Presets fiscais ─────────────────────────────────────────────
+// Valores típicos PT 2025. O utilizador pode sempre afinar à mão.
+const TAX_PRESETS: Array<{
+  id: string;
+  label: string;
+  desc: string;
+  regime: TaxRegime;
+  tax_rate: number;
+  ss_rate: number;
+}> = [
+  { id: 'simpl_servicos', label: 'Independente — Serviços (Simplificado)', desc: 'IRS 25% sobre 75% da receita · SS 21,4% sobre 70%', regime: 'simplificado', tax_rate: 25, ss_rate: 21.4 },
+  { id: 'simpl_inicio',   label: 'Independente — 1º/2º ano (Simplificado)', desc: 'IRS reduzido a 12,5% (50% nos 2 primeiros anos) · SS 21,4%', regime: 'simplificado', tax_rate: 12.5, ss_rate: 21.4 },
+  { id: 'org_pme',        label: 'Sociedade — PME (Org. Organizada)', desc: 'IRC 17% sobre o lucro (1ºs 50k€) · SS empresa fora deste cálculo', regime: 'organizada', tax_rate: 17, ss_rate: 0 },
+  { id: 'org_geral',      label: 'Sociedade — Taxa geral (Org. Organizada)', desc: 'IRC 21% sobre o lucro · SS empresa fora deste cálculo', regime: 'organizada', tax_rate: 21, ss_rate: 0 },
+  { id: 'sem_impostos',   label: 'Não considerar impostos', desc: 'Calcula só margem bruta. Atenção: o preço final ainda paga impostos.', regime: 'simplificado', tax_rate: 0, ss_rate: 0 },
+];
+
 // ─── Helpers de cálculo ───────────────────────────────────────────
 function unitCostFromCost(c: ProductCost, scenario: Scenario): { unit: number; total: number; meta: string } {
   const sales = Math.max(scenario.estimated_sales || 0, 0);
@@ -503,6 +520,45 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
       <Card>
         <CardHeader><CardTitle className="text-sm">Parâmetros do cenário</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          {/* Preset fiscal — preenche regime + IRS + SS de uma vez */}
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Perfil fiscal (preenche tudo automaticamente)</Label>
+            <Select
+              value={
+                TAX_PRESETS.find(p =>
+                  p.regime === scenario.tax_regime &&
+                  Math.abs(p.tax_rate - (Number(scenario.tax_rate) || 0)) < 0.01 &&
+                  Math.abs(p.ss_rate  - (Number(scenario.ss_rate)  || 0)) < 0.01
+                )?.id || 'custom'
+              }
+              onValueChange={v => {
+                if (v === 'custom') return;
+                const p = TAX_PRESETS.find(pp => pp.id === v);
+                if (!p) return;
+                updateScenario.mutate({ tax_regime: p.regime, tax_rate: p.tax_rate, ss_rate: p.ss_rate });
+              }}
+              disabled={!isOwner}
+            >
+              <SelectTrigger><SelectValue placeholder="Escolhe um perfil…" /></SelectTrigger>
+              <SelectContent>
+                {TAX_PRESETS.map(p => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <div className="flex flex-col items-start py-0.5">
+                      <span className="text-sm">{p.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{p.desc}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">
+                  <span className="text-sm">Personalizado (afinar valores em baixo)</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">
+              Valores típicos PT 2025. Podes sempre afinar IRS/IRC e SS manualmente nos campos abaixo.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Margem desejada (%)</Label>
