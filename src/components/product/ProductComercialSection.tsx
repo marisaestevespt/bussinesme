@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Textarea } from '@/components/ui/textarea';
+import { Editable } from '@/components/ui/editable';
 import { Plus, Trash2, X, UserCircle, Zap, Swords } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -56,13 +57,29 @@ export function ProductComercialSection({
           <h4 className="text-sm font-semibold">{label}</h4>
           <p className="text-xs text-muted-foreground">{hint}</p>
           {(clientProfile[key] || []).map((item: string, i: number) => (
-            <div key={i} className="flex gap-1 items-start">
-              <Textarea value={item} onChange={e => {
-                const arr = [...(clientProfile[key] || [])];
-                arr[i] = e.target.value;
-                onUpdateClientProfile(key, arr);
-              }} className="text-xs min-h-[56px] resize-y leading-snug" readOnly={!isOwner} />
-              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 mt-1" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
+            <div key={i} className="flex gap-1 items-start group/row">
+              <div className="flex-1 min-w-0">
+                <Editable
+                  display={item}
+                  disabled={!isOwner}
+                  placeholder="Escrever..."
+                  className="text-sm leading-snug"
+                  render={({ stop, autoFocusRef }) => (
+                    <Textarea
+                      ref={autoFocusRef as any}
+                      value={item}
+                      onBlur={stop}
+                      onChange={e => {
+                        const arr = [...(clientProfile[key] || [])];
+                        arr[i] = e.target.value;
+                        onUpdateClientProfile(key, arr);
+                      }}
+                      className="text-sm min-h-[80px] resize-y leading-snug"
+                    />
+                  )}
+                />
+              </div>
+              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
             </div>
           ))}
           {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => onUpdateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
@@ -91,13 +108,29 @@ export function ProductComercialSection({
                 <div key={key} className="space-y-2">
                   <p className="text-xs text-muted-foreground font-medium">{label}</p>
                   {(clientProfile[key] || []).map((item: string, i: number) => (
-                    <div key={i} className="flex gap-1 items-start">
-                      <Textarea value={item} onChange={e => {
-                        const arr = [...(clientProfile[key] || [])];
-                        arr[i] = e.target.value;
-                        onUpdateClientProfile(key, arr);
-                      }} className="text-xs min-h-[56px] resize-y leading-snug" readOnly={!isOwner} />
-                      {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 mt-1" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
+                    <div key={i} className="flex gap-1 items-start group/row">
+                      <div className="flex-1 min-w-0">
+                        <Editable
+                          display={item}
+                          disabled={!isOwner}
+                          placeholder="Escrever..."
+                          className="text-sm leading-snug"
+                          render={({ stop, autoFocusRef }) => (
+                            <Textarea
+                              ref={autoFocusRef as any}
+                              value={item}
+                              onBlur={stop}
+                              onChange={e => {
+                                const arr = [...(clientProfile[key] || [])];
+                                arr[i] = e.target.value;
+                                onUpdateClientProfile(key, arr);
+                              }}
+                              className="text-sm min-h-[80px] resize-y leading-snug"
+                            />
+                          )}
+                        />
+                      </div>
+                      {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
                     </div>
                   ))}
                   {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => onUpdateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
