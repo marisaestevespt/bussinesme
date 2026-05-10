@@ -15,17 +15,18 @@ Tokens: tudo via `--primary`, `--muted`, `hq-card`, `hq-surface-sunken`. Spacing
 
 ## Fase 2 — Eliminar duplicações entre tabs
 
-Mapeamento de duplicações detectadas:
+Auditoria do código actual: a maioria das duplicações listadas já não existem.
 
-| Conteúdo | Aparece em | Ação |
-|---|---|---|
-| Cliente do produto | Comercial, Branding, Clientes&Métricas | Manter SÓ em Clientes&Métricas |
-| Cores/logo do produto | Branding, Welcome Email, Portal | Fonte única em Branding; outros consomem via hook |
-| Pricing/tiers | Comercial (sales kit), Contabilidade | Manter SÓ em Contabilidade; Comercial mostra resumo read-only com link |
-| Projetos ativos | O Produto, Clientes&Métricas | Manter SÓ em Clientes&Métricas |
-| Métricas | O Produto, Clientes&Métricas | Manter SÓ em Clientes&Métricas |
-| FAQs | O Produto, Branding (portal) | Manter em O Produto, portal lê de lá |
-| Documentos/links | Backoffice (arquivo + úteis) | Unificar numa só lista com filtro por tipo |
+| Conteúdo | Estado |
+|---|---|
+| Cliente do produto | ✅ Só em Clientes&Métricas (`ProductSalesTab` agrega) |
+| Cores/logo / Welcome Email | ✅ Já lê de Branding |
+| Pricing/tiers | ✅ Só em Contabilidade (Sales Kit não tem) |
+| Projetos / Métricas | ✅ Só em Clientes&Métricas |
+| FAQs | ✅ Só em "O Produto"; portal lê de lá |
+| Documentos + Links + Notas | ⚠️ Backoffice ainda renderiza `ProductBackofficeSection` + `ProductArquivoSection` em separado — unificar na Fase 3 (Backoffice) |
+
+Conclusão: **Fase 2 considerada cumprida**. A unificação documentos/links/notas fica integrada na Fase 3 (Backoffice).
 
 ## Fase 3 — Reorganização interna por tab (densidade + leitura)
 
