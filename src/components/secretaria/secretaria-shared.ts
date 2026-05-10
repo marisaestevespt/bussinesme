@@ -39,6 +39,7 @@ export const PROJ_STATUS_MAP: Record<string, { label: string; color: string }> =
 
 export function greetingText() {
   const h = new Date().getHours();
+  if (h < 5) return 'Boa madrugada';
   if (h < 12) return 'Bom dia';
   if (h < 19) return 'Boa tarde';
   return 'Boa noite';
