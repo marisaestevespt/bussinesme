@@ -891,18 +891,10 @@ export default function ProdutoDetailPage() {
           {openSection === 'comercial' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductComercialSection
-                clientProfile={clientProfile}
                 competitors={competitors}
                 salesActions={salesActions}
                 isOwner={isOwner}
                 productName={form.name || ''}
-                onUpdateClientProfile={(key, val) => {
-                  const nextProfile = { ...(clientProfile as Record<string, unknown>), [key]: val };
-                  update('client_profile', nextProfile);
-                  if (!isNew && product) {
-                    upsertProduct.mutateAsync({ id: product.id, name: form.name!, client_profile: nextProfile } as any).catch(() => {});
-                  }
-                }}
                 onUpdateCompetitors={(c) => {
                   update('competitors', c);
                   if (!isNew && product) {
