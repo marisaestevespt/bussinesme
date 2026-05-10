@@ -56,13 +56,13 @@ export function ProductComercialSection({
           <h4 className="text-sm font-semibold">{label}</h4>
           <p className="text-xs text-muted-foreground">{hint}</p>
           {(clientProfile[key] || []).map((item: string, i: number) => (
-            <div key={i} className="flex gap-1">
-              <Input value={item} onChange={e => {
+            <div key={i} className="flex gap-1 items-start">
+              <Textarea value={item} onChange={e => {
                 const arr = [...(clientProfile[key] || [])];
                 arr[i] = e.target.value;
                 onUpdateClientProfile(key, arr);
-              }} className="h-7 text-xs" readOnly={!isOwner} />
-              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
+              }} className="text-xs min-h-[56px] resize-y leading-snug" readOnly={!isOwner} />
+              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 mt-1" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
             </div>
           ))}
           {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => onUpdateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
@@ -91,13 +91,13 @@ export function ProductComercialSection({
                 <div key={key} className="space-y-2">
                   <p className="text-xs text-muted-foreground font-medium">{label}</p>
                   {(clientProfile[key] || []).map((item: string, i: number) => (
-                    <div key={i} className="flex gap-1">
-                      <Input value={item} onChange={e => {
+                    <div key={i} className="flex gap-1 items-start">
+                      <Textarea value={item} onChange={e => {
                         const arr = [...(clientProfile[key] || [])];
                         arr[i] = e.target.value;
                         onUpdateClientProfile(key, arr);
-                      }} className="h-7 text-xs" readOnly={!isOwner} />
-                      {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
+                      }} className="text-xs min-h-[56px] resize-y leading-snug" readOnly={!isOwner} />
+                      {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 mt-1" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
                     </div>
                   ))}
                   {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => onUpdateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
