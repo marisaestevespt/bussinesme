@@ -589,10 +589,10 @@ export default function ProdutoDetailPage() {
                   <Row icon={Users} label="Máx. clientes simultâneos (Métricas)">
                     <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
                   </Row>
-                  <Row icon={Timer} label="Tempo de Acesso">
+                  <Row icon={Timer} label="Duração do Ciclo">
                     <div className="flex items-center gap-2">
-                      <Input type="number" min={0} placeholder="Ex: 90" value={form.cycle_duration ?? ''} onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)} className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
-                      <span className="text-xs text-muted-foreground shrink-0">dias úteis</span>
+                      <Input type="number" min={0} placeholder="Ex: 12" value={form.cycle_duration ?? ''} onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)} className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
+                      <span className="text-xs text-muted-foreground shrink-0">meses</span>
                     </div>
                   </Row>
 
