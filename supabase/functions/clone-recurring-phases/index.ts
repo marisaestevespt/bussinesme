@@ -174,7 +174,8 @@ Deno.serve(async (req) => {
             portal_visible: dt.portal_visible ?? true,
             linked_sop_id: dt.linked_sop_id,
             meeting_title_template: dt.meeting_title_template,
-            due_date: deadline.toISOString().slice(0, 10),
+            deadline: deadline.toISOString().slice(0, 10),
+            planned_end: deadline.toISOString().slice(0, 10),
             status: 'pendente',
           });
         }
