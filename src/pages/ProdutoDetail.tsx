@@ -534,31 +534,9 @@ export default function ProdutoDetailPage() {
                     })()}
                   </Row>
                   {SESSION_BASED_TYPES.has(form.product_type || '') && (
-                    <>
-                      <Row icon={Users} label={form.product_type === 'consulta' ? 'Sessões (sempre 1)' : 'Nº de sessões'}>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={form.product_type === 'consulta' ? 1 : ((form as any).session_count ?? '')}
-                          onChange={e => update('session_count', e.target.value ? Number(e.target.value) : null)}
-                          placeholder="Ex: 6"
-                          className={inlineInput}
-                          readOnly={!isOwner || form.product_type === 'consulta'}
-                        />
-                      </Row>
-                      <Row icon={Clock} label="Duração de cada sessão (min)">
-                        <Input
-                          type="number"
-                          min={15}
-                          step={15}
-                          value={(form as any).session_duration_minutes ?? ''}
-                          onChange={e => update('session_duration_minutes', e.target.value ? Number(e.target.value) : null)}
-                          placeholder="Ex: 60"
-                          className={inlineInput}
-                          readOnly={!isOwner}
-                        />
-                      </Row>
-                    </>
+                    <p className="text-[11px] text-muted-foreground italic px-1">
+                      💡 Define as sessões/reuniões deste produto na tab <b>Entregas</b> (cria entregas do tipo "Reunião" com duração e título próprios).
+                    </p>
                   )}
 
                   {/* ── Detalhes Comerciais ── */}
