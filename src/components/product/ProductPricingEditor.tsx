@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import type { VolumeDiscount } from '@/lib/quoteCalculator';
 import { formatEuro } from '@/lib/quoteCalculator';
+import { InlineField } from '@/components/product/InlineField';
 
 interface Props {
   productId: string;
@@ -117,10 +118,14 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           )}
           {(drivers.data || []).map(d => (
             <div key={d.id} className="grid grid-cols-[1fr_120px_120px_120px_auto] gap-2 items-center rounded-md border p-2 bg-muted/20">
-              <Input className="h-8 text-sm" placeholder="Ex: Horas por semana" defaultValue={d.name} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: e.target.value, unit: d.unit, unit_price: d.unit_price, default_qty: d.default_qty })} disabled={!isOwner} />
-              <Input className="h-8 text-sm" placeholder="h, post…" defaultValue={d.unit || ''} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: e.target.value || null, unit_price: d.unit_price, default_qty: d.default_qty })} disabled={!isOwner} />
-              <Input className="h-8 text-sm" type="number" placeholder="70" defaultValue={d.unit_price} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(e.target.value) || 0, default_qty: d.default_qty })} disabled={!isOwner} />
-              <Input className="h-8 text-sm" type="number" placeholder="0" defaultValue={d.default_qty} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: d.unit_price, default_qty: parseFloat(e.target.value) || 0 })} disabled={!isOwner} />
+              <InlineField value={d.name} placeholder="Ex: Horas por semana" disabled={!isOwner} bold
+                onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: v, unit: d.unit, unit_price: d.unit_price, default_qty: d.default_qty })} />
+              <InlineField value={d.unit || ''} placeholder="h, post…" disabled={!isOwner}
+                onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v || null, unit_price: d.unit_price, default_qty: d.default_qty })} />
+              <InlineField value={d.unit_price} type="number" placeholder="70" suffix="€" align="right" disabled={!isOwner}
+                onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(v) || 0, default_qty: d.default_qty })} />
+              <InlineField value={d.default_qty} type="number" placeholder="0" align="right" disabled={!isOwner}
+                onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: d.unit_price, default_qty: parseFloat(v) || 0 })} />
               {isOwner && (
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeDriver.mutate(d.id)}><Trash2 className="h-3 w-3" /></Button>
               )}
@@ -155,13 +160,10 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           {(modifiers.query.data || []).map(dim => (
             <div key={dim.id} className="rounded-md border bg-muted/10 p-3 space-y-2">
               <div className="flex items-center gap-2">
-                <Input
-                  className="h-8 text-sm font-medium"
-                  placeholder="Pergunta (ex: Tamanho da equipa)"
-                  defaultValue={dim.name}
-                  onBlur={e => e.target.value !== dim.name && modifiers.updateDimension.mutate({ id: dim.id, name: e.target.value })}
-                  disabled={!isOwner}
-                />
+                <div className="flex-1">
+                  <InlineField value={dim.name} placeholder="Pergunta (ex: Tamanho da equipa)" bold disabled={!isOwner}
+                    onSave={v => v !== dim.name && modifiers.updateDimension.mutate({ id: dim.id, name: v })} />
+                </div>
                 {isOwner && (
                   <>
                     <Button size="sm" variant="outline" onClick={() => modifiers.addLevel.mutate(dim.id)}>
@@ -180,25 +182,10 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
               )}
               {dim.levels.map(lvl => (
                 <div key={lvl.id} className="grid grid-cols-[1fr_120px_auto] gap-2 items-center pl-3">
-                  <Input
-                    className="h-7 text-sm"
-                    placeholder="Ex: 2-4 pessoas"
-                    defaultValue={lvl.label}
-                    onBlur={e => e.target.value !== lvl.label && modifiers.updateLevel.mutate({ id: lvl.id, patch: { label: e.target.value } })}
-                    disabled={!isOwner}
-                  />
-                  <Input
-                    className="h-7 text-sm"
-                    type="number"
-                    step="0.05"
-                    placeholder="1.00"
-                    defaultValue={lvl.multiplier}
-                    onBlur={e => {
-                      const v = parseFloat(e.target.value) || 1;
-                      if (v !== Number(lvl.multiplier)) modifiers.updateLevel.mutate({ id: lvl.id, patch: { multiplier: v } });
-                    }}
-                    disabled={!isOwner}
-                  />
+                  <InlineField value={lvl.label} placeholder="Ex: 2-4 pessoas" disabled={!isOwner}
+                    onSave={v => v !== lvl.label && modifiers.updateLevel.mutate({ id: lvl.id, patch: { label: v } })} />
+                  <InlineField value={lvl.multiplier} type="number" step="0.05" placeholder="1.00" suffix="×" align="right" disabled={!isOwner}
+                    onSave={v => { const n = parseFloat(v) || 1; if (n !== Number(lvl.multiplier)) modifiers.updateLevel.mutate({ id: lvl.id, patch: { multiplier: n } }); }} />
                   {isOwner && (
                     <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => modifiers.removeLevel.mutate(lvl.id)}>
                       <Trash2 className="h-3 w-3" />
@@ -230,11 +217,13 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
             <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center rounded-md border p-2 bg-muted/20">
               <div>
                 <label className="text-[10px] text-muted-foreground">A partir de (€)</label>
-                <Input className="h-8 text-sm" type="number" value={d.min_subtotal} onChange={e => { const next = [...discounts]; next[i] = { ...d, min_subtotal: parseFloat(e.target.value) || 0 }; setDiscounts(next); }} onBlur={() => persistProductFields({ volume_discounts: discounts })} disabled={!isOwner} />
+                <InlineField value={d.min_subtotal} type="number" suffix="€" align="right" disabled={!isOwner}
+                  onSave={v => { const next = [...discounts]; next[i] = { ...d, min_subtotal: parseFloat(v) || 0 }; setDiscounts(next); persistProductFields({ volume_discounts: next }); }} />
               </div>
               <div>
                 <label className="text-[10px] text-muted-foreground">Desconto (%)</label>
-                <Input className="h-8 text-sm" type="number" value={d.discount_pct} onChange={e => { const next = [...discounts]; next[i] = { ...d, discount_pct: parseFloat(e.target.value) || 0 }; setDiscounts(next); }} onBlur={() => persistProductFields({ volume_discounts: discounts })} disabled={!isOwner} />
+                <InlineField value={d.discount_pct} type="number" suffix="%" align="right" disabled={!isOwner}
+                  onSave={v => { const next = [...discounts]; next[i] = { ...d, discount_pct: parseFloat(v) || 0 }; setDiscounts(next); persistProductFields({ volume_discounts: next }); }} />
               </div>
               {isOwner && (
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive mt-4" onClick={() => { const next = discounts.filter((_, j) => j !== i); setDiscounts(next); persistProductFields({ volume_discounts: next }); }}><Trash2 className="h-3 w-3" /></Button>
