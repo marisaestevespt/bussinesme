@@ -482,6 +482,25 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                     </Button>
                   </div>
                   {form.quote_id && <p className="text-[11px] text-muted-foreground mt-1">Orçamento associado · valor sincronizado.</p>}
+                  {!form.quote_id && productHintQ.data && (() => {
+                    const p = productHintQ.data as any;
+                    const isFixed = (p.ticket_type || 'fixo') === 'fixo';
+                    const hint = isFixed
+                      ? (Number(p.base_price) > 0 ? `Preço do produto: ${Number(p.base_price).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}` : null)
+                      : (p.price_min || p.price_max ? `Intervalo: ${p.price_min ? Number(p.price_min).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }) : '—'} – ${p.price_max ? Number(p.price_max).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }) : '—'}` : 'Produto de preço variável — usa a calculadora');
+                    if (!hint) return null;
+                    return (
+                      <div className="flex items-center justify-between mt-1 gap-2">
+                        <p className="text-[11px] text-muted-foreground">{hint}</p>
+                        {isFixed && Number(p.base_price) > 0 && Number(p.base_price) !== Number(form.estimated_value) && (
+                          <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-[11px]"
+                            onClick={() => set({ estimated_value: String(p.base_price) })}>
+                            Usar preço do produto
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="col-span-2">
                   <Label>Notas FU</Label>
