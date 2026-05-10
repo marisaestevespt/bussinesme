@@ -8391,11 +8391,15 @@ export type Database = {
           duration_unit: string
           id: string
           is_onboarding: boolean
+          is_recurring: boolean
           linked_sop_id: string | null
           name: string
           offset_days: number | null
           offset_trigger: string
           product_id: string
+          recurrence_anchor_day: number | null
+          recurrence_frequency: string | null
+          recurrence_lead_days: number | null
           sort_order: number
         }
         Insert: {
@@ -8405,11 +8409,15 @@ export type Database = {
           duration_unit?: string
           id?: string
           is_onboarding?: boolean
+          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
           offset_trigger?: string
           product_id: string
+          recurrence_anchor_day?: number | null
+          recurrence_frequency?: string | null
+          recurrence_lead_days?: number | null
           sort_order?: number
         }
         Update: {
@@ -8419,11 +8427,15 @@ export type Database = {
           duration_unit?: string
           id?: string
           is_onboarding?: boolean
+          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
           offset_trigger?: string
           product_id?: string
+          recurrence_anchor_day?: number | null
+          recurrence_frequency?: string | null
+          recurrence_lead_days?: number | null
           sort_order?: number
         }
         Relationships: [
@@ -9131,6 +9143,7 @@ export type Database = {
           duration_unit: string
           id: string
           is_onboarding: boolean
+          is_recurring: boolean
           linked_sop_id: string | null
           name: string
           offset_days: number | null
@@ -9138,6 +9151,10 @@ export type Database = {
           planned_end: string | null
           planned_start: string | null
           project_id: string
+          recurrence_anchor_day: number | null
+          recurrence_frequency: string | null
+          recurrence_lead_days: number | null
+          recurrence_period: string | null
           sort_order: number
           source_phase_id: string | null
           started_at: string | null
@@ -9152,6 +9169,7 @@ export type Database = {
           duration_unit?: string
           id?: string
           is_onboarding?: boolean
+          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -9159,6 +9177,10 @@ export type Database = {
           planned_end?: string | null
           planned_start?: string | null
           project_id: string
+          recurrence_anchor_day?: number | null
+          recurrence_frequency?: string | null
+          recurrence_lead_days?: number | null
+          recurrence_period?: string | null
           sort_order?: number
           source_phase_id?: string | null
           started_at?: string | null
@@ -9173,6 +9195,7 @@ export type Database = {
           duration_unit?: string
           id?: string
           is_onboarding?: boolean
+          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -9180,6 +9203,10 @@ export type Database = {
           planned_end?: string | null
           planned_start?: string | null
           project_id?: string
+          recurrence_anchor_day?: number | null
+          recurrence_frequency?: string | null
+          recurrence_lead_days?: number | null
+          recurrence_period?: string | null
           sort_order?: number
           source_phase_id?: string | null
           started_at?: string | null

@@ -42,6 +42,10 @@ interface Phase {
   offset_days?: number | null;
   offset_trigger?: string;
   is_onboarding?: boolean;
+  is_recurring?: boolean;
+  recurrence_frequency?: string | null;
+  recurrence_anchor_day?: number | null;
+  recurrence_lead_days?: number | null;
 }
 
 interface Props {
@@ -350,6 +354,67 @@ function PhaseCard({
                   }} />
                 <span className="text-xs text-muted-foreground">{(phase.duration_unit || 'dias_uteis') === 'dias_uteis' ? 'dias úteis' : 'dias corridos'}</span>
               </div>
+            </div>
+          )}
+          {/* Recorrência da fase (só projetos recorrentes) */}
+          {isOwner && isRecurring && (
+            <div className="flex items-center gap-3 flex-wrap rounded-md bg-primary/[0.04] border border-primary/15 px-3 py-2">
+              <label className="flex items-center gap-2 cursor-pointer text-[10px] font-medium uppercase tracking-wider text-primary">
+                <Checkbox
+                  checked={!!phase.is_recurring}
+                  onCheckedChange={(c) => onUpdatePhase(phase.id, {
+                    is_recurring: !!c,
+                    recurrence_frequency: c ? (phase.recurrence_frequency || 'mensal') : null,
+                  })}
+                />
+                Esta fase repete-se
+              </label>
+              {phase.is_recurring && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Cadência</span>
+                    <Select
+                      value={phase.recurrence_frequency || 'mensal'}
+                      onValueChange={v => onUpdatePhase(phase.id, { recurrence_frequency: v })}
+                    >
+                      <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="semanal">Semanal</SelectItem>
+                        <SelectItem value="mensal">Mensal</SelectItem>
+                        <SelectItem value="trimestral">Trimestral</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {phase.recurrence_frequency === 'semanal' ? 'Termina ao dia da semana' : 'Termina ao dia'}
+                    </span>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={phase.recurrence_frequency === 'semanal' ? 7 : 31}
+                      className="h-7 w-16 text-sm text-center px-1"
+                      value={phase.recurrence_anchor_day ?? ''}
+                      placeholder={phase.recurrence_frequency === 'semanal' ? '5' : '20'}
+                      onChange={e => onUpdatePhase(phase.id, { recurrence_anchor_day: e.target.value ? parseInt(e.target.value) : null })}
+                    />
+                    {phase.recurrence_frequency === 'semanal' && (
+                      <span className="text-[10px] text-muted-foreground">(1=Seg … 7=Dom)</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Abre</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      className="h-7 w-16 text-sm text-center px-1"
+                      value={phase.recurrence_lead_days ?? 5}
+                      onChange={e => onUpdatePhase(phase.id, { recurrence_lead_days: e.target.value ? parseInt(e.target.value) : 0 })}
+                    />
+                    <span className="text-xs text-muted-foreground">dias úteis antes</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
           {/* SOP Steps */}
