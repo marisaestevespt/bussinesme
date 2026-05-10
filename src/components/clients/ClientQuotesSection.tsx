@@ -14,7 +14,6 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 interface Props {
   clientId: string;
   clientName: string;
-  currentProductName?: string | null;
 }
 
 export function ClientQuotesSection({ clientId, clientName }: Props) {
