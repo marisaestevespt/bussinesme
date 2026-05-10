@@ -393,16 +393,6 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Manifesto</Label>
-            <Textarea
-              value={b.manifesto || ''}
-              onChange={(e) => set({ manifesto: e.target.value })}
-              placeholder="A declaração de princípios e propósito desta marca."
-              className="min-h-[120px] text-sm"
-              readOnly={!isOwner}
-            />
-          </div>
-          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Tom de Voz</Label>
             <Textarea
               value={b.tone_of_voice || ''}
