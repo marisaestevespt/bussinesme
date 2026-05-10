@@ -6140,7 +6140,6 @@ export type Database = {
           id: string
           member_id: string
           sort_order: number
-          source_template_id: string | null
           task: string
         }
         Insert: {
@@ -6150,7 +6149,6 @@ export type Database = {
           id?: string
           member_id: string
           sort_order?: number
-          source_template_id?: string | null
           task: string
         }
         Update: {
@@ -6160,7 +6158,6 @@ export type Database = {
           id?: string
           member_id?: string
           sort_order?: number
-          source_template_id?: string | null
           task?: string
         }
         Relationships: [
@@ -6176,13 +6173,6 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "member_onboarding_source_template_id_fkey"
-            columns: ["source_template_id"]
-            isOneToOne: false
-            referencedRelation: "sop_onboarding_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -9679,76 +9669,6 @@ export type Database = {
           value?: string
         }
         Relationships: []
-      }
-      sop_onboarding_items: {
-        Row: {
-          created_at: string
-          deadline_days: number
-          id: string
-          sort_order: number
-          task: string
-          template_id: string
-        }
-        Insert: {
-          created_at?: string
-          deadline_days?: number
-          id?: string
-          sort_order?: number
-          task: string
-          template_id: string
-        }
-        Update: {
-          created_at?: string
-          deadline_days?: number
-          id?: string
-          sort_order?: number
-          task?: string
-          template_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sop_onboarding_items_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "sop_onboarding_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sop_onboarding_templates: {
-        Row: {
-          created_at: string
-          department: string
-          id: string
-          role_title: string
-          sop_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          department?: string
-          id?: string
-          role_title: string
-          sop_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          department?: string
-          id?: string
-          role_title?: string
-          sop_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sop_onboarding_templates_sop_id_fkey"
-            columns: ["sop_id"]
-            isOneToOne: false
-            referencedRelation: "sops"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       sop_step_documents: {
         Row: {
