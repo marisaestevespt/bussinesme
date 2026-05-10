@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, FileText, ExternalLink } from 'lucide-react';
+import { ShoppingCart, Receipt } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { QuoteCalculatorDialog } from '@/components/product/QuoteCalculatorDialog';
+import { NewSaleDialog } from './NewSaleDialog';
 import { formatEuro } from '@/lib/quoteCalculator';
-import { resolveProductId } from '@/lib/productResolver';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -18,11 +17,10 @@ interface Props {
   currentProductName?: string | null;
 }
 
-export function ClientQuotesSection({ clientId, clientName, currentProductName }: Props) {
+export function ClientQuotesSection({ clientId, clientName }: Props) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [productId, setProductId] = useState<string | null>(null);
 
   const quotes = useQuery({
     queryKey: ['client-quotes', clientId],
@@ -36,16 +34,7 @@ export function ClientQuotesSection({ clientId, clientName, currentProductName }
     },
   });
 
-  const handleNewQuote = async () => {
-    if (!currentProductName) { toast.error('Define o produto do cliente primeiro'); return; }
-    const pid = await resolveProductId(currentProductName);
-    if (!pid) { toast.error('Produto não encontrado'); return; }
-    setProductId(pid);
-    setOpen(true);
-  };
-
-  const handleAccepted = async ({ id, total }: { id: string; total: number }) => {
-    if (!productId) return;
+  const handleAccepted = async ({ id, total, productId }: { id: string; total: number; productId: string }) => {
     // Create a new project for this quote
     const { data: prod } = await supabase.from('products').select('name, sales_type, default_project_mode, task_mode, task_modes, cycle_duration, session_count, session_duration_minutes, estimated_project_hours, product_type').eq('id', productId).maybeSingle();
     let deadline: string | null = null;
@@ -76,7 +65,7 @@ export function ClientQuotesSection({ clientId, clientName, currentProductName }
       source_quote_id: id,
     } as any).select('id').single();
     if (error) { toast.error('Erro a criar projeto'); return; }
-    toast.success('Projeto criado com orçamento aplicado');
+    toast.success('Venda registada e projeto criado');
     qc.invalidateQueries({ queryKey: ['client-quotes', clientId] });
     qc.invalidateQueries({ queryKey: ['projects', 'client'] });
     if (newProject?.id) navigate(`/hub/projetos/${newProject.id}`);
@@ -86,15 +75,15 @@ export function ClientQuotesSection({ clientId, clientName, currentProductName }
     <div className="rounded-lg border bg-card overflow-hidden">
       <div className="px-4 py-3 border-b flex items-center justify-between bg-muted/30">
         <div className="flex items-center gap-2 text-sm font-semibold">
-          <FileText className="h-4 w-4" /> Orçamentos
+          <Receipt className="h-4 w-4" /> Vendas
         </div>
-        <Button size="sm" variant="outline" className="gap-2" onClick={handleNewQuote}>
-          <Calculator className="h-3.5 w-3.5" /> Novo orçamento
+        <Button size="sm" variant="outline" className="gap-2" onClick={() => setOpen(true)}>
+          <ShoppingCart className="h-3.5 w-3.5" /> Nova venda
         </Button>
       </div>
       <div>
         {(quotes.data || []).length === 0 ? (
-          <EmptyHint>Sem orçamentos. Cria um para gerar um novo projeto com valor.</EmptyHint>
+          <EmptyHint>Sem vendas registadas. Cria uma para gerar um novo projeto.</EmptyHint>
         ) : (
           <div className="divide-y">
             {(quotes.data || []).map((q: any) => (
@@ -112,15 +101,12 @@ export function ClientQuotesSection({ clientId, clientName, currentProductName }
         )}
       </div>
 
-      {productId && (
-        <QuoteCalculatorDialog
-          open={open}
-          onOpenChange={setOpen}
-          productId={productId}
-          clientId={clientId}
-          onAccepted={handleAccepted}
-        />
-      )}
+      <NewSaleDialog
+        open={open}
+        onOpenChange={setOpen}
+        clientId={clientId}
+        onAccepted={handleAccepted}
+      />
     </div>
   );
 }
