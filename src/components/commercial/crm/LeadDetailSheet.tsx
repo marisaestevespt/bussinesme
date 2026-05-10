@@ -60,6 +60,21 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const [meetingTitle, setMeetingTitle] = useState('');
   const qc = useQueryClient();
 
+  // Product hint: base_price + ticket_type para sugerir valor ao converter
+  const productNameForHint = form.closed_product || form.potential_product || '';
+  const productHintQ = useQuery({
+    queryKey: ['lead-product-hint', productNameForHint],
+    enabled: !!productNameForHint,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, base_price, ticket_type, price_min, price_max')
+        .eq('name', productNameForHint)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const interactions = useLeadInteractions(lead?.id || null);
   const actions = useLeadActions(lead?.id || null);
 
