@@ -8866,7 +8866,6 @@ export type Database = {
           portal_branding: Json
           price_max: number | null
           price_min: number | null
-          pricing_mode: string
           product_type: string | null
           renewal_advance_days: number | null
           sales_benefits: Json
@@ -8923,7 +8922,6 @@ export type Database = {
           portal_branding?: Json
           price_max?: number | null
           price_min?: number | null
-          pricing_mode?: string
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
@@ -8980,7 +8978,6 @@ export type Database = {
           portal_branding?: Json
           price_max?: number | null
           price_min?: number | null
-          pricing_mode?: string
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
