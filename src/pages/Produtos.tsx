@@ -4,10 +4,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles } from 'lucide-react';
+import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS } from '@/hooks/useProducts';
 import { EntityIconDisplay } from '@/components/entity-icon';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   CollectionPage,
   CollectionHeader,
@@ -44,9 +45,22 @@ export default function ProdutosPage() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'ativos' | 'off'>('ativos');
   const navigate = useNavigate();
-  const { products } = useProducts();
+  const { products, deleteProduct } = useProducts();
+  const confirm = useConfirm();
   const sectorConfig = useSectorConfig();
   const items = products.data || [];
+
+  const handleDelete = async (e: React.MouseEvent, p: { id: string; name: string }) => {
+    e.stopPropagation();
+    const ok = await confirm({
+      title: 'Eliminar produto?',
+      description: `O produto "${p.name}" e os dados associados serão removidos permanentemente.`,
+      confirmText: 'Eliminar',
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    await deleteProduct.mutateAsync(p.id);
+  };
 
   // Status counts
   const statusCounts = useMemo(() => {
@@ -266,6 +280,14 @@ export default function ProdutosPage() {
                           <ExternalLink className="h-3 w-3" /> Landing
                         </a>
                       )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, p)}
+                        className="ml-auto inline-flex items-center gap-1 text-muted-foreground hover:text-destructive transition-colors"
+                        title="Eliminar produto"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </>
                   }
                   onClick={() => navigate(`/hub/produtos/${p.id}`)}
@@ -288,11 +310,12 @@ export default function ProdutosPage() {
                   <TableHead>Escada</TableHead>
                   <TableHead>Ticket</TableHead>
                   <TableHead>Página de Vendas</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem produtos</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem produtos</TableCell></TableRow>
                 )}
                 {filtered.map(p => (
                   <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/hub/produtos/${p.id}`)}>
@@ -317,6 +340,17 @@ export default function ProdutosPage() {
                           <ExternalLink className="h-3.5 w-3.5 inline mr-1" />Link
                         </a>
                       ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => handleDelete(e, p)}
+                        title="Eliminar produto"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

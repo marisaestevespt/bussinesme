@@ -896,8 +896,19 @@ export default function ProdutoDetailPage() {
                 salesActions={salesActions}
                 isOwner={isOwner}
                 productName={form.name || ''}
-                onUpdateClientProfile={(key, val) => update('client_profile', { ...(clientProfile as Record<string, unknown>), [key]: val })}
-                onUpdateCompetitors={(c) => update('competitors', c)}
+                onUpdateClientProfile={(key, val) => {
+                  const nextProfile = { ...(clientProfile as Record<string, unknown>), [key]: val };
+                  update('client_profile', nextProfile);
+                  if (!isNew && product) {
+                    upsertProduct.mutateAsync({ id: product.id, name: form.name!, client_profile: nextProfile } as any).catch(() => {});
+                  }
+                }}
+                onUpdateCompetitors={(c) => {
+                  update('competitors', c);
+                  if (!isNew && product) {
+                    upsertProduct.mutateAsync({ id: product.id, name: form.name!, competitors: c } as any).catch(() => {});
+                  }
+                }}
                 onAddSalesAction={() => addRow.mutate({ table: 'commercial_sales_actions', data: { action_name: `Nova Ação — ${form.name}`, product: form.name, status: 'planeada', action_type: 'campanha' } })}
               />
               <ProductSalesKitSection
