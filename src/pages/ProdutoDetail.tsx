@@ -35,6 +35,7 @@ import { ProductPricingEditor } from '@/components/product/ProductPricingEditor'
 import { ProductBrandingSection } from '@/components/product/ProductBrandingSection';
 import { ProductWelcomeEmailSection } from '@/components/product/ProductWelcomeEmailSection';
 import { ProductProjectsSection } from '@/components/product/ProductProjectsSection';
+import { InlineField } from '@/components/product/InlineField';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { BackNavigation } from '@/components/BackNavigation';
