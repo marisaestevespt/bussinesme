@@ -27,6 +27,7 @@ interface Template {
   offset_days?: number | null;
   offset_trigger?: string;
   responsible_type?: string;
+  responsible_role?: string | null;
   deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao' | 'link';
   estimated_minutes?: number | null;
   meeting_title_template?: string | null;
@@ -182,6 +183,24 @@ function DeliverableRow({
             {(template.responsible_type || 'equipa') === 'cliente' ? 'Responsável: Cliente' : 'Responsável: Equipa'}
           </TooltipContent>
         </Tooltip>
+        {(template.responsible_type || 'equipa') === 'equipa' && (
+          <Select
+            value={template.responsible_role || 'none'}
+            onValueChange={(v) => onUpdate(template.id, { responsible_role: v === 'none' ? null : v })}
+            disabled={!isOwner}
+          >
+            <SelectTrigger className="h-9 w-40 text-xs shrink-0" title="Função responsável (área de trabalho)">
+              <SelectValue placeholder="Função…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sem função</SelectItem>
+              <SelectItem value="interno">Trabalho Interno</SelectItem>
+              <SelectItem value="cliente_administrativo">Cliente — Admin</SelectItem>
+              <SelectItem value="cliente_servico">Cliente — Entrega</SelectItem>
+              <SelectItem value="cliente_comercial">Cliente — Comercial</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
         {isRecurring && (
           <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-muted-foreground">
             <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
