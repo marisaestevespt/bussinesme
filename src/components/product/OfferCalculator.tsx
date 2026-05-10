@@ -782,58 +782,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
             </div>
           )}
 
-          {testVal > 0 && isOwner && (
-            <div className="flex items-center justify-between gap-3 pt-3 border-t">
-              <p className="text-xs text-muted-foreground">
-                Guarda este preço + desdobramento como snapshot do cenário.
-              </p>
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => updateScenario.mutate({
-                  last_test_price: testVal,
-                  price_breakdown: {
-                    saved_at: new Date().toISOString(),
-                    test_price: testVal,
-                    price_with_vat: testWithVat,
-                    vat_percent: vatPercent,
-                    cost_per_unit: totalPerUnit,
-                    breakdown_by_type: breakdown,
-                    irs: testIRS,
-                    social_security: testSS,
-                    real_profit: testRealProfit,
-                    net_margin_pct: testNetMargin,
-                    recommended_price: recBase,
-                    floor_price: floorBase,
-                    break_even_sales: breakEvenSales,
-                    tax_regime: scenario.tax_regime,
-                    desired_margin: scenario.desired_margin,
-                  },
-                } as any)}
-              >
-                <Check className="h-3.5 w-3.5 mr-1" /> Guardar desdobramento de preço
-              </Button>
-            </div>
-          )}
-
-          {scenario.price_breakdown && (
-            <div className="rounded-md bg-muted/40 border p-3 text-xs space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm">📌 Último desdobramento guardado</span>
-                <span className="text-muted-foreground">
-                  {(scenario.price_breakdown as any).saved_at
-                    ? new Date((scenario.price_breakdown as any).saved_at).toLocaleDateString('pt-PT')
-                    : ''}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1">
-                <div><span className="text-muted-foreground">Preço:</span> <strong>{formatEuro((scenario.price_breakdown as any).test_price || 0)}</strong></div>
-                <div><span className="text-muted-foreground">Custos/un:</span> <strong>{formatEuro((scenario.price_breakdown as any).cost_per_unit || 0)}</strong></div>
-                <div><span className="text-muted-foreground">Lucro real:</span> <strong>{formatEuro((scenario.price_breakdown as any).real_profit || 0)}</strong></div>
-                <div><span className="text-muted-foreground">Margem:</span> <strong>{((scenario.price_breakdown as any).gross_margin_pct || 0).toFixed(1)}%</strong></div>
-              </div>
-            </div>
-          )}
+          {/* O desdobramento é guardado automaticamente sempre que mexes em custos/preço — sem botões. */}
         </CardContent>
       </Card>
     </div>
