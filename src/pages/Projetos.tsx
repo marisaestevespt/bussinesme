@@ -272,8 +272,8 @@ export default function ProjetosPage() {
   const { data: allProducts = [] } = useQuery({
     queryKey: ['products-for-project-create'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, name, default_project_mode, task_mode, task_modes, session_count, session_duration_minutes, product_type, sales_type, cycle_duration, estimated_project_hours');
-      return (data || []) as any[];
+      const { data } = await supabase.from('products').select('id, name, default_project_mode, task_mode, task_modes, session_count, session_duration_minutes, product_type, sales_type, cycle_duration, estimated_project_hours, status');
+      return ((data || []) as any[]).filter((p) => p.status !== 'off');
     },
   });
 

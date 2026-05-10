@@ -24,6 +24,7 @@ export function NewSaleDialog({ open, onOpenChange, clientId, onAccepted }: Prop
       .from('products')
       .select('id, name, ticket_type, sales_type, status')
       .neq('status', 'arquivado')
+      .neq('status', 'off')
       .order('name')
       .then(({ data }) => setProducts(data || []));
   }, [open]);
