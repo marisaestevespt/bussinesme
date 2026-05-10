@@ -158,17 +158,26 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     try {
       const productName = form.closed_product || form.potential_product || null;
       const productId = await resolveProductId(productName);
+      const quoteId = (lead as any)?.quote_id || form.quote_id || null;
+      const contractValue = parseFloat(form.estimated_value) || null;
       const { data: newClient, error: clientError } = await supabase.from('clients').insert({
         full_name: form.name || '',
         email: form.email || null,
         whatsapp: form.phone || null,
         current_product: productName,
         current_product_id: productId,
+        current_quote_id: quoteId,
+        contract_value: contractValue,
         documents: form.documents || null,
         status: 'em_onboarding',
         conversion_date: format(new Date(), 'yyyy-MM-dd'),
       } as any).select('id').single();
       if (clientError) throw clientError;
+
+      // Re-link quote to the new client (it was previously tied only to the lead)
+      if (quoteId && newClient?.id) {
+        await supabase.from('product_quotes').update({ client_id: newClient.id } as any).eq('id', quoteId);
+      }
 
       const addedDate = form.added_at ? parseISO(form.added_at) : new Date();
       const daysInCrm = differenceInDays(new Date(), addedDate);
