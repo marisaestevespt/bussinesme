@@ -1,24 +1,19 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Mail, Upload, X, Palette } from 'lucide-react';
+import { Mail, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Props {
   productId: string;
   bannerUrl: string | null | undefined;
-  accentColor: string | null | undefined;
   isOwner: boolean;
-  onUpdate: (
-    field: 'welcome_email_banner_url' | 'welcome_email_accent_color',
-    value: string | null,
-  ) => void;
+  onUpdate: (field: 'welcome_email_banner_url', value: string | null) => void;
 }
 
-export function ProductWelcomeEmailSection({ productId, bannerUrl, accentColor, isOwner, onUpdate }: Props) {
+export function ProductWelcomeEmailSection({ productId, bannerUrl, isOwner, onUpdate }: Props) {
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (file: File) => {
@@ -90,38 +85,9 @@ export function ProductWelcomeEmailSection({ productId, bannerUrl, accentColor, 
             </label>
           )}
         </div>
-
-        {/* Accent color */}
-        <div className="space-y-2">
-          <Label className="text-sm flex items-center gap-2">
-            <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-            Cor de destaque (opcional)
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            Cor dos botões e elementos de destaque do email. Quando vazia, usa a cor da marca. Formato HSL (ex.: <code>351 56% 28%</code>).
-          </p>
-          <div className="flex items-center gap-3">
-            <Input
-              placeholder="ex.: 12 76% 52%"
-              value={accentColor || ''}
-              disabled={!isOwner}
-              onChange={(e) => onUpdate('welcome_email_accent_color', e.target.value || null)}
-              className="max-w-[240px] font-mono text-sm"
-            />
-            {accentColor && (
-              <div
-                className="h-9 w-9 rounded-md border shrink-0"
-                style={{ backgroundColor: `hsl(${accentColor})` }}
-                title={`hsl(${accentColor})`}
-              />
-            )}
-            {accentColor && isOwner && (
-              <Button variant="ghost" size="sm" onClick={() => onUpdate('welcome_email_accent_color', null)}>
-                Limpar
-              </Button>
-            )}
-          </div>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          As cores dos botões e elementos de destaque do email são automaticamente as da identidade visual deste produto (definidas no separador Branding).
+        </p>
       </CardContent>
     </Card>
   );

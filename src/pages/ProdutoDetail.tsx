@@ -988,7 +988,6 @@ export default function ProdutoDetailPage() {
                 <ProductWelcomeEmailSection
                   productId={id}
                   bannerUrl={(form as any).welcome_email_banner_url}
-                  accentColor={(form as any).welcome_email_accent_color}
                   isOwner={isOwner}
                   onUpdate={(field, value) => update(field as any, value)}
                 />
