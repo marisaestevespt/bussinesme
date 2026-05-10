@@ -122,9 +122,8 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
         if (leadId) {
           await supabase.from('crm_leads').update({ estimated_value: total, quote_id: created.id } as any).eq('id', leadId);
         }
-        if (clientId) {
-          await supabase.from('clients').update({ contract_value: total, current_quote_id: created.id } as any).eq('id', clientId);
-        }
+        // Cliente: cotação fica ligada via product_quotes.client_id (snapshot histórico).
+        // O valor contratado vive no projeto — não duplicar no cliente.
         onAccepted?.({ id: created.id, total });
       }
       toast.success(status === 'aceite' ? 'Orçamento aceite e propagado' : 'Orçamento guardado');
