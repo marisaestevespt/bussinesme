@@ -280,6 +280,14 @@ export default function ProdutosPage() {
                           <ExternalLink className="h-3 w-3" /> Landing
                         </a>
                       )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, p)}
+                        className="ml-auto inline-flex items-center gap-1 text-muted-foreground hover:text-destructive transition-colors"
+                        title="Eliminar produto"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </>
                   }
                   onClick={() => navigate(`/hub/produtos/${p.id}`)}
@@ -302,11 +310,12 @@ export default function ProdutosPage() {
                   <TableHead>Escada</TableHead>
                   <TableHead>Ticket</TableHead>
                   <TableHead>Página de Vendas</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem produtos</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem produtos</TableCell></TableRow>
                 )}
                 {filtered.map(p => (
                   <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`/hub/produtos/${p.id}`)}>
@@ -331,6 +340,17 @@ export default function ProdutosPage() {
                           <ExternalLink className="h-3.5 w-3.5 inline mr-1" />Link
                         </a>
                       ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => handleDelete(e, p)}
+                        title="Eliminar produto"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
