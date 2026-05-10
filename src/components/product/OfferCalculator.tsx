@@ -396,6 +396,20 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
   );
   const hasCosts = validCostsCount > 0;
 
+  // Detecta custos que precisam de amortização (one_off / horas / recorrente em modo período)
+  // mas não estão a ser amortizados por falta de vendas/meses configurados.
+  const sales = Number(scenario.estimated_sales) || 0;
+  const months = Number(scenario.lifetime_months) || 0;
+  const hasUnamortizedCosts = useMemo(() => {
+    if (sales > 0) return false;
+    return costs.some(c => {
+      if (c.cost_type === 'one_off') return (Number(c.cost_value) || 0) > 0;
+      if (c.cost_type === 'horas')   return (Number(c.hours) || 0) > 0 && (Number(c.hourly_rate) || 0) > 0;
+      if (c.cost_type === 'recorrente') return (Number(c.cost_value) || 0) > 0;
+      return false;
+    });
+  }, [costs, sales]);
+
   // Custos verdadeiramente fixos (independentes do nº de vendas) — usados só para break-even
   const fixedTotal = useMemo(() =>
     costs.filter(c => c.cost_type === 'one_off' || c.cost_type === 'horas')
@@ -477,10 +491,11 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
   const verdict = useMemo(() => {
     if (testVal <= 0) return null;
     if (!hasCosts) return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Sem custos definidos', desc: 'Adiciona pelo menos um custo (com valor > 0) para o sistema poder avaliar este preço. Sem custos, qualquer preço parece lucrativo.' };
+    if (hasUnamortizedCosts) return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Custos não amortizados', desc: 'Tens custos definidos mas "Vendas estimadas" está a 0 — o sistema não consegue distribuí-los pelas vendas. Define quantas vendas esperas para o cálculo ser real.' };
     if (testRealProfit < 0) return { icon: TrendingDown, color: 'text-destructive', bg: 'bg-destructive/5 border-destructive/20', label: 'Atenção', desc: 'Este preço não cobre custos + impostos.' };
     if (testVal >= recBase) return { icon: CheckCircle, color: 'text-success', bg: 'bg-success/15 border-success/30', label: 'Bom preço!', desc: `Margem líquida ${testNetMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
     return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem líquida ${testNetMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
-  }, [testVal, testRealProfit, recBase, testNetMargin, hasCosts]);
+  }, [testVal, testRealProfit, recBase, testNetMargin, hasCosts, hasUnamortizedCosts]);
 
   return (
     <div className="space-y-6">
