@@ -674,13 +674,27 @@ export default function ProdutoDetailPage() {
             <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
             <div className="pt-4 pb-4 border-t">
               <h4 className="text-sm font-semibold mb-2">O que está incluído</h4>
-              {includedItems.map((item, i) => (
-                <div key={i} className="flex gap-2 mb-1">
-                  <Input value={item} onChange={e => { const next = [...includedItems]; next[i] = e.target.value; update('included_items', next); }} className="h-8 text-sm" readOnly={!isOwner} />
-                  {isOwner && <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => update('included_items', includedItems.filter((_, j) => j !== i))}><X className="h-3 w-3" /></Button>}
-                </div>
-              ))}
-              {isOwner && <Button variant="outline" size="sm" className="mt-1" onClick={() => update('included_items', [...includedItems, ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar item</Button>}
+              <ul className="space-y-0.5">
+                {includedItems.map((item, i) => (
+                  <li key={i} className="group flex items-center gap-1">
+                    <span className="text-muted-foreground text-sm shrink-0">•</span>
+                    <div className="flex-1 min-w-0">
+                      <InlineField
+                        value={item}
+                        onSave={v => { const next = [...includedItems]; next[i] = v; update('included_items', next); }}
+                        placeholder="Item incluído"
+                        disabled={!isOwner}
+                      />
+                    </div>
+                    {isOwner && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => update('included_items', includedItems.filter((_, j) => j !== i))}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {isOwner && <Button variant="ghost" size="sm" className="mt-1 text-muted-foreground hover:text-foreground" onClick={() => update('included_items', [...includedItems, ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar item</Button>}
             </div>
             <div className="pt-4 border-t">
               <h4 className="text-sm font-semibold mb-2">FAQs do Portal do Cliente</h4>
