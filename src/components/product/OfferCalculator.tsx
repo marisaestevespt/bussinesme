@@ -418,6 +418,14 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     onSuccess: () => qc.invalidateQueries({ queryKey: ['product-offer-scenarios', productId] }),
   });
 
+  // Auto-save silencioso do breakdown (sem toast). Custo é custo — não exige clique.
+  const autoSaveBreakdown = useMutation({
+    mutationFn: async (data: Partial<Scenario>) => {
+      const { error } = await supabase.from('product_offer_scenarios').update(data as any).eq('id', scenario.id);
+      if (error) throw error;
+    },
+  });
+
   // ── Cálculos agregados ──
   const breakdown = useMemo(() => {
     const sums: Record<CostType, number> = { one_off: 0, recorrente: 0, por_venda: 0, horas: 0 };
