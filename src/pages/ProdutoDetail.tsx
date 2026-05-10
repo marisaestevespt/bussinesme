@@ -14,7 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown } from 'lucide-react';
+import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown, ListChecks, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, deriveProjectMode, Product } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -685,12 +685,26 @@ export default function ProdutoDetailPage() {
 
           {openSection === 'o-produto' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-        <EntitySection title="Sobre o Produto" icon={Info} className="pt-2">
-          <div className="space-y-4">
-            <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
-            <div className="pt-4 pb-4 border-t">
-              <h4 className="text-sm font-semibold mb-2">O que está incluído</h4>
-              <ul className="space-y-0.5">
+        {/* Sobre o Produto */}
+        <EntitySection title="Sobre o Produto" icon={Info} description="Texto rico que descreve o produto. Aparece no portal do cliente.">
+          <RichTextEditor content={form.about_content || ''} onChange={v => update('about_content', v)} editable={isOwner} />
+        </EntitySection>
+
+        {/* O que está incluído */}
+        <EntitySection
+          title="O que está incluído"
+          icon={ListChecks}
+          description="Lista de entregáveis ou benefícios visíveis ao cliente."
+          action={isOwner && (
+            <Button variant="outline" size="sm" onClick={() => update('included_items', [...includedItems, ''])}>
+              <Plus className="h-3 w-3 mr-1" /> Adicionar item
+            </Button>
+          )}
+        >
+          {includedItems.length === 0 ? (
+            <EmptyHint>Sem itens incluídos.</EmptyHint>
+          ) : (
+            <ul className="space-y-0.5">
                 {includedItems.map((item, i) => (
                   <li key={i} className="group flex items-center gap-1">
                     <span className="text-muted-foreground text-sm shrink-0">•</span>
@@ -709,13 +723,22 @@ export default function ProdutoDetailPage() {
                     )}
                   </li>
                 ))}
-              </ul>
-              {isOwner && <Button variant="ghost" size="sm" className="mt-1 text-muted-foreground hover:text-foreground" onClick={() => update('included_items', [...includedItems, ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar item</Button>}
-            </div>
-            <div className="pt-4 border-t">
-              <h4 className="text-sm font-semibold mb-2">FAQs do Portal do Cliente</h4>
-              <p className="text-xs text-muted-foreground mb-2">Estas FAQs aparecem automaticamente no portal de todos os clientes deste produto. Alterações aqui propagam-se em tempo real. Para FAQs comerciais (para o vendedor responder), vai ao separador <strong>Comercial</strong>.</p>
-              <div className="rounded-md border border-border/60 overflow-hidden">
+            </ul>
+          )}
+        </EntitySection>
+
+        {/* FAQs do Portal */}
+        <EntitySection
+          title="FAQs do Portal do Cliente"
+          icon={HelpCircle}
+          description="Aparecem automaticamente no portal de todos os clientes. Para FAQs comerciais, ver tab Comercial."
+          action={isOwner && (
+            <Button variant="outline" size="sm" onClick={() => update('faqs', [...faqs, { question: '', answer: '' }])}>
+              <Plus className="h-3 w-3 mr-1" /> Adicionar FAQ
+            </Button>
+          )}
+        >
+          <div className="rounded-md border border-border/60 overflow-hidden">
                 <div className="grid grid-cols-[minmax(160px,260px)_1fr_auto] bg-muted/40 text-xs font-medium text-muted-foreground">
                   <div className="px-3 py-2">Pergunta</div>
                   <div className="px-3 py-2 border-l border-border/60">Resposta</div>
@@ -753,17 +776,52 @@ export default function ProdutoDetailPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-              {isOwner && <Button variant="ghost" size="sm" className="mt-2 text-muted-foreground hover:text-foreground" onClick={() => update('faqs', [...faqs, { question: '', answer: '' }])}><Plus className="h-3 w-3 mr-1" /> Adicionar FAQ</Button>}
-            </div>
           </div>
         </EntitySection>
 
-        {/* Feedbacks */}
+        {/* Datas Importantes — timeline horizontal compacta */}
+        <EntitySection
+          title="Datas Importantes"
+          icon={CalendarClock}
+          description="Eventos da Agenda associados a este produto."
+          action={isOwner && (
+            <Button size="sm" variant="outline" onClick={() => setShowEventDialog(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1" />Adicionar Evento
+            </Button>
+          )}
+        >
+          {productEvents.length === 0 ? (
+            <EmptyHint>Sem datas importantes associadas a este produto.</EmptyHint>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+              {productEvents.map((ev: Record<string, unknown>) => {
+                const st = getEventStatus(ev);
+                return (
+                  <button
+                    key={ev.id as string}
+                    onClick={() => navigate('/hub/agenda')}
+                    className="shrink-0 w-56 text-left rounded-lg border bg-card hover:bg-muted/40 hq-transition p-3 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge className={cn('text-[10px] h-4 px-1.5', st.color)}>{st.label}</Badge>
+                      <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                    <div className="text-sm font-medium line-clamp-2">{ev.title as string}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {format(parseISO(ev.start_date as string), 'dd MMM yyyy · HH:mm')}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </EntitySection>
+
+        {/* Feedbacks (no fim — informação suplementar) */}
         <EntitySection
           title="Feedbacks"
           icon={MessageSquare}
-          className="pt-2"
+          description="Testemunhos de clientes deste produto."
           action={isOwner && <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_feedbacks', data: { product_id: id, feedback: '', client_name: '' } })}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
         >
           <div className="space-y-4">
@@ -807,37 +865,6 @@ export default function ProdutoDetailPage() {
               </div>
             ))}
           </div>
-        </EntitySection>
-
-        {/* Datas Importantes */}
-        <EntitySection
-          title="Datas Importantes"
-          icon={CalendarClock}
-          className="pt-2"
-          action={isOwner && <Button size="sm" variant="outline" onClick={() => setShowEventDialog(true)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar Evento</Button>}
-        >
-            {productEvents.length === 0 ? (
-              <EmptyHint>Sem datas importantes associadas a este produto na Agenda.</EmptyHint>
-            ) : (
-              <Table>
-                <TableHeader><TableRow><TableHead>Evento</TableHead><TableHead>Data / Hora</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {productEvents.map((ev: Record<string, unknown>) => {
-                    const st = getEventStatus(ev);
-                    return (
-                      <TableRow key={ev.id as string} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate('/hub/agenda')}>
-                        <TableCell className="font-medium">{ev.title as string}</TableCell>
-                        <TableCell className="text-sm">
-                          {format(parseISO(ev.start_date as string), 'dd/MM/yyyy HH:mm')}
-                          {ev.end_date && ` — ${format(parseISO(ev.end_date as string), 'dd/MM/yyyy HH:mm')}`}
-                        </TableCell>
-                        <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
         </EntitySection>
 
         <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
