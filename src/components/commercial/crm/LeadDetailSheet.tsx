@@ -701,6 +701,19 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Quote Calculator Dialog */}
+      {quoteProductId && lead?.id && (
+        <QuoteCalculatorDialog
+          open={quoteOpen}
+          onOpenChange={setQuoteOpen}
+          productId={quoteProductId}
+          leadId={lead.id}
+          onAccepted={({ id, total }) => {
+            set({ estimated_value: String(total), quote_id: id });
+          }}
+        />
+      )}
     </>
   );
 }
