@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Coins, SlidersHorizontal } from 'lucide-react';
 import { OfferCalculator } from '@/components/product/OfferCalculator';
 import { ProductPricingEditor } from '@/components/product/ProductPricingEditor';
+import { VariablesWizard } from '@/components/product/VariablesWizard';
 import type { VolumeDiscount } from '@/lib/quoteCalculator';
 
 interface Props {
@@ -37,12 +38,16 @@ export function PricingWorkspace({ productId, ticketType, isOwner, vatRate, init
           <OfferCalculator productId={productId} vatRate={vatRate} isOwner={isOwner} />
         )}
         {active === 'variaveis' && (
-          <ProductPricingEditor
-            productId={productId}
-            ticketType={ticketType}
-            isOwner={isOwner}
-            initial={initial}
-          />
+          ticketType === 'variavel' ? (
+            <VariablesWizard productId={productId} isOwner={isOwner} initial={initial} />
+          ) : (
+            <ProductPricingEditor
+              productId={productId}
+              ticketType={ticketType}
+              isOwner={isOwner}
+              initial={initial}
+            />
+          )
         )}
       </div>
 
