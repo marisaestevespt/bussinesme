@@ -64,7 +64,7 @@ interface Props {
 
 const COST_TYPE_META: Record<CostType, { label: string; icon: typeof Package; color: string; desc: string }> = {
   one_off:    { label: 'One-off (criação)',  icon: Package,    color: 'text-info',     desc: 'Custos pagos uma vez na criação. Amortizam pelo nº de vendas estimadas.' },
-  recorrente: { label: 'Recorrente',         icon: RefreshCw,  color: 'text-warning',  desc: 'Plataformas/subscrições mensais ou anuais. Distribuídos pelo período de vida útil.' },
+  recorrente: { label: 'Recorrente',         icon: RefreshCw,  color: 'text-warning',  desc: 'Plataformas/subscrições mensais ou anuais. Distribuídas pelo período de venda × vendas.' },
   por_venda:  { label: 'Por venda',          icon: ShoppingBag, color: 'text-primary', desc: 'Custos que incorrem em cada unidade vendida.' },
   horas:      { label: 'Horas de equipa',    icon: ClockIcon,  color: 'text-accent-violet', desc: 'Horas estimadas × custo/hora do membro. Tipo de custo definido pelo modo de amortização.' },
 };
@@ -72,7 +72,7 @@ const COST_TYPE_META: Record<CostType, { label: string; icon: typeof Package; co
 // ─── Helpers de cálculo ───────────────────────────────────────────
 function unitCostFromCost(c: ProductCost, scenario: Scenario): { unit: number; total: number; meta: string } {
   const sales = Math.max(scenario.estimated_sales || 0, 0);
-  const months = Math.max(scenario.lifetime_months || 0, 0);
+  const months = Math.max(scenario.lifetime_months || 0, 0) || 12; // default 12 meses
   const baseValue = c.cost_type === 'horas'
     ? (Number(c.hours) || 0) * (Number(c.hourly_rate) || 0)
     : (Number(c.cost_value) || 0);
@@ -83,16 +83,11 @@ function unitCostFromCost(c: ProductCost, scenario: Scenario): { unit: number; t
       return { unit, total: baseValue, meta: sales > 0 ? `${formatEuro(baseValue)} ÷ ${sales} vendas` : 'Sem vendas estimadas' };
     }
     case 'recorrente': {
-      // Normaliza a mensal
+      // Sempre: custo mensal × período de venda ÷ vendas estimadas
       const monthly = c.recurrence === 'anual' ? baseValue / 12 : baseValue;
-      if (scenario.amortization_mode === 'periodo' && months > 0 && sales > 0) {
+      if (sales > 0) {
         const totalPeriodo = monthly * months;
         return { unit: totalPeriodo / sales, total: totalPeriodo, meta: `${formatEuro(monthly)}/mês × ${months}m ÷ ${sales} vendas` };
-      }
-      // amortização por vendas: assume 1 mês por venda como aproximação
-      if (sales > 0) {
-        const totalAprox = monthly; // por unidade = custo mensal
-        return { unit: totalAprox, total: totalAprox * sales, meta: `${formatEuro(monthly)}/mês por venda` };
       }
       return { unit: 0, total: 0, meta: 'Sem vendas estimadas' };
     }
