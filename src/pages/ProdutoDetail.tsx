@@ -630,7 +630,6 @@ export default function ProdutoDetailPage() {
                 base_price: (product as any)?.base_price ?? null,
                 price_min: (product as any)?.price_min ?? null,
                 price_max: (product as any)?.price_max ?? null,
-                complexity_levels: (product as any)?.complexity_levels ?? [],
                 volume_discounts: (product as any)?.volume_discounts ?? [],
               }}
             />
