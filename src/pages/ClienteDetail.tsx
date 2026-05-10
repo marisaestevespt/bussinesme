@@ -1145,8 +1145,8 @@ function ClienteDetailPageInner() {
 
             {/* Quotes / Orçamentos */}
             {!isNew && id && (
-              <EntitySection title="Orçamentos" icon={Calculator}>
-                <ClientQuotesSection clientId={id} clientName={form.full_name || ''} currentProductName={form.current_product || null} />
+              <EntitySection title="Vendas" icon={Calculator}>
+                <ClientQuotesSection clientId={id} clientName={form.full_name || ''} />
               </EntitySection>
             )}
 
