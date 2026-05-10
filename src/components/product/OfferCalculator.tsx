@@ -63,10 +63,10 @@ interface Props {
 }
 
 const COST_TYPE_META: Record<CostType, { label: string; icon: typeof Package; color: string; desc: string }> = {
-  one_off:    { label: 'One-off (criação)',  icon: Package,    color: 'text-info',     desc: 'Custos pagos uma vez na criação. Amortizam pelo nº de vendas estimadas.' },
-  recorrente: { label: 'Recorrente',         icon: RefreshCw,  color: 'text-warning',  desc: 'Plataformas/subscrições mensais ou anuais. Distribuídas pelo período de venda × vendas.' },
-  por_venda:  { label: 'Por venda',          icon: ShoppingBag, color: 'text-primary', desc: 'Custos que incorrem em cada unidade vendida.' },
-  horas:      { label: 'Horas de equipa',    icon: ClockIcon,  color: 'text-accent-violet', desc: 'Horas estimadas × custo/hora do membro. Tipo de custo definido pelo modo de amortização.' },
+  one_off:    { label: 'Investimento inicial', icon: Package,    color: 'text-info',     desc: 'Pago uma vez (ex: design, ferramentas). Divide-se pelas vendas estimadas.' },
+  recorrente: { label: 'Subscrições/mês',      icon: RefreshCw,  color: 'text-warning',  desc: 'Custos mensais (ou anuais) durante o período de venda. Ex: software, hosting.' },
+  por_venda:  { label: 'Por cada venda',       icon: ShoppingBag, color: 'text-primary', desc: 'Acrescenta a cada unidade vendida. Ex: matéria-prima, comissão, envio.' },
+  horas:      { label: 'Horas de equipa',      icon: ClockIcon,  color: 'text-accent-violet', desc: 'Esforço inicial em horas × custo/hora. Funciona como investimento (divide pelas vendas).' },
 };
 
 // ─── Helpers de cálculo ───────────────────────────────────────────
