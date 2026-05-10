@@ -64,7 +64,7 @@ interface Props {
 
 const COST_TYPE_META: Record<CostType, { label: string; icon: typeof Package; color: string; desc: string }> = {
   one_off:    { label: 'One-off (criação)',  icon: Package,    color: 'text-info',     desc: 'Custos pagos uma vez na criação. Amortizam pelo nº de vendas estimadas.' },
-  recorrente: { label: 'Recorrente',         icon: RefreshCw,  color: 'text-warning',  desc: 'Plataformas/subscrições mensais ou anuais. Distribuídos pelo período de vida útil.' },
+  recorrente: { label: 'Recorrente',         icon: RefreshCw,  color: 'text-warning',  desc: 'Plataformas/subscrições mensais ou anuais. Distribuídas pelo período de venda × vendas.' },
   por_venda:  { label: 'Por venda',          icon: ShoppingBag, color: 'text-primary', desc: 'Custos que incorrem em cada unidade vendida.' },
   horas:      { label: 'Horas de equipa',    icon: ClockIcon,  color: 'text-accent-violet', desc: 'Horas estimadas × custo/hora do membro. Tipo de custo definido pelo modo de amortização.' },
 };
@@ -72,7 +72,7 @@ const COST_TYPE_META: Record<CostType, { label: string; icon: typeof Package; co
 // ─── Helpers de cálculo ───────────────────────────────────────────
 function unitCostFromCost(c: ProductCost, scenario: Scenario): { unit: number; total: number; meta: string } {
   const sales = Math.max(scenario.estimated_sales || 0, 0);
-  const months = Math.max(scenario.lifetime_months || 0, 0);
+  const months = Math.max(scenario.lifetime_months || 0, 0) || 12; // default 12 meses
   const baseValue = c.cost_type === 'horas'
     ? (Number(c.hours) || 0) * (Number(c.hourly_rate) || 0)
     : (Number(c.cost_value) || 0);
@@ -83,16 +83,11 @@ function unitCostFromCost(c: ProductCost, scenario: Scenario): { unit: number; t
       return { unit, total: baseValue, meta: sales > 0 ? `${formatEuro(baseValue)} ÷ ${sales} vendas` : 'Sem vendas estimadas' };
     }
     case 'recorrente': {
-      // Normaliza a mensal
+      // Sempre: custo mensal × período de venda ÷ vendas estimadas
       const monthly = c.recurrence === 'anual' ? baseValue / 12 : baseValue;
-      if (scenario.amortization_mode === 'periodo' && months > 0 && sales > 0) {
+      if (sales > 0) {
         const totalPeriodo = monthly * months;
         return { unit: totalPeriodo / sales, total: totalPeriodo, meta: `${formatEuro(monthly)}/mês × ${months}m ÷ ${sales} vendas` };
-      }
-      // amortização por vendas: assume 1 mês por venda como aproximação
-      if (sales > 0) {
-        const totalAprox = monthly; // por unidade = custo mensal
-        return { unit: totalAprox, total: totalAprox * sales, meta: `${formatEuro(monthly)}/mês por venda` };
       }
       return { unit: 0, total: 0, meta: 'Sem vendas estimadas' };
     }
@@ -423,6 +418,14 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     onSuccess: () => qc.invalidateQueries({ queryKey: ['product-offer-scenarios', productId] }),
   });
 
+  // Auto-save silencioso do breakdown (sem toast). Custo é custo — não exige clique.
+  const autoSaveBreakdown = useMutation({
+    mutationFn: async (data: Partial<Scenario>) => {
+      const { error } = await supabase.from('product_offer_scenarios').update(data as any).eq('id', scenario.id);
+      if (error) throw error;
+    },
+  });
+
   // ── Cálculos agregados ──
   const breakdown = useMemo(() => {
     const sums: Record<CostType, number> = { one_off: 0, recorrente: 0, por_venda: 0, horas: 0 };
@@ -542,6 +545,40 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem líquida ${testNetMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
   }, [testVal, testRealProfit, recBase, testNetMargin, hasCosts, hasUnamortizedCosts]);
 
+  // Auto-save silencioso: sempre que custos/cenário mudam, persistimos um snapshot atualizado
+  // do desdobramento (custo/un, recomendado, mínimo). Custo é custo — sem cliques manuais.
+  useEffect(() => {
+    if (!isOwner) return;
+    if (!hasCosts || totalPerUnit <= 0) return;
+    const snapshot = {
+      saved_at: new Date().toISOString(),
+      cost_per_unit: totalPerUnit,
+      breakdown_by_type: breakdown,
+      recommended_price: recBase,
+      floor_price: floorBase,
+      tax_regime: scenario.tax_regime,
+      desired_margin: scenario.desired_margin,
+      vat_percent: vatPercent,
+      ...(testVal > 0 && {
+        test_price: testVal,
+        price_with_vat: testWithVat,
+        irs: testIRS,
+        social_security: testSS,
+        real_profit: testRealProfit,
+        net_margin_pct: testNetMargin,
+        break_even_sales: breakEvenSales,
+      }),
+    };
+    const t = setTimeout(() => {
+      autoSaveBreakdown.mutate({
+        last_test_price: testVal > 0 ? testVal : null,
+        price_breakdown: snapshot,
+      } as any);
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalPerUnit, recBase, floorBase, testVal, scenario.id, hasCosts]);
+
   return (
     <div className="space-y-6">
       {/* ── Configuração do cenário ── */}
@@ -577,31 +614,19 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2 border-t">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Modo de amortização</Label>
-              <Select value={scenario.amortization_mode} onValueChange={v => updateScenario.mutate({ amortization_mode: v as AmortMode })} disabled={!isOwner}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vendas">Pelo nº de vendas estimadas</SelectItem>
-                  <SelectItem value="periodo">Pelo período de vida útil</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">
-                {scenario.amortization_mode === 'periodo' ? 'Vendas estimadas (no período)' : 'Vendas estimadas'}
-              </Label>
+              <Label className="text-xs text-muted-foreground">Vendas estimadas</Label>
               <Input type="number" defaultValue={scenario.estimated_sales ?? ''}
                 onBlur={e => updateScenario.mutate({ estimated_sales: e.target.value === '' ? null : Number(e.target.value) })}
                 placeholder="ex: 50" disabled={!isOwner} />
+              <p className="text-[10px] text-muted-foreground">Quantas unidades pensas vender no período abaixo.</p>
             </div>
-            {scenario.amortization_mode === 'periodo' && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Vida útil (meses)</Label>
-                <Input type="number" defaultValue={scenario.lifetime_months ?? ''}
-                  onBlur={e => updateScenario.mutate({ lifetime_months: e.target.value === '' ? null : Number(e.target.value) })}
-                  placeholder="ex: 12" disabled={!isOwner} />
-              </div>
-            )}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Período de venda (meses)</Label>
+              <Input type="number" defaultValue={scenario.lifetime_months ?? 12}
+                onBlur={e => updateScenario.mutate({ lifetime_months: e.target.value === '' ? null : Number(e.target.value) })}
+                placeholder="12" disabled={!isOwner} />
+              <p className="text-[10px] text-muted-foreground">Por defeito 12 meses. Afeta amortização de custos recorrentes.</p>
+            </div>
           </div>
           {hasUnamortizedCosts && (
             <div className="rounded-md border border-warning/40 bg-warning/10 p-2.5 text-xs flex items-start gap-2">
@@ -705,42 +730,32 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
       {hasCosts && totalPerUnit > 0 && isOwner && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="pt-4 pb-4 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium">Aplicar este cenário à ficha do produto</p>
-                <p className="text-xs text-muted-foreground">
-                  Marca este cenário como <strong>Mínimo</strong>, <strong>Sugerido</strong> ou <strong>Máximo</strong>. O preço recomendado fica como referência na Calculadora de Orçamento.
-                </p>
-              </div>
+            <div>
+              <p className="text-sm font-medium">Definir este preço na ficha do produto</p>
+              <p className="text-xs text-muted-foreground">
+                Escolhe onde encaixa o <strong>{formatEuro(recBase)}</strong> calculado: como mínimo, sugerido ou máximo.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Select
-                value={(scenario as any).price_role || 'none'}
-                onValueChange={v => updateScenario.mutate({ price_role: v === 'none' ? null : v } as any)}
-              >
-                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Sem papel —</SelectItem>
-                  <SelectItem value="min">Preço mínimo</SelectItem>
-                  <SelectItem value="sugerido">Preço sugerido</SelectItem>
-                  <SelectItem value="max">Preço máximo</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                size="sm"
-                disabled={!(scenario as any).price_role}
-                onClick={async () => {
-                  const role = (scenario as any).price_role as 'min' | 'sugerido' | 'max' | null;
-                  if (!role) return;
-                  const col = role === 'min' ? 'price_min' : role === 'max' ? 'price_max' : 'target_price';
-                  const { error } = await supabase.from('products').update({ [col]: recBase } as any).eq('id', productId);
-                  if (error) { toast.error('Erro a aplicar'); return; }
-                  toast.success(`${role === 'min' ? 'Mínimo' : role === 'max' ? 'Máximo' : 'Sugerido'} atualizado: ${formatEuro(recBase)}`);
-                  qc.invalidateQueries({ queryKey: ['products', productId] });
-                }}
-              >
-                <Check className="h-3.5 w-3.5 mr-1" /> Aplicar {formatEuro(recBase)}
-              </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {(['min', 'sugerido', 'max'] as const).map(role => {
+                const label = role === 'min' ? 'Mínimo' : role === 'max' ? 'Máximo' : 'Sugerido';
+                const col   = role === 'min' ? 'price_min' : role === 'max' ? 'price_max' : 'target_price';
+                return (
+                  <Button
+                    key={role}
+                    size="sm"
+                    variant={role === 'sugerido' ? 'default' : 'outline'}
+                    onClick={async () => {
+                      const { error } = await supabase.from('products').update({ [col]: recBase } as any).eq('id', productId);
+                      if (error) { toast.error('Erro a aplicar'); return; }
+                      toast.success(`${label}: ${formatEuro(recBase)}`);
+                      qc.invalidateQueries({ queryKey: ['products', productId] });
+                    }}
+                  >
+                    <Check className="h-3.5 w-3.5 mr-1" /> Definir como {label}
+                  </Button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -801,58 +816,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
             </div>
           )}
 
-          {testVal > 0 && isOwner && (
-            <div className="flex items-center justify-between gap-3 pt-3 border-t">
-              <p className="text-xs text-muted-foreground">
-                Guarda este preço + desdobramento como snapshot do cenário.
-              </p>
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => updateScenario.mutate({
-                  last_test_price: testVal,
-                  price_breakdown: {
-                    saved_at: new Date().toISOString(),
-                    test_price: testVal,
-                    price_with_vat: testWithVat,
-                    vat_percent: vatPercent,
-                    cost_per_unit: totalPerUnit,
-                    breakdown_by_type: breakdown,
-                    irs: testIRS,
-                    social_security: testSS,
-                    real_profit: testRealProfit,
-                    net_margin_pct: testNetMargin,
-                    recommended_price: recBase,
-                    floor_price: floorBase,
-                    break_even_sales: breakEvenSales,
-                    tax_regime: scenario.tax_regime,
-                    desired_margin: scenario.desired_margin,
-                  },
-                } as any)}
-              >
-                <Check className="h-3.5 w-3.5 mr-1" /> Guardar desdobramento de preço
-              </Button>
-            </div>
-          )}
-
-          {scenario.price_breakdown && (
-            <div className="rounded-md bg-muted/40 border p-3 text-xs space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm">📌 Último desdobramento guardado</span>
-                <span className="text-muted-foreground">
-                  {(scenario.price_breakdown as any).saved_at
-                    ? new Date((scenario.price_breakdown as any).saved_at).toLocaleDateString('pt-PT')
-                    : ''}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1">
-                <div><span className="text-muted-foreground">Preço:</span> <strong>{formatEuro((scenario.price_breakdown as any).test_price || 0)}</strong></div>
-                <div><span className="text-muted-foreground">Custos/un:</span> <strong>{formatEuro((scenario.price_breakdown as any).cost_per_unit || 0)}</strong></div>
-                <div><span className="text-muted-foreground">Lucro real:</span> <strong>{formatEuro((scenario.price_breakdown as any).real_profit || 0)}</strong></div>
-                <div><span className="text-muted-foreground">Margem:</span> <strong>{((scenario.price_breakdown as any).gross_margin_pct || 0).toFixed(1)}%</strong></div>
-              </div>
-            </div>
-          )}
+          {/* O desdobramento é guardado automaticamente sempre que mexes em custos/preço — sem botões. */}
         </CardContent>
       </Card>
     </div>
@@ -955,9 +919,9 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
               Define todos os custos do produto (criação, recorrentes, por venda, horas de equipa) e simula preços com diferentes margens e regimes fiscais.
             </p>
           </div>
-          {isOwner && scenarios.length > 0 && (
+          {isOwner && scenarios.length > 1 && (
             <Button size="sm" variant="outline" onClick={() => addScenario.mutate()}>
-              <Plus className="h-3 w-3 mr-1" /> Novo cenário
+              <Plus className="h-3 w-3 mr-1" /> Nova variante
             </Button>
           )}
         </div>
@@ -966,49 +930,59 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
         {scenarios.length === 0 ? (
           <p className="text-sm text-muted-foreground py-8 text-center">A preparar cenário inicial…</p>
         ) : (
-          <Tabs value={activeId} onValueChange={setActiveId}>
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <TabsList className="flex-wrap h-auto">
-                {scenarios.map(s => (
-                  <TabsTrigger key={s.id} value={s.id} className="text-xs">
-                    {s.name}
-                    {s.is_default && (
-                      <Badge
-                        variant="secondary"
-                        className="ml-1.5 text-[9px] py-0 px-1.5 bg-primary/15 text-primary border border-primary/30"
-                      >
-                        padrão
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {active && isOwner && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    defaultValue={active.name}
-                    onBlur={e => { if (e.target.value !== active.name) renameScenario.mutate({ id: active.id, name: e.target.value }); }}
-                    className="h-7 text-xs w-32"
-                    aria-label="Nome do cenário"
-                  />
-                  {scenarios.length > 1 && (
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
-                      if (window.confirm(`Eliminar cenário "${active.name}"? Os custos associados serão removidos.`)) {
-                        deleteScenario.mutate(active.id);
-                      }
-                    }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+          <>
+            {scenarios.length > 1 ? (
+              <Tabs value={activeId} onValueChange={setActiveId}>
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <TabsList className="flex-wrap h-auto">
+                    {scenarios.map(s => (
+                      <TabsTrigger key={s.id} value={s.id} className="text-xs">
+                        {s.name}
+                        {s.is_default && (
+                          <Badge variant="secondary" className="ml-1.5 text-[9px] py-0 px-1.5 bg-primary/15 text-primary border border-primary/30">
+                            padrão
+                          </Badge>
+                        )}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {active && isOwner && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        defaultValue={active.name}
+                        onBlur={e => { if (e.target.value !== active.name) renameScenario.mutate({ id: active.id, name: e.target.value }); }}
+                        className="h-7 text-xs w-32"
+                        aria-label="Nome do cenário"
+                      />
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => {
+                        if (window.confirm(`Eliminar variante "${active.name}"? Os custos associados serão removidos.`)) {
+                          deleteScenario.mutate(active.id);
+                        }
+                      }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-            {active && (
-              <TabsContent value={active.id} className="mt-0">
+                {active && (
+                  <TabsContent value={active.id} className="mt-0">
+                    <ScenarioPanel scenario={active} productId={productId} vatRate={vatRate} isOwner={isOwner} />
+                  </TabsContent>
+                )}
+              </Tabs>
+            ) : active ? (
+              <>
                 <ScenarioPanel scenario={active} productId={productId} vatRate={vatRate} isOwner={isOwner} />
-              </TabsContent>
-            )}
-          </Tabs>
+                {isOwner && (
+                  <div className="pt-4 mt-6 border-t flex justify-center">
+                    <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => addScenario.mutate()}>
+                      <Plus className="h-3 w-3 mr-1" /> Comparar com outra variante (avançado)
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </>
         )}
       </CardContent>
     </Card>
