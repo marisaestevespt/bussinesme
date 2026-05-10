@@ -1142,6 +1142,13 @@ function ClienteDetailPageInner() {
               </div>
             </EntitySection>
 
+            {/* Quotes / Orçamentos */}
+            {!isNew && id && (
+              <EntitySection title="Orçamentos" icon={Calculator}>
+                <ClientQuotesSection clientId={id} clientName={form.full_name || ''} currentProductName={form.current_product || null} />
+              </EntitySection>
+            )}
+
             {/* Renewals */}
             {!isNew && (
               <EntitySection title="Renovações" icon={RefreshCw}>
