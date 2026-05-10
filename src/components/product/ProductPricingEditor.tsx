@@ -128,11 +128,11 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           ))}
         </section>
 
-        {/* 3. Perguntas sobre o cliente */}
+        {/* 2. Perguntas sobre o cliente */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h4 className="text-sm font-semibold">3. Perguntas sobre o cliente — ajustes ao preço</h4>
+              <h4 className="text-sm font-semibold">2. Perguntas sobre o cliente — ajustes ao preço</h4>
               <Hint>
                 <p>Cria perguntas (ex: "Tamanho da equipa") e respostas possíveis (ex: "1 pessoa", "2-4", "5+").</p>
                 <p className="mt-1">Cada resposta tem um <strong>fator</strong> que aumenta ou reduz o preço:</p>
@@ -211,11 +211,11 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           ))}
         </section>
 
-        {/* 4. Descontos automáticos */}
+        {/* 3. Descontos automáticos */}
         <section className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h4 className="text-sm font-semibold flex items-center gap-1.5"><Percent className="h-3.5 w-3.5" /> 4. Descontos automáticos por valor</h4>
+              <h4 className="text-sm font-semibold flex items-center gap-1.5"><Percent className="h-3.5 w-3.5" /> 3. Descontos automáticos por valor</h4>
               <Hint>
                 <p>Quando o orçamento atingir um valor, aplica desconto automático.</p>
                 <p className="mt-1">Ex: "≥ 1.000€ → 5%", "≥ 5.000€ → 10%". Opcional.</p>
