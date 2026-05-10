@@ -8390,6 +8390,7 @@ export type Database = {
           duration_days: number | null
           duration_unit: string
           id: string
+          is_offboarding: boolean
           is_onboarding: boolean
           is_recurring: boolean
           linked_sop_id: string | null
@@ -8408,6 +8409,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_offboarding?: boolean
           is_onboarding?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
@@ -8426,6 +8428,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_offboarding?: boolean
           is_onboarding?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
@@ -9142,6 +9145,7 @@ export type Database = {
           duration_days: number | null
           duration_unit: string
           id: string
+          is_offboarding: boolean
           is_onboarding: boolean
           is_recurring: boolean
           linked_sop_id: string | null
@@ -9168,6 +9172,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_offboarding?: boolean
           is_onboarding?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
@@ -9194,6 +9199,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_offboarding?: boolean
           is_onboarding?: boolean
           is_recurring?: boolean
           linked_sop_id?: string | null
