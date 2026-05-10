@@ -344,6 +344,24 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     return { regime, tax_rate, ss_rate, label };
   }, [bizFiscal]);
 
+  // Sincroniza automaticamente o cenário com o perfil fiscal do negócio.
+  // Sem opção de override — single source of truth: Definições > Fiscal.
+  useEffect(() => {
+    if (!fiscalFromSettings || !isOwner) return;
+    const drift =
+      fiscalFromSettings.regime !== scenario.tax_regime ||
+      Math.abs(fiscalFromSettings.tax_rate - (Number(scenario.tax_rate) || 0)) > 0.01 ||
+      Math.abs(fiscalFromSettings.ss_rate  - (Number(scenario.ss_rate)  || 0)) > 0.01;
+    if (drift) {
+      updateScenario.mutate({
+        tax_regime: fiscalFromSettings.regime,
+        tax_rate: fiscalFromSettings.tax_rate,
+        ss_rate: fiscalFromSettings.ss_rate,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fiscalFromSettings?.regime, fiscalFromSettings?.tax_rate, fiscalFromSettings?.ss_rate, scenario.id]);
+
   // Costs query (scoped to scenario)
   const { data: costs = [] } = useQuery<ProductCost[]>({
     queryKey: ['product-costs', productId, scenario.id],
@@ -547,95 +565,29 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
       <Card>
         <CardHeader><CardTitle className="text-sm">Parâmetros do cenário</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          {/* Preset fiscal — preenche regime + IRS + SS de uma vez */}
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Perfil fiscal (preenche tudo automaticamente)</Label>
-            <Select
-              value={
-                fiscalFromSettings &&
-                fiscalFromSettings.regime === scenario.tax_regime &&
-                Math.abs(fiscalFromSettings.tax_rate - (Number(scenario.tax_rate) || 0)) < 0.01 &&
-                Math.abs(fiscalFromSettings.ss_rate  - (Number(scenario.ss_rate)  || 0)) < 0.01
-                  ? 'from_settings'
-                  : TAX_PRESETS.find(p =>
-                  p.regime === scenario.tax_regime &&
-                  Math.abs(p.tax_rate - (Number(scenario.tax_rate) || 0)) < 0.01 &&
-                  Math.abs(p.ss_rate  - (Number(scenario.ss_rate)  || 0)) < 0.01
-                )?.id || 'custom'
-              }
-              onValueChange={v => {
-                if (v === 'custom') return;
-                if (v === 'from_settings' && fiscalFromSettings) {
-                  updateScenario.mutate({
-                    tax_regime: fiscalFromSettings.regime,
-                    tax_rate: fiscalFromSettings.tax_rate,
-                    ss_rate: fiscalFromSettings.ss_rate,
-                  });
-                  return;
-                }
-                const p = TAX_PRESETS.find(pp => pp.id === v);
-                if (!p) return;
-                updateScenario.mutate({ tax_regime: p.regime, tax_rate: p.tax_rate, ss_rate: p.ss_rate });
-              }}
-              disabled={!isOwner}
-            >
-              <SelectTrigger><SelectValue placeholder="Escolhe um perfil…" /></SelectTrigger>
-              <SelectContent>
-                {fiscalFromSettings && (
-                  <SelectItem value="from_settings">
-                    <div className="flex flex-col items-start py-0.5">
-                      <span className="text-sm">⭐ Usar perfil do negócio (Definições Fiscais)</span>
-                      <span className="text-[10px] text-muted-foreground">{fiscalFromSettings.label}</span>
-                    </div>
-                  </SelectItem>
-                )}
-                {TAX_PRESETS.map(p => (
-                  <SelectItem key={p.id} value={p.id}>
-                    <div className="flex flex-col items-start py-0.5">
-                      <span className="text-sm">{p.label}</span>
-                      <span className="text-[10px] text-muted-foreground">{p.desc}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">
-                  <span className="text-sm">Personalizado (afinar valores em baixo)</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-muted-foreground">
-              {fiscalFromSettings
-                ? <>Detetámos o teu perfil em <strong>Definições &gt; Fiscal</strong>: <em>{fiscalFromSettings.label}</em>. Escolhe-o para usar os teus valores reais.</>
-                : <>Valores típicos PT 2025. Podes sempre afinar IRS/IRC e SS manualmente nos campos abaixo.</>}
-            </p>
-          </div>
+          {/* Perfil fiscal — vem das Definições e não é editável aqui */}
+          {fiscalFromSettings ? (
+            <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-3">
+              <div className="text-xs">
+                <span className="text-muted-foreground">Perfil fiscal: </span>
+                <strong>{fiscalFromSettings.label}</strong>
+              </div>
+              <a href="/definicoes?tab=fiscal" className="text-[10px] text-primary hover:underline shrink-0">
+                Alterar em Definições &gt; Fiscal →
+              </a>
+            </div>
+          ) : (
+            <div className="rounded-md border border-warning/40 bg-warning/10 p-2.5 text-xs flex items-start gap-2">
+              <AlertTriangle className="h-3.5 w-3.5 text-warning mt-0.5 shrink-0" />
+              <span>Configura o teu perfil fiscal em <strong>Definições &gt; Fiscal</strong> para o cálculo de impostos ser real.</span>
+            </div>
+          )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Margem desejada (%)</Label>
               <Input type="number" defaultValue={scenario.desired_margin}
                 onBlur={e => updateScenario.mutate({ desired_margin: Number(e.target.value) || 0 })}
-                disabled={!isOwner} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Regime fiscal</Label>
-              <Select value={scenario.tax_regime} onValueChange={v => updateScenario.mutate({ tax_regime: v as TaxRegime })} disabled={!isOwner}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="simplificado">Simplificado (75%/70%)</SelectItem>
-                  <SelectItem value="organizada">Contabilidade Organizada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">IRS/IRC (%)</Label>
-              <Input type="number" defaultValue={scenario.tax_rate}
-                onBlur={e => updateScenario.mutate({ tax_rate: Number(e.target.value) || 0 })}
-                disabled={!isOwner} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Segurança Social (%)</Label>
-              <Input type="number" defaultValue={scenario.ss_rate}
-                onBlur={e => updateScenario.mutate({ ss_rate: Number(e.target.value) || 0 })}
                 disabled={!isOwner} />
             </div>
           </div>
