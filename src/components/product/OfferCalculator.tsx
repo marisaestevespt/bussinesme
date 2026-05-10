@@ -69,23 +69,6 @@ const COST_TYPE_META: Record<CostType, { label: string; icon: typeof Package; co
   horas:      { label: 'Horas de equipa',    icon: ClockIcon,  color: 'text-accent-violet', desc: 'Horas estimadas × custo/hora do membro. Tipo de custo definido pelo modo de amortização.' },
 };
 
-// ─── Presets fiscais ─────────────────────────────────────────────
-// Valores típicos PT 2025. O utilizador pode sempre afinar à mão.
-const TAX_PRESETS: Array<{
-  id: string;
-  label: string;
-  desc: string;
-  regime: TaxRegime;
-  tax_rate: number;
-  ss_rate: number;
-}> = [
-  { id: 'simpl_servicos', label: 'Independente — Serviços (Simplificado)', desc: 'IRS 25% sobre 75% da receita · SS 21,4% sobre 70%', regime: 'simplificado', tax_rate: 25, ss_rate: 21.4 },
-  { id: 'simpl_inicio',   label: 'Independente — 1º/2º ano (Simplificado)', desc: 'IRS reduzido a 12,5% (50% nos 2 primeiros anos) · SS 21,4%', regime: 'simplificado', tax_rate: 12.5, ss_rate: 21.4 },
-  { id: 'org_pme',        label: 'Sociedade — PME (Org. Organizada)', desc: 'IRC 17% sobre o lucro (1ºs 50k€) · SS empresa fora deste cálculo', regime: 'organizada', tax_rate: 17, ss_rate: 0 },
-  { id: 'org_geral',      label: 'Sociedade — Taxa geral (Org. Organizada)', desc: 'IRC 21% sobre o lucro · SS empresa fora deste cálculo', regime: 'organizada', tax_rate: 21, ss_rate: 0 },
-  { id: 'sem_impostos',   label: 'Não considerar impostos', desc: 'Calcula só margem bruta. Atenção: o preço final ainda paga impostos.', regime: 'simplificado', tax_rate: 0, ss_rate: 0 },
-];
-
 // ─── Helpers de cálculo ───────────────────────────────────────────
 function unitCostFromCost(c: ProductCost, scenario: Scenario): { unit: number; total: number; meta: string } {
   const sales = Math.max(scenario.estimated_sales || 0, 0);
