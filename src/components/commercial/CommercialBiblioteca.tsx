@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,6 +43,7 @@ const RESULT_BADGE: Record<string, { label: string; variant: 'default' | 'second
 };
 
 export function CommercialBiblioteca() {
+  const sectorConfig = useSectorConfig();
   const queryClient = useQueryClient();
   const [view, setView] = useState<'gallery' | 'list'>('gallery');
   const [filterType, setFilterType] = useState('todos');
@@ -123,7 +125,7 @@ export function CommercialBiblioteca() {
         </Select>
 
         <Select value={filterProduct} onValueChange={setFilterProduct}>
-          <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder="Produto" /></SelectTrigger>
+          <SelectTrigger className="w-[160px] h-9 text-sm"><SelectValue placeholder={sectorConfig.t('produto')} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os produtos</SelectItem>
             {uniqueProducts.map(p => <SelectItem key={p!} value={p!}>{p}</SelectItem>)}

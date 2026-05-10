@@ -25,6 +25,7 @@ import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUplo
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
 import { formatNumber } from '@/lib/formatting';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
 import { buildSaleSourceOptions } from '@/lib/labelMaps';
@@ -34,6 +35,7 @@ export default function VendaDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isOwner } = useAuth();
+  const sectorConfig = useSectorConfig();
   const commercialData = useCommercialData();
   const confirm = useConfirm();
 
@@ -248,7 +250,7 @@ export default function VendaDetailPage() {
         />
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
-          <BackNavigation parentRoute="/hub/comercial/vendas" parentLabel="Vendas" />
+          <BackNavigation parentRoute="/hub/comercial/vendas" parentLabel={sectorConfig.t('vendas')} />
           <div className="flex items-center gap-2">
             <span className="font-mono text-lg font-bold">{form.sale_id}</span>
             <Badge variant="outline" className={statusInfo.cls}>{statusInfo.label}</Badge>

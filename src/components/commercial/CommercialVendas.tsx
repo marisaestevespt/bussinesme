@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ const DEFAULT_VIEWS: DefaultView[] = [
 
 export function CommercialVendas() {
   const data = useCommercialData();
+  const sectorConfig = useSectorConfig();
   const { isOwner } = useAuth();
   const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
@@ -137,7 +139,7 @@ export function CommercialVendas() {
           </SelectContent>
         </Select>
         <Select value={filterProduct} onValueChange={v => setFilterProduct(v === '_all' ? '' : v)}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Produto" /></SelectTrigger>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder={sectorConfig.t('produto')} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="_all">Todos</SelectItem>
             {products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}

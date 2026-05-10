@@ -42,11 +42,13 @@ import { cn } from '@/lib/utils';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { EntitySection } from '@/components/layout/entity';
 import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const sectorConfig = useSectorConfig();
   const { isOwner, user } = useAuth();
   const { canAccess } = usePermissions();
   // Sales-only: tem acesso ao módulo Comercial mas não é Owner nem tem acesso a Produtos no menu.
@@ -297,7 +299,7 @@ export default function ProdutoDetailPage() {
       <div className="space-y-10 w-full">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
-          <BackNavigation parentRoute="/hub/produtos" parentLabel="Produtos" />
+          <BackNavigation parentRoute="/hub/produtos" parentLabel={sectorConfig.t('produtos')} />
           <div className="flex-1" />
           {!isNew && isOwner && (
             <>
@@ -775,7 +777,7 @@ export default function ProdutoDetailPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {canSeeSection('clientes-vendas') && <SectionButton sectionKey="clientes-vendas" label="Clientes e Vendas" />}
-            {canSeeSection('projetos') && <SectionButton sectionKey="projetos" label="Projetos" />}
+            {canSeeSection('projetos') && <SectionButton sectionKey="projetos" label={sectorConfig.t('projetos')} />}
             {canSeeSection('entregas') && <SectionButton sectionKey="entregas" label="Entregas" />}
             {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
             {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}

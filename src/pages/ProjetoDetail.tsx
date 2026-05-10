@@ -67,6 +67,7 @@ import { BrainstormingSubPage } from '@/components/project/subpages/Brainstormin
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { safeUrl } from '@/lib/url';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
@@ -111,6 +112,7 @@ function ProjetoDetailInner() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const sectorConfig = useSectorConfig();
   const { isOwner } = useAuth();
   const { impersonating } = useImpersonation();
   const effectiveUserId = impersonating?.user_id || user?.id;
@@ -1275,7 +1277,7 @@ function ProjetoDetailInner() {
 
               {/* ── Reuniões: próximas + últimas 3 realizadas ── */}
               <EntitySection
-                title="Reuniões"
+                title={sectorConfig.t('reunioes')}
                 icon={Video}
                 action={
                   <div className="flex gap-2 items-center">

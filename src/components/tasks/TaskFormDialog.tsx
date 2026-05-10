@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,6 +72,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const { coverages: absenceCoverages } = useAbsenceCoverage();
   const { getPhotoUrl } = useTeamPhotos();
   const { getBadgeClass: getDeptBadgeClass } = useDepartmentColors();
+  const sectorConfig = useSectorConfig();
 
   // Form state
   const [name, setName] = useState('');
@@ -527,7 +529,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </SelectContent>
                 </Select>
               </EntityProperty>
-              <EntityProperty icon={FolderOpen} label="Projeto">
+              <EntityProperty icon={FolderOpen} label={sectorConfig.t('projeto')}>
                 <Select value={projectId || 'none'} onValueChange={v => { setProjectId(v === 'none' ? '' : v); if (v && v !== 'none') { const proj = projects.find(p => p.id === v); if (proj?.client_id) setClientId(proj.client_id); } }}>
                   <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="—" /></SelectTrigger>
                   <SelectContent>
@@ -536,7 +538,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </SelectContent>
                 </Select>
               </EntityProperty>
-              <EntityProperty icon={Briefcase} label="Cliente">
+              <EntityProperty icon={Briefcase} label={sectorConfig.t('cliente')}>
                 <Select value={clientId || 'none'} onValueChange={v => setClientId(v === 'none' ? '' : v)}>
                   <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="—" /></SelectTrigger>
                   <SelectContent>

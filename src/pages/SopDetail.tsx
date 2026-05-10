@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Json } from '@/integrations/supabase/types';
 import { useTeamData } from '@/hooks/useTeamData';
@@ -54,6 +55,7 @@ export default function SopDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const sectorConfig = useSectorConfig();
 
   // ─── Fetch SOP ──────────────────────────────────────────────
   const { data: sop, isLoading } = useQuery({
@@ -565,7 +567,7 @@ export default function SopDetailPage() {
               </SelectContent>
             </Select>
           </EntityProperty>
-          <EntityProperty icon={Package} label="Produto">
+          <EntityProperty icon={Package} label={sectorConfig.t('produto')}>
             <Select value={sopProductId || '_none_'} onValueChange={v => setSopProductId(v === '_none_' ? '' : v)}>
               <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Nenhum" /></SelectTrigger>
               <SelectContent>
@@ -617,7 +619,7 @@ export default function SopDetailPage() {
           </EntityProperty>
           {linkedEntityType === 'produto' && (
             <>
-              <EntityProperty icon={Package} label="Produto">
+              <EntityProperty icon={Package} label={sectorConfig.t('produto')}>
                 <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
                   <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                   <SelectContent>
@@ -631,7 +633,7 @@ export default function SopDetailPage() {
             </>
           )}
           {linkedEntityType === 'projeto' && (
-            <EntityProperty icon={Layers} label="Projeto">
+            <EntityProperty icon={Layers} label={sectorConfig.t('projeto')}>
               <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
                 <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Selecionar…" /></SelectTrigger>
                 <SelectContent>

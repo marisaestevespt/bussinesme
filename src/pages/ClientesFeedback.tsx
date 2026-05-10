@@ -8,9 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { BackNavigation } from '@/components/BackNavigation';
 import { format, parseISO } from 'date-fns';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 export default function ClientesFeedbackPage() {
   const navigate = useNavigate();
+  const sectorConfig = useSectorConfig();
 
   // All manual feedback with client name
   const { data: manualFeedback = [] } = useQuery({
@@ -55,7 +57,7 @@ export default function ClientesFeedbackPage() {
     <AppLayout>
       <PageHeader title="Todos os Feedbacks" />
       <div className="space-y-6 pt-6">
-        <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
+        <BackNavigation parentRoute="/hub/clientes" parentLabel={sectorConfig.t('clientes')} />
 
         <Card>
           <CardHeader className="pb-2">

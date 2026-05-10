@@ -24,6 +24,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { sumRevenue } from '@/lib/salesCalculations';
 import { isDeliverableDone } from '@/lib/projectProgress';
 import { formatInt } from '@/lib/formatting';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -344,6 +345,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
 export default function ClientesAnalisePage() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
+  const sectorConfig = useSectorConfig();
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
   const { clients: clientsQ } = useClients();
@@ -447,7 +449,7 @@ export default function ClientesAnalisePage() {
       <AppLayout>
         <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
         <div className="space-y-6 pt-6">
-          <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
+          <BackNavigation parentRoute="/hub/clientes" parentLabel={sectorConfig.t('clientes')} />
           <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
         </div>
       </AppLayout>
@@ -458,7 +460,7 @@ export default function ClientesAnalisePage() {
     <AppLayout>
       <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
       <div className="space-y-6 pt-6">
-        <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
+        <BackNavigation parentRoute="/hub/clientes" parentLabel={sectorConfig.t('clientes')} />
 
         <YearSelector year={year} onChange={setYear} />
 

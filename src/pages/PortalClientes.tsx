@@ -15,12 +15,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { BackNavigation } from '@/components/BackNavigation';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 const sb = (t: string) => supabase.from(t as any) as any;
 
 export default function PortalClientesPage() {
   const navigate = useNavigate();
   const { data: portals = [], isLoading } = useAllPortals();
+  const sectorConfig = useSectorConfig();
   const { clients } = useClients();
   const clientsList = clients.data || [];
   const qc = useQueryClient();
@@ -69,7 +71,7 @@ export default function PortalClientesPage() {
     <AppLayout>
       <PageHeader title="Portal de Clientes" />
       <div className="space-y-6 pt-6">
-        <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
+        <BackNavigation parentRoute="/hub/clientes" parentLabel={sectorConfig.t('clientes')} />
 
         <Card>
           <CardContent className="p-0">

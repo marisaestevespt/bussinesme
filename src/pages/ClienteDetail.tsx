@@ -62,6 +62,7 @@ import { PAYMENT_METHOD_OPTIONS } from '@/lib/salesConstants';
 import { getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
 import { getProjectStatusInfo } from '@/lib/projectStatus';
 import { getMeetingStatusInfo } from '@/lib/meetingStatus';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 // ─── Client Financial Health Card ────────────────────────────────
 function ClientFinancialHealthCard({ clientName }: { clientName: string }) {
@@ -152,6 +153,7 @@ function ClienteDetailPageInner() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === 'novo';
+  const sectorConfig = useSectorConfig();
 
   const { data: client, isLoading } = useClient(isNew ? undefined : id);
   const { upsertClient, duplicateClient, deleteClient } = useClients();
@@ -919,7 +921,7 @@ function ClienteDetailPageInner() {
         {/* Top bar */}
         <EntityTopBar
           backTo="/hub/clientes"
-          backLabel="Clientes"
+          backLabel={sectorConfig.t('clientes')}
           primaryAction={{ label: 'Guardar', icon: Save, onClick: () => save() }}
           secondaryActions={[
             ...(!isNew ? [{ label: 'Duplicar', icon: Copy, onClick: handleDuplicate, hideLabelOnMobile: true } as EntityAction] : []),
@@ -1145,7 +1147,7 @@ function ClienteDetailPageInner() {
 
             {/* Quotes / Orçamentos */}
             {!isNew && id && (
-              <EntitySection title="Vendas" icon={Calculator}>
+              <EntitySection title={sectorConfig.t('vendas')} icon={Calculator}>
                 <ClientQuotesSection clientId={id} clientName={form.full_name || ''} />
               </EntitySection>
             )}
@@ -1240,7 +1242,7 @@ function ClienteDetailPageInner() {
             {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
             {/* Meetings */}
             <EntitySection
-              title="Reuniões"
+              title={sectorConfig.t('reunioes')}
               icon={Users}
               action={<Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>}
             >

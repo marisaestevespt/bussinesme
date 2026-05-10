@@ -48,6 +48,7 @@ const PROJECT_TYPES = [
 ];
 
 import { PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 const DEPARTMENTS = [
   { value: 'administrativo', label: 'Administrativo', color: 'bg-muted text-muted-foreground border-border' },
@@ -160,6 +161,7 @@ export default function ProjetosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const sectorConfig = useSectorConfig();
   const { allViews, addView, renameView, deleteView } = useUserViews('projetos', PROJETOS_DEFAULT_VIEWS);
   const { isAreaEnabled: areaOn } = useKpiSettings();
   const [view, setView] = useState<string>('table');
@@ -403,9 +405,9 @@ export default function ProjetosPage() {
     <AppLayout>
       <CollectionPage>
         <CollectionHeader
-          title="Projetos"
+          title={sectorConfig.t('projetos')}
           icon={FolderKanban}
-          description="Projetos internos, lançamentos e trabalhos com clientes."
+          description={`${sectorConfig.t('projetos')} internos, lançamentos e trabalhos com clientes.`}
           count={projects.length}
           actions={
             <Popover open={pickerOpen} onOpenChange={setPickerOpen}>

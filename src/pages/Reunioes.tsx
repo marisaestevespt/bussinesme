@@ -42,6 +42,7 @@ import { Lock } from 'lucide-react';
 // ─── Types ──────────────────────────────────────────────────────
 
 import { MEETING_STATUSES as CANON_MEETING_STATUSES, type MeetingStatusValue } from '@/lib/meetingStatus';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 type MeetingStatus = MeetingStatusValue;
 type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
 
@@ -1105,6 +1106,7 @@ export default function ReunioesPage() {
   const { allViews, addView, renameView, deleteView } = useUserViews('reunioes', REUNIOES_DEFAULT_VIEWS);
   const [view, setView] = useState<string>('proximas');
   const navigate = useNavigate();
+  const sectorConfig = useSectorConfig();
 
   const meetingsQuery = useMeetings();
   const meetings = flattenInfiniteData(meetingsQuery.data?.pages);
@@ -1127,9 +1129,9 @@ export default function ReunioesPage() {
     <AppLayout>
       <CollectionPage>
         <CollectionHeader
-          title="Reuniões"
+          title={sectorConfig.t('reunioes')}
           icon={CalendarDays}
-          description="Reuniões recorrentes, com clientes, de projeto e diagnósticos."
+          description={`${sectorConfig.t('reunioes')} recorrentes, com clientes, de projeto e diagnósticos.`}
           count={meetingsTotal}
           actions={
             <NewMeetingButton size="sm" label="Nova Reunião" />

@@ -18,6 +18,7 @@ import {
   CollectionEmpty,
   type CollectionView,
 } from '@/components/layout/collection';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 const STATUS_BADGE: Record<string, { label: string; className: string; icon: any }> = {
   em_ideia: { label: 'Em Ideia', className: 'bg-muted text-muted-foreground', icon: Lightbulb },
@@ -43,6 +44,7 @@ export default function ProdutosPage() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const { products } = useProducts();
+  const sectorConfig = useSectorConfig();
   const items = products.data || [];
 
   // Status counts
@@ -89,7 +91,7 @@ export default function ProdutosPage() {
     <AppLayout>
       <CollectionPage>
         <CollectionHeader
-          title="Produtos"
+          title={sectorConfig.t('produtos')}
           icon={Package}
           description="Catálogo de produtos, escada de valor e entregas."
           count={items.length}

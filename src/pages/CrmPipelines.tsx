@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +22,7 @@ import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function CrmPipelines() {
+  const sectorConfig = useSectorConfig();
   const qc = useQueryClient();
   const confirm = useConfirm();
   const [openPipelineId, setOpenPipelineId] = useState<string | null>(null);
@@ -418,7 +420,7 @@ export default function CrmPipelines() {
           </div>
           <Select value={filterProduct} onValueChange={setFilterProduct}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Produto" />
+              <SelectValue placeholder={sectorConfig.t('produto')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">Todos os produtos</SelectItem>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +38,7 @@ export default function ConteudoDetailPage() {
   const { isOwner } = useAuth();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const sectorConfig = useSectorConfig();
 
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
@@ -557,7 +559,7 @@ export default function ConteudoDetailPage() {
               </Select>
             </PropRow>
 
-            <PropRow label="Produto">
+            <PropRow label={sectorConfig.t('produto')}>
               <Select value={form.product_id} onValueChange={v => {
                 const prod = products.find((p: any) => p.id === v);
                 setForm(f => ({ ...f, product_id: v, product_name: prod?.name || '' }));
@@ -567,7 +569,7 @@ export default function ConteudoDetailPage() {
               </Select>
             </PropRow>
 
-            <PropRow label="Projeto">
+            <PropRow label={sectorConfig.t('projeto')}>
               <Select value={form.project_id} onValueChange={v => setForm(f => ({ ...f, project_id: v }))}>
                 <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
                 <SelectContent>{projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>

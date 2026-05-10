@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -49,6 +50,7 @@ type Props = {
 };
 
 export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props) {
+  const sectorConfig = useSectorConfig();
   const [search, setSearch] = useState('');
   const [filterResponsible, setFilterResponsible] = useState('');
   const [filterProject, setFilterProject] = useState('');
@@ -190,7 +192,7 @@ export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props)
           </SelectContent>
         </Select>
         <Select value={filterProject} onValueChange={v => setFilterProject(v === '_all' ? '' : v)}>
-          <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder="Projeto" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[160px] text-xs"><SelectValue placeholder={sectorConfig.t('projeto')} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="_all">Todos</SelectItem>
             {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}

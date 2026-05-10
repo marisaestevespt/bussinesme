@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, ChevronRight, Briefcase, Megaphone, FolderKanban, Wallet, UserCheck, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { useCeoCockpit } from '@/hooks/useCeoCockpit';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 type Derived = NonNullable<ReturnType<typeof useCeoCockpit>['derived']>;
 
@@ -62,6 +63,7 @@ function AreaCard({ title, icon: Icon, link, status, metrics }: AreaCardProps) {
 }
 
 export function DepartmentHealth({ derived }: { derived: Derived }) {
+  const sectorConfig = useSectorConfig();
   const h = derived.deptHealth;
 
   const comStatus: 'good' | 'warn' | 'bad' =
@@ -132,7 +134,7 @@ export function DepartmentHealth({ derived }: { derived: Derived }) {
           ]}
         />
         <AreaCard
-          title="Clientes" icon={Heart} link="/hub/clientes/analise" status={cliStatus}
+          title={sectorConfig.t('clientes')} icon={Heart} link="/hub/clientes/analise" status={cliStatus}
           metrics={[
             { label: 'Ativos', value: String(h.clientes.active) },
             { label: 'NPS', value: h.clientes.avgNps != null ? `${h.clientes.avgNps}` : '—' },

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ function EndOfCycleBadge({ date }: { date: string | null }) {
 
 export function CommercialClientsList() {
   const navigate = useNavigate();
+  const sectorConfig = useSectorConfig();
   const { clients } = useClients();
   const { getHealth } = useClientFinancialHealth();
   const items = clients.data || [];
@@ -95,7 +97,7 @@ export function CommercialClientsList() {
 
         <Select value={productFilter} onValueChange={setProductFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Produto" />
+            <SelectValue placeholder={sectorConfig.t('produto')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os Produtos</SelectItem>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen, SlidersHorizontal } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -197,6 +198,7 @@ function SidebarBody({
   onHideAll: (ids: string[]) => void;
   onAutoItemRename?: (id: string, newLabel: string) => void;
 }) {
+  const sectorConfig = useSectorConfig();
   const typeIds = useMemo(() => typeItems.map(i => i.id), [typeItems]);
   const autoIds = useMemo(() => autoTypeItems.map(i => i.id), [autoTypeItems]);
   const productIds = useMemo(() => productItems.map(i => i.id), [productItems]);
@@ -220,7 +222,7 @@ function SidebarBody({
         onItemRename={onAutoItemRename}
       />
       <CalendarSection
-        title="Produtos"
+        title={sectorConfig.t('produtos')}
         items={productItems}
         hidden={hidden}
         onToggle={onToggle}

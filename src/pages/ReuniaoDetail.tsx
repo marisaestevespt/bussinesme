@@ -49,6 +49,7 @@ import {
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { safeUrl } from '@/lib/url';
 import { DetailAccessGuard } from '@/components/access/DetailAccessGuard';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -362,6 +363,7 @@ function ReuniaoDetailPageInner() {
   const qc = useQueryClient();
   const { isOwner } = useAuth();
   const { user } = useAuth();
+  const sectorConfig = useSectorConfig();
   const { impersonating } = useImpersonation();
   const effectiveUserId = impersonating?.user_id || user?.id;
   const { settings } = useBusinessSettings();
@@ -672,7 +674,7 @@ function ReuniaoDetailPageInner() {
         {/* Top bar */}
         <EntityTopBar
           backTo="/hub/reunioes"
-          backLabel="Reuniões"
+          backLabel={sectorConfig.t('reunioes')}
           primaryAction={
             dirty
               ? {
@@ -917,7 +919,7 @@ function ReuniaoDetailPageInner() {
           </EntityProperty>
 
           {showClientSection && (
-            <EntityProperty icon={Users} label="Cliente">
+            <EntityProperty icon={Users} label={sectorConfig.t('cliente')}>
               <Select value={m.client_id ?? ''} onValueChange={v => {
                 const selected = clientsList.find((c: any) => c.id === v);
                 update({ client_id: v || null, client_name: selected?.full_name || null });
@@ -954,7 +956,7 @@ function ReuniaoDetailPageInner() {
           )}
 
           {m.department === 'produtos' && !showClientSection && (
-            <EntityProperty icon={FileText} label="Produto">
+            <EntityProperty icon={FileText} label={sectorConfig.t('produto')}>
               <Select value={m.product_id ?? ''} onValueChange={v => {
                 const prod = productsList.find(p => p.id === v);
                 update({ product_id: v || null, product_name: prod?.name || null });
@@ -972,7 +974,7 @@ function ReuniaoDetailPageInner() {
           )}
 
           {showProjectField && (
-            <EntityProperty icon={FolderOpen} label="Projeto">
+            <EntityProperty icon={FolderOpen} label={sectorConfig.t('projeto')}>
               <Select value={m.project_id ?? ''} onValueChange={v => {
                 const proj = projectsList.find(p => p.id === v);
                 const patch: Partial<MeetingFull> = { project_id: v || null, project_name: proj?.name || null };

@@ -34,6 +34,7 @@ const fmtBirthday = (d: string | null | undefined) => {
   try { return format(parseISO(d), 'dd/MM'); } catch { return '—'; }
 };
 import { getClientStatusInfo, ACTIVE_CLIENT_STATUSES, ARCHIVED_CLIENT_STATUSES } from '@/lib/clientStatus';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 const ACTIVE_STATUSES: string[] = ACTIVE_CLIENT_STATUSES;
 const ARCHIVED_STATUSES: string[] = ARCHIVED_CLIENT_STATUSES;
@@ -42,6 +43,7 @@ export default function ClientesPage() {
   const navigate = useNavigate();
   const { clients } = useClients();
   const { products } = useProducts();
+  const sectorConfig = useSectorConfig();
   const [tab, setTab] = useState<'ativos' | 'arquivados' | 'historico'>('ativos');
   const [legacyDialogOpen, setLegacyDialogOpen] = useState(false);
 
@@ -112,7 +114,7 @@ export default function ClientesPage() {
 
   return (
     <AppLayout>
-      <PageHeader title="Clientes" subtitle="Gestão de clientes, acompanhamento e satisfação." department="clientes" />
+      <PageHeader title={sectorConfig.t('clientes')} subtitle={`Gestão de ${sectorConfig.t('clientes').toLowerCase()}, acompanhamento e satisfação.`} department="clientes" />
       <CollectionPage className="pt-6">
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
