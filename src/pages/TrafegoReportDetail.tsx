@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Editable } from '@/components/ui/editable';
 import { toast } from 'sonner';
 import { ChevronLeft, Upload, FileText, Trash2, ExternalLink, Check } from 'lucide-react';
 import { format } from 'date-fns';
@@ -116,12 +117,18 @@ export default function TrafegoReportDetail() {
       <div className="space-y-6">
         <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Tráfego Pago</p>
-          {isOwner ? (
-            <Input value={title} onChange={e => setTitle(e.target.value)}
-              className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
-          ) : (
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary-foreground">{title}</h1>
-          )}
+          <Editable
+            display={title}
+            disabled={!isOwner}
+            placeholder="Sem título"
+            bold
+            className="text-2xl md:text-3xl tracking-tight text-primary-foreground hover:bg-white/10"
+            hidePencil={!isOwner}
+            render={({ stop, autoFocusRef }) => (
+              <Input ref={autoFocusRef as any} value={title} onBlur={stop} onChange={e => setTitle(e.target.value)}
+                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
+            )}
+          />
         </div>
 
         <div className="space-y-6">

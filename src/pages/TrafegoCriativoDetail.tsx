@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Editable } from '@/components/ui/editable';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
@@ -123,12 +124,19 @@ export default function TrafegoCriativoDetail() {
         <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Criativo</p>
           <div className="flex items-center gap-3">
-            {isOwner ? (
-              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
-            ) : (
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary-foreground">{form.name}</h1>
-            )}
+            <Editable
+              display={form.name}
+              disabled={!isOwner}
+              placeholder="Sem nome"
+              bold
+              className="text-2xl md:text-3xl tracking-tight text-primary-foreground hover:bg-white/10"
+              hidePencil={!isOwner}
+              render={({ stop, autoFocusRef }) => (
+                <Input ref={autoFocusRef as any} value={form.name} onBlur={stop}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
+              )}
+            />
             <Badge className={cn('text-xs', st.color)}>{st.label}</Badge>
           </div>
         </div>
@@ -183,15 +191,17 @@ export default function TrafegoCriativoDetail() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Link</label>
-              <Input value={form.link} onChange={e => setForm(f => ({ ...f, link: e.target.value }))}
-                className="h-9" placeholder="https://..." readOnly={!isOwner} />
+              <Editable display={form.link} disabled={!isOwner} placeholder="https://..." render={({ stop, autoFocusRef }) => (
+                <Input ref={autoFocusRef as any} value={form.link} onBlur={stop} onChange={e => setForm(f => ({ ...f, link: e.target.value }))} className="h-9" />
+              )} />
             </div>
           </div>
 
           <div>
             <label className="text-xs font-medium text-muted-foreground">Objetivo</label>
-            <Textarea value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))}
-              placeholder="Objetivo do criativo" className="min-h-[60px] resize-none" readOnly={!isOwner} />
+            <Editable display={form.objetivo} disabled={!isOwner} placeholder="Objetivo do criativo" render={({ stop, autoFocusRef }) => (
+              <Textarea ref={autoFocusRef as any} value={form.objetivo} onBlur={stop} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))} className="min-h-[80px] resize-y" />
+            )} />
           </div>
 
           <Separator />
@@ -201,9 +211,11 @@ export default function TrafegoCriativoDetail() {
             <h2 className="text-lg font-semibold text-foreground mb-3">Título Principal</h2>
             <Card className="border-l-4 border-l-primary/30">
               <CardContent className="p-4">
-                <Textarea value={form.titulo_principal} onChange={e => setForm(f => ({ ...f, titulo_principal: e.target.value }))}
-                  placeholder="Escreve aqui o título principal do criativo."
-                  className="min-h-[60px] resize-none border-none shadow-none p-0 focus-visible:ring-0" readOnly={!isOwner} />
+                <Editable display={form.titulo_principal} disabled={!isOwner} placeholder="Escreve aqui o título principal do criativo." render={({ stop, autoFocusRef }) => (
+                  <Textarea ref={autoFocusRef as any} value={form.titulo_principal} onBlur={stop}
+                    onChange={e => setForm(f => ({ ...f, titulo_principal: e.target.value }))}
+                    className="min-h-[80px] resize-y" />
+                )} />
               </CardContent>
             </Card>
           </section>
@@ -213,9 +225,11 @@ export default function TrafegoCriativoDetail() {
             <h2 className="text-lg font-semibold text-foreground mb-3">Headline</h2>
             <Card className="border-l-4 border-l-primary/30">
               <CardContent className="p-4">
-                <Textarea value={form.headline} onChange={e => setForm(f => ({ ...f, headline: e.target.value }))}
-                  placeholder="Escreve aqui a headline do criativo."
-                  className="min-h-[60px] resize-none border-none shadow-none p-0 focus-visible:ring-0" readOnly={!isOwner} />
+                <Editable display={form.headline} disabled={!isOwner} placeholder="Escreve aqui a headline do criativo." render={({ stop, autoFocusRef }) => (
+                  <Textarea ref={autoFocusRef as any} value={form.headline} onBlur={stop}
+                    onChange={e => setForm(f => ({ ...f, headline: e.target.value }))}
+                    className="min-h-[80px] resize-y" />
+                )} />
               </CardContent>
             </Card>
           </section>
@@ -225,9 +239,11 @@ export default function TrafegoCriativoDetail() {
             <h2 className="text-lg font-semibold text-foreground mb-3">Legenda</h2>
             <Card className="border-l-4 border-l-primary/30">
               <CardContent className="p-4">
-                <Textarea value={form.legenda} onChange={e => setForm(f => ({ ...f, legenda: e.target.value }))}
-                  placeholder="Escreve aqui a legenda completa do criativo."
-                  className="min-h-[100px] resize-none border-none shadow-none p-0 focus-visible:ring-0" readOnly={!isOwner} />
+                <Editable display={form.legenda} disabled={!isOwner} placeholder="Escreve aqui a legenda completa do criativo." render={({ stop, autoFocusRef }) => (
+                  <Textarea ref={autoFocusRef as any} value={form.legenda} onBlur={stop}
+                    onChange={e => setForm(f => ({ ...f, legenda: e.target.value }))}
+                    className="min-h-[120px] resize-y" />
+                )} />
               </CardContent>
             </Card>
           </section>

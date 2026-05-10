@@ -6,6 +6,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Editable } from '@/components/ui/editable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -298,13 +299,17 @@ export default function VendaDetailPage() {
 
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">Descrição</Label>
-                  <Input value={form.description || ''} onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))} readOnly={!isOwner} />
+                  <Editable display={form.description || ''} disabled={!isOwner} placeholder="Sem descrição" render={({ stop, autoFocusRef }) => (
+                    <Input ref={autoFocusRef as any} value={form.description || ''} onBlur={stop} onChange={e => setForm((f: any) => ({ ...f, description: e.target.value }))} />
+                  )} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Valor Base (€)</Label>
-                    <Input type="number" step="0.01" value={form.base_value ?? ''} onChange={e => setForm((f: any) => ({ ...f, base_value: e.target.value }))} readOnly={!isOwner} />
+                    <Editable display={form.base_value ?? ''} disabled={!isOwner} suffix="€" placeholder="0 €" align="right" render={({ stop, autoFocusRef }) => (
+                      <Input ref={autoFocusRef as any} type="number" step="0.01" value={form.base_value ?? ''} onBlur={stop} onChange={e => setForm((f: any) => ({ ...f, base_value: e.target.value }))} />
+                    )} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
@@ -314,7 +319,9 @@ export default function VendaDetailPage() {
                         ? <span className="text-muted-foreground font-normal">(Isento)</span>
                         : null}
                     </Label>
-                    <Input type="number" step="0.01" value={form.invoice_total ?? ''} onChange={e => setForm((f: any) => ({ ...f, invoice_total: e.target.value }))} readOnly={!isOwner} />
+                    <Editable display={form.invoice_total ?? ''} disabled={!isOwner} suffix="€" placeholder="0 €" align="right" render={({ stop, autoFocusRef }) => (
+                      <Input ref={autoFocusRef as any} type="number" step="0.01" value={form.invoice_total ?? ''} onBlur={stop} onChange={e => setForm((f: any) => ({ ...f, invoice_total: e.target.value }))} />
+                    )} />
                   </div>
                 </div>
 

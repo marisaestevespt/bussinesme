@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Editable } from '@/components/ui/editable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -240,13 +241,19 @@ export default function LeadDetailPage() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Field label="Nome">
-                <Input value={form.name} onChange={(e) => update('name', e.target.value)} />
+                <Editable display={form.name} disabled={!isOwner} placeholder="Sem nome" render={({ stop, autoFocusRef }) => (
+                  <Input ref={autoFocusRef as any} value={form.name} onBlur={stop} onChange={(e) => update('name', e.target.value)} />
+                )} />
               </Field>
               <Field label="Email">
-                <Input type="email" value={form.email} onChange={(e) => update('email', e.target.value)} />
+                <Editable display={form.email} disabled={!isOwner} placeholder="Sem email" render={({ stop, autoFocusRef }) => (
+                  <Input ref={autoFocusRef as any} type="email" value={form.email} onBlur={stop} onChange={(e) => update('email', e.target.value)} />
+                )} />
               </Field>
               <Field label="Telefone">
-                <Input value={form.phone} onChange={(e) => update('phone', e.target.value)} />
+                <Editable display={form.phone} disabled={!isOwner} placeholder="Sem telefone" render={({ stop, autoFocusRef }) => (
+                  <Input ref={autoFocusRef as any} value={form.phone} onBlur={stop} onChange={(e) => update('phone', e.target.value)} />
+                )} />
               </Field>
               <Field label="Fonte">
                 <Select value={form.source || undefined} onValueChange={(v) => update('source', v)}>
@@ -299,11 +306,21 @@ export default function LeadDetailPage() {
                 </Select>
               </Field>
               <Field label="Valor estimado (€)">
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  value={form.estimated_value}
-                  onChange={(e) => update('estimated_value', e.target.value)}
+                <Editable
+                  display={form.estimated_value}
+                  disabled={!isOwner}
+                  format={(v) => `${v} €`}
+                  placeholder="0 €"
+                  render={({ stop, autoFocusRef }) => (
+                    <Input
+                      ref={autoFocusRef as any}
+                      type="number"
+                      inputMode="decimal"
+                      value={form.estimated_value}
+                      onBlur={stop}
+                      onChange={(e) => update('estimated_value', e.target.value)}
+                    />
+                  )}
                 />
               </Field>
               <Field label="Próximo follow-up">
@@ -321,14 +338,20 @@ export default function LeadDetailPage() {
               </Field>
               {form.status === 'perdido' && (
                 <Field label="Motivo da perda">
-                  <Input value={form.lost_reason} onChange={(e) => update('lost_reason', e.target.value)} />
+                  <Editable display={form.lost_reason} disabled={!isOwner} placeholder="Sem motivo" render={({ stop, autoFocusRef }) => (
+                    <Input ref={autoFocusRef as any} value={form.lost_reason} onBlur={stop} onChange={(e) => update('lost_reason', e.target.value)} />
+                  )} />
                 </Field>
               )}
               <Field label="Notas de follow-up" className="md:col-span-2">
-                <Textarea rows={3} value={form.followup_notes} onChange={(e) => update('followup_notes', e.target.value)} />
+                <Editable display={form.followup_notes} disabled={!isOwner} placeholder="Sem notas" render={({ stop, autoFocusRef }) => (
+                  <Textarea ref={autoFocusRef as any} rows={3} value={form.followup_notes} onBlur={stop} onChange={(e) => update('followup_notes', e.target.value)} />
+                )} />
               </Field>
               <Field label="Contexto" className="md:col-span-2">
-                <Textarea rows={3} value={form.context} onChange={(e) => update('context', e.target.value)} />
+                <Editable display={form.context} disabled={!isOwner} placeholder="Sem contexto" render={({ stop, autoFocusRef }) => (
+                  <Textarea ref={autoFocusRef as any} rows={3} value={form.context} onBlur={stop} onChange={(e) => update('context', e.target.value)} />
+                )} />
               </Field>
             </CardContent>
           </Card>

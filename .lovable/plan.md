@@ -1,85 +1,101 @@
-# Reuniões: previsto vs real, com origem coerente
-
 ## Objetivo
-Toda reunião passa a ter **tempo previsto** (estimado) e **tempo real** (decorrido). O previsto vem alimentado pela origem (entrega de produto, rotina, ou input manual). O real entra após a reunião e é o que conta para produtividade/desvios.
 
-## Mudanças
+Garantir que todos os locais do sistema onde o utilizador edita um valor existente sigam o **mesmo padrão visual e de interação**:
 
-### 1. Schema (migração)
+- Mostra o texto **estático** (sem caixa de input visível)
+- Ao passar o rato (hover): aparece o ícone de **lápis** + fundo subtil
+- Clique entra em modo edição (input/textarea)
+- Texto **nunca corta** — palavras longas e respostas longas quebram em várias linhas
+- Guarda no `onBlur` ou `Enter` (Esc cancela)
 
-**`meetings`** — separar os dois campos:
-- `planned_duration_minutes` (int, nullable) — tempo previsto
-- `actual_duration_minutes` (int, nullable) — tempo real
-- Migrar `duration_minutes` atual → copiar para ambos os campos como ponto de partida; manter `duration_minutes` como coluna gerada/legada por compatibilidade (ou eliminar e ajustar todos os call-sites — preferível).
+Componente base já existente: `src/components/product/InlineField.tsx` (já com modo `multiline`).
 
-**`planning_routines`** — passar a ter formato + duração (espelhando entregas):
-- `format` (text, nullable) — `reuniao`, `tarefa`, `entrega`, `outro`
-- `estimated_minutes` (int, nullable) — tempo previsto
-  Quando `format='reuniao'` e a rotina gera ocorrências, gera **meeting** (não task) com `planned_duration_minutes = estimated_minutes`.
+## O que NÃO entra
 
-**`sops`** — adicionar `estimated_minutes` (int, nullable) para alinhar.
+Estes inputs continuam como caixas normais (faz sentido manter):
 
-### 2. Cascata do tempo previsto (ao criar meeting)
+- **Login / Signup / Reset password** (`AuthPage`, `ResetPassword`)
+- **Setup wizard** (`SetupPage`)
+- **Diálogos de criação** (TaskFormDialog, dialogs de "Nova X") — o utilizador está a criar do zero, não a editar
+- **Campos de pesquisa/filtros** (search bars, filtros)
+- **Selects, datepickers, checkboxes** (não são texto livre)
+- **Editores ricos / brain dump** (já têm UX próprio)
 
-Prioridade ao popular `planned_duration_minutes`:
-1. `project_deliverables.estimated_minutes` (se meeting nasce de entrega)
-2. `planning_routines.estimated_minutes` (se nasce de rotina)
-3. `MEETING_TEMPLATES[type].defaultDurationMinutes` (template do produto)
-4. Vazio (input manual)
+## Abordagem em 3 fases
 
-Aplicar nos pontos de criação:
-- `generate-deliverable-tasks` / trigger de entrega→reunião
-- `generate-routine-tasks` + `regenerate-recurring-meetings` (gerar meetings quando rotina é formato reunião)
-- Form manual em `Reunioes.tsx` / `ReuniaoDetail.tsx` / `Agenda.tsx` (pré-preenche a partir do template)
+### Fase 1 — Reforçar o componente base
+Promover `InlineField` para localização partilhada e adicionar variantes que cobrem os casos atuais:
 
-### 3. UI
+- Mover de `src/components/product/InlineField.tsx` → `src/components/ui/inline-field.tsx`
+- Re-export do caminho antigo para não partir imports existentes
+- Adicionar props que faltam: `rows` (multiline), `maxLines`, `prefix`, `emptyLabel`
+- Garantir wrap de palavras (`break-words`, `whitespace-pre-wrap`) no modo multiline (já feito)
+- Acessibilidade: `aria-label`, foco visível, suporte teclado (Enter para editar)
 
-**Form/detalhe da reunião** (`ReuniaoDetail.tsx`, dialog em `Reunioes.tsx`, `Agenda.tsx`):
-- Dois campos lado a lado: "Previsto (min)" e "Real (min)"
-- Real arranca vazio; ao marcar reunião como concluída, prompt suave a pedir o real (default = previsto)
-- Badge no card a mostrar desvio quando há ambos (ex.: "60' previsto · 80' real · +33%")
+### Fase 2 — Páginas de detalhe (prioridade alta — é onde o problema mais aparece)
 
-**Rotinas** (`ProjectRoutines.tsx` e gestão em `/hub/tarefas?tab=rotinas`):
-- Novo seletor de **Formato** (reunião / tarefa / entrega)
-- Campo **Tempo previsto (min)**
-- Quando formato = reunião, geração cria meeting em vez de task
+São as páginas onde se vê o "registo" e se editam campos um a um. Converter todos os `Input`/`Textarea` de edição para `InlineField`:
 
-**SOPs**: campo estimated_minutes editável.
+1. `ProdutoDetail.tsx` (parcial — falta resto da ficha)
+2. `ClienteDetail.tsx`
+3. `ProjetoDetail.tsx`
+4. `LeadDetail.tsx`
+5. `VendaDetail.tsx`
+6. `ReuniaoDetail.tsx`
+7. `SopDetail.tsx`
+8. `ConteudoDetail.tsx`
+9. `TrafegoCriativoDetail.tsx`, `TrafegoReportDetail.tsx`
+10. `MarketingFunilDetail.tsx`
+11. `Fornecedores.tsx` (linhas editáveis)
 
-### 4. Produtividade
+Para cada uma:
+- Substituir `<Input value … onChange …>` solto por `<InlineField value … onSave …>`
+- Substituir `<Textarea value … onChange …>` por `<InlineField multiline value … onSave …>`
+- Manter inputs dentro de modais "Adicionar/Criar"
 
-`ExecutiveProductivity.tsx` (`useMemo` que constrói virtual entries de meetings):
-- Passar a usar `actual_duration_minutes ?? planned_duration_minutes` (preferir real; cair para previsto se ainda não preenchido).
-- Nova métrica: **desvio reuniões** = soma(real − previsto), quebrada por cliente / interno / rotina.
-- Sinal de alerta no `OverloadTab` quando média de desvio > 20% num período.
+### Fase 3 — Secções compartilhadas e tabelas
 
-### 5. Compatibilidade
-- Onde código lê `duration_minutes` (agenda render, time-tracking `calcTotalTime`, exports), trocar para o novo getter `actual ?? planned`.
-- Memory `time-tracking-analysis.md` atualizada para refletir os dois campos.
+Componentes reutilizados em várias páginas:
 
-## Detalhe técnico
+- `ProductComercialSection`, `ProductPricingEditor`, `VariablesWizard`
+- `CustomFieldsSection`
+- `SopEditableLists`, `LinkedSopsSection`, `RenewalSection`
+- `DepartmentProcessos`
+- `RotinasView`, `HistoricoView`, `MyTasksTable`, `TaskCustomViews`
+- `SecretariaWidgets`, `SecretariaProdutividade`
+- `ObjetivoFinalField`
+- `ExecutiveInnovation`, `ExecutiveBusinessPlanBlock`, `ExecutiveWeeklyAlign`
+- `MarketingEstrategia`, `MarketingFunis`, `MarketingDashboard`, `ChannelPage`
+- `ComercialAnalise`, `ClientesAnalise`, `CrmPipelines`
+- `ComecaAqui`, `Agenda`, `Tarefas`, `Reunioes`, `Projetos`, `Acessos`, `GestaoMarca`
 
-```text
-meeting.duration_minutes (legacy)
-        │
-        ├─► planned_duration_minutes  ◄── cascade (deliverable/routine/template)
-        └─► actual_duration_minutes   ◄── preenchido pós-reunião
+Mesma regra: só os campos que editam um valor já existente.
 
-routine.format = 'reuniao' + estimated_minutes
-        └─► gera meeting com planned_duration_minutes
-```
+## Como vou medir progresso
 
-Ficheiros principais a tocar:
-- migração SQL (meetings + planning_routines + sops)
-- `src/pages/{Reunioes,ReuniaoDetail,Agenda}.tsx`
-- `src/components/project/ProjectRoutines.tsx` + página rotinas
-- `src/hooks/usePlanningRoutines.tsx` (gerar meeting quando formato=reunião)
-- `supabase/functions/generate-routine-tasks/index.ts`
-- `supabase/functions/regenerate-recurring-meetings/index.ts`
-- `supabase/functions/generate-deliverable-tasks/index.ts`
-- `src/pages/ExecutiveProductivity.tsx` (usar actual ?? planned + métrica desvio)
-- `src/lib/meetingStatus.ts` ou novo helper `meetingDuration.ts`
+- No final de cada fase: `rg "<Input " src/<scope>` para confirmar que só restam inputs em locais legítimos (modais, filtros, auth)
+- Verificação visual: abrir as páginas-chave e confirmar comportamento
+- Build limpo
 
-## Fora de âmbito (confirmar se queres incluir)
-- Timer "ao vivo" para reuniões (start/stop) — por agora só input manual do real.
-- Histórico de versões do previsto.
+## Detalhes técnicos
+
+`InlineField` já trata:
+- `text` / `number` / `multiline`
+- Format / suffix / align / bold
+- Hover pencil + truncate (single-line) ou wrap (multiline)
+- Save on blur, Enter commits, Esc cancela
+
+Para casos especiais (ex: select inline) criarei `<InlineSelect>` análogo se aparecerem (Pricing tem alguns selects).
+
+## Tempo / risco
+
+Fase 1: pequena (1 ficheiro).
+Fase 2: ~11 páginas, conversões mecânicas mas extensas. Risco baixo — mantém os mesmos handlers de save.
+Fase 3: ~30 ficheiros — fica para depois das páginas de detalhe estarem todas validadas, ou pode ser feita gradualmente conforme o uso.
+
+## Proposta de execução
+
+Posso avançar com **Fase 1 + Fase 2 já neste turno** (pages de detalhe — o sítio onde o problema dói mais).
+A Fase 3 seria um segundo turno depois de validares o resultado nas páginas de detalhe.
+
+Confirma se queres que avance assim, ou se preferes uma ordem diferente (ex: começar pelo módulo X).
