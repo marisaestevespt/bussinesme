@@ -71,16 +71,18 @@ Deno.serve(async (req) => {
     // Fetch product (for cycle_duration + per-product email customization)
     let cycleDuration: number | null = null;
     let productBannerUrl: string | null = null;
-    let productAccentColor: string | null = null;
+    let productPrimaryColor: string | null = null;
     if (project.product_id) {
       const { data: product } = await supabase
         .from("products")
-        .select("cycle_duration, welcome_email_banner_url, welcome_email_accent_color")
+        .select("cycle_duration, welcome_email_banner_url, branding")
         .eq("id", project.product_id)
         .maybeSingle();
       cycleDuration = product?.cycle_duration ?? null;
       productBannerUrl = product?.welcome_email_banner_url ?? null;
-      productAccentColor = product?.welcome_email_accent_color ?? null;
+      const brandColor = (product?.branding as Record<string, unknown> | null)?.primary_color as string | undefined;
+      // Only use HSL triplets ("351 56% 28%"); ignore raw hex stored in branding.
+      productPrimaryColor = brandColor && !brandColor.startsWith("#") ? brandColor : null;
     }
 
     // Compute end date
@@ -132,7 +134,7 @@ Deno.serve(async (req) => {
       whatsappNumber: ws.whatsapp_number || undefined,
       whatsappMessage: ws.whatsapp_message || undefined,
       businessName: settings?.business_name || undefined,
-      primaryColor: productAccentColor || settings?.primary_color || undefined,
+      primaryColor: productPrimaryColor || settings?.primary_color || undefined,
       primaryForeground: primaryFg,
       fontDisplay: settings?.font_display || undefined,
       fontBody: settings?.font_body || undefined,
