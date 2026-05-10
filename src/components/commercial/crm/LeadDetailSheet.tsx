@@ -943,6 +943,17 @@ function PipelineHistory({ leadId }: { leadId: string }) {
           </div>
         </DialogContent>
       </Dialog>
+      {quoteProductId && lead?.id && (
+        <QuoteCalculatorDialog
+          open={quoteOpen}
+          onOpenChange={setQuoteOpen}
+          productId={quoteProductId}
+          leadId={lead.id}
+          onAccepted={({ id, total }) => {
+            set({ estimated_value: String(total), quote_id: id });
+          }}
+        />
+      )}
     </div>
   );
 }
