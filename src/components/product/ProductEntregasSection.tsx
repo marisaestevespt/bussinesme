@@ -42,6 +42,7 @@ interface Phase {
   offset_days?: number | null;
   offset_trigger?: string;
   is_onboarding?: boolean;
+  is_offboarding?: boolean;
   is_recurring?: boolean;
   recurrence_frequency?: string | null;
   recurrence_anchor_day?: number | null;
@@ -272,13 +273,14 @@ function PhaseCard({
           </Button>
           <Badge variant="outline" className="text-[10px] shrink-0">Fase {phase.sort_order + 1}</Badge>
           {phase.is_onboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-warning/15 text-warning border-warning/30">Onboarding</Badge>}
+          {phase.is_offboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-destructive/15 text-destructive border-destructive/30">Offboarding</Badge>}
           <Input value={name} onChange={e => setName(e.target.value)}
             onBlur={() => { const t = name.trim(); if (t !== phase.name) onUpdatePhase(phase.id, { name: t }); }}
             className="h-7 text-sm font-medium border-none shadow-none p-0 focus-visible:ring-0"
             placeholder="Nome da fase..." readOnly={!isOwner} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {isOwner && (
+          {isOwner && !phase.is_offboarding && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant={phase.is_onboarding ? "secondary" : "ghost"} size="sm"
@@ -288,6 +290,18 @@ function PhaseCard({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Marcar como fase de onboarding (visível no portal)</TooltipContent>
+            </Tooltip>
+          )}
+          {isOwner && !phase.is_onboarding && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant={phase.is_offboarding ? "secondary" : "ghost"} size="sm"
+                  className={`h-7 text-xs ${phase.is_offboarding ? 'bg-destructive/15 text-destructive hover:bg-destructive/15' : ''}`}
+                  onClick={() => onUpdatePhase(phase.id, { is_offboarding: !phase.is_offboarding })}>
+                  <CheckSquare className="h-3 w-3 mr-1" /> Offboarding
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Marcar como fase de offboarding (encerramento, handover, NPS…)</TooltipContent>
             </Tooltip>
           )}
           {sops.length > 0 && (
@@ -505,8 +519,14 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
   });
 
   const addPhase = useMutation({
-    mutationFn: async () => {
-      await supabase.from('product_phases' as any).insert({ product_id: productId, name: '', sort_order: phases.length } as any);
+    mutationFn: async (zone: 'onboarding' | 'roadmap' | 'offboarding' = 'roadmap') => {
+      await supabase.from('product_phases' as any).insert({
+        product_id: productId,
+        name: '',
+        sort_order: phases.length,
+        is_onboarding: zone === 'onboarding',
+        is_offboarding: zone === 'offboarding',
+      } as any);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: phaseKey }),
   });
@@ -551,22 +571,34 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
   };
 
   const sortedPhases = [...phases].sort((a, b) => a.sort_order - b.sort_order);
-  
+  const onboardingPhases = sortedPhases.filter(p => p.is_onboarding && !p.is_offboarding);
+  const offboardingPhases = sortedPhases.filter(p => p.is_offboarding && !p.is_onboarding);
+  const roadmapPhases = sortedPhases.filter(p => !p.is_onboarding && !p.is_offboarding);
+
+  const renderPhase = (phase: Phase) => {
+    const phaseDeliverables = deliverableTemplates
+      .filter(d => d.phase_id === phase.id)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    return (
+      <PhaseCard key={phase.id} phase={phase} deliverables={phaseDeliverables} sops={sops}
+        isOwner={isOwner} productId={productId} isRecurring={isRecurring}
+        onUpdatePhase={(id, data) => updatePhase.mutate({ id, ...data })}
+        onDeletePhase={(id) => deletePhase.mutate(id)}
+        onAddDeliverable={addDeliverableToPhase}
+        onUpdateDeliverable={onUpdate} onDeleteDeliverable={onDelete}
+        onSwapDeliverables={swapDeliverables} />
+    );
+  };
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-semibold flex items-center gap-2">
-            <Layers className="h-4 w-4 text-primary" /> Fases e Entregas
-          </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Define as fases do produto e as entregas dentro de cada uma.</p>
-        </div>
-        {isOwner && (
-          <Button size="sm" variant="outline" onClick={() => addPhase.mutate()}>
-            <Plus className="h-3 w-3 mr-1" /> Fase
-          </Button>
-        )}
+      <div>
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <Layers className="h-4 w-4 text-primary" /> Fases e Entregas
+        </h3>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Organizado em 3 zonas: Onboarding (acolhimento) · Roadmap (entrega principal) · Offboarding (encerramento).
+        </p>
       </div>
 
       {isOwner && activeProjectsCount > 0 && (
@@ -581,28 +613,59 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
         </div>
       )}
 
-      {sortedPhases.length === 0 && (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <EmptyHint>Nenhuma fase definida. Cria fases para organizar as entregas deste produto.</EmptyHint>
-          </CardContent>
-        </Card>
-      )}
+      {/* ── ONBOARDING ───────────────────────────────── */}
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-warning" /> Onboarding
+          </h4>
+          {isOwner && (
+            <Button size="sm" variant="ghost" className="h-7 text-xs text-warning hover:bg-warning/10"
+              onClick={() => addPhase.mutate('onboarding')}>
+              <Plus className="h-3 w-3 mr-1" /> Fase de onboarding
+            </Button>
+          )}
+        </div>
+        {onboardingPhases.length === 0
+          ? <p className="text-xs text-muted-foreground italic pl-4">Sem fases de onboarding definidas.</p>
+          : onboardingPhases.map(renderPhase)}
+      </section>
 
-      {sortedPhases.map(phase => {
-        const phaseDeliverables = deliverableTemplates
-          .filter(d => d.phase_id === phase.id)
-          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-        return (
-          <PhaseCard key={phase.id} phase={phase} deliverables={phaseDeliverables} sops={sops}
-            isOwner={isOwner} productId={productId} isRecurring={isRecurring}
-            onUpdatePhase={(id, data) => updatePhase.mutate({ id, ...data })}
-            onDeletePhase={(id) => deletePhase.mutate(id)}
-            onAddDeliverable={addDeliverableToPhase}
-            onUpdateDeliverable={onUpdate} onDeleteDeliverable={onDelete}
-            onSwapDeliverables={swapDeliverables} />
-        );
-      })}
+      {/* ── ROADMAP ──────────────────────────────────── */}
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-primary" /> Roadmap principal
+          </h4>
+          {isOwner && (
+            <Button size="sm" variant="outline" className="h-7 text-xs"
+              onClick={() => addPhase.mutate('roadmap')}>
+              <Plus className="h-3 w-3 mr-1" /> Fase
+            </Button>
+          )}
+        </div>
+        {roadmapPhases.length === 0
+          ? <p className="text-xs text-muted-foreground italic pl-4">Sem fases de roadmap definidas.</p>
+          : roadmapPhases.map(renderPhase)}
+      </section>
+
+      {/* ── OFFBOARDING ──────────────────────────────── */}
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-destructive flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-destructive" /> Offboarding
+          </h4>
+          {isOwner && (
+            <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive hover:bg-destructive/10"
+              onClick={() => addPhase.mutate('offboarding')}>
+              <Plus className="h-3 w-3 mr-1" /> Fase de offboarding
+            </Button>
+          )}
+        </div>
+        {offboardingPhases.length === 0
+          ? <p className="text-xs text-muted-foreground italic pl-4">Sem fases de offboarding definidas.</p>
+          : offboardingPhases.map(renderPhase)}
+      </section>
 
     </div>
   );
