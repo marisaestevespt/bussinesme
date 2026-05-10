@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { computeQuote, formatEuro, type DriverInput, type VolumeDiscount, type ModifierSelection } from '@/lib/quoteCalculator';
 import { useProductQuotes } from '@/hooks/useProductPricing';
 import { useProductModifiers } from '@/hooks/useProductModifiers';
 import { toast } from 'sonner';
-import { Calculator, Save } from 'lucide-react';
+import { Calculator, Save, ChevronDown } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -18,7 +19,6 @@ interface Props {
   productId: string;
   leadId?: string | null;
   clientId?: string | null;
-  /** Called after the quote is saved (status='aceite'). Receives the saved quote. */
   onAccepted?: (quote: { id: string; total: number }) => void;
 }
 
@@ -59,16 +59,13 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
   const modifiers = useProductModifiers(open ? productId : null);
   const dimensions = modifiers.query.data || [];
 
-  // Variable mode state
   const [driverQty, setDriverQty] = useState<Record<string, number>>({});
-  /** Map<dimension_id, level_id> */
   const [selectedLevels, setSelectedLevels] = useState<Record<string, string>>({});
   const [manualDiscount, setManualDiscount] = useState<string>('0');
-  // Fixed mode state
   const [selectedTierId, setSelectedTierId] = useState<string>('');
-  // Common
   const [validUntil, setValidUntil] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [showMath, setShowMath] = useState(false);
 
   useEffect(() => {
     if (driversQ.data) {
@@ -109,12 +106,11 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
 
   const selectedTier = tiersQ.data?.find((t: any) => t.id === selectedTierId);
   const fixedTotal = Number(selectedTier?.price) || 0;
-
   const total = ticketType === 'fixo' ? fixedTotal : result.total;
 
   const save = async (status: 'rascunho' | 'aceite') => {
     if (!productId) return;
-    if (ticketType === 'fixo' && !selectedTierId) { toast.error('Escolhe um tier'); return; }
+    if (ticketType === 'fixo' && !selectedTierId) { toast.error('Escolhe um pacote'); return; }
     try {
       const created = await create.mutateAsync({
         product_id: productId,
@@ -135,12 +131,9 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
       } as any);
 
       if (status === 'aceite') {
-        // Propagation: update lead/client links to this quote + value
         if (leadId) {
           await supabase.from('crm_leads').update({ estimated_value: total, quote_id: created.id } as any).eq('id', leadId);
         }
-        // Cliente: cotação fica ligada via product_quotes.client_id (snapshot histórico).
-        // O valor contratado vive no projeto — não duplicar no cliente.
         onAccepted?.({ id: created.id, total });
       }
       toast.success(status === 'aceite' ? 'Orçamento aceite e propagado' : 'Orçamento guardado');
@@ -150,16 +143,21 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
     }
   };
 
+  const driversWithQty = drivers.filter(d => d.qty > 0);
+  const basePrice = Number(product?.base_price) || 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Calculator className="h-4 w-4" /> Calculadora de Orçamento — {product?.name || ''}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Calculator className="h-4 w-4" /> Novo orçamento — {product?.name || ''}
+          </DialogTitle>
         </DialogHeader>
 
         {ticketType === 'fixo' ? (
           <div className="space-y-3">
-            <Label>Escolhe um tier</Label>
+            <Label>Escolhe um pacote</Label>
             <Select value={selectedTierId} onValueChange={setSelectedTierId}>
               <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
               <SelectContent>
@@ -168,60 +166,139 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
                 ))}
               </SelectContent>
             </Select>
-            {(tiersQ.data || []).length === 0 && <p className="text-xs text-muted-foreground">Sem tiers definidos. Configura na ficha do produto.</p>}
+            {(tiersQ.data || []).length === 0 && <p className="text-xs text-muted-foreground">Sem pacotes definidos. Configura na ficha do produto.</p>}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Passo 1 */}
             {(driversQ.data || []).length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Drivers</Label>
-                {(driversQ.data || []).map((d: any) => (
-                  <div key={d.id} className="grid grid-cols-[1fr_120px_120px] gap-2 items-center">
-                    <div className="text-sm">{d.name} <span className="text-xs text-muted-foreground">({formatEuro(Number(d.unit_price))}/{d.unit || 'un'})</span></div>
-                    <Input type="number" value={driverQty[d.id] ?? 0} onChange={e => setDriverQty(prev => ({ ...prev, [d.id]: parseFloat(e.target.value) || 0 }))} />
-                    <div className="text-sm text-right tabular-nums">{formatEuro((Number(d.unit_price) || 0) * (driverQty[d.id] ?? 0))}</div>
-                  </div>
-                ))}
-              </div>
+              <section className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-semibold">1. Quanto trabalho?</h3>
+                  <p className="text-xs text-muted-foreground">Indica as quantidades estimadas para este cliente.</p>
+                </div>
+                <div className="space-y-2 rounded-lg border bg-muted/10 p-3">
+                  {(driversQ.data || []).map((d: any) => (
+                    <div key={d.id} className="grid grid-cols-[1fr_120px_120px] gap-3 items-center">
+                      <div className="text-sm">
+                        <div>{d.name || <span className="italic text-muted-foreground">(sem nome)</span>}</div>
+                        <div className="text-[11px] text-muted-foreground">{formatEuro(Number(d.unit_price))} por {d.unit || 'unidade'}</div>
+                      </div>
+                      <Input type="number" min="0" value={driverQty[d.id] ?? 0} onChange={e => setDriverQty(prev => ({ ...prev, [d.id]: parseFloat(e.target.value) || 0 }))} />
+                      <div className="text-sm text-right tabular-nums font-medium">{formatEuro((Number(d.unit_price) || 0) * (driverQty[d.id] ?? 0))}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
-            {dimensions.map(dim => dim.levels.length > 0 && (
-              <div key={dim.id}>
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">{dim.name}</Label>
-                <Select value={selectedLevels[dim.id] || ''} onValueChange={v => setSelectedLevels(prev => ({ ...prev, [dim.id]: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
-                  <SelectContent>
-                    {dim.levels.map(l => <SelectItem key={l.id} value={l.id}>{l.label} (×{l.multiplier})</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Desconto manual (%)</Label>
-              <Input type="number" value={manualDiscount} onChange={e => setManualDiscount(e.target.value)} />
-            </div>
 
-            <div className="rounded-lg border bg-muted/30 p-3 text-sm space-y-1">
-              <div className="flex justify-between"><span className="text-muted-foreground">Base</span><span className="tabular-nums">{formatEuro(Number(product?.base_price) || 0)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Drivers</span><span className="tabular-nums">{formatEuro(result.drivers_subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Multiplicador</span><span className="tabular-nums">×{result.multiplier}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Desconto aplicado</span><span className="tabular-nums">{result.applied_discount_pct}%</span></div>
-              <div className="flex justify-between font-semibold pt-2 border-t mt-2"><span>Total</span><span className="tabular-nums">{formatEuro(result.total)}</span></div>
-            </div>
+            {/* Passo 2 */}
+            {dimensions.some(d => d.levels.length > 0) && (
+              <section className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-semibold">2. Sobre o cliente</h3>
+                  <p className="text-xs text-muted-foreground">Cada resposta ajusta o preço final.</p>
+                </div>
+                <div className="space-y-3 rounded-lg border bg-muted/10 p-3">
+                  {dimensions.map(dim => dim.levels.length > 0 && (
+                    <div key={dim.id} className="space-y-1">
+                      <Label className="text-xs">{dim.name}</Label>
+                      <Select value={selectedLevels[dim.id] || ''} onValueChange={v => setSelectedLevels(prev => ({ ...prev, [dim.id]: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar…" /></SelectTrigger>
+                        <SelectContent>
+                          {dim.levels.map(l => {
+                            const m = Number(l.multiplier) || 1;
+                            const pct = m === 1 ? 'sem alteração' : (m > 1 ? `+${Math.round((m - 1) * 100)}%` : `−${Math.round((1 - m) * 100)}%`);
+                            return <SelectItem key={l.id} value={l.id}>{l.label} <span className="text-muted-foreground ml-1">({pct})</span></SelectItem>;
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Passo 3 */}
+            <section className="space-y-3">
+              <div>
+                <h3 className="text-sm font-semibold">3. Ajustes finais</h3>
+                <p className="text-xs text-muted-foreground">Desconto manual (opcional) e validade do orçamento.</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3 rounded-lg border bg-muted/10 p-3">
+                <div>
+                  <Label className="text-xs">Desconto (%)</Label>
+                  <Input type="number" value={manualDiscount} onChange={e => setManualDiscount(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Válido até</Label>
+                  <Input type="date" value={validUntil} onChange={e => setValidUntil(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Notas</Label>
+                  <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Opcional" />
+                </div>
+              </div>
+            </section>
+
+            {/* Resultado */}
+            <section className="rounded-lg border-2 border-primary/30 bg-primary/5 p-4 space-y-2">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm text-muted-foreground">Preço sugerido</span>
+                <span className="text-3xl font-bold tabular-nums">{formatEuro(result.total)}</span>
+              </div>
+
+              <Collapsible open={showMath} onOpenChange={setShowMath}>
+                <CollapsibleTrigger className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
+                  <ChevronDown className={`h-3 w-3 transition-transform ${showMath ? 'rotate-180' : ''}`} />
+                  {showMath ? 'Ocultar' : 'Ver'} cálculo
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2 space-y-1 text-xs">
+                  {basePrice > 0 && (
+                    <div className="flex justify-between"><span className="text-muted-foreground">Valor base</span><span className="tabular-nums">{formatEuro(basePrice)}</span></div>
+                  )}
+                  {driversWithQty.map(d => (
+                    <div key={d.id} className="flex justify-between">
+                      <span className="text-muted-foreground">{d.qty} × {d.name} ({formatEuro(d.unit_price)}/{d.unit || 'un'})</span>
+                      <span className="tabular-nums">{formatEuro(d.qty * d.unit_price)}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between border-t pt-1 mt-1">
+                    <span className="font-medium">Subtotal</span>
+                    <span className="tabular-nums font-medium">{formatEuro(result.base_with_drivers)}</span>
+                  </div>
+                  {selectedModifiers.map(m => {
+                    const pct = m.multiplier === 1 ? '' : (m.multiplier > 1 ? `+${Math.round((m.multiplier - 1) * 100)}%` : `−${Math.round((1 - m.multiplier) * 100)}%`);
+                    return (
+                      <div key={m.dimension_id} className="flex justify-between">
+                        <span className="text-muted-foreground">{m.dimension_name}: {m.level_label}</span>
+                        <span className="tabular-nums">{pct}</span>
+                      </div>
+                    );
+                  })}
+                  {selectedModifiers.length > 0 && (
+                    <div className="flex justify-between border-t pt-1 mt-1">
+                      <span className="font-medium">Após ajustes</span>
+                      <span className="tabular-nums font-medium">{formatEuro(result.after_multiplier)}</span>
+                    </div>
+                  )}
+                  {result.applied_discount_pct > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Desconto</span>
+                      <span className="tabular-nums">−{result.applied_discount_pct}%</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between border-t pt-1 mt-1 text-sm">
+                    <span className="font-semibold">Total</span>
+                    <span className="tabular-nums font-semibold">{formatEuro(result.total)}</span>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </section>
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <div>
-            <Label>Válido até</Label>
-            <Input type="date" value={validUntil} onChange={e => setValidUntil(e.target.value)} />
-          </div>
-          <div>
-            <Label>Notas</Label>
-            <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Opcional" />
-          </div>
-        </div>
-
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 pt-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button variant="outline" onClick={() => save('rascunho')} disabled={create.isPending}>Guardar rascunho</Button>
           <Button onClick={() => save('aceite')} disabled={create.isPending || total <= 0}>

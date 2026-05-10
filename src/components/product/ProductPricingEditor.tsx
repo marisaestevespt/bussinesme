@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Layers, SlidersHorizontal, Percent, Sliders } from 'lucide-react';
+import { Plus, Trash2, Layers, Calculator, Percent, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { usePricingDrivers } from '@/hooks/useProductPricing';
 import { useProductModifiers } from '@/hooks/useProductModifiers';
@@ -23,6 +24,17 @@ interface Props {
     volume_discounts?: VolumeDiscount[] | null;
   };
 }
+
+const Hint = ({ children }: { children: React.ReactNode }) => (
+  <TooltipProvider delayDuration={150}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button type="button" className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground"><HelpCircle className="h-3.5 w-3.5" /></button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-xs">{children}</TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
 
 export function ProductPricingEditor({ productId, ticketType, isOwner, initial }: Props) {
   const qc = useQueryClient();
@@ -54,7 +66,10 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Layers className="h-4 w-4" /> Tiers de Preço</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Layers className="h-4 w-4" /> Pacotes pré-definidos
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Cria pacotes fechados (ex: Básico / Pro / Premium) com preço definido.</p>
         </CardHeader>
         <CardContent>
           <ProductPriceTiers productId={productId} readOnly={!isOwner} />
@@ -67,12 +82,23 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2"><SlidersHorizontal className="h-4 w-4" /> Calculadora de Orçamento (Preço Variável)</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Calculator className="h-4 w-4" /> Como se calcula o preço
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Define os ingredientes da calculadora. Quando criares um orçamento, escolhes valores e o preço aparece automaticamente.
+        </p>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Range + base */}
+      <CardContent className="space-y-8">
+        {/* 1. Preço de referência */}
         <section className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Intervalo & base</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-semibold">1. Preço de referência</h4>
+            <Hint>
+              <p><strong>Mínimo / Máximo</strong>: intervalo mostrado em landings e propostas (ex: "a partir de 500€").</p>
+              <p className="mt-1"><strong>Valor base</strong>: fee fixo somado a todos os orçamentos (ex: setup). Põe 0 se não houver.</p>
+            </Hint>
+          </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="text-xs text-muted-foreground">Mínimo (€)</label>
@@ -83,30 +109,43 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
               <Input type="number" value={priceMax} onChange={e => setPriceMax(e.target.value)} onBlur={() => persistProductFields({ price_max: parseFloat(priceMax) || null })} disabled={!isOwner} />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">Base (€)</label>
+              <label className="text-xs text-muted-foreground">Valor base (€)</label>
               <Input type="number" value={basePrice} onChange={e => setBasePrice(e.target.value)} onBlur={() => persistProductFields({ base_price: parseFloat(basePrice) || 0 })} disabled={!isOwner} />
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground italic">O intervalo é mostrado em landings e propostas. A "Base" é somada aos drivers no cálculo.</p>
         </section>
 
-        {/* Drivers */}
-        <section className="space-y-2">
+        {/* 2. O que entra na conta */}
+        <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Drivers de Orçamento</h4>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-semibold">2. O que entra na conta — quantidades</h4>
+              <Hint>
+                <p>Lista de coisas que se contam e cada uma tem um preço unitário.</p>
+                <p className="mt-1">Exemplos: "Horas/semana × 70€", "Posts × 25€", "Sessões × 120€".</p>
+                <p className="mt-1">No orçamento, escreves quantos e o sistema multiplica.</p>
+              </Hint>
+            </div>
             {isOwner && (
-              <Button size="sm" variant="outline" onClick={() => upsertDriver.mutate({ product_id: productId, name: 'Novo driver', unit: 'unidade', unit_price: 0, default_qty: 0, sort_order: drivers.data?.length || 0 })}>
-                <Plus className="h-3 w-3 mr-1" /> Driver
+              <Button size="sm" variant="outline" onClick={() => upsertDriver.mutate({ product_id: productId, name: '', unit: 'unidade', unit_price: 0, default_qty: 0, sort_order: drivers.data?.length || 0 })}>
+                <Plus className="h-3 w-3 mr-1" /> Adicionar item
               </Button>
             )}
           </div>
-          {(drivers.data || []).length === 0 && <p className="text-xs text-muted-foreground italic">Sem drivers. Ex: "Nº páginas × 50€".</p>}
+          {(drivers.data || []).length === 0 && (
+            <p className="text-xs text-muted-foreground italic">Sem itens. Ex: "Horas por semana" a 70€/h, "Posts" a 25€/un.</p>
+          )}
+          {(drivers.data || []).length > 0 && (
+            <div className="grid grid-cols-[1fr_120px_120px_120px_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground px-1">
+              <span>Nome</span><span>Unidade</span><span>€ por unidade</span><span>Qtd. sugerida</span><span></span>
+            </div>
+          )}
           {(drivers.data || []).map(d => (
             <div key={d.id} className="grid grid-cols-[1fr_120px_120px_120px_auto] gap-2 items-center rounded-md border p-2 bg-muted/20">
-              <Input className="h-8 text-sm" placeholder="Nome (ex: Páginas)" defaultValue={d.name} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: e.target.value, unit: d.unit, unit_price: d.unit_price, default_qty: d.default_qty })} disabled={!isOwner} />
-              <Input className="h-8 text-sm" placeholder="Unidade" defaultValue={d.unit || ''} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: e.target.value || null, unit_price: d.unit_price, default_qty: d.default_qty })} disabled={!isOwner} />
-              <Input className="h-8 text-sm" type="number" placeholder="€/unidade" defaultValue={d.unit_price} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(e.target.value) || 0, default_qty: d.default_qty })} disabled={!isOwner} />
-              <Input className="h-8 text-sm" type="number" placeholder="Qty default" defaultValue={d.default_qty} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: d.unit_price, default_qty: parseFloat(e.target.value) || 0 })} disabled={!isOwner} />
+              <Input className="h-8 text-sm" placeholder="Ex: Horas por semana" defaultValue={d.name} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: e.target.value, unit: d.unit, unit_price: d.unit_price, default_qty: d.default_qty })} disabled={!isOwner} />
+              <Input className="h-8 text-sm" placeholder="h, post…" defaultValue={d.unit || ''} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: e.target.value || null, unit_price: d.unit_price, default_qty: d.default_qty })} disabled={!isOwner} />
+              <Input className="h-8 text-sm" type="number" placeholder="70" defaultValue={d.unit_price} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(e.target.value) || 0, default_qty: d.default_qty })} disabled={!isOwner} />
+              <Input className="h-8 text-sm" type="number" placeholder="0" defaultValue={d.default_qty} onBlur={e => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: d.unit_price, default_qty: parseFloat(e.target.value) || 0 })} disabled={!isOwner} />
               {isOwner && (
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeDriver.mutate(d.id)}><Trash2 className="h-3 w-3" /></Button>
               )}
@@ -114,29 +153,36 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           ))}
         </section>
 
-        {/* Modificadores livres (multi-dimensão) */}
+        {/* 3. Perguntas sobre o cliente */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
-              <Sliders className="h-3 w-3" /> Modificadores
-            </h4>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-semibold">3. Perguntas sobre o cliente — ajustes ao preço</h4>
+              <Hint>
+                <p>Cria perguntas (ex: "Tamanho da equipa") e respostas possíveis (ex: "1 pessoa", "2-4", "5+").</p>
+                <p className="mt-1">Cada resposta tem um <strong>fator</strong> que aumenta ou reduz o preço:</p>
+                <ul className="mt-1 list-disc pl-4">
+                  <li><strong>1.0</strong> = preço normal</li>
+                  <li><strong>1.20</strong> = +20%</li>
+                  <li><strong>0.90</strong> = −10%</li>
+                </ul>
+              </Hint>
+            </div>
             {isOwner && (
-              <Button size="sm" variant="outline" onClick={() => modifiers.addDimension.mutate('Nova dimensão')}>
-                <Plus className="h-3 w-3 mr-1" /> Dimensão
+              <Button size="sm" variant="outline" onClick={() => modifiers.addDimension.mutate('Nova pergunta')}>
+                <Plus className="h-3 w-3 mr-1" /> Adicionar pergunta
               </Button>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground italic">
-            Cria as tuas próprias dimensões (ex: "Equipa cliente", "Complexidade", "Urgência"). Cada uma tem níveis com multiplicador (×).
-          </p>
           {(modifiers.query.data || []).length === 0 && (
-            <p className="text-xs text-muted-foreground italic">Sem modificadores. Os multiplicadores compõem-se ao calcular o orçamento.</p>
+            <p className="text-xs text-muted-foreground italic">Sem perguntas. Ex: "Tamanho equipa", "Fase do negócio", "Urgência".</p>
           )}
           {(modifiers.query.data || []).map(dim => (
             <div key={dim.id} className="rounded-md border bg-muted/10 p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <Input
                   className="h-8 text-sm font-medium"
+                  placeholder="Pergunta (ex: Tamanho da equipa)"
                   defaultValue={dim.name}
                   onBlur={e => e.target.value !== dim.name && modifiers.updateDimension.mutate({ id: dim.id, name: e.target.value })}
                   disabled={!isOwner}
@@ -144,7 +190,7 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
                 {isOwner && (
                   <>
                     <Button size="sm" variant="outline" onClick={() => modifiers.addLevel.mutate(dim.id)}>
-                      <Plus className="h-3 w-3 mr-1" /> Nível
+                      <Plus className="h-3 w-3 mr-1" /> Resposta
                     </Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => modifiers.removeDimension.mutate(dim.id)}>
                       <Trash2 className="h-3 w-3" />
@@ -152,11 +198,16 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
                   </>
                 )}
               </div>
+              {dim.levels.length > 0 && (
+                <div className="grid grid-cols-[1fr_120px_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground pl-3">
+                  <span>Resposta</span><span>Fator (×)</span><span></span>
+                </div>
+              )}
               {dim.levels.map(lvl => (
                 <div key={lvl.id} className="grid grid-cols-[1fr_120px_auto] gap-2 items-center pl-3">
                   <Input
                     className="h-7 text-sm"
-                    placeholder="Label (ex: Baixa)"
+                    placeholder="Ex: 2-4 pessoas"
                     defaultValue={lvl.label}
                     onBlur={e => e.target.value !== lvl.label && modifiers.updateLevel.mutate({ id: lvl.id, patch: { label: e.target.value } })}
                     disabled={!isOwner}
@@ -164,8 +215,8 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
                   <Input
                     className="h-7 text-sm"
                     type="number"
-                    step="0.1"
-                    placeholder="×"
+                    step="0.05"
+                    placeholder="1.00"
                     defaultValue={lvl.multiplier}
                     onBlur={e => {
                       const v = parseFloat(e.target.value) || 1;
@@ -180,15 +231,21 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
                   )}
                 </div>
               ))}
-              {dim.levels.length === 0 && <p className="text-[11px] text-muted-foreground italic pl-3">Sem níveis ainda.</p>}
+              {dim.levels.length === 0 && <p className="text-[11px] text-muted-foreground italic pl-3">Adiciona pelo menos uma resposta.</p>}
             </div>
           ))}
         </section>
 
-        {/* Volume discounts */}
+        {/* 4. Descontos automáticos */}
         <section className="space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2"><Percent className="h-3 w-3" /> Descontos por Volume</h4>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-semibold flex items-center gap-1.5"><Percent className="h-3.5 w-3.5" /> 4. Descontos automáticos por valor</h4>
+              <Hint>
+                <p>Quando o orçamento atingir um valor, aplica desconto automático.</p>
+                <p className="mt-1">Ex: "≥ 1.000€ → 5%", "≥ 5.000€ → 10%". Opcional.</p>
+              </Hint>
+            </div>
             {isOwner && (
               <Button size="sm" variant="outline" onClick={() => { const next = [...discounts, { min_subtotal: 0, discount_pct: 0 }]; setDiscounts(next); persistProductFields({ volume_discounts: next }); }}><Plus className="h-3 w-3 mr-1" /> Faixa</Button>
             )}
@@ -197,7 +254,7 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           {discounts.map((d, i) => (
             <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center rounded-md border p-2 bg-muted/20">
               <div>
-                <label className="text-[10px] text-muted-foreground">Subtotal ≥ (€)</label>
+                <label className="text-[10px] text-muted-foreground">A partir de (€)</label>
                 <Input className="h-8 text-sm" type="number" value={d.min_subtotal} onChange={e => { const next = [...discounts]; next[i] = { ...d, min_subtotal: parseFloat(e.target.value) || 0 }; setDiscounts(next); }} onBlur={() => persistProductFields({ volume_discounts: discounts })} disabled={!isOwner} />
               </div>
               <div>
