@@ -177,6 +177,9 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                   </Button>
                 )}
               </div>
+              <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+                <strong className="text-foreground">Aqui defines o que cobras ao cliente</strong> — o teu <em>custo interno</em> (quanto te sai uma hora tua a ti) configura-se na sheet <strong>"Custos & Margens"</strong> em <em>"Horas de equipa"</em>, que puxa automaticamente o custo/hora de cada membro.
+              </div>
               {driversList.length === 0 ? (
                 <div className="rounded-md border border-dashed p-6 text-center">
                   <p className="text-xs text-muted-foreground">Sem itens. Começa por adicionar pelo menos um.</p>
