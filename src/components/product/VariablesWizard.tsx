@@ -209,11 +209,12 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                             <UnitSelect value={d.unit} disabled={!isOwner}
                               onChange={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v, unit_price: d.unit_price, default_qty: d.default_qty })} />
                           </span>
-                          <span>· cada <strong>{unitLabel}</strong> custa</span>
+                          <span>· <strong className="text-foreground">cobro ao cliente</strong></span>
                           <span className="min-w-[90px]">
                             <InlineField value={d.unit_price} type="number" placeholder="70" suffix="€" align="right" disabled={!isOwner}
                               onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(v) || 0, default_qty: d.default_qty })} />
                           </span>
+                          <span>por <strong>{unitLabel}</strong></span>
                           <span>· quantidade sugerida</span>
                           <span className="min-w-[70px]">
                             <InlineField value={d.default_qty} type="number" placeholder="0" align="right" disabled={!isOwner}
