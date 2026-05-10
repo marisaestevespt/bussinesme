@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
@@ -484,6 +485,7 @@ function PhaseCard({
 export function ProductEntregasSection({ deliverableTemplates, isOwner, productId, isRecurring = false, onAdd, onUpdate, onDelete }: Props) {
   const qc = useQueryClient();
   const phaseKey = ['product-phases', productId];
+  const [openZone, setOpenZone] = useState<null | 'onboarding' | 'roadmap' | 'offboarding'>(null);
 
   // Fetch phases
   const { data: phases = [] } = useQuery({
@@ -597,7 +599,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
           <Layers className="h-4 w-4 text-primary" /> Fases e Entregas
         </h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Organizado em 3 zonas: Onboarding (acolhimento) · Roadmap (entrega principal) · Offboarding (encerramento).
+          Entra em cada zona para configurar as fases e entregas com foco total.
         </p>
       </div>
 
@@ -613,59 +615,87 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
         </div>
       )}
 
-      {/* ── ONBOARDING ───────────────────────────────── */}
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-warning" /> Onboarding
-          </h4>
-          {isOwner && (
-            <Button size="sm" variant="ghost" className="h-7 text-xs text-warning hover:bg-warning/10"
-              onClick={() => addPhase.mutate('onboarding')}>
-              <Plus className="h-3 w-3 mr-1" /> Fase de onboarding
-            </Button>
-          )}
-        </div>
-        {onboardingPhases.length === 0
-          ? <p className="text-xs text-muted-foreground italic pl-4">Sem fases de onboarding definidas.</p>
-          : onboardingPhases.map(renderPhase)}
-      </section>
+      {/* ── ZONE TILES ───────────────────────────────── */}
+      <div className="grid gap-3 md:grid-cols-3">
+        {([
+          { key: 'onboarding' as const, title: 'Onboarding', subtitle: 'Acolhimento e arranque', phases: onboardingPhases, accent: 'warning' },
+          { key: 'roadmap' as const, title: 'Roadmap principal', subtitle: 'Entrega do serviço', phases: roadmapPhases, accent: 'primary' },
+          { key: 'offboarding' as const, title: 'Offboarding', subtitle: 'Encerramento e handover', phases: offboardingPhases, accent: 'destructive' },
+        ]).map(zone => {
+          const totalDeliverables = zone.phases.reduce((acc, p) =>
+            acc + deliverableTemplates.filter(d => d.phase_id === p.id).length, 0);
+          const accentClasses: Record<string, string> = {
+            warning: 'border-l-warning hover:border-warning/60 hover:bg-warning/5',
+            primary: 'border-l-primary hover:border-primary/60 hover:bg-primary/5',
+            destructive: 'border-l-destructive hover:border-destructive/60 hover:bg-destructive/5',
+          };
+          const dotClasses: Record<string, string> = {
+            warning: 'bg-warning', primary: 'bg-primary', destructive: 'bg-destructive',
+          };
+          const textClasses: Record<string, string> = {
+            warning: 'text-warning', primary: 'text-primary', destructive: 'text-destructive',
+          };
+          return (
+            <button
+              key={zone.key}
+              type="button"
+              onClick={() => setOpenZone(zone.key)}
+              className={`hq-transition text-left rounded-lg border border-l-4 bg-card p-4 ${accentClasses[zone.accent]}`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`h-2 w-2 rounded-full ${dotClasses[zone.accent]}`} />
+                <h4 className={`text-sm font-semibold ${textClasses[zone.accent]}`}>{zone.title}</h4>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">{zone.subtitle}</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  <span className="font-semibold text-foreground">{zone.phases.length}</span> fase{zone.phases.length === 1 ? '' : 's'}
+                  {' · '}
+                  <span className="font-semibold text-foreground">{totalDeliverables}</span> entrega{totalDeliverables === 1 ? '' : 's'}
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* ── ROADMAP ──────────────────────────────────── */}
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-primary" /> Roadmap principal
-          </h4>
-          {isOwner && (
-            <Button size="sm" variant="outline" className="h-7 text-xs"
-              onClick={() => addPhase.mutate('roadmap')}>
-              <Plus className="h-3 w-3 mr-1" /> Fase
-            </Button>
-          )}
-        </div>
-        {roadmapPhases.length === 0
-          ? <p className="text-xs text-muted-foreground italic pl-4">Sem fases de roadmap definidas.</p>
-          : roadmapPhases.map(renderPhase)}
-      </section>
-
-      {/* ── OFFBOARDING ──────────────────────────────── */}
-      <section className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-destructive flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-destructive" /> Offboarding
-          </h4>
-          {isOwner && (
-            <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive hover:bg-destructive/10"
-              onClick={() => addPhase.mutate('offboarding')}>
-              <Plus className="h-3 w-3 mr-1" /> Fase de offboarding
-            </Button>
-          )}
-        </div>
-        {offboardingPhases.length === 0
-          ? <p className="text-xs text-muted-foreground italic pl-4">Sem fases de offboarding definidas.</p>
-          : offboardingPhases.map(renderPhase)}
-      </section>
+      {/* ── ZONE DIALOG ──────────────────────────────── */}
+      <Dialog open={openZone !== null} onOpenChange={(o) => !o && setOpenZone(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          {openZone && (() => {
+            const zoneConfig = {
+              onboarding: { title: 'Onboarding', subtitle: 'Fases de acolhimento e arranque do serviço', phases: onboardingPhases, addLabel: 'Fase de onboarding', dot: 'bg-warning', text: 'text-warning' },
+              roadmap: { title: 'Roadmap principal', subtitle: 'Fases de entrega principal do serviço', phases: roadmapPhases, addLabel: 'Fase', dot: 'bg-primary', text: 'text-primary' },
+              offboarding: { title: 'Offboarding', subtitle: 'Fases de encerramento, handover e NPS', phases: offboardingPhases, addLabel: 'Fase de offboarding', dot: 'bg-destructive', text: 'text-destructive' },
+            }[openZone];
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className={`flex items-center gap-2 ${zoneConfig.text}`}>
+                    <span className={`h-2.5 w-2.5 rounded-full ${zoneConfig.dot}`} />
+                    {zoneConfig.title}
+                  </DialogTitle>
+                  <DialogDescription>{zoneConfig.subtitle}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 mt-2">
+                  {zoneConfig.phases.length === 0 && (
+                    <p className="text-sm text-muted-foreground italic text-center py-6">
+                      Sem fases definidas. Adiciona a primeira em baixo.
+                    </p>
+                  )}
+                  {zoneConfig.phases.map(renderPhase)}
+                  {isOwner && (
+                    <Button size="sm" variant="outline" className="w-full" onClick={() => addPhase.mutate(openZone)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" /> {zoneConfig.addLabel}
+                    </Button>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
