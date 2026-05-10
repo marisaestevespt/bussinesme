@@ -317,6 +317,33 @@ function CostGroup({ type, costs, scenario, members, isOwner, onAdd, onUpdate, o
 function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Scenario; productId: string; vatRate: string; isOwner: boolean }) {
   const qc = useQueryClient();
 
+  // Perfil fiscal global do negócio (Definições > Fiscal)
+  const { data: bizFiscal } = useQuery({
+    queryKey: ['business-fiscal-profile'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('business_settings')
+        .select('business_type, tax_irs_regime, ss_type, ss_exempt')
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Deriva regime + taxas típicas a partir do perfil global
+  const fiscalFromSettings = useMemo(() => {
+    if (!bizFiscal) return null;
+    const isEmpresa = bizFiscal.business_type === 'empresa' || bizFiscal.tax_irs_regime === 'contabilidade_organizada' || bizFiscal.tax_irs_regime === 'organizada';
+    const regime: TaxRegime = isEmpresa ? 'organizada' : 'simplificado';
+    // Defaults razoáveis PT 2025: PME 17%, Independente Simplificado 25% IRS + 21,4% SS
+    const tax_rate = isEmpresa ? 17 : 25;
+    const ss_rate  = isEmpresa ? 0 : (bizFiscal.ss_exempt ? 0 : 21.4);
+    const label = isEmpresa
+      ? 'Sociedade · Contabilidade Organizada (IRC 17%)'
+      : `Independente · Simplificado (IRS 25%${bizFiscal.ss_exempt ? ' · isento SS' : ' · SS 21,4%'})`;
+    return { regime, tax_rate, ss_rate, label };
+  }, [bizFiscal]);
+
   // Costs query (scoped to scenario)
   const { data: costs = [] } = useQuery<ProductCost[]>({
     queryKey: ['product-costs', productId, scenario.id],
