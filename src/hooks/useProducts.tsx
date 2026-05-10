@@ -56,6 +56,7 @@ export const SESSION_BASED_TYPES = new Set([
   'consultoria_grupo',
   'mentoria_individual',
   'mentoria_grupo',
+  'programa_implementacao',
   'workshop',
 ]);
 
