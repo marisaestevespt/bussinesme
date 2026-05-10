@@ -545,6 +545,40 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     return { icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/15 border-warning/30', label: 'Abaixo do recomendado', desc: `Margem líquida ${testNetMargin.toFixed(1)}% — lucro real ${formatEuro(testRealProfit)}` };
   }, [testVal, testRealProfit, recBase, testNetMargin, hasCosts, hasUnamortizedCosts]);
 
+  // Auto-save silencioso: sempre que custos/cenário mudam, persistimos um snapshot atualizado
+  // do desdobramento (custo/un, recomendado, mínimo). Custo é custo — sem cliques manuais.
+  useEffect(() => {
+    if (!isOwner) return;
+    if (!hasCosts || totalPerUnit <= 0) return;
+    const snapshot = {
+      saved_at: new Date().toISOString(),
+      cost_per_unit: totalPerUnit,
+      breakdown_by_type: breakdown,
+      recommended_price: recBase,
+      floor_price: floorBase,
+      tax_regime: scenario.tax_regime,
+      desired_margin: scenario.desired_margin,
+      vat_percent: vatPercent,
+      ...(testVal > 0 && {
+        test_price: testVal,
+        price_with_vat: testWithVat,
+        irs: testIRS,
+        social_security: testSS,
+        real_profit: testRealProfit,
+        net_margin_pct: testNetMargin,
+        break_even_sales: breakEvenSales,
+      }),
+    };
+    const t = setTimeout(() => {
+      autoSaveBreakdown.mutate({
+        last_test_price: testVal > 0 ? testVal : null,
+        price_breakdown: snapshot,
+      } as any);
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalPerUnit, recBase, floorBase, testVal, scenario.id, hasCosts]);
+
   return (
     <div className="space-y-6">
       {/* ── Configuração do cenário ── */}
