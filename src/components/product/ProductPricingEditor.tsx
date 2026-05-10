@@ -83,43 +83,18 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Calculator className="h-4 w-4" /> Como se calcula o preço
+          <Calculator className="h-4 w-4" /> Variáveis do orçamento
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          Define os ingredientes da calculadora. Quando criares um orçamento, escolhes valores e o preço aparece automaticamente.
+          Define os ingredientes que a Calculadora de Orçamento usa para gerar propostas. Os preços mín/sugerido/máx são calculados na <strong>Calculadora de Oferta</strong> (na secção Contabilidade & Pricing).
         </p>
       </CardHeader>
       <CardContent className="space-y-8">
-        {/* 1. Preço de referência */}
-        <section className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h4 className="text-sm font-semibold">1. Preço de referência</h4>
-            <Hint>
-              <p><strong>Mínimo / Máximo</strong>: intervalo mostrado em landings e propostas (ex: "a partir de 500€").</p>
-              <p className="mt-1"><strong>Valor base</strong>: fee fixo somado a todos os orçamentos (ex: setup). Põe 0 se não houver.</p>
-            </Hint>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground">Mínimo (€)</label>
-              <Input type="number" value={priceMin} onChange={e => setPriceMin(e.target.value)} onBlur={() => persistProductFields({ price_min: parseFloat(priceMin) || null })} disabled={!isOwner} />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Máximo (€)</label>
-              <Input type="number" value={priceMax} onChange={e => setPriceMax(e.target.value)} onBlur={() => persistProductFields({ price_max: parseFloat(priceMax) || null })} disabled={!isOwner} />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Valor base (€)</label>
-              <Input type="number" value={basePrice} onChange={e => setBasePrice(e.target.value)} onBlur={() => persistProductFields({ base_price: parseFloat(basePrice) || 0 })} disabled={!isOwner} />
-            </div>
-          </div>
-        </section>
-
-        {/* 2. O que entra na conta */}
+        {/* 1. O que entra na conta */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h4 className="text-sm font-semibold">2. O que entra na conta — quantidades</h4>
+              <h4 className="text-sm font-semibold">1. O que entra na conta — quantidades</h4>
               <Hint>
                 <p>Lista de coisas que se contam e cada uma tem um preço unitário.</p>
                 <p className="mt-1">Exemplos: "Horas/semana × 70€", "Posts × 25€", "Sessões × 120€".</p>
