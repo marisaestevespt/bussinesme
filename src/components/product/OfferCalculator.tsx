@@ -721,7 +721,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
                     irs: testIRS,
                     social_security: testSS,
                     real_profit: testRealProfit,
-                    gross_margin_pct: testGrossMargin,
+                    net_margin_pct: testNetMargin,
                     recommended_price: recBase,
                     floor_price: floorBase,
                     break_even_sales: breakEvenSales,
