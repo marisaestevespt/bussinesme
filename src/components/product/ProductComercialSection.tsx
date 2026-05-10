@@ -186,46 +186,71 @@ export function ProductComercialSection({
             Produtos Concorrentes
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <Accordion type="multiple" className="w-full">
-            {competitors.map((c, i) => (
-              <AccordionItem key={i} value={`comp-${i}`}>
-                <AccordionTrigger className="text-sm">
-                  <Input
-                    value={c.name}
-                    onChange={e => {
-                      const next = [...competitors];
-                      next[i] = { ...next[i], name: e.target.value };
-                      onUpdateCompetitors(next);
-                    }}
-                    className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-sm font-medium"
-                    onClick={e => e.stopPropagation()}
-                    readOnly={!isOwner}
+        <CardContent className="space-y-3">
+          {competitors.length === 0 && (
+            <p className="text-xs text-muted-foreground italic">Sem concorrentes registados.</p>
+          )}
+          {competitors.map((c, i) => (
+            <div key={i} className="rounded-md border bg-card/40 p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <Editable
+                    display={c.name}
+                    placeholder="Nome do concorrente…"
+                    bold
+                    multiline={false}
+                    disabled={!isOwner}
+                    render={({ stop, autoFocusRef }) => (
+                      <Input
+                        ref={autoFocusRef as any}
+                        value={c.name}
+                        onChange={e => {
+                          const next = [...competitors];
+                          next[i] = { ...next[i], name: e.target.value };
+                          onUpdateCompetitors(next);
+                        }}
+                        onBlur={stop}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); stop(); } }}
+                        className="h-8 text-sm font-medium"
+                      />
+                    )}
                   />
-                </AccordionTrigger>
-                <AccordionContent>
-                  <Textarea
-                    value={c.notes}
-                    onChange={e => {
-                      const next = [...competitors];
-                      next[i] = { ...next[i], notes: e.target.value };
-                      onUpdateCompetitors(next);
-                    }}
-                    placeholder="Notas sobre este concorrente..."
-                    className="min-h-[80px]"
-                    readOnly={!isOwner}
+                  <Editable
+                    display={c.notes}
+                    placeholder="Notas sobre este concorrente…"
+                    disabled={!isOwner}
+                    render={({ stop, autoFocusRef }) => (
+                      <Textarea
+                        ref={autoFocusRef as any}
+                        value={c.notes}
+                        onChange={e => {
+                          const next = [...competitors];
+                          next[i] = { ...next[i], notes: e.target.value };
+                          onUpdateCompetitors(next);
+                        }}
+                        onBlur={stop}
+                        placeholder="Notas sobre este concorrente…"
+                        className="min-h-[100px] text-sm"
+                      />
+                    )}
                   />
-                  {isOwner && (
-                    <Button variant="ghost" size="sm" className="mt-1 text-destructive" onClick={() => onUpdateCompetitors(competitors.filter((_, j) => j !== i))}>
-                      <Trash2 className="h-3 w-3 mr-1" /> Remover
-                    </Button>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                </div>
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                    onClick={() => onUpdateCompetitors(competitors.filter((_, j) => j !== i))}
+                    title="Remover concorrente"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
           {isOwner && (
-            <Button variant="outline" size="sm" className="mt-2" onClick={() => onUpdateCompetitors([...competitors, { name: '', notes: '' }])}>
+            <Button variant="outline" size="sm" onClick={() => onUpdateCompetitors([...competitors, { name: '', notes: '' }])}>
               <Plus className="h-3 w-3 mr-1" /> Adicionar concorrente
             </Button>
           )}
