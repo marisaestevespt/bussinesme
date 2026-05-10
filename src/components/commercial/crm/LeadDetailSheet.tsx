@@ -245,6 +245,8 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           budgeted_minutes: (matchedProduct as any)?.estimated_project_hours
             ? Math.round(Number((matchedProduct as any).estimated_project_hours) * 60)
             : null,
+          budget: contractValue,
+          source_quote_id: quoteId,
         } as any).select('id').single();
 
         createdProjectId = newProject?.id || null;
