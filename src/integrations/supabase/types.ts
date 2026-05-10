@@ -796,6 +796,7 @@ export type Database = {
           business_sector: string
           business_type: string
           created_at: string
+          disabled_modules: Json
           font_body: string
           font_display: string
           has_accountant: boolean
@@ -841,6 +842,7 @@ export type Database = {
           business_sector?: string
           business_type?: string
           created_at?: string
+          disabled_modules?: Json
           font_body?: string
           font_display?: string
           has_accountant?: boolean
@@ -886,6 +888,7 @@ export type Database = {
           business_sector?: string
           business_type?: string
           created_at?: string
+          disabled_modules?: Json
           font_body?: string
           font_display?: string
           has_accountant?: boolean
