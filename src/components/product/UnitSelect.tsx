@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue, SelectSeparator } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 
 /** Common pricing units. Pure display — does not affect math. */
@@ -109,10 +109,17 @@ export function UnitSelect({ value, onChange, disabled }: Props) {
       <SelectTrigger className="h-8 text-sm">
         <SelectValue placeholder="Escolhe…" />
       </SelectTrigger>
-      <SelectContent>
-        {COMMON_UNITS.map(u => (
-          <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
+      <SelectContent className="max-h-[360px]">
+        {UNIT_GROUPS.map((g, gi) => (
+          <SelectGroup key={g.label}>
+            <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">{g.label}</SelectLabel>
+            {g.items.map(u => (
+              <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
+            ))}
+            {gi < UNIT_GROUPS.length - 1 && <SelectSeparator />}
+          </SelectGroup>
         ))}
+        <SelectSeparator />
         <SelectItem value={CUSTOM}>Outra…</SelectItem>
       </SelectContent>
     </Select>
