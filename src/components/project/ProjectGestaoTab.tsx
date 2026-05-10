@@ -120,6 +120,18 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     }
   }, [billingStartDate, deadline, payMethod]);
 
+  // Auto-prefill totalValue from project budget (set by accepted quote)
+  useQuery({
+    queryKey: ['project-budget-prefill', projectId],
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('budget').eq('id', projectId).maybeSingle();
+      if (data?.budget && !totalValue) {
+        setTotalValue(String(data.budget));
+      }
+      return data;
+    },
+  });
+
   // Sync payMethod from project
   useEffect(() => {
     if (projectPaymentMethod && !payMethod) {
