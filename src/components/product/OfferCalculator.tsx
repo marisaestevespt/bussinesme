@@ -552,6 +552,51 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
         </div>
       )}
 
+      {/* ── Aplicar à ficha do produto ── */}
+      {totalPerUnit > 0 && isOwner && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">Aplicar este cenário à ficha do produto</p>
+                <p className="text-xs text-muted-foreground">
+                  Marca este cenário como <strong>Mínimo</strong>, <strong>Sugerido</strong> ou <strong>Máximo</strong>. O preço recomendado fica como referência na Calculadora de Orçamento.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Select
+                value={(scenario as any).price_role || 'none'}
+                onValueChange={v => updateScenario.mutate({ price_role: v === 'none' ? null : v } as any)}
+              >
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Sem papel —</SelectItem>
+                  <SelectItem value="min">Preço mínimo</SelectItem>
+                  <SelectItem value="sugerido">Preço sugerido</SelectItem>
+                  <SelectItem value="max">Preço máximo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                disabled={!(scenario as any).price_role}
+                onClick={async () => {
+                  const role = (scenario as any).price_role as 'min' | 'sugerido' | 'max' | null;
+                  if (!role) return;
+                  const col = role === 'min' ? 'price_min' : role === 'max' ? 'price_max' : 'target_price';
+                  const { error } = await supabase.from('products').update({ [col]: recBase } as any).eq('id', productId);
+                  if (error) { toast.error('Erro a aplicar'); return; }
+                  toast.success(`${role === 'min' ? 'Mínimo' : role === 'max' ? 'Máximo' : 'Sugerido'} atualizado: ${formatEuro(recBase)}`);
+                  qc.invalidateQueries({ queryKey: ['products', productId] });
+                }}
+              >
+                <Check className="h-3.5 w-3.5 mr-1" /> Aplicar {formatEuro(recBase)}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* ── Testar preço ── */}
       <Card>
         <CardHeader><CardTitle className="text-sm">Testar um preço</CardTitle></CardHeader>

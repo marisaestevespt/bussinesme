@@ -29,7 +29,7 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
     queryKey: ['quote-product', productId],
     enabled: open && !!productId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('products').select('id, name, ticket_type, base_price, price_min, price_max, volume_discounts').eq('id', productId).maybeSingle();
+      const { data, error } = await supabase.from('products').select('id, name, ticket_type, base_price, price_min, price_max, target_price, volume_discounts').eq('id', productId).maybeSingle();
       if (error) throw error;
       return data as any;
     },
@@ -247,6 +247,28 @@ export function QuoteCalculatorDialog({ open, onOpenChange, productId, leadId, c
                 <span className="text-sm text-muted-foreground">Preço sugerido</span>
                 <span className="text-3xl font-bold tabular-nums">{formatEuro(result.total)}</span>
               </div>
+              {(() => {
+                const min = Number(product?.price_min) || null;
+                const tgt = Number(product?.target_price) || null;
+                const max = Number(product?.price_max) || null;
+                if (!min && !tgt && !max) return null;
+                const t = result.total;
+                let status: { color: string; label: string } | null = null;
+                if (min && t < min) status = { color: 'text-destructive', label: `Abaixo do mínimo (${formatEuro(min)}) — perdes margem.` };
+                else if (tgt && t < tgt) status = { color: 'text-warning', label: `Abaixo do sugerido (${formatEuro(tgt)}).` };
+                else if (max && t > max) status = { color: 'text-info', label: `Acima do máximo (${formatEuro(max)}) — risco de perder o cliente.` };
+                else status = { color: 'text-success', label: 'Dentro da zona saudável.' };
+                return (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span>Mínimo: <strong className="text-foreground">{min ? formatEuro(min) : '—'}</strong></span>
+                      <span>Sugerido: <strong className="text-foreground">{tgt ? formatEuro(tgt) : '—'}</strong></span>
+                      <span>Máximo: <strong className="text-foreground">{max ? formatEuro(max) : '—'}</strong></span>
+                    </div>
+                    <p className={`text-xs font-medium ${status.color}`}>{status.label}</p>
+                  </div>
+                );
+              })()}
 
               <Collapsible open={showMath} onOpenChange={setShowMath}>
                 <CollapsibleTrigger className="text-xs text-primary inline-flex items-center gap-1 hover:underline">

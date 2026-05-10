@@ -8322,6 +8322,7 @@ export type Database = {
           name: string
           notes: string | null
           price_breakdown: Json | null
+          price_role: string | null
           product_id: string
           sort_order: number | null
           ss_rate: number
@@ -8341,6 +8342,7 @@ export type Database = {
           name: string
           notes?: string | null
           price_breakdown?: Json | null
+          price_role?: string | null
           product_id: string
           sort_order?: number | null
           ss_rate?: number
@@ -8360,6 +8362,7 @@ export type Database = {
           name?: string
           notes?: string | null
           price_breakdown?: Json | null
+          price_role?: string | null
           product_id?: string
           sort_order?: number | null
           ss_rate?: number
@@ -8956,6 +8959,7 @@ export type Database = {
           session_count: number | null
           session_duration_minutes: number | null
           status: string
+          target_price: number | null
           task_mode: string
           task_modes: string[]
           ticket: string | null
@@ -9012,6 +9016,7 @@ export type Database = {
           session_count?: number | null
           session_duration_minutes?: number | null
           status?: string
+          target_price?: number | null
           task_mode?: string
           task_modes?: string[]
           ticket?: string | null
@@ -9068,6 +9073,7 @@ export type Database = {
           session_count?: number | null
           session_duration_minutes?: number | null
           status?: string
+          target_price?: number | null
           task_mode?: string
           task_modes?: string[]
           ticket?: string | null
