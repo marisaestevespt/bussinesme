@@ -600,25 +600,42 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Resultados (preço mínimo + recomendado) ── */}
       {hasCosts && totalPerUnit > 0 && (
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="border-dashed">
-            <CardContent className="pt-4 pb-3 space-y-1">
-              <p className="text-xs text-muted-foreground">Preço mínimo absoluto</p>
-              <p className="text-lg font-bold text-destructive">
-                {formatEuro(floorBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(floorWithVat)} c/ IVA)</span>
-              </p>
-              <p className="text-[10px] text-muted-foreground">Cobre custos, sem margem nem impostos</p>
-            </CardContent>
-          </Card>
-          <Card className="border-dashed">
-            <CardContent className="pt-4 pb-3 space-y-1">
-              <p className="text-xs text-muted-foreground">Preço recomendado</p>
-              <p className="text-lg font-bold text-success">
-                {formatEuro(recBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(recWithVat)} c/ IVA)</span>
-              </p>
-              <p className="text-[10px] text-muted-foreground">Margem líquida alvo {recMargin.toFixed(1)}% (já considera IRS/{reg === 'simplificado' ? 'SS' : 'IRC'})</p>
-            </CardContent>
-          </Card>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <Card className="border-dashed">
+              <CardContent className="pt-4 pb-3 space-y-1">
+                <p className="text-xs text-muted-foreground">Preço mínimo (lucro = 0)</p>
+                <p className="text-lg font-bold text-destructive">
+                  {formatEuro(floorBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(floorWithVat)} c/ IVA)</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {reg === 'simplificado'
+                    ? 'Cobre custos + IRS + SS. Abaixo disto dá prejuízo.'
+                    : 'Cobre custos. Acima disto há lucro tributável em IRC.'}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className={cn('border-dashed', recInfeasible && 'border-warning/50 bg-warning/5')}>
+              <CardContent className="pt-4 pb-3 space-y-1">
+                <p className="text-xs text-muted-foreground">Preço recomendado</p>
+                {recInfeasible ? (
+                  <>
+                    <p className="text-lg font-bold text-warning">Margem inviável</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Pediste {recMargin.toFixed(0)}% líquidos, mas neste regime os impostos consomem {((1 - maxFeasibleMargin) * 100).toFixed(1)}% da receita — máximo possível ≈ {(maxFeasibleMargin * 100).toFixed(0)}%. Reduz a margem desejada.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg font-bold text-success">
+                      {formatEuro(recBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(recWithVat)} c/ IVA)</span>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">Margem líquida alvo {recMargin.toFixed(1)}% (já considera IRS/{reg === 'simplificado' ? 'SS' : 'IRC'})</p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 
