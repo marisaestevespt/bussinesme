@@ -204,50 +204,9 @@ Deno.serve(async (req) => {
           .ilike("role_title", role_title.trim());
 
         if (onboardingSops && onboardingSops.length > 0) {
-          // For each onboarding SOP, check if there's a linked template with items
+          // For each onboarding SOP, use its own checklist (inputs field) as onboarding items.
+          // SOPs are documentation only — no template tables involved.
           for (const onbSop of onboardingSops) {
-            // Try getting items from sop_onboarding_templates linked via sop_id
-            const { data: template } = await supabase
-              .from("sop_onboarding_templates")
-              .select("id")
-              .eq("sop_id", onbSop.id)
-              .maybeSingle();
-
-            if (template) {
-              const { data: items } = await supabase
-                .from("sop_onboarding_items")
-                .select("task, deadline_days, sort_order")
-                .eq("template_id", template.id)
-                .order("sort_order");
-
-              if (items && items.length > 0) {
-                const todayDate = new Date();
-                const onboardingRows = items.map((item) => {
-                  // Add business days (skip weekends + Portuguese holidays)
-                  let deadlineDate = new Date(todayDate);
-                  let remaining = item.deadline_days;
-                  while (remaining > 0) {
-                    deadlineDate.setDate(deadlineDate.getDate() + 1);
-                    const dow = deadlineDate.getDay();
-                    if (dow !== 0 && dow !== 6 && !isPortugueseHoliday(deadlineDate)) {
-                      remaining--;
-                    }
-                  }
-                  return {
-                    member_id: team_member_id,
-                    task: item.task,
-                    sort_order: item.sort_order,
-                    completed: false,
-                    deadline_date: deadlineDate.toISOString().split("T")[0],
-                    source_template_id: template.id,
-                  };
-                });
-                await supabase.from("member_onboarding").insert(onboardingRows);
-                onboarding_created = true;
-              }
-            }
-
-            // Also use the SOP's own checklist (inputs field) as onboarding items if no template items
             if (!onboarding_created) {
               const checklist = Array.isArray((onbSop as any).inputs) ? (onbSop as any).inputs : [];
               if (checklist.length > 0) {
