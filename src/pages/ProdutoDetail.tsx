@@ -828,7 +828,7 @@ export default function ProdutoDetailPage() {
             {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
             {canSeeSection('marketing') && <SectionButton sectionKey="marketing" label="Marketing" />}
             {canSeeSection('branding') && <SectionButton sectionKey="branding" label="Branding" />}
-            {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade" />}
+            {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade & Pricing" />}
             {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
             {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
             {canSeeSection('metricas') && <SectionButton sectionKey="metricas" label="Métricas" />}
