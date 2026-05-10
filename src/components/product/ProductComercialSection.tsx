@@ -90,57 +90,6 @@ export function ProductComercialSection({
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <UserCircle className="h-4 w-4 text-primary" />
-            Cliente do Produto
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {profileGroups.map((group, i) => (
-            <div key={i}>{renderProfileGroup(group)}</div>
-          ))}
-          <div>
-            <h4 className="text-sm font-semibold mb-2">Linguagem</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {languageGroups.map(({ key, label }) => (
-                <div key={key} className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">{label}</p>
-                  {(clientProfile[key] || []).map((item: string, i: number) => (
-                    <div key={i} className="flex gap-1 items-start group/row">
-                      <div className="flex-1 min-w-0">
-                        <Editable
-                          display={item}
-                          disabled={!isOwner}
-                          placeholder="Escrever..."
-                          className="text-sm leading-snug"
-                          render={({ stop, autoFocusRef }) => (
-                            <Textarea
-                              ref={autoFocusRef as any}
-                              value={item}
-                              onBlur={stop}
-                              onChange={e => {
-                                const arr = [...(clientProfile[key] || [])];
-                                arr[i] = e.target.value;
-                                onUpdateClientProfile(key, arr);
-                              }}
-                              className="text-sm min-h-[80px] resize-y leading-snug"
-                            />
-                          )}
-                        />
-                      </div>
-                      {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity" onClick={() => onUpdateClientProfile(key, (clientProfile[key] || []).filter((_: string, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
-                    </div>
-                  ))}
-                  {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => onUpdateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Zap className="h-4 w-4 text-warning" />
