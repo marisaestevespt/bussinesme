@@ -159,6 +159,12 @@ export function AppSidebar() {
   const isOwner = realIsOwner && !impersonating;
   const isAdminOrOwner = realIsAdminOrOwner && !impersonating;
 
+  const disabledModules: string[] = (settings as any)?.disabled_modules ?? [];
+  const canAccessWithToggles = (key: string) => {
+    if (disabledModules.includes(key)) return false;
+    return canAccess(key);
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 pb-3">
@@ -225,9 +231,9 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
-        <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
-        <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
+        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccessWithToggles} sectorConfig={sectorConfig} />
+        <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccessWithToggles} sectorConfig={sectorConfig} />
+        <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccessWithToggles} sectorConfig={sectorConfig} />
         {isAdminOrOwner && (
           <NavSection label="Administração" items={executiveItems} collapsed={collapsed} canAccess={() => true} sectorConfig={sectorConfig} />
         )}

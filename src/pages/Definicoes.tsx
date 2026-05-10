@@ -17,6 +17,7 @@ import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { SettingsEdgeMonitoring } from '@/components/settings/SettingsEdgeMonitoring';
+import { SettingsInstance } from '@/components/settings/SettingsInstance';
 import { useAuth } from '@/hooks/useAuth';
 import { cn as _cn } from '@/lib/utils';
 
@@ -69,6 +70,7 @@ const BASE_TABS = [
 
 const OWNER_TABS = [
   ...BASE_TABS,
+  { key: 'instancia' as const, label: 'Instância' },
   { key: 'auditoria' as const, label: 'Auditoria' },
   { key: 'sistema' as const, label: 'Sistema' },
 ] as const;
@@ -116,6 +118,7 @@ export default function DefinicoesPage() {
               <SettingsAutomations />
             </div>
           )}
+          {tab === 'instancia' && <SettingsInstance />}
           {tab === 'auditoria' && (
             <div className="space-y-10">
               <SettingsAuditLog />

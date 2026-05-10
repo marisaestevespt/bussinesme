@@ -8,7 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2 } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Globe } from 'lucide-react';
+import { SECTOR_OPTIONS, type BusinessSector } from '@/lib/sector-config';
 
 /* ── colour helpers ── */
 
@@ -135,6 +136,7 @@ export function SetupPage() {
   const { refetch } = useBusinessSettings();
   const [loading, setLoading] = useState(false);
   const [businessName, setBusinessName] = useState('');
+  const [sector, setSector] = useState<BusinessSector>('servicos_digitais');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [colors, setColors] = useState({
@@ -183,6 +185,7 @@ export function SetupPage() {
       // Save settings
       const { error } = await supabase.from('business_settings').insert({
         business_name: businessName.trim(),
+        business_sector: sector,
         logo_url: logoUrl,
         primary_color: hexToHsl(colors.primary),
         secondary_color: hexToHsl(colors.secondary),
@@ -224,6 +227,31 @@ export function SetupPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* ── Setor ── */}
+          <Section icon={Globe} title="Setor do Negócio">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Qual é o setor do teu negócio?</Label>
+              <Select value={sector} onValueChange={v => setSector(v as BusinessSector)}>
+                <SelectTrigger className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SECTOR_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div>
+                        <span className="font-medium">{opt.label}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{opt.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-3">
+                O setor adapta automaticamente a terminologia do sistema — por exemplo, "Pacientes" em vez de "Clientes" para saúde. Podes alterar a qualquer momento em <strong>Definições → Instância</strong>.
+              </p>
+            </div>
+          </Section>
+
           {/* ── Identidade ── */}
           <Section icon={Building2} title="Identidade">
             <div className="space-y-2">
