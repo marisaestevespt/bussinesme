@@ -1951,12 +1951,14 @@ export type Database = {
           client_files: Json | null
           client_id: string
           client_since: string | null
+          contract_value: number | null
           conversion_date: string | null
           cover_url: string | null
           created_at: string
           created_by: string | null
           current_product: string | null
           current_product_id: string | null
+          current_quote_id: string | null
           documents: string | null
           dp: string | null
           drive_folder_url: string | null
@@ -1988,12 +1990,14 @@ export type Database = {
           client_files?: Json | null
           client_id?: string
           client_since?: string | null
+          contract_value?: number | null
           conversion_date?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
           current_product_id?: string | null
+          current_quote_id?: string | null
           documents?: string | null
           dp?: string | null
           drive_folder_url?: string | null
@@ -2025,12 +2029,14 @@ export type Database = {
           client_files?: Json | null
           client_id?: string
           client_since?: string | null
+          contract_value?: number | null
           conversion_date?: string | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
           current_product_id?: string | null
+          current_quote_id?: string | null
           documents?: string | null
           dp?: string | null
           drive_folder_url?: string | null
@@ -2063,6 +2069,13 @@ export type Database = {
             columns: ["current_product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_current_quote_id_fkey"
+            columns: ["current_quote_id"]
+            isOneToOne: false
+            referencedRelation: "product_quotes"
             referencedColumns: ["id"]
           },
           {
@@ -3113,6 +3126,7 @@ export type Database = {
           phone: string | null
           potential_product: string | null
           potential_product_id: string | null
+          quote_id: string | null
           responsible_id: string | null
           source: string | null
           status: string
@@ -3137,6 +3151,7 @@ export type Database = {
           phone?: string | null
           potential_product?: string | null
           potential_product_id?: string | null
+          quote_id?: string | null
           responsible_id?: string | null
           source?: string | null
           status?: string
@@ -3161,6 +3176,7 @@ export type Database = {
           phone?: string | null
           potential_product?: string | null
           potential_product_id?: string | null
+          quote_id?: string | null
           responsible_id?: string | null
           source?: string | null
           status?: string
@@ -3172,6 +3188,13 @@ export type Database = {
             columns: ["potential_product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_leads_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "product_quotes"
             referencedColumns: ["id"]
           },
           {
@@ -8486,6 +8509,158 @@ export type Database = {
           },
         ]
       }
+      product_pricing_drivers: {
+        Row: {
+          created_at: string
+          default_qty: number
+          description: string | null
+          id: string
+          name: string
+          product_id: string
+          sort_order: number
+          unit: string | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_qty?: number
+          description?: string | null
+          id?: string
+          name: string
+          product_id: string
+          sort_order?: number
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_qty?: number
+          description?: string | null
+          id?: string
+          name?: string
+          product_id?: string
+          sort_order?: number
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_pricing_drivers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_quotes: {
+        Row: {
+          base_price: number | null
+          client_id: string | null
+          complexity_key: string | null
+          complexity_multiplier: number | null
+          created_at: string
+          created_by: string | null
+          discount_pct: number | null
+          drivers_snapshot: Json
+          id: string
+          lead_id: string | null
+          name: string | null
+          notes: string | null
+          pricing_mode: string
+          product_id: string
+          selected_tier_id: string | null
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          base_price?: number | null
+          client_id?: string | null
+          complexity_key?: string | null
+          complexity_multiplier?: number | null
+          created_at?: string
+          created_by?: string | null
+          discount_pct?: number | null
+          drivers_snapshot?: Json
+          id?: string
+          lead_id?: string | null
+          name?: string | null
+          notes?: string | null
+          pricing_mode?: string
+          product_id: string
+          selected_tier_id?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          base_price?: number | null
+          client_id?: string | null
+          complexity_key?: string | null
+          complexity_multiplier?: number | null
+          created_at?: string
+          created_by?: string | null
+          discount_pct?: number | null
+          drivers_snapshot?: Json
+          id?: string
+          lead_id?: string | null
+          name?: string | null
+          notes?: string | null
+          pricing_mode?: string
+          product_id?: string
+          selected_tier_id?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_quotes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_quotes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_quotes_selected_tier_id_fkey"
+            columns: ["selected_tier_id"]
+            isOneToOne: false
+            referencedRelation: "product_price_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_renewal_templates: {
         Row: {
           activity: string | null
@@ -8676,11 +8851,13 @@ export type Database = {
           about_content: string | null
           accounting_notes: string | null
           archive_notes: string | null
+          base_price: number | null
           brainstorming_content: string | null
           branding: Json
           calendar_color: string | null
           client_profile: Json | null
           competitors: Json | null
+          complexity_levels: Json
           cover_url: string | null
           created_at: string
           created_by: string | null
@@ -8700,6 +8877,9 @@ export type Database = {
           monthly_hours_per_client: number | null
           name: string
           portal_branding: Json
+          price_max: number | null
+          price_min: number | null
+          pricing_mode: string
           product_type: string | null
           renewal_advance_days: number | null
           sales_benefits: Json
@@ -8720,6 +8900,7 @@ export type Database = {
           ticket_type: string
           updated_at: string
           vat_rate: string | null
+          volume_discounts: Json
           welcome_email_accent_color: string | null
           welcome_email_banner_url: string | null
         }
@@ -8727,11 +8908,13 @@ export type Database = {
           about_content?: string | null
           accounting_notes?: string | null
           archive_notes?: string | null
+          base_price?: number | null
           brainstorming_content?: string | null
           branding?: Json
           calendar_color?: string | null
           client_profile?: Json | null
           competitors?: Json | null
+          complexity_levels?: Json
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -8751,6 +8934,9 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name: string
           portal_branding?: Json
+          price_max?: number | null
+          price_min?: number | null
+          pricing_mode?: string
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
@@ -8771,6 +8957,7 @@ export type Database = {
           ticket_type?: string
           updated_at?: string
           vat_rate?: string | null
+          volume_discounts?: Json
           welcome_email_accent_color?: string | null
           welcome_email_banner_url?: string | null
         }
@@ -8778,11 +8965,13 @@ export type Database = {
           about_content?: string | null
           accounting_notes?: string | null
           archive_notes?: string | null
+          base_price?: number | null
           brainstorming_content?: string | null
           branding?: Json
           calendar_color?: string | null
           client_profile?: Json | null
           competitors?: Json | null
+          complexity_levels?: Json
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -8802,6 +8991,9 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name?: string
           portal_branding?: Json
+          price_max?: number | null
+          price_min?: number | null
+          pricing_mode?: string
           product_type?: string | null
           renewal_advance_days?: number | null
           sales_benefits?: Json
@@ -8822,6 +9014,7 @@ export type Database = {
           ticket_type?: string
           updated_at?: string
           vat_rate?: string | null
+          volume_discounts?: Json
           welcome_email_accent_color?: string | null
           welcome_email_banner_url?: string | null
         }
@@ -9281,6 +9474,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           brainstorming: string | null
+          budget: number | null
           budgeted_minutes: number | null
           client_id: string | null
           client_name: string | null
@@ -9313,6 +9507,7 @@ export type Database = {
           recursos: string | null
           session_count: number | null
           session_duration_minutes: number | null
+          source_quote_id: string | null
           start_date: string | null
           status: string
           task_mode: string
@@ -9325,6 +9520,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           brainstorming?: string | null
+          budget?: number | null
           budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null
@@ -9357,6 +9553,7 @@ export type Database = {
           recursos?: string | null
           session_count?: number | null
           session_duration_minutes?: number | null
+          source_quote_id?: string | null
           start_date?: string | null
           status?: string
           task_mode?: string
@@ -9369,6 +9566,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           brainstorming?: string | null
+          budget?: number | null
           budgeted_minutes?: number | null
           client_id?: string | null
           client_name?: string | null
@@ -9401,6 +9599,7 @@ export type Database = {
           recursos?: string | null
           session_count?: number | null
           session_duration_minutes?: number | null
+          source_quote_id?: string | null
           start_date?: string | null
           status?: string
           task_mode?: string
@@ -9430,6 +9629,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_source_quote_id_fkey"
+            columns: ["source_quote_id"]
+            isOneToOne: false
+            referencedRelation: "product_quotes"
             referencedColumns: ["id"]
           },
         ]
