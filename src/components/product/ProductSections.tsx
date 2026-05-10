@@ -22,6 +22,7 @@ import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnost
 import { ArchiveDocumentsView } from '@/components/product/archive/ArchiveDocumentsView';
 import { RichEditor } from '@/components/product/archive/RichEditor';
 import { ProductLinksAggregator } from '@/components/product/ProductLinksAggregator';
+import { ProductPricingEditor } from '@/components/product/ProductPricingEditor';
 
 // ─── Processos Section ─────────────────────────────────────────
 import { getSopStatusInfo } from '@/lib/sopStatus';
@@ -364,6 +365,19 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
           <Calculator className="h-4 w-4 mr-1" /> Simular
         </Button>
       </div>
+      {productId && (
+        <ProductPricingEditor
+          productId={productId}
+          ticketType={((form.ticket_type as string) || 'fixo') as 'fixo' | 'variavel'}
+          isOwner={isOwner}
+          initial={{
+            base_price: (form.base_price as number) ?? null,
+            price_min: (form.price_min as number) ?? null,
+            price_max: (form.price_max as number) ?? null,
+            volume_discounts: (form.volume_discounts as any) ?? [],
+          }}
+        />
+      )}
       <Card>
         <CardHeader><CardTitle className="text-base">Dados de Faturação</CardTitle></CardHeader>
         <CardContent className="space-y-4">
