@@ -22,7 +22,7 @@ export function NewSaleDialog({ open, onOpenChange, clientId, onAccepted }: Prop
     if (!open) return;
     supabase
       .from('products')
-      .select('id, name, pricing_mode, sales_type, status')
+      .select('id, name, ticket_type, sales_type, status')
       .neq('status', 'arquivado')
       .order('name')
       .then(({ data }) => setProducts(data || []));
@@ -66,7 +66,7 @@ export function NewSaleDialog({ open, onOpenChange, clientId, onAccepted }: Prop
                   <div className="text-xs text-muted-foreground capitalize">{p.sales_type?.replace(/_/g, ' ')}</div>
                 </div>
                 <Badge variant="outline" className="capitalize">
-                  {p.pricing_mode === 'variable' ? 'Variável' : 'Fixo'}
+                  {p.ticket_type === 'variavel' ? 'Variável' : 'Fixo'}
                 </Badge>
               </button>
             ))}
