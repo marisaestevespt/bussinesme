@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { sumRevenue } from '@/lib/salesCalculations';
 import { MEETING_STATUSES as CANON_MEETING_STATUSES_FOR_GESTAO } from '@/lib/meetingStatus';
 import { buildPaymentEntries } from '@/lib/paymentGenerator';
+import { ProjectBudgetCard } from '@/components/project/ProjectBudgetCard';
 
 interface Props {
   projectId: string;
@@ -272,6 +273,9 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   return (
     <div className="space-y-6">
+      {/* Valor contratado / orçamento de origem */}
+      <ProjectBudgetCard projectId={projectId} productId={(productData as any)?.id || null} clientId={clientId || null} />
+
       {/* Forma de Pagamento + Gerador */}
       <Card className="overflow-hidden">
         <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
