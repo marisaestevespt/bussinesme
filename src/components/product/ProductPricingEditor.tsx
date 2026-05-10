@@ -9,7 +9,7 @@ import { useProductModifiers } from '@/hooks/useProductModifiers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ComplexityLevel, VolumeDiscount } from '@/lib/quoteCalculator';
+import type { VolumeDiscount } from '@/lib/quoteCalculator';
 import { formatEuro } from '@/lib/quoteCalculator';
 
 interface Props {
@@ -20,7 +20,6 @@ interface Props {
     base_price?: number | null;
     price_min?: number | null;
     price_max?: number | null;
-    complexity_levels?: ComplexityLevel[] | null;
     volume_discounts?: VolumeDiscount[] | null;
   };
 }
@@ -30,7 +29,6 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
   const [basePrice, setBasePrice] = useState<string>(initial.base_price?.toString() ?? '');
   const [priceMin, setPriceMin] = useState<string>(initial.price_min?.toString() ?? '');
   const [priceMax, setPriceMax] = useState<string>(initial.price_max?.toString() ?? '');
-  const [complexity, setComplexity] = useState<ComplexityLevel[]>(initial.complexity_levels || []);
   const [discounts, setDiscounts] = useState<VolumeDiscount[]>(initial.volume_discounts || []);
   const [saving, setSaving] = useState(false);
 
@@ -38,7 +36,6 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
     setBasePrice(initial.base_price?.toString() ?? '');
     setPriceMin(initial.price_min?.toString() ?? '');
     setPriceMax(initial.price_max?.toString() ?? '');
-    setComplexity(initial.complexity_levels || []);
     setDiscounts(initial.volume_discounts || []);
   }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
 
