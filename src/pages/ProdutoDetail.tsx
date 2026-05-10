@@ -613,7 +613,7 @@ export default function ProdutoDetailPage() {
                             Se ficar vazio, o sistema usa a capacidade técnica como teto.
                           </TooltipContent>
                         </Tooltip></TooltipProvider>
-                      </span> as any
+                      </span>
                     }
                   >
                     <div className="flex flex-col gap-1 w-full">
