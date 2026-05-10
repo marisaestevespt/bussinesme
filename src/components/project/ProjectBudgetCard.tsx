@@ -23,9 +23,9 @@ export function ProjectBudgetCard({ projectId, productId, clientId, isOwner = tr
   const projectQ = useQuery({
     queryKey: ['project-budget', projectId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('budget, source_quote_id').eq('id', projectId).maybeSingle();
+      const { data, error } = await supabase.from('projects').select('budget, source_quote_id, product_id').eq('id', projectId).maybeSingle();
       if (error) throw error;
-      return data as { budget: number | null; source_quote_id: string | null } | null;
+      return data as { budget: number | null; source_quote_id: string | null; product_id: string | null } | null;
     },
   });
 
@@ -40,6 +40,7 @@ export function ProjectBudgetCard({ projectId, productId, clientId, isOwner = tr
 
   const budget = projectQ.data?.budget;
   const quote = quoteQ.data;
+  const effectiveProductId = productId || projectQ.data?.product_id || null;
 
   return (
     <Card>
@@ -47,7 +48,7 @@ export function ProjectBudgetCard({ projectId, productId, clientId, isOwner = tr
         <CardTitle className="text-base flex items-center gap-2">
           <FileText className="h-4 w-4 text-primary" /> Valor Contratado
         </CardTitle>
-        {isOwner && productId && (
+        {isOwner && effectiveProductId && (
           <Button size="sm" variant="outline" className="gap-2" onClick={() => setOpen(true)}>
             <Calculator className="h-3.5 w-3.5" />
             {quote ? 'Refazer orçamento' : 'Criar orçamento'}
@@ -68,18 +69,18 @@ export function ProjectBudgetCard({ projectId, productId, clientId, isOwner = tr
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground italic">Sem orçamento associado a este projeto. {productId ? 'Clica em "Criar orçamento" para gerar um.' : 'Define o produto do projeto primeiro.'}</p>
+          <p className="text-sm text-muted-foreground italic">Sem orçamento associado a este projeto. {effectiveProductId ? 'Clica em "Criar orçamento" para gerar um.' : 'Define o produto do projeto primeiro.'}</p>
         )}
-        {!productId && budget != null && (
+        {!effectiveProductId && budget != null && (
           <p className="text-[11px] text-muted-foreground italic mt-1">Sem produto associado: o orçamento não pode ser recalculado.</p>
         )}
       </CardContent>
 
-      {productId && (
+      {effectiveProductId && (
         <QuoteCalculatorDialog
           open={open}
           onOpenChange={setOpen}
-          productId={productId}
+          productId={effectiveProductId}
           clientId={clientId || null}
           onAccepted={async ({ id, total }) => {
             const { error } = await supabase.from('projects').update({ budget: total, source_quote_id: id } as any).eq('id', projectId);
