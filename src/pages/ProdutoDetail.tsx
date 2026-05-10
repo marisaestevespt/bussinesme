@@ -478,7 +478,7 @@ export default function ProdutoDetailPage() {
             const inlineTrigger = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 [&>svg]:opacity-50";
             const inlineInput = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-muted/40 rounded-md";
 
-            const Row = ({ icon: Icon, label, children }: { icon: any; label: string; children: React.ReactNode }) => (
+           const Row = ({ icon: Icon, label, children }: { icon: any; label: React.ReactNode; children: React.ReactNode }) => (
               <div className="grid grid-cols-[150px_1fr] items-center py-1.5 border-b border-border/50">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground pr-3 mr-3 border-r border-border/50 self-stretch py-1">
                   <Icon className="h-3.5 w-3.5" />
