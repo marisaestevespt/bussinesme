@@ -552,7 +552,12 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
             <Label className="text-xs text-muted-foreground">Perfil fiscal (preenche tudo automaticamente)</Label>
             <Select
               value={
-                TAX_PRESETS.find(p =>
+                fiscalFromSettings &&
+                fiscalFromSettings.regime === scenario.tax_regime &&
+                Math.abs(fiscalFromSettings.tax_rate - (Number(scenario.tax_rate) || 0)) < 0.01 &&
+                Math.abs(fiscalFromSettings.ss_rate  - (Number(scenario.ss_rate)  || 0)) < 0.01
+                  ? 'from_settings'
+                  : TAX_PRESETS.find(p =>
                   p.regime === scenario.tax_regime &&
                   Math.abs(p.tax_rate - (Number(scenario.tax_rate) || 0)) < 0.01 &&
                   Math.abs(p.ss_rate  - (Number(scenario.ss_rate)  || 0)) < 0.01
@@ -560,6 +565,14 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
               }
               onValueChange={v => {
                 if (v === 'custom') return;
+                if (v === 'from_settings' && fiscalFromSettings) {
+                  updateScenario.mutate({
+                    tax_regime: fiscalFromSettings.regime,
+                    tax_rate: fiscalFromSettings.tax_rate,
+                    ss_rate: fiscalFromSettings.ss_rate,
+                  });
+                  return;
+                }
                 const p = TAX_PRESETS.find(pp => pp.id === v);
                 if (!p) return;
                 updateScenario.mutate({ tax_regime: p.regime, tax_rate: p.tax_rate, ss_rate: p.ss_rate });
@@ -568,6 +581,14 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
             >
               <SelectTrigger><SelectValue placeholder="Escolhe um perfil…" /></SelectTrigger>
               <SelectContent>
+                {fiscalFromSettings && (
+                  <SelectItem value="from_settings">
+                    <div className="flex flex-col items-start py-0.5">
+                      <span className="text-sm">⭐ Usar perfil do negócio (Definições Fiscais)</span>
+                      <span className="text-[10px] text-muted-foreground">{fiscalFromSettings.label}</span>
+                    </div>
+                  </SelectItem>
+                )}
                 {TAX_PRESETS.map(p => (
                   <SelectItem key={p.id} value={p.id}>
                     <div className="flex flex-col items-start py-0.5">
@@ -582,7 +603,9 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
               </SelectContent>
             </Select>
             <p className="text-[10px] text-muted-foreground">
-              Valores típicos PT 2025. Podes sempre afinar IRS/IRC e SS manualmente nos campos abaixo.
+              {fiscalFromSettings
+                ? <>Detetámos o teu perfil em <strong>Definições &gt; Fiscal</strong>: <em>{fiscalFromSettings.label}</em>. Escolhe-o para usar os teus valores reais.</>
+                : <>Valores típicos PT 2025. Podes sempre afinar IRS/IRC e SS manualmente nos campos abaixo.</>}
             </p>
           </div>
 
