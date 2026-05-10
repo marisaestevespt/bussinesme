@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { usePricingDrivers } from '@/hooks/useProductPricing';
 import { useProductModifiers } from '@/hooks/useProductModifiers';
 import { InlineField } from '@/components/product/InlineField';
+import { UnitSelect } from '@/components/product/UnitSelect';
 import { computeQuote, formatEuro, type VolumeDiscount } from '@/lib/quoteCalculator';
 
 interface Props {
@@ -205,8 +206,8 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground bg-background rounded-md px-2 py-1.5 border">
                           <span>Medido em</span>
                           <span className="min-w-[80px]">
-                            <InlineField value={d.unit || ''} placeholder="h, post, sessão…" disabled={!isOwner}
-                              onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v || null, unit_price: d.unit_price, default_qty: d.default_qty })} />
+                            <UnitSelect value={d.unit} disabled={!isOwner}
+                              onChange={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v, unit_price: d.unit_price, default_qty: d.default_qty })} />
                           </span>
                           <span>· cada <strong>{unitLabel}</strong> custa</span>
                           <span className="min-w-[90px]">
