@@ -176,7 +176,6 @@ export default function ProdutosPage() {
 
         {/* Toolbar */}
         <CollectionToolbar
-          leading={null}
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Pesquisar produto…"
