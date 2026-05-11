@@ -971,16 +971,7 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
                 )}
               </Tabs>
             ) : active ? (
-              <>
-                <ScenarioPanel scenario={active} productId={productId} vatRate={vatRate} isOwner={isOwner} />
-                {isOwner && (
-                  <div className="pt-4 mt-6 border-t flex justify-center">
-                    <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => addScenario.mutate()}>
-                      <Plus className="h-3 w-3 mr-1" /> Comparar com outra variante (avançado)
-                    </Button>
-                  </div>
-                )}
-              </>
+              <ScenarioPanel scenario={active} productId={productId} vatRate={vatRate} isOwner={isOwner} />
             ) : null}
           </>
         )}

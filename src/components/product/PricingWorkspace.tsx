@@ -32,6 +32,31 @@ export function PricingWorkspace({ productId, ticketType, isOwner, vatRate, init
 
   return (
     <Card className="overflow-hidden">
+      {/* Tabs at top — large, primary-styled for visibility */}
+      <div className="flex items-stretch border-b bg-muted/30 px-2 pt-2 gap-1 overflow-x-auto">
+        {SHEETS.map(s => {
+          const Icon = s.icon;
+          const isActive = active === s.key;
+          return (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => setActive(s.key)}
+              title={s.hint}
+              className={cn(
+                'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-md whitespace-nowrap transition-colors border-b-2',
+                isActive
+                  ? 'bg-background text-foreground border-primary -mb-px'
+                  : 'bg-transparent text-muted-foreground border-transparent hover:bg-muted hover:text-foreground',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {s.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Sheet content */}
       <div className="p-4 bg-background min-h-[400px]">
         {active === 'oferta' && (
@@ -49,31 +74,6 @@ export function PricingWorkspace({ productId, ticketType, isOwner, vatRate, init
             />
           )
         )}
-      </div>
-
-      {/* Excel-style sheet tabs at bottom */}
-      <div className="flex items-stretch border-t bg-muted/40 px-2 pt-1.5 gap-0.5 overflow-x-auto">
-        {SHEETS.map(s => {
-          const Icon = s.icon;
-          const isActive = active === s.key;
-          return (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => setActive(s.key)}
-              title={s.hint}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-t border-l border-r rounded-t-md whitespace-nowrap transition-colors',
-                isActive
-                  ? 'bg-background text-foreground border-border -mb-px'
-                  : 'bg-muted/60 text-muted-foreground border-transparent hover:bg-muted hover:text-foreground',
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {s.label}
-            </button>
-          );
-        })}
       </div>
     </Card>
   );
