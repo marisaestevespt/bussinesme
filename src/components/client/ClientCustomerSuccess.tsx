@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Calendar, User2, MessageSquare, Star, Target } from 'lucide-react';
+import { Plus, Calendar, MessageSquare, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, addDays, differenceInDays } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
@@ -18,27 +18,18 @@ const STATUS_OPTIONS = [
   { value: 'em_atraso', label: 'Em atraso' },
 ];
 
-const MILESTONE_TYPE_LABELS: Record<string, string> = {
-  check_in: 'Check-in',
-  feedback: 'Recolha de Feedback',
-  reuniao: 'Reunião',
-  email: 'Email',
-  outro: 'Outro',
-};
-
 interface Props {
   clientId: string;
   clientName: string;
   productName: string | null;
   startDate: string | null;
   /** When set, render only the requested sub-section (used inside dialogs) */
-  onlySection?: 'nps' | 'milestones';
+  onlySection?: 'nps';
 }
 
 export function ClientCustomerSuccess({ clientId, clientName, productName, startDate, onlySection }: Props) {
   const qc = useQueryClient();
-  const { members } = useTeamData({ members: true });
-  const teamMembers = members.data || [];
+  useTeamData({ members: false });
 
   // Fetch the product to get its id
   const { data: product } = useQuery({
@@ -76,19 +67,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
     queryFn: async () => {
       const { data } = await supabase
         .from('client_nps_records' as any)
-        .select('*')
-        .eq('client_id', clientId)
-        .order('expected_date');
-      return (data || []) as any[];
-    },
-  });
-
-  // Fetch client milestones
-  const { data: clientMilestones = [] } = useQuery({
-    queryKey: ['client-milestones', clientId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('client_milestones' as any)
         .select('*')
         .eq('client_id', clientId)
         .order('expected_date');
@@ -137,46 +115,9 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
     },
   });
 
-  // Generate milestones from product
-  const generateMilestones = useMutation({
-    mutationFn: async () => {
-      if (!startDate || !productId) return;
-
-      // Delete existing milestones for this product
-      await supabase.from('client_milestones' as any).delete().eq('client_id', clientId).eq('product_id', productId);
-
-      const { data: prodMilestones } = await supabase
-        .from('product_milestones' as any)
-        .select('*')
-        .eq('product_id', productId)
-        .order('days_after_start');
-
-      if (!prodMilestones?.length) return;
-
-      const start = parseISO(startDate);
-      const records = (prodMilestones as any[]).map(m => ({
-        client_id: clientId,
-        product_id: productId,
-        milestone: m.milestone,
-        expected_date: format(addDays(start, m.days_after_start), 'yyyy-MM-dd'),
-        milestone_type: m.milestone_type,
-        responsible_id: m.responsible_id,
-        status: 'por_fazer',
-      }));
-
-      const { error } = await supabase.from('client_milestones' as any).insert(records);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['client-milestones', clientId] });
-      toast.success('Marcos gerados');
-    },
-  });
-
   // Auto-generate on first load if records are empty — only if product has at least one recolha config
   const hasNpsConfig = npsConfigs.length > 0 && npsConfigs.some((c: any) => Number(c.cadence_days) > 0);
   const autoGenNpsRef = useRef(false);
-  const autoGenMilestonesRef = useRef(false);
 
   useEffect(() => {
     if (productId && startDate && hasNpsConfig && npsRecords.length === 0 && !generateNpsRecords.isPending && !autoGenNpsRef.current) {
@@ -184,18 +125,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
       generateNpsRecords.mutate();
     }
   }, [productId, startDate, hasNpsConfig, npsRecords.length]);
-
-  useEffect(() => {
-    if (productId && startDate && clientMilestones.length === 0 && !generateMilestones.isPending && !autoGenMilestonesRef.current) {
-      autoGenMilestonesRef.current = true;
-      // Check if product actually has milestones before generating
-      supabase.from('product_milestones' as any).select('id').eq('product_id', productId).limit(1).then(({ data }) => {
-        if (data && data.length > 0) {
-          generateMilestones.mutate();
-        }
-      });
-    }
-  }, [productId, startDate, clientMilestones.length]);
 
   // Add manual NPS record
   const addManualNps = useMutation({
@@ -234,20 +163,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
       qc.invalidateQueries({ queryKey: ['product-nps-records'] });
     },
   });
-
-  // Update milestone
-  const updateMilestone = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const { error } = await supabase.from('client_milestones' as any).update(data).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['client-milestones', clientId] }),
-  });
-
-  const getMemberName = (id: string | null) => {
-    if (!id) return '—';
-    return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
-  };
 
   const today = new Date();
 
