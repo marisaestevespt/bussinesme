@@ -111,45 +111,92 @@ export function PortalQuestionsSection(props: Props) {
 
   // ─── INTRO ──────────────────────────────────────
   if (view === 'intro') {
+    const firstName = (client?.full_name || '').trim().split(/\s+/)[0] || '';
     return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4">
-        <div className="max-w-xl w-full text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 border" style={{ borderColor: pcAlpha(0.3), color: pc, backgroundColor: pcAlpha(0.06) }}>
+      <div className="relative min-h-[70vh] flex items-center justify-center px-4 overflow-hidden rounded-3xl border border-border/40">
+        {/* Background ambient glow */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 50% 0%, ${pcAlpha(0.18)} 0%, transparent 60%), radial-gradient(circle at 80% 100%, ${pcAlpha(0.08)} 0%, transparent 50%)`,
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.025] pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+
+        <div className="relative max-w-xl w-full text-center space-y-7 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 border bg-card/60 backdrop-blur" style={{ borderColor: pcAlpha(0.3), color: pc }}>
             <Sparkles className="h-3.5 w-3.5" />
             <span className="text-[11px] uppercase tracking-[0.18em] font-semibold">Perguntas iniciais</span>
           </div>
-          <h1
-            className="text-4xl sm:text-5xl leading-[1.05] tracking-tight"
-            style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
-          >
-            Conta-nos sobre ti.
-          </h1>
-          <p className="text-base text-muted-foreground max-w-md mx-auto">
-            {total} {total === 1 ? 'pergunta' : 'perguntas'} para nos ajudares a conhecer melhor o teu negócio. Demora cerca de {Math.max(2, Math.round(total * 1.5))} min. Podes guardar e voltar mais tarde.
+
+          <div className="space-y-4">
+            {firstName && (
+              <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground font-medium">
+                Olá, {firstName}
+              </p>
+            )}
+            <h1
+              className="text-4xl sm:text-5xl leading-[1.05] tracking-tight"
+              style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
+            >
+              Vamos conhecer-te<br />um pouco melhor.
+            </h1>
+          </div>
+
+          <p className="text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Antes de começarmos a trabalhar contigo, gostávamos de te fazer algumas perguntas. As tuas respostas vão guiar tudo o que fazemos a seguir.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+
+          {/* Meta chips */}
+          <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground pt-1">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: pc }} />
+              {total} {total === 1 ? 'pergunta' : 'perguntas'}
+            </span>
+            <span className="text-muted-foreground/40">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: pc }} />
+              ~{Math.max(2, Math.round(total * 1.5))} min
+            </span>
+            <span className="text-muted-foreground/40">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: pc }} />
+              Guarda e retoma
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
             <Button
               size="lg"
-              className="rounded-full text-white font-semibold px-8 py-6 text-base group"
+              className="rounded-full text-white font-semibold px-10 py-6 text-base group shadow-lg"
               style={{ backgroundColor: pc }}
               onClick={() => setView('question')}
             >
               {answeredCount > 0 ? 'Continuar' : 'Começar'}
-              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
             <button
               type="button"
               onClick={startPlaylist}
-              className="inline-flex items-center gap-2 rounded-full px-5 py-3 border text-sm font-medium hover:bg-muted/40 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-3 border bg-card/60 backdrop-blur text-sm font-medium hover:bg-card transition-colors"
               style={{ borderColor: pcAlpha(0.3), color: pc }}
             >
               <Music className="h-4 w-4" />
               Tocar playlist
             </button>
           </div>
+
           {answeredCount > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Já respondeste a {answeredCount} de {total} · vamos retomar onde paraste
+            <p className="text-xs text-muted-foreground pt-1">
+              Já respondeste a {answeredCount} de {total} — vamos retomar onde paraste.
             </p>
           )}
         </div>
