@@ -378,7 +378,6 @@ export default function PortalViewPage() {
     { key: 'meetings', label: 'Reuniões', icon: CalendarDays },
     { key: 'requests', label: 'Pedidos', icon: Inbox },
     { key: 'payments', label: 'Pagamentos', icon: CreditCard },
-    { key: 'downloads', label: 'Documentos', icon: FolderOpen },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
     ...((routines.length > 0 || responsibilities.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
     { key: 'feedback', label: 'A tua opinião', icon: MessageSquare },
