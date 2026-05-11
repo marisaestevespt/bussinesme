@@ -5,15 +5,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.97]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.97]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
-        destructive: "bg-destructive text-destructive-foreground shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
-        outline: "border-2 border-primary/25 bg-background text-primary hover:bg-primary/8 hover:border-primary/40 hover:-translate-y-[1px]",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md hover:-translate-y-[1px]",
-        ghost: "hover:bg-primary/8 hover:text-primary",
+        default: "bg-primary text-primary-foreground border-2 border-primary shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
+        destructive: "bg-destructive text-destructive-foreground border-2 border-destructive shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
+        outline: "border-2 border-primary/55 bg-background text-primary hover:bg-primary/8 hover:border-primary hover:-translate-y-[1px]",
+        secondary: "bg-secondary text-secondary-foreground border-2 border-primary/25 shadow-sm hover:bg-secondary/80 hover:border-primary/55 hover:shadow-md hover:-translate-y-[1px]",
+        ghost: "border-2 border-transparent hover:bg-primary/8 hover:text-primary hover:border-primary/30",
         link: "text-primary underline-offset-4 hover:underline",
         success: "bg-success text-success-foreground shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
         warning: "bg-warning text-warning-foreground shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
