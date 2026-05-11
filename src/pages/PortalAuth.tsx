@@ -259,7 +259,7 @@ export default function PortalAuthPage() {
 
           <div className="relative z-10 mt-12 flex items-baseline gap-4">
             <span className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: pcAlpha(0.4) }}>
-              {businessName || 'Lirah'}
+              {businessName || 'Portal'}
             </span>
             <div className="h-[1px] flex-grow" style={{ background: pcAlpha(0.08) }} />
             <span className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: pcAlpha(0.4) }}>
