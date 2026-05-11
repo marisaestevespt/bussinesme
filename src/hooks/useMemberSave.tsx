@@ -150,7 +150,10 @@ export function useMemberSave() {
       const derived: Record<string, unknown> = {
         department: depts[0] || null,
         departments: depts,
-        work_areas: depts,
+        // work_areas é mantido em sync automaticamente por trigger
+        // (sync_team_member_work_areas_from_role) baseado em custom_role_id.
+        // Não sobrescrever aqui — usaríamos as keys de departamentos em vez do
+        // nome da função, partindo a auto-atribuição de entregas por função.
         member_type: derivedMemberType,
         status: derivedMemberStatus,
         start_date: contractData?.start_date || null,
