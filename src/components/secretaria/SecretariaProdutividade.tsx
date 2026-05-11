@@ -308,19 +308,21 @@ export default function SecretariaProdutividade() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card><CardContent className="pt-4">
-          <p className="text-xs text-muted-foreground">Horas registadas</p>
-          <p className="text-2xl font-bold">{Math.round(totalHours * 10) / 10}h</p>
-          {varianceLabel && (
-            <p className={cn('text-[10px] mt-1 font-medium', varianceTone)}>{varianceLabel}</p>
-          )}
-        </CardContent></Card>
-        <Card><CardContent className="pt-4">
-          <p className="text-xs text-muted-foreground">Horas previstas</p>
-          <p className="text-2xl font-bold text-primary">{Math.round(plannedHours * 10) / 10}h</p>
-          {plannedHours > 0 ? (
-            <div className="mt-2 space-y-1">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-5">
+        <StatCard
+          tone="gold"
+          size="sm"
+          value={`${Math.round(totalHours * 10) / 10}h`}
+          label={<><Clock className="h-3 w-3 inline mr-1.5 -mt-0.5" />horas registadas</>}
+          hint={varianceLabel ? <span className={varianceTone}>{varianceLabel}</span> : undefined}
+        />
+        <StatCard
+          tone="primary"
+          size="sm"
+          value={`${Math.round(plannedHours * 10) / 10}h`}
+          label={<><Target className="h-3 w-3 inline mr-1.5 -mt-0.5" />horas previstas</>}
+          hint={plannedHours > 0 ? (
+            <div className="space-y-1">
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
                   className={cn(
@@ -330,15 +332,13 @@ export default function SecretariaProdutividade() {
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground">Reuniões + tarefas planeadas</p>
+              <span>reuniões + tarefas planeadas</span>
             </div>
-          ) : (
-            <p className="text-[10px] text-muted-foreground mt-1">Reuniões + tarefas planeadas</p>
-          )}
-        </CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas concluídas</p><p className="text-2xl font-bold">{completedTasks.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Média horas/dia</p><p className="text-2xl font-bold">{avgPerDay}h</p></CardContent></Card>
+          ) : 'reuniões + tarefas planeadas'}
+        />
+        <StatCard tone="success" size="sm" value={completedTasks.length} label={<><CheckCircle2 className="h-3 w-3 inline mr-1.5 -mt-0.5" />tarefas concluídas</>} />
+        <StatCard tone="destructive" size="sm" value={overdueTasks.length} label={<><AlertTriangle className="h-3 w-3 inline mr-1.5 -mt-0.5" />tarefas em atraso</>} />
+        <StatCard tone="mocha" size="sm" value={`${avgPerDay}h`} label={<><BarChart3 className="h-3 w-3 inline mr-1.5 -mt-0.5" />média horas/dia</>} />
       </div>
 
       <Card>
