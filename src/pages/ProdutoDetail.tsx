@@ -918,6 +918,11 @@ export default function ProdutoDetailPage() {
 
           {openSection === 'comercial' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductTabHeader
+                icon={Briefcase}
+                title="Comercial"
+                description="Concorrência, ações comerciais e o sales kit completo (pitch, benefícios, materiais, objeções e casos de sucesso)."
+              />
               <ProductComercialSection
                 competitors={competitors}
                 salesActions={salesActions}
