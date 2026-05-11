@@ -141,7 +141,7 @@ export function CommercialBiblioteca() {
         </Select>
 
         <div className="flex-1" />
-        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Entrada</Button>
+        <Button variant="soft" size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Entrada</Button>
       </div>
 
       {/* Empty state */}
