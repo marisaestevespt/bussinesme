@@ -76,7 +76,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
 
   const openNew = () => {
     setEditGoal(null);
-    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
+    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo', deviation_decision: '' });
     setDialogOpen(true);
   };
 
