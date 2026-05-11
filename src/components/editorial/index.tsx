@@ -126,8 +126,8 @@ export function EarCard({
       <div
         onClick={onClick}
         className={cn(
-          'rounded-md bg-card border border-border transition-colors',
-          onClick && 'cursor-pointer hover:border-primary/40',
+          'rounded-md bg-card border-2 border-primary/30 transition-colors',
+          onClick && 'cursor-pointer hover:border-primary',
           className,
         )}
       >
