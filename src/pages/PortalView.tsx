@@ -475,47 +475,43 @@ export default function PortalViewPage() {
 
             {/* Welcome hero — editorial */}
             <div
-              className="p-8 sm:p-12 relative overflow-hidden border"
+              className="px-5 py-4 sm:px-6 sm:py-5 relative overflow-hidden border"
               style={{
-                background: `linear-gradient(135deg, ${pcAlpha(0.10)} 0%, ${pcAlpha(0.04)} 55%, ${pcAlpha(0.14)} 100%)`,
-                borderColor: pcAlpha(0.25),
-                borderRadius: 4,
-                boxShadow: `0 18px 50px -20px ${pcAlpha(0.30)}, 0 4px 14px -6px ${pcAlpha(0.18)}`,
+                background: `linear-gradient(135deg, ${pc} 0%, ${pcAlpha(0.85)} 100%)`,
+                borderColor: pcAlpha(0.4),
+                borderRadius: 6,
+                boxShadow: `0 8px 24px -10px ${pcAlpha(0.35)}`,
               }}
             >
-              <div className="flex items-center gap-3 mb-8">
-                <div className="h-[1px] w-8" style={{ background: pcAlpha(0.3) }} />
-                <span className="text-[10px] tracking-[0.3em] uppercase font-semibold" style={{ color: pcAlpha(0.6) }}>
-                  Bem-vindo
-                </span>
-              </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl leading-[0.95] tracking-tight mb-4" style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
-                Olá, {firstName}.
-              </h1>
-              <p className="text-base sm:text-lg leading-relaxed max-w-xl" style={{ color: pcAlpha(0.7), fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
-                <span className="italic">Este é o teu espaço de acompanhamento.</span> Aqui encontras tudo o que precisas.
-              </p>
-
-              {/* Project status bar */}
-              {phases.length > 0 && (
-                <div className="mt-10 pt-8 border-t" style={{ borderColor: pcAlpha(0.1) }}>
-                  <div className="flex items-baseline justify-between mb-4">
-                    <span className="text-[10px] tracking-[0.3em] uppercase font-semibold" style={{ color: pcAlpha(0.5) }}>
-                      Progresso do Projeto
-                    </span>
-                    <span className="text-3xl font-light" style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>{projectProgress}<span className="text-sm">%</span></span>
-                  </div>
-                  <div className="h-[3px] rounded-full overflow-hidden mb-3" style={{ background: pcAlpha(0.08) }}>
-                    <div className="h-full transition-all" style={{ width: `${projectProgress}%`, background: pc }} />
-                  </div>
-                  {activePhase && (
-                    <div className="flex items-center gap-2 mt-4">
-                      <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: pc }} />
-                      <span className="text-xs" style={{ color: pcAlpha(0.65) }}>Fase atual: <em className="font-medium not-italic" style={{ color: pc }}>{activePhase.title}</em></span>
-                    </div>
-                  )}
+              <div className="flex items-center justify-between gap-6 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] tracking-[0.3em] uppercase font-semibold text-white/60">
+                    Bem-vindo
+                  </span>
+                  <h1 className="text-2xl sm:text-3xl leading-tight tracking-tight mt-0.5 text-white" style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
+                    Olá, {firstName}.
+                  </h1>
                 </div>
-              )}
+                {phases.length > 0 && (
+                  <div className="min-w-[180px]">
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <span className="text-[9px] tracking-[0.25em] uppercase font-semibold text-white/60">
+                        Progresso
+                      </span>
+                      <span className="text-lg font-light text-white" style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>{projectProgress}<span className="text-[10px]">%</span></span>
+                    </div>
+                    <div className="h-[3px] rounded-full overflow-hidden bg-white/15">
+                      <div className="h-full transition-all bg-white" style={{ width: `${projectProgress}%` }} />
+                    </div>
+                    {activePhase && (
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <div className="h-1 w-1 rounded-full bg-white/80 animate-pulse" />
+                        <span className="text-[10px] text-white/75 truncate">{activePhase.title}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
