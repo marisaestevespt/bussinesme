@@ -296,12 +296,11 @@ export default function PortalAuthPage() {
                     value={email}
                     onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                    className="w-full h-12 pl-7 bg-transparent border-0 border-b text-base focus:outline-none transition-all"
+                    className="w-full h-12 pl-7 bg-transparent border-0 border-b text-base focus:outline-none transition-all placeholder:text-primary/30"
                     style={{
                       borderBottomColor: emailError ? 'hsl(var(--destructive))' : pcAlpha(0.2),
                       color: pc,
                       fontFamily: fontDisplay,
-                      ['--tw-placeholder-color' as any]: pcAlpha(0.3),
                     }}
                     onFocus={e => { e.currentTarget.style.borderBottomColor = pc; }}
                     onBlur={e => { e.currentTarget.style.borderBottomColor = emailError ? 'hsl(var(--destructive))' : pcAlpha(0.2); }}
