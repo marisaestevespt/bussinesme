@@ -270,6 +270,40 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       </Card>
       )}
 
+      {/* Health */}
+      {isAreaEnabled('clientes') && isKpiEnabled('clientes', 'saude_carteira') && (
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Saúde da Relação com Clientes</h3>
+        <Card className="border-secondary bg-background">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <div className="min-w-[760px]">
+                <div className="bg-muted px-4 py-2 text-xs font-medium grid grid-cols-6 gap-2">
+                  <span>Cliente</span><span>Produto</span><span>Status</span><span>Saúde</span><span>Razão</span><span>Fim de Ciclo</span>
+                </div>
+                {healthList.length === 0 ? (
+                  <EmptyHint>Sem clientes ativos</EmptyHint>
+                ) : healthList.map(({ client: c, color, reason }) => (
+                  <div
+                    key={c.id}
+                    className="px-4 py-2.5 text-sm grid grid-cols-6 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                    onClick={() => navigate(`/hub/clientes/${c.id}`)}
+                  >
+                    <span className="truncate font-medium">{c.full_name}</span>
+                    <span className="truncate text-muted-foreground">{c.current_product || '—'}</span>
+                    <span className="text-muted-foreground">{STATUS_LABEL[c.status] || c.status}</span>
+                    <span><div className={cn('h-3 w-3 rounded-full', HEALTH_STYLES[color])} /></span>
+                    <span className="text-xs text-muted-foreground truncate">{reason}</span>
+                    <span className="text-muted-foreground">{c.end_of_cycle ? new Date(c.end_of_cycle).toLocaleDateString('pt-PT') : '—'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      )}
+
       {/* Distribution by product */}
       {byProduct.length > 0 && (
         <Card className="border-secondary bg-background">
@@ -286,39 +320,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      )}
-
-      {/* Health */}
-      {isAreaEnabled('clientes') && isKpiEnabled('clientes', 'saude_carteira') && (
-      <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Saúde da Relação com Clientes</h3>
-        <Card className="border-secondary bg-background">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <div className="min-w-[640px]">
-                <div className="bg-muted px-4 py-2 text-xs font-medium grid grid-cols-5 gap-2">
-                  <span>Cliente</span><span>Produto</span><span>Status</span><span>Saúde</span><span>Fim de Ciclo</span>
-                </div>
-                {healthList.length === 0 ? (
-                  <EmptyHint>Sem clientes ativos</EmptyHint>
-                ) : healthList.map(({ client: c, color }) => (
-                  <div
-                    key={c.id}
-                    className="px-4 py-2.5 text-sm grid grid-cols-5 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
-                    onClick={() => navigate(`/hub/clientes/${c.id}`)}
-                  >
-                    <span className="truncate font-medium">{c.full_name}</span>
-                    <span className="truncate text-muted-foreground">{c.current_product || '—'}</span>
-                    <span className="text-muted-foreground">{STATUS_LABEL[c.status] || c.status}</span>
-                    <span><div className={cn('h-3 w-3 rounded-full', HEALTH_STYLES[color])} /></span>
-                    <span className="text-muted-foreground">{c.end_of_cycle ? new Date(c.end_of_cycle).toLocaleDateString('pt-PT') : '—'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
       )}
 
       <Separator />
