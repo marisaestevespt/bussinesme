@@ -10,11 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle, Hash, Activity, CalendarDays, Clock, Package, Mail, Phone, Cake, FileText, MapPin, NotebookText, Wallet, Link2, FolderOpen, MessageCircle, History, Briefcase, Heart, Users, Receipt, Calculator, User, Inbox, CheckCircle2 } from 'lucide-react';
+import { ClientFinancialHealthCard } from '@/components/clients/ClientFinancialHealthCard';
+import { useFilteredMeetings, DateField } from '@/components/clients/ClientDetailHelpers';
 import { ClientQuotesSection } from '@/components/clients/ClientQuotesSection';
 import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
@@ -55,7 +55,6 @@ import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection
 import { CustomFieldsSection } from '@/components/CustomFieldsSection';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog';
-import { useClientFinancialHealth, HEALTH_BADGE } from '@/hooks/useClientFinancialHealth';
 import { sumRevenue, pendingSales } from '@/lib/salesCalculations';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { buildPaymentEntries } from '@/lib/paymentGenerator';
@@ -65,91 +64,6 @@ import { getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/finan
 import { getProjectStatusInfo } from '@/lib/projectStatus';
 import { getMeetingStatusInfo } from '@/lib/meetingStatus';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
-
-// ─── Client Financial Health Card ────────────────────────────────
-function ClientFinancialHealthCard({ clientName }: { clientName: string }) {
-  const { getHealth } = useClientFinancialHealth();
-  const health = getHealth(clientName);
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Saúde Financeira</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4">
-          <Badge variant="outline" className={`text-sm px-3 py-1 ${HEALTH_BADGE[health.status]?.className || ''}`}>
-            {health.label}
-          </Badge>
-          <div className="flex gap-6 text-sm">
-            <div>
-              <span className="text-muted-foreground">Total: </span>
-              <span className="font-medium">{health.total}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Pagos: </span>
-              <span className="font-medium text-success">{health.paid}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Pendentes: </span>
-              <span className="font-medium">{health.pending}</span>
-            </div>
-            {health.overdue > 0 && (
-              <div>
-                <span className="text-muted-foreground">Em atraso: </span>
-                <span className="font-medium text-destructive">{health.overdue}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function useFilteredMeetings(clientId: string | undefined) {
-  return useQuery({
-    queryKey: ['meetings', 'client', clientId],
-    queryFn: async () => {
-      if (!clientId) return [];
-      const { data, error } = await supabase
-        .from('meetings')
-        .select('*, meeting_participants(profile_id, profiles:profiles(full_name))')
-        .eq('client_id', clientId)
-        .order('date_time', { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!clientId,
-  });
-}
-
-// ─── Date picker helper ─────────────────────────────────────────
-function DateField({ value, onChange, label }: { value: string | null; onChange: (v: string | null) => void; label: string }) {
-  const date = value ? parseISO(value) : undefined;
-  return (
-    <div className="space-y-1">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              'w-full justify-start text-left font-normal text-sm h-10 px-3 rounded-lg border border-input bg-background !text-foreground shadow-none hover:bg-background hover:!text-foreground hover:border-input hover:translate-y-0 hover:shadow-none active:scale-100',
-              !date && '!text-muted-foreground/60'
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-            {date ? format(date, 'dd/MM/yyyy') : 'Selecionar'}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={date} onSelect={d => onChange(d ? format(d, 'yyyy-MM-dd') : null)} locale={pt} />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-}
 
 function ClienteDetailPageInner() {
   const { id } = useParams<{ id: string }>();
