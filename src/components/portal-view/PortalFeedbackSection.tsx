@@ -523,7 +523,10 @@ function NpsScale({
 /* ─── Done card (resumo + collapse de respostas) ──────────────────── */
 function RecolhaDoneCard({ recolha, pc, pcAlpha }: { recolha: PortalRecolha; pc: string; pcAlpha: (a: number) => string }) {
   const [open, setOpen] = useState(false);
-  const hasDetails = (recolha.responses && recolha.responses.length > 0) || !!recolha.notes;
+  const hasDetails =
+    (recolha.responses && recolha.responses.length > 0) ||
+    (recolha.category_scores && recolha.category_scores.length > 0) ||
+    !!recolha.notes;
   return (
     <SectionCard className="p-4">
       <div className="flex items-start gap-3">
@@ -547,11 +550,28 @@ function RecolhaDoneCard({ recolha, pc, pcAlpha }: { recolha: PortalRecolha; pc:
               className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
             >
               {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              Ver respostas
+              Ver detalhe
             </button>
           )}
           {open && (
             <div className="mt-2 space-y-2">
+              {recolha.category_scores?.map((cs, i) => {
+                const cat = npsCategoryFor(cs.score);
+                return (
+                  <div key={i} className="text-xs flex items-start gap-2">
+                    <span
+                      className="inline-flex items-center justify-center min-w-[26px] h-5 rounded text-[10px] font-bold text-white"
+                      style={{ backgroundColor: cat.color }}
+                    >
+                      {cs.score}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium">{cs.key}</p>
+                      {cs.comment && <p className="text-muted-foreground">{cs.comment}</p>}
+                    </div>
+                  </div>
+                );
+              })}
               {recolha.responses?.map((resp, i) => (
                 <div key={i} className="text-xs">
                   <p className="font-medium">{resp.question}</p>
