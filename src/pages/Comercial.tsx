@@ -62,7 +62,7 @@ export default function ComercialPage() {
           {SECTIONS.map(s => (
             <Card
               key={s.path}
-              className="group cursor-pointer border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+              className="group cursor-pointer border-2 border-primary bg-primary/10 hover:bg-primary/20 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
               onClick={() => navigate(s.path)}
             >
               <CardContent className="p-4 flex items-center gap-3">

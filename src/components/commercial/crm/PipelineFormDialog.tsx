@@ -135,7 +135,7 @@ export function PipelineFormDialog({ open, onOpenChange, onSave, products, proje
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button variant="soft" onClick={handleSave} disabled={!name.trim()}>Guardar</Button>
+          <Button onClick={handleSave} disabled={!name.trim()}>Guardar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -562,7 +562,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               )}
 
               <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto]">
-                <Button variant="soft" className="w-full" onClick={handleSave}>Guardar</Button>
+                <Button className="w-full" onClick={handleSave}>Guardar</Button>
                 {lead?.id && (
                   <Button variant="outline" className="w-full lg:w-auto border-primary text-primary hover:bg-primary/10" onClick={handleConvertToClient}>
                     <UserPlus className="h-4 w-4 mr-2" /> Converter em Cliente
@@ -679,7 +679,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
             <Textarea value={lostReason} onChange={e => setLostReason(e.target.value)} placeholder="Ex: Orçamento insuficiente, timing..." />
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { setLostReasonDialog(false); setPendingStatus(null); }}>Cancelar</Button>
-              <Button variant="soft" className="flex-1" onClick={handleLostReasonConfirm}>Confirmar</Button>
+              <Button className="flex-1" onClick={handleLostReasonConfirm}>Confirmar</Button>
             </div>
           </div>
         </DialogContent>
@@ -712,7 +712,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               <Label>Hora</Label>
               <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} />
             </div>
-            <Button variant="soft" className="w-full" disabled={!meetingDate || !meetingTitle.trim()} onClick={async () => {
+            <Button className="w-full" disabled={!meetingDate || !meetingTitle.trim()} onClick={async () => {
               if (!meetingDate || !meetingTitle.trim()) return;
               const [h, m] = meetingTime.split(':').map(Number);
               const dt = new Date(meetingDate);
@@ -832,7 +832,7 @@ function InteractionDialog({ open, onOpenChange, leadId, onSave }: { open: boole
             </div>
             {uploading && <p className="text-xs text-muted-foreground mt-1">A carregar...</p>}
           </div>
-          <Button variant="soft" className="w-full" disabled={uploading} onClick={() => onSave({
+          <Button className="w-full" disabled={uploading} onClick={() => onSave({
             lead_id: leadId,
             interaction_date: format(form.interaction_date, 'yyyy-MM-dd'),
             interaction_type: form.interaction_type,
@@ -989,7 +989,7 @@ function PipelineHistory({ leadId }: { leadId: string }) {
                 </Select>
               </div>
             )}
-            <Button variant="soft"
+            <Button
               className="w-full"
               disabled={!selectedPipeline || !selectedStage || moveLead.isPending}
               onClick={() => moveLead.mutate()}
