@@ -199,7 +199,7 @@ export function CommercialMetas() {
                 ) : (
                   <div className="flex gap-2">
                     <Input type="number" step="0.01" defaultValue={data.annualGoalAmount || ''} onChange={e => setAnnualInput(e.target.value)} autoFocus={editingAnnual} />
-                    <Button size="sm" onClick={handleAnnualSave} variant="soft"><Save className="h-4 w-4" /></Button>
+                    <Button size="sm" onClick={handleAnnualSave}><Save className="h-4 w-4" /></Button>
                   </div>
                 )}
               </div>

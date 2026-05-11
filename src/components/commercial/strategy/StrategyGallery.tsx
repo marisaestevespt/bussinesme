@@ -100,7 +100,7 @@ export function StrategyGallery() {
           {strategies.length} {strategies.length === 1 ? 'documento' : 'documentos'}
         </p>
         {isOwner && (
-          <Button size="sm" onClick={handleCreate} className="gap-2" variant="soft">
+          <Button size="sm" onClick={handleCreate} className="gap-2">
             <Plus className="h-3.5 w-3.5" />
             Nova Estratégia
           </Button>
