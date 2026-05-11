@@ -285,11 +285,10 @@ export default function PortalViewPage() {
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
-  // Onboarding progress: count phases where all deliverables are done
+  // Onboarding progress: granular by deliverables (same logic as overall project progress)
   const isPhaseComplete = (p: any) => allDeliverablesDone(p.deliverables || []);
   const completedOnb = onboarding.filter(isPhaseComplete).length;
   const totalOnb = onboarding.length;
-  const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
   // Find next pending deliverable across all onboarding phases
   const nextStep = (() => {
