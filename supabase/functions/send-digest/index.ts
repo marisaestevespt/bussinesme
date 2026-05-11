@@ -1132,6 +1132,7 @@ async function buildMemberEodDigest(
 ): Promise<string> {
   let html = "";
   let hasContent = false;
+  const empty = () => `<p style="color:#999;font-style:italic;margin:4px 0 0">Sem registos.</p>`;
 
   const { data: tm } = await supabase
     .from("team_members")
@@ -1149,12 +1150,14 @@ async function buildMemberEodDigest(
       .gte("updated_at", todayStr + "T00:00:00")
       .lte("updated_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("✅ Tarefas concluídas hoje");
     if (tasks?.length) {
-      hasContent = true;
-      html += sectionHeader("✅ Tarefas concluídas hoje");
       html += `<p><strong>${tasks.length}</strong> tarefa(s)</p><ul>`;
       for (const t of tasks) html += `<li>${esc(t.name)}</li>`;
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -1168,12 +1171,14 @@ async function buildMemberEodDigest(
       .gte("deadline", todayStr)
       .lte("deadline", todayStr);
 
+    hasContent = true;
+    html += sectionHeader("🔄 Rotinas do dia");
     if (routines?.length) {
-      hasContent = true;
       const done = routines.filter((r: Row) => r.status === "done" || r.status === "concluida");
       const pct = Math.round((done.length / routines.length) * 100);
-      html += sectionHeader("🔄 Rotinas do dia");
       html += `<p><strong>${done.length}/${routines.length}</strong> concluídas (${pct}%)</p>`;
+    } else {
+      html += empty();
     }
   }
 
@@ -1184,7 +1189,9 @@ async function buildMemberEodDigest(
       userId: profile.user_id,
       title: "⏱️ O teu tempo registado hoje",
     });
-    if (wt) { hasContent = true; html += wt; }
+    hasContent = true;
+    if (wt) { html += wt; }
+    else { html += sectionHeader("⏱️ O teu tempo registado hoje") + empty(); }
   }
 
   // ── Tarefas que ficaram em atraso ──
@@ -1198,12 +1205,14 @@ async function buildMemberEodDigest(
       .lte("deadline", todayStr)
       .not("deadline", "is", null);
 
+    hasContent = true;
+    html += sectionHeader("⚠️ Tarefas em atraso");
     if (tasks?.length) {
-      hasContent = true;
-      html += sectionHeader("⚠️ Tarefas em atraso");
       html += "<ul>";
       for (const t of tasks) html += `<li>${esc(t.name)}</li>`;
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -1222,15 +1231,17 @@ async function buildMemberEodDigest(
       .gte("deadline", tomorrowStr)
       .lte("deadline", tomorrowStr);
 
+    hasContent = true;
+    html += sectionHeader("📅 Preview de amanhã");
     if (tasks?.length) {
-      hasContent = true;
-      html += sectionHeader("📅 Preview de amanhã");
       html += "<ul>";
       for (const t of tasks) {
         const prio = t.priority === "alta" ? " 🔴" : t.priority === "media" ? " 🟡" : "";
         html += `<li>${esc(t.name)}${prio}</li>`;
       }
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
