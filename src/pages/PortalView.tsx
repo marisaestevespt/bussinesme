@@ -529,10 +529,10 @@ export default function PortalViewPage() {
                   <span className="text-[10px] tracking-wider uppercase">{(settings as any).support_hours}</span>
                 </div>
               )}
-              <div className="h-8 w-8 flex items-center justify-center text-xs font-medium" style={{ backgroundColor: pcAlpha(0.1), color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
+              <div className="h-8 w-8 flex items-center justify-center text-xs font-medium" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
                 {firstName.charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm hidden sm:inline" style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>{client.full_name || firstName}</span>
+              <span className="text-sm hidden sm:inline" style={{ color: pc }}>{client.full_name || firstName}</span>
               <Button
                 variant="ghost"
                 aria-label="Terminar sessão" size="icon"
@@ -590,7 +590,7 @@ export default function PortalViewPage() {
                   <span className="text-[10px] tracking-[0.3em] uppercase font-semibold text-white/60">
                     Bem-vindo
                   </span>
-                  <h1 className="text-2xl sm:text-3xl leading-tight tracking-tight mt-0.5 text-white" style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
+                  <h1 className="text-2xl sm:text-3xl leading-tight tracking-tight mt-0.5 text-white">
                     Olá, {firstName}.
                   </h1>
                 </div>
@@ -600,7 +600,7 @@ export default function PortalViewPage() {
                       <span className="text-[9px] tracking-[0.25em] uppercase font-semibold text-white/60">
                         Progresso
                       </span>
-                      <span className="text-lg font-light text-white" style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>{projectProgress}<span className="text-[10px]">%</span></span>
+                      <span className="text-lg font-light text-white">{projectProgress}<span className="text-[10px]">%</span></span>
                     </div>
                     <div className="h-[3px] rounded-full overflow-hidden bg-white/15">
                       <div className="h-full transition-all bg-white" style={{ width: `${projectProgress}%` }} />
@@ -799,7 +799,7 @@ export default function PortalViewPage() {
                               onMouseLeave={(e) => { if (!done) e.currentTarget.style.borderColor = pcAlpha(0.3); }}
                             >
                               <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1">Fase</div>
-                              <p className="text-sm leading-tight line-clamp-2 mb-3 flex-1" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif', fontSize: '1.05rem' }}>
+                              <p className="text-sm leading-tight line-clamp-2 mb-3 flex-1" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc, fontSize: '1.05rem' }}>
                                 {phase.name || 'Sem nome'}
                               </p>
                               <div className="flex items-center justify-between gap-2">
@@ -1206,7 +1206,7 @@ function PortalKpi({
       </div>
       <div
         className="text-4xl sm:text-5xl leading-[1.05] mt-1.5 tracking-tight"
-        style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
+        style={{ color: pc }}
       >
         {value}
       </div>

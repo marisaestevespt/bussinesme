@@ -147,7 +147,6 @@ export function PortalQuestionsSection(props: Props) {
             )}
             <h1
               className="text-4xl sm:text-5xl leading-[1.05] tracking-tight"
-              style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
             >
               Vamos conhecer-te<br />um pouco melhor.
             </h1>
@@ -221,7 +220,6 @@ export function PortalQuestionsSection(props: Props) {
           </div>
           <h2
             className="text-3xl sm:text-4xl leading-[1.1] tracking-tight"
-            style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
           >
             Obrigado!
           </h2>
@@ -270,7 +268,6 @@ export function PortalQuestionsSection(props: Props) {
           )}
           <h2
             className="text-xl sm:text-2xl leading-[1.25] tracking-tight font-medium"
-            style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
           >
             {current.question}
           </h2>

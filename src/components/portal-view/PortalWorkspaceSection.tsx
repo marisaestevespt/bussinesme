@@ -108,7 +108,6 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
             </div>
             <h2
               className="text-2xl sm:text-3xl leading-tight"
-              style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
             >
               {activePhase ? (activePhase.title || activePhase.name) : (total > 0 ? 'Tudo concluído' : 'A começar em breve')}
             </h2>
@@ -127,7 +126,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
           <div className="text-right">
             <div
               className="text-5xl sm:text-6xl font-light tracking-tight tabular-nums"
-              style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
+              style={{ color: pc }}
             >
               {pct}<span className="text-2xl align-top">%</span>
             </div>
@@ -169,7 +168,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
             <div className="mt-5 pt-4 border-t border-border/30 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-[10px] tracking-[0.24em] uppercase text-muted-foreground shrink-0">A seguir</span>
-                <span className="text-sm truncate" style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
+                <span className="text-sm truncate">
                   {nextPhase.title || nextPhase.name}
                 </span>
               </div>
