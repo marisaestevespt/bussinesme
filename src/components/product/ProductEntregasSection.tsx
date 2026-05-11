@@ -201,15 +201,14 @@ function DeliverableRow({
             onValueChange={(v) => onUpdate(template.id, { responsible_role: v === 'none' ? null : v })}
             disabled={!isOwner}
           >
-            <SelectTrigger className="h-9 w-40 text-xs shrink-0" title="Função responsável (área de trabalho)">
+            <SelectTrigger className="h-9 w-40 text-xs shrink-0" title="Função responsável">
               <SelectValue placeholder="Função…" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Sem função</SelectItem>
-              <SelectItem value="interno">Trabalho Interno</SelectItem>
-              <SelectItem value="cliente_administrativo">Cliente — Admin</SelectItem>
-              <SelectItem value="cliente_servico">Cliente — Entrega</SelectItem>
-              <SelectItem value="cliente_comercial">Cliente — Comercial</SelectItem>
+              {roles.map(r => (
+                <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         )}
