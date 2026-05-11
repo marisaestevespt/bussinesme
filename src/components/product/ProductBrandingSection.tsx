@@ -12,6 +12,7 @@ import { BrandFontPicker } from '@/components/shared/BrandFontPicker';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { ImageIcon } from 'lucide-react';
 import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
+import { ProductTabHeader } from './_shared';
 
 /* ── color helpers (HEX <-> HSL triplet "H S% L%") ── */
 
@@ -331,6 +332,11 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+      <ProductTabHeader
+        icon={Palette}
+        title="Branding"
+        description="Identidade visual, tom de voz e personalização do portal do cliente. Tudo o que torna este produto reconhecível."
+      />
       <EntityTabs defaultValue="estrategia" className="space-y-6">
         <EntityTabsList className="w-full justify-start">
           <EntityTabsTrigger value="estrategia">
