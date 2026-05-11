@@ -12,6 +12,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { ProductTabHeader } from './_shared';
+import { Repeat, FolderKanban } from 'lucide-react';
 
 interface Template {
   id: string;
@@ -613,14 +615,20 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-      <div>
-        <h3 className="text-base font-semibold flex items-center gap-2">
-          <Layers className="h-4 w-4 text-primary" /> Fases e Entregas
-        </h3>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Entra em cada zona para configurar as fases e entregas com foco total.
-        </p>
-      </div>
+      <ProductTabHeader
+        icon={Layers}
+        title="Operação"
+        description="Estrutura de fases e entregas que cada projeto deste produto vai herdar. Configura uma vez, propaga-se para todos os projetos ativos."
+        actions={
+          <Badge variant="outline" className="gap-1.5 text-xs px-2.5 py-1">
+            {isRecurring ? (
+              <><Repeat className="h-3 w-3 text-primary" /> Recorrente</>
+            ) : (
+              <><FolderKanban className="h-3 w-3 text-primary" /> Por projeto</>
+            )}
+          </Badge>
+        }
+      />
 
       {isOwner && activeProjectsCount > 0 && (
         <div className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
