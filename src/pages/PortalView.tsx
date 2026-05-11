@@ -456,7 +456,7 @@ export default function PortalViewPage() {
                   className={`flex items-center gap-2 py-3 text-[11px] tracking-[0.18em] uppercase whitespace-nowrap border-b-2 transition-all ${
                     active ? 'font-semibold border-current' : 'border-transparent hover:border-current'
                   }`}
-                  style={{ color: active ? pc : pcAlpha(0.55) }}
+                  style={{ color: active ? pc : pcAlpha(0.85) }}
                 >
                   <item.icon className="h-3.5 w-3.5" strokeWidth={1.5} />
                   <span className="hidden sm:inline">{item.label}</span>
