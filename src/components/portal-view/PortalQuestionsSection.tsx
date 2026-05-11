@@ -196,9 +196,9 @@ export function PortalQuestionsSection(props: Props) {
   const groupLabel = (current as PortalQuestion & { question_group?: string }).question_group;
 
   return (
-    <div className="min-h-[60vh] flex flex-col">
+    <div className="h-[70vh] min-h-[560px] flex flex-col max-w-2xl mx-auto w-full">
       {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-10 shrink-0">
         <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
@@ -210,22 +210,24 @@ export function PortalQuestionsSection(props: Props) {
         </span>
       </div>
 
-      <div key={current.id} className="flex-1 max-w-2xl mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        {groupLabel && (
-          <p className="text-[10px] uppercase tracking-[0.22em] font-semibold" style={{ color: pc }}>
-            {groupLabel}
-          </p>
-        )}
-        <h2
-          className="text-2xl sm:text-3xl leading-[1.2] tracking-tight"
-          style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
-        >
-          {current.question}
-        </h2>
+      <div key={current.id} className="flex-1 min-h-0 w-full overflow-y-auto space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300 pr-1">
+        <div className="space-y-2">
+          {groupLabel && (
+            <p className="text-[10px] uppercase tracking-[0.22em] font-semibold" style={{ color: pc }}>
+              {groupLabel}
+            </p>
+          )}
+          <h2
+            className="text-xl sm:text-2xl leading-[1.25] tracking-tight font-medium"
+            style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
+          >
+            {current.question}
+          </h2>
+        </div>
 
         <Textarea
           key={current.id}
-          className="text-base rounded-xl border-border/40 bg-muted/10 focus-visible:ring-2 min-h-[140px] resize-none"
+          className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-2 min-h-[120px] resize-none"
           placeholder="A tua resposta..."
           value={currentDraft}
           onChange={e => setDraftAnswers(prev => ({ ...prev, [current.id]: e.target.value }))}
@@ -235,7 +237,7 @@ export function PortalQuestionsSection(props: Props) {
               goNext();
             }
           }}
-          rows={5}
+          rows={4}
           style={{ '--tw-ring-color': pcAlpha(0.25) } as React.CSSProperties}
           autoFocus
         />
@@ -289,13 +291,13 @@ export function PortalQuestionsSection(props: Props) {
           )}
         </label>
 
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground pb-2">
           Dica: <kbd className="px-1.5 py-0.5 rounded border border-border/50 bg-muted/40 text-[10px] font-mono">⌘ Enter</kbd> para avançar
         </p>
       </div>
 
       {/* Footer nav */}
-      <div className="flex items-center justify-between pt-8 mt-8 border-t border-border/30">
+      <div className="flex items-center justify-between pt-6 mt-6 border-t border-border/30 shrink-0">
         <Button
           variant="ghost"
           onClick={goPrev}
