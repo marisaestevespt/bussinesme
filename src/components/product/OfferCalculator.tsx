@@ -659,9 +659,9 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
       </div>
 
       {/* ── Breakdown ── */}
-      <Card>
-        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
-        <CardContent className="space-y-3 px-4 pb-4">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3 pt-5 px-5"><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
+        <CardContent className="space-y-3 px-5 pb-5">
           {totalPerUnit === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Adiciona custos e define vendas estimadas para veres o breakdown.</p>
           ) : (
