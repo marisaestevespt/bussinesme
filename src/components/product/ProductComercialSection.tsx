@@ -1,12 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
-import { Editable } from '@/components/ui/editable';
 import { Plus, Trash2, Zap, Swords } from 'lucide-react';
 import { format } from 'date-fns';
+import { InlineField } from '@/components/product/InlineField';
 
 interface Props {
   competitors: Array<{ name: string; notes: string }>;
@@ -77,45 +75,27 @@ export function ProductComercialSection({
             <div key={i} className="rounded-md border bg-card/40 p-3 space-y-2">
               <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <Editable
-                    display={c.name}
+                  <InlineField
+                    value={c.name}
                     placeholder="Nome do concorrente…"
                     bold
-                    multiline={false}
                     disabled={!isOwner}
-                    render={({ stop, autoFocusRef }) => (
-                      <Input
-                        ref={autoFocusRef as any}
-                        value={c.name}
-                        onChange={e => {
-                          const next = [...competitors];
-                          next[i] = { ...next[i], name: e.target.value };
-                          onUpdateCompetitors(next);
-                        }}
-                        onBlur={stop}
-                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); stop(); } }}
-                        className="h-8 text-sm font-medium"
-                      />
-                    )}
+                    onSave={v => {
+                      const next = [...competitors];
+                      next[i] = { ...next[i], name: v };
+                      onUpdateCompetitors(next);
+                    }}
                   />
-                  <Editable
-                    display={c.notes}
-                    placeholder="Notas sobre este concorrente…"
+                  <InlineField
+                    value={c.notes}
+                    placeholder="Notas (opcional)…"
+                    multiline
                     disabled={!isOwner}
-                    render={({ stop, autoFocusRef }) => (
-                      <Textarea
-                        ref={autoFocusRef as any}
-                        value={c.notes}
-                        onChange={e => {
-                          const next = [...competitors];
-                          next[i] = { ...next[i], notes: e.target.value };
-                          onUpdateCompetitors(next);
-                        }}
-                        onBlur={stop}
-                        placeholder="Notas sobre este concorrente…"
-                        className="min-h-[100px] text-sm"
-                      />
-                    )}
+                    onSave={v => {
+                      const next = [...competitors];
+                      next[i] = { ...next[i], notes: v };
+                      onUpdateCompetitors(next);
+                    }}
                   />
                 </div>
                 {isOwner && (
