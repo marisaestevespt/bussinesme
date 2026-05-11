@@ -905,7 +905,7 @@ async function executeTool(
           crm: ["crm_leads", "crm_pipelines", "crm_pipeline_stages", "crm_pipeline_leads", "crm_interactions", "crm_lead_actions"],
           marketing: ["marketing_channels", "channel_monthly_metrics", "content_items", "content_channels", "marketing_funnels", "marketing_automations", "marketing_ideas"],
           reunioes: ["meetings", "meeting_participants", "meeting_projects"],
-          planeamento: ["planning_goals", "planning_routines", "executive_objectives", "executive_goals", "executive_weekly_routines"],
+          planeamento: ["planning_goals", "planning_routines", "executive_objectives", "executive_weekly_routines"],
           produtos: ["products", "product_deliverable_templates", "product_kpis", "product_costs"],
           marca: ["brand_competitors", "brand_differentials", "brand_swot_items", "brand_visual_cards"],
           configuracoes: ["business_settings", "business_setup", "automation_settings", "kpi_settings", "departments"],
