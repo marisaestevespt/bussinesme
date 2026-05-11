@@ -169,99 +169,182 @@ export default function PortalAuthPage() {
     return <ErrorShell title="Portal indisponível" message="Este portal está temporariamente fechado. Vai estar disponível novamente em breve." />;
   }
 
+  const heroDisplayName = firstName ? `Olá, ${firstName}.` : (heroTitle || 'Bem-vindo.');
+  const heroQuote = settings?.hero_subtitle || welcomeText;
+
   return (
-    <div className="flex min-h-screen">
-      {/* Left decorative panel — hidden on mobile */}
+    <div
+      className="min-h-screen flex items-center justify-center p-4 sm:p-8"
+      style={{ background: '#FBF8F3' }}
+    >
       <div
-        className="hidden lg:flex lg:w-1/2 relative items-end p-12"
+        className="max-w-5xl w-full grid grid-cols-12 bg-white overflow-hidden"
         style={{
-          background: loginBgUrl
-            ? `url(${loginBgUrl}) center/cover no-repeat`
-            : `linear-gradient(160deg, ${pc} 0%, ${pcAlpha(0.8)} 40%, ${pcAlpha(0.6)} 100%)`,
+          borderRadius: 4,
+          border: `1px solid ${pcAlpha(0.1)}`,
+          boxShadow: `0 10px 50px -12px ${pcAlpha(0.08)}`,
         }}
       >
-        {loginBgUrl && (
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${pc} 0%, ${pcAlpha(0.75)} 40%, ${pcAlpha(0.45)} 100%)` }} />
-        )}
-        <div className="relative z-10 space-y-4 max-w-md">
-          {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 object-contain brightness-0 invert" />}
-          <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight" style={{ fontFamily: fontDisplay }}>
-            {heroTitle} <br />{heroSubtitle}
-          </h2>
-          {loginSubtitle && (
-            <p className="text-white/80 text-sm leading-relaxed">{loginSubtitle}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Right login panel */}
-      <div
-        className="flex-1 flex items-center justify-center p-6 sm:p-12"
-        style={{ background: `linear-gradient(180deg, #ffffff 0%, ${pcAlpha(0.04)} 100%)` }}
-      >
-        <div className="w-full max-w-sm space-y-8">
-          {/* Mobile logo */}
-          <div className="lg:hidden text-center">
-            {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 mx-auto object-contain mb-4" />}
-          </div>
-
-          <div className="space-y-2 text-center lg:text-left">
-            <h1
-              className="kpi-display-sm mt-1"
-              style={{ color: pc, fontFamily: fontDisplay }}
-            >
-              {loginTitle}
-            </h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">{welcomeText}</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="email"
-                placeholder="O teu email"
-                value={email}
-                onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                className={`pl-10 h-12 rounded-xl bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-offset-0 ${emailError ? 'border-destructive/60' : 'border-border/60'}`}
-                style={{ '--tw-ring-color': `${pcAlpha(0.25)}` } as any}
+        {/* Editorial section */}
+        <div
+          className="col-span-12 md:col-span-7 p-8 md:p-16 flex flex-col justify-between border-b md:border-b-0 md:border-r relative overflow-hidden"
+          style={{ borderColor: pcAlpha(0.1), minHeight: 'min(620px, 90vh)' }}
+        >
+          {loginBgUrl && (
+            <>
+              <div
+                className="absolute inset-0"
+                style={{ background: `url(${loginBgUrl}) center/cover no-repeat`, opacity: 0.18 }}
               />
-              {emailError && (
-                <p className="mt-2 text-xs text-destructive flex items-center gap-1.5">
-                  <AlertCircle className="h-3 w-3 shrink-0" />
-                  {emailError}
+              <div
+                className="absolute inset-0"
+                style={{ background: `linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.85) 100%)` }}
+              />
+            </>
+          )}
+          <div className="relative z-10 space-y-10 md:space-y-14">
+            <div className="flex items-center gap-4">
+              {logoUrl ? (
+                <img src={logoUrl} alt={businessName || 'Logo'} className="h-7 object-contain" />
+              ) : (
+                <div className="h-[1px] w-8" style={{ background: pcAlpha(0.3) }} />
+              )}
+              <span className="text-[10px] tracking-[0.3em] uppercase font-semibold" style={{ color: pcAlpha(0.6) }}>
+                Portal de Acesso
+              </span>
+            </div>
+
+            <div className="max-w-md">
+              <h1
+                className="text-5xl sm:text-6xl md:text-7xl leading-[0.9] tracking-tight mb-8"
+                style={{ color: pc, fontFamily: fontDisplay }}
+              >
+                {heroDisplayName}
+              </h1>
+              {heroSubtitle && heroSubtitle !== heroDisplayName && (
+                <p
+                  className="text-lg md:text-xl leading-snug mb-6"
+                  style={{ color: pcAlpha(0.85), fontFamily: fontDisplay }}
+                >
+                  {heroSubtitle}
+                </p>
+              )}
+              {heroQuote && (
+                <p className="text-sm sm:text-base leading-relaxed italic font-light" style={{ color: pcAlpha(0.75) }}>
+                  <span
+                    className="float-left text-5xl leading-[0.8] mr-2 mt-1 not-italic font-normal"
+                    style={{ color: pc, fontFamily: fontDisplay }}
+                  >
+                    {(heroQuote.trim()[0] || 'A').toUpperCase()}
+                  </span>
+                  {heroQuote.trim().slice(1)}
                 </p>
               )}
             </div>
-            <Button
-              className="w-full h-12 rounded-xl text-sm font-semibold shadow-md transition-all hover:shadow-lg active:scale-[0.98] text-white"
-              style={{ backgroundColor: pc }}
-              disabled={submitting || !email.trim()}
-              onClick={handleSubmit}
-            >
-              {submitting ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  A aceder...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  Aceder ao meu espaço
-                  <ArrowRight className="h-4 w-4" />
+
+            <div className="flex gap-2 flex-wrap">
+              <span className="px-3 py-1 rounded-full text-[10px] uppercase tracking-wider" style={{ border: `1px solid ${pcAlpha(0.2)}`, color: pcAlpha(0.7) }}>
+                Exclusivo
+              </span>
+              <span className="px-3 py-1 rounded-full text-[10px] uppercase tracking-wider" style={{ border: `1px solid ${pcAlpha(0.2)}`, color: pcAlpha(0.7) }}>
+                Seguro
+              </span>
+              {productName && (
+                <span className="px-3 py-1 rounded-full text-[10px] uppercase tracking-wider" style={{ border: `1px solid ${pcAlpha(0.2)}`, color: pcAlpha(0.7) }}>
+                  {productName}
                 </span>
               )}
-            </Button>
+            </div>
           </div>
 
-          <div className="space-y-2 pt-2">
-            <p className="text-center text-[11px] text-muted-foreground/60">
-              Acesso exclusivo para clientes{businessName ? ` da ${businessName}` : ''}.
-            </p>
-            <p className="text-center text-[10px] text-muted-foreground/50 flex items-center justify-center gap-1">
-              <ShieldCheck className="h-3 w-3" />
-              Acesso seguro · Lyrata
-            </p>
+          <div className="relative z-10 mt-12 flex items-baseline gap-4">
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: pcAlpha(0.4) }}>
+              {businessName || 'Lirah'}
+            </span>
+            <div className="h-[1px] flex-grow" style={{ background: pcAlpha(0.08) }} />
+            <span className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: pcAlpha(0.4) }}>
+              © {new Date().getFullYear()}
+            </span>
+          </div>
+        </div>
+
+        {/* Auth form section */}
+        <div
+          className="col-span-12 md:col-span-5 p-8 md:p-12 flex flex-col justify-center"
+          style={{ background: `linear-gradient(180deg, #FBF8F3 0%, ${pcAlpha(0.04)} 100%)` }}
+        >
+          <div className="max-w-xs mx-auto w-full space-y-10">
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-medium" style={{ color: pc, fontFamily: fontDisplay }}>
+                {loginTitle}
+              </h2>
+              <p className="text-xs leading-relaxed" style={{ color: pcAlpha(0.6) }}>
+                {loginSubtitle || 'Insere o teu email para aceder ao teu espaço.'}
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] uppercase tracking-[0.2em] font-semibold block mb-2" style={{ color: pcAlpha(0.5) }}>
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: pcAlpha(0.4) }} />
+                  <input
+                    type="email"
+                    placeholder="nome@empresa.com"
+                    value={email}
+                    onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
+                    onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                    className="w-full h-12 pl-7 bg-transparent border-0 border-b text-base focus:outline-none transition-all placeholder:text-[#6D2E46]/30"
+                    style={{
+                      borderBottomColor: emailError ? 'hsl(var(--destructive))' : pcAlpha(0.2),
+                      color: pc,
+                      fontFamily: fontDisplay,
+                    }}
+                    onFocus={e => { e.currentTarget.style.borderBottomColor = pc; }}
+                    onBlur={e => { e.currentTarget.style.borderBottomColor = emailError ? 'hsl(var(--destructive))' : pcAlpha(0.2); }}
+                  />
+                </div>
+                {emailError && (
+                  <p className="mt-2 text-xs text-destructive flex items-center gap-1.5">
+                    <AlertCircle className="h-3 w-3 shrink-0" />
+                    {emailError}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  className="w-full py-4 text-[11px] font-semibold tracking-[0.25em] uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
+                  style={{ backgroundColor: pc, color: '#FBF8F3', boxShadow: `0 8px 20px -8px ${pcAlpha(0.4)}` }}
+                  disabled={submitting || !email.trim()}
+                  onClick={handleSubmit}
+                >
+                  {submitting ? (
+                    <>
+                      <span className="h-3 w-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      A aceder
+                    </>
+                  ) : (
+                    <>
+                      Entrar no Portal
+                      <ArrowRight className="h-3 w-3 transform group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t space-y-3" style={{ borderColor: pcAlpha(0.05) }}>
+              <p className="text-[9px] leading-normal uppercase tracking-widest" style={{ color: pcAlpha(0.4) }}>
+                Acesso exclusivo para clientes{businessName ? ` da ${businessName}` : ''}.
+              </p>
+              <p className="text-[9px] uppercase tracking-widest flex items-center gap-1" style={{ color: pcAlpha(0.35) }}>
+                <ShieldCheck className="h-3 w-3" />
+                Acesso seguro · Lyrata
+              </p>
+            </div>
           </div>
         </div>
       </div>
