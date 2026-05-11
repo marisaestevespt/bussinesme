@@ -19,15 +19,15 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   ChevronLeft, Plus, Trash2, Pencil, Check, X, ExternalLink,
-  Image as ImageIcon, Palette, Link2, Lightbulb,
+  Image as ImageIcon, Palette, Link2, Lightbulb, Settings2,
 } from 'lucide-react';
 import { CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, type MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { safeUrl } from '@/lib/url';
 
-const IDEA_CATEGORIES = [
-  { value: 'todas', label: 'Todas' },
+const IDEA_CATEGORY_OPTIONS = [
+  { value: '__none__', label: '— Sem categoria —' },
   { value: 'publicacoes', label: 'Publicações' },
   { value: 'stories', label: 'Stories' },
   { value: 'caixa_perguntas', label: 'Caixa de Perguntas' },
@@ -35,15 +35,28 @@ const IDEA_CATEGORIES = [
 
 type ResourceLink = { id: string; category: string; label: string; url: string; sort_order: number };
 type Idea = { id: string; idea: string; channel: string | null; content_type: string | null; format: string | null; category: string; created_by: string | null };
+type IdeaView = {
+  id: string;
+  name: string;
+  category: string | null;
+  filter_channel: string | null;
+  filter_content_type: string | null;
+  filter_format: string | null;
+  sort_order: number;
+  is_system: boolean;
+};
 
 export default function MarketingRecursos() {
   const navigate = useNavigate();
   const { isOwner, user } = useAuth();
   const qc = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState('todas');
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [showNewIdea, setShowNewIdea] = useState(false);
   const [newIdea, setNewIdea] = useState({ idea: '', channel: '', content_type: '', format: '', category: 'todas' });
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [editingView, setEditingView] = useState<IdeaView | null>(null);
+  const [viewForm, setViewForm] = useState({ name: '', category: '__none__', filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
 
   // Editable link fields
   const [editingLink, setEditingLink] = useState<string | null>(null);
@@ -70,6 +83,16 @@ export default function MarketingRecursos() {
       return (data || []) as Idea[];
     },
   });
+
+  const { data: views = [] } = useQuery({
+    queryKey: ['marketing-idea-views'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_idea_views' as any).select('*').order('sort_order') as any;
+      return (data || []) as IdeaView[];
+    },
+  });
+
+  const activeView = views.find(v => v.id === activeViewId) || views[0] || null;
 
   const { data: channels = [] } = useQuery({
     queryKey: ['marketing-channels'],
@@ -127,12 +150,12 @@ export default function MarketingRecursos() {
       channel: newIdea.channel || null,
       content_type: newIdea.content_type || null,
       format: newIdea.format || null,
-      category: activeTab === 'todas' ? 'todas' : activeTab,
+      category: newIdea.category && newIdea.category !== '__none__' ? newIdea.category : (activeView?.category || 'todas'),
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
     setShowNewIdea(false);
-    setNewIdea({ idea: '', channel: '', content_type: '', format: '', category: 'todas' });
+    setNewIdea({ idea: '', channel: '', content_type: '', format: '', category: '__none__' });
     toast.success('Ideia adicionada');
   };
 
@@ -141,7 +164,57 @@ export default function MarketingRecursos() {
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
   };
 
-  const filteredIdeas = activeTab === 'todas' ? ideas : ideas.filter(i => i.category === activeTab);
+  const filteredIdeas = !activeView ? ideas : ideas.filter(i => {
+    if (activeView.category && i.category !== activeView.category) return false;
+    if (activeView.filter_channel && i.channel !== activeView.filter_channel) return false;
+    if (activeView.filter_content_type && i.content_type !== activeView.filter_content_type) return false;
+    if (activeView.filter_format && i.format !== activeView.filter_format) return false;
+    return true;
+  });
+
+  // ---- Views CRUD ----
+  const openNewView = () => {
+    setEditingView(null);
+    setViewForm({ name: '', category: '__none__', filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
+    setShowViewDialog(true);
+  };
+  const openEditView = (v: IdeaView) => {
+    setEditingView(v);
+    setViewForm({
+      name: v.name,
+      category: v.category || '__none__',
+      filter_channel: v.filter_channel || '__none__',
+      filter_content_type: v.filter_content_type || '__none__',
+      filter_format: v.filter_format || '__none__',
+    });
+    setShowViewDialog(true);
+  };
+  const saveView = async () => {
+    if (!viewForm.name.trim()) return;
+    const payload = {
+      name: viewForm.name.trim(),
+      category: viewForm.category === '__none__' ? null : viewForm.category,
+      filter_channel: viewForm.filter_channel === '__none__' ? null : viewForm.filter_channel,
+      filter_content_type: viewForm.filter_content_type === '__none__' ? null : viewForm.filter_content_type,
+      filter_format: viewForm.filter_format === '__none__' ? null : viewForm.filter_format,
+    };
+    if (editingView) {
+      await supabase.from('marketing_idea_views' as any).update(payload).eq('id', editingView.id);
+    } else {
+      await supabase.from('marketing_idea_views' as any).insert({ ...payload, sort_order: views.length, created_by: user?.id });
+    }
+    qc.invalidateQueries({ queryKey: ['marketing-idea-views'] });
+    setShowViewDialog(false);
+    toast.success(editingView ? 'Vista atualizada' : 'Vista criada');
+  };
+  const deleteView = async (v: IdeaView) => {
+    if (v.is_system) { toast.error('Vistas do sistema não podem ser eliminadas'); return; }
+    if (!confirm(`Eliminar a vista "${v.name}"?`)) return;
+    const { error } = await supabase.from('marketing_idea_views' as any).delete().eq('id', v.id);
+    if (error) { toast.error('Sem permissão para eliminar'); return; }
+    qc.invalidateQueries({ queryKey: ['marketing-idea-views'] });
+    if (activeViewId === v.id) setActiveViewId(null);
+  };
 
   const fotosLink = getLink('fotos');
   const marcaLink = getLink('marca');
@@ -279,61 +352,152 @@ export default function MarketingRecursos() {
               </Button>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4">
-                {IDEA_CATEGORIES.map(c => (
-                  <TabsTrigger key={c.value} value={c.value}>{c.label}</TabsTrigger>
-                ))}
-              </TabsList>
-
-              {IDEA_CATEGORIES.map(cat => (
-                <TabsContent key={cat.value} value={cat.value}>
-                  {filteredIdeas.length === 0 ? (
-                    <EmptyHint>Nenhuma ideia nesta vista.</EmptyHint>
-                  ) : (
-                    <div className="border rounded-lg overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Ideia</TableHead>
-                            <TableHead className="w-32">Canal</TableHead>
-                            <TableHead className="w-36">Tipo de Conteúdo</TableHead>
-                            <TableHead className="w-32">Formato</TableHead>
-                            {isOwner && <TableHead className="w-10" />}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredIdeas.map(idea => (
-                            <TableRow key={idea.id}>
-                              <TableCell className="font-medium">{idea.idea}</TableCell>
-                              <TableCell>
-                                {idea.channel && <Badge variant="secondary" className="text-xs">{idea.channel}</Badge>}
-                              </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">
-                                {CONTENT_TYPE_OPTIONS.find(o => o.value === idea.content_type)?.label || idea.content_type}
-                              </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">
-                                {FORMAT_OPTIONS.find(o => o.value === idea.format)?.label || idea.format}
-                              </TableCell>
-                              {isOwner && (
-                                <TableCell>
-                                  <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteIdea(idea.id)}>
-                                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                  </Button>
-                                </TableCell>
-                              )}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              {views.map(v => (
+                <div key={v.id} className="group relative">
+                  <button
+                    onClick={() => setActiveViewId(v.id)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-md text-sm border transition-colors',
+                      (activeView?.id === v.id)
+                        ? 'bg-foreground text-background border-foreground'
+                        : 'bg-background text-foreground border-border hover:bg-muted'
+                    )}
+                  >
+                    {v.name}
+                  </button>
+                  {!v.is_system && (
+                    <div className="absolute -top-1 -right-1 hidden group-hover:flex gap-0.5">
+                      <Button variant="secondary" size="icon" aria-label="Editar vista" className="h-5 w-5 rounded-full shadow" onClick={() => openEditView(v)}>
+                        <Pencil className="h-2.5 w-2.5" />
+                      </Button>
+                      <Button variant="secondary" size="icon" aria-label="Eliminar vista" className="h-5 w-5 rounded-full shadow" onClick={() => deleteView(v)}>
+                        <X className="h-2.5 w-2.5" />
+                      </Button>
                     </div>
                   )}
-                </TabsContent>
+                </div>
               ))}
-            </Tabs>
+              <Button variant="ghost" size="sm" onClick={openNewView} className="h-8">
+                <Plus className="h-3.5 w-3.5 mr-1" />Nova vista
+              </Button>
+            </div>
+
+            {activeView && (activeView.category || activeView.filter_channel || activeView.filter_content_type || activeView.filter_format) && (
+              <div className="flex items-center gap-1 mb-3 text-xs text-muted-foreground flex-wrap">
+                <span>Filtros:</span>
+                {activeView.category && <Badge variant="outline" className="text-xs">categoria: {IDEA_CATEGORY_OPTIONS.find(o => o.value === activeView.category)?.label || activeView.category}</Badge>}
+                {activeView.filter_channel && <Badge variant="outline" className="text-xs">canal: {activeView.filter_channel}</Badge>}
+                {activeView.filter_content_type && <Badge variant="outline" className="text-xs">tipo: {CONTENT_TYPE_OPTIONS.find(o => o.value === activeView.filter_content_type)?.label || activeView.filter_content_type}</Badge>}
+                {activeView.filter_format && <Badge variant="outline" className="text-xs">formato: {FORMAT_OPTIONS.find(o => o.value === activeView.filter_format)?.label || activeView.filter_format}</Badge>}
+              </div>
+            )}
+
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ideia</TableHead>
+                    <TableHead className="w-32">Canal</TableHead>
+                    <TableHead className="w-36">Tipo de Conteúdo</TableHead>
+                    <TableHead className="w-32">Formato</TableHead>
+                    <TableHead className="w-32">Categoria</TableHead>
+                    {isOwner && <TableHead className="w-10" />}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredIdeas.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={isOwner ? 6 : 5} className="text-center text-sm text-muted-foreground py-8">
+                        Nenhuma ideia nesta vista.
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredIdeas.map(idea => (
+                    <TableRow key={idea.id}>
+                      <TableCell className="font-medium">{idea.idea}</TableCell>
+                      <TableCell>
+                        {idea.channel && <Badge variant="secondary" className="text-xs">{idea.channel}</Badge>}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {CONTENT_TYPE_OPTIONS.find(o => o.value === idea.content_type)?.label || idea.content_type}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {FORMAT_OPTIONS.find(o => o.value === idea.format)?.label || idea.format}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {IDEA_CATEGORY_OPTIONS.find(o => o.value === idea.category)?.label || idea.category || '—'}
+                      </TableCell>
+                      {isOwner && (
+                        <TableCell>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteIdea(idea.id)}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </section>
         </div>
       </div>
+
+      {/* Dialog: Nova/Editar Vista */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{editingView ? 'Editar vista' : 'Nova vista'}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome *</Label>
+              <Input value={viewForm.name} onChange={e => setViewForm(p => ({ ...p, name: e.target.value }))} placeholder="Ex.: Reels Instagram" />
+            </div>
+            <div>
+              <Label>Categoria</Label>
+              <Select value={viewForm.category} onValueChange={v => setViewForm(p => ({ ...p, category: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {IDEA_CATEGORY_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Canal (opcional)</Label>
+              <Select value={viewForm.filter_channel} onValueChange={v => setViewForm(p => ({ ...p, filter_channel: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Todos —</SelectItem>
+                  {activeChannels.map(ch => <SelectItem key={ch.id} value={ch.name}>{ch.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tipo de Conteúdo (opcional)</Label>
+              <Select value={viewForm.filter_content_type} onValueChange={v => setViewForm(p => ({ ...p, filter_content_type: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Todos —</SelectItem>
+                  {CONTENT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Formato (opcional)</Label>
+              <Select value={viewForm.filter_format} onValueChange={v => setViewForm(p => ({ ...p, filter_format: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Todos —</SelectItem>
+                  {FORMAT_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => setShowViewDialog(false)}>Cancelar</Button>
+              <Button onClick={saveView} disabled={!viewForm.name.trim()}>Guardar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog: Nova Ideia */}
       <Dialog open={showNewIdea} onOpenChange={setShowNewIdea}>
@@ -374,11 +538,11 @@ export default function MarketingRecursos() {
               </Select>
             </div>
             <div>
-              <Label>Vista</Label>
+              <Label>Categoria</Label>
               <Select value={newIdea.category} onValueChange={v => setNewIdea(p => ({ ...p, category: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {IDEA_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                  {IDEA_CATEGORY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
