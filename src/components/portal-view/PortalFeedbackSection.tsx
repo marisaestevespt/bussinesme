@@ -471,49 +471,34 @@ function NpsScale({
   onChange: (n: number) => void;
   compact?: boolean;
 }) {
+  const activeColor = (n: number) => {
+    const cat = NPS_CATEGORIES.find(c => n >= c.range[0] && n <= c.range[1]);
+    return cat?.color ?? 'hsl(var(--primary))';
+  };
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-3 gap-2">
-        {NPS_CATEGORIES.map(c => (
-          <div
-            key={c.key}
-            className="rounded-lg p-1 flex gap-0.5"
-            style={{
-              backgroundColor: c.color.replace(')', ' / 0.08)'),
-              border: `1px solid ${c.color.replace(')', ' / 0.2)')}`,
-            }}
-          >
-            {Array.from({ length: c.range[1] - c.range[0] + 1 }).map((_, idx) => {
-              const n = c.range[0] + idx;
-              const active = value === n;
-              return (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => onChange(n)}
-                  className={`flex-1 ${compact ? 'h-8 text-xs' : 'h-10 text-sm'} rounded-md font-semibold transition-all border ${
-                    active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-transparent bg-background hover:border-border'
-                  }`}
-                  style={active ? { backgroundColor: c.color } : undefined}
-                >
-                  {n}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+      <div className="flex gap-1 rounded-lg p-1 border border-border/40 bg-background">
+        {Array.from({ length: 11 }).map((_, n) => {
+          const active = value === n;
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(n)}
+              className={`flex-1 ${compact ? 'h-8 text-xs' : 'h-10 text-sm'} rounded-md font-semibold transition-all border ${
+                active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-transparent hover:border-border bg-background'
+              }`}
+              style={active ? { backgroundColor: activeColor(n) } : undefined}
+            >
+              {n}
+            </button>
+          );
+        })}
       </div>
       {!compact && (
-        <div className="grid grid-cols-3 gap-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
-          {NPS_CATEGORIES.map(c => {
-            const Icon = c.icon;
-            return (
-              <div key={c.key} className="flex items-center gap-1.5">
-                <Icon className="h-3 w-3" style={{ color: c.color }} strokeWidth={1.5} />
-                <span>{c.label}</span>
-              </div>
-            );
-          })}
+        <div className="flex justify-between text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-1">
+          <span>Nada provável</span>
+          <span>Muito provável</span>
         </div>
       )}
     </div>
