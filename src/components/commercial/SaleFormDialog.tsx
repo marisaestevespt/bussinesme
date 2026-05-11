@@ -327,7 +327,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
             onChange={docs => setForm(f => ({ ...f, documents: docs }))}
             label="Ficheiros (faturas, comprovativos, recibos)"
           />
-          <Button className="w-full" onClick={handleSave}>Guardar</Button>
+          <Button className="w-full" onClick={handleSave} variant="soft">Guardar</Button>
         </div>
       </DialogContent>
     </Dialog>
