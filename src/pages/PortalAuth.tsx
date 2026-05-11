@@ -178,7 +178,7 @@ export default function PortalAuthPage() {
       style={{ background: 'hsl(var(--background))' }}
     >
       <div
-        className="max-w-5xl w-full grid grid-cols-12 bg-white overflow-hidden"
+        className="max-w-4xl w-full grid grid-cols-12 bg-white overflow-hidden"
         style={{
           borderRadius: 4,
           border: `1px solid ${pcAlpha(0.1)}`,
@@ -187,8 +187,8 @@ export default function PortalAuthPage() {
       >
         {/* Editorial section */}
         <div
-          className="col-span-12 md:col-span-7 p-8 md:p-16 flex flex-col justify-between border-b md:border-b-0 md:border-r relative overflow-hidden"
-          style={{ borderColor: pcAlpha(0.1), minHeight: 'min(620px, 90vh)' }}
+          className="col-span-12 md:col-span-7 p-6 md:p-12 flex flex-col justify-between border-b md:border-b-0 md:border-r relative overflow-hidden"
+          style={{ borderColor: pcAlpha(0.1), minHeight: 'min(520px, 85vh)' }}
         >
           {loginBgUrl && (
             <>
@@ -202,7 +202,7 @@ export default function PortalAuthPage() {
               />
             </>
           )}
-          <div className="relative z-10 space-y-10 md:space-y-14">
+          <div className="relative z-10 space-y-8 md:space-y-10">
             <div className="flex items-center gap-4">
               {logoUrl ? (
                 <img src={logoUrl} alt={businessName || 'Logo'} className="h-7 object-contain" />
@@ -216,23 +216,23 @@ export default function PortalAuthPage() {
 
             <div className="max-w-md">
               <h1
-                className="text-5xl sm:text-6xl md:text-7xl leading-[0.9] tracking-tight mb-8"
+                className="text-4xl sm:text-5xl md:text-6xl leading-[0.9] tracking-tight mb-6"
                 style={{ color: pc, fontFamily: fontDisplay }}
               >
                 {heroDisplayName}
               </h1>
               {heroSubtitle && heroSubtitle !== heroDisplayName && (
                 <p
-                  className="text-lg md:text-xl leading-snug mb-6"
+                  className="text-base md:text-lg leading-snug mb-5"
                   style={{ color: pcAlpha(0.85), fontFamily: fontDisplay }}
                 >
                   {heroSubtitle}
                 </p>
               )}
               {heroQuote && (
-                <p className="text-sm sm:text-base leading-relaxed italic font-light" style={{ color: pcAlpha(0.75) }}>
+                <p className="text-xs sm:text-sm leading-relaxed italic font-light" style={{ color: pcAlpha(0.75) }}>
                   <span
-                    className="float-left text-5xl leading-[0.8] mr-2 mt-1 not-italic font-normal"
+                    className="float-left text-4xl leading-[0.8] mr-2 mt-1 not-italic font-normal"
                     style={{ color: pc, fontFamily: fontDisplay }}
                   >
                     {(heroQuote.trim()[0] || 'A').toUpperCase()}
@@ -257,7 +257,7 @@ export default function PortalAuthPage() {
             </div>
           </div>
 
-          <div className="relative z-10 mt-12 flex items-baseline gap-4">
+          <div className="relative z-10 mt-10 flex items-baseline gap-4">
             <span className="text-[10px] font-medium uppercase tracking-[0.2em]" style={{ color: pcAlpha(0.4) }}>
               {businessName || 'Portal'}
             </span>
@@ -270,12 +270,12 @@ export default function PortalAuthPage() {
 
         {/* Auth form section */}
         <div
-          className="col-span-12 md:col-span-5 p-8 md:p-12 flex flex-col justify-center"
+          className="col-span-12 md:col-span-5 p-6 md:p-10 flex flex-col justify-center"
           style={{ background: `linear-gradient(180deg, hsl(var(--background)) 0%, ${pcAlpha(0.04)} 100%)` }}
         >
-          <div className="max-w-xs mx-auto w-full space-y-10">
+          <div className="max-w-xs mx-auto w-full space-y-8">
             <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-medium" style={{ color: pc, fontFamily: fontDisplay }}>
+              <h2 className="text-xl sm:text-2xl font-medium" style={{ color: pc, fontFamily: fontDisplay }}>
                 {loginTitle}
               </h2>
               <p className="text-xs leading-relaxed" style={{ color: pcAlpha(0.6) }}>
