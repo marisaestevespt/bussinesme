@@ -14,7 +14,7 @@ import { pt } from 'date-fns/locale';
 import {
   FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare,
   MessageSquare, Star, Send, ClipboardList, Clock, History,
-  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users
+  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Check, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
