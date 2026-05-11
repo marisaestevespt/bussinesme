@@ -51,16 +51,11 @@ function greetingText() {
   return 'Boa noite';
 }
 
-const DAILY_QUOTES = [
-  'O problema nunca foi a pessoa — foi o que não existia antes dela chegar.',
-  'Sem processos documentados, qualquer pessoa vai falhar.',
-  'Delegar não é largar. É preparar o terreno antes.',
-  'A clareza vem antes da execução.',
-  'O que se mede, melhora. O que se documenta, escala.',
-];
-function quoteOfTheDay() {
-  const idx = new Date().getDate() % DAILY_QUOTES.length;
-  return DAILY_QUOTES[idx];
+const FALLBACK_QUOTE = 'Define a missão, visão e proposta de valor em Definições → Marca.';
+function pickQuote(quotes: string[]) {
+  if (!quotes.length) return FALLBACK_QUOTE;
+  const idx = new Date().getDate() % quotes.length;
+  return quotes[idx];
 }
 
 // ─── Analog Clock ──────────────────────────────────────────────────
@@ -188,6 +183,24 @@ export default function HubEquipaPage() {
   const firstName = profile?.full_name?.split(' ')[0] || '';
   const todayLabel = format(new Date(), "EEEE, d 'de' MMMM", { locale: pt });
 
+  const { data: brand } = useQuery({
+    queryKey: ['business-settings-brand-quotes'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('business_settings')
+        .select('mission, vision, proposta_unica_valor')
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const brandQuotes = [
+    (brand as any)?.mission,
+    (brand as any)?.vision,
+    (brand as any)?.proposta_unica_valor,
+  ].map(s => (s || '').trim()).filter(Boolean);
+  const heroQuote = pickQuote(brandQuotes);
+
   return (
     <AppLayout>
       {/* Editorial hero — compact */}
@@ -209,7 +222,7 @@ export default function HubEquipaPage() {
           </div>
           <div className="sm:col-span-4 flex items-center justify-end gap-4">
             <SpeechBubble variant="gold" tail="bottom-right" className="max-w-[220px] text-right !text-xs !py-2 !px-3 hidden sm:inline-block">
-              {quoteOfTheDay()}
+              {heroQuote}
             </SpeechBubble>
             <AnalogClock />
           </div>
