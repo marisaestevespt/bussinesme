@@ -967,7 +967,7 @@ export default function ProdutoDetailPage() {
                 <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
               )}
               {!isNew && id && (
-                <ProductProjectsSection productId={id} productName={form.name || ''} />
+                <ProductProjectsSection productId={id} productName={form.name || ''} mode="client" />
               )}
               {!isNew && id && (
                 <ProductMetricsTab productId={id} productName={form.name || ''} isOwner={isOwner} />
@@ -1088,6 +1088,9 @@ export default function ProdutoDetailPage() {
                 productId={id!}
                 onUpdateField={(field, value) => update(field, value)}
               />
+              {!isNew && id && (
+                <ProductProjectsSection productId={id} productName={form.name || ''} mode="internal" />
+              )}
             </div>
           )}
 
