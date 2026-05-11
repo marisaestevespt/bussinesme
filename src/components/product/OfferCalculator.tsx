@@ -134,100 +134,119 @@ function CostRow({ cost, members, isOwner, onUpdate, onDelete }: {
   };
 
   return (
-    <TableRow>
-      <TableCell className="py-2">
-        <Input
-          value={local.cost_name || ''}
-          onChange={e => set('cost_name', e.target.value)}
-          placeholder="Ex: Adobe Creative Cloud"
-          className="border-none shadow-none h-auto p-0 text-sm font-medium"
-          readOnly={!isOwner}
-          aria-label="Nome do custo"
-        />
-        <Input
-          value={local.usage_desc || ''}
-          onChange={e => set('usage_desc', e.target.value)}
-          placeholder="Descrição/utilização"
-          className="border-none shadow-none h-auto p-0 text-sm text-foreground/70"
-          readOnly={!isOwner}
-          aria-label="Descrição"
-        />
-      </TableCell>
-
-      {/* Valor / Horas */}
-      <TableCell className="py-2 w-[180px]">
-        {local.cost_type === 'horas' ? (
-          <div className="flex gap-1 items-center">
-            <Input type="number" placeholder="Horas"
-              value={local.hours ?? ''}
-              onChange={e => set('hours', e.target.value === '' ? null : Number(e.target.value))}
-              className="h-7 text-xs w-16" readOnly={!isOwner} aria-label="Horas" />
-            <span className="text-sm text-foreground/70">×</span>
-            <Input type="number" placeholder="€/h"
-              value={local.hourly_rate ?? ''}
-              onChange={e => set('hourly_rate', e.target.value === '' ? null : Number(e.target.value))}
-              className="h-7 text-xs w-16" readOnly={!isOwner} aria-label="Custo por hora" />
+    <div className="rounded-md border bg-background hover:border-primary/30 transition-colors p-4 space-y-3">
+      {/* Linha 1: Nome + Descrição + ações */}
+      <div className="flex items-start gap-3">
+        <div className="flex-1 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+          <div className="space-y-1">
+            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Nome</Label>
+            <Input
+              value={local.cost_name || ''}
+              onChange={e => set('cost_name', e.target.value)}
+              placeholder="Ex: Adobe Creative Cloud"
+              className="h-9 text-sm font-medium"
+              readOnly={!isOwner}
+              aria-label="Nome do custo"
+            />
           </div>
-        ) : (
-          <div className="flex gap-1 items-center">
-            <Input type="number" placeholder="0"
-              value={local.cost_value ?? ''}
-              onChange={e => set('cost_value', e.target.value === '' ? null : Number(e.target.value))}
-              className="h-7 text-xs w-24" readOnly={!isOwner} aria-label="Valor em euros" />
-            <span className="text-sm text-foreground/70">€</span>
-            {local.cost_type === 'recorrente' && isOwner && (
-              <Select value={local.recurrence || 'mensal'} onValueChange={v => set('recurrence', v as Recurrence)}>
-                <SelectTrigger className="h-7 text-xs w-[80px]" aria-label="Recorrência"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mensal">/mês</SelectItem>
-                  <SelectItem value="anual">/ano</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
+          <div className="space-y-1">
+            <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Descrição / utilização</Label>
+            <Input
+              value={local.usage_desc || ''}
+              onChange={e => set('usage_desc', e.target.value)}
+              placeholder="Para que serve neste produto"
+              className="h-9 text-sm"
+              readOnly={!isOwner}
+              aria-label="Descrição"
+            />
           </div>
-        )}
-      </TableCell>
-
-      {/* Membro (só horas) */}
-      <TableCell className="py-2 w-[160px]">
-        {local.cost_type === 'horas' && isOwner ? (
-          <Select
-            value={local.member_id || 'none'}
-            onValueChange={v => {
-              if (v === 'none') { set('member_id', null); return; }
-              const m = members.find(mm => mm.id === v);
-              setLocal(p => ({ ...p, member_id: v, hourly_rate: m?.hourly_cost ?? p.hourly_rate }));
-              setDirty(true);
-            }}
-          >
-            <SelectTrigger className="h-7 text-xs" aria-label="Membro responsável"><SelectValue placeholder="Membro" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">— Genérico —</SelectItem>
-              {members.map(m => (
-                <SelectItem key={m.id} value={m.id}>{m.full_name}{m.hourly_cost ? ` (${formatEuro(m.hourly_cost)}/h)` : ''}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <span className="text-sm text-foreground/70">—</span>
-        )}
-      </TableCell>
-
-      {isOwner && (
-        <TableCell className="py-2 w-[80px]">
-          <div className="flex gap-1 justify-end">
+        </div>
+        {isOwner && (
+          <div className="flex gap-1 pt-5 shrink-0">
             {dirty && (
-              <Button variant="ghost" aria-label="Confirmar alterações" size="icon" className="h-7 w-7 text-success hover:text-success" onClick={save}>
-                <Check className="h-3.5 w-3.5" />
+              <Button variant="default" aria-label="Guardar" size="icon" className="h-9 w-9" onClick={save}>
+                <Check className="h-4 w-4" />
               </Button>
             )}
-            <Button variant="ghost" aria-label="Eliminar custo" size="icon" className="h-7 w-7" onClick={() => onDelete(cost.id)}>
-              <Trash2 className="h-3 w-3" />
+            <Button variant="ghost" aria-label="Eliminar custo" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => onDelete(cost.id)}>
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </TableCell>
-      )}
-    </TableRow>
+        )}
+      </div>
+
+      {/* Linha 2: valores específicos */}
+      <div className="flex flex-wrap gap-3">
+        {local.cost_type === 'horas' ? (
+          <>
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Horas</Label>
+              <Input type="number" placeholder="0"
+                value={local.hours ?? ''}
+                onChange={e => set('hours', e.target.value === '' ? null : Number(e.target.value))}
+                className="h-9 text-sm w-24" readOnly={!isOwner} aria-label="Horas" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">€ / hora</Label>
+              <Input type="number" placeholder="0"
+                value={local.hourly_rate ?? ''}
+                onChange={e => set('hourly_rate', e.target.value === '' ? null : Number(e.target.value))}
+                className="h-9 text-sm w-28" readOnly={!isOwner} aria-label="Custo por hora" />
+            </div>
+            <div className="space-y-1 flex-1 min-w-[180px]">
+              <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Membro</Label>
+              {isOwner ? (
+                <Select
+                  value={local.member_id || 'none'}
+                  onValueChange={v => {
+                    if (v === 'none') { set('member_id', null); return; }
+                    const m = members.find(mm => mm.id === v);
+                    setLocal(p => ({ ...p, member_id: v, hourly_rate: m?.hourly_cost ?? p.hourly_rate }));
+                    setDirty(true);
+                  }}
+                >
+                  <SelectTrigger className="h-9 text-sm" aria-label="Membro responsável"><SelectValue placeholder="Genérico" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Genérico —</SelectItem>
+                    {members.map(m => (
+                      <SelectItem key={m.id} value={m.id}>{m.full_name}{m.hourly_cost ? ` (${formatEuro(m.hourly_cost)}/h)` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="h-9 flex items-center text-sm text-muted-foreground">—</div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Valor (€)</Label>
+              <Input type="number" placeholder="0"
+                value={local.cost_value ?? ''}
+                onChange={e => set('cost_value', e.target.value === '' ? null : Number(e.target.value))}
+                className="h-9 text-sm w-32" readOnly={!isOwner} aria-label="Valor em euros" />
+            </div>
+            {local.cost_type === 'recorrente' && (
+              <div className="space-y-1">
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Recorrência</Label>
+                {isOwner ? (
+                  <Select value={local.recurrence || 'mensal'} onValueChange={v => set('recurrence', v as Recurrence)}>
+                    <SelectTrigger className="h-9 text-sm w-[120px]" aria-label="Recorrência"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mensal">Mensal</SelectItem>
+                      <SelectItem value="anual">Anual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="h-9 flex items-center text-sm">{local.recurrence === 'anual' ? 'Anual' : 'Mensal'}</div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -251,42 +270,40 @@ function CostGroup({ type, costs, scenario, members, isOwner, onAdd, onUpdate, o
   );
 
   return (
-    <div className="rounded-lg border bg-card">
-      <div className="flex items-center justify-between p-3 border-b">
-        <div className="flex items-center gap-2">
-          <Icon className={cn('h-4 w-4', meta.color)} />
-          <div>
-            <p className="text-sm font-medium">{meta.label}</p>
-            <p className="text-sm text-foreground/70">{meta.desc}</p>
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-muted/30">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={cn('h-9 w-9 rounded-md flex items-center justify-center bg-background border')}>
+            <Icon className={cn('h-4 w-4', meta.color)} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-tight">{meta.label}</p>
+            <p className="text-xs text-muted-foreground leading-tight mt-0.5">{meta.desc}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-foreground/70">por unidade:</span>
-          <span className="font-semibold text-sm">{formatEuro(groupTotal)}</span>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">por unidade</p>
+            <p className="text-sm font-bold text-foreground mt-0.5">{formatEuro(groupTotal)}</p>
+          </div>
           {isOwner && (
-            <Button size="sm" variant="outline" onClick={() => onAdd(type)} className="h-7">
-              <Plus className="h-3 w-3 mr-1" /> Adicionar
+            <Button size="sm" variant="outline" onClick={() => onAdd(type)} className="h-8">
+              <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
             </Button>
           )}
         </div>
       </div>
-      {groupCosts.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome / Descrição</TableHead>
-              <TableHead className="w-[180px]">Valor</TableHead>
-              <TableHead className="w-[160px]">{type === 'horas' ? 'Membro' : ''}</TableHead>
-              {isOwner && <TableHead className="w-[80px]" />}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {groupCosts.map(c => (
-              <CostRow key={c.id} cost={c} members={members} isOwner={isOwner} onUpdate={onUpdate} onDelete={onDelete} />
-            ))}
-          </TableBody>
-        </Table>
-      )}
+      <div className="p-3 space-y-2">
+        {groupCosts.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">
+            Sem custos {meta.label.toLowerCase()} — clica em "Adicionar" para criar o primeiro.
+          </p>
+        ) : (
+          groupCosts.map(c => (
+            <CostRow key={c.id} cost={c} members={members} isOwner={isOwner} onUpdate={onUpdate} onDelete={onDelete} />
+          ))
+        )}
+      </div>
     </div>
   );
 }
