@@ -2,22 +2,20 @@ import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { Briefcase, FileText, FolderOpen, Download, CheckCircle2, Circle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
 import { isPhaseDone, phaseProgress } from '@/lib/projectProgress';
-import type { PortalPhase, PortalMaterial, PortalFaq } from '@/types/portal';
+import type { PortalPhase, PortalMaterial } from '@/types/portal';
 
 interface Props {
   phases: PortalPhase[];
   client: Record<string, any>;
   portalMaterials: PortalMaterial[];
   tasks: Array<Record<string, any>>;
-  faqs: PortalFaq[];
   pc: string;
   pcAlpha: (a: number) => string;
 }
 
-export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, faqs, pc, pcAlpha }: Props) {
+export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha }: Props) {
   const total = phases.length;
   const done = phases.filter(isPhaseDone).length;
   const pct = phaseProgress(phases);
@@ -155,23 +153,6 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
         )}
       </SectionCard>
 
-      <SectionCard className="p-5">
-        <p className="text-sm font-semibold mb-3">❓ Perguntas Frequentes</p>
-        {faqs.length > 0 ? (
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((f) => (
-              <AccordionItem key={f.id} value={f.id} className="border-border/30">
-                <AccordionTrigger className="text-sm font-medium hover:no-underline py-4">{f.question}</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
-                  {f.answer || 'Resposta em breve.'}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        ) : (
-          <p className="text-sm text-muted-foreground">Ainda sem perguntas frequentes.</p>
-        )}
-      </SectionCard>
     </div>
   );
 }
