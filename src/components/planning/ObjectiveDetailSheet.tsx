@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip as InfoTooltip, TooltipContent as InfoTooltipContent, TooltipProvider as InfoTooltipProvider, TooltipTrigger as InfoTooltipTrigger } from '@/components/ui/tooltip';
 import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
@@ -214,16 +214,16 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                 )}
                 <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
                 {obj.contribui_visao_5_anos && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+                  <InfoTooltipProvider>
+                    <InfoTooltip>
+                      <InfoTooltipTrigger asChild>
                         <Badge className="gap-1 bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15">
                           <Sparkles className="h-3 w-3" /> Visão 5 anos
                         </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>Este objetivo contribui para a tua visão a 5 anos.</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                      </InfoTooltipTrigger>
+                      <InfoTooltipContent>Este objetivo contribui para a tua visão a 5 anos.</InfoTooltipContent>
+                    </InfoTooltip>
+                  </InfoTooltipProvider>
                 )}
               </div>
             </>
