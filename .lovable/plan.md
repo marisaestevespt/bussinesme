@@ -1,70 +1,61 @@
-# Redesenhar /executive/planeamento
+# Recolhas configuráveis por produto + Timeline no portal
 
-## Objetivo
-Tirar a "Cascata Estratégico → Tático → Operacional" como protagonista da página e substituir por uma estrutura **por horizonte temporal** com **dashboard de progresso** e edição em **painel lateral**. A parte estratégica (Identidade, SWOT, Diretrizes 3-5 anos) **fica no topo, colapsada** por defeito.
+## Conceito
 
-## O que muda visualmente
+A tabela atual de NPS dentro do produto (Customer Success) passa a ser **"Recolhas de feedback"** — cada linha define uma recolha agendada com:
 
-```text
-/executive/planeamento  (ano em destaque)
-├── 🧭 Estratégia (3-5 anos)       ← acordeão fechado por defeito
-│     Identidade · SWOT · Diretrizes (já existente, embebido)
-│
-├── 📊 Pulse do ano                 ← cards de KPI no topo (mantém)
-│     Objetivos · Progresso médio · Metas atingidas · Cobertura · Desvios
-│
-├── 🗓️ Horizontes do ano            ← NOVO — substitui a cascata
-│     ┌─────────┬─────────┬─────────┬─────────┐
-│     │   T1    │   T2    │   T3    │   T4    │  cards trimestrais com %
-│     └─────────┴─────────┴─────────┴─────────┘
-│     Cada T abre uma faixa com 3 mini-cards (meses) — % e nº de metas
-│
-├── 🎯 Objetivos anuais             ← NOVO — lista visível, editável
-│     Tabela/cards com: título, área, progresso, status, próximo marco
-│     Botão "+ Novo objetivo" → abre Sheet
-│     Clicar num objetivo → abre Sheet de detalhe (já existe)
-│
-└── 🧩 Cobertura por área           ← mantém (já bom)
-      Grid 8 áreas com % e alertas
-```
+- **Tipo**: `nps` (só score 0–10) ou `feedback` (perguntas + NPS final)
+- **Quando**: dias após início, mês X, ou data fixa (mantém lógica atual)
+- **Perguntas** (só se tipo=feedback): lista configurável
 
-## Mudanças por ficheiro
+O cron diário continua a materializar os registos `por_fazer` por cliente. Na aba **"A tua opinião"** do portal, o cliente vê **toda a sua jornada de recolhas** (passadas preenchidas + atuais por preencher + futuras agendadas só visualmente) e preenche as devidas.
 
-### `src/components/planning/PlanningOverviewView.tsx` (refazer)
-- **Remover** o bloco "Cascata de Planeamento" com 3 botões coloridos (Estratégico/Tático/Operacional).
-- **Adicionar** novo bloco `HorizonsView`:
-  - 4 cards trimestrais (T1–T4) com % média de progresso das metas desse trimestre, nº de metas e estado (em curso / atingido / atrasado).
-  - Cada T expansível para mostrar os 3 meses → cada mês com link para `/executive/planeamento/operacional?ano=Y&mes=M`.
-- **Manter** o bloco "Cobertura por Área" tal como está.
+## Schema (migrações)
 
-### `src/components/planning/AnnualObjectivesBoard.tsx` (NOVO)
-- Lista todos os objetivos do ano em cards/linhas com inline progress bar.
-- Botão "+ Novo objetivo" abre `ObjectiveDetailSheet` em modo create.
-- Clicar abre o `ObjectiveDetailSheet` existente em modo edit.
-- Filtros simples: por área, por status.
+### 1. `client_nps_records` ganha `kind` e `responses`
+- `kind text not null default 'nps'` — `'nps' | 'feedback'`
+- `responses jsonb` — respostas às perguntas quando `kind='feedback'` (formato `[{question, answer}]`)
+- A coluna `nps_score` continua opcional na tabela mas obrigatória no submit (mesmo no feedback final).
 
-### `src/pages/ExecutivePlaneamento.tsx`
-- Acima do Pulse, **novo** acordeão "Estratégia (3-5 anos)" — `<Collapsible defaultOpen={false}>` que embebe `<StrategicSection />`.
-- Manter Pulse cards.
-- Substituir o conteúdo abaixo: `HorizonsView` → `AnnualObjectivesBoard` → `AreaCoverage`.
-- Manter os links discretos para `/executive/planeamento/estrategico|tatico|operacional` (passam a ser "Ver detalhe" no canto de cada secção, em vez de protagonistas).
+### 2. Config no produto
+Verificar a tabela atual que define a cadência (provavelmente `product_nps_schedule` ou similar — confirmar no migrations). Adicionar:
+- `kind text not null default 'nps'`
+- `questions jsonb` — array de perguntas (`[{id, text, required}]`); só aplicável se `kind='feedback'`
+- `title text` — título amigável (ex: "Pulse 30 dias", "Feedback final")
 
-### `src/components/planning/ObjectiveDetailSheet.tsx`
-- Já existe e usa Sheet. Garantir que abre com `id=null` para criar (verificar e expor um modo "novo").
+O cron de geração lê `kind` e `questions` e copia para o registo gerado em `client_nps_records`.
 
-## Dados (sem migração)
-- Tudo já está em `usePlanningData(year)`: `allObjectives`, `allGoals`, `objectiveProgress`.
-- Trimestres derivam-se filtrando `goals` por `period ∈ {Q1..Q4, T1..T4}` ou pelos meses Jan-Mar/Abr-Jun/etc.
-- Sem alterações de schema.
+## Backend (RPCs)
+
+### Atualizar
+- `portal_get_pending_nps` → renomear semanticamente para `portal_get_recolhas`. Devolve **todas** as recolhas do cliente (qualquer status), com `kind`, `questions`, `expected_date`, `actual_date`, `status`, `nps_score`, `responses`, `title`, `product_name`. Ordenado por `expected_date` asc.
+- `portal_submit_nps` → aceita `_responses jsonb default null`. Valida que se o registo é `kind='feedback'` as `responses` cobrem perguntas required.
+- Remover `portal_submit_proactive_nps` (criada na iteração anterior — já não faz sentido com a cadência configurada).
+
+## Frontend
+
+### Produto › Customer Success (`/hub/produtos/:id`)
+A tab atual de NPS passa a chamar-se **"Recolhas de Feedback"**. Cada linha permite:
+- Selecionar tipo (NPS / Feedback)
+- Definir título e quando (lógica existente)
+- Se Feedback: editor inline de perguntas (add/remove/reorder, marca required)
+
+### Portal › "A tua opinião" (`PortalFeedbackSection.tsx`)
+Layout em 3 grupos (timeline vertical):
+
+1. **Por preencher** (em destaque, no topo) — cards expansíveis. Para `kind=nps` mostra escala 0–10 + nota. Para `kind=feedback` mostra perguntas + escala final.
+2. **Já preenchidas** — resumo compacto (data, score, kind, link para ver respostas).
+3. **Próximas agendadas** — lista cinzenta read-only com data prevista e tipo (cliente vê o roadmap mas não preenche).
+
+A secção de **feedback livre** (Elogio/Sugestão/Problema/Outro) mantém-se em baixo, sempre disponível — é independente das recolhas estruturadas.
 
 ## Detalhes técnicos
-- Acordeão estratégico: `<Collapsible>` do shadcn, fechado por defeito; chevron + label "Estratégia 3-5 anos · clica para abrir".
-- Cards trimestrais: grid `lg:grid-cols-4`, cada card com header (T1 · Jan-Mar), `<Progress>` e badge de status. Click expande inline (não navega).
-- `AnnualObjectivesBoard`: usa `<Card>` com tabela de cards verticais (não tabela HTML densa) — alinhado com estética matte ceramic.
-- Sheet de edição: reutiliza o `ObjectiveDetailSheet` já existente (sem novo componente).
-- Sem mudanças nas sub-páginas `/estrategico`, `/tatico`, `/operacional` — passam a ser navegação secundária acessível por links discretos.
 
-## Fora de scope
-- Não mexer nas sub-páginas estratégico/tático/operacional (continuam acessíveis).
-- Sem mudanças de DB.
-- Sem mudanças no `usePlanningData`.
+- O `submitNps` no `PortalView.tsx` aceita `responses?: Array<{question, answer}>` e envia ao RPC.
+- Tipos novos em `src/types/portal.ts`: `PortalRecolha` substitui `PortalNpsPending`/`PortalNpsHistory`.
+- Reverter a função SQL `portal_submit_proactive_nps` (drop) e o respetivo branch no `submitNps`.
+- O cron existente que cria registos NPS passa a copiar `kind`, `questions` e `title` da config.
+
+## Fora de scope (próxima iteração)
+- Dashboard agregado de respostas de feedback na aba de cliente (já existe vista NPS, é só estender com `kind` filter).
+- Templates de perguntas reutilizáveis entre produtos.
