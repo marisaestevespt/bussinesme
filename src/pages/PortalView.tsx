@@ -618,26 +618,32 @@ export default function PortalViewPage() {
                         const dels = phase.deliverables || [];
                         const done = isPhaseComplete(phase);
                         const completedDels = dels.filter(isDeliverableDone).length;
+                        const ear = String(i + 1).padStart(2, '0');
                         return (
-                          <div
-                            key={phase.id}
-                            className={`flex-1 min-w-[100px] rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
-                              done ? 'border-border/20 bg-muted/40 opacity-60' : 'border-border/40 bg-white hover:shadow-md'
-                            }`}
-                            onClick={() => setExpandedOnbStep(phase.id)}
-                          >
-                            <div className="p-4 flex flex-col items-center text-center">
-                              <span className="eyebrow font-medium text-muted-foreground">Fase</span>
-                              <span className="text-3xl font-black mt-0.5" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc }}>
-                                {i + 1}
-                              </span>
-                              <p className={`text-xs font-medium mt-1.5 line-clamp-2 ${done ? 'text-muted-foreground' : ''}`}>{phase.name || 'Sem nome'}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{dels.length} entregas</p>
-                              <div className="mt-2 flex items-center gap-2">
+                          <div key={phase.id} className="relative flex-1 min-w-[120px]">
+                            <div
+                              className="absolute -top-2 -left-1 z-10 px-2 py-0.5 text-[10px] uppercase tracking-widest rounded-sm shadow-sm"
+                              style={{ backgroundColor: done ? 'hsl(var(--muted-foreground))' : pc, color: '#fff' }}
+                            >
+                              {ear}
+                            </div>
+                            <div
+                              onClick={() => setExpandedOnbStep(phase.id)}
+                              className={`rounded-md border-2 transition-colors cursor-pointer p-4 ${done ? 'opacity-60' : ''}`}
+                              style={{ borderColor: done ? 'hsl(var(--border))' : pcAlpha(0.3), backgroundColor: 'hsl(var(--card))' }}
+                              onMouseEnter={(e) => { if (!done) e.currentTarget.style.borderColor = pc; }}
+                              onMouseLeave={(e) => { if (!done) e.currentTarget.style.borderColor = pcAlpha(0.3); }}
+                            >
+                              <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1">Fase</div>
+                              <p className="text-sm leading-tight line-clamp-2 mb-3" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif', fontSize: '1.05rem' }}>
+                                {phase.name || 'Sem nome'}
+                              </p>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] text-muted-foreground">{completedDels}/{dels.length} entregas</span>
                                 {done ? (
                                   <CheckCircle2 className="h-4 w-4 text-success" />
                                 ) : (
-                                  <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                  <div className="flex-1 max-w-[60px] h-1 rounded-full overflow-hidden" style={{ background: pcAlpha(0.1) }}>
                                     <div className="h-full rounded-full transition-all" style={{ width: `${dels.length ? (completedDels / dels.length) * 100 : 0}%`, backgroundColor: pc }} />
                                   </div>
                                 )}
