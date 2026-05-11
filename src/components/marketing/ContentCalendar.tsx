@@ -90,8 +90,13 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
       )}
       <div className="p-1.5 flex flex-col items-start gap-1">
         {/* Título + hora (estilo Notion: título destacado em cima) */}
-        <div className="flex items-start justify-between gap-1">
-          <p className="text-xs font-semibold leading-tight text-foreground line-clamp-2">{item.title}</p>
+        <div className="flex items-start justify-between gap-1 w-full">
+          <p
+            title={item.title}
+            className="text-[11px] font-semibold leading-snug text-foreground line-clamp-3 break-words min-w-0 flex-1"
+          >
+            {item.title}
+          </p>
           {time && <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
         </div>
         {/* Status pill (estilo Notion: pequeno, com bolinha e à esquerda) */}
