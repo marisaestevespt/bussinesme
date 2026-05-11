@@ -65,39 +65,45 @@ export function CommercialOverview() {
   return (
     <div className="space-y-6">
       {/* Summary stats — editorial ceramic style */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 items-stretch">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 items-stretch">
         <StatCard
           tone="primary"
+          size="sm"
           value={`€${formatNumber(data.annualGoalAmount)}`}
           label={<><Target className="h-3 w-3 inline mr-1.5 -mt-0.5" />meta anual</>}
           hint={`para ${data.year}`}
         />
         <StatCard
           tone="gold"
+          size="sm"
           value={`€${formatNumber(data.totalInvoiced)}`}
           label={<><Wallet className="h-3 w-3 inline mr-1.5 -mt-0.5" />total faturado</>}
           hint={`${data.progressPct.toFixed(1)}% da meta`}
         />
         <StatCard
           tone="success"
+          size="sm"
           value={`${data.progressPct.toFixed(0)}%`}
           label={<><TrendingUp className="h-3 w-3 inline mr-1.5 -mt-0.5" />progresso anual</>}
           hint={`faltam €${formatNumber(remaining)}`}
         />
         <StatCard
           tone="mocha"
+          size="sm"
           value={`€${formatNumber(data.currentMonthTotal)}`}
           label={<><CalendarDays className="h-3 w-3 inline mr-1.5 -mt-0.5" />faturado este mês</>}
           hint="mês corrente"
         />
         <StatCard
           tone="violet"
+          size="sm"
           value={topProduct && topProduct.total > 0 ? topProduct.name : '—'}
           label={<><Package className="h-3 w-3 inline mr-1.5 -mt-0.5" />top produto</>}
           hint={topProduct && topProduct.total > 0 ? `€${formatNumber(topProduct.total)}` : 'sem vendas registadas'}
         />
         <StatCard
           tone="info"
+          size="sm"
           onClick={() => navigate('/hub/comercial/crm')}
           value={activeLeadsCount}
           label={<><Users className="h-3 w-3 inline mr-1.5 -mt-0.5" />leads ativas</>}

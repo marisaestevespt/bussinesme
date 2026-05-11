@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, Scale, Percent, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
+import { StatCard } from '@/components/editorial';
 
 interface SummaryProps {
   totalEntradas: number;
@@ -13,13 +14,13 @@ interface SummaryProps {
 
 export function SummaryCards({ totalEntradas, totalSaidas, resultado, margem, avgEntradas, avgSaidas }: SummaryProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas (s/ IVA)</p><p className="text-lg sm:text-xl font-bold text-success">{formatEuro(totalEntradas)}</p></CardContent></Card>
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas (s/ IVA)</p><p className="text-lg sm:text-xl font-bold text-destructive">{formatEuro(totalSaidas)}</p></CardContent></Card>
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(resultado)}</p></CardContent></Card>
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Margem</p><p className={`text-lg sm:text-xl font-bold ${margem >= 0 ? 'text-success' : 'text-destructive'}`}>{margem}%</p></CardContent></Card>
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-lg sm:text-xl font-bold">{formatEuro(avgEntradas)}</p></CardContent></Card>
-      <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-lg sm:text-xl font-bold">{formatEuro(avgSaidas)}</p></CardContent></Card>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+      <StatCard tone="success" size="sm" value={formatEuro(totalEntradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />entradas (s/ IVA)</>} />
+      <StatCard tone="destructive" size="sm" value={formatEuro(totalSaidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />saídas (s/ IVA)</>} />
+      <StatCard tone={resultado >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(resultado)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />resultado</>} />
+      <StatCard tone={margem >= 0 ? 'gold' : 'destructive'} size="sm" value={`${margem}%`} label={<><Percent className="h-3 w-3 inline mr-1.5 -mt-0.5" />margem</>} />
+      <StatCard tone="mocha" size="sm" value={formatEuro(avgEntradas)} label={<><BarChart3 className="h-3 w-3 inline mr-1.5 -mt-0.5" />média mensal ent.</>} />
+      <StatCard tone="muted" size="sm" value={formatEuro(avgSaidas)} label={<><BarChart3 className="h-3 w-3 inline mr-1.5 -mt-0.5" />média mensal saí.</>} />
     </div>
   );
 }
