@@ -120,19 +120,6 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
     enabled: !!(productId || productName),
   });
 
-  const { data: milestones = [] } = useQuery({
-    queryKey: ['product-metrics-milestones', productId, productName],
-    queryFn: async () => {
-      const { data } = await supabase.from('client_milestones')
-        .select('*, clients!client_milestones_client_id_fkey(full_name, current_product, current_product_id, id)')
-        .order('expected_date');
-      return (data || []).filter((m: any) =>
-        productId ? m.clients?.current_product_id === productId : m.clients?.current_product === productName
-      ) as any[];
-    },
-    enabled: !!(productId || productName),
-  });
-
   const { data: kpis = [] } = useQuery({
     queryKey: ['product-kpis', productId],
     queryFn: async () => {
@@ -345,19 +332,18 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
       const clientNps = latestNpsByClient.get(c.id);
       const lastNpsDate = npsRecords.find(n => n.clients?.id === c.id && n.nps_score != null)?.actual_date;
       const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
-      const overdueMilestones = milestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
 
       let color: HealthColor = 'green';
       if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) color = 'red';
-      else if (daysSinceNps > 90 || overdueMilestones.length > 0) color = 'yellow';
+      else if (daysSinceNps > 90) color = 'yellow';
 
       return { client: c, color, endCycleDays, lastNps: clientNps ?? null, lastNpsDate };
     }).sort((a, b) => {
       const order: Record<HealthColor, number> = { red: 0, yellow: 1, green: 2 };
       return order[a.color] - order[b.color];
     });
-  }, [activeClients, latestNpsByClient, npsRecords, milestones, today]);
+  }, [activeClients, latestNpsByClient, npsRecords, today]);
 
   const HEALTH_STYLES: Record<HealthColor, string> = {
     green: 'bg-success',
