@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown, Check, Package, RefreshCw, ShoppingBag, Clock as ClockIcon } from 'lucide-react';
+import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown, Check, Package, RefreshCw, ShoppingBag, Clock as ClockIcon, Coins } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -581,10 +581,19 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
   return (
     <div className="space-y-4">
+      {/* Header: matches VariablesWizard for visual consistency */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Custos &amp; Margens da Oferta</h3>
+        </div>
+        <p className="text-[11px] text-muted-foreground">Define os custos internos e a margem para gerar mín / sugerido / máx.</p>
+      </div>
+
       {/* ── Configuração do cenário ── */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
+        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
+        <CardContent className="space-y-4 px-4 pb-4">
           {/* Perfil fiscal — vem das Definições e não é editável aqui */}
           {fiscalFromSettings ? (
             <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-3">
@@ -651,8 +660,8 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Breakdown ── */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
+        <CardContent className="space-y-3 px-4 pb-4">
           {totalPerUnit === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Adiciona custos e define vendas estimadas para veres o breakdown.</p>
           ) : (
@@ -763,8 +772,8 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Testar preço ── */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
+        <CardContent className="space-y-3 px-4 pb-4">
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1">
               <Label className="text-sm text-foreground/70">Preço de venda (s/ IVA)</Label>
