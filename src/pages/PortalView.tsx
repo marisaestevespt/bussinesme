@@ -93,7 +93,7 @@ export default function PortalViewPage() {
     setLoading(true);
 
     try {
-      const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
+      const rpcAny = (f: string, a: unknown) => (supabase.rpc as unknown as (fn: string, args: unknown) => Promise<{ data: unknown; error: unknown }>)(f, a);
       const portalData = await resolvePublicPortal(token, (fn, args) => rpcAny(fn, args));
       if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
 
