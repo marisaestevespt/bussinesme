@@ -379,14 +379,14 @@ function RecolhaDialog({
                     {q.text}
                     {q.required && <span className="text-destructive ml-1">*</span>}
                   </label>
-                  <Textarea
-                    rows={3}
+                  <AutoTextarea
                     value={answers[i] || ''}
-                    onChange={e => {
+                    onChange={(v) => {
                       const next = [...answers];
-                      next[i] = e.target.value;
+                      next[i] = v;
                       setAnswers(next);
                     }}
+                    placeholder="A tua resposta…"
                     className="rounded-lg border-border/40 bg-background text-sm"
                   />
                 </div>
@@ -435,10 +435,9 @@ function RecolhaDialog({
                         <label className="text-[11px] font-medium text-destructive">
                           O que correu menos bem em "{c.label}"? <span>*</span>
                         </label>
-                        <Textarea
-                          rows={2}
+                        <AutoTextarea
                           value={catComments[c.key] || ''}
-                          onChange={e => setCatComments(prev => ({ ...prev, [c.key]: e.target.value }))}
+                          onChange={(v) => setCatComments(prev => ({ ...prev, [c.key]: v }))}
                           placeholder="Ajuda-nos a melhorar..."
                           className="rounded-lg border-border/40 bg-background text-sm"
                         />
@@ -457,16 +456,17 @@ function RecolhaDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Comentário geral (opcional)</label>
-            <Textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Queres deixar um comentário?"
-              rows={3}
-              className="rounded-lg border-border/40 bg-background text-sm"
-            />
-          </div>
+          {!isFeedback && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Comentário geral (opcional)</label>
+              <AutoTextarea
+                value={notes}
+                onChange={setNotes}
+                placeholder="Queres deixar um comentário?"
+                className="rounded-lg border-border/40 bg-background text-sm"
+              />
+            </div>
+          )}
 
           {isFeedback && !requiredQuestionsOk && score !== null && (
             <p className="text-[12px] text-destructive">Preenche as perguntas obrigatórias.</p>
