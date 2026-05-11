@@ -24,6 +24,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
+import { ProductClientsHub } from '@/components/product/ProductClientsHub';
 import { ProductEntregasSection } from '@/components/product/ProductEntregasSection';
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
 import { ProductSalesKitSection } from '@/components/product/ProductSalesKitSection';
