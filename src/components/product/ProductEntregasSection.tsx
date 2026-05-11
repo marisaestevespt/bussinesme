@@ -324,30 +324,6 @@ function PhaseCard({
             placeholder="Nome da fase..." readOnly={!isOwner} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {isOwner && !phase.is_offboarding && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant={phase.is_onboarding ? "secondary" : "ghost"} size="sm"
-                  className={`h-7 text-xs ${phase.is_onboarding ? 'bg-warning/15 text-warning hover:bg-warning/15' : ''}`}
-                  onClick={() => onUpdatePhase(phase.id, { is_onboarding: !phase.is_onboarding })}>
-                  <CheckSquare className="h-3 w-3 mr-1" /> Onboarding
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Marcar como fase de onboarding (visível no portal)</TooltipContent>
-            </Tooltip>
-          )}
-          {isOwner && !phase.is_onboarding && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant={phase.is_offboarding ? "secondary" : "ghost"} size="sm"
-                  className={`h-7 text-xs ${phase.is_offboarding ? 'bg-destructive/15 text-destructive hover:bg-destructive/15' : ''}`}
-                  onClick={() => onUpdatePhase(phase.id, { is_offboarding: !phase.is_offboarding })}>
-                  <CheckSquare className="h-3 w-3 mr-1" /> Offboarding
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Marcar como fase de offboarding (encerramento, handover, NPS…)</TooltipContent>
-            </Tooltip>
-          )}
           {sops.length > 0 && (
             <Select value={phase.linked_sop_id || 'none'}
               onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
@@ -369,55 +345,67 @@ function PhaseCard({
       </CardHeader>
       {expanded && (
         <CardContent className="pb-3 pt-0 px-4 space-y-3">
-          {/* Timeline config */}
+          {/* Timeline config — clean labeled grid */}
           {isOwner && (
-            <div className="flex items-center gap-3 flex-wrap rounded-md bg-muted/40 px-3 py-2">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Timeline:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Começa</span>
-                <Input type="number" min={0} className="h-7 w-20 text-sm text-center px-1"
-                  value={phase.offset_days ?? 0}
-                  onChange={e => onUpdatePhase(phase.id, { offset_days: parseInt(e.target.value) || 0 })} />
-                <Select value={phase.duration_unit || 'dias_uteis'}
-                  onValueChange={v => onUpdatePhase(phase.id, { duration_unit: v })}>
-                  <SelectTrigger className="h-6 text-[10px] w-24 border-none shadow-none">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dias_uteis">dias úteis</SelectItem>
-                    <SelectItem value="dias_corridos">dias corridos</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-xs text-muted-foreground">após</span>
-                <Select value={phase.offset_trigger || 'inicio_projeto'}
-                  onValueChange={v => onUpdatePhase(phase.id, { offset_trigger: v })}>
-                  <SelectTrigger className="h-6 text-[10px] w-32 border-none shadow-none">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="inicio_projeto">início do projeto</SelectItem>
-                    <SelectItem value="data_conversao">data de conversão</SelectItem>
-                    <SelectItem value="fase_anterior">fase anterior</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Duração:</span>
-                <Input type="number" min={0} className="h-7 w-20 text-sm text-center px-1"
-                  value={phase.duration_days ?? ''}
-                  placeholder="—"
-                  onChange={e => {
-                    const v = e.target.value ? parseInt(e.target.value) : null;
-                    onUpdatePhase(phase.id, { duration_days: v });
-                  }} />
-                <span className="text-xs text-muted-foreground">{(phase.duration_unit || 'dias_uteis') === 'dias_uteis' ? 'dias úteis' : 'dias corridos'}</span>
+            <div className="rounded-md border bg-muted/30 px-3 py-2.5">
+              <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">Quando acontece</div>
+              <div className="grid gap-3 sm:grid-cols-4">
+                <div className="space-y-1">
+                  <label className="text-[11px] text-muted-foreground">Começa após</label>
+                  <div className="flex items-center gap-1.5">
+                    <Input type="number" min={0} className="h-8 w-16 text-sm text-center px-1"
+                      value={phase.offset_days ?? 0}
+                      onChange={e => onUpdatePhase(phase.id, { offset_days: parseInt(e.target.value) || 0 })} />
+                    <span className="text-xs text-muted-foreground">{(phase.duration_unit || 'dias_uteis') === 'dias_uteis' ? 'dias úteis' : 'dias corridos'}</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] text-muted-foreground">Referência</label>
+                  <Select value={phase.offset_trigger || 'inicio_projeto'}
+                    onValueChange={v => onUpdatePhase(phase.id, { offset_trigger: v })}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inicio_projeto">início do projeto</SelectItem>
+                      <SelectItem value="data_conversao">data de conversão</SelectItem>
+                      <SelectItem value="fase_anterior">fase anterior</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] text-muted-foreground">Duração</label>
+                  <div className="flex items-center gap-1.5">
+                    <Input type="number" min={0} className="h-8 w-16 text-sm text-center px-1"
+                      value={phase.duration_days ?? ''}
+                      placeholder="—"
+                      onChange={e => {
+                        const v = e.target.value ? parseInt(e.target.value) : null;
+                        onUpdatePhase(phase.id, { duration_days: v });
+                      }} />
+                    <span className="text-xs text-muted-foreground">{(phase.duration_unit || 'dias_uteis') === 'dias_uteis' ? 'dias úteis' : 'dias corridos'}</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] text-muted-foreground">Tipo de dias</label>
+                  <Select value={phase.duration_unit || 'dias_uteis'}
+                    onValueChange={v => onUpdatePhase(phase.id, { duration_unit: v })}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dias_uteis">dias úteis</SelectItem>
+                      <SelectItem value="dias_corridos">dias corridos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
           {/* Recorrência da fase — só roadmap principal (não onboarding/offboarding) */}
           {isOwner && isRecurring && !phase.is_onboarding && !phase.is_offboarding && (
-            <div className="flex items-center gap-3 flex-wrap rounded-md bg-primary/[0.04] border border-primary/15 px-3 py-2">
-              <label className="flex items-center gap-2 cursor-pointer text-[10px] font-medium uppercase tracking-wider text-primary">
+            <div className="rounded-md border border-primary/20 bg-primary/[0.04] px-3 py-2.5">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
                   checked={!!phase.is_recurring}
                   onCheckedChange={(c) => onUpdatePhase(phase.id, {
@@ -425,17 +413,17 @@ function PhaseCard({
                     recurrence_frequency: c ? (phase.recurrence_frequency || 'mensal') : null,
                   })}
                 />
-                Esta fase repete-se
+                <span className="text-xs font-medium text-foreground">Esta fase repete-se ao longo do projeto</span>
               </label>
               {phase.is_recurring && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Cadência</span>
+                <div className="grid gap-3 sm:grid-cols-3 mt-3 pt-3 border-t border-primary/15">
+                  <div className="space-y-1">
+                    <label className="text-[11px] text-muted-foreground">Cadência</label>
                     <Select
                       value={phase.recurrence_frequency || 'mensal'}
                       onValueChange={v => onUpdatePhase(phase.id, { recurrence_frequency: v })}
                     >
-                      <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="semanal">Semanal</SelectItem>
                         <SelectItem value="mensal">Mensal</SelectItem>
@@ -443,35 +431,31 @@ function PhaseCard({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      {phase.recurrence_frequency === 'semanal' ? 'Termina ao dia da semana' : 'Termina ao dia'}
-                    </span>
+                  <div className="space-y-1">
+                    <label className="text-[11px] text-muted-foreground">
+                      {phase.recurrence_frequency === 'semanal' ? 'Dia da semana (1=Seg … 7=Dom)' : 'Dia do mês'}
+                    </label>
                     <Input
                       type="number"
                       min={1}
                       max={phase.recurrence_frequency === 'semanal' ? 7 : 31}
-                      className="h-7 w-16 text-sm text-center px-1"
+                      className="h-8 text-sm px-2"
                       value={phase.recurrence_anchor_day ?? ''}
                       placeholder={phase.recurrence_frequency === 'semanal' ? '5' : '20'}
                       onChange={e => onUpdatePhase(phase.id, { recurrence_anchor_day: e.target.value ? parseInt(e.target.value) : null })}
                     />
-                    {phase.recurrence_frequency === 'semanal' && (
-                      <span className="text-[10px] text-muted-foreground">(1=Seg … 7=Dom)</span>
-                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Abre</span>
+                  <div className="space-y-1">
+                    <label className="text-[11px] text-muted-foreground">Abre antes (dias úteis)</label>
                     <Input
                       type="number"
                       min={0}
-                      className="h-7 w-16 text-sm text-center px-1"
+                      className="h-8 text-sm px-2"
                       value={phase.recurrence_lead_days ?? 5}
                       onChange={e => onUpdatePhase(phase.id, { recurrence_lead_days: e.target.value ? parseInt(e.target.value) : 0 })}
                     />
-                    <span className="text-xs text-muted-foreground">dias úteis antes</span>
                   </div>
-                </>
+                </div>
               )}
             </div>
           )}
