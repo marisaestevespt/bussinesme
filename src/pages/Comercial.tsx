@@ -12,17 +12,17 @@ import { getPlanningSection } from '@/lib/department-planning';
 
 const SECTIONS = [
   // Planeamento sempre primeiro (regra: ver mem://design/department-planning-card.md)
-  (() => { const p = getPlanningSection('comercial'); return { path: p.path, label: p.label, icon: p.icon, iconColor: p.iconColor, color: p.color }; })(),
-  { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
-  { path: '/hub/comercial/vendas', label: 'Vendas', icon: ShoppingCart, iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
-  { path: '/hub/comercial/acoes', label: 'Ações de Vendas', icon: Zap, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
-  { path: '/hub/comercial/crm', label: 'CRM', icon: Users, iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
-  { path: '/hub/comercial/estrategia', label: 'Estratégia', icon: Lightbulb, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
-  { path: '/hub/comercial/biblioteca', label: 'Biblioteca', icon: BookOpen, iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
-  { path: '/hub/comercial/processos', label: 'Processos', icon: GitBranch, iconColor: 'text-muted-foreground', color: 'from-border/10 to-border/5 hover:from-border/20 hover:to-border/10' },
-  { path: '/hub/comercial/analise', label: 'Análise Comercial', icon: BarChart3, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
-  { path: '/hub/comercial/clientes', label: 'Lista de Clientes', icon: UserCheck, iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
-  { path: '/hub/comercial/produtos', label: 'Produtos', icon: Package, iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
+  (() => { const p = getPlanningSection('comercial'); return { path: p.path, label: p.label, icon: p.icon }; })(),
+  { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target },
+  { path: '/hub/comercial/vendas', label: 'Vendas', icon: ShoppingCart },
+  { path: '/hub/comercial/acoes', label: 'Ações de Vendas', icon: Zap },
+  { path: '/hub/comercial/crm', label: 'CRM', icon: Users },
+  { path: '/hub/comercial/estrategia', label: 'Estratégia', icon: Lightbulb },
+  { path: '/hub/comercial/biblioteca', label: 'Biblioteca', icon: BookOpen },
+  { path: '/hub/comercial/processos', label: 'Processos', icon: GitBranch },
+  { path: '/hub/comercial/analise', label: 'Análise Comercial', icon: BarChart3 },
+  { path: '/hub/comercial/clientes', label: 'Lista de Clientes', icon: UserCheck },
+  { path: '/hub/comercial/produtos', label: 'Produtos', icon: Package },
 ];
 export default function ComercialPage() {
   const navigate = useNavigate();
@@ -62,11 +62,11 @@ export default function ComercialPage() {
           {SECTIONS.map(s => (
             <Card
               key={s.path}
-              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+              className="group cursor-pointer border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
               onClick={() => navigate(s.path)}
             >
               <CardContent className="p-4 flex items-center gap-3">
-                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shadow-sm shrink-0">
                   <s.icon className="h-4.5 w-4.5" />
                 </div>
                 <span className="font-medium text-sm text-foreground">{s.label}</span>
