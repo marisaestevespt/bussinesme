@@ -521,7 +521,6 @@ export default function PortalViewPage() {
                   .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                 return (
                   <PortalEarCard
-                    ear="01"
                     icon={CalendarDays}
                     label="Próxima reunião"
                     value={next ? format(parseISO(next.date_time), "d 'de' MMMM", { locale: pt }) : '—'}
@@ -545,7 +544,6 @@ export default function PortalViewPage() {
                   .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                 return (
                   <PortalEarCard
-                    ear="02"
                     icon={CreditCard}
                     label="Próximo pagamento"
                     value={next?.amount != null ? `${Number(next.amount).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : (next ? format(parseISO(next.payment_date), "d MMM", { locale: pt }) : '—')}
