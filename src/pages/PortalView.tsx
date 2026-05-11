@@ -33,6 +33,7 @@ import { PortalWorkspaceSection } from '@/components/portal-view/PortalWorkspace
 import { PortalQuestionsSection } from '@/components/portal-view/PortalQuestionsSection';
 import { PortalFaqsSection } from '@/components/portal-view/PortalFaqsSection';
 import { PortalRequestsSection, type PortalRequest } from '@/components/portal-view/PortalRequestsSection';
+import { PortalDownloadsSection } from '@/components/portal-view/PortalDownloadsSection';
 import { PortalDeliverableAttachment } from '@/components/portal/PortalDeliverableAttachment';
 import { BUSINESS_BRAND_FALLBACK_HSL, normalizePortalBranding, portalCssColorAlpha } from '@/lib/portalBranding';
 import type {
@@ -185,6 +186,8 @@ export default function PortalViewPage() {
       }>(14);
       setAccountManager(amList[0] || null);
       setRequests(value<PortalRequest>(15));
+      // Audit: log portal session (fire-and-forget)
+      try { await supabase.rpc('portal_log_login', { _token: realToken }); } catch { /* ignore */ }
     } catch (error) {
       console.error('Erro ao carregar portal:', error);
       toast.error('Não foi possível carregar o portal.');
@@ -375,6 +378,7 @@ export default function PortalViewPage() {
     { key: 'meetings', label: 'Reuniões', icon: CalendarDays },
     { key: 'requests', label: 'Pedidos', icon: Inbox },
     { key: 'payments', label: 'Pagamentos', icon: CreditCard },
+    { key: 'downloads', label: 'Documentos', icon: FolderOpen },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
     ...((routines.length > 0 || responsibilities.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
     { key: 'feedback', label: 'A tua opinião', icon: MessageSquare },
@@ -955,6 +959,18 @@ export default function PortalViewPage() {
         {/* ═══ CONTRACT ═══ */}
         {activeSection === 'contract' && (
           <PortalContractSection contractDocs={contractDocs} pc={pc} pcAlpha={pcAlpha} />
+        )}
+
+        {/* ═══ DOWNLOADS ═══ */}
+        {activeSection === 'downloads' && (
+          <PortalDownloadsSection
+            contractDocs={contractDocs}
+            meetings={meetings}
+            phases={phases}
+            pc={pc}
+            pcAlpha={pcAlpha}
+            portalToken={portalToken}
+          />
         )}
 
         {/* ═══ FAQs ═══ */}
