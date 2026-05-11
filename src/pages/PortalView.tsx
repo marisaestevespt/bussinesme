@@ -285,11 +285,10 @@ export default function PortalViewPage() {
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
-  // Onboarding progress: count phases where all deliverables are done
+  // Onboarding progress: granular by deliverables (same logic as overall project progress)
   const isPhaseComplete = (p: any) => allDeliverablesDone(p.deliverables || []);
   const completedOnb = onboarding.filter(isPhaseComplete).length;
   const totalOnb = onboarding.length;
-  const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
   // Find next pending deliverable across all onboarding phases
   const nextStep = (() => {
@@ -591,9 +590,9 @@ export default function PortalViewPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: pc }} />
+                      <div className="h-full rounded-full transition-all" style={{ width: `${projectProgress}%`, backgroundColor: pc }} />
                     </div>
-                    <span className="text-xs font-semibold" style={{ color: pc }}>{onbPercent}%</span>
+                    <span className="text-xs font-semibold" style={{ color: pc }}>{projectProgress}%</span>
                   </div>
                 </div>
                 {onboarding.length === 0 ? (
@@ -894,9 +893,9 @@ export default function PortalViewPage() {
             <SectionTitle icon={CheckSquare}>A nossa jornada</SectionTitle>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: pc }} />
+                <div className="h-full rounded-full transition-all" style={{ width: `${projectProgress}%`, backgroundColor: pc }} />
               </div>
-              <span className="text-sm font-semibold" style={{ color: pc }}>{onbPercent}%</span>
+              <span className="text-sm font-semibold" style={{ color: pc }}>{projectProgress}%</span>
             </div>
             {onboarding.length === 0 ? (
               <SectionCard className="p-8 text-center">
