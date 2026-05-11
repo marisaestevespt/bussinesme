@@ -243,15 +243,15 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
         )}
       </div>
 
-      {/* ─── Tarefas ─── */}
+      {/* ─── As tuas entregas ─── */}
       <div className="space-y-4">
         <header className="flex items-end justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <ListChecks className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
-            <h3 className="text-base font-semibold tracking-tight">Tarefas</h3>
-            {tasks.length > 0 && <span className="text-xs text-muted-foreground">{tasks.length}</span>}
+            <UserCheck className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
+            <h3 className="text-base font-semibold tracking-tight">As tuas entregas</h3>
+            {clientDeliverables.length > 0 && <span className="text-xs text-muted-foreground">{clientDeliverables.length}</span>}
           </div>
-          {tasks.length > 0 && (
+          {clientDeliverables.length > 0 && (
             <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-muted/30 border border-border/30">
               {([
                 ['pendentes', `Pendentes · ${taskCounts.pendentes}`],
@@ -278,46 +278,60 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
 
         {filteredTasks.length > 0 ? (
           <SectionCard className="overflow-hidden">
+            <div className="hidden sm:grid grid-cols-[1fr_180px_140px_110px] bg-muted/20 px-4 py-2 text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-semibold border-b border-border/30">
+              <span>Entrega</span>
+              <span>Fase</span>
+              <span>Data limite</span>
+              <span className="text-right">Estado</span>
+            </div>
             <ul className="divide-y divide-border/20">
               {filteredTasks.map((t) => {
-                const isDone = t.status === 'concluida';
+                const isDone = t.status === 'concluido';
                 const isProgress = t.status === 'em_progresso';
-                const due = t.due_date ? parseISO(t.due_date) : null;
+                const due = t.planned_end ? parseISO(t.planned_end) : null;
                 const overdue = due && !isDone && isAfter(new Date(), due);
                 const daysToDue = due ? differenceInCalendarDays(due, new Date()) : null;
 
                 return (
-                  <li key={t.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors">
-                    {isDone ? (
-                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                    ) : isProgress ? (
-                      <div className="h-4 w-4 rounded-full border-2 shrink-0" style={{ borderColor: pc }} />
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm truncate ${isDone ? 'text-muted-foreground line-through' : ''}`}>{t.name}</p>
-                      {due && (
-                        <p className={`text-[11px] mt-0.5 inline-flex items-center gap-1 ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}>
-                          {overdue ? <AlertCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                          {format(due, "d 'de' MMM", { locale: pt })}
-                          {!isDone && daysToDue !== null && (
-                            <span className="opacity-70">
-                              {daysToDue === 0 ? ' · hoje' : daysToDue > 0 ? ` · em ${daysToDue}d` : ` · há ${Math.abs(daysToDue)}d`}
-                            </span>
-                          )}
-                        </p>
+                  <li key={t.id} className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_180px_140px_110px] items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {isDone ? (
+                        <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                      ) : isProgress ? (
+                        <div className="h-4 w-4 rounded-full border-2 shrink-0" style={{ borderColor: pc }} />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                       )}
+                      <div className="min-w-0">
+                        <p className={`text-sm truncate ${isDone ? 'text-muted-foreground line-through' : ''}`}>{t.name}</p>
+                        <p className="text-[11px] text-muted-foreground sm:hidden truncate">{t.phase_name}</p>
+                      </div>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] shrink-0 border-0 ${
-                        isDone ? 'bg-success/15 text-success' : isProgress ? 'text-white' : 'bg-muted/50 text-muted-foreground'
-                      }`}
-                      style={isProgress ? { backgroundColor: pc } : undefined}
-                    >
-                      {isDone ? 'Concluída' : isProgress ? 'Em progresso' : t.status === 'pendente' ? 'Pendente' : t.status}
-                    </Badge>
+                    <span className="hidden sm:block text-xs text-muted-foreground truncate">{t.phase_name}</span>
+                    <span className={`hidden sm:inline-flex items-center gap-1 text-xs tabular-nums ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}>
+                      {due ? (
+                        <>
+                          {overdue ? <AlertCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                          {format(due, "d MMM", { locale: pt })}
+                          {!isDone && daysToDue !== null && (
+                            <span className="opacity-70">{daysToDue === 0 ? ' · hoje' : daysToDue > 0 ? ` · ${daysToDue}d` : ` · -${Math.abs(daysToDue)}d`}</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="opacity-50">—</span>
+                      )}
+                    </span>
+                    <div className="sm:justify-self-end">
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] border-0 ${
+                          isDone ? 'bg-success/15 text-success' : isProgress ? 'text-white' : 'bg-muted/50 text-muted-foreground'
+                        }`}
+                        style={isProgress ? { backgroundColor: pc } : undefined}
+                      >
+                        {isDone ? 'Concluída' : isProgress ? 'Em progresso' : 'Pendente'}
+                      </Badge>
+                    </div>
                   </li>
                 );
               })}
@@ -325,9 +339,9 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
           </SectionCard>
         ) : (
           <SectionCard className="p-8 text-center">
-            <ListChecks className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1.5} />
+            <UserCheck className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1.5} />
             <p className="text-sm text-muted-foreground">
-              {tasks.length === 0 ? 'Ainda sem tarefas atribuídas.' : 'Sem tarefas neste filtro.'}
+              {clientDeliverables.length === 0 ? 'Não tens nenhuma entrega pendente — está tudo connosco. ✨' : 'Sem entregas neste filtro.'}
             </p>
           </SectionCard>
         )}
