@@ -436,7 +436,7 @@ export default function ClientesAnalisePage() {
         return d.getMonth() + 1 === m && d.getFullYear() === year;
       }).length;
       const churn = clientsData.filter(c => {
-        if (!c.updated_at || c.status !== 'terminado') return false;
+        if (!c.updated_at || c.status !== 'terminado' || c.is_legacy) return false;
         const d = new Date(c.updated_at);
         return d.getMonth() + 1 === m && d.getFullYear() === year;
       }).length;
