@@ -354,6 +354,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
 // ─── Gallery ───
 export default function ClientesAnalisePage() {
   const now = new Date();
+  const navigate = useNavigate();
   const [year, setYear] = useState(now.getFullYear());
   const sectorConfig = useSectorConfig();
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
