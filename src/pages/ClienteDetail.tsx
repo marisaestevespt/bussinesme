@@ -521,6 +521,18 @@ function ClienteDetailPageInner() {
       return (data || []) as { id: string; name: string; client_id: string | null; client_name: string | null; department: string | null; type: string | null }[];
     },
   });
+  // Active team members for Account Manager selector
+  const { data: activeTeamMembers = [] } = useQuery({
+    queryKey: ['team-members-active'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('id, full_name, role_title, photo_url')
+        .eq('status', 'ativo')
+        .order('full_name');
+      return (data || []) as { id: string; full_name: string; role_title: string | null; photo_url: string | null }[];
+    },
+  });
   const meetingClients = (commercialData.sales.data || [])
     .map(s => s.client)
     .filter((v, i, a) => v && a.indexOf(v) === i)
