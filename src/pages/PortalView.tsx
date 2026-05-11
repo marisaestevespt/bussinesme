@@ -562,7 +562,7 @@ export default function PortalViewPage() {
                     <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
                       <CheckSquare className="h-4 w-4" style={{ color: pc }} />
                     </div>
-                    <h3 className="text-sm font-bold">A nossa jornada</h3>
+                    <h3 className="text-lg sm:text-xl font-bold">A nossa jornada</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
