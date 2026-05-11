@@ -14,7 +14,7 @@ import { pt } from 'date-fns/locale';
 import {
   FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare,
   MessageSquare, Star, Send, ClipboardList, Clock, History,
-  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Check, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users
+  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Check, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users, Mail, Phone
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
@@ -74,6 +74,15 @@ export default function PortalViewPage() {
   const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
   const [responsibilities, setResponsibilities] = useState<Array<Record<string, any>>>([]);
   const [routines, setRoutines] = useState<Array<Record<string, any>>>([]);
+  const [accountManager, setAccountManager] = useState<{
+    id: string;
+    full_name: string;
+    role_title: string | null;
+    email: string | null;
+    whatsapp: string | null;
+    photo_url: string | null;
+    presentation: string | null;
+  } | null>(null);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -130,6 +139,7 @@ export default function PortalViewPage() {
         rpcAny('get_portal_responsibilities', { _token: realToken }),
         rpcAny('get_portal_routines', { _token: realToken }),
         rpcAny('portal_get_recolhas', { _token: realToken }),
+        supabase.rpc('get_portal_account_manager', { _token: realToken }),
       ]);
       const value = <T,>(index: number): T[] => {
         const result = results[index];
@@ -161,6 +171,16 @@ export default function PortalViewPage() {
       setResponsibilities(value<Record<string, any>>(11));
       setRoutines(value<Record<string, any>>(12));
       setRecolhas(value<PortalRecolha>(13));
+      const amList = value<{
+        id: string;
+        full_name: string;
+        role_title: string | null;
+        email: string | null;
+        whatsapp: string | null;
+        photo_url: string | null;
+        presentation: string | null;
+      }>(14);
+      setAccountManager(amList[0] || null);
     } catch (error) {
       console.error('Erro ao carregar portal:', error);
       toast.error('Não foi possível carregar o portal.');
