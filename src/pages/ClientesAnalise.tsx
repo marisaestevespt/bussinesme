@@ -197,13 +197,20 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
       let color: HealthColor = 'green';
+      const reasons: string[] = [];
       if (clientNps != null && clientNps <= 6) {
         color = 'red';
+        reasons.push(`NPS detrator (${clientNps})`);
       } else if ((daysSinceNps != null && daysSinceNps > 90) || overdueMilestones.length > 0 || (endCycleDays != null && endCycleDays <= 30)) {
         color = 'yellow';
+        if (endCycleDays != null && endCycleDays <= 30) reasons.push(`Renovação em ${endCycleDays}d`);
+        if (overdueMilestones.length > 0) reasons.push(`${overdueMilestones.length} entrega(s) em atraso`);
+        if (daysSinceNps != null && daysSinceNps > 90) reasons.push(`NPS desatualizado (${daysSinceNps}d)`);
+      } else {
+        reasons.push('Tudo em dia');
       }
 
-      return { client: c, color, endCycleDays };
+      return { client: c, color, endCycleDays, reason: reasons.join(' · ') };
     }).sort((a, b) => {
       const order: Record<HealthColor, number> = { red: 0, yellow: 1, green: 2 };
       return order[a.color] - order[b.color];
