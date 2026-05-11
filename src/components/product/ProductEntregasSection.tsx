@@ -81,6 +81,17 @@ function DeliverableRow({
   const [minutes, setMinutes] = useState<string>(template.estimated_minutes?.toString() || '');
   const [titleTpl, setTitleTpl] = useState(template.meeting_title_template || '');
   const [showDesc, setShowDesc] = useState<boolean>(!!template.description);
+  const { data: roles = [] } = useQuery({
+    queryKey: ['custom-roles-for-deliverables'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('custom_roles')
+        .select('id, name, is_owner')
+        .order('name');
+      return (data || []).filter(r => !r.name.startsWith('dept_'));
+    },
+    staleTime: 60_000,
+  });
   const nameRef = useRef(template.name);
   const descRef = useRef(template.description || '');
   const minutesRef = useRef(template.estimated_minutes ?? null);
