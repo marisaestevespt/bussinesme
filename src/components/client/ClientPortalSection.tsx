@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, Settings2, HelpCircle, Mail, Loader2, Music } from 'lucide-react';
+import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, HelpCircle, Mail, Loader2, Music } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -187,18 +187,9 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
     );
   }
 
-  const toggleField = (field: keyof Portal) => {
-    updatePortal.mutate({ [field]: !portalData[field] } as any);
+  const toggleActive = () => {
+    updatePortal.mutate({ is_active: !portalData.is_active } as any);
   };
-
-  const toggleItems = [
-    { label: 'Ativo', field: 'is_active' as keyof Portal },
-    { label: 'Espaço de Trabalho', field: 'show_workspace' as keyof Portal },
-    { label: 'Reuniões', field: 'show_meetings' as keyof Portal },
-    { label: 'Pagamentos', field: 'show_payments' as keyof Portal },
-    { label: 'Onboarding', field: 'show_onboarding' as keyof Portal },
-    { label: 'Fases / Timeline', field: 'show_timeline' as keyof Portal },
-  ];
 
   return (
     <div className="space-y-5">
@@ -305,20 +296,13 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
             </div>
           </div>
 
-          {/* Toggles */}
-          <div className="space-y-2">
-            <Label className="eyebrowr flex items-center gap-2">
-              <Settings2 className="h-3.5 w-3.5" />
-              Secções visíveis
-            </Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 rounded-lg border bg-muted/20 p-4">
-              {toggleItems.map(item => (
-                <div key={item.field} className="flex items-center justify-between gap-3">
-                  <Label className="text-sm font-normal">{item.label}</Label>
-                  <Switch checked={portalData[item.field] as boolean} onCheckedChange={() => toggleField(item.field)} />
-                </div>
-              ))}
+          {/* Active toggle */}
+          <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 p-4">
+            <div>
+              <Label className="text-sm font-medium">Portal ativo</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">Quando desativado, o cliente não consegue aceder ao portal.</p>
             </div>
+            <Switch checked={!!portalData.is_active} onCheckedChange={toggleActive} />
           </div>
 
           {/* Playlist (vibe) */}

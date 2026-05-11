@@ -278,10 +278,10 @@ export default function PortalViewPage() {
   const navItems = [
     { key: 'home', label: 'Início', icon: Star, always: true },
     ...(questions.length > 0 ? [{ key: 'questions', label: 'Perguntas', icon: ClipboardList }] : []),
-    ...(portal.show_workspace ? [{ key: 'workspace', label: 'Espaço de Trabalho', icon: Briefcase }] : []),
+    { key: 'workspace', label: 'Espaço de Trabalho', icon: Briefcase },
     ...(contractDocs.length > 0 ? [{ key: 'contract', label: 'Contrato', icon: FileText }] : []),
-    ...(portal.show_meetings ? [{ key: 'meetings', label: 'Reuniões', icon: CalendarDays }] : []),
-    ...(portal.show_payments ? [{ key: 'payments', label: 'Pagamentos', icon: CreditCard }] : []),
+    { key: 'meetings', label: 'Reuniões', icon: CalendarDays },
+    { key: 'payments', label: 'Pagamentos', icon: CreditCard },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
     ...((routines.length > 0 || responsibilities.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
@@ -520,7 +520,7 @@ export default function PortalViewPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {portal.show_meetings && (() => {
+              {(() => {
                 const next = meetings
                   .filter((m) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
                   .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
@@ -535,7 +535,7 @@ export default function PortalViewPage() {
                   />
                 );
               })()}
-              {portal.show_payments && (() => {
+              {(() => {
                 const paidStatuses = ['pago', 'pago_falta_fatura', 'tudo_ok'];
                 const next = payments
                   .filter((p) => {
@@ -560,7 +560,7 @@ export default function PortalViewPage() {
             </div>
 
             {/* ── Onboarding Step Cards ── */}
-            {portal.show_onboarding && (
+            {true && (
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
