@@ -122,21 +122,21 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
   const goNext = () => stepIndex < STEPS.length - 1 && setStep(STEPS[stepIndex + 1].key);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Header: progress + stepper */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold">Configurar Calculadora de Orçamento</h3>
-          <Badge variant={completedCount === requiredCount ? 'default' : 'secondary'} className="text-[10px]">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h3 className="text-base font-semibold">Configurar Calculadora de Orçamento</h3>
+          <Badge variant={completedCount === requiredCount ? 'default' : 'secondary'} className="text-xs">
             {completedCount}/{requiredCount} essenciais
           </Badge>
         </div>
-        <p className="text-[11px] text-muted-foreground">Define uma vez. Usado em todas as propostas.</p>
+        <p className="text-xs text-muted-foreground">Define uma vez. Usado em todas as propostas.</p>
       </div>
 
       {/* Stepper */}
-      <ol className="grid grid-cols-3 gap-2">
+      <ol className="grid grid-cols-3 gap-3">
         {STEPS.map((s, i) => {
           const isActive = s.key === step;
           const isDone = (s.key === 'itens' && progress.itens) || (s.key === 'perguntas' && progress.perguntas);
@@ -146,22 +146,22 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                 type="button"
                 onClick={() => setStep(s.key)}
                 className={cn(
-                  'w-full text-left rounded-md border p-2.5 transition-all hq-transition',
-                  isActive ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-muted/20 hover:bg-muted/40',
+                  'w-full text-left rounded-lg border p-3.5 transition-all hq-transition',
+                  isActive ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card hover:bg-muted/40',
                 )}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <span className={cn(
-                    'inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold shrink-0',
+                    'inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold shrink-0',
                     isDone ? 'bg-primary text-primary-foreground' : isActive ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground',
                   )}>
-                    {isDone ? <Check className="h-3 w-3" /> : i + 1}
+                    {isDone ? <Check className="h-3.5 w-3.5" /> : i + 1}
                   </span>
-                  <span className={cn('text-xs font-medium truncate', isActive && 'text-foreground', !isActive && 'text-muted-foreground')}>
+                  <span className={cn('text-sm font-medium truncate', isActive ? 'text-foreground' : 'text-muted-foreground')}>
                     {s.label}
                   </span>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1 ml-7 truncate">{s.desc}</p>
+                <p className="text-xs text-muted-foreground mt-1 ml-[34px] truncate">{s.desc}</p>
               </button>
             </li>
           );
@@ -169,77 +169,77 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
       </ol>
 
       {/* Body: editor + live preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
         {/* Editor */}
-        <div className="rounded-md border bg-card p-4 min-h-[320px]">
+        <div className="rounded-lg border bg-card p-5 min-h-[360px] shadow-sm">
           {step === 'itens' && (
-            <section className="space-y-3">
-              <div className="flex items-start justify-between gap-2">
+            <section className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold">Itens & quantidades</h4>
+                    <h4 className="text-base font-semibold">Itens & quantidades</h4>
                     <Hint>
                       <p>Coisas que se contam: cada uma tem preço unitário e quantidade.</p>
                       <p className="mt-1">Ex: "Horas/semana × 70€", "Posts × 25€".</p>
                     </Hint>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">A "quantidade sugerida" é usada na pré-visualização ao lado.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">A "quantidade sugerida" é usada na pré-visualização ao lado.</p>
                 </div>
                 {isOwner && (
                   <Button size="sm" variant="outline" onClick={() => upsertDriver.mutate({ product_id: productId, name: '', unit: 'unidade', unit_price: 0, default_qty: 0, sort_order: driversList.length })}>
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
                   </Button>
                 )}
               </div>
-              <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+              <div className="rounded-md border border-dashed bg-muted/40 px-3.5 py-2.5 text-xs text-muted-foreground leading-relaxed">
                 <strong className="text-foreground">Aqui defines o que cobras ao cliente</strong> — o teu <em>custo interno</em> (quanto te sai uma hora tua a ti) configura-se na sheet <strong>"Custos & Margens"</strong> em <em>"Horas de equipa"</em>, que puxa automaticamente o custo/hora de cada membro.
               </div>
               {driversList.length === 0 ? (
-                <div className="rounded-md border border-dashed p-6 text-center">
-                  <p className="text-xs text-muted-foreground">Sem itens. Começa por adicionar pelo menos um.</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">Ex: <em>Horas por semana — 70€/h — 4h sugeridas</em></p>
+                <div className="rounded-lg border border-dashed p-8 text-center">
+                  <p className="text-sm text-muted-foreground">Sem itens. Começa por adicionar pelo menos um.</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">Ex: <em>Horas por semana — 70€/h — 4h sugeridas</em></p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {driversList.map(d => {
                     const unitLabel = (d.unit || 'unidade').trim();
                     const subtotal = (Number(d.unit_price) || 0) * (Number(d.default_qty) || 0);
                     return (
-                      <div key={d.id} className="rounded-md border bg-muted/10 p-3 space-y-2">
-                        {/* Linha 1: nome do item */}
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Item</p>
+                      <div key={d.id} className="rounded-lg border border-border bg-background p-4 space-y-3 hover:border-primary/30 transition-colors">
+                        {/* Linha 1: Item (nome) */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Item</label>
                             <InlineField value={d.name} placeholder="Ex: Horas por semana" disabled={!isOwner} bold
                               onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: v, unit: d.unit, unit_price: d.unit_price, default_qty: d.default_qty })} />
                           </div>
                           {isOwner && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0 mt-4" onClick={() => removeDriver.mutate(d.id)}>
-                              <Trash2 className="h-3 w-3" />
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0 mt-5" onClick={() => removeDriver.mutate(d.id)}>
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
-                        {/* Linha 2: frase explicativa */}
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground bg-background rounded-md px-2 py-1.5 border">
-                          <span>Medido em</span>
-                          <span className="min-w-[80px]">
+                        {/* Linha 2: grid limpo */}
+                        <div className="grid grid-cols-12 gap-3 items-end">
+                          <div className="col-span-3 space-y-1">
+                            <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Unidade</label>
                             <UnitSelect value={d.unit} disabled={!isOwner}
                               onChange={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: v, unit_price: d.unit_price, default_qty: d.default_qty })} />
-                          </span>
-                          <span>· <strong className="text-foreground">cobro ao cliente</strong></span>
-                          <span className="min-w-[90px]">
+                          </div>
+                          <div className="col-span-3 space-y-1">
+                            <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Preço / {unitLabel}</label>
                             <InlineField value={d.unit_price} type="number" placeholder="70" suffix="€" align="right" disabled={!isOwner}
                               onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: parseFloat(v) || 0, default_qty: d.default_qty })} />
-                          </span>
-                          <span>por <strong>{unitLabel}</strong></span>
-                          <span>· quantidade sugerida</span>
-                          <span className="min-w-[70px]">
+                          </div>
+                          <div className="col-span-3 space-y-1">
+                            <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Qtd. sugerida</label>
                             <InlineField value={d.default_qty} type="number" placeholder="0" align="right" disabled={!isOwner}
                               onSave={v => upsertDriver.mutate({ id: d.id, product_id: productId, name: d.name, unit: d.unit, unit_price: d.unit_price, default_qty: parseFloat(v) || 0 })} />
-                          </span>
-                          <span className="ml-auto pl-2 border-l text-foreground">
-                            = <strong className="tabular-nums">{formatEuro(subtotal)}</strong>
-                          </span>
+                          </div>
+                          <div className="col-span-3 space-y-1 text-right">
+                            <label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Subtotal</label>
+                            <p className="text-base font-bold tabular-nums text-foreground h-9 flex items-center justify-end">{formatEuro(subtotal)}</p>
+                          </div>
                         </div>
                       </div>
                     );
@@ -250,11 +250,11 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
           )}
 
           {step === 'perguntas' && (
-            <section className="space-y-3">
-              <div className="flex items-start justify-between gap-2">
+            <section className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold">Perguntas ao cliente</h4>
+                    <h4 className="text-base font-semibold">Perguntas ao cliente</h4>
                     <Hint>
                       <p>Cada pergunta tem várias respostas. Cada resposta tem um <strong>fator</strong>:</p>
                       <ul className="mt-1 list-disc pl-4">
@@ -264,44 +264,42 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                       </ul>
                     </Hint>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">A pré-visualização usa a 1ª resposta de cada pergunta.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">A pré-visualização usa a 1ª resposta de cada pergunta.</p>
                 </div>
                 {isOwner && (
                   <Button size="sm" variant="outline" onClick={() => modifiers.addDimension.mutate('Nova pergunta')}>
-                    <Plus className="h-3 w-3 mr-1" /> Pergunta
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Pergunta
                   </Button>
                 )}
               </div>
-              <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground space-y-1.5">
-                <p><strong className="text-foreground">O que é o "fator"?</strong> É um multiplicador que aumenta ou reduz o subtotal do orçamento conforme a resposta do cliente. Aplica-se a <em>tudo</em> o que vem dos itens.</p>
+              <div className="rounded-md border border-dashed bg-muted/40 px-3.5 py-3 text-xs text-muted-foreground space-y-2 leading-relaxed">
+                <p><strong className="text-foreground">O que é o "fator"?</strong> Multiplicador que aumenta ou reduz o subtotal conforme a resposta do cliente. Aplica-se a <em>tudo</em> o que vem dos itens.</p>
                 <div className="grid grid-cols-3 gap-2 pt-1">
-                  <div className="rounded bg-background border px-2 py-1.5">
-                    <p className="font-mono text-foreground">× 1.00</p>
-                    <p className="text-[10px]">preço normal (sem alteração)</p>
+                  <div className="rounded-md bg-background border px-2.5 py-2">
+                    <p className="font-mono text-sm text-foreground">× 1.00</p>
+                    <p className="text-[11px] mt-0.5">preço normal</p>
                   </div>
-                  <div className="rounded bg-background border px-2 py-1.5">
-                    <p className="font-mono text-success">× 1.20</p>
-                    <p className="text-[10px]">+20% (ex: cliente exigente)</p>
+                  <div className="rounded-md bg-background border px-2.5 py-2">
+                    <p className="font-mono text-sm text-success">× 1.20</p>
+                    <p className="text-[11px] mt-0.5">+20% (cliente exigente)</p>
                   </div>
-                  <div className="rounded bg-background border px-2 py-1.5">
-                    <p className="font-mono text-warning">× 0.85</p>
-                    <p className="text-[10px]">−15% (ex: ONG, amigo)</p>
+                  <div className="rounded-md bg-background border px-2.5 py-2">
+                    <p className="font-mono text-sm text-warning">× 0.85</p>
+                    <p className="text-[11px] mt-0.5">−15% (ONG, amigo)</p>
                   </div>
                 </div>
-                <p className="pt-1"><strong className="text-foreground">Como decidir o número?</strong> Pensa "quanto mais ou menos quero cobrar a este perfil?". Se queres +30% → escreve <code className="font-mono">1.30</code>. Se queres dar 10% de desconto → <code className="font-mono">0.90</code>.</p>
-                <p>Se tiveres várias perguntas, os fatores <strong>multiplicam-se entre si</strong>. Ex: equipa grande (×1.2) + urgência alta (×1.5) = ×1.80 ao subtotal.</p>
               </div>
               {dimensionsList.length === 0 ? (
-                <div className="rounded-md border border-dashed p-6 text-center">
-                  <p className="text-xs text-muted-foreground">Sem perguntas. Opcional, mas útil para diferenciar clientes.</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">Ex: <em>Tamanho da equipa — "1 pessoa" ×1.0, "2-4" ×1.2, "5+" ×1.5</em></p>
+                <div className="rounded-lg border border-dashed p-8 text-center">
+                  <p className="text-sm text-muted-foreground">Sem perguntas. Opcional, mas útil para diferenciar clientes.</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">Ex: <em>Tamanho da equipa — "1 pessoa" ×1.0, "2-4" ×1.2, "5+" ×1.5</em></p>
                 </div>
               ) : dimensionsList.map(dim => {
                 const isCollapsed = collapsedDims.has(dim.id);
                 return (
-                <div key={dim.id} className="rounded-md border bg-muted/10 p-2.5 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => toggleDim(dim.id)} aria-label={isCollapsed ? 'Expandir' : 'Recolher'}>
+                <div key={dim.id} className="rounded-lg border border-border bg-background p-3.5 space-y-3 hover:border-primary/30 transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => toggleDim(dim.id)} aria-label={isCollapsed ? 'Expandir' : 'Recolher'}>
                       <ChevronDown className={cn('h-4 w-4 transition-transform', isCollapsed && '-rotate-90')} />
                     </Button>
                     <div className="flex-1">
@@ -309,40 +307,42 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                         onSave={v => v !== dim.name && modifiers.updateDimension.mutate({ id: dim.id, name: v })} />
                     </div>
                     {isCollapsed && dim.levels.length > 0 && (
-                      <span className="text-[11px] text-muted-foreground shrink-0">{dim.levels.length} {dim.levels.length === 1 ? 'resposta' : 'respostas'}</span>
+                      <span className="text-xs text-muted-foreground shrink-0 px-2 py-0.5 rounded bg-muted">
+                        {dim.levels.length} {dim.levels.length === 1 ? 'resposta' : 'respostas'}
+                      </span>
                     )}
                     {isOwner && (
                       <>
                         <Button size="sm" variant="outline" onClick={() => modifiers.addLevel.mutate(dim.id)}>
-                          <Plus className="h-3 w-3 mr-1" /> Resposta
+                          <Plus className="h-3.5 w-3.5 mr-1" /> Resposta
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => modifiers.removeDimension.mutate(dim.id)}>
-                          <Trash2 className="h-3 w-3" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => modifiers.removeDimension.mutate(dim.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </>
                     )}
                   </div>
                   {!isCollapsed && (dim.levels.length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground italic pl-3">Adiciona pelo menos uma resposta.</p>
+                    <p className="text-xs text-muted-foreground italic pl-3">Adiciona pelo menos uma resposta.</p>
                   ) : (
-                    <>
-                      <div className="grid grid-cols-[1fr_100px_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground pl-3">
+                    <div className="space-y-1.5">
+                      <div className="grid grid-cols-[1fr_120px_auto] gap-3 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold pl-2 pb-1 border-b">
                         <span>Resposta</span><span className="text-right">Fator</span><span></span>
                       </div>
                       {dim.levels.map(lvl => (
-                        <div key={lvl.id} className="grid grid-cols-[1fr_100px_auto] gap-2 items-center pl-3">
+                        <div key={lvl.id} className="grid grid-cols-[1fr_120px_auto] gap-3 items-center pl-2 py-1">
                           <InlineField value={lvl.label} placeholder="Ex: 2-4 pessoas" disabled={!isOwner}
                             onSave={v => v !== lvl.label && modifiers.updateLevel.mutate({ id: lvl.id, patch: { label: v } })} />
                           <InlineField value={lvl.multiplier} type="number" step="0.05" placeholder="1.00" suffix="×" align="right" disabled={!isOwner}
                             onSave={v => { const n = parseFloat(v) || 1; if (n !== Number(lvl.multiplier)) modifiers.updateLevel.mutate({ id: lvl.id, patch: { multiplier: n } }); }} />
                           {isOwner && (
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => modifiers.removeLevel.mutate(lvl.id)}>
-                              <Trash2 className="h-3 w-3" />
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => modifiers.removeLevel.mutate(lvl.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           )}
                         </div>
                       ))}
-                    </>
+                    </div>
                   ))}
                 </div>
                 );
@@ -351,68 +351,68 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
           )}
 
           {step === 'descontos' && (
-            <section className="space-y-3">
-              <div className="flex items-start justify-between gap-2">
+            <section className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold">Descontos por volume</h4>
+                    <h4 className="text-base font-semibold">Descontos por volume</h4>
                     <Hint>
                       <p>Quando o orçamento atingir um valor, aplica desconto automático.</p>
                       <p className="mt-1">Ex: ≥ 1.000€ → 5%; ≥ 5.000€ → 10%.</p>
                     </Hint>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Opcional. Aplica-se ao subtotal já com fatores.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Opcional. Aplica-se ao subtotal já com fatores.</p>
                 </div>
                 {isOwner && (
                   <Button size="sm" variant="outline" onClick={() => { const next = [...discounts, { min_subtotal: 0, discount_pct: 0 }]; setDiscounts(next); persistProductFields({ volume_discounts: next }); }}>
-                    <Plus className="h-3 w-3 mr-1" /> Faixa
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Faixa
                   </Button>
                 )}
               </div>
               {discounts.length === 0 ? (
-                <div className="rounded-md border border-dashed p-6 text-center">
-                  <p className="text-xs text-muted-foreground">Sem descontos automáticos.</p>
+                <div className="rounded-lg border border-dashed p-8 text-center">
+                  <p className="text-sm text-muted-foreground">Sem descontos automáticos.</p>
                 </div>
               ) : (
-                <>
-                  <div className="grid grid-cols-[1fr_1fr_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground px-1">
+                <div className="space-y-2">
+                  <div className="grid grid-cols-[1fr_1fr_auto] gap-3 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold px-2 pb-1 border-b">
                     <span>A partir de</span><span>Desconto</span><span></span>
                   </div>
                   {discounts.map((d, i) => (
-                    <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center rounded-md border p-1.5 bg-muted/10">
+                    <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-center rounded-md border border-border p-2.5 bg-background">
                       <InlineField value={d.min_subtotal} type="number" suffix="€" align="right" disabled={!isOwner}
                         onSave={v => { const next = [...discounts]; next[i] = { ...d, min_subtotal: parseFloat(v) || 0 }; setDiscounts(next); persistProductFields({ volume_discounts: next }); }} />
                       <InlineField value={d.discount_pct} type="number" suffix="%" align="right" disabled={!isOwner}
                         onSave={v => { const next = [...discounts]; next[i] = { ...d, discount_pct: parseFloat(v) || 0 }; setDiscounts(next); persistProductFields({ volume_discounts: next }); }} />
                       {isOwner && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { const next = discounts.filter((_, j) => j !== i); setDiscounts(next); persistProductFields({ volume_discounts: next }); }}>
-                          <Trash2 className="h-3 w-3" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { const next = discounts.filter((_, j) => j !== i); setDiscounts(next); persistProductFields({ volume_discounts: next }); }}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}
                     </div>
                   ))}
-                </>
+                </div>
               )}
             </section>
           )}
         </div>
 
         {/* Live preview */}
-        <aside className="rounded-md border bg-muted/30 p-3 space-y-2.5 lg:sticky lg:top-2 self-start">
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <h4 className="text-xs font-semibold">Pré-visualização</h4>
+        <aside className="rounded-lg border border-border bg-card p-4 space-y-3 lg:sticky lg:top-2 self-start shadow-sm">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <h4 className="text-sm font-semibold">Pré-visualização</h4>
           </div>
-          <p className="text-[10px] text-muted-foreground">Orçamento exemplo com qtd. sugeridas e 1ª resposta de cada pergunta.</p>
+          <p className="text-xs text-muted-foreground leading-snug">Orçamento exemplo com qtd. sugeridas e 1ª resposta de cada pergunta.</p>
 
           {driversList.length === 0 ? (
-            <p className="text-[11px] text-muted-foreground italic">Adiciona itens para veres o exemplo.</p>
+            <p className="text-xs text-muted-foreground italic">Adiciona itens para veres o exemplo.</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {driversList.map(d => {
                 const sub = (Number(d.unit_price) || 0) * (Number(d.default_qty) || 1);
                 return (
-                  <div key={d.id} className="flex items-baseline justify-between text-[11px]">
+                  <div key={d.id} className="flex items-baseline justify-between text-xs">
                     <span className="text-muted-foreground truncate">
                       {d.name || 'Item'} × {Number(d.default_qty) || 1}{d.unit ? ` ${d.unit}` : ''}
                     </span>
@@ -420,25 +420,25 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                   </div>
                 );
               })}
-              <div className="border-t pt-1.5 flex items-baseline justify-between text-[11px]">
+              <div className="border-t pt-2 flex items-baseline justify-between text-xs">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="tabular-nums">{formatEuro(preview.base_with_drivers)}</span>
               </div>
               {preview.multiplier !== 1 && (
-                <div className="flex items-baseline justify-between text-[11px]">
+                <div className="flex items-baseline justify-between text-xs">
                   <span className="text-muted-foreground">Fator combinado</span>
                   <span className="tabular-nums">×{preview.multiplier.toFixed(2)}</span>
                 </div>
               )}
               {preview.applied_discount_pct > 0 && (
-                <div className="flex items-baseline justify-between text-[11px] text-primary">
+                <div className="flex items-baseline justify-between text-xs text-primary">
                   <span>Desconto auto.</span>
                   <span className="tabular-nums">−{preview.applied_discount_pct}%</span>
                 </div>
               )}
-              <div className="border-t pt-1.5 flex items-baseline justify-between">
-                <span className="text-xs font-semibold">Total</span>
-                <span className="text-base font-bold tabular-nums text-primary">{formatEuro(preview.total)}</span>
+              <div className="border-t pt-2 flex items-baseline justify-between">
+                <span className="text-sm font-semibold">Total</span>
+                <span className="text-lg font-bold tabular-nums text-primary">{formatEuro(preview.total)}</span>
               </div>
             </div>
           )}
@@ -450,7 +450,7 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
         <Button variant="ghost" size="sm" onClick={goPrev} disabled={stepIndex === 0}>
           <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
         </Button>
-        {saving && <span className="text-[11px] text-muted-foreground">A guardar…</span>}
+        {saving && <span className="text-xs text-muted-foreground">A guardar…</span>}
         <Button variant="outline" size="sm" onClick={goNext} disabled={stepIndex === STEPS.length - 1}>
           Seguinte <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
