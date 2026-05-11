@@ -435,7 +435,7 @@ export default function PortalViewPage() {
               <div className="h-8 w-8 flex items-center justify-center text-xs font-medium" style={{ backgroundColor: pcAlpha(0.1), color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
                 {firstName.charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm hidden sm:inline" style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>{firstName}</span>
+              <span className="text-sm hidden sm:inline" style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>{client.full_name || firstName}</span>
               <Button
                 variant="ghost"
                 aria-label="Terminar sessão" size="icon"
