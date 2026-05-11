@@ -85,8 +85,8 @@ function AnalogClock() {
   const timeStr = format(time, "HH:mm");
 
   return (
-    <div className="flex flex-col items-center gap-2 shrink-0">
-      <div className="relative h-20 w-20">
+    <div className="flex flex-col items-center gap-1 shrink-0">
+      <div className="relative h-14 w-14">
         <svg viewBox="0 0 100 100" className="h-full w-full">
           <circle cx="50" cy="50" r="48" fill="none" stroke="hsl(var(--primary))" strokeOpacity="0.55" strokeWidth="1.5" />
           {Array.from({ length: 12 }).map((_, i) => {
@@ -103,8 +103,8 @@ function AnalogClock() {
           <circle cx="50" cy="50" r="2.5" fill="hsl(var(--primary))" />
         </svg>
       </div>
-      <span className="font-display text-lg leading-none tabular-nums">{timeStr}</span>
-      <span className="font-typewriter text-[10px] text-muted-foreground capitalize">{dateStr}</span>
+      <span className="font-display text-sm leading-none tabular-nums">{timeStr}</span>
+      <span className="font-typewriter text-[9px] text-muted-foreground capitalize">{dateStr}</span>
     </div>
   );
 }
@@ -190,31 +190,33 @@ export default function HubEquipaPage() {
 
   return (
     <AppLayout>
-      {/* Editorial hero — asymmetric, dramatic serif, eyebrow + speech bubble */}
-      <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 pt-6 sm:pt-10 pb-8 hq-linen border-b border-border">
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-end">
+      {/* Editorial hero — compact */}
+      <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 pt-4 pb-5 hq-linen border-b border-border">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
           <div className="sm:col-span-8 min-w-0">
             <Eyebrow>Hub da Equipa · {todayLabel}</Eyebrow>
-            <h1 className="font-display text-5xl sm:text-6xl leading-[0.95] mt-3 text-foreground">
+            <h1 className="font-display text-3xl sm:text-4xl leading-[1.05] mt-1.5 text-foreground">
               {greetingText()},{' '}
               <DisplayItalic className="text-primary">{firstName || 'equipa'}</DisplayItalic>
               <span className="text-primary">.</span>
             </h1>
-            <p className="mt-4 text-sm text-muted-foreground max-w-xl">
-              Este é o nosso espaço — onde <Highlight>organizamos</Highlight>, colaboramos e crescemos juntos.
-            </p>
-            <div className="mt-5"><TeamWhatsAppLink /></div>
+            <div className="mt-2 flex items-center gap-4 flex-wrap">
+              <p className="text-xs text-muted-foreground">
+                Onde <Highlight>organizamos</Highlight>, colaboramos e crescemos juntos.
+              </p>
+              <TeamWhatsAppLink />
+            </div>
           </div>
-          <div className="sm:col-span-4 flex sm:flex-col items-end sm:items-end gap-4">
-            <AnalogClock />
-            <SpeechBubble variant="gold" tail="bottom-right" className="max-w-[260px] text-right">
+          <div className="sm:col-span-4 flex items-center justify-end gap-4">
+            <SpeechBubble variant="gold" tail="bottom-right" className="max-w-[220px] text-right !text-xs !py-2 !px-3 hidden sm:inline-block">
               {quoteOfTheDay()}
             </SpeechBubble>
+            <AnalogClock />
           </div>
         </div>
       </div>
 
-      <div className="space-y-10 pt-8">
+      <div className="space-y-8 pt-6">
         <BackNavigation parentRoute="/secretaria" parentLabel="Secretaria" />
 
         {/* Active absence alerts */}
