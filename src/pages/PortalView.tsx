@@ -278,8 +278,8 @@ export default function PortalViewPage() {
   const navItems = [
     { key: 'home', label: 'Início', icon: Star, always: true },
     ...(questions.length > 0 ? [{ key: 'questions', label: 'Perguntas', icon: ClipboardList }] : []),
-    ...(contractDocs.length > 0 ? [{ key: 'contract', label: 'Contrato', icon: FileText }] : []),
     { key: 'workspace', label: 'Espaço de Trabalho', icon: Briefcase },
+    ...(contractDocs.length > 0 ? [{ key: 'contract', label: 'Contrato', icon: FileText }] : []),
     { key: 'meetings', label: 'Reuniões', icon: CalendarDays },
     { key: 'payments', label: 'Pagamentos', icon: CreditCard },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
