@@ -71,6 +71,7 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
 
 function CalendarDayItem({ item, channels, links, profiles, attachments }: { item: ContentItem; channels: MarketingChannel[]; links: ContentChannelLink[]; profiles?: ProfileInfo[]; attachments?: AttachmentInfo[] }) {
   const status = STATUS_OPTIONS.find(s => s.value === item.status);
+  const isPublished = item.status === 'publicado';
   const itemChannels = getItemChannels(item.id, channels, links);
   const formatLabel = FORMAT_OPTIONS.find(f => f.value === item.format)?.label;
   const typeLabel = CONTENT_TYPE_OPTIONS.find(t => t.value === item.content_type)?.label;
@@ -81,7 +82,12 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors flex flex-col overflow-hidden">
+      className={cn(
+        "block rounded border transition-colors flex flex-col overflow-hidden",
+        isPublished
+          ? "border-green-500/40 bg-green-500/10 hover:bg-green-500/20 dark:border-green-400/40 dark:bg-green-400/10 dark:hover:bg-green-400/20"
+          : "border-border bg-muted/30 hover:bg-muted/60"
+      )}>
       {/* Cover image (mantida — a forma de visualização que o user gosta) */}
       {coverImage && (
         <div className="w-full aspect-[3/1] overflow-hidden shrink-0">
