@@ -514,20 +514,19 @@ export default function PortalViewPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {portal.show_meetings && (() => {
                 const next = meetings
                   .filter((m) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
                   .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                 return (
-                  <PortalEarCard
+                  <PortalKpi
                     icon={CalendarDays}
-                    label="Próxima reunião"
-                    value={next ? format(parseISO(next.date_time), "d 'de' MMMM", { locale: pt }) : '—'}
-                    hint={next ? format(parseISO(next.date_time), "HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
+                    label="próxima reunião"
+                    value={next ? format(parseISO(next.date_time), "d MMM", { locale: pt }) : '—'}
+                    hint={next ? format(parseISO(next.date_time), "EEEE 'às' HH:mm", { locale: pt }) : 'sem reuniões agendadas'}
                     onClick={() => setActiveSection('meetings')}
                     pc={pc}
-                    pcAlpha={pcAlpha}
                   />
                 );
               })()}
@@ -543,14 +542,13 @@ export default function PortalViewPage() {
                   })
                   .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                 return (
-                  <PortalEarCard
+                  <PortalKpi
                     icon={CreditCard}
-                    label="Próximo pagamento"
+                    label="próximo pagamento"
                     value={next?.amount != null ? `${Number(next.amount).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : (next ? format(parseISO(next.payment_date), "d MMM", { locale: pt }) : '—')}
-                    hint={next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
+                    hint={next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'sem pagamentos pendentes'}
                     onClick={() => setActiveSection('payments')}
                     pc={pc}
-                    pcAlpha={pcAlpha}
                   />
                 );
               })()}
