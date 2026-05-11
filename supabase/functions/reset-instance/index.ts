@@ -259,7 +259,6 @@ Deno.serve(async (req) => {
       "clients_monthly_analysis",
       "executive_brain_dump",
       "executive_brain_dump_categories",
-      "executive_goals",
       "executive_monthly_checklists",
       "executive_objectives",
       "executive_quarterly_analysis",
