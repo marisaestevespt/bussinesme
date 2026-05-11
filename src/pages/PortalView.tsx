@@ -89,75 +89,87 @@ export default function PortalViewPage() {
   useEffect(() => { init(); }, [token]);
 
   const init = async () => {
-    if (!token) return;
-    const portalData = await resolvePublicPortal(token, (fn, args) => (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)(fn, args));
-    if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
-    const session = localStorage.getItem(`portal_session_${portalData.id}`);
-    if (!session) { navigate(`/portal/${token}`, { replace: true }); return; }
+    if (!token) { setLoading(false); return; }
+    setLoading(true);
+
     try {
-      const parsed = JSON.parse(session);
-      if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
-        localStorage.removeItem(`portal_session_${portalData.id}`);
-        navigate(`/portal/${token}`, { replace: true }); return;
-      }
-    } catch { navigate(`/portal/${token}`, { replace: true }); return; }
-    setPortal(portalData);
-    const realToken = portalData.token; // always use UUID token for RPCs
-    const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
-    // Uma única ronda paralela com TODAS as chamadas (16) — antes eram 4 rondas sequenciais
-    const [
-      clientCtxRes, settingsRes,
-      faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, contractR,
-      respR, routR,
-      npsPendR, npsHistR,
-    ] = await Promise.all([
-      supabase.rpc('get_portal_client_context', { _token: realToken }),
-      rpcAny('get_portal_branding', { _token: realToken }),
-      supabase.rpc('get_portal_faqs', { _token: realToken }),
-      supabase.rpc('get_portal_initial_questions', { _token: realToken }),
-      supabase.rpc('get_portal_comments', { _token: realToken }),
-      supabase.rpc('get_portal_feedback', { _token: realToken }),
-      supabase.rpc('get_portal_meetings', { _token: realToken }),
-      supabase.rpc('get_portal_payments', { _token: realToken }),
-      supabase.from('tasks').select('*').eq('visible_in_portal', true),
-      rpcAny('get_portal_phases', { _token: realToken }),
-      supabase.rpc('get_portal_project_history', { _token: realToken }),
-      supabase.rpc('get_portal_contract_documents', { _token: realToken }),
-      rpcAny('get_portal_responsibilities', { _token: realToken }),
-      rpcAny('get_portal_routines', { _token: realToken }),
-      rpcAny('portal_get_pending_nps', { _token: realToken }),
-      rpcAny('portal_get_nps_history', { _token: realToken }),
-    ]);
-    const clientData = Array.isArray((clientCtxRes as any).data) ? (clientCtxRes as any).data[0] : null;
-    if ((clientCtxRes as any).error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
-    setClient(clientData);
-    setSettings(normalizePortalBranding((settingsRes as any).data || {}));
-    setNpsPending((npsPendR.data as PortalNpsPending[]) || []);
-    setNpsHistory((npsHistR.data as PortalNpsHistory[]) || []);
-    setResponsibilities((respR.data as Array<Record<string, any>>) || []);
-    setRoutines((routR.data as Array<Record<string, any>>) || []);
-    const faqsList = (faqsR.data || []) as unknown as PortalFaq[];
-    setFaqs(faqsList.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    const questionsList = (questionsR.data || []) as unknown as Array<PortalQuestion & { group_sort_order?: number }>;
-    setQuestions(questionsList.slice().sort((a, b) =>
-      (a.group_sort_order ?? 0) - (b.group_sort_order ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-    const commentsList = (commentsR.data || []) as unknown as PortalComment[];
-    setComments(commentsList.slice().sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()));
-    const feedbackList = (feedbackR.data || []) as unknown as PortalFeedback[];
-    setFeedback(feedbackList.slice().sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime()));
-    setMeetings((meetingsR.data || []) as unknown as PortalMeeting[]);
-    setPayments((paymentsR.data || []) as unknown as PortalPayment[]);
-    setTasks((tasksR.data || []) as Array<Record<string, any>>);
-    // get_portal_phases now returns jsonb with deliverables included
-    const phasesData = projPhasesR.data || [];
-    const parsedPhases = (Array.isArray(phasesData) ? phasesData : []) as PortalPhase[];
-    const allPhases: PortalPhase[] = parsedPhases.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
-    setPhases(allPhases);
-    // Show all phases in the onboarding/timeline section
-    setOnboarding(allPhases);
-    setProjectHistory((historyR.data || []) as unknown as PortalProjectHistoryEntry[]);
-    setContractDocs((contractR.data || []) as unknown as PortalContractDocument[]);
-    setLoading(false);
+      const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
+      const portalData = await resolvePublicPortal(token, (fn, args) => rpcAny(fn, args));
+      if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
+
+      const session = localStorage.getItem(`portal_session_${portalData.id}`);
+      if (!session) { navigate(`/portal/${token}`, { replace: true }); return; }
+      try {
+        const parsed = JSON.parse(session);
+        if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
+          localStorage.removeItem(`portal_session_${portalData.id}`);
+          navigate(`/portal/${token}`, { replace: true }); return;
+        }
+      } catch { navigate(`/portal/${token}`, { replace: true }); return; }
+
+      setPortal(portalData);
+      const realToken = portalData.token; // always use UUID token for RPCs
+      const [clientCtxRes, settingsRes] = await Promise.all([
+        supabase.rpc('get_portal_client_context', { _token: realToken }),
+        rpcAny('get_portal_branding', { _token: realToken }),
+      ]);
+      const clientData = Array.isArray((clientCtxRes as any).data) ? (clientCtxRes as any).data[0] : null;
+      if ((clientCtxRes as any).error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
+
+      setClient(clientData);
+      setSettings(normalizePortalBranding((settingsRes as any).data || {}));
+      setLoading(false);
+
+      const results = await Promise.allSettled([
+        supabase.rpc('get_portal_faqs', { _token: realToken }),
+        supabase.rpc('get_portal_initial_questions', { _token: realToken }),
+        supabase.rpc('get_portal_comments', { _token: realToken }),
+        supabase.rpc('get_portal_feedback', { _token: realToken }),
+        supabase.rpc('get_portal_meetings', { _token: realToken }),
+        supabase.rpc('get_portal_payments', { _token: realToken }),
+        supabase.from('tasks').select('*').eq('visible_in_portal', true),
+        rpcAny('get_portal_phases', { _token: realToken }),
+        supabase.rpc('get_portal_project_history', { _token: realToken }),
+        supabase.rpc('get_portal_contract_documents', { _token: realToken }),
+        rpcAny('get_portal_responsibilities', { _token: realToken }),
+        rpcAny('get_portal_routines', { _token: realToken }),
+        rpcAny('portal_get_pending_nps', { _token: realToken }),
+        rpcAny('portal_get_nps_history', { _token: realToken }),
+      ]);
+      const value = <T,>(index: number): T[] => {
+        const result = results[index];
+        if (result.status !== 'fulfilled' || (result.value as any).error) return [];
+        return ((result.value as any).data || []) as T[];
+      };
+
+      const faqsList = value<PortalFaq>(0);
+      setFaqs(faqsList.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+      const questionsList = value<PortalQuestion & { group_sort_order?: number }>(1);
+      setQuestions(questionsList.slice().sort((a, b) =>
+        (a.group_sort_order ?? 0) - (b.group_sort_order ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+      const commentsList = value<PortalComment>(2);
+      setComments(commentsList.slice().sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()));
+      const feedbackList = value<PortalFeedback>(3);
+      setFeedback(feedbackList.slice().sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime()));
+      setMeetings(value<PortalMeeting>(4));
+      setPayments(value<PortalPayment>(5));
+      setTasks(value<Record<string, any>>(6));
+
+      const parsedPhases = value<PortalPhase>(7);
+      const allPhases: PortalPhase[] = parsedPhases.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+      setPhases(allPhases);
+      setOnboarding(allPhases);
+      setProjectHistory(value<PortalProjectHistoryEntry>(8));
+      setContractDocs(value<PortalContractDocument>(9));
+      setResponsibilities(value<Record<string, any>>(10));
+      setRoutines(value<Record<string, any>>(11));
+      setNpsPending(value<PortalNpsPending>(12));
+      setNpsHistory(value<PortalNpsHistory>(13));
+    } catch (error) {
+      console.error('Erro ao carregar portal:', error);
+      toast.error('Não foi possível carregar o portal.');
+      setLoading(false);
+    }
   };
 
   const sendComment = async () => {
