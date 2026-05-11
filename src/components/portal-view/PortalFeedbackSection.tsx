@@ -54,13 +54,19 @@ export function PortalFeedbackSection({
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const lastNps = npsHistory[0];
+  const showNpsCard = !!pending || !lastNps || (() => {
+    // Permite nova nota se a última tiver mais de 30 dias
+    if (!lastNps?.actual_date) return true;
+    const diff = Date.now() - new Date(lastNps.actual_date).getTime();
+    return diff > 30 * 24 * 60 * 60 * 1000;
+  })();
 
   return (
     <div className="space-y-6">
       <SectionTitle icon={MessageSquare}>A tua opinião</SectionTitle>
 
-      {/* ─── NPS pendente (em destaque) ─── */}
-      {pending && (
+      {/* ─── NPS (pendente ou proativo) ─── */}
+      {showNpsCard && (
         <SectionCard className="p-6" style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.25) }}>
           <div className="flex items-start gap-3 mb-4">
             <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: pcAlpha(0.12) }}>
@@ -69,7 +75,7 @@ export function PortalFeedbackSection({
             <div className="flex-1">
               <h4 className="text-base font-semibold mb-0.5">De 0 a 10, qual a probabilidade de nos recomendares?</h4>
               <p className="text-xs text-muted-foreground">
-                {pending.product_name ? `Sobre ${pending.product_name} · ` : ''}A tua nota ajuda-nos a melhorar.
+                {pending?.product_name ? `Sobre ${pending.product_name} · ` : ''}A tua nota ajuda-nos a melhorar.
               </p>
             </div>
           </div>
@@ -110,7 +116,7 @@ export function PortalFeedbackSection({
                   className="text-white"
                   style={{ backgroundColor: pc }}
                   onClick={async () => {
-                    await submitNps(pending.id, npsScore, npsNotes);
+                    await submitNps(pending?.id || '', npsScore, npsNotes);
                     setNpsScore(null);
                     setNpsNotes('');
                   }}
@@ -124,7 +130,7 @@ export function PortalFeedbackSection({
       )}
 
       {/* ─── Última nota NPS (resumo, se não há pendente) ─── */}
-      {!pending && lastNps && (
+      {!showNpsCard && lastNps && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border/30 bg-muted/10">
           <Star className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
           <div className="flex-1 text-sm">
