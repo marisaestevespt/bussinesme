@@ -30,18 +30,18 @@ export function PortalFaqsSection({ faqs, pc, pcAlpha }: Props) {
                 value={f.id}
                 className={i === faqs.length - 1 ? 'border-0' : 'border-border/30'}
               >
-                <AccordionTrigger className="text-sm font-medium hover:no-underline py-4 text-left">
+                <AccordionTrigger className="text-base sm:text-lg font-medium hover:no-underline py-5 text-left">
                   <span className="flex items-start gap-3">
                     <span
-                      className="inline-flex items-center justify-center text-[10px] font-semibold rounded-full h-5 w-5 shrink-0 mt-0.5"
+                      className="inline-flex items-center justify-center text-xs font-semibold rounded-full h-6 w-6 shrink-0 mt-0.5"
                       style={{ backgroundColor: pcAlpha(0.12), color: pc }}
                     >
                       {i + 1}
                     </span>
-                    {f.question}
+                    <span className="flex-1">{f.question}</span>
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4 pl-8">
+                <AccordionContent className="text-base text-muted-foreground leading-relaxed pb-5 pl-9">
                   {f.answer || 'Resposta em breve.'}
                 </AccordionContent>
               </AccordionItem>
