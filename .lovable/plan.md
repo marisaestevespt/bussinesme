@@ -1,61 +1,86 @@
-# Recolhas configuráveis por produto + Timeline no portal
-
 ## Conceito
 
-A tabela atual de NPS dentro do produto (Customer Success) passa a ser **"Recolhas de feedback"** — cada linha define uma recolha agendada com:
+Cada recolha **NPS** deixa de ter uma única nota 0–10. Em vez disso, o cliente atribui uma nota 0–10 a cada **categoria temática** que **nós** definimos uma vez de forma universal (servem para qualquer produto). A nota global da recolha (a que continua a entrar nas médias e na saúde do cliente) passa a ser a **média das categorias respondidas**.
 
-- **Tipo**: `nps` (só score 0–10) ou `feedback` (perguntas + NPS final)
-- **Quando**: dias após início, mês X, ou data fixa (mantém lógica atual)
-- **Perguntas** (só se tipo=feedback): lista configurável
+Cada categoria pertence a um **departamento responsável** (ex.: *Atendimento* → Relação com Clientes; *Qualidade do Produto* → Produto). Quando uma categoria é avaliada **abaixo de 7** (detrator), o portal pede um comentário apenas para essa categoria. Esses comentários são depois mostrados no respetivo departamento como sinais de melhoria.
 
-O cron diário continua a materializar os registos `por_fazer` por cliente. Na aba **"A tua opinião"** do portal, o cliente vê **toda a sua jornada de recolhas** (passadas preenchidas + atuais por preencher + futuras agendadas só visualmente) e preenche as devidas.
+O **Feedback Final** mantém o seu modelo atual (perguntas livres + nota final) — não toca aí, apenas no kind=`nps`.
 
-## Schema (migrações)
+---
 
-### 1. `client_nps_records` ganha `kind` e `responses`
-- `kind text not null default 'nps'` — `'nps' | 'feedback'`
-- `responses jsonb` — respostas às perguntas quando `kind='feedback'` (formato `[{question, answer}]`)
-- A coluna `nps_score` continua opcional na tabela mas obrigatória no submit (mesmo no feedback final).
+## Categorias universais (semente inicial)
 
-### 2. Config no produto
-Verificar a tabela atual que define a cadência (provavelmente `product_nps_schedule` ou similar — confirmar no migrations). Adicionar:
-- `kind text not null default 'nps'`
-- `questions jsonb` — array de perguntas (`[{id, text, required}]`); só aplicável se `kind='feedback'`
-- `title text` — título amigável (ex: "Pulse 30 dias", "Feedback final")
+```text
+Atendimento e relação        → relacao_clientes
+Clareza no processo          → relacao_clientes
+Cumprimento de prazos        → operacao
+Qualidade do produto/serviço → produto
+Resultado obtido             → produto
+Comunicação                  → relacao_clientes
+```
 
-O cron de geração lê `kind` e `questions` e copia para o registo gerado em `client_nps_records`.
+Editáveis em **Definições → Recolhas de Feedback** (nova mini-secção). Adicionar/remover/desativar; cada categoria tem `key`, `label`, `department`, `sort_order`, `is_active`.
 
-## Backend (RPCs)
+---
 
-### Atualizar
-- `portal_get_pending_nps` → renomear semanticamente para `portal_get_recolhas`. Devolve **todas** as recolhas do cliente (qualquer status), com `kind`, `questions`, `expected_date`, `actual_date`, `status`, `nps_score`, `responses`, `title`, `product_name`. Ordenado por `expected_date` asc.
-- `portal_submit_nps` → aceita `_responses jsonb default null`. Valida que se o registo é `kind='feedback'` as `responses` cobrem perguntas required.
-- Remover `portal_submit_proactive_nps` (criada na iteração anterior — já não faz sentido com a cadência configurada).
+## Schema
 
-## Frontend
+**Nova tabela `nps_categories`** (universal, só Owner edita)
+- `key` (slug único), `label`, `department` (enum), `sort_order`, `is_active`
 
-### Produto › Customer Success (`/hub/produtos/:id`)
-A tab atual de NPS passa a chamar-se **"Recolhas de Feedback"**. Cada linha permite:
-- Selecionar tipo (NPS / Feedback)
-- Definir título e quando (lógica existente)
-- Se Feedback: editor inline de perguntas (add/remove/reorder, marca required)
+**`client_nps_records` ganha:**
+- `category_scores` jsonb → `[{ key, score, comment? }, ...]`
+- `nps_score` continua a existir, mas para `kind='nps'` passa a ser **calculado automaticamente** pelo backend = média(category_scores.score) arredondada. Para `kind='feedback'` mantém-se o input direto (não muda).
 
-### Portal › "A tua opinião" (`PortalFeedbackSection.tsx`)
-Layout em 3 grupos (timeline vertical):
+Backfill: registos antigos `kind='nps'` ficam com `category_scores=null` e `nps_score` original — não rebenta nada.
 
-1. **Por preencher** (em destaque, no topo) — cards expansíveis. Para `kind=nps` mostra escala 0–10 + nota. Para `kind=feedback` mostra perguntas + escala final.
-2. **Já preenchidas** — resumo compacto (data, score, kind, link para ver respostas).
-3. **Próximas agendadas** — lista cinzenta read-only com data prevista e tipo (cliente vê o roadmap mas não preenche).
+---
 
-A secção de **feedback livre** (Elogio/Sugestão/Problema/Outro) mantém-se em baixo, sempre disponível — é independente das recolhas estruturadas.
+## RPCs
 
-## Detalhes técnicos
+- `portal_get_recolhas` → devolve também `categories` (lista universal ativa) só nos registos `por_fazer` `kind='nps'`, e `category_scores` nos concluídos.
+- `portal_submit_nps` → para `kind='nps'`, deixa de aceitar `_score` direto e passa a aceitar `_category_scores jsonb` (validação: pelo menos 1 categoria respondida, scores 0–10). Calcula `nps_score = round(avg)`. Para `kind='feedback'` mantém a assinatura atual.
 
-- O `submitNps` no `PortalView.tsx` aceita `responses?: Array<{question, answer}>` e envia ao RPC.
-- Tipos novos em `src/types/portal.ts`: `PortalRecolha` substitui `PortalNpsPending`/`PortalNpsHistory`.
-- Reverter a função SQL `portal_submit_proactive_nps` (drop) e o respetivo branch no `submitNps`.
-- O cron existente que cria registos NPS passa a copiar `kind`, `questions` e `title` da config.
+---
 
-## Fora de scope (próxima iteração)
-- Dashboard agregado de respostas de feedback na aba de cliente (já existe vista NPS, é só estender com `kind` filter).
-- Templates de perguntas reutilizáveis entre produtos.
+## Portal (PortalFeedbackSection)
+
+Dialog do NPS é redesenhado:
+- Cabeçalho com título da recolha
+- **Lista de categorias**, cada uma com label, descrição curta opcional e seletor 0–10 (mesmo agrupamento Detrator/Passivo/Promotor já implementado, em formato compacto inline)
+- Quando uma categoria recebe score ≤ 6, expande **textarea inline** "O que correu menos bem em *X*?" (obrigatório para submeter)
+- Resumo no fundo: "Nota global desta recolha: **8.3**"
+- Botão Enviar
+
+Feedback Final: zero alterações.
+
+---
+
+## Médias e saúde (impacto)
+
+- **Saúde do cliente, médias por produto, cockpit, ClientesAnalise, ProductMetricsTab** — continuam a ler `nps_score` → **nada muda** porque o backend grava a média lá.
+- **Novas vistas por categoria/departamento** (entregue só onde fizer sentido, sem rebuild dos dashboards):
+  - **Relação com Clientes (`/hub/clientes/analise`)**: novo bloco "Sinais por categoria" → médias e comentários abertos das categorias com `department='relacao_clientes'` nos últimos 90 dias.
+  - **Produto (página do produto, aba Métricas)**: novo bloco "Avaliação por categoria" → médias por categoria limitadas às categorias `department='produto'` para esse produto.
+  - **Operação**: já tem analytics próprias; deixar este passo para depois (não no scope agora) para evitar bloat.
+
+---
+
+## Out of scope nesta passagem
+
+- Edição inline das categorias por produto (mantém-se universal)
+- Dashboards executivos novos
+- Permissões de quem vê comentários (assume-se: equipa toda na fase de teste)
+
+---
+
+## Passos de implementação (técnico)
+
+1. **Migration**: criar `nps_categories`, RLS (Owner R/W; equipa só read), seed inicial; adicionar `category_scores` a `client_nps_records`.
+2. **RPCs**: atualizar `portal_get_recolhas` e `portal_submit_nps`; trigger/função para calcular `nps_score` na submissão.
+3. **Tipos**: estender `PortalRecolha` em `src/types/portal.ts` com `categories` e `category_scores`.
+4. **Portal Dialog**: redesenhar para múltiplas categorias + comentário condicional (≤6).
+5. **Definições**: nova mini-secção em `src/components/settings/SettingsRecolhas.tsx` (ou similar) para editar a lista universal.
+6. **Análises**: pequenos blocos em ClientesAnalise e ProductMetricsTab a ler agregados de `category_scores`.
+
+Quando aprovares, executo este plano por esta ordem.
