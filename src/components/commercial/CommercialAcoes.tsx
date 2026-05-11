@@ -146,7 +146,7 @@ export function CommercialAcoes() {
             </div>
           )}
         </div>
-        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Ação</Button>
+        <Button size="sm" onClick={openNew} variant="soft"><Plus className="h-4 w-4 mr-1" /> Nova Ação</Button>
       </div>
 
       {/* Ações Ativas */}
@@ -635,7 +635,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
             <Label>Resultado</Label>
             <Input value={form.result} onChange={e => set({ result: e.target.value })} placeholder="Resultado após conclusão" />
           </div>
-          <Button className="w-full" onClick={handleSave}>Guardar</Button>
+          <Button className="w-full" onClick={handleSave} variant="soft">Guardar</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -232,7 +232,7 @@ export function CommercialCRM() {
               <Settings2 className="h-3.5 w-3.5 mr-1" /> Gerir Etapas
             </Button>
           )}
-          <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
+          <Button size="sm" onClick={openNew} variant="soft"><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
         </div>
       </div>
 
