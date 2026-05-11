@@ -14,6 +14,7 @@ import { pt } from 'date-fns/locale';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
 import type {
   PortalFeedback, PortalRecolha, PortalRecolhaQuestion, PortalRecolhaResponse,
+  PortalNpsCategory, PortalNpsCategoryScore,
 } from '@/types/portal';
 
 type Category = 'elogio' | 'sugestao' | 'problema' | 'outro';
@@ -38,9 +39,10 @@ interface Props {
   recolhas: PortalRecolha[];
   submitNps: (
     recordId: string,
-    score: number,
+    score: number | null,
     notes: string,
     responses?: PortalRecolhaResponse[],
+    categoryScores?: PortalNpsCategoryScore[],
   ) => void | Promise<void>;
   pc: string;
   pcAlpha: (a: number) => string;
