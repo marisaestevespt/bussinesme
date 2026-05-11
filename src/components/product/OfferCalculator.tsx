@@ -583,7 +583,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     <div className="space-y-6">
       {/* ── Configuração do cenário ── */}
       <Card>
-        <CardHeader><CardTitle className="text-sm">Parâmetros do cenário</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           {/* Perfil fiscal — vem das Definições e não é editável aqui */}
           {fiscalFromSettings ? (
@@ -651,7 +651,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Breakdown ── */}
       <Card>
-        <CardHeader><CardTitle className="text-sm">Composição do custo por unidade</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {totalPerUnit === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Adiciona custos e define vendas estimadas para veres o breakdown.</p>
@@ -763,7 +763,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Testar preço ── */}
       <Card>
-        <CardHeader><CardTitle className="text-sm">Testar um preço</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1">
@@ -786,19 +786,19 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-sm text-foreground/70">Preço c/ IVA</p>
-                <p className="text-sm font-semibold">{formatEuro(testWithVat)}</p>
+                <p className="text-base font-bold">{formatEuro(testWithVat)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-sm text-foreground/70">IRS/IRC</p>
-                <p className="text-sm font-semibold">{formatEuro(testIRS)}</p>
+                <p className="text-base font-bold">{formatEuro(testIRS)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-sm text-foreground/70">Seg. Social</p>
-                <p className="text-sm font-semibold">{formatEuro(testSS)}</p>
+                <p className="text-base font-bold">{formatEuro(testSS)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-sm text-foreground/70">Custos / unidade</p>
-                <p className="text-sm font-semibold">{formatEuro(totalPerUnit)}</p>
+                <p className="text-base font-bold">{formatEuro(totalPerUnit)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-sm text-foreground/70">Lucro real</p>
