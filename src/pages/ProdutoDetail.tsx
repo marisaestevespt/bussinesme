@@ -940,10 +940,10 @@ export default function ProdutoDetailPage() {
               />
               <ProductSalesTab productName={form.name || ''} />
               {!isNew && id && (
-                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
+                <ProductClientsHub productId={id} productName={form.name || ''} />
               )}
               {!isNew && id && (
-                <ProductProjectsSection productId={id} productName={form.name || ''} mode="client" />
+                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
               )}
               {!isNew && id && (
                 <ProductMetricsTab productId={id} productName={form.name || ''} isOwner={isOwner} />
