@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, ChevronDown, ChevronRight, Settings, ClipboardList, Pencil, Check, X } from 'lucide-react';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { toast } from 'sonner';
+import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
 
 interface Props {
   productId: string;
@@ -401,27 +402,46 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <div>
-        <h3 className="text-base font-semibold">Perguntas de Diagnóstico</h3>
-        <p className="text-xs text-muted-foreground">Estas perguntas serão automaticamente importadas para o portal de cada cliente deste produto.</p>
+        <h3 className="text-base font-semibold">Perguntas para o Cliente</h3>
+        <p className="text-xs text-muted-foreground">Estas perguntas são importadas automaticamente para o portal de cada cliente deste produto.</p>
       </div>
 
-      {renderSection(
-        'Diagnóstico',
-        <ClipboardList className="h-4 w-4 text-primary" />,
-        'Perguntas sobre o negócio, equipa, processos e expectativas',
-        diagnosticGroups,
-        DIAGNOSTIC_GROUPS,
-      )}
+      <EntityTabs defaultValue="diagnostico" className="space-y-4">
+        <EntityTabsList className="w-full justify-start">
+          <EntityTabsTrigger value="diagnostico">
+            <ClipboardList className="h-3.5 w-3.5 mr-1.5 inline" />
+            Diagnóstico
+            <Badge variant="secondary" className="ml-2 text-[10px] h-4 px-1.5">{diagnosticGroups.reduce((n, g) => n + questions.filter(q => q.question_group === g).length, 0)}</Badge>
+          </EntityTabsTrigger>
+          <EntityTabsTrigger value="config">
+            <Settings className="h-3.5 w-3.5 mr-1.5 inline" />
+            Configuração do Sistema
+            <Badge variant="secondary" className="ml-2 text-[10px] h-4 px-1.5">{configGroups.reduce((n, g) => n + questions.filter(q => q.question_group === g).length, 0)}</Badge>
+          </EntityTabsTrigger>
+        </EntityTabsList>
 
-      {renderSection(
-        'Configuração do Sistema',
-        <Settings className="h-4 w-4 text-muted-foreground" />,
-        'Dados necessários para configurar o sistema do cliente',
-        configGroups,
-        CONFIG_GROUPS,
-      )}
+        <EntityTabsContent value="diagnostico" className="mt-4">
+          {renderSection(
+            'Diagnóstico',
+            <ClipboardList className="h-4 w-4 text-primary" />,
+            'Perguntas sobre o negócio, equipa, processos e expectativas do cliente.',
+            diagnosticGroups,
+            DIAGNOSTIC_GROUPS,
+          )}
+        </EntityTabsContent>
+
+        <EntityTabsContent value="config" className="mt-4">
+          {renderSection(
+            'Configuração do Sistema',
+            <Settings className="h-4 w-4 text-muted-foreground" />,
+            'Dados técnicos que precisas de recolher para configurar o sistema/contas do cliente.',
+            configGroups,
+            CONFIG_GROUPS,
+          )}
+        </EntityTabsContent>
+      </EntityTabs>
     </div>
   );
 }
