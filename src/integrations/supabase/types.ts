@@ -5763,6 +5763,7 @@ export type Database = {
           content_type: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           format: string | null
           id: string
           idea: string
@@ -5773,6 +5774,7 @@ export type Database = {
           content_type?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           format?: string | null
           id?: string
           idea: string
@@ -5783,6 +5785,7 @@ export type Database = {
           content_type?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           format?: string | null
           id?: string
           idea?: string

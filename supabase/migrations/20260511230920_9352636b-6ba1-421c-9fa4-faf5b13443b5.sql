@@ -1,0 +1,1 @@
+ALTER TABLE public.marketing_ideas ADD COLUMN IF NOT EXISTS description text;
