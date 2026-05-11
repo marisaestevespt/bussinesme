@@ -892,6 +892,11 @@ export default function ProdutoDetailPage() {
 
           {openSection === 'clientes-metricas' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductTabHeader
+                icon={Users}
+                title="Clientes & Métricas"
+                description="Quem está a comprar este produto, projetos em curso, KPIs de performance e notas de Customer Success."
+              />
               <ProductSalesTab productName={form.name || ''} />
               {!isNew && id && (
                 <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
