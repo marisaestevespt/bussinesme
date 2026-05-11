@@ -125,8 +125,7 @@ export default function PortalAuthPage() {
     || (firstName ? `Olá, ${firstName}.` : 'Bem-vindo.');
   const heroSubtitle = settings?.hero_subtitle
     || (productName ? productName : 'O teu espaço de acompanhamento.');
-  const loginTitle = settings?.login_title
-    || (firstName ? `Olá, ${firstName}` : 'Aceder ao portal');
+  const loginTitle = settings?.login_title || 'Aceder ao portal';
   const loginSubtitle = settings?.login_subtitle;
   const fontDisplay = settings?.font_display ? `"${settings.font_display}", sans-serif` : 'var(--font-display, "Plus Jakarta Sans", sans-serif)';
 
