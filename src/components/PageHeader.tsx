@@ -19,26 +19,26 @@ export function PageHeader({ title, subtitle, showAccessButton = true, departmen
   const eyebrowText = eyebrow ?? autoEyebrow;
 
   return (
-    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-4 sm:py-6 overflow-hidden border-b-2 border-primary/25 hq-linen">
+    <div className="relative -mx-4 sm:-mx-8 mb-2 px-4 sm:px-8 py-3 sm:py-4 overflow-hidden border-b-2 border-primary/25 hq-linen">
       {/* Left edge accent bar — bordô tab */}
-      <div className="absolute left-0 top-4 bottom-4 w-[4px] bg-primary" />
+      <div className="absolute left-0 top-3 bottom-3 w-[4px] bg-primary" />
 
       <div className="relative flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="font-typewriter text-[10px] uppercase tracking-[0.32em] text-primary/70 mb-1.5">
+          <div className="font-typewriter text-[10px] uppercase tracking-[0.32em] text-primary/70 mb-1">
             {eyebrowText}
           </div>
-          <h1 className="font-display italic text-2xl sm:text-3xl text-foreground leading-[1.05] truncate">
+          <h1 className="font-display italic text-xl sm:text-2xl text-foreground leading-[1.05] truncate">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground hidden sm:block max-w-2xl">
+            <p className="mt-1 text-xs text-muted-foreground hidden sm:block max-w-2xl">
               <span className="font-display italic text-primary/70 mr-1.5">✦</span>
               {subtitle}
             </p>
           )}
           {department && (
-            <div className="mt-3">
+            <div className="mt-2">
               <DepartmentLinks department={department} variant="inline" />
             </div>
           )}
