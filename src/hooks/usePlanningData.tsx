@@ -114,6 +114,29 @@ export function usePlanningData(year = currentYear) {
 
   const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
+  // ─── Period normalization (canonical ↔ legacy) ───
+  // DB canonical: 'Q1'..'Q4', 'S1'..'S2', 'YYYY-MM', 'YYYY'.
+  // UI legacy: 'T1'..'T4', 'Janeiro'..'Dezembro'.
+  // We keep the UI on legacy strings to avoid widespread refactors;
+  // conversion happens at IO boundary only.
+  const periodCanonicalToLegacy = (p: string | null | undefined): string => {
+    if (!p) return '';
+    if (/^Q[1-4]$/.test(p)) return 'T' + p.slice(1);
+    const m = p.match(/^\d{4}-(\d{2})$/);
+    if (m) {
+      const idx = parseInt(m[1], 10) - 1;
+      return MONTH_NAMES[idx] ?? p;
+    }
+    return p;
+  };
+  const periodLegacyToCanonical = (p: string | null | undefined): string => {
+    if (!p) return '';
+    if (/^T[1-4]$/.test(p)) return 'Q' + p.slice(1);
+    const idx = MONTH_NAMES.indexOf(p);
+    if (idx >= 0) return `${year}-${String(idx + 1).padStart(2, '0')}`;
+    return p;
+  };
+
   // Sync commercial objective → commercial_annual_goals
   const syncObjectiveToCommercial = async (obj: PlanningFormPayload) => {
     if (obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
@@ -254,7 +277,12 @@ export function usePlanningData(year = currentYear) {
     queryKey: [...key, 'goals'],
     queryFn: async () => {
       const { data } = await supabase.from('planning_goals').select('*').eq('year', year).order('created_at');
-      return data || [];
+      // Expose legacy period strings to existing UI consumers
+      return (data || []).map((g) => ({
+        ...g,
+        period_canonical: g.period,
+        period: periodCanonicalToLegacy(g.period as string),
+      }));
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -262,13 +290,17 @@ export function usePlanningData(year = currentYear) {
   const upsertGoal = useMutation({
     mutationFn: async (raw: PlanningFormPayload) => {
       const rec = clean(raw);
-      // auto period_type
+      // Convert legacy period strings → canonical before persisting
       if (rec.period && typeof rec.period === 'string') {
-        rec.period_type = rec.period.startsWith('T')
+        rec.period = periodLegacyToCanonical(rec.period);
+        // auto period_type
+        rec.period_type = rec.period.startsWith('Q')
           ? 'trimestral'
           : rec.period.startsWith('S')
             ? 'semestral'
-            : 'mensal';
+            : /^\d{4}-\d{2}$/.test(rec.period as string)
+              ? 'mensal'
+              : 'anual';
       }
       if (rec.id) {
         const { error } = await supabase.from('planning_goals').update(rec as never).eq('id', rec.id as string);
