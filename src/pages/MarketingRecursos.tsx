@@ -445,7 +445,7 @@ export default function MarketingRecursos() {
                       </TableCell>
                     </TableRow>
                   ) : filteredIdeas.map(idea => (
-                    <TableRow key={idea.id}>
+                    <TableRow key={idea.id} className="cursor-pointer hover:bg-muted/40" onClick={() => openIdea(idea)}>
                       <TableCell className="font-medium align-top">
                         <div className="whitespace-pre-wrap break-words">{idea.idea}</div>
                         {idea.description && (
@@ -466,7 +466,7 @@ export default function MarketingRecursos() {
                       </TableCell>
                       {isOwner && (
                         <TableCell>
-                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteIdea(idea.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); deleteIdea(idea.id); }}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </TableCell>
