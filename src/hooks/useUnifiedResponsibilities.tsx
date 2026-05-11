@@ -13,7 +13,7 @@ import { isTaskDone } from '@/lib/taskStatus';
 
 export type ResponsibilitySource =
   | 'tarefa' | 'crm' | 'conteudo' | 'reuniao'
-  | 'projeto' | 'nps' | 'marco' | 'acao_venda' | 'rotina';
+  | 'projeto' | 'nps' | 'acao_venda' | 'rotina';
 
 export interface UnifiedItem {
   id: string;
@@ -39,7 +39,6 @@ const SOURCE_LABELS: Record<ResponsibilitySource, string> = {
   reuniao: 'Reuniões',
   projeto: 'Projetos',
   nps: 'NPS',
-  marco: 'Marcos',
   acao_venda: 'Ações de Venda',
   rotina: 'Rotinas',
 };
@@ -168,25 +167,6 @@ export function useUnifiedResponsibilities(userId?: string) {
         .select('id,expected_date,status,client_id,clients(full_name)')
         .lte('expected_date', todayStr)
         .in('status', ['por_fazer', 'em_atraso']);
-      return data || [];
-    },
-  });
-
-  // 7. Client milestones
-  const milestonesQ = useQuery({
-    queryKey: ['unified-milestones', uid, profileId, isOwner],
-    enabled: !!uid && (!!profileId || !!isOwner),
-    staleTime: 2 * 60 * 1000,
-    queryFn: async () => {
-      let q = supabase.from('client_milestones')
-        .select('id,milestone,expected_date,status,client_id,responsible_id,clients(full_name)')
-        .lte('expected_date', todayStr)
-        .in('status', ['por_fazer', 'em_atraso']);
-      // Membros só veem marcos onde são responsáveis. Owner vê tudo (gestão).
-      if (!isOwner && profileId) {
-        q = q.eq('responsible_id', profileId);
-      }
-      const { data } = await q;
       return data || [];
     },
   });
@@ -321,22 +301,6 @@ export function useUnifiedResponsibilities(userId?: string) {
       });
     });
 
-    // 7. Milestones
-    (milestonesQ.data || []).forEach(m => {
-      const clientName = (m as { clients?: { full_name?: string | null } | null }).clients?.full_name || 'Cliente';
-      result.push({
-        id: `marco-${m.id}`,
-        sourceId: m.id,
-        source: 'marco',
-        title: `Marco — ${m.milestone} — ${clientName}`,
-        date: m.expected_date,
-        deadline: m.expected_date,
-        isInfoOnly: false,
-        completed: false,
-        estimatedHours: 0,
-      });
-    });
-
     // 8. Sales actions
     (salesActionsQ.data || []).forEach(a => {
       result.push({
@@ -362,7 +326,7 @@ export function useUnifiedResponsibilities(userId?: string) {
     });
 
     return result;
-  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, uid, today]);
+  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, salesActionsQ.data, uid, today]);
 
   // ─── Filtered views ────────────────────────────────────────
 

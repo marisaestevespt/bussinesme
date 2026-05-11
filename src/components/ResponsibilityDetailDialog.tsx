@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Clock, CheckCircle2, Circle, User, Calendar, ExternalLink, Target, RotateCw } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, Circle, User, Calendar, ExternalLink, RotateCw } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -20,12 +20,6 @@ import { InlineLoader } from '@/components/ui/loading-skeletons';
 
 // Use the canonical task statuses so badges/dropdowns match the Tarefas page.
 const TASK_STATUSES = CANON_TASK_STATUSES;
-
-const MILESTONE_STATUSES = [
-  { value: 'por_fazer', label: 'Por Fazer', color: 'bg-muted text-muted-foreground' },
-  { value: 'em_atraso', label: 'Em Atraso', color: 'bg-destructive/15 text-destructive' },
-  { value: 'concluido', label: 'Concluído', color: 'bg-success/15 text-success' },
-];
 
 interface Props {
   item: UnifiedItem | null;
@@ -54,8 +48,6 @@ function DetailContent({ item, onClose }: { item: UnifiedItem; onClose: () => vo
   switch (item.source) {
     case 'tarefa':
       return <TaskDetail item={item} onClose={onClose} />;
-    case 'marco':
-      return <MilestoneDetail item={item} onClose={onClose} />;
     case 'rotina':
       return <RoutineChecklistDetail item={item} onClose={onClose} />;
     default:
@@ -225,96 +217,6 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
             </div>
           </div>
         </>
-      )}
-    </div>
-  );
-}
-
-// ─── Milestone Detail ────────────────────────────────────────
-
-function MilestoneDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void }) {
-  const qc = useQueryClient();
-  const navigate = useNavigate();
-
-  const { data: milestone } = useQuery({
-    queryKey: ['milestone-detail', item.sourceId],
-    queryFn: async () => {
-      const { data } = await supabase.from('client_milestones')
-        .select('*, clients(full_name, id)')
-        .eq('id', item.sourceId)
-        .single();
-      return data;
-    },
-  });
-
-  const updateStatus = useMutation({
-    mutationFn: async (status: string) => {
-      const { error } = await supabase.from('client_milestones').update({ status }).eq('id', item.sourceId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['unified-milestones'] });
-      qc.invalidateQueries({ queryKey: ['milestone-detail', item.sourceId] });
-      toast.success('Marco atualizado');
-    },
-  });
-
-  if (!milestone) return <div className="py-6 text-center text-sm text-muted-foreground">A carregar...</div>;
-
-  return (
-    <div className="space-y-4 pb-4">
-      <div className="flex flex-wrap gap-2">
-        <Badge variant="outline" className="gap-1 text-xs">
-          <Target className="h-3 w-3" />
-          {milestone.milestone_type || 'Marco'}
-        </Badge>
-        <Badge variant="outline" className="gap-1 text-xs">
-          <Calendar className="h-3 w-3" />
-          {format(parseISO(milestone.expected_date), 'd MMM yyyy', { locale: pt })}
-        </Badge>
-        {(milestone as any).clients?.full_name && (
-          <Badge
-            variant="outline"
-            className="gap-1 text-xs cursor-pointer hover:bg-accent"
-            onClick={() => { onClose(); navigate(`/hub/clientes/${(milestone as any).clients.id}`); }}
-          >
-            <User className="h-3 w-3" />
-            {(milestone as any).clients.full_name}
-          </Badge>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-muted-foreground">Descrição</label>
-        <p className="text-sm">{milestone.milestone}</p>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-muted-foreground">Status</label>
-        <Select value={milestone.status} onValueChange={(v) => updateStatus.mutate(v)}>
-          <SelectTrigger className="h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {MILESTONE_STATUSES.map(s => (
-              <SelectItem key={s.value} value={s.value}>
-                <div className="flex items-center gap-2">
-                  <div className={cn('h-2 w-2 rounded-full',
-                    s.value === 'concluido' ? 'bg-success' : s.value === 'em_atraso' ? 'bg-destructive' : 'bg-muted'
-                  )} />
-                  {s.label}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {milestone.notes && (
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground">Notas</label>
-          <p className="text-sm bg-muted/50 p-3 rounded-lg">{milestone.notes}</p>
-        </div>
       )}
     </div>
   );

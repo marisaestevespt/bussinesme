@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Star, Target, ChevronRight } from 'lucide-react';
+import { MessageSquare, Star, ChevronRight } from 'lucide-react';
 import { ClientFeedbackSection } from './ClientFeedbackSection';
 import { ClientCustomerSuccess } from './ClientCustomerSuccess';
 
@@ -15,7 +15,7 @@ interface Props {
   isNew: boolean;
 }
 
-type TileKey = 'feedback' | 'nps' | 'milestones' | null;
+type TileKey = 'feedback' | 'nps' | null;
 
 export function ClientCustomerSuccessGallery({ clientId, clientName, productName, startDate, isNew }: Props) {
   const [open, setOpen] = useState<TileKey>(null);
@@ -55,18 +55,6 @@ export function ClientCustomerSuccessGallery({ clientId, clientName, productName
     },
   });
 
-  const { data: milestonesSummary } = useQuery({
-    queryKey: ['cs-summary-milestones', clientId],
-    enabled: !!clientId,
-    queryFn: async () => {
-      const { data } = await (supabase.from('client_milestones' as any) as any)
-        .select('status').eq('client_id', clientId);
-      const list = (data || []) as any[];
-      const done = list.filter(r => r.status === 'feito').length;
-      return { total: list.length, done, pending: list.length - done };
-    },
-  });
-
   const tiles = [
     {
       key: 'feedback' as const,
@@ -94,25 +82,11 @@ export function ClientCustomerSuccessGallery({ clientId, clientName, productName
       ],
       caption: !productName ? 'Associa um produto para ativar' : `${npsSummary?.total ?? 0} datas planeadas`,
     },
-    {
-      key: 'milestones' as const,
-      title: 'Marcos de Acompanhamento',
-      icon: Target,
-      gradient: 'from-success/20 via-success/10 to-transparent',
-      accent: 'border-l-success',
-      iconBg: 'bg-success/15 text-success',
-      stats: [
-        { label: 'Concluídos', value: String(milestonesSummary?.done ?? 0) },
-        { label: 'Pendentes', value: String(milestonesSummary?.pending ?? 0) },
-      ],
-      caption: !productName ? 'Associa um produto para ativar' : `${milestonesSummary?.total ?? 0} marcos definidos`,
-    },
   ];
 
   const dialogTitle =
     open === 'feedback' ? 'Feedback Recebido' :
-    open === 'nps' ? 'Recolha de NPS' :
-    open === 'milestones' ? 'Marcos de Acompanhamento' : '';
+    open === 'nps' ? 'Recolha de NPS' : '';
 
   return (
     <>
@@ -156,13 +130,13 @@ export function ClientCustomerSuccessGallery({ clientId, clientName, productName
             {open === 'feedback' && (
               <ClientFeedbackSection clientId={clientId} clientName={clientName} />
             )}
-            {(open === 'nps' || open === 'milestones') && !isNew && clientId && (
+            {open === 'nps' && !isNew && clientId && (
               <ClientCustomerSuccess
                 clientId={clientId}
                 clientName={clientName}
                 productName={productName}
                 startDate={startDate}
-                onlySection={open === 'nps' ? 'nps' : 'milestones'}
+                onlySection="nps"
               />
             )}
           </div>

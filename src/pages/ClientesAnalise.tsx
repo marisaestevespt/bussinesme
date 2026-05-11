@@ -83,16 +83,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   });
   const allNps = npsQ.data || [];
 
-  // Milestones
-  const milestonesQ = useQuery({
-    queryKey: ['client_milestones_all'],
-    queryFn: async () => {
-      const { data } = await supabase.from('client_milestones').select('*');
-      return data || [];
-    },
-  });
-  const allMilestones = milestonesQ.data || [];
-
   // Qualitative
   const analysisQ = useQuery({
     queryKey: ['clients_analysis', month, year],
@@ -156,14 +146,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const renewalBase = renewalClients.filter(c => c.status === 'ativo' || c.status === 'altura_renovacao' || c.status === 'terminado').length;
   const renewalRate = renewalBase > 0 ? Math.round((renewedCount / renewalBase) * 100) : 0;
 
-  // Milestones in month
-  const monthMilestonesExpected = allMilestones.filter(m => {
-    if (!m.expected_date) return false;
-    const d = new Date(m.expected_date);
-    return d.getMonth() + 1 === month && d.getFullYear() === year;
-  });
-  const monthMilestonesDone = monthMilestonesExpected.filter(isDeliverableDone);
-
   // ─── NPS (global, not filtered by month) ───
   const latestNpsByClient = useMemo(() => {
     const map = new Map<string, number>();
@@ -207,7 +189,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const clientNps = latestNpsByClient.get(c.id);
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
       const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : null;
-      const overdueMilestones = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
       let color: HealthColor = 'green';
@@ -215,10 +196,9 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       if (clientNps != null && clientNps <= 6) {
         color = 'red';
         reasons.push(`NPS detrator (${clientNps})`);
-      } else if ((daysSinceNps != null && daysSinceNps > 90) || overdueMilestones.length > 0 || (endCycleDays != null && endCycleDays <= 30)) {
+      } else if ((daysSinceNps != null && daysSinceNps > 90) || (endCycleDays != null && endCycleDays <= 30)) {
         color = 'yellow';
         if (endCycleDays != null && endCycleDays <= 30) reasons.push(`Renovação em ${endCycleDays}d`);
-        if (overdueMilestones.length > 0) reasons.push(`${overdueMilestones.length} entrega(s) em atraso`);
         if (daysSinceNps != null && daysSinceNps > 90) reasons.push(`NPS desatualizado (${daysSinceNps}d)`);
       } else {
         reasons.push('Tudo em dia');
@@ -229,7 +209,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const order: Record<HealthColor, number> = { red: 0, yellow: 1, green: 2 };
       return order[a.color] - order[b.color];
     });
-  }, [activeClients, latestNpsByClient, allNps, allMilestones, today]);
+  }, [activeClients, latestNpsByClient, allNps, today]);
 
   return (
     <div className="space-y-6 pt-6">
@@ -248,7 +228,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
         <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mt-5">
           {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Valor médio / cliente" value={`${formatInt(avgValuePerClient)} €`} icon={DollarSign} />}
           {isKpiEnabled('clientes', 'taxa_renovacao') && <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />}
-          {isKpiEnabled('clientes', 'marcos_atingidos') && <KpiCard label="Marcos atingidos" value={`${monthMilestonesDone.length} / ${monthMilestonesExpected.length}`} icon={Target} />}
         </div>
       </div>
       )}
@@ -372,16 +351,6 @@ export default function ClientesAnalisePage() {
   });
   const allNps = npsQ.data || [];
 
-  // Milestones for health
-  const milestonesQ = useQuery({
-    queryKey: ['client_milestones_all'],
-    queryFn: async () => {
-      const { data } = await supabase.from('client_milestones').select('*');
-      return data || [];
-    },
-  });
-  const allMilestones = milestonesQ.data || [];
-
   // ─── Annual summary ───
   const annualSummary = useMemo(() => {
     const activeClients = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding');
@@ -427,7 +396,6 @@ export default function ClientesAnalisePage() {
       const clientNps = npsMap.get(c.id);
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
       const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : null;
-      const overdue = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
       let color: 'green' | 'yellow' | 'red' = 'green';
@@ -436,11 +404,10 @@ export default function ClientesAnalisePage() {
         color = 'red';
         reasons.push(`NPS detrator (${clientNps})`);
         red++;
-      } else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0 || (endCycleDays != null && endCycleDays <= 30)) {
+      } else if ((daysSinceNps != null && daysSinceNps > 90) || (endCycleDays != null && endCycleDays <= 30)) {
         color = 'yellow';
         if (endCycleDays != null && endCycleDays <= 30) reasons.push(`Renovação em ${endCycleDays}d`);
         if (daysSinceNps != null && daysSinceNps > 90) reasons.push(`NPS desatualizado (${daysSinceNps}d)`);
-        if (overdue.length > 0) reasons.push(`${overdue.length} marco(s) em atraso`);
         yellow++;
       } else {
         reasons.push('Tudo em dia');
@@ -454,7 +421,7 @@ export default function ClientesAnalisePage() {
     });
 
     return { activeCount: activeClients.length, newClients, churn, renewalRate, avgNps, byProduct, green, yellow, red, healthList };
-  }, [clientsData, year, allNps, allMilestones]);
+  }, [clientsData, year, allNps]);
 
   const monthSummaries = useMemo(() => {
     return MONTH_NAMES.map((name, idx) => {

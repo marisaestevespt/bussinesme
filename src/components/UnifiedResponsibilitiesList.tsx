@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CheckSquare, PhoneCall, FileText, Users, FolderKanban,
-  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight, Plus,
+  Star, ShoppingCart, ListChecks, Clock, ChevronRight, Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -28,7 +28,6 @@ const SOURCE_ICON: Record<ResponsibilitySource, typeof CheckSquare> = {
   reuniao: Users,
   projeto: FolderKanban,
   nps: Star,
-  marco: Target,
   acao_venda: ShoppingCart,
   rotina: ListChecks,
 };
@@ -40,7 +39,6 @@ const SOURCE_COLOR: Record<ResponsibilitySource, string> = {
   reuniao: 'bg-destructive/15 text-destructive border-destructive/30',
   projeto: 'bg-warning/15 text-warning border-warning/30',
   nps: 'bg-warning/15 text-warning border-warning/30',
-  marco: 'bg-info/15 text-info border-info',
   acao_venda: 'bg-warning/15 text-warning border-warning/30',
   rotina: 'bg-accent-violet/15 text-accent-violet border-accent-violet',
 };
@@ -57,7 +55,6 @@ const FILTER_OPTIONS: { value: SourceFilter; label: string }[] = [
   { value: 'conteudo', label: 'Conteúdos' },
   { value: 'reuniao', label: 'Reuniões' },
   { value: 'nps', label: 'NPS' },
-  { value: 'marco', label: 'Marcos' },
   { value: 'acao_venda', label: 'Ações' },
   { value: 'rotina', label: 'Rotinas' },
 ];
@@ -70,14 +67,13 @@ function getItemRoute(item: UnifiedItem): string | null {
     case 'reuniao': return `/hub/reunioes/${item.sourceId}`;
     case 'projeto': return `/hub/projetos/${item.sourceId}`;
     case 'nps': return null;
-    case 'marco': return null;
     case 'acao_venda': return `/comercial/acoes`;
     case 'rotina': return `/executive/planeamento`;
     default: return null;
   }
 }
 
-const TOGGLEABLE_SOURCES: ResponsibilitySource[] = ['tarefa', 'marco', 'rotina'];
+const TOGGLEABLE_SOURCES: ResponsibilitySource[] = ['tarefa', 'rotina'];
 
 interface Props {
   items: UnifiedItem[];
@@ -105,13 +101,6 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
           if (error) throw error;
           break;
         }
-        case 'marco': {
-          const { error } = await supabase.from('client_milestones')
-            .update({ status: newCompleted ? 'concluido' : 'por_fazer' })
-            .eq('id', item.sourceId);
-          if (error) throw error;
-          break;
-        }
         case 'rotina': {
           const { error } = await supabase.from('executive_monthly_checklists')
             .update({ completed: newCompleted })
@@ -123,7 +112,6 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['unified-tasks'] });
-      qc.invalidateQueries({ queryKey: ['unified-milestones'] });
       qc.invalidateQueries({ queryKey: ['unified-habits'] });
       qc.invalidateQueries({ queryKey: ['executive'] });
       toast.success('Atualizado!');
@@ -136,7 +124,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
   items.forEach(i => { countBySource[i.source] = (countBySource[i.source] || 0) + 1; });
 
-  const DIALOG_SOURCES: ResponsibilitySource[] = ['marco', 'rotina'];
+  const DIALOG_SOURCES: ResponsibilitySource[] = ['rotina'];
 
   // Fetch full task for editing
   const { data: editTask } = useQuery({

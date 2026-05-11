@@ -6,7 +6,7 @@ import { ResponsibilityDetailDialog } from '@/components/ResponsibilityDetailDia
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import type { UnifiedItem, ResponsibilitySource } from '@/hooks/useUnifiedResponsibilities';
 
-const DIALOG_SOURCES: ResponsibilitySource[] = ['marco', 'rotina'];
+const DIALOG_SOURCES: ResponsibilitySource[] = ['rotina'];
 
 function getItemRoute(item: UnifiedItem): string | null {
   switch (item.source) {

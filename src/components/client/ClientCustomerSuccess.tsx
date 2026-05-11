@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Calendar, User2, MessageSquare, Star, Target } from 'lucide-react';
+import { Plus, Calendar, MessageSquare, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, addDays, differenceInDays } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
@@ -18,27 +18,18 @@ const STATUS_OPTIONS = [
   { value: 'em_atraso', label: 'Em atraso' },
 ];
 
-const MILESTONE_TYPE_LABELS: Record<string, string> = {
-  check_in: 'Check-in',
-  feedback: 'Recolha de Feedback',
-  reuniao: 'Reunião',
-  email: 'Email',
-  outro: 'Outro',
-};
-
 interface Props {
   clientId: string;
   clientName: string;
   productName: string | null;
   startDate: string | null;
   /** When set, render only the requested sub-section (used inside dialogs) */
-  onlySection?: 'nps' | 'milestones';
+  onlySection?: 'nps';
 }
 
 export function ClientCustomerSuccess({ clientId, clientName, productName, startDate, onlySection }: Props) {
   const qc = useQueryClient();
-  const { members } = useTeamData({ members: true });
-  const teamMembers = members.data || [];
+  useTeamData({ members: false });
 
   // Fetch the product to get its id
   const { data: product } = useQuery({
@@ -76,19 +67,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
     queryFn: async () => {
       const { data } = await supabase
         .from('client_nps_records' as any)
-        .select('*')
-        .eq('client_id', clientId)
-        .order('expected_date');
-      return (data || []) as any[];
-    },
-  });
-
-  // Fetch client milestones
-  const { data: clientMilestones = [] } = useQuery({
-    queryKey: ['client-milestones', clientId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('client_milestones' as any)
         .select('*')
         .eq('client_id', clientId)
         .order('expected_date');
@@ -137,46 +115,9 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
     },
   });
 
-  // Generate milestones from product
-  const generateMilestones = useMutation({
-    mutationFn: async () => {
-      if (!startDate || !productId) return;
-
-      // Delete existing milestones for this product
-      await supabase.from('client_milestones' as any).delete().eq('client_id', clientId).eq('product_id', productId);
-
-      const { data: prodMilestones } = await supabase
-        .from('product_milestones' as any)
-        .select('*')
-        .eq('product_id', productId)
-        .order('days_after_start');
-
-      if (!prodMilestones?.length) return;
-
-      const start = parseISO(startDate);
-      const records = (prodMilestones as any[]).map(m => ({
-        client_id: clientId,
-        product_id: productId,
-        milestone: m.milestone,
-        expected_date: format(addDays(start, m.days_after_start), 'yyyy-MM-dd'),
-        milestone_type: m.milestone_type,
-        responsible_id: m.responsible_id,
-        status: 'por_fazer',
-      }));
-
-      const { error } = await supabase.from('client_milestones' as any).insert(records);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['client-milestones', clientId] });
-      toast.success('Marcos gerados');
-    },
-  });
-
   // Auto-generate on first load if records are empty — only if product has at least one recolha config
   const hasNpsConfig = npsConfigs.length > 0 && npsConfigs.some((c: any) => Number(c.cadence_days) > 0);
   const autoGenNpsRef = useRef(false);
-  const autoGenMilestonesRef = useRef(false);
 
   useEffect(() => {
     if (productId && startDate && hasNpsConfig && npsRecords.length === 0 && !generateNpsRecords.isPending && !autoGenNpsRef.current) {
@@ -184,18 +125,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
       generateNpsRecords.mutate();
     }
   }, [productId, startDate, hasNpsConfig, npsRecords.length]);
-
-  useEffect(() => {
-    if (productId && startDate && clientMilestones.length === 0 && !generateMilestones.isPending && !autoGenMilestonesRef.current) {
-      autoGenMilestonesRef.current = true;
-      // Check if product actually has milestones before generating
-      supabase.from('product_milestones' as any).select('id').eq('product_id', productId).limit(1).then(({ data }) => {
-        if (data && data.length > 0) {
-          generateMilestones.mutate();
-        }
-      });
-    }
-  }, [productId, startDate, clientMilestones.length]);
 
   // Add manual NPS record
   const addManualNps = useMutation({
@@ -234,20 +163,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
       qc.invalidateQueries({ queryKey: ['product-nps-records'] });
     },
   });
-
-  // Update milestone
-  const updateMilestone = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const { error } = await supabase.from('client_milestones' as any).update(data).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['client-milestones', clientId] }),
-  });
-
-  const getMemberName = (id: string | null) => {
-    if (!id) return '—';
-    return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
-  };
 
   const today = new Date();
 
@@ -302,7 +217,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { generateNpsRecords.mutate(); generateMilestones.mutate(); }}
+              onClick={() => { generateNpsRecords.mutate(); }}
               disabled={!startDate}
             >
               Recalcular datas
@@ -394,68 +309,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
       </Card>
       )}
 
-      {/* Milestones */}
-      {(!onlySection || onlySection === 'milestones') && (
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {clientMilestones.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              {!startDate ? 'Define a Data de Início para gerar os marcos.' : 'Sem marcos definidos para este produto.'}
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {clientMilestones.map((m: any) => {
-                const computedStatus = autoStatus(m.expected_date, m.status);
-                const statusInfo = computedStatus === 'feito'
-                  ? { label: 'Feito', cls: 'bg-success/15 text-success border-success/30', accent: 'border-l-success' }
-                  : computedStatus === 'em_atraso'
-                    ? { label: 'Em atraso', cls: 'bg-destructive/15 text-destructive border-destructive/30', accent: 'border-l-destructive' }
-                    : { label: 'Por fazer', cls: 'bg-warning/15 text-warning border-warning/30', accent: 'border-l-warning' };
-                return (
-                  <div key={m.id} className={`rounded-lg border-l-4 ${statusInfo.accent} border bg-card shadow-sm hover:shadow-md transition-shadow p-4 space-y-3`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-1.5 text-sm font-semibold flex-1 min-w-0">
-                        <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{m.milestone || '—'}</span>
-                      </div>
-                      <Badge variant="outline" className={`${statusInfo.cls} whitespace-nowrap`}>{statusInfo.label}</Badge>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(parseISO(m.expected_date), 'dd/MM/yyyy')}</span>
-                      <Badge variant="secondary" className="text-[10px]">{MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type}</Badge>
-                      <span className="inline-flex items-center gap-1"><User2 className="h-3 w-3" /> {getMemberName(m.responsible_id)}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Status</label>
-                      <Select value={computedStatus} onValueChange={v => updateMilestone.mutate({ id: m.id, data: { status: v } })}>
-                        <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
-                        <MessageSquare className="h-3 w-3" /> Notas
-                      </label>
-                      <Textarea
-                        value={m.notes || ''}
-                        onChange={e => updateMilestone.mutate({ id: m.id, data: { notes: e.target.value } })}
-                        className="text-sm min-h-[60px]"
-                        placeholder="Notas..."
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      )}
     </>
   );
 }
