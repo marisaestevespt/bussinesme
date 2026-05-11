@@ -621,33 +621,28 @@ export default function ProdutoDetailPage() {
                   <Row icon={Wallet} label={ticketType === 'fixo' ? 'Ticket (€)' : 'Ticket Médio (€)'}>
                     <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder={ticketType === 'fixo' ? 'Ex: 480€' : 'Ex: 400-480€'} className={inlineInput} readOnly={!isOwner} />
                   </Row>
-                  {showAdvancedProps && (
-                    <Row icon={ListTree} label="Escada">
+                  <Row icon={ListTree} label="Escada">
                       <Select value={form.escada || ''} onValueChange={v => update('escada', v)} disabled={!isOwner}>
                         <SelectTrigger className={inlineTrigger}><SelectValue placeholder="Vazio" /></SelectTrigger>
                         <SelectContent>{ESCADA_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                       </Select>
                     </Row>
-                  )}
-                  {showAdvancedProps && (
-                    <Row icon={ShoppingCart} label="Tipo de Vendas">
+                  <Row icon={ShoppingCart} label="Tipo de Vendas">
                       <Select value={form.sales_type || ''} onValueChange={v => update('sales_type', v)} disabled={!isOwner}>
                         <SelectTrigger className={inlineTrigger}><SelectValue placeholder="Vazio" /></SelectTrigger>
                         <SelectContent>{SALES_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                       </Select>
                     </Row>
-                  )}
-                  {showAdvancedProps && form.product_type === 'servico_mensal' && (
+                  {form.product_type === 'servico_mensal' && (
                     <Row icon={Clock} label="Horas/mês por cliente (Métricas)">
                       <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className={inlineInput} readOnly={!isOwner} />
                     </Row>
                   )}
-                  {showAdvancedProps && form.product_type && !['servico_mensal', 'curso', 'ebook', 'template'].includes(form.product_type) && (
+                  {form.product_type && !['servico_mensal', 'curso', 'ebook', 'template'].includes(form.product_type) && (
                     <Row icon={Clock} label="Horas por projeto pontual">
                       <Input type="number" value={(form as any).estimated_project_hours ?? ''} onChange={e => update('estimated_project_hours', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 35" className={inlineInput} readOnly={!isOwner} />
                     </Row>
                   )}
-                  {showAdvancedProps && (
                   <Row
                     icon={Users}
                     label={
@@ -682,50 +677,31 @@ export default function ProdutoDetailPage() {
                       })()}
                     </div>
                   </Row>
-                  )}
-                  {showAdvancedProps && (
                   <Row icon={Timer} label="Duração do Ciclo">
                     <div className="flex items-center gap-2">
                       <Input type="number" min={0} placeholder="Ex: 12" value={form.cycle_duration ?? ''} onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)} className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
                       <span className="text-xs text-muted-foreground shrink-0">meses</span>
                     </div>
                   </Row>
-                  )}
 
                   {/* ── Links ── */}
-                  {showAdvancedProps && <SectionTitle>Links</SectionTitle>}
-                  {showAdvancedProps && (
+                  <SectionTitle>Links</SectionTitle>
                   <Row icon={Link2} label="Página de Vendas">
                     <div className="flex items-center gap-1">
                       <Input value={form.sales_page_url || ''} onChange={e => update('sales_page_url', e.target.value)} placeholder="https://..." className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
                       {form.sales_page_url && <a href={form.sales_page_url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 rounded hover:bg-muted"><ExternalLink className="h-3.5 w-3.5 text-muted-foreground" /></a>}
                     </div>
                   </Row>
-                  )}
-                  {showAdvancedProps && (
                   <Row icon={FolderOpen} label="Drive">
                     <div className="flex items-center gap-1">
                       <Input value={form.drive_url || ''} onChange={e => update('drive_url', e.target.value)} placeholder="https://..." className={cn(inlineInput, 'flex-1')} readOnly={!isOwner} />
                       {form.drive_url && <a href={form.drive_url} target="_blank" rel="noopener noreferrer" className="shrink-0 p-1 rounded hover:bg-muted"><ExternalLink className="h-3.5 w-3.5 text-muted-foreground" /></a>}
                     </div>
                   </Row>
-                  )}
-                  {showAdvancedProps && (
                   <div className="md:col-span-2 pt-1 pb-2">
                     <p className="text-[11px] text-muted-foreground/80">
                       💡 Estes links aparecem agregados na vista <strong>Backoffice · Todos os Links do Produto</strong>.
                     </p>
-                  </div>
-                  )}
-                  <div className="md:col-span-2 pt-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowAdvancedProps(s => !s)}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
-                    >
-                      <ChevronDown className={cn('h-3 w-3 transition-transform', showAdvancedProps && 'rotate-180')} />
-                      {showAdvancedProps ? 'Ocultar campos avançados' : 'Mostrar campos avançados (escada, tipo de venda, horas, limite, ciclo, links)'}
-                    </button>
                   </div>
                 </div>
               </div>
