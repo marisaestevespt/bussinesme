@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
+import { RitualBanner } from '@/components/executive/cockpit/RitualBanner';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -102,6 +103,7 @@ export default function ExecutiveWeeklyAlign() {
       <div className="space-y-8">
         <BackNavigation />
         <PageHeader title="Weekly Align" subtitle={`Semana ${format(wa.weekStart, 'dd/MM')} — ${format(wa.weekEnd, 'dd/MM/yyyy')}`} />
+        <RitualBanner />
 
         {/* Week navigation */}
         <div className="flex items-center justify-center gap-4 -mt-4">
