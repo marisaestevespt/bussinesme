@@ -150,12 +150,12 @@ export default function MarketingRecursos() {
       channel: newIdea.channel || null,
       content_type: newIdea.content_type || null,
       format: newIdea.format || null,
-      category: activeTab === 'todas' ? 'todas' : activeTab,
+      category: newIdea.category && newIdea.category !== '__none__' ? newIdea.category : (activeView?.category || 'todas'),
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
     setShowNewIdea(false);
-    setNewIdea({ idea: '', channel: '', content_type: '', format: '', category: 'todas' });
+    setNewIdea({ idea: '', channel: '', content_type: '', format: '', category: '__none__' });
     toast.success('Ideia adicionada');
   };
 
@@ -538,11 +538,11 @@ export default function MarketingRecursos() {
               </Select>
             </div>
             <div>
-              <Label>Vista</Label>
+              <Label>Categoria</Label>
               <Select value={newIdea.category} onValueChange={v => setNewIdea(p => ({ ...p, category: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {IDEA_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                  {IDEA_CATEGORY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
