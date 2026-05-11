@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Trash2, ChevronLeft, ChevronRight, HelpCircle, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, ChevronRight, ChevronDown, HelpCircle, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -48,6 +48,12 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
   const qc = useQueryClient();
   const [step, setStep] = useState<StepKey>('itens');
   const [discounts, setDiscounts] = useState<VolumeDiscount[]>(initial.volume_discounts || []);
+  const [collapsedDims, setCollapsedDims] = useState<Set<string>>(new Set());
+  const toggleDim = (id: string) => setCollapsedDims(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { setDiscounts(initial.volume_discounts || []); }, [productId]); // eslint-disable-line
