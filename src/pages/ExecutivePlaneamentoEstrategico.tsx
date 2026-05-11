@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
 import { StrategicSection } from '@/components/planning/StrategicSection';
 import { BusinessPlanCanvas } from '@/components/planning/BusinessPlanCanvas';
+import { Visao5AnosBlock } from '@/components/planning/Visao5AnosBlock';
 import { FileText, Compass } from 'lucide-react';
 
 /**
@@ -50,6 +51,11 @@ export default function ExecutivePlaneamentoEstrategico() {
         {/* 2-4. Visão LP + MVV + SWOT — tudo num só componente já existente */}
         <div className="pt-6 border-t border-border/60">
           <StrategicSection />
+        </div>
+
+        {/* 5. Visão a 5 Anos */}
+        <div className="pt-6 border-t border-border/60">
+          <Visao5AnosBlock />
         </div>
       </div>
     </AppLayout>
