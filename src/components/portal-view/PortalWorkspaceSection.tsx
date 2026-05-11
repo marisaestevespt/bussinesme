@@ -23,7 +23,16 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
   const total = phases.length;
   const done = phases.filter(isPhaseDone).length;
   const pct = phaseProgress(phases);
-  const activePhase = phases.find(p => p.status === 'em_curso') || phases.find(p => !isPhaseDone(p)) || null;
+  const activeIdx = (() => {
+    const i = phases.findIndex(p => p.status === 'em_curso');
+    if (i >= 0) return i;
+    return phases.findIndex(p => !isPhaseDone(p));
+  })();
+  const activePhase = activeIdx >= 0 ? phases[activeIdx] : null;
+  const nextPhase = activeIdx >= 0 ? phases.slice(activeIdx + 1).find(p => !isPhaseDone(p)) || null : null;
+  const activeDeliverables = (activePhase && Array.isArray(activePhase.deliverables)) ? activePhase.deliverables : [];
+  const activeDDone = activeDeliverables.filter((d: any) => d.status === 'concluido').length;
+  const activeDPct = activeDeliverables.length ? Math.round((activeDDone / activeDeliverables.length) * 100) : 0;
 
   // Materials + client links
   const allItems: { id: string; label: string; url: string; type: 'link' | 'file' }[] = [];
@@ -110,117 +119,52 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
         </div>
       </SectionCard>
 
-      {/* ─── Fases ─── */}
-      <div className="space-y-4">
-        <header className="flex items-end justify-between">
-          <div className="flex items-center gap-3">
-            <Layers className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
-            <h3 className="text-base font-semibold tracking-tight">Fases do projeto</h3>
+      {/* ─── Entregáveis da fase atual + teaser próxima ─── */}
+      {activePhase && activeDeliverables.length > 0 && (
+        <SectionCard className="p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Layers className="h-3.5 w-3.5" style={{ color: pc }} strokeWidth={1.5} />
+              <span className="text-[10px] tracking-[0.24em] uppercase font-semibold text-muted-foreground">Entregáveis desta fase</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground tabular-nums">{activeDDone}/{activeDeliverables.length} · {activeDPct}%</span>
           </div>
-          {total > 0 && <span className="text-xs text-muted-foreground">{done}/{total} concluídas</span>}
-        </header>
-
-        {total > 0 ? (
-          <div className="space-y-3">
-            {phases.map((p, i) => {
-              const isDone = isPhaseDone(p);
-              const isActive = p.status === 'em_curso';
-              const deliverables = Array.isArray(p.deliverables) ? p.deliverables : [];
-              const dDone = deliverables.filter((d: any) => d.status === 'concluido').length;
-              const dPct = deliverables.length ? Math.round((dDone / deliverables.length) * 100) : 0;
-
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+            {activeDeliverables.map((d: any) => {
+              const ddone = d.status === 'concluido';
+              const dactive = d.status === 'em_progresso';
               return (
-                <SectionCard
-                  key={p.id}
-                  className={`p-5 transition-all ${isActive ? 'shadow-sm' : ''}`}
-                  style={isActive ? { borderColor: pcAlpha(0.4) } : undefined}
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Number / state */}
-                    <div className="shrink-0">
-                      {isDone ? (
-                        <div className="h-9 w-9 rounded-full flex items-center justify-center bg-success/15">
-                          <CheckCircle2 className="h-4 w-4 text-success" />
-                        </div>
-                      ) : isActive ? (
-                        <div className="h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-semibold tabular-nums" style={{ backgroundColor: pc }}>
-                          {String(i + 1).padStart(2, '0')}
-                        </div>
-                      ) : (
-                        <div className="h-9 w-9 rounded-full flex items-center justify-center border border-border/50 text-muted-foreground/60 text-xs font-medium tabular-nums">
-                          {String(i + 1).padStart(2, '0')}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <h4
-                            className={`text-base leading-snug ${isDone ? 'text-muted-foreground line-through' : ''}`}
-                            style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
-                          >
-                            {p.title || p.name}
-                          </h4>
-                          {(p.planned_start || p.planned_end) && (
-                            <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
-                              {p.planned_start ? format(parseISO(p.planned_start), "d MMM", { locale: pt }) : '—'}
-                              <span className="opacity-50"> → </span>
-                              {p.planned_end ? format(parseISO(p.planned_end), "d MMM yyyy", { locale: pt }) : '—'}
-                            </p>
-                          )}
-                          {p.description && <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{p.description}</p>}
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={`shrink-0 text-[10px] tracking-wide uppercase border-0 ${
-                            isDone ? 'bg-success/10 text-success' : isActive ? 'text-white' : 'bg-muted/50 text-muted-foreground'
-                          }`}
-                          style={isActive ? { backgroundColor: pc } : undefined}
-                        >
-                          {isDone ? 'Concluída' : isActive ? 'Em curso' : 'Por começar'}
-                        </Badge>
-                      </div>
-
-                      {deliverables.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-border/30">
-                          <div className="flex items-center justify-between mb-2.5">
-                            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Entregáveis</span>
-                            <span className="text-[10px] text-muted-foreground tabular-nums">{dDone}/{deliverables.length} · {dPct}%</span>
-                          </div>
-                          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
-                            {deliverables.map((d: any) => {
-                              const ddone = d.status === 'concluido';
-                              const dactive = d.status === 'em_progresso';
-                              return (
-                                <li key={d.id} className="flex items-center gap-2">
-                                  {ddone ? (
-                                    <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                                  ) : dactive ? (
-                                    <div className="h-3.5 w-3.5 rounded-full border-2 shrink-0" style={{ borderColor: pc }} />
-                                  ) : (
-                                    <Circle className="h-3.5 w-3.5 text-muted-foreground/30 shrink-0" />
-                                  )}
-                                  <span className={`text-xs truncate ${ddone ? 'text-muted-foreground line-through' : ''}`}>{d.name}</span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </SectionCard>
+                <li key={d.id} className="flex items-center gap-2.5">
+                  {ddone ? (
+                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                  ) : dactive ? (
+                    <div className="h-4 w-4 rounded-full border-2 shrink-0" style={{ borderColor: pc }} />
+                  ) : (
+                    <Circle className="h-4 w-4 text-muted-foreground/30 shrink-0" />
+                  )}
+                  <span className={`text-sm truncate ${ddone ? 'text-muted-foreground line-through' : ''}`}>{d.name}</span>
+                </li>
               );
             })}
-          </div>
-        ) : (
-          <SectionCard className="p-8 text-center">
-            <Layers className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1.5} />
-            <p className="text-sm text-muted-foreground">Ainda sem fases definidas. Em breve terás aqui o progresso do teu projeto.</p>
-          </SectionCard>
-        )}
-      </div>
+          </ul>
+
+          {nextPhase && (
+            <div className="mt-5 pt-4 border-t border-border/30 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[10px] tracking-[0.24em] uppercase text-muted-foreground shrink-0">A seguir</span>
+                <span className="text-sm truncate" style={{ fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}>
+                  {nextPhase.title || nextPhase.name}
+                </span>
+              </div>
+              {nextPhase.planned_start && (
+                <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                  {format(parseISO(nextPhase.planned_start), "d MMM", { locale: pt })}
+                </span>
+              )}
+            </div>
+          )}
+        </SectionCard>
+      )}
 
       {/* ─── Entregáveis & materiais ─── */}
       <div className="space-y-4">
