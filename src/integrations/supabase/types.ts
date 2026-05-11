@@ -131,7 +131,7 @@ export type Database = {
           entity_type: string
           id: string
           metadata: Json | null
-          user_id: string
+          user_id: string | null
           user_name: string | null
         }
         Insert: {
@@ -141,7 +141,7 @@ export type Database = {
           entity_type: string
           id?: string
           metadata?: Json | null
-          user_id: string
+          user_id?: string | null
           user_name?: string | null
         }
         Update: {
@@ -151,7 +151,7 @@ export type Database = {
           entity_type?: string
           id?: string
           metadata?: Json | null
-          user_id?: string
+          user_id?: string | null
           user_name?: string | null
         }
         Relationships: []
