@@ -52,11 +52,13 @@ const isDue = (r: PortalRecolha) =>
 const isFuture = (r: PortalRecolha) =>
   r.status !== 'concluido' && !!r.expected_date && r.expected_date > todayISO();
 
-const NPS_CATEGORIES = [
+const NPS_CATEGORIES: Array<{
+  key: string; label: string; range: [number, number]; icon: any; color: string;
+}> = [
   { key: 'detrator', label: 'Detrator',   range: [0, 6],  icon: Frown, color: 'hsl(0 70% 55%)' },
   { key: 'passivo',  label: 'Passivo',    range: [7, 8],  icon: Meh,   color: 'hsl(38 90% 55%)' },
   { key: 'promotor', label: 'Promotor',   range: [9, 10], icon: Smile, color: 'hsl(150 55% 42%)' },
-] as const;
+];
 
 const npsCategoryFor = (n: number) =>
   NPS_CATEGORIES.find(c => n >= c.range[0] && n <= c.range[1])!;
