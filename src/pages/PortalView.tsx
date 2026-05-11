@@ -1010,7 +1010,12 @@ export default function PortalViewPage() {
             feedback={feedback}
             feedbackText={feedbackText}
             setFeedbackText={setFeedbackText}
+            feedbackCategory={feedbackCategory}
+            setFeedbackCategory={setFeedbackCategory}
             sendFeedback={sendFeedback}
+            npsPending={npsPending}
+            npsHistory={npsHistory}
+            submitNps={submitNps}
             pc={pc}
             pcAlpha={pcAlpha}
           />
