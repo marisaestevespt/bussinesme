@@ -772,8 +772,8 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Testar preço ── */}
       <Card>
-        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
-        <CardContent className="space-y-3 px-4 pb-4">
+        <CardHeader className="pb-3 pt-5 px-5"><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
+        <CardContent className="space-y-3 px-5 pb-5">
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1">
               <Label className="text-sm text-foreground/70">Preço de venda (s/ IVA)</Label>
