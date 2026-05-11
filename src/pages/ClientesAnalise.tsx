@@ -518,6 +518,43 @@ export default function ClientesAnalisePage() {
             <KpiCard label="NPS médio atual" value={annualSummary.avgNps} icon={Star} />
           </div>
 
+          {/* Health */}
+          <Card className="border-secondary bg-background">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-sm font-semibold">Saúde da Relação com Clientes</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 space-y-3">
+              <div className="flex gap-6 text-sm">
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-success" /><span className="font-medium">{annualSummary.green} Verde</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-warning" /><span className="font-medium">{annualSummary.yellow} Amarelo</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-destructive" /><span className="font-medium">{annualSummary.red} Vermelho</span></div>
+              </div>
+              {annualSummary.healthList.length > 0 && (
+                <div className="overflow-x-auto -mx-4">
+                  <div className="min-w-[760px]">
+                    <div className="bg-muted px-4 py-2 text-xs font-medium grid grid-cols-6 gap-2">
+                      <span>Cliente</span><span>Produto</span><span>Status</span><span>Saúde</span><span>Razão</span><span>Fim de Ciclo</span>
+                    </div>
+                    {annualSummary.healthList.map(({ client: c, color, reason }) => (
+                      <div
+                        key={c.id}
+                        className="px-4 py-2.5 text-sm grid grid-cols-6 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                        onClick={() => navigate(`/hub/clientes/${c.id}`)}
+                      >
+                        <span className="truncate font-medium">{c.full_name}</span>
+                        <span className="truncate text-muted-foreground">{c.current_product || '—'}</span>
+                        <span className="text-muted-foreground">{STATUS_LABEL[c.status] || c.status}</span>
+                        <span><div className={cn('h-3 w-3 rounded-full', HEALTH_STYLES[color])} /></span>
+                        <span className="text-xs text-muted-foreground truncate">{reason}</span>
+                        <span className="text-muted-foreground">{c.end_of_cycle ? new Date(c.end_of_cycle).toLocaleDateString('pt-PT') : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Distribution by product */}
           {annualSummary.byProduct.length > 0 && (
             <Card className="border-secondary bg-background">
@@ -532,18 +569,6 @@ export default function ClientesAnalisePage() {
               </CardContent>
             </Card>
           )}
-
-          {/* Health */}
-          <Card className="border-secondary bg-background">
-            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Saúde da Relação com Clientes</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="flex gap-6 text-sm">
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-success" /><span className="font-medium">{annualSummary.green} Verde</span></div>
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-warning" /><span className="font-medium">{annualSummary.yellow} Amarelo</span></div>
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-destructive" /><span className="font-medium">{annualSummary.red} Vermelho</span></div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </AppLayout>
