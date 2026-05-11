@@ -971,8 +971,10 @@ export default function PortalViewPage() {
           <PortalHistorySection projectHistory={projectHistory} pc={pc} />
         )}
 
-        {/* ═══ PLAYLIST (vibe) ═══ */}
-        {portal.playlist_url && <PortalPlaylistEmbed url={portal.playlist_url} />}
+        {/* ═══ PLAYLIST (vibe) — herda do produto, override por cliente ═══ */}
+        {(portal.playlist_url || (settings as any)?.playlist_url) && (
+          <PortalPlaylistEmbed url={(portal.playlist_url as string) || ((settings as any).playlist_url as string)} />
+        )}
 
       </main>
     </div>
