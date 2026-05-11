@@ -24,6 +24,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
+import { ProductClientsHub } from '@/components/product/ProductClientsHub';
 import { ProductEntregasSection } from '@/components/product/ProductEntregasSection';
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
 import { ProductSalesKitSection } from '@/components/product/ProductSalesKitSection';
@@ -940,10 +941,10 @@ export default function ProdutoDetailPage() {
               />
               <ProductSalesTab productName={form.name || ''} />
               {!isNew && id && (
-                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
+                <ProductClientsHub productId={id} productName={form.name || ''} />
               )}
               {!isNew && id && (
-                <ProductProjectsSection productId={id} productName={form.name || ''} mode="client" />
+                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
               )}
               {!isNew && id && (
                 <ProductMetricsTab productId={id} productName={form.name || ''} isOwner={isOwner} />

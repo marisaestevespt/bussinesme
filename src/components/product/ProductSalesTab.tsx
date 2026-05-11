@@ -100,45 +100,6 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
         </Card>
       </div>
 
-      {/* Clients list */}
-      {clientStats.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Top Compradores</CardTitle>
-            <p className="text-xs text-muted-foreground">Ranking por faturação acumulada (todas as vendas registadas).</p>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Nº de Vendas</TableHead>
-                  <TableHead className="text-right">Faturação Total</TableHead>
-                  <TableHead>Última Compra</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clientStats.map((c: any) => (
-                  <TableRow
- key={c.name}
- className="cursor-pointer hover:bg-muted/50"
- onClick={() => {
-                      const match = clientsLookup.find((cl: any) => cl.full_name === c.name);
-                      if (match) navigate(`/hub/clientes/${match.id}`);
-                    }}
-                  >
-                    <TableCell className="font-medium text-primary hover:underline">{c.name}</TableCell>
-                    <TableCell className="text-right">{c.count}</TableCell>
-                    <TableCell className="text-right">€{formatNumber(c.total)}</TableCell>
-                    <TableCell>{c.lastDate ? format(new Date(c.lastDate), 'dd/MM/yyyy') : '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Sales table */}
       <Card>
         <CardHeader><CardTitle className="text-base">Histórico de Vendas</CardTitle></CardHeader>
