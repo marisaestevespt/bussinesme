@@ -244,7 +244,7 @@ export default function MarketingEstrategia() {
                 <p className="text-xs text-muted-foreground mt-0.5">Identidade e branding</p>
               </div>
             </Link>
-            <Link to="/hub/marketing/banco-ideias" className="group flex items-center gap-4 p-5 rounded-2xl border-2 border-[hsl(38,40%,85%)] bg-[hsl(38,40%,95%)] dark:bg-[hsl(38,28%,14%)] dark:border-[hsl(38,25%,22%)] hover:border-primary/40 hover:shadow-md transition-all">
+            <Link to="/hub/marketing/recursos-mkt" className="group flex items-center gap-4 p-5 rounded-2xl border-2 border-[hsl(38,40%,85%)] bg-[hsl(38,40%,95%)] dark:bg-[hsl(38,28%,14%)] dark:border-[hsl(38,25%,22%)] hover:border-primary/40 hover:shadow-md transition-all">
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[hsl(38,45%,86%)] dark:bg-[hsl(38,30%,20%)] group-hover:scale-110 transition-transform">
                 <span className="text-2xl">💡</span>
               </div>
