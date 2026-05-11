@@ -25,6 +25,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { SectionCard, SectionTitle } from '@/components/portal-view/SectionPrimitives';
 import { PortalContractSection } from '@/components/portal-view/PortalContractSection';
 import { PortalFeedbackSection } from '@/components/portal-view/PortalFeedbackSection';
+import { PortalPlaylistEmbed } from '@/components/portal-view/PortalPlaylistEmbed';
 import { PortalHistorySection } from '@/components/portal-view/PortalHistorySection';
 import { PortalMeetingsSection } from '@/components/portal-view/PortalMeetingsSection';
 import { PortalPaymentsSection } from '@/components/portal-view/PortalPaymentsSection';
@@ -968,6 +969,11 @@ export default function PortalViewPage() {
         {/* ═══ HISTORY ═══ */}
         {activeSection === 'history' && (
           <PortalHistorySection projectHistory={projectHistory} pc={pc} />
+        )}
+
+        {/* ═══ PLAYLIST (vibe) ═══ */}
+        {portal.playlist_url && (
+          <PortalPlaylistEmbed url={portal.playlist_url} brandColor={pc?.replace('hsl(', '').replace(')', '')} />
         )}
 
       </main>
