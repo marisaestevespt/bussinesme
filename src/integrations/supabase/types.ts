@@ -12589,6 +12589,17 @@ export type Database = {
         Args: { _client_id: string; _client_name: string }
         Returns: undefined
       }
+      notify_team_users: {
+        Args: {
+          _dedup_key?: string
+          _extra_user_id?: string
+          _link: string
+          _message: string
+          _title: string
+          _type: string
+        }
+        Returns: undefined
+      }
       portal_add_comment: {
         Args: { _author: string; _content: string; _token: string }
         Returns: string
@@ -12683,6 +12694,15 @@ export type Database = {
       }
       portal_token_active: { Args: { _token: string }; Returns: boolean }
       profile_id_to_user_id: { Args: { _profile_id: string }; Returns: string }
+      queue_transactional_email: {
+        Args: {
+          _data?: Json
+          _idempotency_key: string
+          _recipient_email: string
+          _template_name: string
+        }
+        Returns: number
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
