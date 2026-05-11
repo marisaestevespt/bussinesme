@@ -85,8 +85,8 @@ function AnalogClock() {
   const timeStr = format(time, "HH:mm");
 
   return (
-    <div className="flex flex-col items-center gap-2 shrink-0">
-      <div className="relative h-20 w-20">
+    <div className="flex flex-col items-center gap-1 shrink-0">
+      <div className="relative h-14 w-14">
         <svg viewBox="0 0 100 100" className="h-full w-full">
           <circle cx="50" cy="50" r="48" fill="none" stroke="hsl(var(--primary))" strokeOpacity="0.55" strokeWidth="1.5" />
           {Array.from({ length: 12 }).map((_, i) => {
@@ -103,8 +103,8 @@ function AnalogClock() {
           <circle cx="50" cy="50" r="2.5" fill="hsl(var(--primary))" />
         </svg>
       </div>
-      <span className="font-display text-lg leading-none tabular-nums">{timeStr}</span>
-      <span className="font-typewriter text-[10px] text-muted-foreground capitalize">{dateStr}</span>
+      <span className="font-display text-sm leading-none tabular-nums">{timeStr}</span>
+      <span className="font-typewriter text-[9px] text-muted-foreground capitalize">{dateStr}</span>
     </div>
   );
 }
