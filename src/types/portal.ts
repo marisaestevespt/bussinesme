@@ -57,7 +57,6 @@ export interface PortalNpsHistory {
   source?: string | null;
   product_name?: string | null;
 }
-}
 
 export interface PortalMeetingDoc {
   url?: string;
