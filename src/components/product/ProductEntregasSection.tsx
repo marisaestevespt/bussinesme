@@ -413,8 +413,8 @@ function PhaseCard({
               </div>
             </div>
           )}
-          {/* Recorrência da fase (só projetos recorrentes) */}
-          {isOwner && isRecurring && (
+          {/* Recorrência da fase — só roadmap principal (não onboarding/offboarding) */}
+          {isOwner && isRecurring && !phase.is_onboarding && !phase.is_offboarding && (
             <div className="flex items-center gap-3 flex-wrap rounded-md bg-primary/[0.04] border border-primary/15 px-3 py-2">
               <label className="flex items-center gap-2 cursor-pointer text-[10px] font-medium uppercase tracking-wider text-primary">
                 <Checkbox
