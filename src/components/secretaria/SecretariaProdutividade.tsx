@@ -11,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Clock, Play, Square, CalendarIcon, Trash2, FileDown } from 'lucide-react';
+import { Clock, Play, Square, CalendarIcon, Trash2, FileDown, Timer, Target, CheckCircle2, AlertTriangle, BarChart3 } from 'lucide-react';
 import { format, parseISO, isBefore, isWithinInterval, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, addDays, differenceInSeconds } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useMyTasks, useMyTimeEntries, useMyTeamMember, useMyMeetings, useProjects, TIME_CATEGORIES, formatTimer } from './secretaria-shared';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
+import { StatCard } from '@/components/editorial';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const today = startOfDay(new Date());
