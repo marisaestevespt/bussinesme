@@ -712,7 +712,7 @@ export default function ProdutoDetailPage() {
         {/* Pricing config movido para a secção "Contabilidade & Pricing" */}
 
         {/* ═══ SECTION BUTTONS ═══ */}
-        <div className="space-y-4">
+        <div className="space-y-8 pt-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {canSeeSection('o-produto') && <SectionButton sectionKey="o-produto" label="O Produto" />}
             {canSeeSection('operacao') && <SectionButton sectionKey="operacao" label="Operação" />}
