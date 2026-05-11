@@ -4,8 +4,8 @@ type GoalLike = { objective_id?: string | null; area?: string | null };
 const DEPARTMENT_TO_PLAN_AREA: Record<string, string> = {
   'recursos-humanos': 'equipa',
   equipa: 'equipa',
-  produtos: 'produto',
-  admin: 'outro',
+  produtos: 'produtos',
+  admin: 'geral',
 };
 
 export function planningAreaForDepartment(departmentKey: string): string {
@@ -19,6 +19,8 @@ const PLAN_AREA_ALIASES: Record<string, string[]> = {
   'recursos-humanos': ['equipa', 'recursos-humanos'],
   financeiro: ['financeiro', 'contabilidade'],
   contabilidade: ['financeiro', 'contabilidade'],
+  operacao: ['operacao', 'processos'],
+  geral: ['geral', 'outro'],
 };
 
 export function planningAreaMatches(area: string | null | undefined, areaFilter: string) {
