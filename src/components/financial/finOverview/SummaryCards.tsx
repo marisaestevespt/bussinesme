@@ -14,7 +14,7 @@ interface SummaryProps {
 
 export function SummaryCards({ totalEntradas, totalSaidas, resultado, margem, avgEntradas, avgSaidas }: SummaryProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
       <StatCard tone="success" size="sm" value={formatEuro(totalEntradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />entradas (s/ IVA)</>} />
       <StatCard tone="destructive" size="sm" value={formatEuro(totalSaidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />saídas (s/ IVA)</>} />
       <StatCard tone={resultado >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(resultado)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />resultado</>} />
