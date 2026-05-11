@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, CalendarRange, CalendarDays } from 'lucide-r
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
+import { MonthlyReflectionCard } from '@/components/planning/MonthlyReflectionCard';
 
 /**
  * Planeamento Operacional — gere a operação.
@@ -27,6 +28,7 @@ export default function ExecutivePlaneamentoOperacional() {
   // Mês inicial via ?mes=1..12 (ex.: banner "Mês novo" abre o mês corrente)
   const mesParam = parseInt(params.get('mes') || '', 10);
   const initialMonth = Number.isFinite(mesParam) && mesParam >= 1 && mesParam <= 12 ? mesParam - 1 : null;
+  const reflectionMonth = initialMonth !== null ? initialMonth + 1 : new Date().getMonth() + 1;
 
   const handleMonthChange = (monthIdx: number | null) => {
     const sp = new URLSearchParams(params);
@@ -90,6 +92,11 @@ export default function ExecutivePlaneamentoOperacional() {
             initialMonth={initialMonth}
             onMonthChange={handleMonthChange}
           />
+        </section>
+
+        {/* Reflexão Mensal — apenas Owner (RLS no servidor) */}
+        <section className="space-y-3 pt-6 border-t border-border/60">
+          <MonthlyReflectionCard year={year} month={reflectionMonth} />
         </section>
       </div>
     </AppLayout>
