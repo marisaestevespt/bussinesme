@@ -53,16 +53,22 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
 
   const productId = product?.id;
 
-  // Fetch NPS config from the product
-  const { data: npsConfig } = useQuery({
-    queryKey: ['product-nps-config', productId],
+  // Fetch ALL recolha configs for the product (NPS + Feedback)
+  const { data: npsConfigs = [] } = useQuery({
+    queryKey: ['product-nps-configs', productId],
     queryFn: async () => {
-      if (!productId) return null;
-      const { data } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', productId).maybeSingle();
-      return data as any;
+      if (!productId) return [];
+      const { data } = await supabase
+        .from('product_nps_config' as any)
+        .select('*')
+        .eq('product_id', productId)
+        .order('sort_order', { ascending: true });
+      return (data || []) as any[];
     },
     enabled: !!productId,
   });
+  // Back-compat alias for any reference elsewhere in the file
+  const npsConfig = npsConfigs[0] || null;
 
   // Fetch client NPS records
   const { data: npsRecords = [] } = useQuery({
@@ -93,24 +99,32 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
   // Generate NPS dates (auto-generate if missing)
   const generateNpsRecords = useMutation({
     mutationFn: async () => {
-      if (!startDate || !npsConfig?.cadence_days || !productId) return;
+      if (!startDate || npsConfigs.length === 0 || !productId) return;
 
-      // Delete existing non-manual records
+      // Delete existing non-manual records (re-generate from configs)
       await supabase.from('client_nps_records' as any).delete().eq('client_id', clientId).eq('is_manual', false);
 
       const start = parseISO(startDate);
-      const cadence = npsConfig.cadence_days;
-      const records = [];
-      // Generate for 2 years
-      for (let i = 1; i <= Math.floor(730 / cadence); i++) {
-        const expectedDate = addDays(start, cadence * i);
-        records.push({
-          client_id: clientId,
-          product_id: productId,
-          expected_date: format(expectedDate, 'yyyy-MM-dd'),
-          status: 'por_fazer',
-          is_manual: false,
-        });
+      const records: any[] = [];
+      // For each config, generate occurrences (recurring) for 2 years
+      for (const cfg of npsConfigs) {
+        const cadence = Number(cfg.cadence_days) || 0;
+        if (cadence <= 0) continue;
+        const occurrences = Math.max(1, Math.floor(730 / cadence));
+        for (let i = 1; i <= occurrences; i++) {
+          const expectedDate = addDays(start, cadence * i);
+          records.push({
+            client_id: clientId,
+            product_id: productId,
+            config_id: cfg.id,
+            kind: cfg.kind || 'nps',
+            title: cfg.title || (cfg.kind === 'feedback' ? 'Feedback' : 'NPS'),
+            questions: cfg.kind === 'feedback' ? (cfg.questions || []) : null,
+            expected_date: format(expectedDate, 'yyyy-MM-dd'),
+            status: 'por_fazer',
+            is_manual: false,
+          });
+        }
       }
       if (records.length > 0) {
         const { error } = await supabase.from('client_nps_records' as any).insert(records);
@@ -119,7 +133,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['client-nps-records', clientId] });
-      toast.success('Datas de NPS geradas');
+      toast.success('Recolhas geradas');
     },
   });
 
