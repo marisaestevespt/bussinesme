@@ -1286,6 +1286,10 @@ function ClienteDetailPageInner() {
                 <p className="text-[11px] text-muted-foreground">Aparece destacado no portal do cliente como ponto de contacto e recebe notificações de feedbacks, pedidos e NPS.</p>
               </div>
             </EntitySection>
+            {/* Pedidos do Cliente (vindos do portal) */}
+            {!isNew && form.id && (
+              <ClientRequestsBlock clientId={form.id} />
+            )}
             {/* Meetings */}
             <EntitySection
               title={sectorConfig.t('reunioes')}
