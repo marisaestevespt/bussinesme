@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
     }
 
     // Determine effective end date: min(recurrence_end_date, client.end_of_cycle if set)
+    // Recurrence must NEVER extend past the client's contract end.
     let effectiveEnd: Date | null = parent.recurrence_end_date
       ? new Date(parent.recurrence_end_date + 'T23:59:59')
       : null;
@@ -124,7 +125,7 @@ Deno.serve(async (req) => {
       const cycleStr = (client as any)?.end_of_cycle as string | null | undefined;
       if (cycleStr) {
         const cycleEnd = new Date(cycleStr + 'T23:59:59');
-        if (!effectiveEnd || cycleEnd.getTime() > effectiveEnd.getTime()) {
+        if (!effectiveEnd || cycleEnd.getTime() < effectiveEnd.getTime()) {
           effectiveEnd = cycleEnd;
         }
       }
