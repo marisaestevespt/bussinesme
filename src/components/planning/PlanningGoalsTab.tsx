@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2 } from 'lucide-react';
@@ -40,7 +41,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
-  const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
+  const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo', deviation_decision: '' });
 
   const allGoals = planning.allGoals;
   const objectives = planning.allObjectives;
@@ -61,6 +62,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
         status: editGoal.status || 'por_iniciar',
         objective_type: editGoal.objective_type || 'quantitativo',
         measurement_type: editGoal.measurement_type || 'acumulativo',
+        deviation_decision: editGoal.deviation_decision || '',
       });
     }
   }, [editGoal]);
@@ -69,12 +71,12 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
     planning.upsertGoal.mutate(editGoal ? { id: editGoal.id, ...form } : form);
     setDialogOpen(false);
     setEditGoal(null);
-    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
+    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo', deviation_decision: '' });
   };
 
   const openNew = () => {
     setEditGoal(null);
-    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
+    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo', deviation_decision: '' });
     setDialogOpen(true);
   };
 
@@ -313,6 +315,17 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal', areaFilter }: 
                 <SelectContent>{GOAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {(form.status === 'em_risco' || form.status === 'nao_atingido') && (
+              <div>
+                <Label>Decisão / contexto do desvio</Label>
+                <Textarea
+                  value={form.deviation_decision || ''}
+                  onChange={e => setForm(p => ({ ...p, deviation_decision: e.target.value }))}
+                  rows={3}
+                  placeholder="O que vai ser feito por causa deste desvio?"
+                />
+              </div>
+            )}
             <Button className="w-full" onClick={handleSave} disabled={!form.objective_id}>Guardar</Button>
           </div>
         </DialogContent>

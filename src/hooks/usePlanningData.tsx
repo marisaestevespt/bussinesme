@@ -51,6 +51,7 @@ export const GOAL_STATUSES = [
   { value: 'por_iniciar', label: 'Por iniciar' },
   { value: 'em_curso', label: 'Em curso' },
   { value: 'atingido', label: 'Atingido' },
+  { value: 'em_risco', label: 'Em risco' },
   { value: 'nao_atingido', label: 'Não atingido' },
 ];
 

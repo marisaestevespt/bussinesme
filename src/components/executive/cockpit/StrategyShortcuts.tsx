@@ -1,14 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { Rocket, Lightbulb, Calculator, FileText, MessageSquareHeart, Crown, CalendarCheck, Target } from 'lucide-react';
+import { Lightbulb, Calculator, FileText, MessageSquareHeart, CalendarCheck, Target } from 'lucide-react';
 
 const SHORTCUTS = [
   { to: '/executive/weekly-align', icon: CalendarCheck, label: 'Weekly Align', desc: 'Ritual semanal de revisão',
     iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
   { to: '/executive/planeamento', icon: Target, label: 'Planeamento', desc: 'Objetivos e metas do ano',
     iconColor: 'text-accent', color: 'from-accent/15 to-accent/5 hover:from-accent/25 hover:to-accent/10' },
-  { to: '/executive/business-plan', icon: Rocket, label: 'Plano & Modelo de Negócio', desc: 'Visão, oferta, estratégia',
-    iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' },
   { to: '/executive/innovation', icon: Lightbulb, label: 'Desenvolvimento & Inovação', desc: 'Ideias e roadmap',
     iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
   { to: '/executive/productivity', icon: Calculator, label: 'Produtividade & Capacidade', desc: 'Simular contratação',
@@ -17,8 +15,6 @@ const SHORTCUTS = [
     iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
   { to: '/executive/processos', icon: FileText, label: 'Processos da Administração', desc: 'SOPs do owner',
     iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
-  { to: '/executive/analise-empresarial', icon: Crown, label: 'Análise Empresarial', desc: 'Métricas estratégicas',
-    iconColor: 'text-purple-500', color: 'from-purple-500/10 to-purple-500/5 hover:from-purple-500/20 hover:to-purple-500/10' },
 ];
 
 export function StrategyShortcuts() {
