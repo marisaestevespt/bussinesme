@@ -243,7 +243,6 @@ export default function ExecutiveWeeklyAlign() {
         <NpsSection
           npsWeek={wa.npsWeek}
           npsOverdue={wa.npsOverdue}
-          milestonesWeek={wa.milestonesWeek}
           getMemberName={wa.getMemberName}
           onOpenDetail={openDetail}
         />
