@@ -52,7 +52,6 @@ export default function ConteudoDetailPage() {
   const [uploading, setUploading] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [showResponsibleReminder, setShowResponsibleReminder] = useState(false);
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['content-item', id],
@@ -441,26 +440,12 @@ export default function ConteudoDetailPage() {
           {/* Propriedades — campos principais */}
           <div className="mb-8 rounded-xl border border-border/60 bg-card px-5 py-2">
             <PropRow label="Status">
-              <Select value={form.status} onValueChange={v => {
-                setForm(f => ({ ...f, status: v }));
-                setShowResponsibleReminder(true);
-              }}>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
                 <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                 </SelectContent>
               </Select>
-              {showResponsibleReminder && (
-                <div className="flex items-start gap-2 mt-2 p-2.5 rounded-md bg-warning/15 border border-warning/30 dark:bg-warning/30 dark:border-warning">
-                  <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-warning">O responsável de fase continua o mesmo?</p>
-                    <p className="text-[10px] text-warning mt-0.5">Confirma que o responsável de fase está correto para este novo status.</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-warning hover:bg-warning/15"
-                    onClick={() => setShowResponsibleReminder(false)}>OK</Button>
-                </div>
-              )}
             </PropRow>
 
             <PropRow label="Data e Hora">
