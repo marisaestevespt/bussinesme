@@ -5714,6 +5714,48 @@ export type Database = {
           },
         ]
       }
+      marketing_idea_views: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          filter_channel: string | null
+          filter_content_type: string | null
+          filter_format: string | null
+          id: string
+          is_system: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          filter_channel?: string | null
+          filter_content_type?: string | null
+          filter_format?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          filter_channel?: string | null
+          filter_content_type?: string | null
+          filter_format?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_ideas: {
         Row: {
           category: string
