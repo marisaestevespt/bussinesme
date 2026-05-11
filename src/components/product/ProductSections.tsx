@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator } from 'lucide-react';
+import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator, Wallet } from 'lucide-react';
+import { ProductTabHeader } from './_shared';
 import { SharedMeetingsList, type SharedMeetingItem } from '@/components/shared/SharedMeetingsList';
 
 import { useNavigate } from 'react-router-dom';
