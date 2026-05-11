@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,7 +35,7 @@ const IDEA_CATEGORY_OPTIONS = [
 ];
 
 type ResourceLink = { id: string; category: string; label: string; url: string; sort_order: number };
-type Idea = { id: string; idea: string; channel: string | null; content_type: string | null; format: string | null; category: string; created_by: string | null };
+type Idea = { id: string; idea: string; description: string | null; channel: string | null; content_type: string | null; format: string | null; category: string; created_by: string | null };
 type IdeaView = {
   id: string;
   name: string;
@@ -53,7 +54,7 @@ export default function MarketingRecursos() {
 
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [showNewIdea, setShowNewIdea] = useState(false);
-  const [newIdea, setNewIdea] = useState({ idea: '', channel: '', content_type: '', format: '', category: 'todas' });
+  const [newIdea, setNewIdea] = useState({ idea: '', description: '', channel: '', content_type: '', format: '', category: '__none__' });
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [editingView, setEditingView] = useState<IdeaView | null>(null);
   const [viewForm, setViewForm] = useState({ name: '', category: '__none__', filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
@@ -147,6 +148,7 @@ export default function MarketingRecursos() {
     if (!newIdea.idea.trim()) return;
     await supabase.from('marketing_ideas').insert({
       idea: newIdea.idea,
+      description: newIdea.description || null,
       channel: newIdea.channel || null,
       content_type: newIdea.content_type || null,
       format: newIdea.format || null,
@@ -155,7 +157,7 @@ export default function MarketingRecursos() {
     } as any);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
     setShowNewIdea(false);
-    setNewIdea({ idea: '', channel: '', content_type: '', format: '', category: '__none__' });
+    setNewIdea({ idea: '', description: '', channel: '', content_type: '', format: '', category: '__none__' });
     toast.success('Ideia adicionada');
   };
 
@@ -414,7 +416,12 @@ export default function MarketingRecursos() {
                     </TableRow>
                   ) : filteredIdeas.map(idea => (
                     <TableRow key={idea.id}>
-                      <TableCell className="font-medium">{idea.idea}</TableCell>
+                      <TableCell className="font-medium align-top">
+                        <div className="whitespace-pre-wrap break-words">{idea.idea}</div>
+                        {idea.description && (
+                          <div className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap break-words">{idea.description}</div>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {idea.channel && <Badge variant="secondary" className="text-xs">{idea.channel}</Badge>}
                       </TableCell>
@@ -506,7 +513,11 @@ export default function MarketingRecursos() {
           <div className="space-y-4">
             <div>
               <Label>Ideia *</Label>
-              <Input value={newIdea.idea} onChange={e => setNewIdea(p => ({ ...p, idea: e.target.value }))} placeholder="Descreve a tua ideia..." />
+              <Textarea value={newIdea.idea} onChange={e => setNewIdea(p => ({ ...p, idea: e.target.value }))} placeholder="Título ou ideia em poucas linhas..." rows={3} className="resize-y" />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea value={newIdea.description} onChange={e => setNewIdea(p => ({ ...p, description: e.target.value }))} placeholder="Detalhes, contexto, referências..." rows={6} className="resize-y" />
             </div>
             <div>
               <Label>Canal</Label>
