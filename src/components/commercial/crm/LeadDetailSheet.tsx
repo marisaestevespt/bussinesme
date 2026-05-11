@@ -712,7 +712,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               <Label>Hora</Label>
               <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} />
             </div>
-            <Button className="w-full" disabled={!meetingDate || !meetingTitle.trim()} onClick={async () = variant="soft"> {
+            <Button className="w-full" disabled={!meetingDate || !meetingTitle.trim()} onClick={async () => {
               if (!meetingDate || !meetingTitle.trim()) return;
               const [h, m] = meetingTime.split(':').map(Number);
               const dt = new Date(meetingDate);
@@ -832,7 +832,7 @@ function InteractionDialog({ open, onOpenChange, leadId, onSave }: { open: boole
             </div>
             {uploading && <p className="text-xs text-muted-foreground mt-1">A carregar...</p>}
           </div>
-          <Button className="w-full" disabled={uploading} onClick={() = variant="soft"> onSave({
+          <Button className="w-full" disabled={uploading} onClick={() => onSave({
             lead_id: leadId,
             interaction_date: format(form.interaction_date, 'yyyy-MM-dd'),
             interaction_type: form.interaction_type,
@@ -992,7 +992,7 @@ function PipelineHistory({ leadId }: { leadId: string }) {
             <Button
               className="w-full"
               disabled={!selectedPipeline || !selectedStage || moveLead.isPending}
-              onClick={() = variant="soft"> moveLead.mutate()}
+              onClick={() => moveLead.mutate()}
             >
               {moveLead.isPending ? 'A mover...' : 'Confirmar'}
             </Button>
