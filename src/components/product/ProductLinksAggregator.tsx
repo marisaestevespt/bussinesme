@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ExternalLink, Link2, Copy, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
+import { ExternalLink, Link2, Copy, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct } from '@/hooks/useProducts';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { InlineField } from '@/components/product/InlineField';
 
 interface AggregatedLink {
   id?: string;
@@ -35,8 +35,6 @@ export function ProductLinksAggregator({
   productId, manualLinks, isOwner = false, onAddManual, onUpdateManual, onDeleteManual,
 }: Props) {
   const { data: product } = useProduct(productId);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<{ name: string; url: string }>({ name: '', url: '' });
 
   const aggregated = useMemo<AggregatedLink[]>(() => {
     if (!product) return [];
@@ -76,19 +74,6 @@ export function ProductLinksAggregator({
     const text = aggregated.map(l => `${l.label} — ${l.url}`).join('\n');
     navigator.clipboard.writeText(text);
     toast.success(`${aggregated.length} links copiados`);
-  };
-
-  const startEdit = (l: AggregatedLink) => {
-    if (!l.id) return;
-    setEditingId(l.id);
-    setDraft({ name: l.label === l.url ? '' : l.label, url: l.url });
-  };
-
-  const saveEdit = () => {
-    if (!editingId || !onUpdateManual) return;
-    if (!draft.url.trim()) { toast.error('URL obrigatório'); return; }
-    onUpdateManual(editingId, { name: draft.name.trim() || null, url: draft.url.trim() });
-    setEditingId(null);
   };
 
   return (
@@ -132,50 +117,46 @@ export function ProductLinksAggregator({
             <TableBody>
               {aggregated.map((l, i) => (
                 <TableRow key={`${l.url}-${i}`}>
-                  {editingId && editingId === l.id ? (
-                    <>
-                      <TableCell>
-                        <Input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
-                          placeholder="Nome (opcional)" className="h-8 text-sm" />
-                      </TableCell>
-                      <TableCell colSpan={2}>
-                        <Input value={draft.url} onChange={e => setDraft(d => ({ ...d, url: e.target.value }))}
-                          placeholder="https://..." className="h-8 text-sm" autoFocus
-                          onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingId(null); }} />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={saveEdit} aria-label="Guardar"><Check className="h-3.5 w-3.5" /></Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(null)} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
-                        </div>
-                      </TableCell>
-                    </>
-                  ) : (
-                    <>
-                      <TableCell className="font-medium text-sm">{l.label}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground max-w-[280px] truncate">
-                        <a href={l.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                          {l.url}
-                        </a>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[10px] font-normal">{l.origin}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 justify-end">
-                          <a href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex p-1 rounded hover:bg-muted" aria-label="Abrir">
-                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                          </a>
-                          {isOwner && l.editable && l.id && (
-                            <>
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(l)} aria-label="Editar"><Pencil className="h-3 w-3" /></Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onDeleteManual?.(l.id!)} aria-label="Eliminar"><Trash2 className="h-3 w-3" /></Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </>
-                  )}
+                  <TableCell className="font-medium text-sm">
+                    {isOwner && l.editable && l.id ? (
+                      <InlineField
+                        value={l.label === l.url ? '' : l.label}
+                        placeholder="Nome (opcional)…"
+                        bold
+                        onSave={v => onUpdateManual?.(l.id!, { name: v.trim() || null })}
+                      />
+                    ) : l.label}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground max-w-[280px]">
+                    {isOwner && l.editable && l.id ? (
+                      <InlineField
+                        value={l.url}
+                        placeholder="https://…"
+                        onSave={v => {
+                          const url = v.trim();
+                          if (!url) { toast.error('URL obrigatório'); return; }
+                          onUpdateManual?.(l.id!, { url });
+                        }}
+                      />
+                    ) : (
+                      <a href={l.url} target="_blank" rel="noopener noreferrer" className="hover:underline truncate block">
+                        {l.url}
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-[10px] font-normal">{l.origin}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 justify-end">
+                      <a href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex p-1 rounded hover:bg-muted" aria-label="Abrir">
+                        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                      </a>
+                      {isOwner && l.editable && l.id && (
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDeleteManual?.(l.id!)} aria-label="Eliminar"><Trash2 className="h-3 w-3" /></Button>
+                      )}
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
