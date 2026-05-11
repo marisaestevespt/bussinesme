@@ -126,7 +126,7 @@ export default function TrafegoReportDetail() {
             hidePencil={!isOwner}
             render={({ stop, autoFocusRef }) => (
               <Input ref={autoFocusRef as any} value={title} onBlur={stop} onChange={e => setTitle(e.target.value)}
-                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
+                className="text-2xl md:kpi-display-sm mt-1 bg-transparent border-none text-center h-auto p-0 text-primary-foreground" />
             )}
           />
         </div>

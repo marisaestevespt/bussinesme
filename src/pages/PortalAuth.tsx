@@ -207,7 +207,7 @@ export default function PortalAuthPage() {
 
           <div className="space-y-2 text-center lg:text-left">
             <h1
-              className="text-2xl font-bold tracking-tight"
+              className="kpi-display-sm mt-1"
               style={{ color: pc, fontFamily: fontDisplay }}
             >
               {loginTitle}

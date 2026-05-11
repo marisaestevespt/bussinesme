@@ -559,7 +559,7 @@ export function SettingsEmails() {
 
             {/* Colors */}
             <div className="border-t pt-4 mt-4">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cores e Fontes</Label>
+              <Label className="eyebrowr">Cores e Fontes</Label>
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Cor primária (HSL)</Label>

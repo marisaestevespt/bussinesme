@@ -213,7 +213,7 @@ export function BibliotecaSection() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Biblioteca de Documentos Internos</h2>
+          <h2 className="kpi-display-sm mt-1">Biblioteca de Documentos Internos</h2>
           <p className="text-sm text-muted-foreground mt-0.5">Cultura, políticas, glossário e outros documentos internos da equipa.</p>
         </div>
         <div className="flex items-center gap-3">

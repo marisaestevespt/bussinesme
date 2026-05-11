@@ -245,7 +245,7 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
                 placeholder="Título do documento"
               />
             ) : (
-              <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+              <h2 className="kpi-display-sm mt-1">{title}</h2>
             )}
 
             {/* Date range */}

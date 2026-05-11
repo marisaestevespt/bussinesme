@@ -748,7 +748,7 @@ function ProjetoDetailInner() {
                 value={local.name}
                 onChange={e => updateField('name', e.target.value)}
                 placeholder="Nome do projeto"
-                className="block w-full text-3xl font-bold tracking-tight border-none px-0 focus-visible:ring-0 h-auto bg-transparent md:text-2xl"
+                className="block w-full kpi-display-sm mt-1 border-none px-0 focus-visible:ring-0 h-auto bg-transparent md:text-2xl"
               />
               <ProjectHealthBadge
                 project={local as any}

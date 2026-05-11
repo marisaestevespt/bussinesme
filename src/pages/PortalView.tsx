@@ -471,7 +471,7 @@ export default function PortalViewPage() {
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 bg-white -translate-y-1/2 translate-x-1/2" />
               <div className="relative z-10">
                 <p className="text-white/70 text-sm mb-1">Olá 👋</p>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
+                <h1 className="text-2xl sm:kpi-display-sm mt-1" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
                   Bem-vinda, {firstName}!
                 </h1>
                 <p className="text-white/80 text-sm mt-2 max-w-md">

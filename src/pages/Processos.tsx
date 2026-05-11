@@ -272,11 +272,11 @@ export default function ProcessosPage() {
                   <Button variant="ghost" aria-label="Voltar" size="icon" onClick={() => setSelectedDept(null)}>
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{getDeptLabel(selectedDept)}</h1>
+                  <h1 className="text-2xl sm:kpi-display-sm mt-1">{getDeptLabel(selectedDept)}</h1>
                   <span className="text-muted-foreground text-sm">({deptSops.length} processos)</span>
                 </div>
               ) : (
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Processos (SOPs)</h1>
+                <h1 className="text-2xl sm:kpi-display-sm mt-1">Processos (SOPs)</h1>
               )}
             </div>
 
@@ -315,7 +315,7 @@ export default function ProcessosPage() {
           {!selectedDept && (
             <section>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                <h2 className="kpi-display-sm mt-1 flex items-center gap-2">
                   <RotateCw className="h-5 w-5 text-primary" /> Rotinas
                 </h2>
                 <Button onClick={() => setShowNewRoutineDialog(true)} size="sm">
@@ -375,7 +375,7 @@ export default function ProcessosPage() {
         {/* ═══ TAB: Lista Total ═══ */}
         <TabsContent value="lista">
           <div className="flex items-center justify-between mb-4 gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Lista Total de SOPs</h1>
+            <h1 className="text-2xl sm:kpi-display-sm mt-1">Lista Total de SOPs</h1>
             <div className="flex items-center gap-2">
               <Select value={selectedDept || '_all_'} onValueChange={v => setSelectedDept(v === '_all_' ? null : v)}>
                 <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por dept." /></SelectTrigger>

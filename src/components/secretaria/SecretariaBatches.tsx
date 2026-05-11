@@ -618,7 +618,7 @@ function FocusSessionDialog({
             </div>
           ) : current ? (
             <div className="space-y-4 w-full">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">A trabalhar em</p>
+              <p className="eyebrow">A trabalhar em</p>
               <h3 className="text-2xl font-semibold leading-tight">{current.name}</h3>
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <PriorityBadge priority={current.priority} />

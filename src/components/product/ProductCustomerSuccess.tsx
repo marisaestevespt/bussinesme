@@ -240,19 +240,19 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="p-5">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Média NPS</p>
+            <p className="eyebrow">Média NPS</p>
             <p className="text-3xl font-bold text-primary mt-1">{avgNps}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Respostas</p>
-            <p className="text-3xl font-bold mt-1">{scored.length}</p>
+            <p className="eyebrow">Respostas</p>
+            <p className="kpi-display-sm mt-1">{scored.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-5">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Por recolher</p>
+            <p className="eyebrow">Por recolher</p>
             <p className="text-3xl font-bold text-warning mt-1">{pending}</p>
           </CardContent>
         </Card>
