@@ -791,7 +791,6 @@ export default function PortalViewPage() {
             client={client}
             portalMaterials={[]}
             tasks={tasks}
-            faqs={faqs}
             pc={pc}
             pcAlpha={pcAlpha}
           />
