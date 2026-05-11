@@ -1353,8 +1353,19 @@ function ClienteDetailPageInner() {
             </EntitySection>
 
             <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
+          </EntityTabsContent>
 
-            {/* Links */}
+          {/* ─── Tab: Pedidos ──────────────────────────────── */}
+          <EntityTabsContent value="pedidos" className="space-y-6 mt-4">
+            {!isNew && form.id ? (
+              <ClientRequestsBlock clientId={form.id} />
+            ) : (
+              <EmptyHint>Disponível depois de guardar o cliente.</EmptyHint>
+            )}
+          </EntityTabsContent>
+
+          {/* ─── Tab: Links ───────────────────────────────── */}
+          <EntityTabsContent value="links" className="space-y-6 mt-4">
             <EntitySection title="Links" icon={Link2}>
               <div className="space-y-4">
                 <div className="space-y-1">
