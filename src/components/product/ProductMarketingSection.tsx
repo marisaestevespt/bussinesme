@@ -414,8 +414,9 @@ export function ProductMarketingSection({
           )}
         </DialogContent>
       </Dialog>
+        </EntityTabsContent>
 
-      {/* Conteúdos */}
+        <EntityTabsContent value="conteudos" className="space-y-4 mt-4">
       <Card>
         <CardHeader><CardTitle className="text-base">Conteúdos</CardTitle></CardHeader>
         <CardContent>
@@ -445,8 +446,9 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      {/* Funis */}
+        <EntityTabsContent value="funis" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Funis</CardTitle>
@@ -490,8 +492,9 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      {/* Automações */}
+        <EntityTabsContent value="automacoes" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Automações</CardTitle>
@@ -535,8 +538,9 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      {/* Tráfego Pago */}
+        <EntityTabsContent value="trafego" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Tráfego Pago</CardTitle>
@@ -582,6 +586,8 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
+      </EntityTabs>
     </div>
   );
 }
