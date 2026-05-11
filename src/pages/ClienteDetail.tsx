@@ -31,7 +31,6 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
 import { ClientRequestsBlock } from '@/components/clients/ClientRequestsBlock';
 import { ClientPortalHealthBlock } from '@/components/clients/ClientPortalHealthBlock';
-import { ClientPortalAuditBlock } from '@/components/clients/ClientPortalAuditBlock';
 import { supabase } from '@/integrations/supabase/client';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DEPARTMENTS } from '@/lib/departments';
