@@ -65,11 +65,12 @@ interface Props {
 
 // ─── Deliverable Row ─────────────────────────────────────────
 function DeliverableRow({
-  template, index, total, isOwner, sops, isRecurring, onUpdate, onDelete, onMoveUp, onMoveDown,
+  template, index, total, isOwner, sops, isRecurring, allowRecurring, onUpdate, onDelete, onMoveUp, onMoveDown,
 }: {
   template: Template; index: number; total: number; isOwner: boolean;
   sops: Array<{ id: string; name: string }>;
   isRecurring: boolean;
+  allowRecurring: boolean;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
   onMoveUp: () => void;
@@ -201,7 +202,7 @@ function DeliverableRow({
             </SelectContent>
           </Select>
         )}
-        {isRecurring && (
+        {isRecurring && allowRecurring && (
           <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-muted-foreground">
             <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
             Recorrente
