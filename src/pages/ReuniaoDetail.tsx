@@ -393,6 +393,21 @@ function ReuniaoDetailPageInner() {
   const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
   const [seriesSaveDialogOpen, setSeriesSaveDialogOpen] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [prepItems, setPrepItems] = useState<Array<{ id: string; content: string; source: string; author_label: string | null; created_at: string }>>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('meeting_prep_items' as any)
+        .select('id, content, source, author_label, created_at')
+        .eq('meeting_id', id)
+        .order('created_at', { ascending: true });
+      if (!cancelled) setPrepItems((data as any[]) || []);
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
 
   useEffect(() => {
     if (meeting && !localMeeting) setLocalMeeting(meeting);
