@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle, Hash, Activity, CalendarDays, Clock, Package, Mail, Phone, Cake, FileText, MapPin, NotebookText, Wallet, Link2, FolderOpen, MessageCircle, History, Briefcase, Heart, Users, Receipt, Calculator } from 'lucide-react';
+import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle, Hash, Activity, CalendarDays, Clock, Package, Mail, Phone, Cake, FileText, MapPin, NotebookText, Wallet, Link2, FolderOpen, MessageCircle, History, Briefcase, Heart, Users, Receipt, Calculator, User } from 'lucide-react';
 import { ClientQuotesSection } from '@/components/clients/ClientQuotesSection';
 import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
@@ -519,6 +519,18 @@ function ClienteDetailPageInner() {
     queryFn: async () => {
       const { data } = await supabase.from('projects').select('id, name, client_id, client_name, department, type').is('archived_at', null);
       return (data || []) as { id: string; name: string; client_id: string | null; client_name: string | null; department: string | null; type: string | null }[];
+    },
+  });
+  // Active team members for Account Manager selector
+  const { data: activeTeamMembers = [] } = useQuery({
+    queryKey: ['team-members-active'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('id, full_name, role_title, photo_url')
+        .eq('status', 'ativo')
+        .order('full_name');
+      return (data || []) as { id: string; full_name: string; role_title: string | null; photo_url: string | null }[];
     },
   });
   const meetingClients = (commercialData.sales.data || [])
@@ -1251,6 +1263,29 @@ function ClienteDetailPageInner() {
           <EntityTabsContent value="gestao" className="space-y-6 mt-4">
             {/* Financial Health */}
             {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
+            {/* Account Manager */}
+            <EntitySection title="Account Manager" icon={User}>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Membro responsável pela relação com este cliente</Label>
+                <Select
+                  value={(form as any).account_manager_id || 'none'}
+                  onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sem account manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem account manager</SelectItem>
+                    {activeTeamMembers.map(m => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.full_name}{m.role_title ? ` · ${m.role_title}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">Aparece destacado no portal do cliente como ponto de contacto e recebe notificações de feedbacks, pedidos e NPS.</p>
+              </div>
+            </EntitySection>
             {/* Meetings */}
             <EntitySection
               title={sectorConfig.t('reunioes')}

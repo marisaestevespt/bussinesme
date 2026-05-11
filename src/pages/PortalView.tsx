@@ -14,7 +14,7 @@ import { pt } from 'date-fns/locale';
 import {
   FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare,
   MessageSquare, Star, Send, ClipboardList, Clock, History,
-  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Check, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users
+  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Check, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users, Mail, Phone
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
@@ -74,6 +74,15 @@ export default function PortalViewPage() {
   const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
   const [responsibilities, setResponsibilities] = useState<Array<Record<string, any>>>([]);
   const [routines, setRoutines] = useState<Array<Record<string, any>>>([]);
+  const [accountManager, setAccountManager] = useState<{
+    id: string;
+    full_name: string;
+    role_title: string | null;
+    email: string | null;
+    whatsapp: string | null;
+    photo_url: string | null;
+    presentation: string | null;
+  } | null>(null);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -130,6 +139,7 @@ export default function PortalViewPage() {
         rpcAny('get_portal_responsibilities', { _token: realToken }),
         rpcAny('get_portal_routines', { _token: realToken }),
         rpcAny('portal_get_recolhas', { _token: realToken }),
+        supabase.rpc('get_portal_account_manager', { _token: realToken }),
       ]);
       const value = <T,>(index: number): T[] => {
         const result = results[index];
@@ -161,6 +171,16 @@ export default function PortalViewPage() {
       setResponsibilities(value<Record<string, any>>(11));
       setRoutines(value<Record<string, any>>(12));
       setRecolhas(value<PortalRecolha>(13));
+      const amList = value<{
+        id: string;
+        full_name: string;
+        role_title: string | null;
+        email: string | null;
+        whatsapp: string | null;
+        photo_url: string | null;
+        presentation: string | null;
+      }>(14);
+      setAccountManager(amList[0] || null);
     } catch (error) {
       console.error('Erro ao carregar portal:', error);
       toast.error('Não foi possível carregar o portal.');
@@ -627,6 +647,70 @@ export default function PortalViewPage() {
                 );
               })()}
             </div>
+
+            {/* ── Account Manager ── */}
+            {accountManager && (
+              <SectionCard className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
+                    <User className="h-4 w-4" style={{ color: pc }} />
+                  </div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    O teu ponto de contacto
+                  </h3>
+                </div>
+                <div className="flex items-start gap-4">
+                  {accountManager.photo_url ? (
+                    <img
+                      src={accountManager.photo_url}
+                      alt={accountManager.full_name}
+                      className="h-16 w-16 rounded-full object-cover shrink-0 border"
+                      style={{ borderColor: pcAlpha(0.2) }}
+                    />
+                  ) : (
+                    <div
+                      className="h-16 w-16 rounded-full flex items-center justify-center shrink-0 text-lg font-semibold"
+                      style={{ backgroundColor: pcAlpha(0.1), color: pc }}
+                    >
+                      {accountManager.full_name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-semibold leading-tight">{accountManager.full_name}</p>
+                    {accountManager.role_title && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{accountManager.role_title}</p>
+                    )}
+                    {accountManager.presentation && (
+                      <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-3">{accountManager.presentation}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-3 mt-3">
+                      {accountManager.email && (
+                        <a
+                          href={`mailto:${accountManager.email}`}
+                          className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                          style={{ color: pc }}
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          {accountManager.email}
+                        </a>
+                      )}
+                      {accountManager.whatsapp && (
+                        <a
+                          href={`https://wa.me/${accountManager.whatsapp.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                          style={{ color: pc }}
+                        >
+                          <Phone className="h-3.5 w-3.5" />
+                          {accountManager.whatsapp}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+            )}
 
             {/* ── Onboarding Step Cards ── */}
             {true && (
