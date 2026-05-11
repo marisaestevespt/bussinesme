@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const parentMeetingId: string | undefined = body.parent_meeting_id;
+    const purgeFuture: boolean = body.purge_future === true;
     if (!parentMeetingId) {
       return new Response(JSON.stringify({ error: 'parent_meeting_id required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -136,6 +137,29 @@ Deno.serve(async (req) => {
       });
     }
 
+    // If requested, purge future child occurrences (used when the parent's
+    // date_time / frequency / end_date changes — old children at the previous
+    // schedule must be wiped before regenerating).
+    let purged = 0;
+    if (purgeFuture) {
+      const nowIso = new Date().toISOString();
+      const { data: futureChildren } = await supabase
+        .from('meetings').select('id, date_time, title, client_name')
+        .eq('parent_meeting_id', parentMeetingId)
+        .gt('date_time', nowIso);
+      if (futureChildren && futureChildren.length) {
+        const ids = futureChildren.map((c: any) => c.id);
+        // Best-effort: also remove the matching calendar events created with the same start_date+title.
+        for (const c of futureChildren as any[]) {
+          await supabase.from('events').delete()
+            .eq('start_date', c.date_time)
+            .eq('title', c.title);
+        }
+        await supabase.from('meetings').delete().in('id', ids);
+        purged = ids.length;
+      }
+    }
+
     // Existing occurrences
     const { data: existing } = await supabase
       .from('meetings').select('id, date_time')
@@ -157,6 +181,7 @@ Deno.serve(async (req) => {
     if (newDates.length === 0) {
       return new Response(JSON.stringify({
         created: 0,
+        purged,
         message: 'Sem novas ocorrencias para gerar',
         effective_end: effectiveEnd.toISOString().slice(0, 10),
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -222,6 +247,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       created: inserted?.length ?? 0,
+      purged,
       effective_end: effectiveEnd.toISOString().slice(0, 10),
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
