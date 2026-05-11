@@ -122,7 +122,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   });
 
   const churnClients = clientsData.filter(c => {
-    if (!c.updated_at || c.status !== 'terminado') return false;
+    if (!c.updated_at || c.status !== 'terminado' || c.is_legacy) return false;
     const d = new Date(c.updated_at);
     return d.getMonth() + 1 === month && d.getFullYear() === year;
   });
@@ -192,14 +192,14 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     return activeClients.map(c => {
       const clientNps = latestNpsByClient.get(c.id);
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
-      const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
+      const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : null;
       const overdueMilestones = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
-      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
+      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
       let color: HealthColor = 'green';
-      if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) {
+      if ((endCycleDays != null && endCycleDays <= 30) || (clientNps != null && clientNps <= 6)) {
         color = 'red';
-      } else if (daysSinceNps > 90 || overdueMilestones.length > 0) {
+      } else if ((daysSinceNps != null && daysSinceNps > 90) || overdueMilestones.length > 0) {
         color = 'yellow';
       }
 
@@ -380,7 +380,7 @@ export default function ClientesAnalisePage() {
       return new Date(c.start_date).getFullYear() === year;
     }).length;
     const churn = clientsData.filter(c => {
-      if (!c.updated_at || c.status !== 'terminado') return false;
+      if (!c.updated_at || c.status !== 'terminado' || c.is_legacy) return false;
       return new Date(c.updated_at).getFullYear() === year;
     }).length;
 
@@ -415,12 +415,12 @@ export default function ClientesAnalisePage() {
     activeClients.forEach(c => {
       const clientNps = npsMap.get(c.id);
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
-      const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
+      const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : null;
       const overdue = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
-      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
+      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
-      if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) red++;
-      else if (daysSinceNps > 90 || overdue.length > 0) yellow++;
+      if ((endCycleDays != null && endCycleDays <= 30) || (clientNps != null && clientNps <= 6)) red++;
+      else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0) yellow++;
       else green++;
     });
 
