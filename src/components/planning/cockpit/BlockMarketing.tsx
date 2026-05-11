@@ -61,7 +61,7 @@ export function BlockMarketing({ year, month }: { year: number; month: number })
             <Badge key={ch} variant="outline" className="text-[10px]">{ch}: {n}</Badge>
           ))}
         </div>
-        <Link to="/marketing" className="text-[11px] text-primary hover:underline">Abrir calendário editorial →</Link>
+        <Link to="/hub/marketing" className="text-[11px] text-primary hover:underline">Abrir calendário editorial →</Link>
       </div>
 
       {/* Ações */}

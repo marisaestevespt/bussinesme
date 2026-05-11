@@ -66,7 +66,7 @@ export function BlockComercial({ year, month }: { year: number; month: number })
         <div className="text-lg font-semibold tabular-nums">{data?.activeLeads ?? 0} <span className="text-xs font-normal text-muted-foreground">leads ativas</span></div>
         <div className="text-[11px] text-muted-foreground">{data?.followups ?? 0} follow-ups este mês</div>
         <Button asChild size="sm" variant="ghost" className="h-7 text-xs justify-start px-2">
-          <Link to="/comercial">Ver pipeline →</Link>
+          <Link to="/hub/comercial">Ver pipeline →</Link>
         </Button>
       </div>
 
