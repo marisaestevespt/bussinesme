@@ -28,7 +28,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   const { products } = useProducts();
   const productsList = products.data || [];
   const { members } = useTeamData({ members: true });
-  const teamMembersList = (members.data || []) as Array<{ id: string; name: string }>;
+  const teamMembersList = ((members.data || []) as unknown as Array<{ id: string; full_name?: string; name?: string }>);
 
   const obj = objective ? (planning.allObjectives.find((o: any) => o.id === objective.id) || objective) : null;
 
@@ -135,7 +135,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                     <SelectContent>
                       <SelectItem value="__ceo__">CEO (por defeito)</SelectItem>
                       {teamMembersList.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                        <SelectItem key={m.id} value={m.id}>{m.full_name || m.name || m.id}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
