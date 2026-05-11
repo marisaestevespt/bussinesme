@@ -520,24 +520,16 @@ export default function PortalViewPage() {
                   .filter((m) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
                   .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                 return (
-                  <div
-                    className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
-                    style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.12), boxShadow: `0 4px 24px ${pcAlpha(0.10)}, 0 1px 4px rgba(0,0,0,0.04)` }}
+                  <PortalEarCard
+                    ear="01"
+                    icon={CalendarDays}
+                    label="Próxima reunião"
+                    value={next ? format(parseISO(next.date_time), "d 'de' MMMM", { locale: pt }) : '—'}
+                    hint={next ? format(parseISO(next.date_time), "HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
                     onClick={() => setActiveSection('meetings')}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.12) }}>
-                        <CalendarDays className="h-5 w-5" style={{ color: pc }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground font-medium">Próxima Reunião</p>
-                        <p className="text-sm font-bold mt-0.5">
-                          {next ? format(parseISO(next.date_time), "d 'de' MMMM, HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
+                    pc={pc}
+                    pcAlpha={pcAlpha}
+                  />
                 );
               })()}
               {portal.show_payments && (() => {
@@ -552,24 +544,16 @@ export default function PortalViewPage() {
                   })
                   .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                 return (
-                  <div
-                    className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
-                    style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.12), boxShadow: `0 4px 24px ${pcAlpha(0.10)}, 0 1px 4px rgba(0,0,0,0.04)` }}
+                  <PortalEarCard
+                    ear="02"
+                    icon={CreditCard}
+                    label="Próximo pagamento"
+                    value={next?.amount != null ? `${Number(next.amount).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : (next ? format(parseISO(next.payment_date), "d MMM", { locale: pt }) : '—')}
+                    hint={next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
                     onClick={() => setActiveSection('payments')}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.12) }}>
-                        <CreditCard className="h-5 w-5" style={{ color: pc }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground font-medium">Próximo Pagamento</p>
-                        <p className="text-sm font-bold mt-0.5">
-                          {next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
+                    pc={pc}
+                    pcAlpha={pcAlpha}
+                  />
                 );
               })()}
             </div>
