@@ -1592,46 +1592,61 @@ export type Database = {
         Row: {
           actual_date: string | null
           client_id: string
+          config_id: string | null
           created_at: string
           expected_date: string
           id: string
           is_manual: boolean
+          kind: string
           notes: string | null
           nps_score: number | null
           product_id: string | null
+          questions: Json | null
+          responses: Json | null
           source: string
           status: string
           task_id: string | null
+          title: string | null
           updated_at: string
         }
         Insert: {
           actual_date?: string | null
           client_id: string
+          config_id?: string | null
           created_at?: string
           expected_date: string
           id?: string
           is_manual?: boolean
+          kind?: string
           notes?: string | null
           nps_score?: number | null
           product_id?: string | null
+          questions?: Json | null
+          responses?: Json | null
           source?: string
           status?: string
           task_id?: string | null
+          title?: string | null
           updated_at?: string
         }
         Update: {
           actual_date?: string | null
           client_id?: string
+          config_id?: string | null
           created_at?: string
           expected_date?: string
           id?: string
           is_manual?: boolean
+          kind?: string
           notes?: string | null
           nps_score?: number | null
           product_id?: string | null
+          questions?: Json | null
+          responses?: Json | null
           source?: string
           status?: string
           task_id?: string | null
+          title?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1647,6 +1662,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_nps_records_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "product_nps_config"
             referencedColumns: ["id"]
           },
           {
@@ -8223,9 +8245,13 @@ export type Database = {
           collection_message: string | null
           created_at: string
           id: string
+          kind: string
           nps_form_url: string | null
           product_id: string
+          questions: Json | null
           responsible_id: string | null
+          sort_order: number
+          title: string | null
           updated_at: string
         }
         Insert: {
@@ -8233,9 +8259,13 @@ export type Database = {
           collection_message?: string | null
           created_at?: string
           id?: string
+          kind?: string
           nps_form_url?: string | null
           product_id: string
+          questions?: Json | null
           responsible_id?: string | null
+          sort_order?: number
+          title?: string | null
           updated_at?: string
         }
         Update: {
@@ -8243,16 +8273,20 @@ export type Database = {
           collection_message?: string | null
           created_at?: string
           id?: string
+          kind?: string
           nps_form_url?: string | null
           product_id?: string
+          questions?: Json | null
           responsible_id?: string | null
+          sort_order?: number
+          title?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "product_nps_config_product_id_fkey"
             columns: ["product_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -12388,24 +12422,22 @@ export type Database = {
         Args: { _email: string; _token: string }
         Returns: boolean
       }
-      portal_get_nps_history: {
+      portal_get_recolhas: {
         Args: { _token: string }
         Returns: {
           actual_date: string
-          id: string
-          notes: string
-          nps_score: number
-          product_name: string
-          source: string
-        }[]
-      }
-      portal_get_pending_nps: {
-        Args: { _token: string }
-        Returns: {
           expected_date: string
           id: string
+          kind: string
+          notes: string
+          nps_score: number
           product_id: string
           product_name: string
+          questions: Json
+          responses: Json
+          source: string
+          status: string
+          title: string
         }[]
       }
       portal_record_visit:
@@ -12423,13 +12455,10 @@ export type Database = {
         Args: {
           _notes?: string
           _record_id: string
+          _responses?: Json
           _score: number
           _token: string
         }
-        Returns: boolean
-      }
-      portal_submit_proactive_nps: {
-        Args: { _notes?: string; _score: number; _token: string }
         Returns: boolean
       }
       portal_toggle_deliverable: {

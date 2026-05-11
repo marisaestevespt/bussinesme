@@ -42,19 +42,30 @@ export interface PortalFeedback {
   responded_at?: string | null;
 }
 
-export interface PortalNpsPending {
-  id: string;
-  expected_date: string;
-  product_id?: string | null;
-  product_name?: string | null;
+export interface PortalRecolhaQuestion {
+  id?: string;
+  text: string;
+  required?: boolean;
 }
 
-export interface PortalNpsHistory {
+export interface PortalRecolhaResponse {
+  question: string;
+  answer: string;
+}
+
+export interface PortalRecolha {
   id: string;
-  nps_score: number;
-  notes?: string | null;
+  kind: 'nps' | 'feedback';
+  title?: string | null;
+  expected_date?: string | null;
   actual_date?: string | null;
+  status: 'por_fazer' | 'concluido' | 'em_atraso' | string;
+  nps_score?: number | null;
+  notes?: string | null;
+  responses?: PortalRecolhaResponse[] | null;
+  questions?: PortalRecolhaQuestion[] | null;
   source?: string | null;
+  product_id?: string | null;
   product_name?: string | null;
 }
 

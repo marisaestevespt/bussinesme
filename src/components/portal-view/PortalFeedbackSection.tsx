@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Send, Sparkles, Lightbulb, AlertCircle, MoreHorizontal, Star, Heart } from 'lucide-react';
+import {
+  MessageSquare, Send, Sparkles, Lightbulb, AlertCircle, MoreHorizontal,
+  Star, Heart, ChevronDown, ChevronRight, Clock, CheckCircle2,
+} from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
-import type { PortalFeedback, PortalNpsPending, PortalNpsHistory } from '@/types/portal';
+import type {
+  PortalFeedback, PortalRecolha, PortalRecolhaQuestion, PortalRecolhaResponse,
+} from '@/types/portal';
 
 type Category = 'elogio' | 'sugestao' | 'problema' | 'outro';
 
@@ -15,7 +21,6 @@ const CATEGORIES: Array<{ key: Category; label: string; icon: any }> = [
   { key: 'problema', label: 'Problema', icon: AlertCircle },
   { key: 'outro', label: 'Outro', icon: MoreHorizontal },
 ];
-
 const CATEGORY_LABEL: Record<string, string> = {
   elogio: 'Elogio', sugestao: 'Sugestão', problema: 'Problema', outro: 'Outro',
 };
@@ -27,126 +32,96 @@ interface Props {
   feedbackCategory: Category;
   setFeedbackCategory: (c: Category) => void;
   sendFeedback: () => void | Promise<void>;
-  npsPending: PortalNpsPending[];
-  npsHistory: PortalNpsHistory[];
-  submitNps: (recordId: string, score: number, notes: string) => void | Promise<void>;
+  recolhas: PortalRecolha[];
+  submitNps: (
+    recordId: string,
+    score: number,
+    notes: string,
+    responses?: PortalRecolhaResponse[],
+  ) => void | Promise<void>;
   pc: string;
   pcAlpha: (a: number) => string;
 }
 
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const isDue = (r: PortalRecolha) =>
+  r.status !== 'concluido' && (!r.expected_date || r.expected_date <= todayISO());
+const isFuture = (r: PortalRecolha) =>
+  r.status !== 'concluido' && !!r.expected_date && r.expected_date > todayISO();
+
 export function PortalFeedbackSection({
   feedback, feedbackText, setFeedbackText, feedbackCategory, setFeedbackCategory,
-  sendFeedback, npsPending, npsHistory, submitNps, pc, pcAlpha,
+  sendFeedback, recolhas, submitNps, pc, pcAlpha,
 }: Props) {
-  const pending = npsPending[0];
-  const [npsScore, setNpsScore] = useState<number | null>(null);
-  const [npsNotes, setNpsNotes] = useState('');
-
-  // Timeline unificada (NPS + feedback) ordenada por data desc
-  type TLItem =
-    | { kind: 'feedback'; date: string; data: PortalFeedback }
-    | { kind: 'nps'; date: string; data: PortalNpsHistory };
-  const timeline: TLItem[] = [
-    ...feedback.map(f => ({ kind: 'feedback' as const, date: f.submitted_at || f.created_at || '', data: f })),
-    ...npsHistory.map(n => ({ kind: 'nps' as const, date: n.actual_date || '', data: n })),
-  ]
-    .filter(i => !!i.date)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  const lastNps = npsHistory[0];
-  const showNpsCard = !!pending || !lastNps || (() => {
-    // Permite nova nota se a última tiver mais de 30 dias
-    if (!lastNps?.actual_date) return true;
-    const diff = Date.now() - new Date(lastNps.actual_date).getTime();
-    return diff > 30 * 24 * 60 * 60 * 1000;
-  })();
+  const due = recolhas.filter(isDue);
+  const done = recolhas.filter(r => r.status === 'concluido');
+  const upcoming = recolhas.filter(isFuture);
 
   return (
     <div className="space-y-6">
       <SectionTitle icon={MessageSquare}>A tua opinião</SectionTitle>
 
-      {/* ─── NPS (pendente ou proativo) ─── */}
-      {showNpsCard && (
-        <SectionCard className="p-6" style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.25) }}>
-          <div className="flex items-start gap-3 mb-4">
-            <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: pcAlpha(0.12) }}>
-              <Heart className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-base font-semibold mb-0.5">De 0 a 10, qual a probabilidade de nos recomendares?</h4>
-              <p className="text-xs text-muted-foreground">
-                {pending?.product_name ? `Sobre ${pending.product_name} · ` : ''}A tua nota ajuda-nos a melhorar.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-11 gap-1.5 mb-4">
-            {Array.from({ length: 11 }).map((_, n) => {
-              const active = npsScore === n;
-              return (
-                <button
-                  key={n}
-                  onClick={() => setNpsScore(n)}
-                  className={`h-10 rounded-lg text-sm font-semibold transition-all border ${
-                    active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-border/40 hover:border-border bg-background'
-                  }`}
-                  style={active ? { backgroundColor: pc } : undefined}
-                >
-                  {n}
-                </button>
-              );
-            })}
-          </div>
-
-          {npsScore !== null && (
-            <div className="space-y-3 animate-in fade-in slide-in-from-top-1">
-              <Textarea
-                value={npsNotes}
-                onChange={(e) => setNpsNotes(e.target.value)}
-                placeholder="Queres deixar um comentário? (opcional)"
-                rows={2}
-                className="rounded-lg border-border/40 bg-background text-sm"
-              />
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" size="sm" onClick={() => { setNpsScore(null); setNpsNotes(''); }}>
-                  Cancelar
-                </Button>
-                <Button
-                  size="sm"
-                  className="text-white"
-                  style={{ backgroundColor: pc }}
-                  onClick={async () => {
-                    await submitNps(pending?.id || '', npsScore, npsNotes);
-                    setNpsScore(null);
-                    setNpsNotes('');
-                  }}
-                >
-                  Enviar nota
-                </Button>
-              </div>
-            </div>
-          )}
-        </SectionCard>
-      )}
-
-      {/* ─── Última nota NPS (resumo, se não há pendente) ─── */}
-      {!showNpsCard && lastNps && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border/30 bg-muted/10">
-          <Star className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
-          <div className="flex-1 text-sm">
-            <span className="text-muted-foreground">Última nota: </span>
-            <span className="font-semibold" style={{ color: pc }}>{lastNps.nps_score}/10</span>
-            {lastNps.actual_date && (
-              <span className="text-muted-foreground"> · {format(parseISO(lastNps.actual_date), "d 'de' MMMM yyyy", { locale: pt })}</span>
-            )}
+      {/* ─── 1. POR PREENCHER ─── */}
+      {due.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold pl-1">
+            Por preencher · {due.length}
+          </p>
+          <div className="space-y-3">
+            {due.map(r => (
+              <RecolhaForm key={r.id} recolha={r} submitNps={submitNps} pc={pc} pcAlpha={pcAlpha} />
+            ))}
           </div>
         </div>
       )}
 
-      {/* ─── Feedback livre ─── */}
+      {/* ─── 2. JÁ PREENCHIDAS ─── */}
+      {done.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold pl-1">
+            Já enviadas · {done.length}
+          </p>
+          <div className="space-y-2">
+            {done
+              .slice()
+              .sort((a, b) => (b.actual_date || '').localeCompare(a.actual_date || ''))
+              .map(r => <RecolhaDoneCard key={r.id} recolha={r} pc={pc} pcAlpha={pcAlpha} />)}
+          </div>
+        </div>
+      )}
+
+      {/* ─── 3. AGENDADAS (futuras) ─── */}
+      {upcoming.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold pl-1">
+            Agendadas · {upcoming.length}
+          </p>
+          <div className="space-y-2">
+            {upcoming.map(r => (
+              <SectionCard key={r.id} className="px-4 py-3 flex items-center gap-3 bg-muted/10">
+                <Clock className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">
+                    <span className="font-medium">{r.title || (r.kind === 'feedback' ? 'Feedback' : 'NPS')}</span>
+                    <span className="text-muted-foreground"> · {r.kind === 'feedback' ? 'Perguntas + nota' : 'Nota 0–10'}</span>
+                  </p>
+                  {r.expected_date && (
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Previsto para {format(parseISO(r.expected_date), "d 'de' MMMM yyyy", { locale: pt })}
+                    </p>
+                  )}
+                </div>
+              </SectionCard>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── 4. FEEDBACK LIVRE (sempre) ─── */}
       <SectionCard className="p-5 space-y-4">
         <div>
-          <p className="text-sm font-medium mb-3">Partilha o que pensas</p>
+          <p className="text-sm font-medium mb-1">Tens algo a partilhar fora dos inquéritos?</p>
+          <p className="text-xs text-muted-foreground mb-3">Manda-nos um recado a qualquer altura.</p>
           <div className="flex flex-wrap gap-2 mb-3">
             {CATEGORIES.map(({ key, label, icon: Icon }) => {
               const active = feedbackCategory === key;
@@ -182,61 +157,245 @@ export function PortalFeedbackSection({
         </div>
       </SectionCard>
 
-      {/* ─── Timeline (histórico unificado) ─── */}
-      {timeline.length > 0 && (
+      {/* ─── 5. HISTÓRICO DE FEEDBACK LIVRE ─── */}
+      {feedback.length > 0 && (
         <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold pl-1">Histórico</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold pl-1">Mensagens enviadas</p>
           <div className="space-y-2.5">
-            {timeline.map((item, i) => (
-              <SectionCard key={`${item.kind}-${item.kind === 'feedback' ? item.data.id : item.data.id}-${i}`} className="p-4">
-                {item.kind === 'nps' ? (
-                  <div className="flex items-start gap-3">
-                    <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: pcAlpha(0.1) }}>
-                      <Star className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
+            {feedback.map(item => (
+              <SectionCard key={item.id} className="p-4">
+                <div className="flex items-start gap-3">
+                  <CategoryIcon category={item.category} pc={pc} pcAlpha={pcAlpha} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
+                        {CATEGORY_LABEL[item.category || 'outro']}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {item.submitted_at && format(parseISO(item.submitted_at), "d MMM yyyy 'às' HH:mm", { locale: pt })}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-sm font-semibold" style={{ color: pc }}>NPS {item.data.nps_score}/10</span>
-                        <span className="text-[11px] text-muted-foreground">
-                          {item.data.actual_date && format(parseISO(item.data.actual_date), "d MMM yyyy", { locale: pt })}
-                        </span>
+                    <p className="text-sm leading-relaxed">{item.content}</p>
+                    {item.team_response && (
+                      <div className="mt-3 pl-3 border-l-2 rounded-sm bg-muted/20 py-2 pr-3" style={{ borderColor: pcAlpha(0.4) }}>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold mb-1" style={{ color: pc }}>Resposta da equipa</p>
+                        <p className="text-sm leading-relaxed text-muted-foreground">{item.team_response}</p>
+                        {item.responded_at && (
+                          <p className="text-[10px] text-muted-foreground/70 mt-1">
+                            {format(parseISO(item.responded_at), "d MMM yyyy", { locale: pt })}
+                          </p>
+                        )}
                       </div>
-                      {item.data.notes && <p className="text-sm leading-relaxed text-muted-foreground">{item.data.notes}</p>}
-                    </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="flex items-start gap-3">
-                    <CategoryIcon category={item.data.category} pc={pc} pcAlpha={pcAlpha} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
-                          {CATEGORY_LABEL[item.data.category || 'outro']}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground">
-                          {item.data.submitted_at && format(parseISO(item.data.submitted_at), "d MMM yyyy 'às' HH:mm", { locale: pt })}
-                        </span>
-                      </div>
-                      <p className="text-sm leading-relaxed">{item.data.content}</p>
-                      {item.data.team_response && (
-                        <div className="mt-3 pl-3 border-l-2 rounded-sm bg-muted/20 py-2 pr-3" style={{ borderColor: pcAlpha(0.4) }}>
-                          <p className="text-[10px] uppercase tracking-wider font-semibold mb-1" style={{ color: pc }}>Resposta da equipa</p>
-                          <p className="text-sm leading-relaxed text-muted-foreground">{item.data.team_response}</p>
-                          {item.data.responded_at && (
-                            <p className="text-[10px] text-muted-foreground/70 mt-1">
-                              {format(parseISO(item.data.responded_at), "d MMM yyyy", { locale: pt })}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                </div>
               </SectionCard>
             ))}
           </div>
         </div>
       )}
+
+      {recolhas.length === 0 && feedback.length === 0 && (
+        <p className="text-xs text-muted-foreground text-center py-4">
+          Ainda não há recolhas agendadas. Vamos aparecendo por aqui à medida que avançamos.
+        </p>
+      )}
     </div>
+  );
+}
+
+/* ─── Form (dueRecord) ────────────────────────────────────────────── */
+function RecolhaForm({
+  recolha, submitNps, pc, pcAlpha,
+}: {
+  recolha: PortalRecolha;
+  submitNps: Props['submitNps'];
+  pc: string;
+  pcAlpha: (a: number) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
+  const [notes, setNotes] = useState('');
+  const isFeedback = recolha.kind === 'feedback';
+  const questions: PortalRecolhaQuestion[] = isFeedback ? (recolha.questions || []) : [];
+  const [answers, setAnswers] = useState<string[]>(() => questions.map(() => ''));
+
+  const requiredOk = questions.every((q, i) =>
+    !q.required || (answers[i] && answers[i].trim().length > 0)
+  );
+  const canSubmit = score !== null && requiredOk;
+
+  const handleSubmit = async () => {
+    if (score === null) return;
+    const responses = isFeedback
+      ? questions.map((q, i) => ({ question: q.text, answer: answers[i] || '' }))
+      : undefined;
+    await submitNps(recolha.id, score, notes, responses);
+  };
+
+  return (
+    <SectionCard
+      className="p-0 overflow-hidden"
+      style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.25) }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left"
+      >
+        <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: pcAlpha(0.12) }}>
+          {isFeedback
+            ? <MessageSquare className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
+            : <Heart className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate">{recolha.title || (isFeedback ? 'Feedback' : 'NPS')}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {isFeedback ? `${questions.length} pergunta${questions.length === 1 ? '' : 's'} + nota 0–10` : 'Nota de 0 a 10'}
+            {recolha.expected_date && (
+              <> · Previsto para {format(parseISO(recolha.expected_date), "d MMM yyyy", { locale: pt })}</>
+            )}
+          </p>
+        </div>
+        {open
+          ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+      </button>
+
+      {open && (
+        <div className="px-5 pb-5 space-y-5 border-t" style={{ borderColor: pcAlpha(0.15) }}>
+          {isFeedback && questions.length > 0 && (
+            <div className="pt-4 space-y-3">
+              {questions.map((q, i) => (
+                <div key={i} className="space-y-1.5">
+                  <label className="text-sm font-medium">
+                    {q.text}
+                    {q.required && <span className="text-destructive ml-1">*</span>}
+                  </label>
+                  <Textarea
+                    rows={2}
+                    value={answers[i] || ''}
+                    onChange={e => {
+                      const next = [...answers];
+                      next[i] = e.target.value;
+                      setAnswers(next);
+                    }}
+                    className="rounded-lg border-border/40 bg-background text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className={isFeedback ? 'pt-3 border-t' : 'pt-4'} style={isFeedback ? { borderColor: pcAlpha(0.15) } : undefined}>
+            <p className="text-sm font-medium mb-2">
+              {isFeedback
+                ? 'Para terminar, qual a probabilidade de nos recomendares (0 a 10)?'
+                : 'De 0 a 10, qual a probabilidade de nos recomendares?'}
+            </p>
+            <div className="grid grid-cols-11 gap-1.5">
+              {Array.from({ length: 11 }).map((_, n) => {
+                const active = score === n;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setScore(n)}
+                    className={`h-10 rounded-lg text-sm font-semibold transition-all border ${
+                      active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-border/40 hover:border-border bg-background'
+                    }`}
+                    style={active ? { backgroundColor: pc } : undefined}
+                  >
+                    {n}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {score !== null && (
+            <div className="space-y-3">
+              <Textarea
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Queres deixar um comentário? (opcional)"
+                rows={2}
+                className="rounded-lg border-border/40 bg-background text-sm"
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => { setScore(null); setNotes(''); }}>
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  className="text-white"
+                  style={{ backgroundColor: pc }}
+                  disabled={!canSubmit}
+                  onClick={handleSubmit}
+                >
+                  Enviar
+                </Button>
+              </div>
+              {!requiredOk && (
+                <p className="text-[11px] text-destructive">Preenche as perguntas obrigatórias.</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+/* ─── Done card (resumo + collapse de respostas) ──────────────────── */
+function RecolhaDoneCard({ recolha, pc, pcAlpha }: { recolha: PortalRecolha; pc: string; pcAlpha: (a: number) => string }) {
+  const [open, setOpen] = useState(false);
+  const hasDetails = (recolha.responses && recolha.responses.length > 0) || !!recolha.notes;
+  return (
+    <SectionCard className="p-4">
+      <div className="flex items-start gap-3">
+        <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: pcAlpha(0.1) }}>
+          <CheckCircle2 className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="text-sm font-medium">{recolha.title || (recolha.kind === 'feedback' ? 'Feedback' : 'NPS')}</span>
+            {recolha.nps_score != null && (
+              <span className="text-sm font-semibold" style={{ color: pc }}>{recolha.nps_score}/10</span>
+            )}
+            <span className="text-[11px] text-muted-foreground">
+              {recolha.actual_date && format(parseISO(recolha.actual_date), "d MMM yyyy", { locale: pt })}
+            </span>
+          </div>
+          {hasDetails && (
+            <button
+              type="button"
+              onClick={() => setOpen(o => !o)}
+              className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+            >
+              {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              Ver respostas
+            </button>
+          )}
+          {open && (
+            <div className="mt-2 space-y-2">
+              {recolha.responses?.map((resp, i) => (
+                <div key={i} className="text-xs">
+                  <p className="font-medium">{resp.question}</p>
+                  <p className="text-muted-foreground">{resp.answer || <em>Sem resposta</em>}</p>
+                </div>
+              ))}
+              {recolha.notes && (
+                <div className="text-xs">
+                  <p className="font-medium">Comentário</p>
+                  <p className="text-muted-foreground">{recolha.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </SectionCard>
   );
 }
 

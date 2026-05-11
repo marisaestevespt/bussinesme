@@ -436,19 +436,30 @@ function ClienteDetailPageInner() {
   const autoGenerateNps = async (clientId: string, productName: string, startDate: string) => {
     const { data: prod } = await supabase.from('products').select('id').eq('name', productName).maybeSingle();
     if (!prod) return;
-    const { data: npsConfig } = await supabase.from('product_nps_config' as any).select('cadence_days').eq('product_id', prod.id).maybeSingle();
-    const cadence = (npsConfig as any)?.cadence_days;
-    if (!cadence) return;
+    const { data: configs } = await supabase
+      .from('product_nps_config' as any)
+      .select('id, kind, title, cadence_days, questions')
+      .eq('product_id', prod.id);
+    const list = (configs || []) as any[];
+    if (list.length === 0) return;
     const start = parseISO(startDate);
-    const records = [];
-    for (let i = 1; i <= Math.floor(730 / cadence); i++) {
-      records.push({
-        client_id: clientId,
-        product_id: prod.id,
-        expected_date: format(addDays(start, cadence * i), 'yyyy-MM-dd'),
-        status: 'por_fazer',
-        is_manual: false,
-      });
+    const records: any[] = [];
+    for (const cfg of list) {
+      const cadence = Number(cfg?.cadence_days) || 0;
+      if (cadence <= 0) continue;
+      for (let i = 1; i <= Math.floor(730 / cadence); i++) {
+        records.push({
+          client_id: clientId,
+          product_id: prod.id,
+          config_id: cfg.id,
+          kind: cfg.kind || 'nps',
+          title: cfg.title || (cfg.kind === 'feedback' ? 'Feedback' : 'NPS'),
+          questions: cfg.kind === 'feedback' ? (cfg.questions || []) : null,
+          expected_date: format(addDays(start, cadence * i), 'yyyy-MM-dd'),
+          status: 'por_fazer',
+          is_manual: false,
+        });
+      }
     }
     if (records.length) {
       await supabase.from('client_nps_records' as any).insert(records);

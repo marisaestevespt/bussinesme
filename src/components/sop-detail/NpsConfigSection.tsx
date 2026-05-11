@@ -22,8 +22,13 @@ export function NpsConfigSection({ productId, teamMembers }: Props) {
   const { data: npsConfig } = useQuery({
     queryKey: ['product-nps-config', productId],
     queryFn: async () => {
-      const { data } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', productId).maybeSingle();
-      return data as any;
+      const { data } = await supabase
+        .from('product_nps_config' as any)
+        .select('*')
+        .eq('product_id', productId)
+        .order('sort_order', { ascending: true })
+        .limit(1);
+      return ((data || [])[0] || null) as any;
     },
     enabled: !!productId,
   });

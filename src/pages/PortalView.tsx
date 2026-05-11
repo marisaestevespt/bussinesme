@@ -39,7 +39,7 @@ import type {
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
   PortalPayment, PortalPhase, PortalDeliverable,
   PortalContractDocument, PortalProjectHistoryEntry,
-  PortalNpsPending, PortalNpsHistory,
+  PortalRecolha, PortalRecolhaResponse,
 } from '@/types/portal';
 
 const isClientStep = (o: { responsible?: string | null }) =>
@@ -63,8 +63,7 @@ export default function PortalViewPage() {
   const [questions, setQuestions] = useState<PortalQuestion[]>([]);
   const [comments, setComments] = useState<PortalComment[]>([]);
   const [feedback, setFeedback] = useState<PortalFeedback[]>([]);
-  const [npsPending, setNpsPending] = useState<PortalNpsPending[]>([]);
-  const [npsHistory, setNpsHistory] = useState<PortalNpsHistory[]>([]);
+  const [recolhas, setRecolhas] = useState<PortalRecolha[]>([]);
   const [meetings, setMeetings] = useState<PortalMeeting[]>([]);
   const [payments, setPayments] = useState<PortalPayment[]>([]);
   const [onboarding, setOnboarding] = useState<PortalPhase[]>([]); // derived from phases
@@ -130,8 +129,7 @@ export default function PortalViewPage() {
         supabase.rpc('get_portal_contract_documents', { _token: realToken }),
         rpcAny('get_portal_responsibilities', { _token: realToken }),
         rpcAny('get_portal_routines', { _token: realToken }),
-        rpcAny('portal_get_pending_nps', { _token: realToken }),
-        rpcAny('portal_get_nps_history', { _token: realToken }),
+        rpcAny('portal_get_recolhas', { _token: realToken }),
       ]);
       const value = <T,>(index: number): T[] => {
         const result = results[index];
@@ -162,8 +160,7 @@ export default function PortalViewPage() {
       setContractDocs(value<PortalContractDocument>(10));
       setResponsibilities(value<Record<string, any>>(11));
       setRoutines(value<Record<string, any>>(12));
-      setNpsPending(value<PortalNpsPending>(13));
-      setNpsHistory(value<PortalNpsHistory>(14));
+      setRecolhas(value<PortalRecolha>(13));
     } catch (error) {
       console.error('Erro ao carregar portal:', error);
       toast.error('Não foi possível carregar o portal.');
@@ -203,23 +200,35 @@ export default function PortalViewPage() {
     setFeedbackCategory('outro');
   };
 
-  const submitNps = async (recordId: string, score: number, notes: string) => {
+  const submitNps = async (
+    recordId: string,
+    score: number,
+    notes: string,
+    responses?: PortalRecolhaResponse[],
+  ) => {
     if (!portal) return;
     const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
-    const isProactive = !recordId;
-    const { data } = isProactive
-      ? await rpcAny('portal_submit_proactive_nps', {
-          _token: portal.token, _score: score, _notes: notes || null,
-        })
-      : await rpcAny('portal_submit_nps', {
-          _token: portal.token, _record_id: recordId, _score: score, _notes: notes || null,
-        });
+    const { data } = await rpcAny('portal_submit_nps', {
+      _token: portal.token,
+      _record_id: recordId,
+      _score: score,
+      _notes: notes || null,
+      _responses: responses && responses.length > 0 ? responses : null,
+    });
     if (data === true) {
-      if (!isProactive) setNpsPending(prev => prev.filter(p => p.id !== recordId));
-      setNpsHistory(prev => [
-        { id: recordId || `proactive-${Date.now()}`, nps_score: score, notes: notes || null, actual_date: new Date().toISOString().slice(0,10), source: 'portal' } as PortalNpsHistory,
-        ...prev,
-      ]);
+      setRecolhas(prev => prev.map(r =>
+        r.id === recordId
+          ? {
+              ...r,
+              status: 'concluido',
+              nps_score: score,
+              notes: notes || r.notes,
+              responses: responses || r.responses,
+              actual_date: new Date().toISOString().slice(0, 10),
+              source: 'portal',
+            }
+          : r
+      ));
       toast.success('Obrigado pela tua nota! ⭐');
     } else {
       toast.error('Não foi possível registar a nota.');
@@ -1026,8 +1035,7 @@ export default function PortalViewPage() {
             feedbackCategory={feedbackCategory}
             setFeedbackCategory={setFeedbackCategory}
             sendFeedback={sendFeedback}
-            npsPending={npsPending}
-            npsHistory={npsHistory}
+            recolhas={recolhas}
             submitNps={submitNps}
             pc={pc}
             pcAlpha={pcAlpha}
