@@ -14,7 +14,18 @@ export type PortalMonthlySummary = Tables<'portal_monthly_summaries'>;
 // Determine portal type from product type
 export function getPortalTypeFromProduct(productType: string | null): 'projeto_unico' | 'servico_mensal' | null {
   if (!productType) return null;
-  const projetoTypes = ['projeto_1_1', 'servico_pontual', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo', 'workshop'];
+  const projetoTypes = [
+    'projeto_1_1',
+    'servico_pontual',
+    'consulta',
+    'consultoria_individual',
+    'consultoria_grupo',
+    'mentoria_individual',
+    'mentoria_grupo',
+    'programa_implementacao',
+    'programa_implementacao_grupo',
+    'workshop',
+  ];
   if (projetoTypes.includes(productType)) return 'projeto_unico';
   if (productType === 'servico_mensal') return 'servico_mensal';
   return null;
