@@ -80,10 +80,11 @@ interface Props {
 }
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
+const isDone = (r: PortalRecolha) => r.status === 'feito' || r.status === 'concluido';
 const isDue = (r: PortalRecolha) =>
-  r.status !== 'concluido' && (!r.expected_date || r.expected_date <= todayISO());
+  !isDone(r) && (!r.expected_date || r.expected_date <= todayISO());
 const isFuture = (r: PortalRecolha) =>
-  r.status !== 'concluido' && !!r.expected_date && r.expected_date > todayISO();
+  !isDone(r) && !!r.expected_date && r.expected_date > todayISO();
 
 const NPS_CATEGORIES: Array<{
   key: string; label: string; range: [number, number]; icon: any; color: string;
@@ -101,7 +102,7 @@ export function PortalFeedbackSection({
   sendFeedback, recolhas, submitNps, pc, pcAlpha,
 }: Props) {
   const due = recolhas.filter(isDue);
-  const done = recolhas.filter(r => r.status === 'concluido');
+  const done = recolhas.filter(isDone);
   const upcoming = recolhas.filter(isFuture);
 
   return (
