@@ -545,7 +545,7 @@ export default function PortalViewPage() {
                   <PortalKpi
                     icon={CreditCard}
                     label="próximo pagamento"
-                    value={next ? (next?.amount != null ? `${Number(next.amount).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : format(parseISO(next.payment_date), "d MMM", { locale: pt })) : <CheckCircle2 className="h-10 w-10" strokeWidth={1.5} style={{ color: pc }} />}
+                    value={next ? (next?.amount != null ? `${Number(next.amount).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : format(parseISO(next.payment_date), "d MMM", { locale: pt })) : <Check className="h-8 w-8" strokeWidth={1} style={{ color: pc }} />}
                     hint={next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'tudo em dia'}
                     onClick={() => setActiveSection('payments')}
                     pc={pc}
