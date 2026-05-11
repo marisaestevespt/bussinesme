@@ -349,19 +349,25 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
               const channelName = getChannelName(g.channel_id);
               const pct = g.target_value > 0 ? Math.round((g.current_value / g.target_value) * 100) : 0;
               const achieved = pct >= 100;
+              const fromExecutive = g.metric_key === 'executive_target';
               return (
                 <Card key={g.id} className="group relative">
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm font-medium text-foreground">{g.metric_label}</p>
-                        {channelName ? (
-                          <Badge variant="secondary" className="text-[10px] mt-1">{CHANNEL_EMOJI[channelName] || '📢'} {channelName}</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] mt-1">Geral</Badge>
-                        )}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {channelName ? (
+                            <Badge variant="secondary" className="text-[10px]">{CHANNEL_EMOJI[channelName] || '📢'} {channelName}</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">Geral</Badge>
+                          )}
+                          {fromExecutive && (
+                            <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">Definido no Executive</Badge>
+                          )}
+                        </div>
                       </div>
-                      {isOwner && (
+                      {isOwner && !fromExecutive && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
                           <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
@@ -381,7 +387,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                         {achieved && <Badge className="text-[10px] bg-success hover:bg-success">Atingida ✓</Badge>}
                       </div>
                     </div>
-                    {isOwner && (
+                    {isOwner && !fromExecutive && (
                       <div className="pt-1 border-t">
                         <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Valor atual</label>
                         <Input type="number" className="h-7 text-sm mt-1" defaultValue={g.current_value} onBlur={e => updateGoalCurrentValue(g.id, e.target.value)} />
