@@ -61,62 +61,83 @@ export function ProductComercialSection({
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Swords className="h-4 w-4 text-destructive" />
             Produtos Concorrentes
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {competitors.length === 0 && (
-            <p className="text-xs text-muted-foreground italic">Sem concorrentes registados.</p>
-          )}
-          {competitors.map((c, i) => (
-            <div key={i} className="rounded-md border bg-card/40 p-3 space-y-2">
-              <div className="flex items-start gap-2">
-                <div className="flex-1 min-w-0">
-                  <InlineField
-                    value={c.name}
-                    placeholder="Nome do concorrente…"
-                    bold
-                    disabled={!isOwner}
-                    onSave={v => {
-                      const next = [...competitors];
-                      next[i] = { ...next[i], name: v };
-                      onUpdateCompetitors(next);
-                    }}
-                  />
-                  <InlineField
-                    value={c.notes}
-                    placeholder="Notas (opcional)…"
-                    multiline
-                    disabled={!isOwner}
-                    onSave={v => {
-                      const next = [...competitors];
-                      next[i] = { ...next[i], notes: v };
-                      onUpdateCompetitors(next);
-                    }}
-                  />
-                </div>
-                {isOwner && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
-                    onClick={() => onUpdateCompetitors(competitors.filter((_, j) => j !== i))}
-                    title="Remover concorrente"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
           {isOwner && (
-            <Button variant="outline" size="sm" onClick={() => onUpdateCompetitors([...competitors, { name: '', notes: '' }])}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onUpdateCompetitors([...competitors, { name: '', notes: '' }])}
+            >
               <Plus className="h-3 w-3 mr-1" /> Adicionar concorrente
             </Button>
           )}
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[30%]">Concorrente</TableHead>
+                <TableHead>Notas</TableHead>
+                {isOwner && <TableHead className="w-[60px]" />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {competitors.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={isOwner ? 3 : 2} className="text-center text-muted-foreground py-4">
+                    Sem concorrentes registados
+                  </TableCell>
+                </TableRow>
+              )}
+              {competitors.map((c, i) => (
+                <TableRow key={i}>
+                  <TableCell className="align-top">
+                    <InlineField
+                      value={c.name}
+                      placeholder="Nome do concorrente…"
+                      bold
+                      disabled={!isOwner}
+                      onSave={v => {
+                        const next = [...competitors];
+                        next[i] = { ...next[i], name: v };
+                        onUpdateCompetitors(next);
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell className="align-top">
+                    <InlineField
+                      value={c.notes}
+                      placeholder="Notas (opcional)…"
+                      multiline
+                      disabled={!isOwner}
+                      onSave={v => {
+                        const next = [...competitors];
+                        next[i] = { ...next[i], notes: v };
+                        onUpdateCompetitors(next);
+                      }}
+                    />
+                  </TableCell>
+                  {isOwner && (
+                    <TableCell className="align-top">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => onUpdateCompetitors(competitors.filter((_, j) => j !== i))}
+                        title="Remover concorrente"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
