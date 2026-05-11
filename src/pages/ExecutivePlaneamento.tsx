@@ -6,19 +6,20 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { Button } from '@/components/ui/button';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
-import { StrategicSection } from '@/components/planning/StrategicSection';
+import { AllGoalsList } from '@/components/planning/AllGoalsList';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Sparkles, Compass, ChevronDown, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Sparkles, Compass, ChevronDown, Plus, ListChecks, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
   const planning = usePlanningData(year);
-  const [strategicOpen, setStrategicOpen] = useState(false);
+  const navigate = useNavigate();
+  const [allGoalsOpen, setAllGoalsOpen] = useState(false);
   const [newObjOpen, setNewObjOpen] = useState(false);
 
   const stats = useMemo(() => {
@@ -53,11 +54,15 @@ export default function ExecutivePlaneamento() {
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
           {year <= new Date().getFullYear() && (
-            <Button asChild variant="outline" size="sm" className="ml-3 h-7 text-xs">
-              <Link to={`/executive/fecho-de-ano/${year}`}>
-                <Sparkles className="h-3 w-3 mr-1" />
-                Fecho de {year}
-              </Link>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-3 h-7 text-xs"
+              onClick={() => navigate(`/executive/fecho-de-ano/${year}`)}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              Fecho de {year}
             </Button>
           )}
         </div>
@@ -126,9 +131,7 @@ export default function ExecutivePlaneamento() {
           </Card>
         </div>
 
-        <PlanningOverviewView planning={planning} year={year} stats={stats} />
-
-        {/* Objetivos anuais — lista visível e editável via Sheet */}
+        {/* Objetivos anuais — sobem para o topo, mais visíveis */}
         <Card className="hq-card" data-objectives-section>
           <CardContent className="pt-5">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -151,34 +154,56 @@ export default function ExecutivePlaneamento() {
               newDialogOpen={newObjOpen}
               onNewDialogChange={setNewObjOpen}
               layout="gallery"
+              hideCascade
+              showGoalsInline
             />
           </CardContent>
         </Card>
 
-        {/* Estratégia 3-5 anos — colapsada por defeito, no fundo como contexto âncora */}
-        <Collapsible open={strategicOpen} onOpenChange={setStrategicOpen}>
+        <PlanningOverviewView planning={planning} year={year} stats={stats} />
+
+        {/* Todas as metas — colapsável, vista global */}
+        <Collapsible open={allGoalsOpen} onOpenChange={setAllGoalsOpen}>
           <Card className="hq-card">
             <CollapsibleTrigger asChild>
               <button className="w-full flex items-center justify-between p-4 hover:bg-muted/30 hq-transition rounded-xl text-left">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                    <Compass className="h-4 w-4" />
+                    <ListChecks className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">Estratégia 3-5 anos</p>
-                    <p className="text-xs text-muted-foreground">Identidade, SWOT e diretrizes — contexto âncora do ano.</p>
+                    <p className="text-sm font-semibold">Todas as metas do ano</p>
+                    <p className="text-xs text-muted-foreground">Vista plana de todas as metas pequenas, agrupadas por período.</p>
                   </div>
                 </div>
-                <ChevronDown className={`h-4 w-4 text-muted-foreground hq-transition ${strategicOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-muted-foreground hq-transition ${allGoalsOpen ? 'rotate-180' : ''}`} />
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-4 pb-4">
-                <StrategicSection />
+                <AllGoalsList planning={planning} />
               </div>
             </CollapsibleContent>
           </Card>
         </Collapsible>
+
+        {/* Estratégia 3-5 anos vive no Plano de Negócio */}
+        <Card className="hq-card border-dashed">
+          <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <Compass className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Estratégia 3-5 anos</p>
+                <p className="text-xs text-muted-foreground">Identidade, SWOT e diretrizes vivem agora no Plano de Negócio.</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate('/executive/planeamento/estrategico')}>
+              Abrir Plano de Negócio <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
