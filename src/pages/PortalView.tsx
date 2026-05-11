@@ -611,14 +611,14 @@ export default function PortalViewPage() {
                     )}
 
                     {/* Phase cards */}
-                    <div className="flex flex-wrap gap-5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
                       {onboarding.map((phase, i) => {
                         const dels = phase.deliverables || [];
                         const done = isPhaseComplete(phase);
                         const completedDels = dels.filter(isDeliverableDone).length;
                         const ear = String(i + 1).padStart(2, '0');
                         return (
-                          <div key={phase.id} className="relative flex-1 min-w-[120px]">
+                          <div key={phase.id} className="relative h-full">
                             <div
                               className="absolute -top-2 -left-1 z-10 px-2 py-0.5 text-[10px] uppercase tracking-widest rounded-sm shadow-sm"
                               style={{ backgroundColor: done ? 'hsl(var(--muted-foreground))' : pc, color: '#fff' }}
@@ -627,13 +627,13 @@ export default function PortalViewPage() {
                             </div>
                             <div
                               onClick={() => setExpandedOnbStep(phase.id)}
-                              className={`rounded-md border-2 transition-colors cursor-pointer p-4 ${done ? 'opacity-60' : ''}`}
+                              className={`rounded-md border-2 transition-colors cursor-pointer p-4 h-full flex flex-col ${done ? 'opacity-60' : ''}`}
                               style={{ borderColor: done ? 'hsl(var(--border))' : pcAlpha(0.3), backgroundColor: 'hsl(var(--card))' }}
                               onMouseEnter={(e) => { if (!done) e.currentTarget.style.borderColor = pc; }}
                               onMouseLeave={(e) => { if (!done) e.currentTarget.style.borderColor = pcAlpha(0.3); }}
                             >
                               <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1">Fase</div>
-                              <p className="text-sm leading-tight line-clamp-2 mb-3" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif', fontSize: '1.05rem' }}>
+                              <p className="text-sm leading-tight line-clamp-2 mb-3 flex-1" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif', fontSize: '1.05rem' }}>
                                 {phase.name || 'Sem nome'}
                               </p>
                               <div className="flex items-center justify-between gap-2">
