@@ -385,7 +385,7 @@ function DepartamentosColumn() {
 function DeptCard({ d, canAccess, navigate }: { d: typeof DEPARTMENT_CARDS[number]; canAccess: boolean; navigate: any }) {
   return (
     <div
-      className={`rounded-md border bg-card p-4 transition-colors ${canAccess ? 'cursor-pointer border-border hover:border-primary/40' : 'opacity-50 cursor-not-allowed border-dashed'}`}
+      className={`rounded-md border-2 bg-card p-4 transition-colors ${canAccess ? 'cursor-pointer border-primary/25 hover:border-primary' : 'opacity-50 cursor-not-allowed border-dashed border-border'}`}
       onClick={canAccess ? () => navigate(d.path) : undefined}
     >
       <div className="flex flex-col items-start gap-2">
@@ -478,7 +478,7 @@ function WeeklySummary() {
           hint={events.slice(0, 2).map((e: any) => e.title).join(' · ') || 'agenda livre'}
         />
       </div>
-      <div className="sm:col-span-3 hq-linen border border-border rounded-md p-5 flex flex-col justify-center">
+      <div className="sm:col-span-3 hq-linen border-2 border-primary/30 rounded-md p-5 flex flex-col justify-center">
         <Eyebrow>esta semana</Eyebrow>
         <p className="hq-display-italic text-base mt-2 leading-snug text-foreground/80">
           {pendingTasks.length === 0 && events.length === 0
