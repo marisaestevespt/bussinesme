@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Trash2, ChevronLeft, ChevronRight, HelpCircle, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, ChevronRight, ChevronDown, HelpCircle, Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -48,6 +48,12 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
   const qc = useQueryClient();
   const [step, setStep] = useState<StepKey>('itens');
   const [discounts, setDiscounts] = useState<VolumeDiscount[]>(initial.volume_discounts || []);
+  const [collapsedDims, setCollapsedDims] = useState<Set<string>>(new Set());
+  const toggleDim = (id: string) => setCollapsedDims(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { setDiscounts(initial.volume_discounts || []); }, [productId]); // eslint-disable-line
@@ -282,13 +288,21 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                   <p className="text-xs text-muted-foreground">Sem perguntas. Opcional, mas útil para diferenciar clientes.</p>
                   <p className="text-[11px] text-muted-foreground mt-1">Ex: <em>Tamanho da equipa — "1 pessoa" ×1.0, "2-4" ×1.2, "5+" ×1.5</em></p>
                 </div>
-              ) : dimensionsList.map(dim => (
+              ) : dimensionsList.map(dim => {
+                const isCollapsed = collapsedDims.has(dim.id);
+                return (
                 <div key={dim.id} className="rounded-md border bg-muted/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => toggleDim(dim.id)} aria-label={isCollapsed ? 'Expandir' : 'Recolher'}>
+                      <ChevronDown className={cn('h-4 w-4 transition-transform', isCollapsed && '-rotate-90')} />
+                    </Button>
                     <div className="flex-1">
                       <InlineField value={dim.name} placeholder="Pergunta (ex: Tamanho da equipa)" bold disabled={!isOwner}
                         onSave={v => v !== dim.name && modifiers.updateDimension.mutate({ id: dim.id, name: v })} />
                     </div>
+                    {isCollapsed && dim.levels.length > 0 && (
+                      <span className="text-[11px] text-muted-foreground shrink-0">{dim.levels.length} {dim.levels.length === 1 ? 'resposta' : 'respostas'}</span>
+                    )}
                     {isOwner && (
                       <>
                         <Button size="sm" variant="outline" onClick={() => modifiers.addLevel.mutate(dim.id)}>
@@ -300,7 +314,7 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                       </>
                     )}
                   </div>
-                  {dim.levels.length === 0 ? (
+                  {!isCollapsed && (dim.levels.length === 0 ? (
                     <p className="text-[11px] text-muted-foreground italic pl-3">Adiciona pelo menos uma resposta.</p>
                   ) : (
                     <>
@@ -321,9 +335,10 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
                         </div>
                       ))}
                     </>
-                  )}
+                  ))}
                 </div>
-              ))}
+                );
+              })}
             </section>
           )}
 
