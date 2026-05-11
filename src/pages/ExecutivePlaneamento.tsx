@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
+import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -46,6 +47,14 @@ export default function ExecutivePlaneamento() {
           <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano seguinte" onClick={() => setYear(year + 1)}>
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
+          {year <= new Date().getFullYear() && (
+            <Button asChild variant="outline" size="sm" className="ml-3 h-7 text-xs">
+              <Link to={`/executive/fecho-de-ano/${year}`}>
+                <Sparkles className="h-3 w-3 mr-1" />
+                Fecho de {year}
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Pulse — resumo rápido do ano */}

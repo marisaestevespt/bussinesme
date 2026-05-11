@@ -68,6 +68,18 @@ export function useRitualBanner() {
     staleTime: 60_000,
   });
 
+  const yearReviews = useQuery({
+    queryKey: ['ritual-banner-year-reviews', y],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('year_review')
+        .select('year, status')
+        .in('year', [y - 1, y]);
+      return data as Array<{ year: number; status: string }> || [];
+    },
+    staleTime: 60_000,
+  });
+
   const weeklyNotes = useQuery({
     queryKey: ['ritual-banner-weekly', isoWeekStart(now)],
     queryFn: async () => {
@@ -116,8 +128,8 @@ export function useRitualBanner() {
   // 1. Fecho de Ano: 31 Dez OU 1-5 Jan e Dezembro do ano anterior não revisto
   const yearTarget = (m === 12 && dom === 31) ? y : (m === 1 && dom <= 5 ? y - 1 : null);
   if (yearTarget !== null) {
-    const decRefl = refl(yearTarget, 12);
-    const yearClosed = !!decRefl?.revisto;
+    const yr = yearReviews.data?.find(r => r.year === yearTarget);
+    const yearClosed = yr?.status === 'fechado';
     if (!yearClosed) {
       candidates.push({
         type: 'fecho_ano',
@@ -125,7 +137,7 @@ export function useRitualBanner() {
         title: `Fechaste o ano de ${yearTarget}?`,
         subtitle: `Antes de planear ${yearTarget + 1}, vale a pena olhar para trás.`,
         cta: `Fechar o ano de ${yearTarget}`,
-        to: `/executive/planeamento/operacional?ano=${yearTarget}&mes=12&scroll=reflexao`,
+        to: `/executive/fecho-de-ano/${yearTarget}`,
         ctaSecundario: { label: 'Mais tarde', action: 'dismiss' },
         tone: 'bordeaux',
       });
