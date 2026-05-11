@@ -471,7 +471,7 @@ function NpsScale({
   onChange: (n: number) => void;
   compact?: boolean;
 }) {
-  const activeColor = (n: number) => {
+  const colorFor = (n: number) => {
     const cat = NPS_CATEGORIES.find(c => n >= c.range[0] && n <= c.range[1]);
     return cat?.color ?? 'hsl(var(--primary))';
   };
@@ -480,15 +480,24 @@ function NpsScale({
       <div className="flex gap-1 rounded-lg p-1 border border-border/40 bg-background">
         {Array.from({ length: 11 }).map((_, n) => {
           const active = value === n;
+          const color = colorFor(n);
           return (
             <button
               key={n}
               type="button"
               onClick={() => onChange(n)}
               className={`flex-1 ${compact ? 'h-8 text-xs' : 'h-10 text-sm'} rounded-md font-semibold transition-all border ${
-                active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-transparent hover:border-border bg-background'
+                active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'hover:scale-[1.03]'
               }`}
-              style={active ? { backgroundColor: activeColor(n) } : undefined}
+              style={
+                active
+                  ? { backgroundColor: color, borderColor: 'transparent' }
+                  : {
+                      color,
+                      backgroundColor: color.replace(')', ' / 0.08)'),
+                      borderColor: color.replace(')', ' / 0.25)'),
+                    }
+              }
             >
               {n}
             </button>
