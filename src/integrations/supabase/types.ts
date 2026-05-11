@@ -1591,6 +1591,7 @@ export type Database = {
       client_nps_records: {
         Row: {
           actual_date: string | null
+          category_scores: Json | null
           client_id: string
           config_id: string | null
           created_at: string
@@ -1611,6 +1612,7 @@ export type Database = {
         }
         Insert: {
           actual_date?: string | null
+          category_scores?: Json | null
           client_id: string
           config_id?: string | null
           created_at?: string
@@ -1631,6 +1633,7 @@ export type Database = {
         }
         Update: {
           actual_date?: string | null
+          category_scores?: Json | null
           client_id?: string
           config_id?: string | null
           created_at?: string
@@ -6656,6 +6659,42 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      nps_categories: {
+        Row: {
+          created_at: string
+          department: string
+          description: string | null
+          id: string
+          is_active: boolean
+          key: string
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -12426,6 +12465,8 @@ export type Database = {
         Args: { _token: string }
         Returns: {
           actual_date: string
+          categories: Json
+          category_scores: Json
           expected_date: string
           id: string
           kind: string
@@ -12453,10 +12494,11 @@ export type Database = {
       }
       portal_submit_nps: {
         Args: {
+          _category_scores?: Json
           _notes?: string
           _record_id: string
           _responses?: Json
-          _score: number
+          _score?: number
           _token: string
         }
         Returns: boolean
