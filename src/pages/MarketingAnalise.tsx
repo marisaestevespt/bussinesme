@@ -164,8 +164,14 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
   const { data: objectives = [] } = useQuery({
     queryKey: ['marketing-objectives', month, year],
     queryFn: async () => {
-      const { data } = await supabase.from('executive_goals').select('*')
-        .eq('area', 'marketing').eq('month', month).eq('year', year);
+      // Replaces legacy executive_goals: planning_goals filtered by parent objective area
+      const period = `${year}-${String(month).padStart(2, '0')}`;
+      const { data } = await supabase
+        .from('planning_goals')
+        .select('*, executive_objectives!inner(area)')
+        .eq('year', year)
+        .eq('period', period)
+        .eq('executive_objectives.area', 'marketing');
       return data || [];
     },
   });
@@ -672,7 +678,11 @@ export default function MarketingAnalisePage() {
   const { data: yearObjectives = [] } = useQuery({
     queryKey: ['marketing-objectives-year', year],
     queryFn: async () => {
-      const { data } = await supabase.from('executive_goals').select('*').eq('area', 'marketing').eq('year', year);
+      const { data } = await supabase
+        .from('planning_goals')
+        .select('*, executive_objectives!inner(area)')
+        .eq('year', year)
+        .eq('executive_objectives.area', 'marketing');
       return data || [];
     },
   });
