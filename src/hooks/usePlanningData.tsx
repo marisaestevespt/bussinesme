@@ -168,8 +168,8 @@ export function usePlanningData(year = currentYear) {
       const period = String((rec as { period?: unknown }).period ?? '');
       const goalAmount = Number(rec.target_value) || 0;
 
-      // Trimestral: T1..T4 → commercial_quarterly_goals
-      const qMatch = period.match(/^T([1-4])$/);
+      // Trimestral: T1..T4 OR Q1..Q4 (canonical) → commercial_quarterly_goals
+      const qMatch = period.match(/^[TQ]([1-4])$/);
       if (qMatch) {
         const quarter = Number(qMatch[1]);
         const { data: existing } = await supabase
@@ -186,10 +186,16 @@ export function usePlanningData(year = currentYear) {
         return;
       }
 
-      // Mensal: nome do mês → commercial_monthly_goals
-      const monthIdx = MONTH_NAMES.indexOf(period);
-      if (monthIdx === -1) return;
-      const month = monthIdx + 1;
+      // Mensal: nome do mês OU 'YYYY-MM' (canonical) → commercial_monthly_goals
+      let month = 0;
+      const ymMatch = period.match(/^\d{4}-(\d{2})$/);
+      if (ymMatch) {
+        month = parseInt(ymMatch[1], 10);
+      } else {
+        const monthIdx = MONTH_NAMES.indexOf(period);
+        if (monthIdx === -1) return;
+        month = monthIdx + 1;
+      }
       const { data: existing } = await supabase
         .from('commercial_monthly_goals')
         .select('id')
