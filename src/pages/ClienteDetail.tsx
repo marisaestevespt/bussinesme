@@ -1263,6 +1263,29 @@ function ClienteDetailPageInner() {
           <EntityTabsContent value="gestao" className="space-y-6 mt-4">
             {/* Financial Health */}
             {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
+            {/* Account Manager */}
+            <EntitySection title="Account Manager" icon={User}>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Membro responsável pela relação com este cliente</Label>
+                <Select
+                  value={(form as any).account_manager_id || 'none'}
+                  onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sem account manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem account manager</SelectItem>
+                    {activeTeamMembers.map(m => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.full_name}{m.role_title ? ` · ${m.role_title}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">Aparece destacado no portal do cliente como ponto de contacto e recebe notificações de feedbacks, pedidos e NPS.</p>
+              </div>
+            </EntitySection>
             {/* Meetings */}
             <EntitySection
               title={sectorConfig.t('reunioes')}
