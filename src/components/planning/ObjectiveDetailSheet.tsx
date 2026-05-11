@@ -132,7 +132,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                     <SelectTrigger><SelectValue placeholder="CEO (por defeito)" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__ceo__">CEO (por defeito)</SelectItem>
-                      {(useTeamData().teamMembers.data || []).map((m: any) => (
+                      {(useTeamData().members.data || []).map((m: any) => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                       ))}
                     </SelectContent>
