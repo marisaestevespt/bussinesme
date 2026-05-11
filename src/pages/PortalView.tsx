@@ -103,16 +103,16 @@ export default function PortalViewPage() {
     } catch { navigate(`/portal/${token}`, { replace: true }); return; }
     setPortal(portalData);
     const realToken = portalData.token; // always use UUID token for RPCs
-    const [clientCtxRes, settingsRes] = await Promise.all([
+    const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
+    // Uma única ronda paralela com TODAS as chamadas (16) — antes eram 4 rondas sequenciais
+    const [
+      clientCtxRes, settingsRes,
+      faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, contractR,
+      respR, routR,
+      npsPendR, npsHistR,
+    ] = await Promise.all([
       supabase.rpc('get_portal_client_context', { _token: realToken }),
-      // get_portal_branding not yet in generated types
-      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: Record<string, unknown> | null; error: unknown }>)('get_portal_branding', { _token: realToken }),
-    ]);
-    const clientData = Array.isArray(clientCtxRes.data) ? clientCtxRes.data[0] : null;
-    if (clientCtxRes.error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
-    setClient(clientData);
-    setSettings(normalizePortalBranding(settingsRes.data || {}));
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, contractR] = await Promise.all([
+      rpcAny('get_portal_branding', { _token: realToken }),
       supabase.rpc('get_portal_faqs', { _token: realToken }),
       supabase.rpc('get_portal_initial_questions', { _token: realToken }),
       supabase.rpc('get_portal_comments', { _token: realToken }),
@@ -120,22 +120,18 @@ export default function PortalViewPage() {
       supabase.rpc('get_portal_meetings', { _token: realToken }),
       supabase.rpc('get_portal_payments', { _token: realToken }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
-      // get_portal_phases not yet in generated types
-      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_phases', { _token: realToken }),
+      rpcAny('get_portal_phases', { _token: realToken }),
       supabase.rpc('get_portal_project_history', { _token: realToken }),
       supabase.rpc('get_portal_contract_documents', { _token: realToken }),
-    ]);
-    // Avença mensal: rotinas + responsabilidades acordadas
-    const [respR, routR] = await Promise.all([
-      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_responsibilities', { _token: realToken }),
-      (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_routines', { _token: realToken }),
-    ]);
-    // NPS pendente + histórico (via RPCs novas — não estão nos types gerados ainda)
-    const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
-    const [npsPendR, npsHistR] = await Promise.all([
+      rpcAny('get_portal_responsibilities', { _token: realToken }),
+      rpcAny('get_portal_routines', { _token: realToken }),
       rpcAny('portal_get_pending_nps', { _token: realToken }),
       rpcAny('portal_get_nps_history', { _token: realToken }),
     ]);
+    const clientData = Array.isArray((clientCtxRes as any).data) ? (clientCtxRes as any).data[0] : null;
+    if ((clientCtxRes as any).error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
+    setClient(clientData);
+    setSettings(normalizePortalBranding((settingsRes as any).data || {}));
     setNpsPending((npsPendR.data as PortalNpsPending[]) || []);
     setNpsHistory((npsHistR.data as PortalNpsHistory[]) || []);
     setResponsibilities((respR.data as Array<Record<string, any>>) || []);
