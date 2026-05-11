@@ -530,8 +530,9 @@ function ClienteDetailPageInner() {
     queryFn: async () => {
       const { data } = await supabase
         .from('team_members')
-        .select('id, full_name, role_title, photo_url')
+        .select('id, full_name, role_title, photo_url, works_with_clients')
         .eq('status', 'ativo')
+        .eq('works_with_clients', true)
         .order('full_name');
       return (data || []) as { id: string; full_name: string; role_title: string | null; photo_url: string | null }[];
     },
