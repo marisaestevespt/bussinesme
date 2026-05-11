@@ -784,25 +784,25 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
           {testVal > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
-              <div className="p-2 rounded-md bg-muted/50">
+              <div className="p-3 rounded-md bg-muted/60 border">
                 <p className="text-sm text-foreground/70">Preço c/ IVA</p>
                 <p className="text-base font-bold">{formatEuro(testWithVat)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
+              <div className="p-3 rounded-md bg-muted/60 border">
                 <p className="text-sm text-foreground/70">IRS/IRC</p>
                 <p className="text-base font-bold">{formatEuro(testIRS)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
+              <div className="p-3 rounded-md bg-muted/60 border">
                 <p className="text-sm text-foreground/70">Seg. Social</p>
                 <p className="text-base font-bold">{formatEuro(testSS)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
+              <div className="p-3 rounded-md bg-muted/60 border">
                 <p className="text-sm text-foreground/70">Custos / unidade</p>
                 <p className="text-base font-bold">{formatEuro(totalPerUnit)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
+              <div className="p-3 rounded-md bg-muted/60 border">
                 <p className="text-sm text-foreground/70">Lucro real</p>
-                <p className={cn('text-sm font-semibold', testRealProfit >= 0 ? 'text-success' : 'text-destructive')}>
+                <p className={cn('text-base font-bold', testRealProfit >= 0 ? 'text-success' : 'text-destructive')}>
                   {formatEuro(testRealProfit)}
                 </p>
               </div>
