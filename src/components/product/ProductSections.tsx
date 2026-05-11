@@ -23,6 +23,7 @@ import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnost
 import { ArchiveDocumentsView } from '@/components/product/archive/ArchiveDocumentsView';
 import { RichEditor } from '@/components/product/archive/RichEditor';
 import { ProductLinksAggregator } from '@/components/product/ProductLinksAggregator';
+import { InlineField } from '@/components/product/InlineField';
 import { PricingWorkspace } from '@/components/product/PricingWorkspace';
 
 // ─── Processos Section ─────────────────────────────────────────
