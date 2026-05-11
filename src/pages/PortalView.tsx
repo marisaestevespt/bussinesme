@@ -978,3 +978,57 @@ export default function PortalViewPage() {
     </div>
   );
 }
+
+// ─── PortalEarCard ─────────────────────────────────────────
+// EarCard-style numbered card with brand-color (white-label) instead of --primary tokens.
+function PortalEarCard({
+  ear,
+  icon: Icon,
+  label,
+  value,
+  hint,
+  onClick,
+  pc,
+  pcAlpha,
+}: {
+  ear: string;
+  icon: any;
+  label: string;
+  value: React.ReactNode;
+  hint?: React.ReactNode;
+  onClick?: () => void;
+  pc: string;
+  pcAlpha: (a: number) => string;
+}) {
+  return (
+    <div className="relative">
+      <div
+        className="absolute -top-2 -left-1 z-10 px-2 py-0.5 text-[10px] uppercase tracking-widest rounded-sm shadow-sm"
+        style={{ backgroundColor: pc, color: '#fff' }}
+      >
+        {ear}
+      </div>
+      <div
+        onClick={onClick}
+        className="rounded-md bg-card border-2 transition-colors p-5 cursor-pointer group"
+        style={{ borderColor: pcAlpha(0.3) }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = pc)}
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = pcAlpha(0.3))}
+      >
+        <Icon className="h-5 w-5 mb-3" strokeWidth={1.5} style={{ color: pc }} />
+        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1">{label}</div>
+        <div
+          className="text-2xl leading-none"
+          style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
+        >
+          {value}
+        </div>
+        {hint && (
+          <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1">
+            {hint} <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
