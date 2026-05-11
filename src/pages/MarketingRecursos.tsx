@@ -58,6 +58,8 @@ export default function MarketingRecursos() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [editingView, setEditingView] = useState<IdeaView | null>(null);
   const [viewForm, setViewForm] = useState({ name: '', category: '__none__', filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
+  const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
+  const [editIdeaForm, setEditIdeaForm] = useState({ idea: '', description: '', channel: '', content_type: '', format: '', category: '__none__' });
 
   // Editable link fields
   const [editingLink, setEditingLink] = useState<string | null>(null);
@@ -164,6 +166,34 @@ export default function MarketingRecursos() {
   const deleteIdea = async (id: string) => {
     await supabase.from('marketing_ideas').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
+  };
+
+  const openIdea = (idea: Idea) => {
+    setEditingIdea(idea);
+    setEditIdeaForm({
+      idea: idea.idea || '',
+      description: idea.description || '',
+      channel: idea.channel || '',
+      content_type: idea.content_type || '',
+      format: idea.format || '',
+      category: idea.category || '__none__',
+    });
+  };
+
+  const saveIdea = async () => {
+    if (!editingIdea) return;
+    if (!editIdeaForm.idea.trim()) return;
+    await supabase.from('marketing_ideas').update({
+      idea: editIdeaForm.idea,
+      description: editIdeaForm.description || null,
+      channel: editIdeaForm.channel || null,
+      content_type: editIdeaForm.content_type || null,
+      format: editIdeaForm.format || null,
+      category: editIdeaForm.category && editIdeaForm.category !== '__none__' ? editIdeaForm.category : 'todas',
+    } as any).eq('id', editingIdea.id);
+    qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
+    setEditingIdea(null);
+    toast.success('Ideia atualizada');
   };
 
   const filteredIdeas = !activeView ? ideas : ideas.filter(i => {
@@ -415,7 +445,7 @@ export default function MarketingRecursos() {
                       </TableCell>
                     </TableRow>
                   ) : filteredIdeas.map(idea => (
-                    <TableRow key={idea.id}>
+                    <TableRow key={idea.id} className="cursor-pointer hover:bg-muted/40" onClick={() => openIdea(idea)}>
                       <TableCell className="font-medium align-top">
                         <div className="whitespace-pre-wrap break-words">{idea.idea}</div>
                         {idea.description && (
@@ -436,7 +466,7 @@ export default function MarketingRecursos() {
                       </TableCell>
                       {isOwner && (
                         <TableCell>
-                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteIdea(idea.id)}>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); deleteIdea(idea.id); }}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </TableCell>
@@ -558,6 +588,72 @@ export default function MarketingRecursos() {
               </Select>
             </div>
             <Button className="w-full" disabled={!newIdea.idea.trim()} onClick={createIdea}>Adicionar Ideia</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Ver/Editar Ideia */}
+      <Dialog open={!!editingIdea} onOpenChange={(o) => !o && setEditingIdea(null)}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Ideia</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Ideia *</Label>
+              <Textarea value={editIdeaForm.idea} onChange={e => setEditIdeaForm(p => ({ ...p, idea: e.target.value }))} rows={3} className="resize-y" />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Textarea value={editIdeaForm.description} onChange={e => setEditIdeaForm(p => ({ ...p, description: e.target.value }))} rows={8} className="resize-y" placeholder="Detalhes, contexto, referências..." />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Canal</Label>
+                <Select value={editIdeaForm.channel} onValueChange={v => setEditIdeaForm(p => ({ ...p, channel: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {activeChannels.map(ch => <SelectItem key={ch.id} value={ch.name}>{ch.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Select value={editIdeaForm.category} onValueChange={v => setEditIdeaForm(p => ({ ...p, category: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {IDEA_CATEGORY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Tipo de Conteúdo</Label>
+                <Select value={editIdeaForm.content_type} onValueChange={v => setEditIdeaForm(p => ({ ...p, content_type: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {CONTENT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Formato</Label>
+                <Select value={editIdeaForm.format} onValueChange={v => setEditIdeaForm(p => ({ ...p, format: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {FORMAT_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-2">
+              {isOwner && editingIdea && (
+                <Button variant="ghost" className="text-destructive" onClick={() => { deleteIdea(editingIdea.id); setEditingIdea(null); }}>
+                  <Trash2 className="h-4 w-4 mr-1" />Eliminar
+                </Button>
+              )}
+              <div className="flex gap-2 ml-auto">
+                <Button variant="ghost" onClick={() => setEditingIdea(null)}>Cancelar</Button>
+                <Button onClick={saveIdea} disabled={!editIdeaForm.idea.trim()}>Guardar</Button>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
