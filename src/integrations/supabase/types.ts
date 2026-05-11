@@ -1801,6 +1801,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_visit_at: string | null
+          playlist_url: string | null
           portal_type: Database["public"]["Enums"]["portal_type"]
           show_faqs: boolean
           show_meetings: boolean
@@ -1819,6 +1820,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_visit_at?: string | null
+          playlist_url?: string | null
           portal_type: Database["public"]["Enums"]["portal_type"]
           show_faqs?: boolean
           show_meetings?: boolean
@@ -1837,6 +1839,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_visit_at?: string | null
+          playlist_url?: string | null
           portal_type?: Database["public"]["Enums"]["portal_type"]
           show_faqs?: boolean
           show_meetings?: boolean
@@ -12016,6 +12019,7 @@ export type Database = {
           client_id: string
           id: string
           is_active: boolean
+          playlist_url: string
           portal_type: string
           show_faqs: boolean
           show_meetings: boolean
@@ -12034,6 +12038,7 @@ export type Database = {
           client_id: string
           id: string
           is_active: boolean
+          playlist_url: string
           portal_type: string
           show_faqs: boolean
           show_meetings: boolean
