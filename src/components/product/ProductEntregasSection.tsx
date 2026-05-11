@@ -324,30 +324,6 @@ function PhaseCard({
             placeholder="Nome da fase..." readOnly={!isOwner} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {isOwner && !phase.is_offboarding && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant={phase.is_onboarding ? "secondary" : "ghost"} size="sm"
-                  className={`h-7 text-xs ${phase.is_onboarding ? 'bg-warning/15 text-warning hover:bg-warning/15' : ''}`}
-                  onClick={() => onUpdatePhase(phase.id, { is_onboarding: !phase.is_onboarding })}>
-                  <CheckSquare className="h-3 w-3 mr-1" /> Onboarding
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Marcar como fase de onboarding (visível no portal)</TooltipContent>
-            </Tooltip>
-          )}
-          {isOwner && !phase.is_onboarding && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant={phase.is_offboarding ? "secondary" : "ghost"} size="sm"
-                  className={`h-7 text-xs ${phase.is_offboarding ? 'bg-destructive/15 text-destructive hover:bg-destructive/15' : ''}`}
-                  onClick={() => onUpdatePhase(phase.id, { is_offboarding: !phase.is_offboarding })}>
-                  <CheckSquare className="h-3 w-3 mr-1" /> Offboarding
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Marcar como fase de offboarding (encerramento, handover, NPS…)</TooltipContent>
-            </Tooltip>
-          )}
           {sops.length > 0 && (
             <Select value={phase.linked_sop_id || 'none'}
               onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
