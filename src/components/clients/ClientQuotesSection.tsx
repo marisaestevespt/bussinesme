@@ -74,15 +74,15 @@ export function ClientQuotesSection({ clientId, clientName }: Props) {
     <div className="rounded-lg border bg-card overflow-hidden">
       <div className="px-4 py-3 border-b flex items-center justify-between bg-muted/30">
         <div className="flex items-center gap-2 text-sm font-semibold">
-          <Receipt className="h-4 w-4" /> Vendas
+          <Receipt className="h-4 w-4" /> Orçamentos
         </div>
         <Button size="sm" variant="outline" className="gap-2" onClick={() => setOpen(true)}>
-          <ShoppingCart className="h-3.5 w-3.5" /> Nova venda
+          <ShoppingCart className="h-3.5 w-3.5" /> Novo orçamento
         </Button>
       </div>
       <div>
         {(quotes.data || []).length === 0 ? (
-          <EmptyHint>Sem vendas registadas. Cria uma para gerar um novo projeto.</EmptyHint>
+          <EmptyHint>Sem orçamentos. Cria um para gerar um novo projeto (as vendas/pagamentos aparecem na secção Pagamentos).</EmptyHint>
         ) : (
           <div className="divide-y">
             {(quotes.data || []).map((q: any) => (
