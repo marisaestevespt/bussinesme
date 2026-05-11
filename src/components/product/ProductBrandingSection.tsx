@@ -12,6 +12,7 @@ import { BrandFontPicker } from '@/components/shared/BrandFontPicker';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { ImageIcon } from 'lucide-react';
 import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
+import { ProductTabHeader } from './_shared';
 
 /* ── color helpers (HEX <-> HSL triplet "H S% L%") ── */
 
