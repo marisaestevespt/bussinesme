@@ -357,10 +357,22 @@ export default function ProdutoDetailPage() {
               </Button>
             </>
           )}
-          {isOwner && (
+          {isOwner && isNew && (
             <Button size="sm" onClick={save} disabled={upsertProduct.isPending}>
-              {isNew ? 'Criar Produto' : 'Guardar'}
+              Criar Produto
             </Button>
+          )}
+          {isOwner && !isNew && (
+            <span
+              className="text-xs text-muted-foreground inline-flex items-center gap-1.5"
+              title="As alterações são guardadas automaticamente"
+            >
+              <span className={cn(
+                'h-1.5 w-1.5 rounded-full transition-colors',
+                autoSaving ? 'bg-warning animate-pulse' : 'bg-success/70',
+              )} />
+              {autoSaving ? 'A guardar…' : 'Guardado'}
+            </span>
           )}
         </div>
 
