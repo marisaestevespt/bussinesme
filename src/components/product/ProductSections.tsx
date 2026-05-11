@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator, Wallet, ListChecks } from 'lucide-react';
+import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator, Wallet, ListChecks, Briefcase } from 'lucide-react';
 import { ProductTabHeader } from './_shared';
 import { SharedMeetingsList, type SharedMeetingItem } from '@/components/shared/SharedMeetingsList';
+import { ProductProjectsSection } from '@/components/product/ProductProjectsSection';
 
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -97,7 +98,7 @@ interface BackofficeSectionProps {
   onDeleteRow: (table: string, id: string) => void;
 }
 
-export function ProductBackofficeSection({ usefulLinks, improvements, productMeetings, isOwner, productId, onAddLink, onAddImprovement, onUpdateRow, onDeleteRow }: BackofficeSectionProps) {
+export function ProductBackofficeSection({ usefulLinks, improvements, isOwner, productId, onAddLink, onAddImprovement, onUpdateRow, onDeleteRow }: BackofficeSectionProps) {
   const navigate = useNavigate();
 
   return (
@@ -112,22 +113,6 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
           onDeleteManual={(id) => onDeleteRow('product_useful_links', id)}
         />
       )}
-
-      {/* Reuniões do produto (operacional) — usa o mesmo UI da página Reuniões */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Video className="h-4 w-4 text-primary" /> Reuniões deste Produto
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">Inclui reuniões com clientes e internas.</p>
-        </CardHeader>
-        <CardContent>
-          <SharedMeetingsList
-            items={productMeetings as unknown as SharedMeetingItem[]}
-            emptyLabel="Sem reuniões associadas a este produto."
-          />
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
