@@ -44,6 +44,11 @@ Deno.serve(async (req) => {
     threeDays.setDate(threeDays.getDate() + 3)
     const threeDaysStr = threeDays.toISOString().split('T')[0]
 
+    // Date 1 day from now (used for direct debit "day-before" reminder)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]
+
     // Get business settings for branding
     const { data: settings } = await supabase
       .from('business_settings')
@@ -78,7 +83,7 @@ Deno.serve(async (req) => {
     const { data: sales, error: salesError } = await supabase
       .from('commercial_sales')
       .select('id, client, product, invoice_total, payment_date, status, payment_method')
-      .in('payment_date', [todayStr, threeDaysStr])
+      .in('payment_date', [todayStr, tomorrowStr, threeDaysStr])
       .in('status', ['aguarda_pagamento', 'em_atraso'])
 
     if (salesError) {
@@ -98,6 +103,22 @@ Deno.serve(async (req) => {
     const results: { saleId: string; status: string; error?: string }[] = []
 
     for (const sale of sales) {
+      const isDirectDebit = sale.payment_method === 'debito_direto'
+      const isToday = sale.payment_date === todayStr
+      const isTomorrow = sale.payment_date === tomorrowStr
+      const isThreeDays = sale.payment_date === threeDaysStr
+
+      // Direct debit: skip same-day reminder (already sent day before).
+      // Non direct debit: skip the "tomorrow" row entirely.
+      if (isDirectDebit && isToday) {
+        results.push({ saleId: sale.id, status: 'skipped', error: 'direct debit, already notified yesterday' })
+        continue
+      }
+      if (!isDirectDebit && isTomorrow) {
+        results.push({ saleId: sale.id, status: 'skipped', error: 'tomorrow only used for direct debit' })
+        continue
+      }
+
       // Find the client's email
       const clientName = sale.client
       if (!clientName) {
@@ -117,15 +138,16 @@ Deno.serve(async (req) => {
         continue
       }
 
-      const isToday = sale.payment_date === todayStr
-      const daysUntil = isToday ? 0 : 3
+      // For direct debit, treat tomorrow's send as the "day-of" notification (announces value to be debited next day).
+      const useDueTodayTemplate = (isDirectDebit && isTomorrow) || (!isDirectDebit && isToday)
+      const daysUntil = useDueTodayTemplate ? (isDirectDebit ? 1 : 0) : 3
 
       // Format the date for display
       const payDate = new Date(sale.payment_date!)
       const formattedDate = `${String(payDate.getDate()).padStart(2, '0')}/${String(payDate.getMonth() + 1).padStart(2, '0')}/${payDate.getFullYear()}`
 
       try {
-        const templateName = isToday ? 'payment-due-today' : 'payment-reminder'
+        const templateName = useDueTodayTemplate ? 'payment-due-today' : 'payment-reminder'
         const custom = customByKey[templateName] || {}
         const templateData: Record<string, any> = {
           clientName: client.full_name,
@@ -147,10 +169,11 @@ Deno.serve(async (req) => {
           customEmoji: custom.emoji || undefined,
         }
 
-        if (isToday) {
+        if (useDueTodayTemplate) {
           templateData.paymentMethod = sale.payment_method || ''
           templateData.iban = bizSetup?.iban || ''
           templateData.mbwayNumber = mbwayNumber
+          templateData.directDebit = isDirectDebit
         } else {
           templateData.daysUntil = daysUntil
         }
@@ -158,7 +181,7 @@ Deno.serve(async (req) => {
         const sendRes = await sendTransactionalEmail({
           templateName,
           recipientEmail: client.email,
-          idempotencyKey: `${templateName}-${sale.id}-${todayStr}`,
+          idempotencyKey: `${templateName}-${sale.id}-${sale.payment_date}`,
           templateData,
         })
 
