@@ -12,17 +12,17 @@ import { getPlanningSection } from '@/lib/department-planning';
 
 const SECTIONS = [
   // Planeamento sempre primeiro (regra: ver mem://design/department-planning-card.md)
-  (() => { const p = getPlanningSection('comercial'); return { path: p.path, label: p.label, icon: p.icon }; })(),
-  { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target },
-  { path: '/hub/comercial/vendas', label: 'Vendas', icon: ShoppingCart },
-  { path: '/hub/comercial/acoes', label: 'Ações de Vendas', icon: Zap },
-  { path: '/hub/comercial/crm', label: 'CRM', icon: Users },
-  { path: '/hub/comercial/estrategia', label: 'Estratégia', icon: Lightbulb },
-  { path: '/hub/comercial/biblioteca', label: 'Biblioteca', icon: BookOpen },
-  { path: '/hub/comercial/processos', label: 'Processos', icon: GitBranch },
-  { path: '/hub/comercial/analise', label: 'Análise Comercial', icon: BarChart3 },
-  { path: '/hub/comercial/clientes', label: 'Lista de Clientes', icon: UserCheck },
-  { path: '/hub/comercial/produtos', label: 'Produtos', icon: Package },
+  (() => { const p = getPlanningSection('comercial'); return { path: p.path, label: p.label, icon: p.icon, iconColor: 'text-primary', color: 'from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10' }; })(),
+  { path: '/hub/comercial/metas', label: 'Metas Comerciais', icon: Target, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+  { path: '/hub/comercial/vendas', label: 'Vendas', icon: ShoppingCart, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
+  { path: '/hub/comercial/acoes', label: 'Ações de Vendas', icon: Zap, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
+  { path: '/hub/comercial/crm', label: 'CRM', icon: Users, iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
+  { path: '/hub/comercial/estrategia', label: 'Estratégia', icon: Lightbulb, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10' },
+  { path: '/hub/comercial/biblioteca', label: 'Biblioteca', icon: BookOpen, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
+  { path: '/hub/comercial/processos', label: 'Processos', icon: GitBranch, iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10' },
+  { path: '/hub/comercial/analise', label: 'Análise Comercial', icon: BarChart3, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+  { path: '/hub/comercial/clientes', label: 'Lista de Clientes', icon: UserCheck, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10' },
+  { path: '/hub/comercial/produtos', label: 'Produtos', icon: Package, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10' },
 ];
 export default function ComercialPage() {
   const navigate = useNavigate();
@@ -62,11 +62,11 @@ export default function ComercialPage() {
           {SECTIONS.map(s => (
             <Card
               key={s.path}
-              className="group cursor-pointer border-2 border-primary bg-primary/10 hover:bg-primary/20 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
               onClick={() => navigate(s.path)}
             >
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shadow-sm shrink-0">
+                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
                   <s.icon className="h-4.5 w-4.5" />
                 </div>
                 <span className="font-medium text-sm text-foreground">{s.label}</span>
