@@ -48,6 +48,20 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
 
 type HealthColor = 'green' | 'yellow' | 'red';
 
+const HEALTH_STYLES: Record<HealthColor, string> = {
+  green: 'bg-success',
+  yellow: 'bg-warning',
+  red: 'bg-destructive',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  em_onboarding: 'Onboarding',
+  ativo: 'Ativo',
+  pausado: 'Pausado',
+  altura_renovacao: 'Renovação',
+  terminado: 'Terminado',
+};
+
 function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const month = monthIdx + 1;
   const navigate = useNavigate();
@@ -217,19 +231,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     });
   }, [activeClients, latestNpsByClient, allNps, allMilestones, today]);
 
-  const HEALTH_STYLES: Record<HealthColor, string> = {
-    green: 'bg-success',
-    yellow: 'bg-warning',
-    red: 'bg-destructive',
-  };
-
-  const STATUS_LABEL: Record<string, string> = {
-    em_onboarding: 'Onboarding',
-    ativo: 'Ativo',
-    pausado: 'Pausado',
-    altura_renovacao: 'Renovação',
-    terminado: 'Terminado',
-  };
   return (
     <div className="space-y-6 pt-6">
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
