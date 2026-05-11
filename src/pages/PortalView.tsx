@@ -972,9 +972,7 @@ export default function PortalViewPage() {
         )}
 
         {/* ═══ PLAYLIST (vibe) ═══ */}
-        {portal.playlist_url && (
-          <PortalPlaylistEmbed url={portal.playlist_url} brandColor={pc?.replace('hsl(', '').replace(')', '')} />
-        )}
+        {portal.playlist_url && <PortalPlaylistEmbed url={portal.playlist_url} />}
 
       </main>
     </div>
