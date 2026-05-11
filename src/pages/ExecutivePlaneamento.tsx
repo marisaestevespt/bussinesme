@@ -5,9 +5,12 @@ import { usePlanningData } from '@/hooks/usePlanningData';
 import { BackNavigation } from '@/components/BackNavigation';
 import { Button } from '@/components/ui/button';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
+import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
+import { StrategicSection } from '@/components/planning/StrategicSection';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Sparkles } from 'lucide-react';
+import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Sparkles, Compass, ChevronDown, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -15,6 +18,8 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
   const planning = usePlanningData(year);
+  const [strategicOpen, setStrategicOpen] = useState(false);
+  const [newObjOpen, setNewObjOpen] = useState(false);
 
   const stats = useMemo(() => {
     const objs = planning.allObjectives;
@@ -122,6 +127,58 @@ export default function ExecutivePlaneamento() {
         </div>
 
         <PlanningOverviewView planning={planning} year={year} stats={stats} />
+
+        {/* Objetivos anuais — lista visível e editável via Sheet */}
+        <Card className="hq-card" data-objectives-section>
+          <CardContent className="pt-5">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                  <Target className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-base font-semibold">Objetivos do ano</p>
+                  <p className="text-xs text-muted-foreground">Clica num objetivo para editar no painel lateral.</p>
+                </div>
+              </div>
+              <Button size="sm" onClick={() => setNewObjOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Novo objetivo
+              </Button>
+            </div>
+            <PlanningObjectivesTab
+              planning={planning}
+              showHeaderButton={false}
+              newDialogOpen={newObjOpen}
+              onNewDialogChange={setNewObjOpen}
+              layout="gallery"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Estratégia 3-5 anos — colapsada por defeito, no fundo como contexto âncora */}
+        <Collapsible open={strategicOpen} onOpenChange={setStrategicOpen}>
+          <Card className="hq-card">
+            <CollapsibleTrigger asChild>
+              <button className="w-full flex items-center justify-between p-4 hover:bg-muted/30 hq-transition rounded-xl text-left">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <Compass className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">Estratégia 3-5 anos</p>
+                    <p className="text-xs text-muted-foreground">Identidade, SWOT e diretrizes — contexto âncora do ano.</p>
+                  </div>
+                </div>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground hq-transition ${strategicOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-4">
+                <StrategicSection />
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       </div>
     </AppLayout>
   );
