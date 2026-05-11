@@ -963,6 +963,7 @@ async function buildOwnerEodDigest(
 ): Promise<string> {
   let html = "";
   let hasContent = false;
+  const empty = () => `<p style="color:#999;font-style:italic;margin:4px 0 0">Sem registos.</p>`;
 
   // ── Tarefas concluídas hoje (equipa) ──
   if (sections.tarefas_concluidas_equipa !== false) {
@@ -973,15 +974,17 @@ async function buildOwnerEodDigest(
       .gte("updated_at", todayStr + "T00:00:00")
       .lte("updated_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("✅ Tarefas concluídas hoje");
     if (tasks?.length) {
-      hasContent = true;
-      html += sectionHeader("✅ Tarefas concluídas hoje");
       html += `<p><strong>${tasks.length}</strong> tarefa(s) concluída(s)</p>`;
       const rows = (tasks as any[]).map((t: any) => [
         esc(t.name),
         esc(t.profiles?.full_name || "—"),
       ]);
       html += dataTable(["Tarefa", "Responsável"], rows, ["left", "left"]);
+    } else {
+      html += empty();
     }
   }
 
@@ -994,12 +997,12 @@ async function buildOwnerEodDigest(
       .gte("deadline", todayStr)
       .lte("deadline", todayStr);
 
+    hasContent = true;
+    html += sectionHeader("🔄 Rotinas do dia");
     if (routines?.length) {
-      hasContent = true;
       const done = routines.filter((r: Row) => r.status === "done" || r.status === "concluida");
       const todo = routines.filter((r: Row) => r.status !== "done" && r.status !== "concluida");
       const pct = Math.round((done.length / routines.length) * 100);
-      html += sectionHeader("🔄 Rotinas do dia");
       html += `<p><strong>${done.length}/${routines.length}</strong> concluídas (${pct}%)</p>`;
       if (todo.length) {
         html += "<p><em>Ficaram por fazer:</em></p><ul>";
@@ -1009,13 +1012,17 @@ async function buildOwnerEodDigest(
         }
         html += "</ul>";
       }
+    } else {
+      html += empty();
     }
   }
 
   // ── Tempo trabalhado hoje (equipa) ──
   if (sections.tempo_trabalhado !== false) {
     const wt = await buildWorkTimeSection(supabase, todayStr, todayStr, 'team', { title: "⏱️ Tempo trabalhado da equipa hoje" });
-    if (wt) { hasContent = true; html += wt; }
+    hasContent = true;
+    if (wt) { html += wt; }
+    else { html += sectionHeader("⏱️ Tempo trabalhado da equipa hoje") + empty(); }
   }
 
   // ── Vendas do dia ──
@@ -1026,11 +1033,13 @@ async function buildOwnerEodDigest(
       .gte("created_at", todayStr + "T00:00:00")
       .lte("created_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("💰 Vendas do dia");
     if (sales?.length) {
-      hasContent = true;
       const total = sales.reduce((s: number, v: Row) => s + (v.invoice_total || 0), 0);
-      html += sectionHeader("💰 Vendas do dia");
       html += `<p><strong>${sales.length}</strong> venda(s) · Total: <strong>${formatCurrency(total)}</strong></p>`;
+    } else {
+      html += empty();
     }
   }
 
@@ -1042,11 +1051,13 @@ async function buildOwnerEodDigest(
       .in("status", ["tudo_ok", "pago_falta_fatura"])
       .eq("payment_date", todayStr);
 
+    hasContent = true;
+    html += sectionHeader("💳 Pagamentos recebidos");
     if (payments?.length) {
-      hasContent = true;
       const total = payments.reduce((s: number, p: Row) => s + (p.invoice_total || 0), 0);
-      html += sectionHeader("💳 Pagamentos recebidos");
       html += `<p>Total: <strong>${formatCurrency(total)}</strong> (${payments.length} pagamento(s))</p>`;
+    } else {
+      html += empty();
     }
   }
 
@@ -1059,12 +1070,14 @@ async function buildOwnerEodDigest(
       .gte("updated_at", todayStr + "T00:00:00")
       .lte("updated_at", todayStr + "T23:59:59");
 
+    hasContent = true;
+    html += sectionHeader("🏁 Projetos fechados hoje");
     if (closed?.length) {
-      hasContent = true;
-      html += sectionHeader("🏁 Projetos fechados hoje");
       html += "<ul>";
       for (const p of closed) html += `<li>${esc(p.name)}${p.client_name ? ` (${esc(p.client_name)})` : ""}</li>`;
       html += "</ul>";
+    } else {
+      html += empty();
     }
   }
 
@@ -1078,9 +1091,9 @@ async function buildOwnerEodDigest(
       .lte("deadline", todayStr)
       .not("deadline", "is", null);
 
+    hasContent = true;
+    html += sectionHeader("⚠️ Tarefas em atraso");
     if (tasks?.length) {
-      hasContent = true;
-      html += sectionHeader("⚠️ Tarefas em atraso");
       html += `<p><strong>${tasks.length}</strong> tarefa(s) por resolver</p>`;
       const sorted = [...tasks].sort((a: any, b: any) => (a.deadline || "").localeCompare(b.deadline || ""));
       const rows = sorted.slice(0, 15).map((t: any) => {
@@ -1096,6 +1109,8 @@ async function buildOwnerEodDigest(
       if (tasks.length > 15) {
         html += `<p style="font-size:12px;color:#86868b;margin:8px 0 0">… e mais ${tasks.length - 15} tarefa(s).</p>`;
       }
+    } else {
+      html += empty();
     }
   }
 
