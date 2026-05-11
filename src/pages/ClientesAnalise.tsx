@@ -417,9 +417,10 @@ export default function ClientesAnalisePage() {
     activeClients.forEach(c => { const p = c.current_product || 'Sem produto'; prodMap[p] = (prodMap[p] || 0) + 1; });
     Object.entries(prodMap).sort((a, b) => b[1] - a[1]).forEach(([name, count]) => byProduct.push({ name, count }));
 
-    // Health semaphore counts
+    // Health semaphore counts + detailed list
     const today = new Date();
     let green = 0, yellow = 0, red = 0;
+    const healthList: { client: typeof activeClients[number]; color: 'green' | 'yellow' | 'red'; reason: string; endCycleDays: number | null }[] = [];
     activeClients.forEach(c => {
       const clientNps = npsMap.get(c.id);
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
@@ -427,12 +428,30 @@ export default function ClientesAnalisePage() {
       const overdue = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
-      if (clientNps != null && clientNps <= 6) red++;
-      else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0 || (endCycleDays != null && endCycleDays <= 30)) yellow++;
-      else green++;
+      let color: 'green' | 'yellow' | 'red' = 'green';
+      const reasons: string[] = [];
+      if (clientNps != null && clientNps <= 6) {
+        color = 'red';
+        reasons.push(`NPS detrator (${clientNps})`);
+        red++;
+      } else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0 || (endCycleDays != null && endCycleDays <= 30)) {
+        color = 'yellow';
+        if (endCycleDays != null && endCycleDays <= 30) reasons.push(`Renovação em ${endCycleDays}d`);
+        if (daysSinceNps != null && daysSinceNps > 90) reasons.push(`NPS desatualizado (${daysSinceNps}d)`);
+        if (overdue.length > 0) reasons.push(`${overdue.length} marco(s) em atraso`);
+        yellow++;
+      } else {
+        reasons.push('Tudo em dia');
+        green++;
+      }
+      healthList.push({ client: c, color, reason: reasons.join(' · '), endCycleDays });
+    });
+    healthList.sort((a, b) => {
+      const order = { red: 0, yellow: 1, green: 2 } as const;
+      return order[a.color] - order[b.color];
     });
 
-    return { activeCount: activeClients.length, newClients, churn, renewalRate, avgNps, byProduct, green, yellow, red };
+    return { activeCount: activeClients.length, newClients, churn, renewalRate, avgNps, byProduct, green, yellow, red, healthList };
   }, [clientsData, year, allNps, allMilestones]);
 
   const monthSummaries = useMemo(() => {
