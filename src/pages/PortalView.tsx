@@ -39,7 +39,7 @@ import type {
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
   PortalPayment, PortalPhase, PortalDeliverable,
   PortalContractDocument, PortalProjectHistoryEntry,
-  PortalNpsPending, PortalNpsHistory,
+  PortalRecolha, PortalRecolhaResponse,
 } from '@/types/portal';
 
 const isClientStep = (o: { responsible?: string | null }) =>
@@ -63,8 +63,7 @@ export default function PortalViewPage() {
   const [questions, setQuestions] = useState<PortalQuestion[]>([]);
   const [comments, setComments] = useState<PortalComment[]>([]);
   const [feedback, setFeedback] = useState<PortalFeedback[]>([]);
-  const [npsPending, setNpsPending] = useState<PortalNpsPending[]>([]);
-  const [npsHistory, setNpsHistory] = useState<PortalNpsHistory[]>([]);
+  const [recolhas, setRecolhas] = useState<PortalRecolha[]>([]);
   const [meetings, setMeetings] = useState<PortalMeeting[]>([]);
   const [payments, setPayments] = useState<PortalPayment[]>([]);
   const [onboarding, setOnboarding] = useState<PortalPhase[]>([]); // derived from phases
@@ -130,8 +129,7 @@ export default function PortalViewPage() {
         supabase.rpc('get_portal_contract_documents', { _token: realToken }),
         rpcAny('get_portal_responsibilities', { _token: realToken }),
         rpcAny('get_portal_routines', { _token: realToken }),
-        rpcAny('portal_get_pending_nps', { _token: realToken }),
-        rpcAny('portal_get_nps_history', { _token: realToken }),
+        rpcAny('portal_get_recolhas', { _token: realToken }),
       ]);
       const value = <T,>(index: number): T[] => {
         const result = results[index];
@@ -162,8 +160,7 @@ export default function PortalViewPage() {
       setContractDocs(value<PortalContractDocument>(10));
       setResponsibilities(value<Record<string, any>>(11));
       setRoutines(value<Record<string, any>>(12));
-      setNpsPending(value<PortalNpsPending>(13));
-      setNpsHistory(value<PortalNpsHistory>(14));
+      setRecolhas(value<PortalRecolha>(13));
     } catch (error) {
       console.error('Erro ao carregar portal:', error);
       toast.error('Não foi possível carregar o portal.');
