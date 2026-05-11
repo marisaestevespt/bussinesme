@@ -9,6 +9,7 @@ import { planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { planningAreaMatches } from '@/lib/planningAreaFilters';
 import { ObjectiveDialog } from './ObjectiveDialog';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
+import { ObjectiveCascadeRow } from './ObjectiveCascadeRow';
 
 export function PlanningObjectivesTab({
   planning,
@@ -119,6 +120,8 @@ export function PlanningObjectivesTab({
                   </div>
                   <Progress value={prog} className="h-1.5" />
                 </div>
+                {/* Cascata Anual → S1/S2 → T1-T4 */}
+                <ObjectiveCascadeRow objective={obj} planning={planning} />
               </Card>
             );
           })}
