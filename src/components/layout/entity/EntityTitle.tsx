@@ -71,7 +71,7 @@ export function EntityTitle({
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
             placeholder={placeholder}
-            className="text-3xl font-bold leading-tight tracking-tight bg-transparent border-none shadow-none px-0 focus-visible:ring-0 h-auto py-0 flex-1 min-w-[200px]"
+            className="font-display italic text-3xl md:text-4xl leading-tight bg-transparent border-none shadow-none px-0 focus-visible:ring-0 h-auto py-0 flex-1 min-w-[200px]"
             disabled={!isOwner}
           />
           {meta && <div className="flex items-center gap-2 flex-wrap">{meta}</div>}
@@ -91,7 +91,7 @@ export function EntityTitle({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={placeholder}
-              className="text-3xl font-bold border-input/60 shadow-none px-2 h-auto py-1 leading-tight tracking-tight bg-background flex-1 min-w-[200px]"
+              className="font-display italic text-3xl md:text-4xl border-input/60 shadow-none px-2 h-auto py-1 leading-tight bg-background flex-1 min-w-[200px]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();

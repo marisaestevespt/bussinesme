@@ -20,7 +20,7 @@ export function EntityTabsList({ children, className }: { children: React.ReactN
   return (
     <TabsList
       className={cn(
-        'inline-flex h-auto bg-muted p-1 rounded-full gap-1 flex-wrap border border-border',
+        'inline-flex h-auto bg-secondary/40 p-1 rounded-sm gap-1 flex-wrap border-2 border-primary/25',
         className,
       )}
     >
@@ -42,9 +42,9 @@ export function EntityTabsTrigger({
     <TabsTrigger
       value={value}
       className={cn(
-        'rounded-full px-4 py-1 text-sm font-medium transition-all',
-        'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md',
-        'data-[state=inactive]:text-foreground/70 hover:text-foreground hover:bg-background/60',
+        'rounded-sm px-4 py-1.5 font-typewriter text-[11px] uppercase tracking-[0.16em] border-2 border-transparent transition-all',
+        'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-md',
+        'data-[state=inactive]:text-foreground/70 hover:text-primary hover:bg-primary/5 hover:border-primary/30',
         className,
       )}
     >

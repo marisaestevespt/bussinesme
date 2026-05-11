@@ -69,7 +69,7 @@ export function EntityHero({
   return (
     <div className="relative -mx-2 md:-mx-4">
       {/* Cover */}
-      <div className="relative w-full h-44 md:h-56 rounded-lg overflow-hidden bg-muted/40 group">
+      <div className="relative w-full h-44 md:h-56 rounded-md overflow-hidden bg-muted/40 group border-2 border-primary/30">
         {cover ? (
           <img src={cover} alt="Capa" className="w-full h-full object-cover" />
         ) : (
@@ -101,7 +101,7 @@ export function EntityHero({
       <div className="px-2 md:px-6 pt-3">
         {/* Floating logo */}
         <div className="relative -mt-12 md:-mt-12 mb-3 group/logo w-fit">
-          <div className="h-20 w-20 md:h-24 md:w-24 rounded-2xl border-4 border-background bg-background overflow-hidden flex items-center justify-center shadow-lg">
+          <div className="h-20 w-20 md:h-24 md:w-24 rounded-md border-[3px] border-primary/40 bg-background overflow-hidden flex items-center justify-center shadow-lg">
             {logo ? (
               <img src={logo} alt="Logo" className="h-full w-full object-contain p-1" />
             ) : (
@@ -139,7 +139,7 @@ export function EntityHero({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={placeholder}
-              className="text-3xl md:text-3xl font-bold border-input/60 shadow-none px-2 h-auto py-1 leading-tight tracking-tight bg-background"
+              className="font-display italic text-3xl md:text-4xl border-input/60 shadow-none px-2 h-auto py-1 leading-tight bg-background"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -176,9 +176,12 @@ export function EntityHero({
             onClick={startEdit}
             title={isOwner ? 'Clicar para editar' : undefined}
           >
-            <h1 className="text-3xl md:text-3xl font-bold leading-tight tracking-tight text-foreground truncate">
-              {title || <span className="text-muted-foreground/60">{placeholder}</span>}
-            </h1>
+            <div className="min-w-0">
+              <div className="eyebrow mb-1">Ficha</div>
+              <h1 className="font-display italic text-3xl md:text-4xl leading-[1.05] text-foreground truncate">
+                {title || <span className="text-muted-foreground/60">{placeholder}</span>}
+              </h1>
+            </div>
             {isOwner && (
               <Pencil className="h-4 w-4 shrink-0 opacity-0 group-hover/name:opacity-100 transition-opacity text-muted-foreground" />
             )}
