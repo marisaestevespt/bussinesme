@@ -50,6 +50,7 @@ import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
 import { computeProjectProgressFromSources } from '@/lib/projectProgress';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
+import { ClientPortalAuditBlock } from '@/components/clients/ClientPortalAuditBlock';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
@@ -1423,6 +1424,7 @@ function ProjetoDetailInner() {
                     productId={local.product_id}
                   />
                 </EntitySection>
+                {resolvedClientId && <ClientPortalAuditBlock clientId={resolvedClientId} />}
               </EntityTabsContent>
             )}
 

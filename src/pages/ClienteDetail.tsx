@@ -31,7 +31,6 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
 import { ClientRequestsBlock } from '@/components/clients/ClientRequestsBlock';
 import { ClientPortalHealthBlock } from '@/components/clients/ClientPortalHealthBlock';
-import { ClientPortalAuditBlock } from '@/components/clients/ClientPortalAuditBlock';
 import { supabase } from '@/integrations/supabase/client';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DEPARTMENTS } from '@/lib/departments';
@@ -1085,6 +1084,8 @@ function ClienteDetailPageInner() {
           <EntityTabsList>
             <EntityTabsTrigger value="jornada">Jornada</EntityTabsTrigger>
             <EntityTabsTrigger value="gestao">Gestão do Cliente</EntityTabsTrigger>
+            <EntityTabsTrigger value="pedidos">Pedidos</EntityTabsTrigger>
+            <EntityTabsTrigger value="links">Links</EntityTabsTrigger>
             <EntityTabsTrigger value="customer-success">Customer Success</EntityTabsTrigger>
           </EntityTabsList>
 
@@ -1285,12 +1286,6 @@ function ClienteDetailPageInner() {
                 <p className="text-[11px] text-muted-foreground">Aparece destacado no portal do cliente como ponto de contacto e recebe notificações de feedbacks, pedidos e NPS.</p>
               </div>
             </EntitySection>
-            {/* Pedidos do Cliente (vindos do portal) */}
-            {!isNew && form.id && (
-              <ClientRequestsBlock clientId={form.id} />
-            )}
-            {/* Portal Audit Log */}
-            {!isNew && form.id && <ClientPortalAuditBlock clientId={form.id} />}
             {/* Meetings */}
             <EntitySection
               title={sectorConfig.t('reunioes')}
@@ -1357,8 +1352,19 @@ function ClienteDetailPageInner() {
             </EntitySection>
 
             <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
+          </EntityTabsContent>
 
-            {/* Links */}
+          {/* ─── Tab: Pedidos ──────────────────────────────── */}
+          <EntityTabsContent value="pedidos" className="space-y-6 mt-4">
+            {!isNew && form.id ? (
+              <ClientRequestsBlock clientId={form.id} />
+            ) : (
+              <EmptyHint>Disponível depois de guardar o cliente.</EmptyHint>
+            )}
+          </EntityTabsContent>
+
+          {/* ─── Tab: Links ───────────────────────────────── */}
+          <EntityTabsContent value="links" className="space-y-6 mt-4">
             <EntitySection title="Links" icon={Link2}>
               <div className="space-y-4">
                 <div className="space-y-1">
