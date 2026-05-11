@@ -64,6 +64,14 @@ export function VariablesWizard({ productId, isOwner, initial }: Props) {
   const driversList = drivers.data || [];
   const dimensionsList = modifiers.query.data || [];
 
+  // Collapse all dimensions by default whenever the list of dimensions changes
+  useEffect(() => {
+    if (dimensionsList.length > 0) {
+      setCollapsedDims(new Set(dimensionsList.map((d: any) => d.id)));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dimensionsList.length, productId]);
+
   const persistProductFields = async (patch: Record<string, any>) => {
     setSaving(true);
     const { error } = await supabase.from('products').update(patch as any).eq('id', productId);
