@@ -8220,36 +8220,59 @@ export type Database = {
       }
       product_nps_records: {
         Row: {
+          client_id: string | null
           client_name: string | null
           collection_date: string
           created_at: string
+          due_date: string | null
           id: string
           notes: string | null
           nps_score: number | null
           product_id: string | null
+          status: string
           updated_at: string
         }
         Insert: {
+          client_id?: string | null
           client_name?: string | null
           collection_date?: string
           created_at?: string
+          due_date?: string | null
           id?: string
           notes?: string | null
           nps_score?: number | null
           product_id?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
+          client_id?: string | null
           client_name?: string | null
           collection_date?: string
           created_at?: string
+          due_date?: string | null
           id?: string
           notes?: string | null
           nps_score?: number | null
           product_id?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_nps_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_nps_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_nps_records_product_id_fkey"
             columns: ["product_id"]
