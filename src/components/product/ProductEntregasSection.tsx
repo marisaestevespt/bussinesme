@@ -81,6 +81,17 @@ function DeliverableRow({
   const [minutes, setMinutes] = useState<string>(template.estimated_minutes?.toString() || '');
   const [titleTpl, setTitleTpl] = useState(template.meeting_title_template || '');
   const [showDesc, setShowDesc] = useState<boolean>(!!template.description);
+  const { data: roles = [] } = useQuery({
+    queryKey: ['custom-roles-for-deliverables'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('custom_roles')
+        .select('id, name, is_owner')
+        .order('name');
+      return (data || []).filter(r => !r.name.startsWith('dept_'));
+    },
+    staleTime: 60_000,
+  });
   const nameRef = useRef(template.name);
   const descRef = useRef(template.description || '');
   const minutesRef = useRef(template.estimated_minutes ?? null);
@@ -190,15 +201,14 @@ function DeliverableRow({
             onValueChange={(v) => onUpdate(template.id, { responsible_role: v === 'none' ? null : v })}
             disabled={!isOwner}
           >
-            <SelectTrigger className="h-9 w-40 text-xs shrink-0" title="Função responsável (área de trabalho)">
+            <SelectTrigger className="h-9 w-40 text-xs shrink-0" title="Função responsável">
               <SelectValue placeholder="Função…" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">Sem função</SelectItem>
-              <SelectItem value="interno">Trabalho Interno</SelectItem>
-              <SelectItem value="cliente_administrativo">Cliente — Admin</SelectItem>
-              <SelectItem value="cliente_servico">Cliente — Entrega</SelectItem>
-              <SelectItem value="cliente_comercial">Cliente — Comercial</SelectItem>
+              {roles.map(r => (
+                <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         )}
