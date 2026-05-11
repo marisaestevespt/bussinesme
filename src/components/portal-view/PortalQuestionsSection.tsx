@@ -46,8 +46,8 @@ export function PortalQuestionsSection(props: Props) {
   const firstUnansweredIdx = Math.max(0, ordered.findIndex(q => !isQAnswered(q)));
 
   type View = 'intro' | 'question' | 'done';
-  const initialView: View = allAnswered ? 'done' : 'intro';
-  const [view, setView] = useState<View>(initialView);
+  // Always start on the cover so the client sees the welcome screen on every visit.
+  const [view, setView] = useState<View>('intro');
   const [idx, setIdx] = useState<number>(firstUnansweredIdx === -1 ? 0 : firstUnansweredIdx);
 
   // Keep activeQuestionId in sync (used by parent for upload state etc.)
