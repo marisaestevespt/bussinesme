@@ -1048,7 +1048,6 @@ export default function ProdutoDetailPage() {
               <ProductBackofficeSection
                 usefulLinks={usefulLinks}
                 improvements={improvements}
-                productMeetings={productMeetings}
                 isOwner={isOwner}
                 productId={id!}
                 onAddLink={() => addRow.mutate({ table: 'product_useful_links', data: { product_id: id, name: '', url: '' } })}
@@ -1062,11 +1061,10 @@ export default function ProdutoDetailPage() {
                 brainstormingContent={form.brainstorming_content || ''}
                 isOwner={isOwner}
                 productId={id!}
+                productName={form.name || ''}
+                productMeetings={productMeetings}
                 onUpdateField={(field, value) => update(field, value)}
               />
-              {!isNew && id && (
-                <ProductProjectsSection productId={id} productName={form.name || ''} mode="internal" />
-              )}
             </div>
           )}
 
