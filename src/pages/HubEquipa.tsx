@@ -219,10 +219,10 @@ export default function HubEquipaPage() {
               <DisplayItalic className="text-primary">{firstName || 'equipa'}</DisplayItalic>
               <span className="text-primary">.</span>
             </h1>
-            <div className="mt-2 flex items-center gap-4 flex-wrap">
-              <p className="text-xs text-muted-foreground">
-                Onde <Highlight>organizamos</Highlight>, colaboramos e crescemos juntos.
-              </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Onde <Highlight>organizamos</Highlight>, colaboramos e crescemos juntos.
+            </p>
+            <div className="mt-1.5">
               <TeamWhatsAppLink />
             </div>
           </div>
