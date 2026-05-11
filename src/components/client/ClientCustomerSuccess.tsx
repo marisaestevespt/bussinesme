@@ -217,7 +217,7 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { generateNpsRecords.mutate(); generateMilestones.mutate(); }}
+              onClick={() => { generateNpsRecords.mutate(); }}
               disabled={!startDate}
             >
               Recalcular datas
@@ -309,68 +309,6 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
       </Card>
       )}
 
-      {/* Milestones */}
-      {(!onlySection || onlySection === 'milestones') && (
-      <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {clientMilestones.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              {!startDate ? 'Define a Data de Início para gerar os marcos.' : 'Sem marcos definidos para este produto.'}
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {clientMilestones.map((m: any) => {
-                const computedStatus = autoStatus(m.expected_date, m.status);
-                const statusInfo = computedStatus === 'feito'
-                  ? { label: 'Feito', cls: 'bg-success/15 text-success border-success/30', accent: 'border-l-success' }
-                  : computedStatus === 'em_atraso'
-                    ? { label: 'Em atraso', cls: 'bg-destructive/15 text-destructive border-destructive/30', accent: 'border-l-destructive' }
-                    : { label: 'Por fazer', cls: 'bg-warning/15 text-warning border-warning/30', accent: 'border-l-warning' };
-                return (
-                  <div key={m.id} className={`rounded-lg border-l-4 ${statusInfo.accent} border bg-card shadow-sm hover:shadow-md transition-shadow p-4 space-y-3`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-1.5 text-sm font-semibold flex-1 min-w-0">
-                        <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{m.milestone || '—'}</span>
-                      </div>
-                      <Badge variant="outline" className={`${statusInfo.cls} whitespace-nowrap`}>{statusInfo.label}</Badge>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(parseISO(m.expected_date), 'dd/MM/yyyy')}</span>
-                      <Badge variant="secondary" className="text-[10px]">{MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type}</Badge>
-                      <span className="inline-flex items-center gap-1"><User2 className="h-3 w-3" /> {getMemberName(m.responsible_id)}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Status</label>
-                      <Select value={computedStatus} onValueChange={v => updateMilestone.mutate({ id: m.id, data: { status: v } })}>
-                        <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
-                        <MessageSquare className="h-3 w-3" /> Notas
-                      </label>
-                      <Textarea
-                        value={m.notes || ''}
-                        onChange={e => updateMilestone.mutate({ id: m.id, data: { notes: e.target.value } })}
-                        className="text-sm min-h-[60px]"
-                        placeholder="Notas..."
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      )}
     </>
   );
 }
