@@ -173,8 +173,8 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
     },
   });
 
-  // Auto-generate on first load if records are empty — only if product has config/milestones defined
-  const hasNpsConfig = npsConfig && (npsConfig as any).frequency_months > 0;
+  // Auto-generate on first load if records are empty — only if product has at least one recolha config
+  const hasNpsConfig = npsConfigs.length > 0 && npsConfigs.some((c: any) => Number(c.cadence_days) > 0);
   const autoGenNpsRef = useRef(false);
   const autoGenMilestonesRef = useRef(false);
 
