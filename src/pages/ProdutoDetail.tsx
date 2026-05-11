@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -93,6 +93,9 @@ export default function ProdutoDetailPage() {
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
   const [showAdvancedProps, setShowAdvancedProps] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedRef = useRef<string>('');
 
   if (product && !initialized) {
     setForm(product);
@@ -113,6 +116,30 @@ export default function ProdutoDetailPage() {
       return next;
     });
   };
+
+  // ─── Auto-save debounced ────────────────────────────────────────
+  // Para produtos existentes: grava automaticamente ~800ms após última edição.
+  // Em produtos novos, mantém-se o fluxo manual ("Criar Produto").
+  useEffect(() => {
+    if (isNew || !product || !initialized || !isOwner) return;
+    const snapshot = JSON.stringify(form);
+    if (!lastSavedRef.current) { lastSavedRef.current = snapshot; return; }
+    if (snapshot === lastSavedRef.current) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(async () => {
+      if (!form.name?.trim()) return;
+      setAutoSaving(true);
+      try {
+        await upsertProduct.mutateAsync(form as Product);
+        lastSavedRef.current = snapshot;
+      } catch (err) {
+        console.error('auto-save', err);
+      } finally {
+        setAutoSaving(false);
+      }
+    }, 800);
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+  }, [form, isNew, product, initialized, isOwner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = async () => {
     if (!form.name?.trim()) {
@@ -330,10 +357,22 @@ export default function ProdutoDetailPage() {
               </Button>
             </>
           )}
-          {isOwner && (
+          {isOwner && isNew && (
             <Button size="sm" onClick={save} disabled={upsertProduct.isPending}>
-              {isNew ? 'Criar Produto' : 'Guardar'}
+              Criar Produto
             </Button>
+          )}
+          {isOwner && !isNew && (
+            <span
+              className="text-xs text-muted-foreground inline-flex items-center gap-1.5"
+              title="As alterações são guardadas automaticamente"
+            >
+              <span className={cn(
+                'h-1.5 w-1.5 rounded-full transition-colors',
+                autoSaving ? 'bg-warning animate-pulse' : 'bg-success/70',
+              )} />
+              {autoSaving ? 'A guardar…' : 'Guardado'}
+            </span>
           )}
         </div>
 
