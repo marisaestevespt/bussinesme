@@ -25,6 +25,7 @@ interface Props {
   answerQuestion: (qId: string, answer: string) => Promise<void>;
   pc: string;
   pcAlpha: (a: number) => string;
+  playlistUrl?: string | null;
 }
 
 const isQAnswered = (q: PortalQuestion) => !!(q.answer?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0));
@@ -35,6 +36,7 @@ export function PortalQuestionsSection(props: Props) {
     draftAnswers, setDraftAnswers, expandedSections, setExpandedSections,
     editingQuestionId, setEditingQuestionId, uploadingQuestionFiles,
     uploadQuestionFiles, removeQuestionFile, answerQuestion, pc, pcAlpha,
+    playlistUrl,
   } = props;
 
   const ordered = useMemo(() => questions.slice(), [questions]);
@@ -183,15 +185,17 @@ export function PortalQuestionsSection(props: Props) {
               {allAnswered ? 'Rever respostas' : answeredCount > 0 ? 'Continuar' : 'Começar'}
               <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <button
-              type="button"
-              onClick={startPlaylist}
-              className="inline-flex items-center gap-2 rounded-full px-5 py-3 border bg-card/60 backdrop-blur text-sm font-medium hover:bg-card transition-colors"
-              style={{ borderColor: pcAlpha(0.3), color: pc }}
-            >
-              <Music className="h-4 w-4" />
-              Tocar playlist
-            </button>
+            {playlistUrl && (
+              <button
+                type="button"
+                onClick={startPlaylist}
+                className="inline-flex items-center gap-2 rounded-full px-5 py-3 border bg-card/60 backdrop-blur text-sm font-medium hover:bg-card transition-colors"
+                style={{ borderColor: pcAlpha(0.3), color: pc }}
+              >
+                <Music className="h-4 w-4" />
+                Tocar playlist
+              </button>
+            )}
           </div>
 
           {answeredCount > 0 && !allAnswered && (
