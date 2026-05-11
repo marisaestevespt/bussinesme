@@ -148,7 +148,7 @@ function CostRow({ cost, members, isOwner, onUpdate, onDelete }: {
           value={local.usage_desc || ''}
           onChange={e => set('usage_desc', e.target.value)}
           placeholder="Descrição/utilização"
-          className="border-none shadow-none h-auto p-0 text-xs text-muted-foreground"
+          className="border-none shadow-none h-auto p-0 text-sm text-foreground/70"
           readOnly={!isOwner}
           aria-label="Descrição"
         />
@@ -162,7 +162,7 @@ function CostRow({ cost, members, isOwner, onUpdate, onDelete }: {
               value={local.hours ?? ''}
               onChange={e => set('hours', e.target.value === '' ? null : Number(e.target.value))}
               className="h-7 text-xs w-16" readOnly={!isOwner} aria-label="Horas" />
-            <span className="text-xs text-muted-foreground">×</span>
+            <span className="text-sm text-foreground/70">×</span>
             <Input type="number" placeholder="€/h"
               value={local.hourly_rate ?? ''}
               onChange={e => set('hourly_rate', e.target.value === '' ? null : Number(e.target.value))}
@@ -174,7 +174,7 @@ function CostRow({ cost, members, isOwner, onUpdate, onDelete }: {
               value={local.cost_value ?? ''}
               onChange={e => set('cost_value', e.target.value === '' ? null : Number(e.target.value))}
               className="h-7 text-xs w-24" readOnly={!isOwner} aria-label="Valor em euros" />
-            <span className="text-xs text-muted-foreground">€</span>
+            <span className="text-sm text-foreground/70">€</span>
             {local.cost_type === 'recorrente' && isOwner && (
               <Select value={local.recurrence || 'mensal'} onValueChange={v => set('recurrence', v as Recurrence)}>
                 <SelectTrigger className="h-7 text-xs w-[80px]" aria-label="Recorrência"><SelectValue /></SelectTrigger>
@@ -209,7 +209,7 @@ function CostRow({ cost, members, isOwner, onUpdate, onDelete }: {
             </SelectContent>
           </Select>
         ) : (
-          <span className="text-xs text-muted-foreground">—</span>
+          <span className="text-sm text-foreground/70">—</span>
         )}
       </TableCell>
 
@@ -257,11 +257,11 @@ function CostGroup({ type, costs, scenario, members, isOwner, onAdd, onUpdate, o
           <Icon className={cn('h-4 w-4', meta.color)} />
           <div>
             <p className="text-sm font-medium">{meta.label}</p>
-            <p className="text-[10px] text-muted-foreground">{meta.desc}</p>
+            <p className="text-sm text-foreground/70">{meta.desc}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">por unidade:</span>
+          <span className="text-sm text-foreground/70">por unidade:</span>
           <span className="font-semibold text-sm">{formatEuro(groupTotal)}</span>
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onAdd(type)} className="h-7">
@@ -583,7 +583,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
     <div className="space-y-6">
       {/* ── Configuração do cenário ── */}
       <Card>
-        <CardHeader><CardTitle className="text-sm">Parâmetros do cenário</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           {/* Perfil fiscal — vem das Definições e não é editável aqui */}
           {fiscalFromSettings ? (
@@ -592,7 +592,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
                 <span className="text-muted-foreground">Perfil fiscal: </span>
                 <strong>{fiscalFromSettings.label}</strong>
               </div>
-              <a href="/definicoes?tab=fiscal" className="text-[10px] text-primary hover:underline shrink-0">
+              <a href="/definicoes?tab=fiscal" className="text-xs text-primary hover:underline shrink-0">
                 Alterar em Definições &gt; Fiscal →
               </a>
             </div>
@@ -605,7 +605,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Margem desejada (%)</Label>
+              <Label className="text-sm text-foreground/70">Margem desejada (%)</Label>
               <Input type="number" defaultValue={scenario.desired_margin}
                 onBlur={e => updateScenario.mutate({ desired_margin: Number(e.target.value) || 0 })}
                 disabled={!isOwner} />
@@ -614,18 +614,18 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2 border-t">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Vendas estimadas</Label>
+              <Label className="text-sm text-foreground/70">Vendas estimadas</Label>
               <Input type="number" defaultValue={scenario.estimated_sales ?? ''}
                 onBlur={e => updateScenario.mutate({ estimated_sales: e.target.value === '' ? null : Number(e.target.value) })}
                 placeholder="ex: 50" disabled={!isOwner} />
-              <p className="text-[10px] text-muted-foreground">Quantas unidades pensas vender no período abaixo.</p>
+              <p className="text-sm text-foreground/70">Quantas unidades pensas vender no período abaixo.</p>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Período de venda (meses)</Label>
+              <Label className="text-sm text-foreground/70">Período de venda (meses)</Label>
               <Input type="number" defaultValue={scenario.lifetime_months ?? 12}
                 onBlur={e => updateScenario.mutate({ lifetime_months: e.target.value === '' ? null : Number(e.target.value) })}
                 placeholder="12" disabled={!isOwner} />
-              <p className="text-[10px] text-muted-foreground">Por defeito 12 meses. Afeta amortização de custos recorrentes.</p>
+              <p className="text-sm text-foreground/70">Por defeito 12 meses. Afeta amortização de custos recorrentes.</p>
             </div>
           </div>
           {hasUnamortizedCosts && (
@@ -651,7 +651,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Breakdown ── */}
       <Card>
-        <CardHeader><CardTitle className="text-sm">Composição do custo por unidade</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {totalPerUnit === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Adiciona custos e define vendas estimadas para veres o breakdown.</p>
@@ -691,11 +691,11 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
           <div className="grid grid-cols-2 gap-4">
             <Card className="border-dashed">
               <CardContent className="pt-4 pb-3 space-y-1">
-                <p className="text-xs text-muted-foreground">Preço mínimo (lucro = 0)</p>
-                <p className="text-lg font-bold text-destructive">
+                <p className="text-sm text-foreground/70">Preço mínimo (lucro = 0)</p>
+                <p className="text-2xl font-bold text-destructive">
                   {formatEuro(floorBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(floorWithVat)} c/ IVA)</span>
                 </p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-sm text-foreground/70">
                   {reg === 'simplificado'
                     ? 'Cobre custos + IRS + SS. Abaixo disto dá prejuízo.'
                     : 'Cobre custos. Acima disto há lucro tributável em IRC.'}
@@ -704,20 +704,20 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
             </Card>
             <Card className={cn('border-dashed', recInfeasible && 'border-warning/50 bg-warning/5')}>
               <CardContent className="pt-4 pb-3 space-y-1">
-                <p className="text-xs text-muted-foreground">Preço recomendado</p>
+                <p className="text-sm text-foreground/70">Preço recomendado</p>
                 {recInfeasible ? (
                   <>
-                    <p className="text-lg font-bold text-warning">Margem inviável</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-2xl font-bold text-warning">Margem inviável</p>
+                    <p className="text-sm text-foreground/70">
                       Pediste {recMargin.toFixed(0)}% líquidos, mas neste regime os impostos consomem {((1 - maxFeasibleMargin) * 100).toFixed(1)}% da receita — máximo possível ≈ {(maxFeasibleMargin * 100).toFixed(0)}%. Reduz a margem desejada.
                     </p>
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-bold text-success">
+                    <p className="text-2xl font-bold text-success">
                       {formatEuro(recBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(recWithVat)} c/ IVA)</span>
                     </p>
-                    <p className="text-[10px] text-muted-foreground">Margem líquida alvo {recMargin.toFixed(1)}% (já considera IRS/{reg === 'simplificado' ? 'SS' : 'IRC'})</p>
+                    <p className="text-sm text-foreground/70">Margem líquida alvo {recMargin.toFixed(1)}% (já considera IRS/{reg === 'simplificado' ? 'SS' : 'IRC'})</p>
                   </>
                 )}
               </CardContent>
@@ -732,7 +732,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
           <CardContent className="pt-4 pb-4 space-y-3">
             <div>
               <p className="text-sm font-medium">Definir este preço na ficha do produto</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-foreground/70">
                 Escolhe onde encaixa o <strong>{formatEuro(recBase)}</strong> calculado: como mínimo, sugerido ou máximo.
               </p>
             </div>
@@ -763,11 +763,11 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Testar preço ── */}
       <Card>
-        <CardHeader><CardTitle className="text-sm">Testar um preço</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1">
-              <Label className="text-xs text-muted-foreground">Preço de venda (s/ IVA)</Label>
+              <Label className="text-sm text-foreground/70">Preço de venda (s/ IVA)</Label>
               <Input type="number" placeholder="Ex: 497" value={testPrice} onChange={e => setTestPrice(e.target.value)} className="text-lg font-semibold" />
             </div>
           </div>
@@ -777,32 +777,32 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
               <verdict.icon className={cn('h-5 w-5 mt-0.5 shrink-0', verdict.color)} />
               <div>
                 <p className={cn('font-semibold text-sm', verdict.color)}>{verdict.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{verdict.desc}</p>
+                <p className="text-sm text-foreground/70 mt-0.5">{verdict.desc}</p>
               </div>
             </div>
           )}
 
           {testVal > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
-              <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Preço c/ IVA</p>
-                <p className="text-sm font-semibold">{formatEuro(testWithVat)}</p>
+              <div className="p-3 rounded-md bg-muted/60 border">
+                <p className="text-sm text-foreground/70">Preço c/ IVA</p>
+                <p className="text-base font-bold">{formatEuro(testWithVat)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">IRS/IRC</p>
-                <p className="text-sm font-semibold">{formatEuro(testIRS)}</p>
+              <div className="p-3 rounded-md bg-muted/60 border">
+                <p className="text-sm text-foreground/70">IRS/IRC</p>
+                <p className="text-base font-bold">{formatEuro(testIRS)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Seg. Social</p>
-                <p className="text-sm font-semibold">{formatEuro(testSS)}</p>
+              <div className="p-3 rounded-md bg-muted/60 border">
+                <p className="text-sm text-foreground/70">Seg. Social</p>
+                <p className="text-base font-bold">{formatEuro(testSS)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Custos / unidade</p>
-                <p className="text-sm font-semibold">{formatEuro(totalPerUnit)}</p>
+              <div className="p-3 rounded-md bg-muted/60 border">
+                <p className="text-sm text-foreground/70">Custos / unidade</p>
+                <p className="text-base font-bold">{formatEuro(totalPerUnit)}</p>
               </div>
-              <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Lucro real</p>
-                <p className={cn('text-sm font-semibold', testRealProfit >= 0 ? 'text-success' : 'text-destructive')}>
+              <div className="p-3 rounded-md bg-muted/60 border">
+                <p className="text-sm text-foreground/70">Lucro real</p>
+                <p className={cn('text-base font-bold', testRealProfit >= 0 ? 'text-success' : 'text-destructive')}>
                   {formatEuro(testRealProfit)}
                 </p>
               </div>
@@ -915,7 +915,7 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <CardTitle className="text-base">Calculadora de Oferta</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-foreground/70 mt-1">
               Define todos os custos do produto (criação, recorrentes, por venda, horas de equipa) e simula preços com diferentes margens e regimes fiscais.
             </p>
           </div>
