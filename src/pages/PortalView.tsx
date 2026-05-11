@@ -611,7 +611,7 @@ export default function PortalViewPage() {
                     )}
 
                     {/* Phase cards */}
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-5">
                       {onboarding.map((phase, i) => {
                         const dels = phase.deliverables || [];
                         const done = isPhaseComplete(phase);
@@ -913,7 +913,7 @@ export default function PortalViewPage() {
                 )}
 
                 {/* Phase cards */}
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-5">
                   {onboarding.map((phase, i) => {
                     const dels = phase.deliverables || [];
                     const done = isPhaseComplete(phase);
