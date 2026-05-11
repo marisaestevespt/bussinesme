@@ -176,7 +176,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-4 w-4" />
-              Clientes deste Produto
+              Clientes Ativos & Renovações
             </CardTitle>
             <div className="text-sm text-muted-foreground">
               {activeClients.length} cliente{activeClients.length !== 1 ? 's' : ''} ativo{activeClients.length !== 1 ? 's' : ''}
