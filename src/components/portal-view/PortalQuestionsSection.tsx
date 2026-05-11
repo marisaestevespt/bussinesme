@@ -180,7 +180,7 @@ export function PortalQuestionsSection(props: Props) {
               style={{ backgroundColor: pc }}
               onClick={() => setView('question')}
             >
-              {answeredCount > 0 ? 'Continuar' : 'Começar'}
+              {allAnswered ? 'Rever respostas' : answeredCount > 0 ? 'Continuar' : 'Começar'}
               <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
             <button
@@ -194,9 +194,14 @@ export function PortalQuestionsSection(props: Props) {
             </button>
           </div>
 
-          {answeredCount > 0 && (
+          {answeredCount > 0 && !allAnswered && (
             <p className="text-xs text-muted-foreground pt-1">
               Já respondeste a {answeredCount} de {total} — vamos retomar onde paraste.
+            </p>
+          )}
+          {allAnswered && (
+            <p className="text-xs text-muted-foreground pt-1">
+              Já respondeste a tudo — obrigado! Podes rever ou editar as respostas.
             </p>
           )}
         </div>
