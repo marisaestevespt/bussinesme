@@ -82,7 +82,7 @@ export function ClientQuotesSection({ clientId, clientName }: Props) {
       </div>
       <div>
         {(quotes.data || []).length === 0 ? (
-          <EmptyHint>Sem vendas registadas. Cria uma para gerar um novo projeto.</EmptyHint>
+          <EmptyHint>Sem orçamentos. Cria um para gerar um novo projeto (as vendas/pagamentos aparecem na secção Pagamentos).</EmptyHint>
         ) : (
           <div className="divide-y">
             {(quotes.data || []).map((q: any) => (
