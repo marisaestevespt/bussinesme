@@ -580,7 +580,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
   }, [totalPerUnit, recBase, floorBase, testVal, scenario.id, hasCosts]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* ── Configuração do cenário ── */}
       <Card>
         <CardHeader><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
