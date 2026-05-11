@@ -6995,6 +6995,36 @@ export type Database = {
           },
         ]
       }
+      planning_quarter_notes: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          quarter: number
+          status_override: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          quarter: number
+          status_override?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          quarter?: number
+          status_override?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       planning_routines: {
         Row: {
           active: boolean
