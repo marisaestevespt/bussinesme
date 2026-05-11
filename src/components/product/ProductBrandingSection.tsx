@@ -156,6 +156,7 @@ export interface PortalBrandingData {
   hero_image_url?: string;
   hero_title?: string;
   hero_subtitle?: string;
+  playlist_url?: string;
 }
 
 export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBranding, onUpdatePortalBranding, productId, calendarColor, onUpdateCalendarColor, welcomeEmailSlot }: Props) {
@@ -1005,6 +1006,19 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                   className="min-h-[70px] text-sm"
                   readOnly={!isOwner}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Playlist (vibe do portal)</Label>
+                <Input
+                  value={pb.playlist_url || ''}
+                  onChange={(e) => setPB({ playlist_url: e.target.value })}
+                  placeholder="Link de Spotify, YouTube, SoundCloud ou Apple Music"
+                  className="h-9 text-sm"
+                  readOnly={!isOwner}
+                />
+                <p className="text-[11px] text-muted-foreground/70">
+                  Aparece no fundo do portal de todos os clientes deste produto. Cada cliente pode sobrepor com uma playlist própria no detalhe do cliente.
+                </p>
               </div>
             </div>
           </CardContent>
