@@ -145,7 +145,7 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
           icon={TrendingUp}
           status={runwayStatus}
           sub={`Burn 90d: ${formatEuros(derived.burn90)}/mês`}
-          link="/executive/business-plan"
+          link="/executive/planeamento/estrategico"
           hint="Também conhecido como 'runway'. Indica quantos meses o negócio aguenta com as despesas atuais. 'Saudável' significa que a receita cobre as despesas e o negócio é sustentável. Burn = média de despesas dos últimos 90 dias."
         />
         <KpiTile
