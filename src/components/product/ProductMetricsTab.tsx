@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { YearSelector } from '@/components/YearSelector';
 import { MonthNavHeader } from '@/components/MonthNavHeader';
-import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus, ChevronRight, Wallet, Percent } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { sumRevenue } from '@/lib/salesCalculations';
@@ -157,6 +157,16 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
     },
   });
 
+  // ─── Direct costs (for liquidez calc) ───
+  const { data: productCosts = [] } = useQuery({
+    queryKey: ['product-metrics-costs', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_costs').select('*').eq('product_id', productId).is('scenario_id', null);
+      return data || [];
+    },
+    enabled: !!productId,
+  });
+
   // ─── Auto KPI calculations ───
   const monthSales = salesData.filter(s => s.sale_month === month);
   const prevMonthSales = month > 1
@@ -198,6 +208,48 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
   const prevTicketMedio = prevMonthSales.length > 0 ? Math.round(prevMonthRevenue / prevMonthSales.length) : null;
 
   const yearRevenue = sumRevenue(salesData);
+
+  // ─── Liquidez: custo direto mensal e YTD ───
+  const monthlyCostFor = useCallback((salesCount: number) => {
+    let total = 0;
+    for (const c of productCosts as any[]) {
+      const v = Number(c.cost_value || 0);
+      if (c.cost_type === 'recorrente') {
+        if (c.recurrence === 'anual') total += v / 12;
+        else total += v; // mensal (default)
+      } else if (c.cost_type === 'por_venda') {
+        total += v * salesCount;
+      } else if (c.cost_type === 'horas') {
+        const h = Number(c.hours || 0);
+        const rate = Number(c.hourly_rate || 0);
+        // tratamos como custo recorrente mensal (horas alocadas/mês)
+        total += h * rate;
+      }
+      // one_off: não entra no custo mensal recorrente
+    }
+    return total;
+  }, [productCosts]);
+
+  const monthDirectCost = monthlyCostFor(monthSales.length);
+  const monthGrossMargin = monthRevenue - monthDirectCost;
+  const monthMarginPct = monthRevenue > 0 ? (monthGrossMargin / monthRevenue) * 100 : null;
+
+  // YTD: soma de custos mensais até ao mês atual + custos por_venda × vendas YTD
+  const ytdSalesCount = salesData.filter(s => (s.sale_month ?? 0) <= month).length;
+  let ytdDirectCost = 0;
+  for (const c of productCosts as any[]) {
+    const v = Number(c.cost_value || 0);
+    if (c.cost_type === 'recorrente') {
+      ytdDirectCost += (c.recurrence === 'anual' ? v / 12 : v) * month;
+    } else if (c.cost_type === 'por_venda') {
+      ytdDirectCost += v * ytdSalesCount;
+    } else if (c.cost_type === 'horas') {
+      ytdDirectCost += Number(c.hours || 0) * Number(c.hourly_rate || 0) * month;
+    }
+  }
+  const ytdRevenue = sumRevenue(salesData.filter(s => (s.sale_month ?? 0) <= month));
+  const ytdGrossMargin = ytdRevenue - ytdDirectCost;
+  const ytdMarginPct = ytdRevenue > 0 ? (ytdGrossMargin / ytdRevenue) * 100 : null;
 
   // NPS - latest per client (not filtered by month)
   const latestNpsByClient = useMemo(() => {
@@ -331,6 +383,36 @@ function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, 
         </div>
         <div className="mt-3">
           <AutoKpiCard label="Receita acumulada do ano" value={`${formatInt(yearRevenue)} €`} icon={TrendingUp} />
+        </div>
+      </div>
+
+      {/* ─── Liquidez (Receita − Custos diretos) ─── */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Liquidez do produto</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Margem bruta = receita − custos diretos do produto (recorrentes, por venda e horas alocadas). Custos one-off não entram.
+          {productCosts.length === 0 && ' Adiciona custos em "Contabilidade & Pricing → Custos & Margens" para ativar.'}
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <AutoKpiCard label="Custos diretos do mês" value={`${formatInt(monthDirectCost)} €`} icon={Wallet} />
+          <AutoKpiCard
+            label="Margem bruta do mês"
+            value={`${formatInt(monthGrossMargin)} €`}
+            icon={DollarSign}
+            color={monthGrossMargin >= 0 ? 'text-success' : 'text-destructive'}
+          />
+          <AutoKpiCard
+            label="Margem % do mês"
+            value={monthMarginPct != null ? `${monthMarginPct.toFixed(1)}%` : '—'}
+            icon={Percent}
+            color={monthMarginPct != null && monthMarginPct >= 0 ? 'text-success' : 'text-destructive'}
+          />
+          <AutoKpiCard
+            label="Margem bruta YTD"
+            value={`${formatInt(ytdGrossMargin)} € ${ytdMarginPct != null ? `(${ytdMarginPct.toFixed(0)}%)` : ''}`}
+            icon={TrendingUp}
+            color={ytdGrossMargin >= 0 ? 'text-success' : 'text-destructive'}
+          />
         </div>
       </div>
 
