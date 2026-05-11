@@ -20,7 +20,7 @@ export function EntityTabsList({ children, className }: { children: React.ReactN
   return (
     <TabsList
       className={cn(
-        'inline-flex h-auto bg-secondary/40 p-1 rounded-sm gap-1 flex-wrap border-2 border-primary/25',
+        'inline-flex h-auto bg-transparent p-1 rounded-sm gap-1 flex-wrap border-2 border-primary/25',
         className,
       )}
     >
