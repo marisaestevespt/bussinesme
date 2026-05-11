@@ -103,7 +103,10 @@ export function ProductSalesTab({ productName, productId, ticketValue }: Props) 
       {/* Clients list */}
       {clientStats.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Clientes deste Produto</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-base">Top Compradores</CardTitle>
+            <p className="text-xs text-muted-foreground">Ranking por faturação acumulada (todas as vendas registadas).</p>
+          </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
