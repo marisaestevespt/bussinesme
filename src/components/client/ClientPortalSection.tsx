@@ -305,30 +305,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
             <Switch checked={!!portalData.is_active} onCheckedChange={toggleActive} />
           </div>
 
-          {/* Playlist (vibe) */}
-          <div className="space-y-2">
-            <Label className="eyebrowr flex items-center gap-2">
-              <Music className="h-3.5 w-3.5" />
-              Playlist do portal
-            </Label>
-            <Input
-              placeholder="Cola um link de Spotify, YouTube, SoundCloud ou Apple Music"
-              defaultValue={(portalData as any).playlist_url || ''}
-              onBlur={async (e) => {
-                const val = e.target.value.trim() || null;
-                if (val === ((portalData as any).playlist_url || null)) return;
-                const { error } = await supabase.from('client_portals').update({ playlist_url: val } as any).eq('id', portalId!);
-                if (error) { toast.error('Erro ao guardar playlist'); return; }
-                queryClient.invalidateQueries({ queryKey: ['portal', clientId] });
-                toast.success(val ? 'Playlist guardada' : 'Playlist removida');
-              }}
-              className="text-sm"
-            />
-            <p className="text-xs text-muted-foreground/70">
-              Sobrepõe a playlist definida no produto. Deixa em branco para usar a do produto.
-            </p>
-          </div>
-
         </CardContent>
       </Card>
 
