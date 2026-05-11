@@ -187,18 +187,9 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
     );
   }
 
-  const toggleField = (field: keyof Portal) => {
-    updatePortal.mutate({ [field]: !portalData[field] } as any);
+  const toggleActive = () => {
+    updatePortal.mutate({ is_active: !portalData.is_active } as any);
   };
-
-  const toggleItems = [
-    { label: 'Ativo', field: 'is_active' as keyof Portal },
-    { label: 'Espaço de Trabalho', field: 'show_workspace' as keyof Portal },
-    { label: 'Reuniões', field: 'show_meetings' as keyof Portal },
-    { label: 'Pagamentos', field: 'show_payments' as keyof Portal },
-    { label: 'Onboarding', field: 'show_onboarding' as keyof Portal },
-    { label: 'Fases / Timeline', field: 'show_timeline' as keyof Portal },
-  ];
 
   return (
     <div className="space-y-5">
