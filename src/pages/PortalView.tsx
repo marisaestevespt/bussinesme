@@ -200,23 +200,35 @@ export default function PortalViewPage() {
     setFeedbackCategory('outro');
   };
 
-  const submitNps = async (recordId: string, score: number, notes: string) => {
+  const submitNps = async (
+    recordId: string,
+    score: number,
+    notes: string,
+    responses?: PortalRecolhaResponse[],
+  ) => {
     if (!portal) return;
     const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
-    const isProactive = !recordId;
-    const { data } = isProactive
-      ? await rpcAny('portal_submit_proactive_nps', {
-          _token: portal.token, _score: score, _notes: notes || null,
-        })
-      : await rpcAny('portal_submit_nps', {
-          _token: portal.token, _record_id: recordId, _score: score, _notes: notes || null,
-        });
+    const { data } = await rpcAny('portal_submit_nps', {
+      _token: portal.token,
+      _record_id: recordId,
+      _score: score,
+      _notes: notes || null,
+      _responses: responses && responses.length > 0 ? responses : null,
+    });
     if (data === true) {
-      if (!isProactive) setNpsPending(prev => prev.filter(p => p.id !== recordId));
-      setNpsHistory(prev => [
-        { id: recordId || `proactive-${Date.now()}`, nps_score: score, notes: notes || null, actual_date: new Date().toISOString().slice(0,10), source: 'portal' } as PortalNpsHistory,
-        ...prev,
-      ]);
+      setRecolhas(prev => prev.map(r =>
+        r.id === recordId
+          ? {
+              ...r,
+              status: 'concluido',
+              nps_score: score,
+              notes: notes || r.notes,
+              responses: responses || r.responses,
+              actual_date: new Date().toISOString().slice(0, 10),
+              source: 'portal',
+            }
+          : r
+      ));
       toast.success('Obrigado pela tua nota! ⭐');
     } else {
       toast.error('Não foi possível registar a nota.');
@@ -1023,8 +1035,7 @@ export default function PortalViewPage() {
             feedbackCategory={feedbackCategory}
             setFeedbackCategory={setFeedbackCategory}
             sendFeedback={sendFeedback}
-            npsPending={npsPending}
-            npsHistory={npsHistory}
+            recolhas={recolhas}
             submitNps={submitNps}
             pc={pc}
             pcAlpha={pcAlpha}
