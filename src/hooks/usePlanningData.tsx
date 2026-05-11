@@ -264,7 +264,11 @@ export function usePlanningData(year = currentYear) {
       const rec = clean(raw);
       // auto period_type
       if (rec.period && typeof rec.period === 'string') {
-        rec.period_type = rec.period.startsWith('T') ? 'trimestral' : 'mensal';
+        rec.period_type = rec.period.startsWith('T')
+          ? 'trimestral'
+          : rec.period.startsWith('S')
+            ? 'semestral'
+            : 'mensal';
       }
       if (rec.id) {
         const { error } = await supabase.from('planning_goals').update(rec as never).eq('id', rec.id as string);
