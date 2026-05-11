@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { BackNavigation } from '@/components/BackNavigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
-  Rocket, MessageSquare, Users, Calendar, Video, Key, FolderKanban, GitBranch, CheckSquare,
+  MessageSquare, Calendar, Video, Key, FolderKanban, GitBranch, CheckSquare,
   Megaphone, ShoppingCart, UserCheck, DollarSign, Headphones, Package, UsersRound, Lock,
-  Plus, ClipboardList, AlertTriangle, ListTodo, FolderOpen, CalendarDays,
+  AlertTriangle, ListTodo, CalendarDays, ArrowUpRight,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -18,20 +16,21 @@ import { Input as InputField } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, subDays, startOfWeek, endOfWeek, parseISO, isPast, isToday } from 'date-fns';
+import { format, subDays, startOfWeek, endOfWeek, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { isTaskOpen } from '@/lib/taskStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { Eyebrow, SerifDivider, SpeechBubble, EarCard, BigKpi, DisplayItalic, Highlight } from '@/components/editorial';
 
 // ─── Constants ──────────────────────────────────────────────────
 
 const TRANSVERSAIS_CARDS = [
-  { label: 'Agenda de Negócio', icon: Calendar, path: '/hub/agenda', iconColor: 'text-info', color: 'from-info/10 to-info/5 hover:from-info/20 hover:to-info/10' },
-  { label: 'Reuniões', icon: Video, path: '/hub/reunioes', iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
-  { label: 'Acessos', icon: Key, path: '/hub/acessos', iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
-  { label: 'Projetos', icon: FolderKanban, path: '/hub/projetos', iconColor: 'text-success', color: 'from-success/10 to-success/5 hover:from-success/20 hover:to-success/10' },
-  { label: 'Processos', icon: GitBranch, path: '/hub/processos', iconColor: 'text-muted-foreground', color: 'from-border/10 to-border/5 hover:from-border/20 hover:to-border/10' },
-  { label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas', iconColor: 'text-destructive', color: 'from-destructive/10 to-destructive/5 hover:from-destructive/20 hover:to-destructive/10' },
+  { num: '01', label: 'Agenda', icon: Calendar, path: '/hub/agenda' },
+  { num: '02', label: 'Reuniões', icon: Video, path: '/hub/reunioes' },
+  { num: '03', label: 'Projetos', icon: FolderKanban, path: '/hub/projetos' },
+  { num: '04', label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas' },
+  { num: '05', label: 'Processos', icon: GitBranch, path: '/hub/processos' },
+  { num: '06', label: 'Acessos', icon: Key, path: '/hub/acessos' },
 ];
 
 const DEPARTMENT_CARDS = [
@@ -50,6 +49,18 @@ function greetingText() {
   if (h < 12) return 'Bom dia';
   if (h < 19) return 'Boa tarde';
   return 'Boa noite';
+}
+
+const DAILY_QUOTES = [
+  'O problema nunca foi a pessoa — foi o que não existia antes dela chegar.',
+  'Sem processos documentados, qualquer pessoa vai falhar.',
+  'Delegar não é largar. É preparar o terreno antes.',
+  'A clareza vem antes da execução.',
+  'O que se mede, melhora. O que se documenta, escala.',
+];
+function quoteOfTheDay() {
+  const idx = new Date().getDate() % DAILY_QUOTES.length;
+  return DAILY_QUOTES[idx];
 }
 
 // ─── Analog Clock ──────────────────────────────────────────────────
@@ -74,26 +85,26 @@ function AnalogClock() {
   const timeStr = format(time, "HH:mm");
 
   return (
-    <div className="flex flex-col items-center gap-1 shrink-0">
-      <div className="relative h-16 w-16">
+    <div className="flex flex-col items-center gap-2 shrink-0">
+      <div className="relative h-20 w-20">
         <svg viewBox="0 0 100 100" className="h-full w-full">
-          <circle cx="50" cy="50" r="48" fill="none" stroke="hsl(var(--foreground))" strokeOpacity="0.25" strokeWidth="2" />
+          <circle cx="50" cy="50" r="48" fill="none" stroke="hsl(var(--primary))" strokeOpacity="0.55" strokeWidth="1.5" />
           {Array.from({ length: 12 }).map((_, i) => {
             const angle = (i * 30 - 90) * (Math.PI / 180);
             const x1 = 50 + 40 * Math.cos(angle);
             const y1 = 50 + 40 * Math.sin(angle);
             const x2 = 50 + 45 * Math.cos(angle);
             const y2 = 50 + 45 * Math.sin(angle);
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--foreground))" strokeOpacity="0.5" strokeWidth="2" strokeLinecap="round" />;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--foreground))" strokeOpacity="0.45" strokeWidth="1.5" strokeLinecap="round" />;
           })}
-          <line x1="50" y1="50" x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)} y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="3" strokeLinecap="round" />
-          <line x1="50" y1="50" x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)} y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="2" strokeLinecap="round" />
-          <line x1="50" y1="50" x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)} y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)} stroke="hsl(var(--primary))" strokeOpacity="0.8" strokeWidth="1" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)} y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)} y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)} stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)} y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)} stroke="hsl(var(--primary))" strokeOpacity="0.9" strokeWidth="0.8" strokeLinecap="round" />
           <circle cx="50" cy="50" r="2.5" fill="hsl(var(--primary))" />
         </svg>
       </div>
-      <span className="text-xs font-medium tabular-nums text-foreground">{timeStr}</span>
-      <span className="text-[10px] text-muted-foreground capitalize">{dateStr}</span>
+      <span className="font-display text-lg leading-none tabular-nums">{timeStr}</span>
+      <span className="font-typewriter text-[10px] text-muted-foreground capitalize">{dateStr}</span>
     </div>
   );
 }
@@ -143,18 +154,18 @@ function TeamWhatsAppLink() {
   if (!url && !isAdmin) return null;
 
   return (
-    <div className="flex items-center gap-2 mt-2">
+    <div className="flex items-center gap-2">
       {url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-2 transition-colors">
-          <WhatsAppIcon className="h-3.5 w-3.5" /> Grupo de Equipa (WhatsApp) <ExternalLink className="h-3 w-3" />
+        <a href={url} target="_blank" rel="noopener noreferrer" className="font-typewriter text-[11px] uppercase tracking-[0.18em] text-primary hover:text-primary/80 flex items-center gap-2 transition-colors">
+          <WhatsAppIcon className="h-3 w-3" /> Grupo da Equipa <ExternalLink className="h-2.5 w-2.5" />
         </a>
       ) : (
-        <span className="text-xs text-muted-foreground italic flex items-center gap-2"><WhatsAppIcon className="h-3.5 w-3.5" /> Sem link de grupo</span>
+        <span className="font-typewriter text-[11px] text-muted-foreground italic flex items-center gap-2"><WhatsAppIcon className="h-3 w-3" /> sem link de grupo</span>
       )}
       {isAdmin && (
-        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setDraft(url); setEditing(true); }}>
+        <button className="text-muted-foreground/60 hover:text-primary transition-colors" onClick={() => { setDraft(url); setEditing(true); }}>
           <Pencil className="h-3 w-3" />
-        </Button>
+        </button>
       )}
     </div>
   );
@@ -175,71 +186,67 @@ export default function HubEquipaPage() {
   });
 
   const firstName = profile?.full_name?.split(' ')[0] || '';
+  const todayLabel = format(new Date(), "EEEE, d 'de' MMMM", { locale: pt });
 
   return (
     <AppLayout>
-      {/* Full-width banner aligned with system PageHeader style */}
-      <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-5 sm:py-8 overflow-hidden border-b border-border/60">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(135deg, hsl(var(--primary) / 0.10) 0%, hsl(var(--primary) / 0.04) 50%, hsl(var(--gradient-end)) 100%)`,
-          }}
-        />
-        <div
-          className="hidden sm:block absolute -top-8 -right-8 w-56 h-56 rounded-full opacity-[0.10] blur-3xl"
-          style={{ background: `hsl(var(--gradient-accent))` }}
-        />
-        <div
-          className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full"
-          style={{ background: `hsl(var(--primary) / 0.35)` }}
-        />
-        <div className="relative flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">
-              {greetingText()}, {firstName}.
+      {/* Editorial hero — asymmetric, dramatic serif, eyebrow + speech bubble */}
+      <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 pt-6 sm:pt-10 pb-8 hq-linen border-b border-border">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-end">
+          <div className="sm:col-span-8 min-w-0">
+            <Eyebrow>Hub da Equipa · {todayLabel}</Eyebrow>
+            <h1 className="font-display text-5xl sm:text-6xl leading-[0.95] mt-3 text-foreground">
+              {greetingText()},{' '}
+              <DisplayItalic className="text-primary">{firstName || 'equipa'}</DisplayItalic>
+              <span className="text-primary">.</span>
             </h1>
-            <p className="mt-1 sm:mt-1.5 text-xs sm:text-sm text-muted-foreground hidden sm:block">
-              Olá! Bem-vindo(a) ao nosso espaço. Este é o lugar onde organizamos, colaboramos e crescemos juntos.
+            <p className="mt-4 text-sm text-muted-foreground max-w-xl">
+              Este é o nosso espaço — onde <Highlight>organizamos</Highlight>, colaboramos e crescemos juntos.
             </p>
-            <div className="mt-3"><TeamWhatsAppLink /></div>
+            <div className="mt-5"><TeamWhatsAppLink /></div>
           </div>
-          <AnalogClock />
+          <div className="sm:col-span-4 flex sm:flex-col items-end sm:items-end gap-4">
+            <AnalogClock />
+            <SpeechBubble variant="gold" tail="bottom-right" className="max-w-[260px] text-right">
+              {quoteOfTheDay()}
+            </SpeechBubble>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-6 pt-6">
+      <div className="space-y-10 pt-8">
         <BackNavigation parentRoute="/secretaria" parentLabel="Secretaria" />
 
         {/* Active absence alerts */}
         <ActiveAbsenceAlerts />
 
-        {/* Novidades do mês */}
-        <NovidadesMes />
+        {/* KPIs gigantes — editorial */}
+        <WeeklySummary />
 
-        {/* Transversais cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+        <SerifDivider>transversais</SerifDivider>
+
+        {/* Transversais — ear-tagged numbered cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {TRANSVERSAIS_CARDS.map(s => (
-            <Card
-              key={s.path}
-              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
-              onClick={() => navigate(s.path)}
-            >
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
-                  <s.icon className="h-4.5 w-4.5" />
-                </div>
-                <span className="font-medium text-sm">{s.label}</span>
-              </CardContent>
-            </Card>
+            <EarCard key={s.path} ear={s.num} onClick={() => navigate(s.path)} className="p-5">
+              <s.icon className="h-5 w-5 text-primary mb-3" strokeWidth={1.5} />
+              <div className="font-display text-xl leading-none">{s.label}</div>
+              <div className="font-typewriter text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+                abrir <ArrowUpRight className="h-2.5 w-2.5" />
+              </div>
+            </EarCard>
           ))}
         </div>
+
+        <SerifDivider>departamentos</SerifDivider>
 
         {/* Departamentos */}
         <DepartamentosColumn />
 
-        {/* Weekly summary cards */}
-        <WeeklySummary />
+        <SerifDivider>novidades do mês</SerifDivider>
+
+        {/* Novidades do mês */}
+        <NovidadesMes />
       </div>
     </AppLayout>
   );
@@ -276,9 +283,9 @@ function ActiveAbsenceAlerts() {
   return (
     <div className="space-y-2">
       {coverages.map((c: any) => (
-        <div key={c.id} className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2.5 text-sm">
+        <div key={c.id} className="flex items-center gap-3 bg-destructive/5 border-l-2 border-destructive px-4 py-3 text-sm">
           <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
-          <span>
+          <span className="font-typewriter text-[12px]">
             <strong>{getName(c.member_id)}</strong> está ausente até {format(parseISO(c.end_date), 'dd/MM/yyyy')}.
             {c.substitute_id ? <> Cobertura: <strong>{getName(c.substitute_id)}</strong>.</> : <span className="text-destructive"> Sem substituto definido.</span>}
           </span>
@@ -322,34 +329,34 @@ function NovidadesMes() {
   const getAuthorName = (id: string) => authors.find((a: any) => a.user_id === id)?.full_name?.split(' ')[0] || '';
 
   return (
-    <div className="rounded-xl border-2 border-secondary bg-background p-5 space-y-3">
+    <div className="hq-linen border border-border rounded-md p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-secondary" />
-          Novidades do mês
-        </h2>
-        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => navigate('/hub/mural')}>
-          Ver tudo →
-        </Button>
+        <Eyebrow tone="primary">
+          <MessageSquare className="h-3 w-3 inline mr-2 -mt-0.5" />
+          do mural — últimos 30 dias
+        </Eyebrow>
+        <button className="hq-btn-vintage-ghost !py-1.5 !px-3 !text-[10px]" onClick={() => navigate('/hub/mural')}>
+          ver tudo <ArrowUpRight className="h-3 w-3" />
+        </button>
       </div>
 
       {posts.length === 0 ? (
         <EmptyHint>Sem novidades nos últimos 30 dias.</EmptyHint>
       ) : (
-        <div className="space-y-2">
+        <div className="divide-y divide-border/60">
           {posts.map((p: any) => (
             <div
               key={p.id}
-              className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 hover:bg-muted/70 cursor-pointer transition-colors"
+              className="flex items-center justify-between py-3 cursor-pointer hover:bg-primary/[0.02] -mx-2 px-2 transition-colors"
               onClick={() => navigate('/hub/mural')}
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{p.title}</p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="font-display text-base truncate">{p.title}</p>
+                <p className="font-typewriter text-[10px] text-muted-foreground mt-0.5">
                   {getAuthorName(p.author_id)} · {format(new Date(p.created_at), "d MMM", { locale: pt })}
                 </p>
               </div>
-              <Badge variant="outline" className="text-[10px] shrink-0 ml-2">{p.category}</Badge>
+              <Badge variant="outline" className="text-[10px] font-typewriter uppercase tracking-wider shrink-0 ml-2 rounded-sm">{p.category}</Badge>
             </div>
           ))}
         </div>
@@ -365,31 +372,25 @@ function DepartamentosColumn() {
   const { canAccess } = usePermissions();
 
   return (
-    <div className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Departamentos</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {DEPARTMENT_CARDS.slice(0, 4).map(d => <DeptCard key={d.key} d={d} canAccess={canAccess(d.key)} navigate={navigate} />)}
+    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      {DEPARTMENT_CARDS.map(d => (
+        <DeptCard key={d.key} d={d} canAccess={canAccess(d.key)} navigate={navigate} />
+      ))}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {DEPARTMENT_CARDS.slice(4).map(d => <DeptCard key={d.key} d={d} canAccess={canAccess(d.key)} navigate={navigate} />)}
-      </div>
-    </div>
   );
 }
 
 function DeptCard({ d, canAccess, navigate }: { d: typeof DEPARTMENT_CARDS[number]; canAccess: boolean; navigate: any }) {
   return (
-    <Card
-      className={`transition-all ${canAccess ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}
+    <div
+      className={`rounded-md border bg-card p-4 transition-colors ${canAccess ? 'cursor-pointer border-border hover:border-primary/40' : 'opacity-50 cursor-not-allowed border-dashed'}`}
       onClick={canAccess ? () => navigate(d.path) : undefined}
     >
-      <CardContent className="p-3 flex items-center gap-2">
-        <div className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 ${canAccess ? 'bg-primary/10' : 'bg-muted'}`}>
-          {canAccess ? <d.icon className="h-3.5 w-3.5 text-primary" /> : <Lock className="h-3 w-3 text-muted-foreground" />}
-        </div>
-        <span className={`text-xs font-medium truncate ${canAccess ? '' : 'text-muted-foreground'}`}>{d.label}</span>
-      </CardContent>
-    </Card>
+      <div className="flex flex-col items-start gap-2">
+        {canAccess ? <d.icon className="h-4 w-4 text-primary" strokeWidth={1.5} /> : <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
+        <span className="font-display text-base leading-tight">{d.label}</span>
+      </div>
+    </div>
   );
 }
 
@@ -444,59 +445,45 @@ function WeeklySummary() {
   const pendingTasks = tasks.filter(isTaskOpen);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      {/* Tarefas esta semana */}
-      <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/tarefas')}>
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <ListTodo className="h-4 w-4 text-destructive" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tarefas esta semana</span>
-          </div>
-          <p className="text-2xl font-bold">{pendingTasks.length}</p>
-          <div className="space-y-1 max-h-24 overflow-y-auto">
-            {pendingTasks.slice(0, 3).map((t: any) => (
-              <p key={t.id} className="text-[11px] text-muted-foreground truncate">• {t.name}</p>
-            ))}
-            {pendingTasks.length > 3 && <p className="text-[10px] text-muted-foreground">+{pendingTasks.length - 3} mais</p>}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Projetos ativos */}
-      <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/projetos')}>
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <FolderKanban className="h-4 w-4 text-success" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Projetos ativos</span>
-          </div>
-          <p className="text-2xl font-bold">{projects.length}</p>
-          <div className="space-y-1 max-h-24 overflow-y-auto">
-            {projects.slice(0, 3).map((p: any) => (
-              <p key={p.id} className="text-[11px] text-muted-foreground truncate">• {p.name}</p>
-            ))}
-            {projects.length > 3 && <p className="text-[10px] text-muted-foreground">+{projects.length - 3} mais</p>}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Eventos esta semana */}
-      <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/agenda')}>
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-info" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Eventos esta semana</span>
-          </div>
-          <p className="text-2xl font-bold">{events.length}</p>
-          <div className="space-y-1 max-h-24 overflow-y-auto">
-            {events.slice(0, 3).map((e: any) => (
-              <p key={e.id} className="text-[11px] text-muted-foreground truncate">
-                • {e.title} <span className="text-muted-foreground/60">({format(new Date(e.start_date), "EEE HH:mm", { locale: pt })})</span>
-              </p>
-            ))}
-            {events.length > 3 && <p className="text-[10px] text-muted-foreground">+{events.length - 3} mais</p>}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-stretch">
+      <div
+        className="sm:col-span-3 border-l-2 border-primary pl-5 cursor-pointer group"
+        onClick={() => navigate('/hub/tarefas')}
+      >
+        <BigKpi
+          value={pendingTasks.length}
+          label={<><ListTodo className="h-3 w-3 inline mr-1.5 -mt-0.5" />tarefas esta semana</>}
+          hint={pendingTasks.slice(0, 2).map((t: any) => t.name).join(' · ') || 'sem tarefas pendentes'}
+        />
+      </div>
+      <div
+        className="sm:col-span-3 border-l-2 border-[hsl(var(--brand-gold))] pl-5 cursor-pointer"
+        onClick={() => navigate('/hub/projetos')}
+      >
+        <BigKpi
+          value={projects.length}
+          label={<><FolderKanban className="h-3 w-3 inline mr-1.5 -mt-0.5" />projetos ativos</>}
+          hint={projects.slice(0, 2).map((p: any) => p.name).join(' · ') || 'sem projetos em curso'}
+        />
+      </div>
+      <div
+        className="sm:col-span-3 border-l-2 border-[hsl(var(--brand-mocha))] pl-5 cursor-pointer"
+        onClick={() => navigate('/hub/agenda')}
+      >
+        <BigKpi
+          value={events.length}
+          label={<><CalendarDays className="h-3 w-3 inline mr-1.5 -mt-0.5" />eventos esta semana</>}
+          hint={events.slice(0, 2).map((e: any) => e.title).join(' · ') || 'agenda livre'}
+        />
+      </div>
+      <div className="sm:col-span-3 hq-linen border border-border rounded-md p-5 flex flex-col justify-center">
+        <Eyebrow>esta semana</Eyebrow>
+        <p className="hq-display-italic text-base mt-2 leading-snug text-foreground/80">
+          {pendingTasks.length === 0 && events.length === 0
+            ? '"Espaço para respirar — usa-o."'
+            : `"${pendingTasks.length} tarefas, ${events.length} compromissos. Boa semana, ${''}equipa."`}
+        </p>
+      </div>
     </div>
   );
 }
