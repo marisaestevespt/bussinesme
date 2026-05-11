@@ -46,8 +46,8 @@ export function PortalQuestionsSection(props: Props) {
   const firstUnansweredIdx = Math.max(0, ordered.findIndex(q => !isQAnswered(q)));
 
   type View = 'intro' | 'question' | 'done';
-  const initialView: View = allAnswered ? 'done' : 'intro';
-  const [view, setView] = useState<View>(initialView);
+  // Always start on the cover so the client sees the welcome screen on every visit.
+  const [view, setView] = useState<View>('intro');
   const [idx, setIdx] = useState<number>(firstUnansweredIdx === -1 ? 0 : firstUnansweredIdx);
 
   // Keep activeQuestionId in sync (used by parent for upload state etc.)
@@ -180,7 +180,7 @@ export function PortalQuestionsSection(props: Props) {
               style={{ backgroundColor: pc }}
               onClick={() => setView('question')}
             >
-              {answeredCount > 0 ? 'Continuar' : 'Começar'}
+              {allAnswered ? 'Rever respostas' : answeredCount > 0 ? 'Continuar' : 'Começar'}
               <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
             <button
@@ -194,9 +194,14 @@ export function PortalQuestionsSection(props: Props) {
             </button>
           </div>
 
-          {answeredCount > 0 && (
+          {answeredCount > 0 && !allAnswered && (
             <p className="text-xs text-muted-foreground pt-1">
               Já respondeste a {answeredCount} de {total} — vamos retomar onde paraste.
+            </p>
+          )}
+          {allAnswered && (
+            <p className="text-xs text-muted-foreground pt-1">
+              Já respondeste a tudo — obrigado! Podes rever ou editar as respostas.
             </p>
           )}
         </div>
