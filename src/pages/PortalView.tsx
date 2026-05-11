@@ -476,8 +476,13 @@ export default function PortalViewPage() {
 
             {/* Welcome hero — editorial */}
             <div
-              className="bg-white p-8 sm:p-12 relative overflow-hidden border"
-              style={{ borderColor: pcAlpha(0.1), borderRadius: 4, boxShadow: `0 10px 30px -12px ${pcAlpha(0.08)}` }}
+              className="p-8 sm:p-12 relative overflow-hidden border"
+              style={{
+                background: `linear-gradient(135deg, ${pcAlpha(0.10)} 0%, ${pcAlpha(0.04)} 55%, ${pcAlpha(0.14)} 100%)`,
+                borderColor: pcAlpha(0.25),
+                borderRadius: 4,
+                boxShadow: `0 18px 50px -20px ${pcAlpha(0.30)}, 0 4px 14px -6px ${pcAlpha(0.18)}`,
+              }}
             >
               <div className="flex items-center gap-3 mb-8">
                 <div className="h-[1px] w-8" style={{ background: pcAlpha(0.3) }} />
