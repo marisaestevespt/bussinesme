@@ -48,6 +48,20 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
 
 type HealthColor = 'green' | 'yellow' | 'red';
 
+const HEALTH_STYLES: Record<HealthColor, string> = {
+  green: 'bg-success',
+  yellow: 'bg-warning',
+  red: 'bg-destructive',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  em_onboarding: 'Onboarding',
+  ativo: 'Ativo',
+  pausado: 'Pausado',
+  altura_renovacao: 'Renovação',
+  terminado: 'Terminado',
+};
+
 function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const month = monthIdx + 1;
   const navigate = useNavigate();
@@ -217,19 +231,6 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
     });
   }, [activeClients, latestNpsByClient, allNps, allMilestones, today]);
 
-  const HEALTH_STYLES: Record<HealthColor, string> = {
-    green: 'bg-success',
-    yellow: 'bg-warning',
-    red: 'bg-destructive',
-  };
-
-  const STATUS_LABEL: Record<string, string> = {
-    em_onboarding: 'Onboarding',
-    ativo: 'Ativo',
-    pausado: 'Pausado',
-    altura_renovacao: 'Renovação',
-    terminado: 'Terminado',
-  };
   return (
     <div className="space-y-6 pt-6">
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
@@ -353,6 +354,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
 // ─── Gallery ───
 export default function ClientesAnalisePage() {
   const now = new Date();
+  const navigate = useNavigate();
   const [year, setYear] = useState(now.getFullYear());
   const sectorConfig = useSectorConfig();
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -417,9 +419,10 @@ export default function ClientesAnalisePage() {
     activeClients.forEach(c => { const p = c.current_product || 'Sem produto'; prodMap[p] = (prodMap[p] || 0) + 1; });
     Object.entries(prodMap).sort((a, b) => b[1] - a[1]).forEach(([name, count]) => byProduct.push({ name, count }));
 
-    // Health semaphore counts
+    // Health semaphore counts + detailed list
     const today = new Date();
     let green = 0, yellow = 0, red = 0;
+    const healthList: { client: typeof activeClients[number]; color: 'green' | 'yellow' | 'red'; reason: string; endCycleDays: number | null }[] = [];
     activeClients.forEach(c => {
       const clientNps = npsMap.get(c.id);
       const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
@@ -427,12 +430,30 @@ export default function ClientesAnalisePage() {
       const overdue = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
-      if (clientNps != null && clientNps <= 6) red++;
-      else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0 || (endCycleDays != null && endCycleDays <= 30)) yellow++;
-      else green++;
+      let color: 'green' | 'yellow' | 'red' = 'green';
+      const reasons: string[] = [];
+      if (clientNps != null && clientNps <= 6) {
+        color = 'red';
+        reasons.push(`NPS detrator (${clientNps})`);
+        red++;
+      } else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0 || (endCycleDays != null && endCycleDays <= 30)) {
+        color = 'yellow';
+        if (endCycleDays != null && endCycleDays <= 30) reasons.push(`Renovação em ${endCycleDays}d`);
+        if (daysSinceNps != null && daysSinceNps > 90) reasons.push(`NPS desatualizado (${daysSinceNps}d)`);
+        if (overdue.length > 0) reasons.push(`${overdue.length} marco(s) em atraso`);
+        yellow++;
+      } else {
+        reasons.push('Tudo em dia');
+        green++;
+      }
+      healthList.push({ client: c, color, reason: reasons.join(' · '), endCycleDays });
+    });
+    healthList.sort((a, b) => {
+      const order = { red: 0, yellow: 1, green: 2 } as const;
+      return order[a.color] - order[b.color];
     });
 
-    return { activeCount: activeClients.length, newClients, churn, renewalRate, avgNps, byProduct, green, yellow, red };
+    return { activeCount: activeClients.length, newClients, churn, renewalRate, avgNps, byProduct, green, yellow, red, healthList };
   }, [clientsData, year, allNps, allMilestones]);
 
   const monthSummaries = useMemo(() => {
@@ -499,6 +520,43 @@ export default function ClientesAnalisePage() {
             <KpiCard label="NPS médio atual" value={annualSummary.avgNps} icon={Star} />
           </div>
 
+          {/* Health */}
+          <Card className="border-secondary bg-background">
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-sm font-semibold">Saúde da Relação com Clientes</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 space-y-3">
+              <div className="flex gap-6 text-sm">
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-success" /><span className="font-medium">{annualSummary.green} Verde</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-warning" /><span className="font-medium">{annualSummary.yellow} Amarelo</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-destructive" /><span className="font-medium">{annualSummary.red} Vermelho</span></div>
+              </div>
+              {annualSummary.healthList.length > 0 && (
+                <div className="overflow-x-auto -mx-4">
+                  <div className="min-w-[760px]">
+                    <div className="bg-muted px-4 py-2 text-xs font-medium grid grid-cols-6 gap-2">
+                      <span>Cliente</span><span>Produto</span><span>Status</span><span>Saúde</span><span>Razão</span><span>Fim de Ciclo</span>
+                    </div>
+                    {annualSummary.healthList.map(({ client: c, color, reason }) => (
+                      <div
+                        key={c.id}
+                        className="px-4 py-2.5 text-sm grid grid-cols-6 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                        onClick={() => navigate(`/hub/clientes/${c.id}`)}
+                      >
+                        <span className="truncate font-medium">{c.full_name}</span>
+                        <span className="truncate text-muted-foreground">{c.current_product || '—'}</span>
+                        <span className="text-muted-foreground">{STATUS_LABEL[c.status] || c.status}</span>
+                        <span><div className={cn('h-3 w-3 rounded-full', HEALTH_STYLES[color])} /></span>
+                        <span className="text-xs text-muted-foreground truncate">{reason}</span>
+                        <span className="text-muted-foreground">{c.end_of_cycle ? new Date(c.end_of_cycle).toLocaleDateString('pt-PT') : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Distribution by product */}
           {annualSummary.byProduct.length > 0 && (
             <Card className="border-secondary bg-background">
@@ -513,18 +571,6 @@ export default function ClientesAnalisePage() {
               </CardContent>
             </Card>
           )}
-
-          {/* Health */}
-          <Card className="border-secondary bg-background">
-            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Saúde da Relação com Clientes</CardTitle></CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="flex gap-6 text-sm">
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-success" /><span className="font-medium">{annualSummary.green} Verde</span></div>
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-warning" /><span className="font-medium">{annualSummary.yellow} Amarelo</span></div>
-                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-destructive" /><span className="font-medium">{annualSummary.red} Vermelho</span></div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </AppLayout>
