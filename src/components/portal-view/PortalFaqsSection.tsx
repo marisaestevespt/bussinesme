@@ -12,10 +12,9 @@ interface Props {
 export function PortalFaqsSection({ faqs, pc, pcAlpha }: Props) {
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <SectionTitle icon={HelpCircle}>Perguntas Frequentes</SectionTitle>
-        <span className="text-xs text-muted-foreground">{faqs.length} {faqs.length === 1 ? 'pergunta' : 'perguntas'}</span>
-      </div>
+      <SectionTitle icon={HelpCircle}>
+        Perguntas Frequentes · {faqs.length} {faqs.length === 1 ? 'pergunta' : 'perguntas'}
+      </SectionTitle>
 
       <p className="text-sm text-muted-foreground -mt-2">
         As respostas às dúvidas mais comuns. Não encontras o que procuras? Fala connosco através dos comentários.
