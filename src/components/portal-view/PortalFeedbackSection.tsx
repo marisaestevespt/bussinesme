@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,37 @@ import {
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
+
+/* ─── Auto-growing textarea ─── */
+function AutoTextarea({
+  value, onChange, placeholder, className, minRows = 2,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+  minRows?: number;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  };
+  useEffect(() => { resize(); }, [value]);
+  return (
+    <Textarea
+      ref={ref}
+      rows={minRows}
+      value={value}
+      placeholder={placeholder}
+      onChange={e => { onChange(e.target.value); }}
+      onInput={resize}
+      className={`resize-none overflow-hidden ${className || ''}`}
+    />
+  );
+}
 import type {
   PortalFeedback, PortalRecolha, PortalRecolhaQuestion, PortalRecolhaResponse,
   PortalNpsCategory, PortalNpsCategoryScore,
