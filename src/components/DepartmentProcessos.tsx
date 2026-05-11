@@ -448,34 +448,30 @@ function DeptWhatsAppCard({ department }: { department: string }) {
 
   if (editing) {
     return (
-      <Card>
-        <CardContent className="p-4 flex items-center gap-3">
-          <MessageSquare className="h-4 w-4 text-success shrink-0" />
-          <Input value={draft} onChange={e => setDraft(e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-8 text-sm flex-1" autoFocus />
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-4 w-4 text-success" /></Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditing(false)}><X className="h-4 w-4 text-muted-foreground" /></Button>
-        </CardContent>
-      </Card>
+      <div className="flex items-center gap-2">
+        <Input value={draft} onChange={e => setDraft(e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-7 text-xs flex-1 max-w-sm" autoFocus />
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-3.5 w-3.5" /></Button>
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground" onClick={() => setEditing(false)}><X className="h-3.5 w-3.5" /></Button>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardContent className="p-4 flex items-center gap-3">
-        <MessageSquare className="h-4 w-4 text-success shrink-0" />
-        {url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-success hover:text-success hover:underline flex items-center gap-2">
-            Grupo de WhatsApp do Departamento <ExternalLink className="h-3 w-3" />
-          </a>
-        ) : (
-          <span className="text-sm text-muted-foreground italic">Sem link de grupo de WhatsApp</span>
-        )}
-        {isAdmin && (
-          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 ml-auto" onClick={() => { setDraft(url); setEditing(true); }}>
-            <Pencil className="h-3 w-3 text-muted-foreground" />
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+    <div className="flex items-center gap-2">
+      {url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="font-typewriter text-[11px] uppercase tracking-[0.18em] text-primary hover:text-primary/80 flex items-center gap-2 transition-colors">
+          <MessageSquare className="h-3 w-3" /> Grupo de WhatsApp do Departamento <ExternalLink className="h-2.5 w-2.5" />
+        </a>
+      ) : (
+        <span className="font-typewriter text-[11px] text-muted-foreground italic flex items-center gap-2">
+          <MessageSquare className="h-3 w-3" /> sem link de grupo
+        </span>
+      )}
+      {isAdmin && (
+        <button className="text-muted-foreground/60 hover:text-primary transition-colors" onClick={() => { setDraft(url); setEditing(true); }}>
+          <Pencil className="h-3 w-3" />
+        </button>
+      )}
+    </div>
   );
 }
