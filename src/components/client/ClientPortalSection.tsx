@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, Settings2, HelpCircle, Mail, Loader2, Music } from 'lucide-react';
+import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, HelpCircle, Mail, Loader2, Music } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
