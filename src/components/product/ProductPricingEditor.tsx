@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Layers, Calculator, Percent, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, Layers, Calculator, Percent, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { usePricingDrivers } from '@/hooks/useProductPricing';
@@ -44,6 +44,12 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
   const [priceMax, setPriceMax] = useState<string>(initial.price_max?.toString() ?? '');
   const [discounts, setDiscounts] = useState<VolumeDiscount[]>(initial.volume_discounts || []);
   const [saving, setSaving] = useState(false);
+  const [collapsedDims, setCollapsedDims] = useState<Set<string>>(new Set());
+  const toggleDim = (id: string) => setCollapsedDims(s => {
+    const next = new Set(s);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
   useEffect(() => {
     setBasePrice(initial.base_price?.toString() ?? '');
@@ -160,10 +166,22 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
           {(modifiers.query.data || []).map(dim => (
             <div key={dim.id} className="rounded-md border bg-muted/10 p-3 space-y-2">
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0"
+                  onClick={() => toggleDim(dim.id)}
+                  aria-label={collapsedDims.has(dim.id) ? 'Expandir' : 'Recolher'}
+                >
+                  {collapsedDims.has(dim.id) ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                </Button>
                 <div className="flex-1">
                   <InlineField value={dim.name} placeholder="Pergunta (ex: Tamanho da equipa)" bold disabled={!isOwner}
                     onSave={v => v !== dim.name && modifiers.updateDimension.mutate({ id: dim.id, name: v })} />
                 </div>
+                {collapsedDims.has(dim.id) && dim.levels.length > 0 && (
+                  <span className="text-[10px] text-muted-foreground shrink-0">{dim.levels.length} resp.</span>
+                )}
                 {isOwner && (
                   <>
                     <Button size="sm" variant="outline" onClick={() => modifiers.addLevel.mutate(dim.id)}>
@@ -175,12 +193,12 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
                   </>
                 )}
               </div>
-              {dim.levels.length > 0 && (
+              {!collapsedDims.has(dim.id) && dim.levels.length > 0 && (
                 <div className="grid grid-cols-[1fr_120px_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground pl-3">
                   <span>Resposta</span><span>Fator (×)</span><span></span>
                 </div>
               )}
-              {dim.levels.map(lvl => (
+              {!collapsedDims.has(dim.id) && dim.levels.map(lvl => (
                 <div key={lvl.id} className="grid grid-cols-[1fr_120px_auto] gap-2 items-center pl-3">
                   <InlineField value={lvl.label} placeholder="Ex: 2-4 pessoas" disabled={!isOwner}
                     onSave={v => v !== lvl.label && modifiers.updateLevel.mutate({ id: lvl.id, patch: { label: v } })} />
@@ -193,7 +211,7 @@ export function ProductPricingEditor({ productId, ticketType, isOwner, initial }
                   )}
                 </div>
               ))}
-              {dim.levels.length === 0 && <p className="text-[11px] text-muted-foreground italic pl-3">Adiciona pelo menos uma resposta.</p>}
+              {!collapsedDims.has(dim.id) && dim.levels.length === 0 && <p className="text-[11px] text-muted-foreground italic pl-3">Adiciona pelo menos uma resposta.</p>}
             </div>
           ))}
         </section>
