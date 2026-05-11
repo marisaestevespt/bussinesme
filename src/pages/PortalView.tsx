@@ -467,7 +467,7 @@ export default function PortalViewPage() {
       </header>
 
       {/* ─── Main ─── */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-12">
 
         {/* ═══ HOME ═══ */}
         {activeSection === 'home' && (
