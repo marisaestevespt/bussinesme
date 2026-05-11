@@ -53,6 +53,19 @@ export interface PortalRecolhaResponse {
   answer: string;
 }
 
+export interface PortalNpsCategory {
+  key: string;
+  label: string;
+  description?: string | null;
+  department?: string | null;
+}
+
+export interface PortalNpsCategoryScore {
+  key: string;
+  score: number;
+  comment?: string | null;
+}
+
 export interface PortalRecolha {
   id: string;
   kind: 'nps' | 'feedback';
@@ -64,6 +77,8 @@ export interface PortalRecolha {
   notes?: string | null;
   responses?: PortalRecolhaResponse[] | null;
   questions?: PortalRecolhaQuestion[] | null;
+  categories?: PortalNpsCategory[] | null;
+  category_scores?: PortalNpsCategoryScore[] | null;
   source?: string | null;
   product_id?: string | null;
   product_name?: string | null;

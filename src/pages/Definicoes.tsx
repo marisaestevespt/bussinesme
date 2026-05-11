@@ -7,6 +7,7 @@ import { DadosFiscalLayout } from '@/components/settings/DadosFiscalLayout';
 import { ChannelSettings } from '@/components/settings/ChannelSettings';
 import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
+import { SettingsRecolhas } from '@/components/settings/SettingsRecolhas';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { FinAuditoriaPagamentos } from '@/components/financial/FinAuditoriaPagamentos';
@@ -115,6 +116,7 @@ export default function DefinicoesPage() {
           {tab === 'preferencias' && (
             <div className="space-y-10">
               <SettingsKpis />
+              <SettingsRecolhas />
               <SettingsAutomations />
             </div>
           )}

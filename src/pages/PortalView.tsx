@@ -202,9 +202,10 @@ export default function PortalViewPage() {
 
   const submitNps = async (
     recordId: string,
-    score: number,
+    score: number | null,
     notes: string,
     responses?: PortalRecolhaResponse[],
+    categoryScores?: import('@/types/portal').PortalNpsCategoryScore[],
   ) => {
     if (!portal) return;
     const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
@@ -214,16 +215,21 @@ export default function PortalViewPage() {
       _score: score,
       _notes: notes || null,
       _responses: responses && responses.length > 0 ? responses : null,
+      _category_scores: categoryScores && categoryScores.length > 0 ? categoryScores : null,
     });
     if (data === true) {
+      const computed = categoryScores && categoryScores.length > 0
+        ? Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)
+        : score;
       setRecolhas(prev => prev.map(r =>
         r.id === recordId
           ? {
               ...r,
               status: 'concluido',
-              nps_score: score,
+              nps_score: computed,
               notes: notes || r.notes,
               responses: responses || r.responses,
+              category_scores: categoryScores || r.category_scores,
               actual_date: new Date().toISOString().slice(0, 10),
               source: 'portal',
             }
