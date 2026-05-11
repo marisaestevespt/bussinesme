@@ -27,16 +27,17 @@ export function CollectionHeader({
   return (
     <header className={cn('flex flex-col gap-3 md:flex-row md:items-end md:justify-between', className)}>
       <div className="min-w-0 space-y-1">
+        <div className="eyebrow mb-1">Coleção</div>
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />}
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          {Icon && <Icon className="h-5 w-5 text-primary/70" strokeWidth={1.5} />}
+          <h1 className="font-display italic text-3xl md:text-4xl leading-tight text-foreground">{title}</h1>
           {count !== undefined && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            <span className="font-typewriter text-[10px] uppercase tracking-[0.18em] rounded-sm border border-primary/30 bg-secondary/40 px-2 py-0.5 text-primary/70">
               {count}
             </span>
           )}
         </div>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="font-display italic text-primary/60">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>

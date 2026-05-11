@@ -144,11 +144,12 @@ interface EmptyStateProps {
 export function EmptyState({ icon: Icon = Inbox, title, description, action, className }: EmptyStateProps) {
   return (
     <div className={cn("flex flex-col items-center justify-center py-12 text-center", className)}>
-      <div className="rounded-full bg-muted p-4 mb-4">
-        <Icon className="h-8 w-8 text-muted-foreground" />
+      <div className="rounded-sm border-2 border-primary/25 bg-secondary/40 p-4 mb-4">
+        <Icon className="h-7 w-7 text-primary/60" strokeWidth={1.4} />
       </div>
-      <h3 className="text-lg font-medium mb-1">{title}</h3>
-      {description && <p className="text-sm text-muted-foreground max-w-sm mb-4">{description}</p>}
+      <div className="eyebrow mb-2">Sem registos</div>
+      <h3 className="font-display italic text-2xl leading-tight text-foreground mb-1">{title}</h3>
+      {description && <p className="font-display italic text-primary/60 max-w-sm mb-4">{description}</p>}
       {action}
     </div>
   );
@@ -157,9 +158,9 @@ export function EmptyState({ icon: Icon = Inbox, title, description, action, cla
 /* ─── Inline Loading ─────────────────────────────────────── */
 export function InlineLoader({ text = 'A carregar...' }: { text?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
-      <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent" />
-      <span className="text-sm">{text}</span>
+    <div className="flex items-center justify-center gap-2 py-8 text-primary/60">
+      <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+      <span className="font-typewriter text-[11px] uppercase tracking-[0.24em]">{text}</span>
     </div>
   );
 }
@@ -172,7 +173,7 @@ interface EmptyHintProps {
 
 export function EmptyHint({ children, className }: EmptyHintProps) {
   return (
-    <p className={cn("text-sm text-muted-foreground italic text-center py-6", className)}>
+    <p className={cn("font-display italic text-primary/55 text-center py-6", className)}>
       {children}
     </p>
   );

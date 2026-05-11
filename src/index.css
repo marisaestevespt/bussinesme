@@ -450,6 +450,34 @@
   opacity: 0.15;
 }
 
+/* Editorial typography on chart axes & legends */
+.recharts-cartesian-axis-tick text,
+.recharts-polar-angle-axis-tick text,
+.recharts-polar-radius-axis-tick text,
+.recharts-legend-item-text {
+  font-family: 'Special Elite', 'Courier New', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: hsl(var(--primary) / 0.65) !important;
+  color: hsl(var(--primary) / 0.65) !important;
+}
+
+.recharts-default-tooltip {
+  border-radius: 0.25rem !important;
+  border: 2px solid hsl(var(--primary) / 0.3) !important;
+  background: hsl(var(--card)) !important;
+  font-family: 'Special Elite', 'Courier New', monospace !important;
+  font-size: 11px !important;
+}
+.recharts-tooltip-label {
+  font-family: var(--font-display, 'Cormorant Garamond'), Georgia, serif !important;
+  font-style: italic !important;
+  font-size: 14px !important;
+  color: hsl(var(--foreground)) !important;
+  margin-bottom: 4px !important;
+}
+
 /* Thin scrollbar utility for compact horizontal scroll areas */
 .scrollbar-thin::-webkit-scrollbar {
   height: 4px;
