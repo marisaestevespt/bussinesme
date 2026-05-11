@@ -4292,6 +4292,7 @@ export type Database = {
       executive_objectives: {
         Row: {
           area: string
+          contribui_visao_5_anos: boolean
           created_at: string
           current_value: number | null
           deadline: string | null
@@ -4313,6 +4314,7 @@ export type Database = {
         }
         Insert: {
           area?: string
+          contribui_visao_5_anos?: boolean
           created_at?: string
           current_value?: number | null
           deadline?: string | null
@@ -4334,6 +4336,7 @@ export type Database = {
         }
         Update: {
           area?: string
+          contribui_visao_5_anos?: boolean
           created_at?: string
           current_value?: number | null
           deadline?: string | null
@@ -6443,6 +6446,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      monthly_reflection: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          decisoes_mes_seguinte: string | null
+          id: string
+          month: number
+          o_que_correu_bem: string | null
+          o_que_nao_correu: string | null
+          revisto: boolean
+          revisto_em: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          decisoes_mes_seguinte?: string | null
+          id?: string
+          month: number
+          o_que_correu_bem?: string | null
+          o_que_nao_correu?: string | null
+          revisto?: boolean
+          revisto_em?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          decisoes_mes_seguinte?: string | null
+          id?: string
+          month?: number
+          o_que_correu_bem?: string | null
+          o_que_nao_correu?: string | null
+          revisto?: boolean
+          revisto_em?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
       }
       monthly_reports: {
         Row: {
@@ -11426,6 +11471,42 @@ export type Database = {
           sort_order?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      visao_5_anos: {
+        Row: {
+          alinhamento_anual: string | null
+          ano_alvo: number
+          business_id: string | null
+          condicoes_necessarias: string | null
+          created_at: string
+          id: string
+          onde_quero_estar: Json | null
+          riscos: string | null
+          updated_at: string
+        }
+        Insert: {
+          alinhamento_anual?: string | null
+          ano_alvo: number
+          business_id?: string | null
+          condicoes_necessarias?: string | null
+          created_at?: string
+          id?: string
+          onde_quero_estar?: Json | null
+          riscos?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alinhamento_anual?: string | null
+          ano_alvo?: number
+          business_id?: string | null
+          condicoes_necessarias?: string | null
+          created_at?: string
+          id?: string
+          onde_quero_estar?: Json | null
+          riscos?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

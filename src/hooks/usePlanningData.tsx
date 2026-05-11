@@ -30,16 +30,14 @@ import type {
 const currentYear = new Date().getFullYear();
 
 export const PLAN_AREAS = [
-  { value: 'financeiro', label: 'Financeiro' },
   { value: 'comercial', label: 'Comercial' },
   { value: 'marketing', label: 'Marketing' },
+  { value: 'financeiro', label: 'Financeiro' },
   { value: 'operacao', label: 'Operação' },
   { value: 'clientes', label: 'Clientes' },
+  { value: 'produtos', label: 'Produtos' },
   { value: 'equipa', label: 'Equipa' },
-  { value: 'produto', label: 'Produto & Inovação' },
-  { value: 'processos', label: 'Processos' },
-  { value: 'inovacao', label: 'Inovação & Desenvolvimento' },
-  { value: 'outro', label: 'Outro' },
+  { value: 'geral', label: 'Geral' },
 ];
 
 export const PLAN_STATUSES = [
@@ -88,6 +86,7 @@ export const PERIODS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
   'T1', 'T2', 'T3', 'T4',
+  'S1', 'S2',
 ];
 
 export const ACTION_STATUSES = [
@@ -265,7 +264,11 @@ export function usePlanningData(year = currentYear) {
       const rec = clean(raw);
       // auto period_type
       if (rec.period && typeof rec.period === 'string') {
-        rec.period_type = rec.period.startsWith('T') ? 'trimestral' : 'mensal';
+        rec.period_type = rec.period.startsWith('T')
+          ? 'trimestral'
+          : rec.period.startsWith('S')
+            ? 'semestral'
+            : 'mensal';
       }
       if (rec.id) {
         const { error } = await supabase.from('planning_goals').update(rec as never).eq('id', rec.id as string);

@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { planningAreaMatches } from '@/lib/planningAreaFilters';
 import { ObjectiveDialog } from './ObjectiveDialog';
@@ -90,8 +91,18 @@ export function PlanningObjectivesTab({
 
                 {/* Corpo: título + tipo */}
                 <CardContent className="p-4 pb-3 flex-1 flex flex-col gap-2">
-                  <h3 className="font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
-                    {obj.title}
+                  <h3 className="font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem] flex items-start gap-1.5">
+                    <span className="flex-1">{obj.title}</span>
+                    {obj.contribui_visao_5_anos && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Sparkles className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                          </TooltipTrigger>
+                          <TooltipContent>Este objetivo contribui para a tua visão a 5 anos.</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </h3>
                   <span className="text-[10px] text-muted-foreground">
                     {obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}

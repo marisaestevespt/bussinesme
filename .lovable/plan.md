@@ -1,68 +1,122 @@
-# Melhoria UI/UX da Ficha de Produto
+## Reestruturação do Planeamento Executive
 
-Objetivo: reduzir duplicação, baixar densidade visual, simplificar formulários e padronizar a aparência das 9 tabs (O Produto · Operação · Branding · Marketing · Comercial · Contabilidade & Pricing · Clientes & Métricas · Processos · Backoffice).
+Princípio: **Executive é fonte única**. Objetivos nascem aqui e cascateiam Anual → S1/S2 → T1-T4 → Mensal. Departamentos consomem.
 
-## Fase 1 — Padrões partilhados (base para todas as tabs)
+---
 
-Criar/consolidar 4 componentes reutilizáveis em `src/components/product/_shared/`:
+### 1. Generalizar Objetivos Anuais (8 áreas)
 
-1. **`ProductTabHeader`** — título + descrição curta + ações à direita (botão primário + menu). Substitui os vários "headers" inconsistentes que cada secção desenha hoje.
-2. **`ProductSectionCard`** — card uniforme com ícone, título, descrição opcional, slot de ação (ex: "Adicionar"), e estado vazio embutido. Todas as subsecções passam a usar isto em vez de `Card` cru.
-3. **`ProductEmptyState`** — ilustração leve + título + 1 frase + CTA. Padroniza os ~15 empty states diferentes que existem hoje.
-4. **`ProductInlineEditField`** — campo que mostra valor + lápis para editar inline (sem abrir modal/dialog para coisas pequenas). Reduz fricção de preenchimento.
+**Schema (`executive_objectives`):**
+- Adicionar coluna `contribui_visao_5_anos boolean default false`
+- Validar `area` para uma das 8: `comercial, marketing, financeiro, operacao, clientes, produtos, equipa, geral` (CHECK constraint)
+- Constraint única `(area, year)` para garantir 1 objetivo anual por área/ano
+- Migrar valores antigos de `area` (ex: `outro` → `geral`)
 
-Tokens: tudo via `--primary`, `--muted`, `hq-card`, `hq-surface-sunken`. Spacing scale oficial (4/8/16/24).
+**UI (`ExecutivePlaneamentoTatico`):**
+- Atualizar `TacticalByAreaView` para mostrar exatamente 8 cards (uma por área), cada um com o seu objetivo anual ou CTA "Definir objetivo".
+- Form de criar/editar objetivo: campo `area` passa a Select fixo das 8; bloqueia se já existir objetivo nesse ano/área.
+- Adicionar toggle **"Este objetivo contribui para a visão a 5 anos? Sim/Não"**.
 
-## Fase 2 — Eliminar duplicações entre tabs
+**Sincronização Executive → Departamento (marketing/financeiro):**
+- Trigger DB `sync_exec_objective_to_dept_goals`:
+  - Quando objetivo `area='financeiro'` e `value_source` agregável → escreve/atualiza `financial_goals` por mês (distribui `target_value/12` no `revenue_target` ou conforme `target_unit`).
+  - Quando objetivo `area='marketing'` → escreve/atualiza `marketing_goals` para o canal/métrica correspondente (apenas referência mensal `target_value/12`).
+- Direcção é one-way; UI dos departamentos passa a marcar essas linhas como `read-only` (origem: Executive) com badge "Definido no Executive".
 
-Auditoria do código actual: a maioria das duplicações listadas já não existem.
+---
 
-| Conteúdo | Estado |
-|---|---|
-| Cliente do produto | ✅ Só em Clientes&Métricas (`ProductSalesTab` agrega) |
-| Cores/logo / Welcome Email | ✅ Já lê de Branding |
-| Pricing/tiers | ✅ Só em Contabilidade (Sales Kit não tem) |
-| Projetos / Métricas | ✅ Só em Clientes&Métricas |
-| FAQs | ✅ Só em "O Produto"; portal lê de lá |
-| Documentos + Links + Notas | ⚠️ Backoffice ainda renderiza `ProductBackofficeSection` + `ProductArquivoSection` em separado — unificar na Fase 3 (Backoffice) |
+### 2. Desdobramento Semestral
 
-Conclusão: **Fase 2 considerada cumprida**. A unificação documentos/links/notas fica integrada na Fase 3 (Backoffice).
+**Schema (`planning_goals`):**
+- Adicionar `'semestral'` como valor válido para `period_type`, com `period IN ('S1','S2')`.
+- Atualizar constantes `PERIODS` em `usePlanningData` para incluir `S1`/`S2`.
 
-## Fase 3 — Reorganização interna por tab (densidade + leitura)
+**UI:**
+- Em `PlanningGoalsTab`/`TacticalByAreaView`: para cada objetivo anual, mostrar uma cascata visual:
+  ```text
+  Anual (target / actual)
+    ├─ S1 (target / actual auto)   ├─ S2
+    │   └─ T1 / T2                 │   └─ T3 / T4
+    │       └─ meses               │       └─ meses
+  ```
+- `actual_value` semestral lido automaticamente das mesmas fontes (`goalAutoValue` em `usePlanningData`) — agregando os meses correspondentes.
+- Editor de meta semestral: CEO define `target`; status calculado igual aos restantes.
 
-Padrão visual: cada tab passa a ter **layout 12-col** com sidebar esquerda fina (índice/sumário) + conteúdo principal. Subsecções colapsáveis quando >3.
+---
 
-- **O Produto** — Hero com nome+descrição editável inline · 3 cards (Sobre · Incluído · FAQs) · Datas importantes em timeline horizontal compacta.
-- **Operação** — Toggle "Recorrente | Por projeto" no topo, lista de templates como tabela densa com inline edit.
-- **Branding** — 2 colunas: Identidade visual (cores/logo/fonte) à esquerda, Preview portal+email à direita.
-- **Marketing** — Sub-tabs (Sales page · Conteúdo · Funis · Automações · Tráfego) em vez de scroll infinito.
-- **Comercial** — Concorrentes em tabela, Sales kit em accordion (Pitch/Benefícios/Materiais/Objeções/Cases).
-- **Contabilidade & Pricing** — Pricing tiers em cards lado-a-lado; custos em tabela; métodos de pagamento em chips.
-- **Clientes & Métricas** — KPIs no topo (4 cards) · Lista de clientes ativos · Projetos ativos · Customer Success notes.
-- **Processos** — SOPs agrupados por fase (Onboarding/Execução/Offboarding) em accordion.
-- **Backoffice** — 2 colunas: Links úteis + Reuniões à esquerda; Documentos/Arquivo + Notas/Brainstorming à direita.
+### 3. Tabela `monthly_reflection`
 
-## Fase 4 — Reduzir campos a preencher
+```sql
+CREATE TABLE public.monthly_reflection (
+  id uuid PK default gen_random_uuid(),
+  business_id uuid not null,
+  year int not null,
+  month int not null CHECK (month BETWEEN 1 AND 12),
+  o_que_correu_bem text,
+  o_que_nao_correu text,
+  decisoes_mes_seguinte text,
+  revisto boolean default false,
+  revisto_em timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  UNIQUE(business_id, year, month)
+);
+```
+- RLS: só `is_owner()` lê/escreve.
+- UI: nova secção em `/executive/planeamento/operacional?ano&mes=` — card "Reflexão de [Mês]" com 3 textareas + botão "Marcar como revisto" (define `revisto=true, revisto_em=now()`).
 
-- Auto-fill: descrições curtas defaultam de campos longos truncados.
-- Smart defaults: cores do welcome email puxam de Branding (já feito), fonte idem, logo idem.
-- Campos opcionais escondidos atrás de "Mostrar mais campos".
-- Substituir dialogs grandes por `ProductInlineEditField` quando campo único.
+---
 
-## Ordem de execução
+### 4. Visão a 5 Anos
 
-1. Fase 1 (componentes partilhados) — base sem regressões visíveis ainda.
-2. Fase 2 (remover duplicações) — wins rápidos, ficheiros já existentes.
-3. Fase 3 tab-a-tab pela ordem oficial (O Produto → Backoffice). Cada tab num passo separado para revisão.
-4. Fase 4 aplicada à medida que cada tab é refeita.
+**Schema:**
+```sql
+CREATE TABLE public.visao_5_anos (
+  id uuid PK,
+  business_id uuid not null,
+  ano_alvo int not null,
+  onde_quero_estar jsonb, -- { negocio, equipa, produtos, mercado, vida_pessoal }
+  condicoes_necessarias text,
+  riscos text,
+  alinhamento_anual text,
+  updated_at timestamptz default now(),
+  UNIQUE(business_id, ano_alvo)
+);
+```
+- RLS: só Owner.
 
-## Notas técnicas
+**UI (`ExecutivePlaneamentoEstrategico`):**
+- Novo bloco "Visão a 5 Anos" depois das Diretrizes Estratégicas.
+- Se vazio → CTA "Definir a tua visão a [ano+5]".
+- 4 campos rich text (reaproveitar editor já usado em SWOT/Diretrizes).
+- Sub-bloco 1 ("onde quero estar") expandido em 5 mini-cards: Negócio, Equipa, Produtos, Mercado, Vida pessoal.
 
-- Sem alterações de schema nem de business logic — só apresentação.
-- Usar `EntitySection` existente onde já encaixa, criar `ProductSectionCard` quando precisarmos de slots extra (ação no header, badge de estado).
-- Manter compat: cada secção continua a aceitar as mesmas props.
-- Confirmar visualmente cada tab no preview antes de seguir para a próxima.
+**Indicador no planeamento anual:**
+- Badge/ícone `Sparkles` ao lado do título do objetivo se `contribui_visao_5_anos=true`.
+- Tooltip: "Este objetivo contribui para a tua visão a 5 anos".
 
-## Pergunta antes de começar
+---
 
-Confirmas que avanço **fase a fase** (paro depois da Fase 1 para mostrares feedback antes da Fase 2)? Ou preferes que faça **tab-a-tab** (Fase 1 + 2 juntas, depois cada tab uma a uma)?
+### Detalhes técnicos
+
+**Migrations (1 ficheiro, single transaction):**
+1. `ALTER executive_objectives ADD contribui_visao_5_anos`, CHECK área, constraint única `(area, year)`, backfill `outro → geral`.
+2. `ALTER planning_goals` — atualizar constraint de `period_type` para incluir `'semestral'`.
+3. `CREATE TABLE monthly_reflection` + RLS owner-only + trigger updated_at.
+4. `CREATE TABLE visao_5_anos` + RLS owner-only + trigger updated_at.
+5. `CREATE FUNCTION sync_exec_objective_to_dept_goals()` + trigger `AFTER INSERT/UPDATE` em `executive_objectives` para `area in ('financeiro','marketing')`.
+
+**Código:**
+- `src/hooks/usePlanningData.tsx`: incluir `S1`/`S2` em `PERIODS`, agregação automática de actual semestral, expor `useMonthlyReflection` e `useVisao5Anos` (novos hooks separados).
+- `src/components/planning/TacticalByAreaView.tsx`: layout fixo de 8 áreas; injectar badge visão 5 anos.
+- `src/components/planning/PlanningGoalsTab.tsx`: nova vista semestral com cascata.
+- `src/components/planning/StrategicSection.tsx` (ou novo `Vision5YearsBlock.tsx`): bloco de visão.
+- `src/pages/ExecutivePlaneamentoEstrategico.tsx`: incluir bloco.
+- `src/pages/ExecutivePlaneamentoOperacional.tsx`: incluir card de Reflexão Mensal.
+- Marketing/Financeiro UI: marcar metas geradas pelo Executive com badge read-only.
+
+**Fora de scope:**
+- Reescrita das tabelas `marketing_goals` / `financial_goals` (mantemos, apenas sync via trigger).
+- Notificações automáticas — fica para iteração futura.
+
+Posso prosseguir?
