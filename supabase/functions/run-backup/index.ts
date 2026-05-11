@@ -57,7 +57,7 @@ const TABLES_TO_BACKUP = [
   "mural_posts", "mural_comments", "mural_reactions",
   "website_pages", "website_page_files",
   "marketing_ideas", "marketing_resource_links", "marketing_monthly_analysis",
-  "executive_brain_dump", "executive_goals", "executive_monthly_checklists",
+  "executive_brain_dump", "executive_monthly_checklists",
   "executive_objectives", "executive_quarterly_analysis", "executive_weekly_routines",
   "time_entries", "notifications", "user_favorites", "recommendations",
   "absence_coverage", "suppliers", "audit_logs",
