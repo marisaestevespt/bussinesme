@@ -114,7 +114,21 @@ export function ProductMarketingSection({
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
-      {/* Páginas */}
+      <ProductTabHeader
+        icon={Megaphone}
+        title="Marketing"
+        description="Páginas, conteúdos, funis, automações e tráfego pago associados a este produto. Tudo o que vende, num só sítio."
+      />
+      <EntityTabs defaultValue="paginas" className="space-y-6">
+        <EntityTabsList className="w-full justify-start flex-wrap">
+          <EntityTabsTrigger value="paginas"><FileText className="h-3.5 w-3.5 mr-1.5 inline" />Páginas</EntityTabsTrigger>
+          <EntityTabsTrigger value="conteudos"><Newspaper className="h-3.5 w-3.5 mr-1.5 inline" />Conteúdos</EntityTabsTrigger>
+          <EntityTabsTrigger value="funis"><Workflow className="h-3.5 w-3.5 mr-1.5 inline" />Funis</EntityTabsTrigger>
+          <EntityTabsTrigger value="automacoes"><Zap className="h-3.5 w-3.5 mr-1.5 inline" />Automações</EntityTabsTrigger>
+          <EntityTabsTrigger value="trafego"><Target className="h-3.5 w-3.5 mr-1.5 inline" />Tráfego Pago</EntityTabsTrigger>
+        </EntityTabsList>
+
+        <EntityTabsContent value="paginas" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Páginas</CardTitle>
