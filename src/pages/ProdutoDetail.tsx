@@ -61,7 +61,7 @@ export default function ProdutoDetailPage() {
   const canSeeSection = (key: string) => {
     if (!isSalesOnly) return true;
     const allowed = new Set([
-      'o-produto', 'clientes-metricas', 'comercial', 'marketing', 'branding', 'backoffice',
+      'o-produto', 'clientes-metricas', 'nps-cs', 'comercial', 'marketing', 'branding', 'backoffice',
     ]);
     return allowed.has(key);
   };
