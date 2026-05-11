@@ -58,6 +58,8 @@ export default function MarketingRecursos() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [editingView, setEditingView] = useState<IdeaView | null>(null);
   const [viewForm, setViewForm] = useState({ name: '', category: '__none__', filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
+  const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
+  const [editIdeaForm, setEditIdeaForm] = useState({ idea: '', description: '', channel: '', content_type: '', format: '', category: '__none__' });
 
   // Editable link fields
   const [editingLink, setEditingLink] = useState<string | null>(null);
@@ -164,6 +166,34 @@ export default function MarketingRecursos() {
   const deleteIdea = async (id: string) => {
     await supabase.from('marketing_ideas').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
+  };
+
+  const openIdea = (idea: Idea) => {
+    setEditingIdea(idea);
+    setEditIdeaForm({
+      idea: idea.idea || '',
+      description: idea.description || '',
+      channel: idea.channel || '',
+      content_type: idea.content_type || '',
+      format: idea.format || '',
+      category: idea.category || '__none__',
+    });
+  };
+
+  const saveIdea = async () => {
+    if (!editingIdea) return;
+    if (!editIdeaForm.idea.trim()) return;
+    await supabase.from('marketing_ideas').update({
+      idea: editIdeaForm.idea,
+      description: editIdeaForm.description || null,
+      channel: editIdeaForm.channel || null,
+      content_type: editIdeaForm.content_type || null,
+      format: editIdeaForm.format || null,
+      category: editIdeaForm.category && editIdeaForm.category !== '__none__' ? editIdeaForm.category : 'todas',
+    } as any).eq('id', editingIdea.id);
+    qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
+    setEditingIdea(null);
+    toast.success('Ideia atualizada');
   };
 
   const filteredIdeas = !activeView ? ideas : ideas.filter(i => {
