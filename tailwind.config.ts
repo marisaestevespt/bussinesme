@@ -87,6 +87,11 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        display: ["var(--font-display, 'Cormorant Garamond')", "Georgia", "serif"],
+        body: ["var(--font-body, 'Inter')", "system-ui", "sans-serif"],
+        typewriter: ["'Special Elite'", "'Courier New'", "monospace"],
+      },
       boxShadow: {
         subtle: "var(--shadow-subtle)",
         card: "var(--shadow-card)",

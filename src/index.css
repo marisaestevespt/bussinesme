@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=Lora:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=Lora:wght@400;500;600;700&family=DM+Serif+Display&family=Special+Elite&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,31 +6,31 @@
 
 @layer base {
   :root {
-    /* Warm cream base — from brand palette */
-    --background: 33 43% 96%;
-    --foreground: 0 0% 16%;
+    /* Warm linen/cream base — vintage editorial */
+    --background: 36 32% 93%;
+    --foreground: 25 18% 14%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 16%;
+    --card: 38 38% 96%;
+    --card-foreground: 25 18% 14%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 16%;
+    --popover: 38 38% 96%;
+    --popover-foreground: 25 18% 14%;
 
     /* Bordô/marsala primary — the Lyrata signature */
-    --primary: 351 56% 28%;
+    --primary: 351 60% 26%;
     --primary-foreground: 0 0% 100%;
 
-    /* Salmon soft secondary */
-    --secondary: 33 30% 93%;
-    --secondary-foreground: 351 30% 25%;
+    /* Warm sand secondary */
+    --secondary: 33 28% 88%;
+    --secondary-foreground: 351 40% 22%;
 
-    /* Warm muted */
-    --muted: 30 20% 92%;
-    --muted-foreground: 0 0% 45%;
+    /* Warm mocha muted */
+    --muted: 32 22% 88%;
+    --muted-foreground: 26 14% 38%;
 
-    /* Salmon accent for highlights */
-    --accent: 3 42% 94%;
-    --accent-foreground: 351 56% 28%;
+    /* Mostarda/dourado accent for highlights */
+    --accent: 38 45% 78%;
+    --accent-foreground: 26 40% 18%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -46,13 +46,14 @@
     --accent-violet: 262 60% 55%;
     --accent-violet-foreground: 0 0% 100%;
 
-    --border: 30 18% 89%;
-    --input: 30 18% 89%;
-    --ring: 351 56% 28%;
+    --border: 28 18% 78%;
+    --input: 28 18% 78%;
+    --ring: 351 60% 26%;
 
-    --radius: 0.5rem;
-    --radius-lg: 0.625rem;
-    --radius-xl: 0.75rem;
+    /* Tighter, more architectural radii — vintage editorial */
+    --radius: 0.25rem;
+    --radius-lg: 0.375rem;
+    --radius-xl: 0.5rem;
 
     /* Sidebar — deep bordô, almost black with warm undertone */
     --sidebar-background: 350 30% 11%;
@@ -65,23 +66,25 @@
     --sidebar-ring: 3 50% 72%;
 
     /* Extended tokens */
-    --brand-primary: 351 56% 28%;
-    --brand-secondary: 3 42% 74%;
-    --surface-elevated: 0 0% 100%;
-    --surface-sunken: 33 25% 94%;
-    --surface-warm: 30 28% 95%;
+    --brand-primary: 351 60% 26%;
+    --brand-secondary: 38 45% 60%;
+    --brand-mocha: 26 32% 38%;
+    --brand-gold: 38 55% 52%;
+    --surface-elevated: 38 38% 96%;
+    --surface-sunken: 33 25% 89%;
+    --surface-warm: 30 28% 92%;
 
     /* Gradient tokens for header */
     --gradient-start: 3 30% 96%;
     --gradient-end: 33 43% 96%;
     --gradient-accent: 351 56% 28%;
 
-    /* Premium shadows with warm marsala tint */
-    --shadow-subtle: 0 1px 3px rgba(100, 40, 50, 0.04), 0 1px 2px rgba(100, 40, 50, 0.03);
-    --shadow-card: 0 1px 3px rgba(100, 40, 50, 0.05), 0 6px 16px rgba(100, 40, 50, 0.04);
-    --shadow-elevated: 0 4px 12px rgba(100, 40, 50, 0.07), 0 16px 32px rgba(100, 40, 50, 0.05);
-    --shadow-glow: 0 0 0 1px rgba(140, 50, 60, 0.1), 0 4px 16px rgba(140, 50, 60, 0.06);
-    --shadow-premium: 0 8px 32px rgba(100, 40, 50, 0.08), 0 2px 8px rgba(100, 40, 50, 0.04);
+    /* Vintage shadows — minimal, replaced largely by solid borders */
+    --shadow-subtle: 0 1px 0 rgba(80, 30, 40, 0.04);
+    --shadow-card: 0 1px 2px rgba(80, 30, 40, 0.05);
+    --shadow-elevated: 0 2px 6px rgba(80, 30, 40, 0.08), 0 8px 20px rgba(80, 30, 40, 0.05);
+    --shadow-glow: 0 0 0 1px hsl(var(--primary) / 0.15);
+    --shadow-premium: 0 4px 16px rgba(80, 30, 40, 0.08);
 
     /* Chart palette — Lyrata brand derived */
     --chart-1: 351 56% 28%;
@@ -173,23 +176,27 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body, 'Inter'), system-ui, sans-serif;
     letter-spacing: -0.01em;
+    background-image:
+      radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.025) 1px, transparent 0);
+    background-size: 22px 22px;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display, 'Sora'), system-ui, sans-serif;
-    letter-spacing: -0.03em;
+    font-family: var(--font-display, 'Cormorant Garamond'), Georgia, serif;
+    letter-spacing: -0.015em;
+    font-weight: 600;
   }
 
-  h1 { @apply text-3xl font-bold tracking-tight; }
-  h2 { @apply text-2xl font-semibold tracking-tight; }
-  h3 { @apply text-xl font-semibold; }
-  h4 { @apply text-lg font-medium; }
+  h1 { @apply text-4xl font-semibold tracking-tight; }
+  h2 { @apply text-3xl font-semibold tracking-tight; }
+  h3 { @apply text-2xl font-semibold; }
+  h4 { @apply text-xl font-medium; }
 }
 
 @layer components {
   /* Premium card */
   .hq-card {
-    @apply rounded-xl bg-card border border-border/50;
+    @apply rounded-md bg-card border border-border;
     box-shadow: var(--shadow-subtle);
     transition: box-shadow var(--transition-base) var(--transition-ease),
                 transform var(--transition-base) var(--transition-ease),
@@ -198,8 +205,27 @@
 
   .hq-card:hover {
     box-shadow: var(--shadow-card);
-    border-color: hsl(var(--primary) / 0.12);
-    transform: translateY(-1px);
+    border-color: hsl(var(--primary) / 0.35);
+  }
+
+  /* Vintage typewriter caption / metadata */
+  .hq-typewriter {
+    font-family: 'Special Elite', 'Courier New', monospace;
+    letter-spacing: 0.01em;
+    color: hsl(var(--brand-mocha));
+  }
+
+  /* Editorial display utility — italic serif accent */
+  .hq-display-italic {
+    font-family: var(--font-display, 'Cormorant Garamond'), Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  /* Underline accent like the references — thick bordô underline */
+  .hq-underline-accent {
+    background-image: linear-gradient(transparent 60%, hsl(var(--primary) / 0.18) 60%);
+    padding: 0 0.15em;
   }
 
   /* Glass card variant */
