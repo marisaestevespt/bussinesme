@@ -12,6 +12,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { ProductTabHeader } from './_shared';
+import { Repeat, FolderKanban } from 'lucide-react';
 
 interface Template {
   id: string;
