@@ -44,7 +44,6 @@ import {
 
 import { RenewalSection } from '@/components/sop-detail/RenewalSection';
 import { PaymentMethodsSection } from '@/components/sop-detail/PaymentMethodsSection';
-import { NpsConfigSection } from '@/components/sop-detail/NpsConfigSection';
 import { MilestonesSection } from '@/components/sop-detail/MilestonesSection';
 import { KpisSection } from '@/components/sop-detail/KpisSection';
 
@@ -176,12 +175,6 @@ export default function SopDetailPage() {
   const isPaymentSop = useMemo(() => {
     if (!sop) return false;
     return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
-  }, [sop]);
-
-  const isNpsSop = useMemo(() => {
-    if (!sop) return false;
-    const n = sop.name?.toLowerCase() || '';
-    return sop.linked_entity_type === 'produto' && !!sop.linked_entity_id && (n.includes('nps') || n.includes('feedback'));
   }, [sop]);
 
   const isAcompanhamentoSop = useMemo(() => {
@@ -929,10 +922,6 @@ export default function SopDetailPage() {
 
         {isPaymentSop && linkedProductId && (
           <PaymentMethodsSection productId={linkedProductId} />
-        )}
-
-        {isNpsSop && linkedProductId && (
-          <NpsConfigSection productId={linkedProductId} teamMembers={teamMembers} />
         )}
 
         {isAcompanhamentoSop && linkedProductId && (
