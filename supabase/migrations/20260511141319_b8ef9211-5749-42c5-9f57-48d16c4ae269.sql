@@ -1,0 +1,1 @@
+UPDATE public.business_settings SET font_display = 'Cormorant Garamond', font_body = 'Inter';
