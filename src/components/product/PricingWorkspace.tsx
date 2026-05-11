@@ -57,8 +57,8 @@ export function PricingWorkspace({ productId, ticketType, isOwner, vatRate, init
         })}
       </div>
 
-      {/* Sheet content */}
-      <div className="p-4 bg-background min-h-[400px]">
+      {/* Sheet content — sunken neutral surface so both editors share the same canvas */}
+      <div className="p-4 bg-muted/20 min-h-[400px]">
         {active === 'oferta' && (
           <OfferCalculator productId={productId} vatRate={vatRate} isOwner={isOwner} />
         )}
