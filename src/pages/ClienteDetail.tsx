@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle, Hash, Activity, CalendarDays, Clock, Package, Mail, Phone, Cake, FileText, MapPin, NotebookText, Wallet, Link2, FolderOpen, MessageCircle, History, Briefcase, Heart, Users, Receipt, Calculator } from 'lucide-react';
+import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle, Hash, Activity, CalendarDays, Clock, Package, Mail, Phone, Cake, FileText, MapPin, NotebookText, Wallet, Link2, FolderOpen, MessageCircle, History, Briefcase, Heart, Users, Receipt, Calculator, User } from 'lucide-react';
 import { ClientQuotesSection } from '@/components/clients/ClientQuotesSection';
 import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
