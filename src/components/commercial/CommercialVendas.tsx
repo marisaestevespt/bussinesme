@@ -115,7 +115,7 @@ export function CommercialVendas() {
           onRename={(id, label) => renameView({ id, label })}
           onDelete={deleteView}
         />
-        <Button size="sm" onClick={() = variant="soft"> { setEditing(null); setFormOpen(true); }}>
+        <Button variant="soft" size="sm" onClick={() => { setEditing(null); setFormOpen(true); }}>
           <Plus className="h-4 w-4 mr-1" /> Nova Venda
         </Button>
       </div>
