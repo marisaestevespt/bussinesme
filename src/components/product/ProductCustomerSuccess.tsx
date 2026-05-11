@@ -124,11 +124,34 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
 
   return (
     <div className="space-y-8">
+      {/* Client Renewal Overview */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Clientes Ativos & Renovações
+            </CardTitle>
+            <div className="text-sm text-muted-foreground">
+              {activeClients.length} cliente{activeClients.length !== 1 ? 's' : ''} ativo{activeClients.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">A coluna <strong>Fim ciclo</strong> indica a próxima renovação.</p>
+        </CardHeader>
+        <CardContent>
+          <SharedClientsList
+            items={productClients as unknown as SharedClientItem[]}
+            hideProductColumn
+            emptyLabel="Nenhum cliente associado a este produto."
+          />
+        </CardContent>
+      </Card>
+
       {/* NPS History */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Histórico de NPS deste Produto</CardTitle>
+            <CardTitle className="text-base">Histórico de NPS</CardTitle>
             <div className="text-sm font-medium">
               Média NPS: <span className="text-lg font-bold text-primary">{avgNps}</span>
             </div>
@@ -167,29 +190,6 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Client Renewal Overview */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Clientes Ativos & Renovações
-            </CardTitle>
-            <div className="text-sm text-muted-foreground">
-              {activeClients.length} cliente{activeClients.length !== 1 ? 's' : ''} ativo{activeClients.length !== 1 ? 's' : ''}
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">A coluna <strong>Fim ciclo</strong> indica a próxima renovação.</p>
-        </CardHeader>
-        <CardContent>
-          <SharedClientsList
-            items={productClients as unknown as SharedClientItem[]}
-            hideProductColumn
-            emptyLabel="Nenhum cliente associado a este produto."
-          />
         </CardContent>
       </Card>
     </div>
