@@ -14,6 +14,7 @@ export const PUBLIC_PORTAL_KEYS = [
   'show_workspace',
   'portal_type',
   'slug',
+  'playlist_url',
 ] as const;
 
 export type PublicPortalKey = (typeof PUBLIC_PORTAL_KEYS)[number];
@@ -32,6 +33,7 @@ export interface PublicPortal {
   show_workspace?: boolean;
   portal_type?: string | null;
   slug?: string | null;
+  playlist_url?: string | null;
 }
 
 type RpcCaller = (fn: 'get_portal_by_slug' | 'get_portal_by_token', args: Record<string, string>) => Promise<{ data: unknown }>;
