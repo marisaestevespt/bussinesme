@@ -889,60 +889,39 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 )}
               </div>
 
-              {/* Preview grande + uploader */}
-              <div
-                className="relative w-full h-44 rounded-lg overflow-hidden border border-dashed border-border bg-muted/20 group"
-                style={previewHeroImage ? { backgroundImage: `url(${previewHeroImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-              >
-                {!previewHeroImage && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                    <p className="text-xs text-muted-foreground">Sem imagem — usa cor sólida da marca como fundo.</p>
-                  </div>
-                )}
-                {previewHeroImage && (
-                  <div className="absolute inset-0" style={{ background: `linear-gradient(to top, hsl(${previewPrimary}) 0%, hsl(${previewPrimary} / 0.5) 60%, transparent 100%)` }} />
-                )}
-                {previewHeroImage && (
-                  <div className="absolute bottom-3 left-4 right-4 text-white">
-                    <p className="text-lg font-bold leading-tight" style={{ fontFamily: `"${previewFontDisplay}", sans-serif` }}>
-                      {previewHeroTitle} <br />{previewHeroSubtitle}
-                    </p>
-                  </div>
-                )}
-                {isOwner && (
-                  <label className="absolute top-3 right-3">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const f = e.target.files?.[0];
-                        if (!f) return;
-                        setUploadingKey('portal_hero');
-                        try {
-                          const ext = f.name.split('.').pop();
-                          const path = `portal-branding/hero-${Date.now()}.${ext}`;
-                          const { error } = await supabase.storage.from('brand-files').upload(path, f);
-                          if (error) { toast.error('Erro ao carregar imagem'); return; }
-                          const { data: urlData } = supabase.storage.from('brand-files').getPublicUrl(path);
-                          setPB({ hero_image_url: urlData.publicUrl });
-                          toast.success('Imagem carregada');
-                        } finally {
-                          setUploadingKey(null);
-                          e.target.value = '';
-                        }
-                      }}
-                    />
-                    <Button type="button" variant="secondary" size="sm" disabled={uploadingKey === 'portal_hero'} asChild className="shadow-md">
-                      <span className="cursor-pointer">
-                        <Upload className="h-3 w-3 mr-1" />
-                        {uploadingKey === 'portal_hero' ? 'A carregar…' : (previewHeroImage ? 'Mudar imagem' : 'Carregar imagem')}
-                      </span>
-                    </Button>
-                  </label>
-                )}
-              </div>
+              {/* Uploader compacto — a pré-visualização ao vivo já está no topo da subtab */}
+              {isOwner && (
+                <label className="inline-block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      setUploadingKey('portal_hero');
+                      try {
+                        const ext = f.name.split('.').pop();
+                        const path = `portal-branding/hero-${Date.now()}.${ext}`;
+                        const { error } = await supabase.storage.from('brand-files').upload(path, f);
+                        if (error) { toast.error('Erro ao carregar imagem'); return; }
+                        const { data: urlData } = supabase.storage.from('brand-files').getPublicUrl(path);
+                        setPB({ hero_image_url: urlData.publicUrl });
+                        toast.success('Imagem carregada');
+                      } finally {
+                        setUploadingKey(null);
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  <Button type="button" variant="outline" size="sm" disabled={uploadingKey === 'portal_hero'} asChild>
+                    <span className="cursor-pointer">
+                      <Upload className="h-3 w-3 mr-1" />
+                      {uploadingKey === 'portal_hero' ? 'A carregar…' : (previewHeroImage ? 'Mudar imagem' : 'Carregar imagem')}
+                    </span>
+                  </Button>
+                </label>
+              )}
 
               {/* URL alternativa + nota de fallback */}
               <div className="space-y-2">
