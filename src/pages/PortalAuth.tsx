@@ -271,7 +271,7 @@ export default function PortalAuthPage() {
         {/* Auth form section */}
         <div
           className="col-span-12 md:col-span-5 p-8 md:p-12 flex flex-col justify-center"
-          style={{ background: `linear-gradient(180deg, #FBF8F3 0%, ${pcAlpha(0.04)} 100%)` }}
+          style={{ background: `linear-gradient(180deg, hsl(var(--background)) 0%, ${pcAlpha(0.04)} 100%)` }}
         >
           <div className="max-w-xs mx-auto w-full space-y-10">
             <div className="space-y-2">
