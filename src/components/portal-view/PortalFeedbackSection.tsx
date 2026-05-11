@@ -4,8 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   MessageSquare, Send, Sparkles, Lightbulb, AlertCircle, MoreHorizontal,
-  Star, Heart, ChevronDown, ChevronRight, Clock, CheckCircle2,
+  Star, Heart, ChevronDown, ChevronRight, Clock, CheckCircle2, Frown, Meh, Smile,
 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
@@ -49,6 +52,15 @@ const isDue = (r: PortalRecolha) =>
 const isFuture = (r: PortalRecolha) =>
   r.status !== 'concluido' && !!r.expected_date && r.expected_date > todayISO();
 
+const NPS_CATEGORIES = [
+  { key: 'detrator', label: 'Detrator',   range: [0, 6],  icon: Frown, color: 'hsl(0 70% 55%)' },
+  { key: 'passivo',  label: 'Passivo',    range: [7, 8],  icon: Meh,   color: 'hsl(38 90% 55%)' },
+  { key: 'promotor', label: 'Promotor',   range: [9, 10], icon: Smile, color: 'hsl(150 55% 42%)' },
+] as const;
+
+const npsCategoryFor = (n: number) =>
+  NPS_CATEGORIES.find(c => n >= c.range[0] && n <= c.range[1])!;
+
 export function PortalFeedbackSection({
   feedback, feedbackText, setFeedbackText, feedbackCategory, setFeedbackCategory,
   sendFeedback, recolhas, submitNps, pc, pcAlpha,
@@ -67,9 +79,9 @@ export function PortalFeedbackSection({
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold pl-1">
             Por preencher · {due.length}
           </p>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {due.map(r => (
-              <RecolhaForm key={r.id} recolha={r} submitNps={submitNps} pc={pc} pcAlpha={pcAlpha} />
+              <RecolhaCard key={r.id} recolha={r} submitNps={submitNps} pc={pc} pcAlpha={pcAlpha} />
             ))}
           </div>
         </div>
