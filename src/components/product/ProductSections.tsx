@@ -89,7 +89,6 @@ export function ProductProcessosSection({ productSops, isOwner, productId, onUpd
 interface BackofficeSectionProps {
   usefulLinks: Array<Record<string, unknown>>;
   improvements: Array<Record<string, unknown>>;
-  productMeetings: Array<Record<string, unknown>>;
   isOwner: boolean;
   productId: string;
   onAddLink: () => void;
@@ -167,13 +166,31 @@ interface ArquivoSectionProps {
   brainstormingContent: string;
   isOwner: boolean;
   productId: string;
+  productName?: string;
+  productMeetings?: Array<Record<string, unknown>>;
   onUpdateField: (field: string, value: string) => void;
 }
 
-export function ProductArquivoSection({ productDocuments, archiveNotes, brainstormingContent, isOwner, productId, onUpdateField }: ArquivoSectionProps) {
-  const [view, setView] = useState<'gallery' | 'documentos' | 'notas' | 'brainstorming'>('gallery');
+export function ProductArquivoSection({ productDocuments, archiveNotes, brainstormingContent, isOwner, productId, productName, productMeetings = [], onUpdateField }: ArquivoSectionProps) {
+  const [view, setView] = useState<'gallery' | 'documentos' | 'notas' | 'brainstorming' | 'reunioes' | 'projetos-internos'>('gallery');
   const navigate = useNavigate();
   const [projectBrainstorms, setProjectBrainstorms] = useState<Array<{ id: string; name: string; client_name: string | null; brainstorming: string }>>([]);
+  const [internalProjectsCount, setInternalProjectsCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+    (async () => {
+      const { count } = await supabase
+        .from('projects')
+        .select('id', { count: 'exact', head: true })
+        .eq('product_id', productId)
+        .is('client_id', null)
+        .is('archived_at', null);
+      if (!cancelled) setInternalProjectsCount(count ?? 0);
+    })();
+    return () => { cancelled = true; };
+  }, [productId]);
 
   useEffect(() => {
     if (view !== 'brainstorming' || !productId) return;
@@ -272,10 +289,48 @@ export function ProductArquivoSection({ productDocuments, archiveNotes, brainsto
     );
   }
 
+  if (view === 'reunioes') {
+    return (
+      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setView('gallery')} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Voltar ao Arquivo
+          </Button>
+          <h2 className="text-lg font-semibold">Reuniões deste Produto</h2>
+          <div className="w-32" />
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <SharedMeetingsList
+              items={productMeetings as unknown as SharedMeetingItem[]}
+              emptyLabel="Sem reuniões associadas a este produto."
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (view === 'projetos-internos') {
+    return (
+      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => setView('gallery')} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Voltar ao Arquivo
+          </Button>
+          <h2 className="text-lg font-semibold">Projetos Internos</h2>
+          <div className="w-32" />
+        </div>
+        <ProductProjectsSection productId={productId} productName={productName || ''} mode="internal" />
+      </div>
+    );
+  }
+
   // Gallery
   const docCount = productDocuments.length;
   const notesPreview = (archiveNotes || '').replace(/<[^>]+>/g, '').slice(0, 80);
   const brainPreview = (brainstormingContent || '').replace(/<[^>]+>/g, '').slice(0, 80);
+  const meetingsCount = productMeetings.length;
 
   const cards = [
     {
@@ -301,6 +356,26 @@ export function ProductArquivoSection({ productDocuments, archiveNotes, brainsto
       icon: Lightbulb,
       gradient: 'from-accent-violet/10 to-accent-violet/10',
       iconColor: 'text-accent-violet dark:text-accent-violet',
+    },
+    {
+      key: 'reunioes' as const,
+      title: 'Reuniões',
+      description: meetingsCount > 0 ? `${meetingsCount} ${meetingsCount === 1 ? 'reunião' : 'reuniões'} associadas` : 'Reuniões com clientes e internas deste produto',
+      icon: Video,
+      gradient: 'from-primary/10 to-primary/10',
+      iconColor: 'text-primary dark:text-primary',
+    },
+    {
+      key: 'projetos-internos' as const,
+      title: 'Projetos Internos',
+      description: internalProjectsCount === null
+        ? 'Projetos sem cliente associados a este produto'
+        : internalProjectsCount > 0
+          ? `${internalProjectsCount} ${internalProjectsCount === 1 ? 'projeto interno' : 'projetos internos'}`
+          : 'Sem projetos internos',
+      icon: Briefcase,
+      gradient: 'from-success/10 to-success/10',
+      iconColor: 'text-success dark:text-success',
     },
   ];
 
