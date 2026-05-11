@@ -12249,6 +12249,16 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_client_portal_audit: {
+        Args: { _client_id: string }
+        Returns: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json
+        }[]
+      }
+      get_client_portal_health: { Args: { _client_id: string }; Returns: Json }
       get_portal_account_manager: {
         Args: { _token: string }
         Returns: {
@@ -12626,6 +12636,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      portal_audit_insert: {
+        Args: { _action: string; _entity_id: string; _metadata: Json }
+        Returns: undefined
+      }
       portal_confirm_meeting: {
         Args: { _meeting_id: string; _token: string }
         Returns: boolean
@@ -12662,6 +12676,11 @@ export type Database = {
           title: string
         }[]
       }
+      portal_log_download: {
+        Args: { _file_name: string; _source: string; _token: string }
+        Returns: undefined
+      }
+      portal_log_login: { Args: { _token: string }; Returns: undefined }
       portal_record_visit:
         | { Args: { _token: string }; Returns: undefined }
         | { Args: { _email?: string; _token: string }; Returns: undefined }

@@ -1,86 +1,64 @@
-## Conceito
+# Fase 4 — Downloads centralizados + Auditoria + Qualidade
 
-Cada recolha **NPS** deixa de ter uma única nota 0–10. Em vez disso, o cliente atribui uma nota 0–10 a cada **categoria temática** que **nós** definimos uma vez de forma universal (servem para qualquer produto). A nota global da recolha (a que continua a entrar nas médias e na saúde do cliente) passa a ser a **média das categorias respondidas**.
+Última fase do plano de melhoria dos portais. Foco em centralizar tudo o que é descarregável, registar auditoria das ações do cliente, e dar à equipa um único sítio para verificar saúde do portal.
 
-Cada categoria pertence a um **departamento responsável** (ex.: *Atendimento* → Relação com Clientes; *Qualidade do Produto* → Produto). Quando uma categoria é avaliada **abaixo de 7** (detrator), o portal pede um comentário apenas para essa categoria. Esses comentários são depois mostrados no respetivo departamento como sinais de melhoria.
+## 1. Downloads centralizados (cliente)
 
-O **Feedback Final** mantém o seu modelo atual (perguntas livres + nota final) — não toca aí, apenas no kind=`nps`.
+Nova secção **"Documentos"** no portal que agrega num só sítio:
+- Contratos (de `clients.contract_documents`)
+- Atas e materiais de reuniões (de `meetings.documents`)
+- Anexos de entregas visíveis (de `phase_deliverables.attachments`)
+- Ficheiros enviados em respostas a recolhas
 
----
+Cada item mostra: nome, origem (contrato/reunião/entrega), data, botão **Descarregar**.
 
-## Categorias universais (semente inicial)
+Implementação:
+- Nova RPC `get_portal_all_documents(_token)` que une as 4 fontes
+- Novo componente `PortalDownloadsSection.tsx`
+- Adicionado ao `navItems` do `PortalView` entre "Contrato" e "Histórico"
 
-```text
-Atendimento e relação        → relacao_clientes
-Clareza no processo          → relacao_clientes
-Cumprimento de prazos        → operacao
-Qualidade do produto/serviço → produto
-Resultado obtido             → produto
-Comunicação                  → relacao_clientes
-```
+## 2. Auditoria do portal
 
-Editáveis em **Definições → Recolhas de Feedback** (nova mini-secção). Adicionar/remover/desativar; cada categoria tem `key`, `label`, `department`, `sort_order`, `is_active`.
+Tabela `audit_logs` já existe. Adicionar registo automático para 5 ações via triggers:
+- `portal.session.created` (login do cliente — via novo RPC `portal_log_login`)
+- `portal.request.created` (trigger em `client_requests`)
+- `portal.meeting_prep.created` (trigger em `meeting_prep_items`)
+- `portal.feedback.submitted` (trigger em `client_feedback`)
+- `portal.document.downloaded` (RPC `portal_log_download` chamada do botão)
 
----
+Frontend interno: novo `ClientPortalAuditBlock.tsx` na tab **Gestão** do `ClienteDetail`, mostra os últimos 20 eventos do portal deste cliente, ordenados por data.
 
-## Schema
+## 3. Saúde do portal (qualidade)
 
-**Nova tabela `nps_categories`** (universal, só Owner edita)
-- `key` (slug único), `label`, `department` (enum), `sort_order`, `is_active`
+Novo bloco `ClientPortalHealthBlock.tsx` no topo da tab **Portal** do `ClienteDetail`, com 6 indicadores:
 
-**`client_nps_records` ganha:**
-- `category_scores` jsonb → `[{ key, score, comment? }, ...]`
-- `nps_score` continua a existir, mas para `kind='nps'` passa a ser **calculado automaticamente** pelo backend = média(category_scores.score) arredondada. Para `kind='feedback'` mantém-se o input direto (não muda).
+| Indicador | Verde | Amarelo | Vermelho |
+|---|---|---|---|
+| Portal ativo | sim | — | não |
+| Account Manager atribuído | sim | — | não |
+| Último acesso | < 7 dias | 7–30 dias | > 30 dias ou nunca |
+| Pedidos pendentes | 0 | 1–2 | ≥3 |
+| Recolhas/feedback em atraso | 0 | 1 | ≥2 |
+| Onboarding (perguntas iniciais) | 100% | 1–99% | 0% |
 
-Backfill: registos antigos `kind='nps'` ficam com `category_scores=null` e `nps_score` original — não rebenta nada.
+RPC `get_client_portal_health(_client_id)` calcula tudo server-side com `SECURITY DEFINER`.
 
----
+## Detalhes técnicos
 
-## RPCs
+**Migração SQL** (uma só):
+1. RPC `get_portal_all_documents(_token uuid)` — `SECURITY DEFINER`, valida portal ativo, retorna `jsonb[]` com `{name, url, source, source_label, created_at}`
+2. RPC `portal_log_login(_token uuid)` — chamada após sucesso de OTP
+3. RPC `portal_log_download(_token uuid, _file_name text, _source text)` — chamada do botão de download
+4. Triggers `AFTER INSERT` em `client_requests`, `meeting_prep_items`, `client_feedback` que inserem em `audit_logs` com `entity_type='portal'`
+5. RPC `get_client_portal_audit(_client_id uuid)` — admin only, retorna últimos 50 eventos
+6. RPC `get_client_portal_health(_client_id uuid)` — admin only, retorna estrutura agregada
 
-- `portal_get_recolhas` → devolve também `categories` (lista universal ativa) só nos registos `por_fazer` `kind='nps'`, e `category_scores` nos concluídos.
-- `portal_submit_nps` → para `kind='nps'`, deixa de aceitar `_score` direto e passa a aceitar `_category_scores jsonb` (validação: pelo menos 1 categoria respondida, scores 0–10). Calcula `nps_score = round(avg)`. Para `kind='feedback'` mantém a assinatura atual.
+**Frontend**:
+- `src/components/portal-view/PortalDownloadsSection.tsx` (novo)
+- `src/components/clients/ClientPortalAuditBlock.tsx` (novo)
+- `src/components/clients/ClientPortalHealthBlock.tsx` (novo)
+- `src/pages/PortalView.tsx` (adicionar item nav + render + chamar `portal_log_login` no `init`)
+- `src/pages/PortalAuth.tsx` (chamar `portal_log_login` após sucesso de OTP)
+- `src/pages/ClienteDetail.tsx` (montar os 2 blocos novos nas tabs)
 
----
-
-## Portal (PortalFeedbackSection)
-
-Dialog do NPS é redesenhado:
-- Cabeçalho com título da recolha
-- **Lista de categorias**, cada uma com label, descrição curta opcional e seletor 0–10 (mesmo agrupamento Detrator/Passivo/Promotor já implementado, em formato compacto inline)
-- Quando uma categoria recebe score ≤ 6, expande **textarea inline** "O que correu menos bem em *X*?" (obrigatório para submeter)
-- Resumo no fundo: "Nota global desta recolha: **8.3**"
-- Botão Enviar
-
-Feedback Final: zero alterações.
-
----
-
-## Médias e saúde (impacto)
-
-- **Saúde do cliente, médias por produto, cockpit, ClientesAnalise, ProductMetricsTab** — continuam a ler `nps_score` → **nada muda** porque o backend grava a média lá.
-- **Novas vistas por categoria/departamento** (entregue só onde fizer sentido, sem rebuild dos dashboards):
-  - **Relação com Clientes (`/hub/clientes/analise`)**: novo bloco "Sinais por categoria" → médias e comentários abertos das categorias com `department='relacao_clientes'` nos últimos 90 dias.
-  - **Produto (página do produto, aba Métricas)**: novo bloco "Avaliação por categoria" → médias por categoria limitadas às categorias `department='produto'` para esse produto.
-  - **Operação**: já tem analytics próprias; deixar este passo para depois (não no scope agora) para evitar bloat.
-
----
-
-## Out of scope nesta passagem
-
-- Edição inline das categorias por produto (mantém-se universal)
-- Dashboards executivos novos
-- Permissões de quem vê comentários (assume-se: equipa toda na fase de teste)
-
----
-
-## Passos de implementação (técnico)
-
-1. **Migration**: criar `nps_categories`, RLS (Owner R/W; equipa só read), seed inicial; adicionar `category_scores` a `client_nps_records`.
-2. **RPCs**: atualizar `portal_get_recolhas` e `portal_submit_nps`; trigger/função para calcular `nps_score` na submissão.
-3. **Tipos**: estender `PortalRecolha` em `src/types/portal.ts` com `categories` e `category_scores`.
-4. **Portal Dialog**: redesenhar para múltiplas categorias + comentário condicional (≤6).
-5. **Definições**: nova mini-secção em `src/components/settings/SettingsRecolhas.tsx` (ou similar) para editar a lista universal.
-6. **Análises**: pequenos blocos em ClientesAnalise e ProductMetricsTab a ler agregados de `category_scores`.
-
-Quando aprovares, executo este plano por esta ordem.
+Sem mudanças destrutivas: tudo são novas RPCs, novo componente e triggers idempotentes. Os portais existentes continuam a funcionar exatamente como antes; ganham apenas a nova secção "Documentos" e auditoria silenciosa.
