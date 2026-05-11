@@ -593,7 +593,7 @@ export default function PortalViewPage() {
                       >
                         <div className="flex items-center gap-2 mb-1">
                           <Sparkles className="h-3.5 w-3.5" style={{ color: pc }} />
-                          <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: pc }}>Próximo passo</span>
+                          <span className="eyebrow font-bold" style={{ color: pc }}>Próximo passo</span>
                         </div>
                         <p className="text-sm font-semibold">{effectiveNextStep.name}</p>
                         <div className="flex items-center gap-3 mt-1.5">
@@ -630,7 +630,7 @@ export default function PortalViewPage() {
                             onClick={() => setExpandedOnbStep(phase.id)}
                           >
                             <div className="p-4 flex flex-col items-center text-center">
-                              <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Fase</span>
+                              <span className="eyebrow font-medium text-muted-foreground">Fase</span>
                               <span className="text-3xl font-black mt-0.5" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc }}>
                                 {i + 1}
                               </span>
@@ -926,7 +926,7 @@ export default function PortalViewPage() {
                         onClick={() => setExpandedOnbStep(phase.id)}
                       >
                         <div className="p-5 flex flex-col items-center text-center">
-                          <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Fase</span>
+                          <span className="eyebrow font-medium text-muted-foreground">Fase</span>
                           <span className="text-4xl font-black mt-0.5" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc }}>
                             {i + 1}
                           </span>

@@ -40,8 +40,8 @@ export function KanbanColumn({
   React.useEffect(() => { setLabelDraft(group.label); }, [group.label]);
 
   return (
-    <div className="space-y-0 shadow-md rounded-lg overflow-hidden">
-      <div className={cn('flex items-center justify-between px-3 py-3', group.headerBg)}>
+    <div className="space-y-0 rounded-md overflow-hidden border-2 border-primary/25">
+      <div className={cn('flex items-center justify-between px-3 py-2 border-b-2 border-primary/25', group.headerBg)}>
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {editingLabel && isOwner && onRenameGroup ? (
             <input
@@ -63,17 +63,17 @@ export function KanbanColumn({
                   setEditingLabel(false);
                 }
               }}
-              className={cn('text-xs font-semibold bg-transparent outline-none border-b border-current/40 w-full min-w-0', group.headerText)}
+              className={cn('font-typewriter text-[11px] uppercase tracking-[0.2em] bg-transparent outline-none border-b border-current/40 w-full min-w-0', group.headerText)}
             />
           ) : (
             <button
               type="button"
               disabled={!isOwner || !onRenameGroup}
               onClick={() => isOwner && onRenameGroup && setEditingLabel(true)}
-              className={cn('text-xs font-semibold truncate text-left', group.headerText, isOwner && onRenameGroup && 'hover:underline cursor-pointer')}
+              className={cn('font-typewriter text-[11px] uppercase tracking-[0.2em] truncate text-left', group.headerText, isOwner && onRenameGroup && 'hover:underline cursor-pointer')}
               title={isOwner && onRenameGroup ? 'Clica para renomear' : undefined}
             >
-              // {group.label}
+              {group.label}
             </button>
           )}
         </div>
@@ -108,13 +108,13 @@ export function KanbanColumn({
               <ChevronRightIcon className="h-3.5 w-3.5" />
             </button>
           )}
-          <span className={cn('text-xs font-semibold ml-1', group.headerText)}>{items.length}</span>
+          <span className={cn('font-display italic text-base ml-1', group.headerText)}>{items.length}</span>
         </div>
       </div>
       <div
         ref={setNodeRef}
         className={cn(
-          'space-y-0 bg-muted/5 border-x border-b rounded-b-lg min-h-[60px] transition-colors',
+          'space-y-0 bg-card min-h-[60px] transition-colors',
           isOver && 'bg-primary/5 ring-1 ring-primary/30'
         )}
       >
@@ -153,7 +153,7 @@ export function KanbanColumn({
             </div>
           ) : (
             <button
-              className={cn('w-full text-left px-3 py-4 text-sm hover:bg-muted/30 transition-colors', group.addColor)}
+              className={cn('w-full text-left px-3 py-3 font-typewriter text-[11px] uppercase tracking-[0.18em] hover:bg-secondary/30 transition-colors border-t border-primary/15', group.addColor)}
               onClick={() => setAddingToGroup(group.key)}
             >
               + New page
