@@ -1,86 +1,70 @@
+# Redesenhar /executive/planeamento
+
 ## Objetivo
+Tirar a "Cascata Estratégico → Tático → Operacional" como protagonista da página e substituir por uma estrutura **por horizonte temporal** com **dashboard de progresso** e edição em **painel lateral**. A parte estratégica (Identidade, SWOT, Diretrizes 3-5 anos) **fica no topo, colapsada** por defeito.
 
-Resolver dívida técnica no sistema de planeamento sem adicionar funcionalidades. Consolidar fontes de verdade, remover duplicação e formalizar accountability.
+## O que muda visualmente
 
-## Ordem de execução (segura → arriscada)
-
-### Passo 1 — Normalizar `planning_goals.period` (base de dados)
-
-Migration que converte valores legacy para o formato canónico:
-- Trimestre: `T1..T4` → `Q1..Q4`
-- Mês: `Janeiro..Dezembro` → `YYYY-MM` (usar `year` da row para o YYYY)
-- Adicionar check soft (validação por trigger, não CHECK constraint, para permitir formatos `Q[1-4]`, `S[1-2]`, `YYYY`, `YYYY-MM`)
-
-Atualizar hooks que filtram/escrevem `period`:
-- `usePlanningData.tsx` (linha ~265, gerar `period` no novo formato em vez de "Janeiro")
-- `MonthlyCockpit` blocks que leem por mês
-- `AreaPeriodDetail`, `MarketingAnalise`, `FinGoals`
-
-### Passo 2 — Adicionar `owner_id` a `executive_objectives`
-
-Migration aditiva:
-```sql
-ALTER TABLE executive_objectives
-  ADD COLUMN owner_id uuid REFERENCES team_members(id) ON DELETE SET NULL;
-```
-UI:
-- `ObjectiveDetailSheet`: dropdown "Responsável" (lista `team_members`)
-- `ObjectiveCascadeRow` / cockpit / Weekly Align: avatar do responsável (fallback CEO se null)
-
-### Passo 3 — Sincronização Marketing/Financeiro ↔ Planning
-
-Em vez de edge functions, usar **triggers PL/pgSQL bidirecionais** (mais simples, atómicos):
-- `sync_planning_to_marketing()`: AFTER INSERT/UPDATE em `planning_goals` WHERE area='marketing' → upsert em `marketing_goals`
-- `sync_marketing_to_planning()`: AFTER INSERT/UPDATE em `marketing_goals` → upsert em `planning_goals` area='marketing'
-- Guard `pg_trigger_depth() = 1` para evitar loops
-- Idem para financeiro
-
-### Passo 4 — Consolidar `PlaneamentoDepartamento`
-
-Refactor `src/pages/PlaneamentoDepartamento.tsx`:
-- Apagar markup duplicado
-- Compor componentes existentes do Executive Tatico filtrados por `area = dept`:
-  - `ObjectiveCascadeRow` (read-only, sem botões de edit)
-  - Lista `planning_goals` da área (mensais + trimestrais)
-  - Lista `objective_actions` da área
-- Novo campo editável `notes` em `planning_goals` (membro da área pode editar)
-- Migration: `ALTER TABLE planning_goals ADD COLUMN notes text;` + RLS update
-
-### Passo 5 — Departamentos vazios
-
-`/planeamento/dep/{operacao,clientes,produtos,equipa}`: passam a usar o mesmo componente refatorado do passo 4. Estado vazio com CTA → `/executive/planeamento/tatico`.
-
-### Passo 6 — Weekly Align ligado ao planeamento
-
-`WeeklyAlignSections.tsx` secção "Metas":
-- Inline: lista `planning_goals` do mês corrente com progresso e semáforo
-- Botão "Marcar em risco" por meta → atualiza `status='em_risco'` + abre textarea para `deviation_decision`
-- Campo `deviation_decision` editável também no `MonthlyCockpit` BlockObjetivos quando status ∈ {em_risco, nao_atingido}
-
-### Passo 7 — Limpar redirects legacy
-
-`rg` para cada rota antiga, atualizar links internos para a rota nova. Manter o `<Route>` de redirect em `App.tsx` com comentário:
-```tsx
-{/* Legacy redirect — manter para bookmarks externos. Não usar em novos links. */}
+```text
+/executive/planeamento  (ano em destaque)
+├── 🧭 Estratégia (3-5 anos)       ← acordeão fechado por defeito
+│     Identidade · SWOT · Diretrizes (já existente, embebido)
+│
+├── 📊 Pulse do ano                 ← cards de KPI no topo (mantém)
+│     Objetivos · Progresso médio · Metas atingidas · Cobertura · Desvios
+│
+├── 🗓️ Horizontes do ano            ← NOVO — substitui a cascata
+│     ┌─────────┬─────────┬─────────┬─────────┐
+│     │   T1    │   T2    │   T3    │   T4    │  cards trimestrais com %
+│     └─────────┴─────────┴─────────┴─────────┘
+│     Cada T abre uma faixa com 3 mini-cards (meses) — % e nº de metas
+│
+├── 🎯 Objetivos anuais             ← NOVO — lista visível, editável
+│     Tabela/cards com: título, área, progresso, status, próximo marco
+│     Botão "+ Novo objetivo" → abre Sheet
+│     Clicar num objetivo → abre Sheet de detalhe (já existe)
+│
+└── 🧩 Cobertura por área           ← mantém (já bom)
+      Grid 8 áreas com % e alertas
 ```
 
-### Passo 8 — Remover `executive_goals`
+## Mudanças por ficheiro
 
-1. `rg "executive_goals"` confirma só referências em migrations + types + edge functions de backup/reset (que iteram tabelas dinamicamente — OK)
-2. Migration: `DROP TABLE IF EXISTS public.executive_goals CASCADE;`
-3. types.ts regenera-se sozinho
+### `src/components/planning/PlanningOverviewView.tsx` (refazer)
+- **Remover** o bloco "Cascata de Planeamento" com 3 botões coloridos (Estratégico/Tático/Operacional).
+- **Adicionar** novo bloco `HorizonsView`:
+  - 4 cards trimestrais (T1–T4) com % média de progresso das metas desse trimestre, nº de metas e estado (em curso / atingido / atrasado).
+  - Cada T expansível para mostrar os 3 meses → cada mês com link para `/executive/planeamento/operacional?ano=Y&mes=M`.
+- **Manter** o bloco "Cobertura por Área" tal como está.
 
-## Notas de risco
+### `src/components/planning/AnnualObjectivesBoard.tsx` (NOVO)
+- Lista todos os objetivos do ano em cards/linhas com inline progress bar.
+- Botão "+ Novo objetivo" abre `ObjectiveDetailSheet` em modo create.
+- Clicar abre o `ObjectiveDetailSheet` existente em modo edit.
+- Filtros simples: por área, por status.
 
-- Triggers bidirecionais: testar com um INSERT manual depois de aplicar
-- Normalização de `period`: rodar dentro de uma transaction, manter coluna `period_type` populada para retrocompat até nova UI estabilizar
-- `PlaneamentoDepartamento`: garantir que membros sem permissão ainda veem (RLS já cobre via `has_role`)
+### `src/pages/ExecutivePlaneamento.tsx`
+- Acima do Pulse, **novo** acordeão "Estratégia (3-5 anos)" — `<Collapsible defaultOpen={false}>` que embebe `<StrategicSection />`.
+- Manter Pulse cards.
+- Substituir o conteúdo abaixo: `HorizonsView` → `AnnualObjectivesBoard` → `AreaCoverage`.
+- Manter os links discretos para `/executive/planeamento/estrategico|tatico|operacional` (passam a ser "Ver detalhe" no canto de cada secção, em vez de protagonistas).
 
-## Entregáveis
+### `src/components/planning/ObjectiveDetailSheet.tsx`
+- Já existe e usa Sheet. Garantir que abre com `id=null` para criar (verificar e expor um modo "novo").
 
-- ~5 migrations (period, owner_id, sync triggers, notes, drop executive_goals)
-- Refactor de `PlaneamentoDepartamento.tsx` (167 → ~60 linhas)
-- Updates em `WeeklyAlignSections`, `MonthlyCockpit`, `ObjectiveDetailSheet`, `usePlanningData`
-- Memory update referenciando nova source-of-truth única (`planning_goals`)
+## Dados (sem migração)
+- Tudo já está em `usePlanningData(year)`: `allObjectives`, `allGoals`, `objectiveProgress`.
+- Trimestres derivam-se filtrando `goals` por `period ∈ {Q1..Q4, T1..T4}` ou pelos meses Jan-Mar/Abr-Jun/etc.
+- Sem alterações de schema.
 
-Pretendes que avance com tudo de uma vez, ou preferes que pare a meio (ex.: depois do passo 3) para validares antes de continuar?
+## Detalhes técnicos
+- Acordeão estratégico: `<Collapsible>` do shadcn, fechado por defeito; chevron + label "Estratégia 3-5 anos · clica para abrir".
+- Cards trimestrais: grid `lg:grid-cols-4`, cada card com header (T1 · Jan-Mar), `<Progress>` e badge de status. Click expande inline (não navega).
+- `AnnualObjectivesBoard`: usa `<Card>` com tabela de cards verticais (não tabela HTML densa) — alinhado com estética matte ceramic.
+- Sheet de edição: reutiliza o `ObjectiveDetailSheet` já existente (sem novo componente).
+- Sem mudanças nas sub-páginas `/estrategico`, `/tatico`, `/operacional` — passam a ser navegação secundária acessível por links discretos.
+
+## Fora de scope
+- Não mexer nas sub-páginas estratégico/tático/operacional (continuam acessíveis).
+- Sem mudanças de DB.
+- Sem mudanças no `usePlanningData`.
