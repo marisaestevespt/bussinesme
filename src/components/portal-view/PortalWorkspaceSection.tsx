@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { format, parseISO, isAfter, differenceInCalendarDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { Briefcase, FileText, FolderOpen, Download, CheckCircle2, Circle, ListChecks, Layers, Package, Search, Clock, AlertCircle } from 'lucide-react';
+import { Briefcase, FileText, FolderOpen, Download, CheckCircle2, Circle, Layers, Package, Search, Clock, AlertCircle, UserCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
@@ -47,31 +47,48 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
     return allItems.filter(i => i.label.toLowerCase().includes(q));
   }, [allItems, matQuery]);
 
-  // Tasks filter
+  // Entregas do cliente: deliverables com responsible_type='cliente', agregados de todas as fases
+  const clientDeliverables = useMemo(() => {
+    const items: Array<{ id: string; name: string; status: string; planned_end: string | null; phase_name: string }> = [];
+    phases.forEach((p) => {
+      const dels = Array.isArray(p.deliverables) ? p.deliverables : [];
+      dels.forEach((d: any) => {
+        if ((d.responsible_type || 'equipa') !== 'cliente') return;
+        items.push({
+          id: d.id,
+          name: d.name,
+          status: d.status,
+          planned_end: d.planned_end || null,
+          phase_name: p.title || p.name || '',
+        });
+      });
+    });
+    return items;
+  }, [phases]);
+
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('pendentes');
   const taskCounts = useMemo(() => {
-    const c = { pendentes: 0, concluidas: 0, todas: tasks.length };
-    tasks.forEach(t => {
-      if (t.status === 'concluida') c.concluidas++;
+    const c = { pendentes: 0, concluidas: 0, todas: clientDeliverables.length };
+    clientDeliverables.forEach((d) => {
+      if (d.status === 'concluido') c.concluidas++;
       else c.pendentes++;
     });
     return c;
-  }, [tasks]);
+  }, [clientDeliverables]);
 
   const filteredTasks = useMemo(() => {
-    const sorted = [...tasks].sort((a, b) => {
-      // Pending first, then by due_date asc, undated last
-      const ad = a.status === 'concluida' ? 1 : 0;
-      const bd = b.status === 'concluida' ? 1 : 0;
+    const sorted = [...clientDeliverables].sort((a, b) => {
+      const ad = a.status === 'concluido' ? 1 : 0;
+      const bd = b.status === 'concluido' ? 1 : 0;
       if (ad !== bd) return ad - bd;
-      const at = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
-      const bt = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+      const at = a.planned_end ? new Date(a.planned_end).getTime() : Number.POSITIVE_INFINITY;
+      const bt = b.planned_end ? new Date(b.planned_end).getTime() : Number.POSITIVE_INFINITY;
       return at - bt;
     });
-    if (taskFilter === 'pendentes') return sorted.filter(t => t.status !== 'concluida');
-    if (taskFilter === 'concluidas') return sorted.filter(t => t.status === 'concluida');
+    if (taskFilter === 'pendentes') return sorted.filter(d => d.status !== 'concluido');
+    if (taskFilter === 'concluidas') return sorted.filter(d => d.status === 'concluido');
     return sorted;
-  }, [tasks, taskFilter]);
+  }, [clientDeliverables, taskFilter]);
 
   return (
     <div className="space-y-8">
