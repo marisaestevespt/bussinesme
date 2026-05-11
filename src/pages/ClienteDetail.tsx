@@ -1039,6 +1039,24 @@ function ClienteDetailPageInner() {
           <EntityProperty icon={MapPin} label="Morada Fiscal">
             <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} className={inlineInputClass} placeholder="—" />
           </EntityProperty>
+          <EntityProperty icon={User} label="Responsável">
+            <Select
+              value={(form as any).account_manager_id || 'none'}
+              onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
+            >
+              <SelectTrigger className={cn(inlineTriggerClass, '[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0')}>
+                <SelectValue placeholder="Sem responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem responsável</SelectItem>
+                {activeTeamMembers.map(m => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.full_name}{m.role_title ? ` · ${m.role_title}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </EntityProperty>
         </EntityProperties>
 
         {/* Observações */}
@@ -1263,29 +1281,6 @@ function ClienteDetailPageInner() {
             {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
             {/* Portal Health */}
             {!isNew && form.id && <ClientPortalHealthBlock clientId={form.id} />}
-            {/* Account Manager */}
-            <EntitySection title="Account Manager" icon={User}>
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Membro responsável pela relação com este cliente</Label>
-                <Select
-                  value={(form as any).account_manager_id || 'none'}
-                  onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sem account manager" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sem account manager</SelectItem>
-                    {activeTeamMembers.map(m => (
-                      <SelectItem key={m.id} value={m.id}>
-                        {m.full_name}{m.role_title ? ` · ${m.role_title}` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-muted-foreground">Aparece destacado no portal do cliente como ponto de contacto e recebe notificações de feedbacks, pedidos e NPS.</p>
-              </div>
-            </EntitySection>
             {/* Meetings */}
             <EntitySection
               title={sectorConfig.t('reunioes')}
