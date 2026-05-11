@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, ExternalLink, FileText, Shield, Sparkles, Quote, Megaphone } from 'lucide-react';
 import { useDeleteWithConfirm } from '@/hooks/useDeleteWithConfirm';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Benefit       = { title: string; description: string };
 type Material      = { name: string; url: string; type: string };
@@ -34,17 +34,13 @@ export function ProductSalesKitSection({
   const removeAt = <T,>(arr: T[], i: number): T[] => arr.filter((_, idx) => idx !== i);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+    <Accordion type="multiple" defaultValue={["pitch"]} className="w-full rounded-xl border border-border/60 bg-card divide-y divide-border/60 animate-in fade-in slide-in-from-top-2 duration-200">
 
-      {/* ─── Apresentação + Pitch ──────────────────────────────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Megaphone className="h-4 w-4 text-primary" />
-            Apresentação Comercial
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <AccordionItem value="pitch" className="border-b-0 px-4">
+        <AccordionTrigger className="text-sm font-semibold hover:no-underline">
+          <span className="flex items-center gap-2"><Megaphone className="h-4 w-4 text-primary" /> Apresentação Comercial</span>
+        </AccordionTrigger>
+        <AccordionContent className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label className="text-xs">Link da apresentação (Google Slides, PDF, etc.)</Label>
             <div className="flex gap-2">
@@ -73,23 +69,19 @@ export function ProductSalesKitSection({
               disabled={!isOwner}
             />
           </div>
-        </CardContent>
-      </Card>
+        </AccordionContent>
+      </AccordionItem>
 
-      {/* ─── Benefícios ────────────────────────────────────────── */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Sparkles className="h-4 w-4 text-success" />
-            Benefícios para destacar
-          </CardTitle>
+      <AccordionItem value="benefits" className="border-b-0 px-4">
+        <AccordionTrigger className="text-sm font-semibold hover:no-underline">
+          <span className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-success" /> Benefícios para destacar <span className="text-xs text-muted-foreground font-normal">({benefits.length})</span></span>
+        </AccordionTrigger>
+        <AccordionContent className="space-y-3 pt-2">
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_benefits', [...benefits, { title: '', description: '' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
             </Button>
           )}
-        </CardHeader>
-        <CardContent className="space-y-3">
           {benefits.length === 0 && <p className="text-xs text-muted-foreground">Sem benefícios definidos.</p>}
           {benefits.map((b, i) => (
             <div key={i} className="grid grid-cols-[1fr_2fr_auto] gap-2 items-start">
@@ -106,23 +98,19 @@ export function ProductSalesKitSection({
               )}
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </AccordionContent>
+      </AccordionItem>
 
-      {/* ─── Materiais (links/PDFs) ────────────────────────────── */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="h-4 w-4 text-primary" />
-            Materiais de apoio
-          </CardTitle>
+      <AccordionItem value="materials" className="border-b-0 px-4">
+        <AccordionTrigger className="text-sm font-semibold hover:no-underline">
+          <span className="flex items-center gap-2"><FileText className="h-4 w-4 text-primary" /> Materiais de apoio <span className="text-xs text-muted-foreground font-normal">({materials.length})</span></span>
+        </AccordionTrigger>
+        <AccordionContent className="space-y-3 pt-2">
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_materials', [...materials, { name: '', url: '', type: 'link' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
             </Button>
           )}
-        </CardHeader>
-        <CardContent className="space-y-3">
           {materials.length === 0 && <p className="text-xs text-muted-foreground">Sem materiais.</p>}
           {materials.map((m, i) => (
             <div key={i} className="grid grid-cols-[1fr_1fr_2fr_auto_auto] gap-2 items-center">
@@ -146,23 +134,19 @@ export function ProductSalesKitSection({
               )}
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </AccordionContent>
+      </AccordionItem>
 
-      {/* ─── Objeções ──────────────────────────────────────────── */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Shield className="h-4 w-4 text-warning" />
-            Perguntas e Objeções de Venda
-          </CardTitle>
+      <AccordionItem value="objections" className="border-b-0 px-4">
+        <AccordionTrigger className="text-sm font-semibold hover:no-underline">
+          <span className="flex items-center gap-2"><Shield className="h-4 w-4 text-warning" /> Perguntas e Objeções <span className="text-xs text-muted-foreground font-normal">({objections.length})</span></span>
+        </AccordionTrigger>
+        <AccordionContent className="space-y-3 pt-2">
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_objections', [...objections, { objection: '', response: '' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
             </Button>
           )}
-        </CardHeader>
-        <CardContent className="space-y-3">
           {objections.length === 0 && <p className="text-xs text-muted-foreground">Sem objeções registadas.</p>}
           {objections.map((o, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto] gap-2 items-start border border-border/50 rounded-md p-3">
@@ -181,23 +165,19 @@ export function ProductSalesKitSection({
               )}
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </AccordionContent>
+      </AccordionItem>
 
-      {/* ─── Casos de sucesso ──────────────────────────────────── */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Quote className="h-4 w-4 text-accent-violet" />
-            Casos de sucesso / testemunhos
-          </CardTitle>
+      <AccordionItem value="cases" className="border-b-0 px-4">
+        <AccordionTrigger className="text-sm font-semibold hover:no-underline">
+          <span className="flex items-center gap-2"><Quote className="h-4 w-4 text-accent-violet" /> Casos de sucesso <span className="text-xs text-muted-foreground font-normal">({caseStudies.length})</span></span>
+        </AccordionTrigger>
+        <AccordionContent className="space-y-3 pt-2">
           {isOwner && (
             <Button size="sm" variant="outline" onClick={() => onUpdate('sales_case_studies', [...caseStudies, { client: '', result: '', description: '' }])}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
             </Button>
           )}
-        </CardHeader>
-        <CardContent className="space-y-3">
           {caseStudies.length === 0 && <p className="text-xs text-muted-foreground">Sem casos.</p>}
           {caseStudies.map((c, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto] gap-2 items-start border border-border/50 rounded-md p-3">
@@ -218,8 +198,8 @@ export function ProductSalesKitSection({
               )}
             </div>
           ))}
-        </CardContent>
-      </Card>
-    </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }
