@@ -113,7 +113,7 @@ export function PortalQuestionsSection(props: Props) {
   if (view === 'intro') {
     const firstName = (client?.full_name || '').trim().split(/\s+/)[0] || '';
     return (
-      <div className="relative min-h-[70vh] flex items-center justify-center px-4 overflow-hidden rounded-3xl border border-border/40">
+      <div className="relative flex items-center justify-center px-4 overflow-hidden rounded-3xl border border-border/40 min-h-[calc(100vh-12rem)] sm:min-h-[calc(100vh-10rem)]">
         {/* Background ambient glow */}
         <div
           aria-hidden
@@ -131,7 +131,7 @@ export function PortalQuestionsSection(props: Props) {
           }}
         />
 
-        <div className="relative max-w-xl w-full text-center space-y-7 py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="relative max-w-xl w-full text-center space-y-6 py-10 sm:py-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 border bg-card/60 backdrop-blur" style={{ borderColor: pcAlpha(0.3), color: pc }}>
             <Sparkles className="h-3.5 w-3.5" />
             <span className="text-[11px] uppercase tracking-[0.18em] font-semibold">Perguntas iniciais</span>
