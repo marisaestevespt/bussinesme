@@ -47,6 +47,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         primary_metric_id: obj.primary_metric_id || '',
         source_filter: obj.source_filter || {},
         contribui_visao_5_anos: !!obj.contribui_visao_5_anos,
+        owner_id: obj.owner_id || '',
       });
       setEditing(false);
     }
@@ -126,6 +127,17 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                   </Select>
                 </div>
                 <div><Label>Data limite</Label><Input type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} /></div>
+                <div><Label>Responsável</Label>
+                  <Select value={form.owner_id || '__ceo__'} onValueChange={v => set('owner_id', v === '__ceo__' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="CEO (por defeito)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__ceo__">CEO (por defeito)</SelectItem>
+                      {(useTeamData().teamMembers.data || []).map((m: any) => (
+                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               {form.objective_type === 'quantitativo' && (
                 <>
