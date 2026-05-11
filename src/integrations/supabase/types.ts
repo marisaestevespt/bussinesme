@@ -1979,6 +1979,70 @@ export type Database = {
           },
         ]
       }
+      client_requests: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          message: string | null
+          project_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           account_manager_id: string | null
@@ -5860,6 +5924,44 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_prep_items: {
+        Row: {
+          author_label: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          meeting_id: string
+          source: string
+        }
+        Insert: {
+          author_label?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_id: string
+          source?: string
+        }
+        Update: {
+          author_label?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_prep_items_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
         ]
@@ -12207,6 +12309,18 @@ export type Database = {
           id: string
         }[]
       }
+      get_portal_client_requests: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          id: string
+          message: string
+          resolved_at: string
+          source: string
+          status: string
+          title: string
+        }[]
+      }
       get_portal_comments: {
         Args: { _token: string }
         Returns: {
@@ -12285,6 +12399,16 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_portal_meeting_prep_items: {
+        Args: { _meeting_id: string; _token: string }
+        Returns: {
+          author_label: string
+          content: string
+          created_at: string
+          id: string
+          source: string
+        }[]
       }
       get_portal_meetings: {
         Args: { _token: string }
@@ -12473,6 +12597,15 @@ export type Database = {
         Args: { _meeting_id: string; _notes: string; _token: string }
         Returns: boolean
       }
+      portal_add_meeting_prep_item: {
+        Args: {
+          _author_label: string
+          _content: string
+          _meeting_id: string
+          _token: string
+        }
+        Returns: string
+      }
       portal_answer_initial_question: {
         Args: {
           _answer: string
@@ -12484,6 +12617,14 @@ export type Database = {
       }
       portal_confirm_meeting: {
         Args: { _meeting_id: string; _token: string }
+        Returns: boolean
+      }
+      portal_create_client_request: {
+        Args: { _message: string; _title: string; _token: string }
+        Returns: string
+      }
+      portal_delete_meeting_prep_item: {
+        Args: { _item_id: string; _token: string }
         Returns: boolean
       }
       portal_email_allowed: {
