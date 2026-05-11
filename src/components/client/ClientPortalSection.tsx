@@ -341,7 +341,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
               className="text-sm"
             />
             <p className="text-xs text-muted-foreground/70">
-              Aparece no fundo do portal — para dar uma vibe à experiência do cliente.
+              Sobrepõe a playlist definida no produto. Deixa em branco para usar a do produto.
             </p>
           </div>
 
