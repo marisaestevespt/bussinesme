@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, ExternalLink, X, FileText, Pencil } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, FileText, Pencil, Megaphone, Workflow, Zap, Target, Newspaper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { ProductTabHeader } from './_shared';
+import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
 
 interface MarketingPage {
   id: string;
