@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator } from 'lucide-react';
+import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator, Wallet } from 'lucide-react';
+import { ProductTabHeader } from './_shared';
 import { SharedMeetingsList, type SharedMeetingItem } from '@/components/shared/SharedMeetingsList';
 
 import { useNavigate } from 'react-router-dom';
@@ -356,15 +357,16 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
   const [simOpen, setSimOpen] = useState(false);
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
-      <div className="flex items-center justify-between rounded-lg border bg-muted/10 p-3">
-        <div>
-          <h3 className="text-sm font-semibold">Simular orçamento</h3>
-          <p className="text-xs text-muted-foreground">Testa a Calculadora de Orçamento sem ligar a lead/cliente — útil para validar a configuração da Oferta.</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => setSimOpen(true)}>
-          <Calculator className="h-4 w-4 mr-1" /> Simular
-        </Button>
-      </div>
+      <ProductTabHeader
+        icon={Wallet}
+        title="Contabilidade & Pricing"
+        description="Preços, descontos por volume, custos diretos, taxa de IVA e dados de faturação. Tudo o que afeta a margem deste produto."
+        actions={
+          <Button variant="outline" size="sm" onClick={() => setSimOpen(true)}>
+            <Calculator className="h-4 w-4 mr-1.5" /> Simular orçamento
+          </Button>
+        }
+      />
       {productId && (
         <PricingWorkspace
           productId={productId}
