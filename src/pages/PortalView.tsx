@@ -576,7 +576,7 @@ export default function PortalViewPage() {
                     <p className="text-sm text-muted-foreground">Ainda sem fases definidas.</p>
                   </SectionCard>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-6">
                     {/* Next step highlight */}
                     {effectiveNextStep && (
                       <SectionCard
