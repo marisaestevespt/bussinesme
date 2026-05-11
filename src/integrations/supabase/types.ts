@@ -2758,6 +2758,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "content_item_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "content_item_comments_content_item_id_fkey"
             columns: ["content_item_id"]
             isOneToOne: false
@@ -3263,7 +3270,15 @@ export type Database = {
           label_name?: string
           pipeline_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_pipeline_labels_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "crm_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_pipeline_leads: {
         Row: {
@@ -3825,7 +3840,15 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dismissed_ceo_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       edge_function_runs: {
         Row: {
