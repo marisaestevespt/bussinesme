@@ -18,6 +18,10 @@ import { template as ownerDigest } from './owner-digest.tsx'
 import { template as memberDigest } from './member-digest.tsx'
 import { template as ownerEodDigest } from './owner-eod-digest.tsx'
 import { template as memberEodDigest } from './member-eod-digest.tsx'
+import { template as clientMeetingScheduled } from './client-meeting-scheduled.tsx'
+import { template as clientFeedbackRequest } from './client-feedback-request.tsx'
+import { template as teamClientRequest } from './team-client-request.tsx'
+import { template as teamMeetingPrepTopic } from './team-meeting-prep-topic.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome-client': welcomeClient,
@@ -29,4 +33,8 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'member-digest': memberDigest,
   'owner-eod-digest': ownerEodDigest,
   'member-eod-digest': memberEodDigest,
+  'client-meeting-scheduled': clientMeetingScheduled,
+  'client-feedback-request': clientFeedbackRequest,
+  'team-client-request': teamClientRequest,
+  'team-meeting-prep-topic': teamMeetingPrepTopic,
 }
