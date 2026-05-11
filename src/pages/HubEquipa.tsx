@@ -183,23 +183,29 @@ export default function HubEquipaPage() {
   const firstName = profile?.full_name?.split(' ')[0] || '';
   const todayLabel = format(new Date(), "EEEE, d 'de' MMMM", { locale: pt });
 
-  const { data: brand } = useQuery({
-    queryKey: ['business-settings-brand-quotes'],
+  const { data: brandExpressions = [] } = useQuery({
+    queryKey: ['hub-brand-expressions'],
     queryFn: async () => {
       const { data } = await supabase
-        .from('business_settings')
-        .select('mission, vision, proposta_unica_valor')
-        .limit(1)
-        .maybeSingle();
-      return data;
+        .from('brand_kanban_items')
+        .select('content')
+        .ilike('title', '%express%');
+      const all: string[] = [];
+      (data || []).forEach((row: any) => {
+        const c = row?.content;
+        if (!c) return;
+        try {
+          const parsed = typeof c === 'string' ? JSON.parse(c) : c;
+          if (Array.isArray(parsed)) parsed.forEach(v => { if (typeof v === 'string' && v.trim()) all.push(v.trim()); });
+          else if (typeof parsed === 'string' && parsed.trim()) all.push(parsed.trim());
+        } catch {
+          if (typeof c === 'string' && c.trim()) all.push(c.trim());
+        }
+      });
+      return all;
     },
   });
-  const brandQuotes = [
-    (brand as any)?.mission,
-    (brand as any)?.vision,
-    (brand as any)?.proposta_unica_valor,
-  ].map(s => (s || '').trim()).filter(Boolean);
-  const heroQuote = pickQuote(brandQuotes);
+  const heroQuote = pickQuote(brandExpressions);
 
   return (
     <AppLayout>
