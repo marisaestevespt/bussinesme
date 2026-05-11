@@ -556,7 +556,7 @@ export default function PortalViewPage() {
 
             {/* ── Onboarding Step Cards ── */}
             {portal.show_onboarding && (
-              <div className="space-y-3">
+              <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
@@ -576,7 +576,7 @@ export default function PortalViewPage() {
                     <p className="text-sm text-muted-foreground">Ainda sem fases definidas.</p>
                   </SectionCard>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-6">
                     {/* Next step highlight */}
                     {effectiveNextStep && (
                       <SectionCard
