@@ -26,22 +26,22 @@ import { isDeliverableDone } from '@/lib/projectProgress';
 import { formatInt } from '@/lib/formatting';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { StatCard } from '@/components/editorial';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 function KpiCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color?: string }) {
+  // Map legacy color prop to StatCard tone
+  const tone = color?.includes('destructive') ? 'destructive'
+    : color?.includes('success') ? 'success'
+    : color?.includes('warning') ? 'warning'
+    : 'primary';
   return (
-    <Card className="border-secondary bg-background">
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="min-w-0">
-          <p className={`text-xl font-bold ${color || 'text-foreground'}`}>{value}</p>
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-        </div>
-      </CardContent>
-    </Card>
+    <StatCard
+      tone={tone}
+      value={value}
+      label={<><Icon className="h-3 w-3 inline mr-1.5 -mt-0.5" />{label}</>}
+    />
   );
 }
 
