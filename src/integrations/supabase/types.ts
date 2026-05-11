@@ -12428,6 +12428,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      portal_submit_proactive_nps: {
+        Args: { _notes?: string; _score: number; _token: string }
+        Returns: boolean
+      }
       portal_toggle_deliverable: {
         Args: { _completed: boolean; _deliverable_id: string; _token: string }
         Returns: boolean
