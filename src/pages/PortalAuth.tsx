@@ -175,20 +175,21 @@ export default function PortalAuthPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4 sm:p-8"
-      style={{ background: 'hsl(var(--background))' }}
+      style={{ background: `linear-gradient(135deg, ${pcAlpha(0.06)} 0%, hsl(var(--background)) 60%, ${pcAlpha(0.04)} 100%)` }}
     >
       <div
-        className="max-w-4xl w-full grid grid-cols-12 bg-white overflow-hidden"
+        className="max-w-4xl w-full grid grid-cols-12 overflow-hidden"
         style={{
           borderRadius: 4,
-          border: `1px solid ${pcAlpha(0.45)}`,
-          boxShadow: `0 24px 60px -20px ${pcAlpha(0.28)}, 0 8px 20px -8px ${pcAlpha(0.18)}`,
+          border: `1px solid ${pcAlpha(0.5)}`,
+          background: 'hsl(var(--card))',
+          boxShadow: `0 30px 80px -24px ${pcAlpha(0.4)}, 0 10px 24px -10px ${pcAlpha(0.25)}`,
         }}
       >
         {/* Editorial section */}
         <div
           className="col-span-12 md:col-span-7 p-6 md:p-12 flex flex-col justify-between border-b md:border-b-0 md:border-r relative overflow-hidden"
-          style={{ borderColor: pcAlpha(0.1), minHeight: 'min(520px, 85vh)' }}
+          style={{ borderColor: pcAlpha(0.18), minHeight: 'min(520px, 85vh)', background: `linear-gradient(160deg, hsl(var(--card)) 0%, ${pcAlpha(0.05)} 100%)` }}
         >
           {loginBgUrl && (
             <>
@@ -271,7 +272,7 @@ export default function PortalAuthPage() {
         {/* Auth form section */}
         <div
           className="col-span-12 md:col-span-5 p-6 md:p-10 flex flex-col justify-center"
-          style={{ background: `linear-gradient(180deg, hsl(var(--background)) 0%, ${pcAlpha(0.04)} 100%)` }}
+          style={{ background: `linear-gradient(180deg, ${pcAlpha(0.04)} 0%, ${pcAlpha(0.12)} 100%)` }}
         >
           <div className="max-w-xs mx-auto w-full space-y-8">
             <div className="space-y-2">
