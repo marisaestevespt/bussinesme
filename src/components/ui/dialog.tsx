@@ -41,6 +41,14 @@ const DialogContent = React.forwardRef<
       )}
       {...props}
     >
+      {/*
+        A11y fallback: radix avisa quando o DialogContent não tem qualquer
+        descrição. Em diálogos puramente visuais (sem texto explicativo),
+        injectamos uma descrição vazia em sr-only para satisfazer o aria
+        sem mexer no layout. Diálogos que fornecem o seu próprio
+        DialogDescription continuam a funcionar normalmente.
+      */}
+      <DialogPrimitive.Description className="sr-only" />
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
         <X className="h-4 w-4" />
