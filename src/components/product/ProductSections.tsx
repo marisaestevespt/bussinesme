@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator, Wallet } from 'lucide-react';
+import { Plus, Trash2, X, Upload, Download, FileText, Video, ArrowLeft, StickyNote, Lightbulb, Calculator, Wallet, ListChecks } from 'lucide-react';
 import { ProductTabHeader } from './_shared';
 import { SharedMeetingsList, type SharedMeetingItem } from '@/components/shared/SharedMeetingsList';
 
@@ -41,6 +41,11 @@ export function ProductProcessosSection({ productSops, isOwner, productId, onUpd
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+      <ProductTabHeader
+        icon={ListChecks}
+        title="Processos"
+        description="SOPs (procedimentos operacionais) e perguntas de diagnóstico associadas a este produto."
+      />
       <Card>
         <CardHeader><CardTitle className="text-base">Processos (SOPs)</CardTitle></CardHeader>
         <CardContent>
