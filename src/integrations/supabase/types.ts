@@ -1599,6 +1599,7 @@ export type Database = {
           notes: string | null
           nps_score: number | null
           product_id: string | null
+          source: string
           status: string
           task_id: string | null
           updated_at: string
@@ -1613,6 +1614,7 @@ export type Database = {
           notes?: string | null
           nps_score?: number | null
           product_id?: string | null
+          source?: string
           status?: string
           task_id?: string | null
           updated_at?: string
@@ -1627,6 +1629,7 @@ export type Database = {
           notes?: string | null
           nps_score?: number | null
           product_id?: string | null
+          source?: string
           status?: string
           task_id?: string | null
           updated_at?: string
@@ -7230,25 +7233,37 @@ export type Database = {
       }
       portal_feedback: {
         Row: {
+          category: string
           content: string
           created_at: string
           id: string
           portal_id: string
+          responded_at: string | null
+          responded_by: string | null
           submitted_at: string
+          team_response: string | null
         }
         Insert: {
+          category?: string
           content: string
           created_at?: string
           id?: string
           portal_id: string
+          responded_at?: string | null
+          responded_by?: string | null
           submitted_at?: string
+          team_response?: string | null
         }
         Update: {
+          category?: string
           content?: string
           created_at?: string
           id?: string
           portal_id?: string
+          responded_at?: string | null
+          responded_by?: string | null
           submitted_at?: string
+          team_response?: string | null
         }
         Relationships: [
           {
@@ -12139,18 +12154,13 @@ export type Database = {
       get_portal_feedback: {
         Args: { _token: string }
         Returns: {
+          category: string
           content: string
-          created_at: string
           id: string
-          portal_id: string
+          responded_at: string
           submitted_at: string
+          team_response: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "portal_feedback"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       get_portal_initial_questions: {
         Args: { _token: string }
@@ -12378,6 +12388,26 @@ export type Database = {
         Args: { _email: string; _token: string }
         Returns: boolean
       }
+      portal_get_nps_history: {
+        Args: { _token: string }
+        Returns: {
+          actual_date: string
+          id: string
+          notes: string
+          nps_score: number
+          product_name: string
+          source: string
+        }[]
+      }
+      portal_get_pending_nps: {
+        Args: { _token: string }
+        Returns: {
+          expected_date: string
+          id: string
+          product_id: string
+          product_name: string
+        }[]
+      }
       portal_record_visit:
         | { Args: { _token: string }; Returns: undefined }
         | { Args: { _email?: string; _token: string }; Returns: undefined }
@@ -12387,6 +12417,15 @@ export type Database = {
       }
       portal_submit_initial_questions: {
         Args: { _token: string }
+        Returns: boolean
+      }
+      portal_submit_nps: {
+        Args: {
+          _notes?: string
+          _record_id: string
+          _score: number
+          _token: string
+        }
         Returns: boolean
       }
       portal_toggle_deliverable: {

@@ -39,6 +39,7 @@ import type {
   PortalMeeting, PortalMeetingDoc, PortalMeetingPoint,
   PortalPayment, PortalPhase, PortalDeliverable,
   PortalContractDocument, PortalProjectHistoryEntry,
+  PortalNpsPending, PortalNpsHistory,
 } from '@/types/portal';
 
 const isClientStep = (o: { responsible?: string | null }) =>
@@ -62,6 +63,8 @@ export default function PortalViewPage() {
   const [questions, setQuestions] = useState<PortalQuestion[]>([]);
   const [comments, setComments] = useState<PortalComment[]>([]);
   const [feedback, setFeedback] = useState<PortalFeedback[]>([]);
+  const [npsPending, setNpsPending] = useState<PortalNpsPending[]>([]);
+  const [npsHistory, setNpsHistory] = useState<PortalNpsHistory[]>([]);
   const [meetings, setMeetings] = useState<PortalMeeting[]>([]);
   const [payments, setPayments] = useState<PortalPayment[]>([]);
   const [onboarding, setOnboarding] = useState<PortalPhase[]>([]); // derived from phases
@@ -75,6 +78,7 @@ export default function PortalViewPage() {
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackCategory, setFeedbackCategory] = useState<'elogio'|'sugestao'|'problema'|'outro'>('outro');
   const [selectedPayment, setSelectedPayment] = useState<PortalPayment | null>(null);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
@@ -126,6 +130,14 @@ export default function PortalViewPage() {
       (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_responsibilities', { _token: realToken }),
       (supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>)('get_portal_routines', { _token: realToken }),
     ]);
+    // NPS pendente + histórico (via RPCs novas — não estão nos types gerados ainda)
+    const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
+    const [npsPendR, npsHistR] = await Promise.all([
+      rpcAny('portal_get_pending_nps', { _token: realToken }),
+      rpcAny('portal_get_nps_history', { _token: realToken }),
+    ]);
+    setNpsPending((npsPendR.data as PortalNpsPending[]) || []);
+    setNpsHistory((npsHistR.data as PortalNpsHistory[]) || []);
     setResponsibilities((respR.data as Array<Record<string, any>>) || []);
     setRoutines((routR.data as Array<Record<string, any>>) || []);
     const faqsList = (faqsR.data || []) as unknown as PortalFaq[];
@@ -167,10 +179,39 @@ export default function PortalViewPage() {
     if (!feedbackText.trim() || !portal) return;
     await supabase.rpc('portal_submit_feedback', {
       _token: portal.token,
-      _payload: { content: feedbackText.trim() },
+      _payload: { content: feedbackText.trim(), category: feedbackCategory },
     });
+    // refletir na lista local imediatamente
+    setFeedback(prev => [
+      {
+        id: crypto.randomUUID(),
+        content: feedbackText.trim(),
+        category: feedbackCategory,
+        submitted_at: new Date().toISOString(),
+      } as PortalFeedback,
+      ...prev,
+    ]);
     toast.success('Feedback enviado! Obrigado. 💛');
     setFeedbackText('');
+    setFeedbackCategory('outro');
+  };
+
+  const submitNps = async (recordId: string, score: number, notes: string) => {
+    if (!portal) return;
+    const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
+    const { data } = await rpcAny('portal_submit_nps', {
+      _token: portal.token, _record_id: recordId, _score: score, _notes: notes || null,
+    });
+    if (data === true) {
+      setNpsPending(prev => prev.filter(p => p.id !== recordId));
+      setNpsHistory(prev => [
+        { id: recordId, nps_score: score, notes: notes || null, actual_date: new Date().toISOString().slice(0,10), source: 'portal' } as PortalNpsHistory,
+        ...prev,
+      ]);
+      toast.success('Obrigado pela tua nota! ⭐');
+    } else {
+      toast.error('Não foi possível registar a nota.');
+    }
   };
 
   const maybeNotifyQuestionsSubmitted = async () => {
@@ -969,7 +1010,12 @@ export default function PortalViewPage() {
             feedback={feedback}
             feedbackText={feedbackText}
             setFeedbackText={setFeedbackText}
+            feedbackCategory={feedbackCategory}
+            setFeedbackCategory={setFeedbackCategory}
             sendFeedback={sendFeedback}
+            npsPending={npsPending}
+            npsHistory={npsHistory}
+            submitNps={submitNps}
             pc={pc}
             pcAlpha={pcAlpha}
           />
