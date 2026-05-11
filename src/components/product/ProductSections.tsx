@@ -151,13 +151,14 @@ export function ProductBackofficeSection({ usefulLinks, improvements, productMee
                     disabled={!isOwner}
                     className="mt-0.5"
                   />
-                  <Input
-                    value={item.description as string}
-                    onChange={e => onUpdateRow('product_improvements', item.id as string, { description: e.target.value })}
-                    className={cn("flex-1 h-8 text-sm", item.completed && "line-through text-muted-foreground")}
-                    placeholder="Descrever melhoria..."
-                    readOnly={!isOwner}
-                  />
+                  <div className={cn("flex-1 min-w-0", item.completed && "line-through text-muted-foreground")}>
+                    <InlineField
+                      value={(item.description as string) || ''}
+                      placeholder="Descrever melhoria..."
+                      disabled={!isOwner}
+                      onSave={v => onUpdateRow('product_improvements', item.id as string, { description: v })}
+                    />
+                  </div>
                   {isOwner && (
                     <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onDeleteRow('product_improvements', item.id as string)}>
                       <X className="h-3 w-3" />
