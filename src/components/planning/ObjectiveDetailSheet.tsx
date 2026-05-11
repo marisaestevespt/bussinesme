@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
@@ -36,7 +38,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   useEffect(() => {
     if (obj) {
       setForm({
-        title: obj.title || '', description: obj.description || '', area: obj.area || 'outro',
+        title: obj.title || '', description: obj.description || '', area: obj.area || 'geral',
         status: obj.status || 'por_iniciar', deadline: obj.deadline || '',
         objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
         target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
@@ -44,6 +46,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         measurement_type: obj.measurement_type || 'acumulativo',
         primary_metric_id: obj.primary_metric_id || '',
         source_filter: obj.source_filter || {},
+        contribui_visao_5_anos: !!obj.contribui_visao_5_anos,
       });
       setEditing(false);
     }
@@ -186,6 +189,19 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                   </div>
                 </>
               )}
+              <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-1.5 text-sm">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    Contribui para a visão a 5 anos?
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground">Marca este objetivo como pilar do plano de longo prazo.</p>
+                </div>
+                <Switch
+                  checked={!!form.contribui_visao_5_anos}
+                  onCheckedChange={(v) => set('contribui_visao_5_anos', v)}
+                />
+              </div>
             </div>
           ) : (
             <>
@@ -197,6 +213,18 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                   <Badge variant="outline">{MEASUREMENT_TYPES.find(t => t.value === obj.measurement_type)?.label || 'Acumulativo'}</Badge>
                 )}
                 <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
+                {obj.contribui_visao_5_anos && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge className="gap-1 bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15">
+                          <Sparkles className="h-3 w-3" /> Visão 5 anos
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>Este objetivo contribui para a tua visão a 5 anos.</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </div>
             </>
           )}
