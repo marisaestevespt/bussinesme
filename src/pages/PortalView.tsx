@@ -470,12 +470,14 @@ export default function PortalViewPage() {
               style={{ background: `linear-gradient(135deg, ${pc} 0%, ${pcAlpha(0.8)} 100%)` }}
             >
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 bg-white -translate-y-1/2 translate-x-1/2" />
-              <div className="relative z-10">
-                <p className="text-white/70 text-sm mb-1">Olá 👋</p>
-                <h1 className="text-2xl sm:kpi-display-sm mt-1" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
+              {/* Overlay para garantir contraste do texto branco em qualquer cor de marca */}
+              <div className="absolute inset-0 bg-gradient-to-br from-black/25 via-black/10 to-transparent pointer-events-none" />
+              <div className="relative z-10" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>
+                <p className="text-white/90 text-sm mb-1">Olá 👋</p>
+                <h1 className="text-2xl sm:kpi-display-sm mt-1 font-bold" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
                   Bem-vinda, {firstName}!
                 </h1>
-                <p className="text-white/80 text-sm mt-2 max-w-md">
+                <p className="text-white/95 text-sm mt-2 max-w-md">
                   Este é o teu espaço de acompanhamento. Aqui encontras tudo o que precisas.
                 </p>
 
