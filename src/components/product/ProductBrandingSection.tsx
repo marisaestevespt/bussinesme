@@ -1059,6 +1059,13 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
         </CardContent>
       </Card>
         </EntityTabsContent>
+
+        {/* ─────────────────────── EMAIL BOAS-VINDAS ─────────────────────── */}
+        {welcomeEmailSlot && (
+          <EntityTabsContent value="welcome-email" className="space-y-6 mt-4">
+            {welcomeEmailSlot}
+          </EntityTabsContent>
+        )}
       </EntityTabs>
     </div>
   );
