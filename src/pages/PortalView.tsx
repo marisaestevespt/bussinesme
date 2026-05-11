@@ -989,7 +989,7 @@ function PortalEarCard({
   pc,
   pcAlpha,
 }: {
-  ear: string;
+  ear?: string;
   icon: any;
   label: string;
   value: React.ReactNode;
@@ -1000,12 +1000,14 @@ function PortalEarCard({
 }) {
   return (
     <div className="relative">
-      <div
-        className="absolute -top-2 -left-1 z-10 px-2 py-0.5 text-[10px] uppercase tracking-widest rounded-sm shadow-sm"
-        style={{ backgroundColor: pc, color: '#fff' }}
-      >
-        {ear}
-      </div>
+      {ear && (
+        <div
+          className="absolute -top-2 -left-1 z-10 px-2 py-0.5 text-[10px] uppercase tracking-widest rounded-sm shadow-sm"
+          style={{ backgroundColor: pc, color: '#fff' }}
+        >
+          {ear}
+        </div>
+      )}
       <div
         onClick={onClick}
         className="rounded-md bg-card border-2 transition-colors p-5 cursor-pointer group"
