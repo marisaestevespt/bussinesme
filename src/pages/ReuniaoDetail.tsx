@@ -499,6 +499,15 @@ function ReuniaoDetailPageInner() {
   const saveMutation = useMutation({
     mutationFn: async (mode: 'single' | 'series' = 'single') => {
       if (!m) return;
+      // Capture which schedule-defining fields changed BEFORE we clear the
+      // dirty set in onSuccess. If the parent's date_time / frequency /
+      // end_date changed, future children at the OLD schedule are now stale
+      // and must be purged + regenerated.
+      const scheduleChangedOnParent = isSeriesParent && (
+        changedFields.has('date_time') ||
+        changedFields.has('recurrence_frequency') ||
+        changedFields.has('recurrence_end_date')
+      );
       const fullPatch = {
         title: m.title,
         date_time: m.date_time,
@@ -523,6 +532,12 @@ function ReuniaoDetailPageInner() {
         actual_duration_minutes: m.actual_duration_minutes,
         documents: m.documents as any,
       } as Record<string, any>;
+      // Persist recurrence settings on the parent so regeneration uses fresh values
+      if (isSeriesParent) {
+        (fullPatch as any).recurrence_frequency = (m as any).recurrence_frequency ?? null;
+        (fullPatch as any).recurrence_end_date = (m as any).recurrence_end_date ?? null;
+        (fullPatch as any).is_recurring = true;
+      }
       const { error } = await supabase.from('meetings').update(fullPatch as any).eq('id', m.id);
       if (error) throw error;
 
@@ -547,10 +562,24 @@ function ReuniaoDetailPageInner() {
             .neq('id', m.id);
         }
       }
+
+      // Auto-purge + regenerate when the series parent's schedule changed.
+      // This prevents the "two meetings at the same day, old + new time"
+      // duplication when a recurring parent gets its date_time edited.
+      if (scheduleChangedOnParent) {
+        try {
+          await supabase.functions.invoke('regenerate-recurring-meetings', {
+            body: { parent_meeting_id: m.id, purge_future: true },
+          });
+        } catch (e) {
+          console.error('auto-regenerate after schedule change failed', e);
+        }
+      }
     },
     onSuccess: (_data, mode) => {
       qc.invalidateQueries({ queryKey: ['meeting', id] });
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      qc.invalidateQueries({ queryKey: ['series_count'] });
       setDirty(false);
       setChangedFields(new Set());
       logAudit('updated', 'meeting', id, { title: m?.title });
