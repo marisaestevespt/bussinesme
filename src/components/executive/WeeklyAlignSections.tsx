@@ -18,10 +18,6 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 
 const clickableRow = "cursor-pointer hover:bg-muted/70 transition-colors";
 
-const MILESTONE_TYPE_LABELS: Record<string, string> = {
-  check_in: 'Check-in', feedback: 'Recolha de Feedback', reuniao: 'Reunião', email: 'Email', outro: 'Outro',
-};
-
 // ─── helpers ───
 function getNpsRowColor(expectedDate: string, status: string) {
   if (status === 'feito') return 'bg-success/15 border-l-4 border-l-emerald-500';
@@ -352,12 +348,11 @@ export function ClientesSection({ onboardingClients, renewalClients }: ClientesS
 interface NpsSectionProps {
   npsWeek: any[];
   npsOverdue: any[];
-  milestonesWeek: any[];
   getMemberName: (id: string | null) => string;
   onOpenDetail: (title: string, subtitle: string, fields: DetailField[]) => void;
 }
 
-export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName, onOpenDetail }: NpsSectionProps) {
+export function NpsSection({ npsWeek, npsOverdue, onOpenDetail }: NpsSectionProps) {
   const now = new Date();
   const overdueCount = npsOverdue.length;
 
@@ -373,23 +368,10 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
     ]);
   };
 
-  const openMilestoneDetail = (m: any) => {
-    const status = autoNpsStatus(m.expected_date, m.status);
-    onOpenDetail(m.milestone || 'Marco', 'Marco de acompanhamento', [
-      { label: 'Cliente', value: m.clients?.full_name },
-      { label: 'Marco', value: m.milestone },
-      { label: 'Tipo', value: MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type },
-      { label: 'Data prevista', value: format(parseISO(m.expected_date), 'dd/MM/yyyy') },
-      { label: 'Responsável', value: getMemberName(m.responsible_id) },
-      { label: 'Status', value: status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer', badge: true, badgeVariant: status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary' },
-      { label: 'Notas', value: m.notes },
-    ]);
-  };
-
   return (
     <section className="space-y-4">
       <h2 className="text-base font-semibold">5.1 // NPS desta semana</h2>
-      <p className="text-xs text-muted-foreground">Acompanhamento de NPS e marcos de Customer Success da semana corrente.</p>
+      <p className="text-xs text-muted-foreground">Acompanhamento de NPS de Customer Success da semana corrente.</p>
 
       <Card><CardContent className="p-4">
         <h3 className="text-sm font-medium mb-2">Recolhas de NPS previstas esta semana</h3>
@@ -436,30 +418,6 @@ export function NpsSection({ npsWeek, npsOverdue, milestonesWeek, getMemberName,
         }
       </CardContent></Card>
 
-      <Card><CardContent className="p-4">
-        <h3 className="text-sm font-medium mb-2">Marcos de acompanhamento desta semana</h3>
-        {milestonesWeek.length === 0 ? <EmptyHint>Sem marcos previstos esta semana</EmptyHint> :
-          <div className="overflow-x-auto">
-            <Table><TableHeader><TableRow>
-              <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Marco</TableHead><TableHead>Tipo</TableHead><TableHead>Data prevista</TableHead><TableHead>Responsável</TableHead><TableHead>Status</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>{milestonesWeek.map((m: any) => {
-              const status = autoNpsStatus(m.expected_date, m.status);
-              return (
-                <TableRow key={m.id} className={cn(getNpsRowColor(m.expected_date, status), clickableRow)} onClick={() => openMilestoneDetail(m)}>
-                  <TableCell className="text-sm font-medium">{m.clients?.full_name || '—'}</TableCell>
-                  <TableCell className="">{m.clients?.current_product || '—'}</TableCell>
-                  <TableCell className="">{m.milestone || '—'}</TableCell>
-                  <TableCell className="">{MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type}</TableCell>
-                  <TableCell className="">{format(parseISO(m.expected_date), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell className="">{getMemberName(m.responsible_id)}</TableCell>
-                  <TableCell><Badge variant={status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary'} className="text-[10px]">{status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer'}</Badge></TableCell>
-                </TableRow>
-              );
-            })}</TableBody></Table>
-          </div>
-        }
-      </CardContent></Card>
     </section>
   );
 }
