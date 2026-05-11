@@ -648,6 +648,70 @@ export default function PortalViewPage() {
               })()}
             </div>
 
+            {/* ── Account Manager ── */}
+            {accountManager && (
+              <SectionCard className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
+                    <User className="h-4 w-4" style={{ color: pc }} />
+                  </div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    O teu ponto de contacto
+                  </h3>
+                </div>
+                <div className="flex items-start gap-4">
+                  {accountManager.photo_url ? (
+                    <img
+                      src={accountManager.photo_url}
+                      alt={accountManager.full_name}
+                      className="h-16 w-16 rounded-full object-cover shrink-0 border"
+                      style={{ borderColor: pcAlpha(0.2) }}
+                    />
+                  ) : (
+                    <div
+                      className="h-16 w-16 rounded-full flex items-center justify-center shrink-0 text-lg font-semibold"
+                      style={{ backgroundColor: pcAlpha(0.1), color: pc }}
+                    >
+                      {accountManager.full_name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-semibold leading-tight">{accountManager.full_name}</p>
+                    {accountManager.role_title && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{accountManager.role_title}</p>
+                    )}
+                    {accountManager.presentation && (
+                      <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-3">{accountManager.presentation}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-3 mt-3">
+                      {accountManager.email && (
+                        <a
+                          href={`mailto:${accountManager.email}`}
+                          className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                          style={{ color: pc }}
+                        >
+                          <Mail className="h-3.5 w-3.5" />
+                          {accountManager.email}
+                        </a>
+                      )}
+                      {accountManager.whatsapp && (
+                        <a
+                          href={`https://wa.me/${accountManager.whatsapp.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                          style={{ color: pc }}
+                        >
+                          <Phone className="h-3.5 w-3.5" />
+                          {accountManager.whatsapp}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+            )}
+
             {/* ── Onboarding Step Cards ── */}
             {true && (
               <div className="space-y-5">
