@@ -197,9 +197,9 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
       let color: HealthColor = 'green';
-      if ((endCycleDays != null && endCycleDays <= 30) || (clientNps != null && clientNps <= 6)) {
+      if (clientNps != null && clientNps <= 6) {
         color = 'red';
-      } else if ((daysSinceNps != null && daysSinceNps > 90) || overdueMilestones.length > 0) {
+      } else if ((daysSinceNps != null && daysSinceNps > 90) || overdueMilestones.length > 0 || (endCycleDays != null && endCycleDays <= 30)) {
         color = 'yellow';
       }
 
@@ -419,8 +419,8 @@ export default function ClientesAnalisePage() {
       const overdue = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
       const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : null;
 
-      if ((endCycleDays != null && endCycleDays <= 30) || (clientNps != null && clientNps <= 6)) red++;
-      else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0) yellow++;
+      if (clientNps != null && clientNps <= 6) red++;
+      else if ((daysSinceNps != null && daysSinceNps > 90) || overdue.length > 0 || (endCycleDays != null && endCycleDays <= 30)) yellow++;
       else green++;
     });
 
