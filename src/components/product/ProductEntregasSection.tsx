@@ -79,6 +79,7 @@ function DeliverableRow({
   const [desc, setDesc] = useState(template.description || '');
   const [minutes, setMinutes] = useState<string>(template.estimated_minutes?.toString() || '');
   const [titleTpl, setTitleTpl] = useState(template.meeting_title_template || '');
+  const [showDesc, setShowDesc] = useState<boolean>(!!template.description);
   const nameRef = useRef(template.name);
   const descRef = useRef(template.description || '');
   const minutesRef = useRef(template.estimated_minutes ?? null);
@@ -89,7 +90,7 @@ function DeliverableRow({
   }, [template.name]);
   useEffect(() => {
     const d = template.description || '';
-    if (d !== descRef.current) { descRef.current = d; setDesc(d); }
+    if (d !== descRef.current) { descRef.current = d; setDesc(d); if (d) setShowDesc(true); }
   }, [template.description]);
   useEffect(() => {
     const m = template.estimated_minutes ?? null;
@@ -120,9 +121,6 @@ function DeliverableRow({
         <Input value={name} onChange={e => setName(e.target.value)}
           onBlur={() => { const t = name.trim(); if (t !== template.name) { nameRef.current = t; onUpdate(template.id, { name: t }); } }}
           className="flex-1 h-9 text-sm" placeholder="Nome da entrega..." readOnly={!isOwner} />
-        <Input value={desc} onChange={e => setDesc(e.target.value)}
-          onBlur={() => { if (desc !== (template.description || '')) { descRef.current = desc; onUpdate(template.id, { description: desc }); } }}
-          className="flex-1 h-9 text-sm" placeholder="Descrição (opcional)" readOnly={!isOwner} />
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-1 shrink-0">
@@ -223,6 +221,29 @@ function DeliverableRow({
           </div>
         )}
       </div>
+      {showDesc ? (
+        <div className="flex items-center gap-3 pl-9">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">Descrição</span>
+          <Input
+            value={desc}
+            onChange={e => setDesc(e.target.value)}
+            onBlur={() => { if (desc !== (template.description || '')) { descRef.current = desc; onUpdate(template.id, { description: desc }); } }}
+            placeholder="Detalhes (opcional)…"
+            className="flex-1 h-8 text-xs"
+            readOnly={!isOwner}
+          />
+        </div>
+      ) : (
+        isOwner && (
+          <button
+            type="button"
+            onClick={() => setShowDesc(true)}
+            className="ml-9 text-[11px] text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+          >
+            + adicionar descrição
+          </button>
+        )
+      )}
       {template.deliverable_type === 'reuniao' && (
         <div className="flex items-center gap-3 pl-9">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">Título reunião</span>
