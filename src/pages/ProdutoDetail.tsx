@@ -1102,15 +1102,15 @@ export default function ProdutoDetailPage() {
                 productId={id!}
                 calendarColor={(form as any).calendar_color ?? null}
                 onUpdateCalendarColor={(next) => update('calendar_color', next)}
+                welcomeEmailSlot={id && id !== 'novo' ? (
+                  <ProductWelcomeEmailSection
+                    productId={id}
+                    bannerUrl={(form as any).welcome_email_banner_url}
+                    isOwner={isOwner}
+                    onUpdate={(field, value) => update(field as any, value)}
+                  />
+                ) : undefined}
               />
-              {id && id !== 'novo' && (
-                <ProductWelcomeEmailSection
-                  productId={id}
-                  bannerUrl={(form as any).welcome_email_banner_url}
-                  isOwner={isOwner}
-                  onUpdate={(field, value) => update(field as any, value)}
-                />
-              )}
             </div>
           )}
         </div>
