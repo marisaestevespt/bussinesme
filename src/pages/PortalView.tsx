@@ -788,9 +788,6 @@ export default function PortalViewPage() {
                                                 {format(parseISO(d.planned_end), "d 'de' MMMM", { locale: pt })}
                                               </span>
                                             )}
-                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isClient ? 'bg-warning/15 text-warning' : 'bg-muted text-muted-foreground'}`}>
-                                              {isClient ? '👤 Tu' : '👥 Equipa'}
-                                            </span>
                                           </div>
                                           {d.description && <p className="text-xs text-muted-foreground mt-1">{String(d.description)}</p>}
                                           <PortalDeliverableAttachment d={d as any} portalToken={portalToken} />
