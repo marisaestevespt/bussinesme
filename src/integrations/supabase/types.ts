@@ -1981,6 +1981,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          account_manager_id: string | null
           birthday: string | null
           client_files: Json | null
           client_id: string
@@ -2018,6 +2019,7 @@ export type Database = {
           whatsapp_group_url: string | null
         }
         Insert: {
+          account_manager_id?: string | null
           birthday?: string | null
           client_files?: Json | null
           client_id?: string
@@ -2055,6 +2057,7 @@ export type Database = {
           whatsapp_group_url?: string | null
         }
         Update: {
+          account_manager_id?: string | null
           birthday?: string | null
           client_files?: Json | null
           client_id?: string
@@ -2092,6 +2095,20 @@ export type Database = {
           whatsapp_group_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_account_manager_id_fkey"
+            columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_account_manager_id_fkey"
+            columns: ["account_manager_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_current_product_id_fkey"
             columns: ["current_product_id"]
@@ -12129,6 +12146,18 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      get_portal_account_manager: {
+        Args: { _token: string }
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+          photo_url: string
+          presentation: string
+          role_title: string
+          whatsapp: string
+        }[]
       }
       get_portal_branding: { Args: { _token: string }; Returns: Json }
       get_portal_by_slug: {
