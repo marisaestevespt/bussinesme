@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, ExternalLink, X, FileText, Pencil } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, FileText, Pencil, Megaphone, Workflow, Zap, Target, Newspaper } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { ProductTabHeader } from './_shared';
+import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
 
 interface MarketingPage {
   id: string;
@@ -112,7 +114,21 @@ export function ProductMarketingSection({
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
-      {/* Páginas */}
+      <ProductTabHeader
+        icon={Megaphone}
+        title="Marketing"
+        description="Páginas, conteúdos, funis, automações e tráfego pago associados a este produto. Tudo o que vende, num só sítio."
+      />
+      <EntityTabs defaultValue="paginas" className="space-y-6">
+        <EntityTabsList className="w-full justify-start flex-wrap">
+          <EntityTabsTrigger value="paginas"><FileText className="h-3.5 w-3.5 mr-1.5 inline" />Páginas</EntityTabsTrigger>
+          <EntityTabsTrigger value="conteudos"><Newspaper className="h-3.5 w-3.5 mr-1.5 inline" />Conteúdos</EntityTabsTrigger>
+          <EntityTabsTrigger value="funis"><Workflow className="h-3.5 w-3.5 mr-1.5 inline" />Funis</EntityTabsTrigger>
+          <EntityTabsTrigger value="automacoes"><Zap className="h-3.5 w-3.5 mr-1.5 inline" />Automações</EntityTabsTrigger>
+          <EntityTabsTrigger value="trafego"><Target className="h-3.5 w-3.5 mr-1.5 inline" />Tráfego Pago</EntityTabsTrigger>
+        </EntityTabsList>
+
+        <EntityTabsContent value="paginas" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Páginas</CardTitle>
@@ -398,8 +414,9 @@ export function ProductMarketingSection({
           )}
         </DialogContent>
       </Dialog>
+        </EntityTabsContent>
 
-      {/* Conteúdos */}
+        <EntityTabsContent value="conteudos" className="space-y-4 mt-4">
       <Card>
         <CardHeader><CardTitle className="text-base">Conteúdos</CardTitle></CardHeader>
         <CardContent>
@@ -429,8 +446,9 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      {/* Funis */}
+        <EntityTabsContent value="funis" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Funis</CardTitle>
@@ -474,8 +492,9 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      {/* Automações */}
+        <EntityTabsContent value="automacoes" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Automações</CardTitle>
@@ -519,8 +538,9 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
 
-      {/* Tráfego Pago */}
+        <EntityTabsContent value="trafego" className="space-y-4 mt-4">
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base">Tráfego Pago</CardTitle>
@@ -566,6 +586,8 @@ export function ProductMarketingSection({
           </Table>
         </CardContent>
       </Card>
+        </EntityTabsContent>
+      </EntityTabs>
     </div>
   );
 }
