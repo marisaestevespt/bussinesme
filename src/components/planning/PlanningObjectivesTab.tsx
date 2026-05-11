@@ -18,6 +18,8 @@ export function PlanningObjectivesTab({
   onNewDialogChange,
   layout = 'list',
   areaFilter,
+  hideCascade = false,
+  showGoalsInline = false,
 }: {
   planning: any;
   showHeaderButton?: boolean;
@@ -25,6 +27,8 @@ export function PlanningObjectivesTab({
   onNewDialogChange?: (open: boolean) => void;
   layout?: 'list' | 'gallery';
   areaFilter?: string;
+  hideCascade?: boolean;
+  showGoalsInline?: boolean;
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const newDialogOpen = controlledOpen ?? internalOpen;
@@ -120,8 +124,39 @@ export function PlanningObjectivesTab({
                   </div>
                   <Progress value={prog} className="h-1.5" />
                 </div>
-                {/* Cascata Anual → S1/S2 → T1-T4 */}
-                <ObjectiveCascadeRow objective={obj} planning={planning} />
+                {!hideCascade && (
+                  <ObjectiveCascadeRow objective={obj} planning={planning} />
+                )}
+                {showGoalsInline && (() => {
+                  const linkedGoals = (planning.allGoals || []).filter((g: any) => g.objective_id === obj.id);
+                  if (linkedGoals.length === 0) {
+                    return (
+                      <div className="px-4 pb-3 -mt-1">
+                        <p className="text-[10px] text-muted-foreground italic">Sem metas pequenas associadas.</p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="px-4 pb-3 -mt-1 space-y-1">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                        {linkedGoals.length} {linkedGoals.length === 1 ? 'meta' : 'metas'}
+                      </p>
+                      <div className="space-y-1">
+                        {linkedGoals.slice(0, 4).map((g: any) => (
+                          <div key={g.id} className="flex items-center justify-between text-[11px] gap-2">
+                            <span className="truncate text-muted-foreground">
+                              <span className="font-medium text-foreground">{g.period}</span> · {g.title || g.description || 'Meta sem título'}
+                            </span>
+                            <Badge variant="outline" className="text-[9px] shrink-0">{planStatusLabel(g.status)}</Badge>
+                          </div>
+                        ))}
+                        {linkedGoals.length > 4 && (
+                          <p className="text-[10px] text-muted-foreground">+ {linkedGoals.length - 4} mais…</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </Card>
             );
           })}
