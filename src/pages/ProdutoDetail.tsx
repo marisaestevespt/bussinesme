@@ -999,6 +999,11 @@ export default function ProdutoDetailPage() {
 
           {openSection === 'backoffice' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductTabHeader
+                icon={FolderOpen}
+                title="Backoffice"
+                description="Links úteis, reuniões, melhorias internas e arquivo (documentos, notas e brainstorming) deste produto."
+              />
               <ProductBackofficeSection
                 usefulLinks={usefulLinks}
                 improvements={improvements}
