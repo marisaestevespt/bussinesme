@@ -85,7 +85,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
       className={cn(
         "block rounded border transition-colors flex flex-col overflow-hidden",
         isPublished
-          ? "border-green-500/40 bg-green-500/10 hover:bg-green-500/20 dark:border-green-400/40 dark:bg-green-400/10 dark:hover:bg-green-400/20"
+          ? "border-success/40 bg-success/10 hover:bg-success/20 dark:border-success/40 dark:bg-success/10 dark:hover:bg-success/20"
           : "border-border bg-muted/30 hover:bg-muted/60"
       )}>
       {/* Cover image (mantida — a forma de visualização que o user gosta) */}

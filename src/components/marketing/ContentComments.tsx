@@ -124,7 +124,7 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
             <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: pt })}
             </span>
-            {c.resolved_at && <span className="text-xs text-emerald-600">· resolvido</span>}
+            {c.resolved_at && <span className="text-xs text-success">· resolvido</span>}
           </div>
           <p className="text-sm whitespace-pre-wrap break-words mt-0.5">
             <RichText text={c.body} />

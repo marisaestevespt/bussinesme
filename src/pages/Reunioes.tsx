@@ -996,14 +996,14 @@ export function MeetingFormDialog({
                       <DateTimePickerField date={recurrenceEndDate} onSelect={setRecurrenceEndDate} placeholder="Sem data de fim (12 meses)" />
                     </div>
                     {recurrencePreview.length > 0 && (
-                      <div className="rounded-lg border border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 p-3 space-y-2">
+                      <div className="rounded-lg border border-warning/60 bg-warning/10/60 dark:bg-warning/30/20 p-3 space-y-2">
                         <div className="flex items-start gap-2">
-                          <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                          <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                           <div className="text-xs">
-                            <p className="font-semibold text-amber-900 dark:text-amber-200">
+                            <p className="font-semibold text-warning dark:text-warning">
                               {recurrencePreview.length} ocorrência{recurrencePreview.length > 1 ? 's' : ''} cai{recurrencePreview.length > 1 ? 'em' : ''} em feriado
                             </p>
-                            <p className="text-amber-800/80 dark:text-amber-200/70">Escolhe o que fazer com cada uma:</p>
+                            <p className="text-warning dark:text-warning">Escolhe o que fazer com cada uma:</p>
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -1011,7 +1011,7 @@ export function MeetingFormDialog({
                             const adjusted = c.adjusted;
                             const next = nextBusinessDay(c.original);
                             return (
-                              <div key={c.key} className="flex flex-col gap-1.5 rounded-md bg-background/60 p-2 border border-amber-200/40">
+                              <div key={c.key} className="flex flex-col gap-1.5 rounded-md bg-background/60 p-2 border border-warning/40">
                                 <div className="flex items-center justify-between gap-2 flex-wrap">
                                   <div className="text-xs">
                                     <span className="font-medium">{format(c.original, "dd MMM yyyy", { locale: pt })}</span>
@@ -1019,7 +1019,7 @@ export function MeetingFormDialog({
                                   </div>
                                   {adjusted === 'skip' && <span className="text-[10px] font-medium text-destructive">Saltada</span>}
                                   {adjusted instanceof Date && (
-                                    <span className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                                    <span className="text-[10px] font-medium text-success dark:text-success">
                                       → {format(adjusted, "dd MMM", { locale: pt })}
                                     </span>
                                   )}

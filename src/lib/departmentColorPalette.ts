@@ -21,7 +21,7 @@ export const DEPARTMENT_COLOR_PALETTE: PaletteColor[] = [
   { key: 'indigo',  label: 'Índigo',   badgeClass: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30', swatchClass: 'bg-indigo-500' },
   { key: 'violet',  label: 'Violeta',  badgeClass: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30',      swatchClass: 'bg-accent-violet' },
   { key: 'pink',    label: 'Rosa',     badgeClass: 'bg-pink-500/15 text-pink-700 dark:text-pink-300 border-pink-500/30',  swatchClass: 'bg-pink-500' },
-  { key: 'brown',   label: 'Castanho', badgeClass: 'bg-amber-800/15 text-amber-800 dark:text-amber-300 border-amber-800/30', swatchClass: 'bg-amber-800' },
+  { key: 'brown',   label: 'Castanho', badgeClass: 'bg-amber-800/15 text-warning dark:text-warning border-warning/30', swatchClass: 'bg-amber-800' },
 ];
 
 export function getPaletteColor(key: string | null | undefined): PaletteColor {
