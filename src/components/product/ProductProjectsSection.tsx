@@ -21,7 +21,7 @@ interface ProjectRow {
   progress: number | null;
 }
 
-export function ProductProjectsSection({ productId, productName }: { productId: string; productName: string }) {
+export function ProductProjectsSection({ productId, productName, mode = 'all' }: { productId: string; productName: string; mode?: 'client' | 'internal' | 'all' }) {
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['product-projects', productId],
     queryFn: async () => {
@@ -78,6 +78,7 @@ export function ProductProjectsSection({ productId, productName }: { productId: 
 
   return (
     <div className="space-y-4">
+      {(mode === 'all' || mode === 'client') && (
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -96,7 +97,9 @@ export function ProductProjectsSection({ productId, productName }: { productId: 
           )}
         </CardContent>
       </Card>
+      )}
 
+      {(mode === 'all' || mode === 'internal') && (
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -115,6 +118,7 @@ export function ProductProjectsSection({ productId, productName }: { productId: 
           )}
         </CardContent>
       </Card>
+      )}
 
       <div className="flex justify-end">
         <Button asChild variant="outline" size="sm">
