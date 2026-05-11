@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Layers, Eye, FileText } from 'lucide-react';
+import { Layers, Eye, FileText, CalendarClock, AlertTriangle, Users, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
 import { MyTasksTable } from './MyTasksTable';
@@ -12,6 +12,7 @@ import { useMyMeetings, useMyTimeEntries, useMonthRoutineTasks } from './secreta
 import { RoutineMonthCard } from './SecretariaRotinas';
 import { isToday, parseISO } from 'date-fns';
 import SecretariaBatches from './SecretariaBatches';
+import { StatCard } from '@/components/editorial';
 
 export default function SecretariaDia() {
   const meetings = useMyMeetings();
@@ -52,11 +53,11 @@ export default function SecretariaDia() {
         }).length;
         const overdueCount = unified.todayItems.length - todayOnlyCount;
         return (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Prazo hoje</p><p className="text-2xl font-bold">{todayOnlyCount}</p></CardContent></Card>
-            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Em atraso</p><p className="text-2xl font-bold text-destructive">{overdueCount}</p></CardContent></Card>
-            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
-            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5">
+            <StatCard tone="primary" size="sm" value={todayOnlyCount} label={<><CalendarClock className="h-3 w-3 inline mr-1.5 -mt-0.5" />prazo hoje</>} />
+            <StatCard tone="destructive" size="sm" value={overdueCount} label={<><AlertTriangle className="h-3 w-3 inline mr-1.5 -mt-0.5" />em atraso</>} />
+            <StatCard tone="mocha" size="sm" value={todayMeetings.length} label={<><Users className="h-3 w-3 inline mr-1.5 -mt-0.5" />reuniões hoje</>} />
+            <StatCard tone="gold" size="sm" value={`${todayHours.toFixed(1)}h`} label={<><Clock className="h-3 w-3 inline mr-1.5 -mt-0.5" />tempo registado</>} />
           </div>
         );
       })()}
