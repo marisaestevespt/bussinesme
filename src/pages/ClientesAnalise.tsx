@@ -39,6 +39,7 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
   return (
     <StatCard
       tone={tone}
+      size="sm"
       value={value}
       label={<><Icon className="h-3 w-3 inline mr-1.5 -mt-0.5" />{label}</>}
     />
