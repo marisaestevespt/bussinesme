@@ -109,18 +109,15 @@ export default function PortalViewPage() {
 
       setPortal(portalData);
       const realToken = portalData.token; // always use UUID token for RPCs
-      const [clientCtxRes, settingsRes] = await Promise.all([
-        supabase.rpc('get_portal_client_context', { _token: realToken }),
-        rpcAny('get_portal_branding', { _token: realToken }),
-      ]);
+      const clientCtxRes = await supabase.rpc('get_portal_client_context', { _token: realToken });
       const clientData = Array.isArray((clientCtxRes as any).data) ? (clientCtxRes as any).data[0] : null;
       if ((clientCtxRes as any).error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
 
       setClient(clientData);
-      setSettings(normalizePortalBranding((settingsRes as any).data || {}));
       setLoading(false);
 
       const results = await Promise.allSettled([
+        rpcAny('get_portal_branding', { _token: realToken }),
         supabase.rpc('get_portal_faqs', { _token: realToken }),
         supabase.rpc('get_portal_initial_questions', { _token: realToken }),
         supabase.rpc('get_portal_comments', { _token: realToken }),
@@ -142,29 +139,31 @@ export default function PortalViewPage() {
         return ((result.value as any).data || []) as T[];
       };
 
-      const faqsList = value<PortalFaq>(0);
+      const settingsData = results[0].status === 'fulfilled' && !(results[0].value as any).error ? (results[0].value as any).data : {};
+      setSettings(normalizePortalBranding(settingsData || {}));
+      const faqsList = value<PortalFaq>(1);
       setFaqs(faqsList.slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-      const questionsList = value<PortalQuestion & { group_sort_order?: number }>(1);
+      const questionsList = value<PortalQuestion & { group_sort_order?: number }>(2);
       setQuestions(questionsList.slice().sort((a, b) =>
         (a.group_sort_order ?? 0) - (b.group_sort_order ?? 0) || (a.sort_order ?? 0) - (b.sort_order ?? 0)));
-      const commentsList = value<PortalComment>(2);
+      const commentsList = value<PortalComment>(3);
       setComments(commentsList.slice().sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()));
-      const feedbackList = value<PortalFeedback>(3);
+      const feedbackList = value<PortalFeedback>(4);
       setFeedback(feedbackList.slice().sort((a, b) => new Date(b.submitted_at || b.created_at || 0).getTime() - new Date(a.submitted_at || a.created_at || 0).getTime()));
-      setMeetings(value<PortalMeeting>(4));
-      setPayments(value<PortalPayment>(5));
-      setTasks(value<Record<string, any>>(6));
+      setMeetings(value<PortalMeeting>(5));
+      setPayments(value<PortalPayment>(6));
+      setTasks(value<Record<string, any>>(7));
 
-      const parsedPhases = value<PortalPhase>(7);
+      const parsedPhases = value<PortalPhase>(8);
       const allPhases: PortalPhase[] = parsedPhases.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
       setPhases(allPhases);
       setOnboarding(allPhases);
-      setProjectHistory(value<PortalProjectHistoryEntry>(8));
-      setContractDocs(value<PortalContractDocument>(9));
-      setResponsibilities(value<Record<string, any>>(10));
-      setRoutines(value<Record<string, any>>(11));
-      setNpsPending(value<PortalNpsPending>(12));
-      setNpsHistory(value<PortalNpsHistory>(13));
+      setProjectHistory(value<PortalProjectHistoryEntry>(9));
+      setContractDocs(value<PortalContractDocument>(10));
+      setResponsibilities(value<Record<string, any>>(11));
+      setRoutines(value<Record<string, any>>(12));
+      setNpsPending(value<PortalNpsPending>(13));
+      setNpsHistory(value<PortalNpsHistory>(14));
     } catch (error) {
       console.error('Erro ao carregar portal:', error);
       toast.error('Não foi possível carregar o portal.');
