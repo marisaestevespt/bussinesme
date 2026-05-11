@@ -1,10 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CalendarRange, ChevronRight, ChevronDown, ArrowRight, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { CalendarRange, ChevronRight, ChevronDown, ArrowRight, CheckCircle2, AlertTriangle, StickyNote, Pencil } from 'lucide-react';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -26,6 +33,41 @@ interface Props {
 export function HorizonsView({ planning, year }: Props) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState<number | null>(null);
+  const qc = useQueryClient();
+
+  const notesQuery = useQuery({
+    queryKey: ['planning_quarter_notes', year],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('planning_quarter_notes')
+        .select('*')
+        .eq('year', year);
+      return (data || []) as Array<{ id: string; year: number; quarter: number; note: string | null; status_override: string | null }>;
+    },
+  });
+
+  const upsertNote = useMutation({
+    mutationFn: async ({ quarter, note, status_override }: { quarter: number; note: string | null; status_override: string | null }) => {
+      const existing = (notesQuery.data || []).find(n => n.quarter === quarter);
+      if (existing) {
+        const { error } = await (supabase as any)
+          .from('planning_quarter_notes')
+          .update({ note, status_override })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any)
+          .from('planning_quarter_notes')
+          .insert({ year, quarter, note, status_override });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['planning_quarter_notes', year] });
+      toast.success('Trimestre atualizado');
+    },
+    onError: (e: any) => toast.error('Erro: ' + (e.message || e)),
+  });
 
   const now = new Date();
   const currentQuarter = year === now.getFullYear() ? Math.floor(now.getMonth() / 3) : -1;
@@ -44,6 +86,17 @@ export function HorizonsView({ planning, year }: Props) {
   }, [planning, year]);
 
   const statusFor = (q: typeof quarters[number]) => {
+    const n = (notesQuery.data || []).find(x => x.quarter === q.idx + 1);
+    if (n?.status_override) {
+      const map: Record<string, { label: string; tone: 'success' | 'primary' | 'destructive' | 'muted' }> = {
+        forte: { label: 'Forte', tone: 'success' },
+        em_curso: { label: 'Em curso', tone: 'primary' },
+        atrasado: { label: 'Atrasado', tone: 'destructive' },
+        a_caminho: { label: 'A caminho', tone: 'muted' },
+        sem_metas: { label: 'Sem metas', tone: 'muted' },
+      };
+      return map[n.status_override] || { label: n.status_override, tone: 'muted' as const };
+    }
     if (q.count === 0) return { label: 'Sem metas', tone: 'muted' as const };
     if (q.pct >= 80) return { label: 'Forte', tone: 'success' as const };
     if (q.pct >= 50) return { label: 'Em curso', tone: 'primary' as const };
@@ -77,15 +130,21 @@ export function HorizonsView({ planning, year }: Props) {
             const status = statusFor(q);
             const isCurrent = q.idx === currentQuarter;
             const isOpen = expanded === q.idx;
+            const note = (notesQuery.data || []).find(n => n.quarter === q.idx + 1);
             return (
-              <button
+              <div
                 key={q.short}
-                onClick={() => setExpanded(isOpen ? null : q.idx)}
-                className={`text-left rounded-xl border p-3 hq-transition ${
+                className={`relative text-left rounded-xl border p-3 hq-transition ${
                   isCurrent ? 'border-primary/40 bg-primary/5' : 'border-border bg-card hover:border-primary/30'
                 } ${isOpen ? 'ring-2 ring-primary/30' : ''}`}
               >
-                <div className="flex items-center justify-between mb-2">
+                <button
+                  type="button"
+                  onClick={() => setExpanded(isOpen ? null : q.idx)}
+                  className="absolute inset-0 rounded-xl"
+                  aria-label={`${isOpen ? 'Fechar' : 'Expandir'} ${q.short}`}
+                />
+                <div className="relative flex items-center justify-between mb-2">
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{q.short}</p>
                     <p className="text-sm font-semibold">{q.range}</p>
@@ -102,16 +161,29 @@ export function HorizonsView({ planning, year }: Props) {
                     <Badge variant="outline" className="text-[10px]">{status.label}</Badge>
                   )}
                 </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+                <div className="relative flex items-center justify-between text-xs text-muted-foreground mb-1.5">
                   <span>{q.count} metas · {q.achieved} ✓</span>
                   <span className="font-medium tabular-nums text-foreground">{q.pct}%</span>
                 </div>
-                <Progress value={q.pct} className="h-1.5" />
-                <div className="flex items-center justify-end mt-2 text-[11px] text-muted-foreground">
-                  {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                  <span className="ml-0.5">{isOpen ? 'Fechar' : 'Ver meses'}</span>
+                <Progress value={q.pct} className="relative h-1.5" />
+                {note?.note && (
+                  <p className="relative mt-2 text-[11px] text-muted-foreground italic line-clamp-2">
+                    “{note.note}”
+                  </p>
+                )}
+                <div className="relative flex items-center justify-between mt-2 text-[11px] text-muted-foreground">
+                  <QuarterNotePopover
+                    quarter={q.idx + 1}
+                    initialNote={note?.note || ''}
+                    initialOverride={note?.status_override || null}
+                    onSave={(note, status_override) => upsertNote.mutate({ quarter: q.idx + 1, note, status_override })}
+                  />
+                  <div className="flex items-center">
+                    {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                    <span className="ml-0.5">{isOpen ? 'Fechar' : 'Ver meses'}</span>
+                  </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -136,6 +208,17 @@ export function HorizonsView({ planning, year }: Props) {
                     {m.count} metas · {m.achievedCount} concluídas
                   </p>
                   <Progress value={m.pct} className="h-1" />
+                  {(() => {
+                    const monthGoals = (planning.allGoals || []).filter((g: any) => g.period === m.name).slice(0, 3);
+                    if (monthGoals.length === 0) return null;
+                    return (
+                      <ul className="mt-2 space-y-0.5">
+                        {monthGoals.map((g: any) => (
+                          <li key={g.id} className="text-[10px] text-muted-foreground truncate">• {g.title || g.description || 'Meta'}</li>
+                        ))}
+                      </ul>
+                    );
+                  })()}
                 </button>
               ))}
             </div>
@@ -143,5 +226,71 @@ export function HorizonsView({ planning, year }: Props) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function QuarterNotePopover({
+  quarter,
+  initialNote,
+  initialOverride,
+  onSave,
+}: {
+  quarter: number;
+  initialNote: string;
+  initialOverride: string | null;
+  onSave: (note: string | null, status_override: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState(initialNote);
+  const [override, setOverride] = useState<string>(initialOverride || 'auto');
+  return (
+    <Popover open={open} onOpenChange={(v) => { setOpen(v); if (v) { setNote(initialNote); setOverride(initialOverride || 'auto'); } }}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 hover:text-foreground hq-transition"
+        >
+          <StickyNote className="h-3 w-3" />
+          <span>Nota</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" onClick={(e) => e.stopPropagation()}>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs">Status</Label>
+            <Select value={override} onValueChange={setOverride}>
+              <SelectTrigger className="h-8 text-xs mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Automático (calculado)</SelectItem>
+                <SelectItem value="forte">Forte</SelectItem>
+                <SelectItem value="em_curso">Em curso</SelectItem>
+                <SelectItem value="atrasado">Atrasado</SelectItem>
+                <SelectItem value="a_caminho">A caminho</SelectItem>
+                <SelectItem value="sem_metas">Sem metas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Nota / contexto</Label>
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Ex: T1 atrasado por contratação tardia"
+              className="text-xs min-h-[80px] mt-1"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button size="sm" onClick={() => {
+              onSave(note.trim() || null, override === 'auto' ? null : override);
+              setOpen(false);
+            }}>Guardar</Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
