@@ -1,103 +1,86 @@
+## Objetivo
 
-# Cockpit Mensal do CEO
+Resolver dívida técnica no sistema de planeamento sem adicionar funcionalidades. Consolidar fontes de verdade, remover duplicação e formalizar accountability.
 
-Reestruturar `/executive/planeamento/operacional` quando há `?mes=` (ou por defeito mês atual) para uma vista única "planear + acompanhar" com 8 blocos. A galeria mensal/trimestral atuais passam a ser secundárias (acessíveis num toggle "Ver galeria do ano" ou só visíveis quando não há `?mes=`).
+## Ordem de execução (segura → arriscada)
 
-## Estrutura
+### Passo 1 — Normalizar `planning_goals.period` (base de dados)
 
-Nova página/componente principal `MonthlyCockpit` montado no topo quando há mês selecionado. Recebe `year` + `month`.
+Migration que converte valores legacy para o formato canónico:
+- Trimestre: `T1..T4` → `Q1..Q4`
+- Mês: `Janeiro..Dezembro` → `YYYY-MM` (usar `year` da row para o YYYY)
+- Adicionar check soft (validação por trigger, não CHECK constraint, para permitir formatos `Q[1-4]`, `S[1-2]`, `YYYY`, `YYYY-MM`)
 
+Atualizar hooks que filtram/escrevem `period`:
+- `usePlanningData.tsx` (linha ~265, gerar `period` no novo formato em vez de "Janeiro")
+- `MonthlyCockpit` blocks que leem por mês
+- `AreaPeriodDetail`, `MarketingAnalise`, `FinGoals`
+
+### Passo 2 — Adicionar `owner_id` a `executive_objectives`
+
+Migration aditiva:
+```sql
+ALTER TABLE executive_objectives
+  ADD COLUMN owner_id uuid REFERENCES team_members(id) ON DELETE SET NULL;
 ```
-┌─ Header ──────────────────────────────────────────────┐
-│ ◀  Maio 2026   [estado]            [Fechar mês]      │
-├───────────────────────────────────────────────────────┤
-│ B1  Objetivos do Mês       (8 área cards)            │
-│ B2  Agenda do Mês          (calendário compacto)     │
-│ B3  Comercial              (3 sub-blocos)            │
-│ B4  Marketing              (3 sub-blocos)            │
-│ B5  Clientes               (3 sub-blocos)            │
-│ B6  Operação               (4 sub-blocos)            │
-│ B7  Produtos               (lista compacta)          │
-│ B8  Reflexão & Fecho       (gated por data)          │
-└───────────────────────────────────────────────────────┘
-```
+UI:
+- `ObjectiveDetailSheet`: dropdown "Responsável" (lista `team_members`)
+- `ObjectiveCascadeRow` / cockpit / Weekly Align: avatar do responsável (fallback CEO se null)
 
-Cada bloco é `<CockpitSection collapsible storageKey="cockpit:{key}">` com persistência em `localStorage` (`cockpit-collapsed:{userId}:{blockKey}`).
+### Passo 3 — Sincronização Marketing/Financeiro ↔ Planning
 
-## Header
+Em vez de edge functions, usar **triggers PL/pgSQL bidirecionais** (mais simples, atómicos):
+- `sync_planning_to_marketing()`: AFTER INSERT/UPDATE em `planning_goals` WHERE area='marketing' → upsert em `marketing_goals`
+- `sync_marketing_to_planning()`: AFTER INSERT/UPDATE em `marketing_goals` → upsert em `planning_goals` area='marketing'
+- Guard `pg_trigger_depth() = 1` para evitar loops
+- Idem para financeiro
 
-- Setas ◀ ▶ navegam mês/ano (preservam `?ano=&mes=`).
-- Estado do mês:
-  - Futuro → "Planeamento futuro"
-  - Atual e não revisto → "Em curso"
-  - Atual nos primeiros 3 dias → "A planear"
-  - Passado e revisto → "Revisto"
-  - Passado e não revisto → "Por rever"
-- Botão "Fechar mês" só visível nos últimos 3 dias do mês ou primeiros 3 dias do mês seguinte, e ainda não revisto. Faz scroll para B8.
+### Passo 4 — Consolidar `PlaneamentoDepartamento`
 
-## Blocos — fontes de dados
+Refactor `src/pages/PlaneamentoDepartamento.tsx`:
+- Apagar markup duplicado
+- Compor componentes existentes do Executive Tatico filtrados por `area = dept`:
+  - `ObjectiveCascadeRow` (read-only, sem botões de edit)
+  - Lista `planning_goals` da área (mensais + trimestrais)
+  - Lista `objective_actions` da área
+- Novo campo editável `notes` em `planning_goals` (membro da área pode editar)
+- Migration: `ALTER TABLE planning_goals ADD COLUMN notes text;` + RLS update
 
-**B1 Objetivos do Mês** — `planning_goals` filtrado por `year/month/period_type='mensal'` para as 8 áreas. Reaproveita `goalAutoValue` (já existe em `usePlanningData`). Card sem meta → CTA "Definir meta" abre `ObjectiveDetailSheet` ou modal direto em `planning_goals` insert. Semáforo: ≥90% verde, 60–90% amarelo, <60% vermelho.
+### Passo 5 — Departamentos vazios
 
-**B2 Agenda do Mês** — calendário compacto (grid 7 cols). Eventos de `events`, `meetings`, feriados PT (já existe `useHolidays` ou tabela `holidays`), `team_off_days`. Click → `Sheet` com lista do dia.
+`/planeamento/dep/{operacao,clientes,produtos,equipa}`: passam a usar o mesmo componente refatorado do passo 4. Estado vazio com CTA → `/executive/planeamento/tatico`.
 
-**B3 Comercial** —
-- a) Soma `commercial_payments` (status pago) do mês vs `executive_objectives` area=comercial OR `planning_goals` area=comercial mensal.
-- b) Leads agrupados por stage (filtrar stages "ativas/proposta/negociação"); follow-ups com `next_followup` no mês.
-- c) `commercial_sales_actions` com `start_date` ou `due_date` no mês.
+### Passo 6 — Weekly Align ligado ao planeamento
 
-**B4 Marketing** —
-- a) `marketing_goals` para o mês (já com sync do Executive).
-- b) `marketing_content` agrupado por status e por canal.
-- c) `commercial_sales_actions` filtrado tipo marketing (se campo existir; senão só comercial).
+`WeeklyAlignSections.tsx` secção "Metas":
+- Inline: lista `planning_goals` do mês corrente com progresso e semáforo
+- Botão "Marcar em risco" por meta → atualiza `status='em_risco'` + abre textarea para `deviation_decision`
+- Campo `deviation_decision` editável também no `MonthlyCockpit` BlockObjetivos quando status ∈ {em_risco, nao_atingido}
 
-**B5 Clientes** —
-- a) Contagens de `clients` por status (ativo/onboarding/offboarding) + média de progresso de `client_onboarding_checklists`.
-- b) `clients` com `end_of_cycle` no mês.
-- c) `nps_records` agendados para o mês.
+### Passo 7 — Limpar redirects legacy
 
-**B6 Operação** —
-- a) `projects` com atividade no mês (deadline ou tasks com due no mês).
-- b) `member_capacity` vs `time_entries` agregados por membro/mês.
-- c) `routines` mensais/semanais → contar `routine_occurrences` do mês concluídas/total.
-- d) `tasks` com `priority IN ('P1','P2')` e `due_date` no mês.
-
-**B7 Produtos** — `products` ativos: contagem clientes (`client_products` ou similar), NPS médio 90d, `product_deliverables` em atraso. Em desenvolvimento: lista nome/estado/próximo marco.
-
-**B8 Reflexão e Fecho** — Reaproveitar `MonthlyReflectionCard` existente. Adicionar gate: colapsado e bloqueado fora da janela (último dia + 3 primeiros do mês seguinte). Toggle "revisto" já existe; quando true, header mostra "Revisto" e desbloqueia banner do mês seguinte.
-
-## Componentes a criar
-
-```
-src/components/planning/cockpit/
-├── MonthlyCockpit.tsx            (orquestrador + header + setas)
-├── CockpitSection.tsx            (wrapper colapsável + persist)
-├── BlockObjetivos.tsx            (B1)
-├── BlockAgenda.tsx               (B2)
-├── BlockComercial.tsx            (B3)
-├── BlockMarketing.tsx            (B4)
-├── BlockClientes.tsx             (B5)
-├── BlockOperacao.tsx             (B6)
-├── BlockProdutos.tsx             (B7)
-└── useMonthState.ts              (calcula estado do mês + janela de fecho)
+`rg` para cada rota antiga, atualizar links internos para a rota nova. Manter o `<Route>` de redirect em `App.tsx` com comentário:
+```tsx
+{/* Legacy redirect — manter para bookmarks externos. Não usar em novos links. */}
 ```
 
-`MonthlyReflectionCard` já existe → reutilizar em B8 com prop `windowOnly`.
+### Passo 8 — Remover `executive_goals`
 
-## Página `ExecutivePlaneamentoOperacional.tsx`
+1. `rg "executive_goals"` confirma só referências em migrations + types + edge functions de backup/reset (que iteram tabelas dinamicamente — OK)
+2. Migration: `DROP TABLE IF EXISTS public.executive_goals CASCADE;`
+3. types.ts regenera-se sozinho
 
-- Quando há mês selecionado (default = mês atual): renderizar `MonthlyCockpit` no topo.
-- Galeria trimestral + galeria mensal passam para baixo num `<details>` "Ver vista anual completa" (preserva o que já existe sem partir nada).
+## Notas de risco
 
-## Modos passado/futuro
+- Triggers bidirecionais: testar com um INSERT manual depois de aplicar
+- Normalização de `period`: rodar dentro de uma transaction, manter coluna `period_type` populada para retrocompat até nova UI estabilizar
+- `PlaneamentoDepartamento`: garantir que membros sem permissão ainda veem (RLS já cobre via `has_role`)
 
-- Mês futuro: blocos B2-B7 mostram dados zero/vazios com label "Planeamento futuro" no header da secção; B1 e B8 ativos (B1 para definir metas; B8 colapsado).
-- Mês passado: B8 read-only (já suportado pelo card); botão "Fechar mês" oculto se já revisto.
+## Entregáveis
 
-## Out of scope
+- ~5 migrations (period, owner_id, sync triggers, notes, drop executive_goals)
+- Refactor de `PlaneamentoDepartamento.tsx` (167 → ~60 linhas)
+- Updates em `WeeklyAlignSections`, `MonthlyCockpit`, `ObjectiveDetailSheet`, `usePlanningData`
+- Memory update referenciando nova source-of-truth única (`planning_goals`)
 
-- Reorder dos blocos (fixo nesta iteração).
-- Edição inline avançada além de CTAs para abrir sheets/modais existentes.
-- Mexer no schema (todas as tabelas já existem).
-
-Confirma para começar pela infraestrutura (MonthlyCockpit + CockpitSection + header) e depois B1-B8 sequencialmente.
+Pretendes que avance com tudo de uma vez, ou preferes que pare a meio (ex.: depois do passo 3) para validares antes de continuar?

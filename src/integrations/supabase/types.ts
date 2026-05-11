@@ -4203,65 +4203,6 @@ export type Database = {
         }
         Relationships: []
       }
-      executive_goals: {
-        Row: {
-          achieved_date: string | null
-          area: string
-          created_at: string
-          id: string
-          measurement_type: string
-          meta: string
-          month: number | null
-          objective_id: string | null
-          objective_type: string
-          quarter: number | null
-          status: string
-          target_date: string | null
-          updated_at: string
-          year: number
-        }
-        Insert: {
-          achieved_date?: string | null
-          area?: string
-          created_at?: string
-          id?: string
-          measurement_type?: string
-          meta: string
-          month?: number | null
-          objective_id?: string | null
-          objective_type?: string
-          quarter?: number | null
-          status?: string
-          target_date?: string | null
-          updated_at?: string
-          year?: number
-        }
-        Update: {
-          achieved_date?: string | null
-          area?: string
-          created_at?: string
-          id?: string
-          measurement_type?: string
-          meta?: string
-          month?: number | null
-          objective_id?: string | null
-          objective_type?: string
-          quarter?: number | null
-          status?: string
-          target_date?: string | null
-          updated_at?: string
-          year?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "executive_goals_objective_id_fkey"
-            columns: ["objective_id"]
-            isOneToOne: false
-            referencedRelation: "executive_objectives"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       executive_monthly_checklists: {
         Row: {
           completed: boolean
@@ -4300,6 +4241,7 @@ export type Database = {
           id: string
           measurement_type: string
           objective_type: string
+          owner_id: string | null
           primary_metric_id: string | null
           product_id: string | null
           progress: number
@@ -4322,6 +4264,7 @@ export type Database = {
           id?: string
           measurement_type?: string
           objective_type?: string
+          owner_id?: string | null
           primary_metric_id?: string | null
           product_id?: string | null
           progress?: number
@@ -4344,6 +4287,7 @@ export type Database = {
           id?: string
           measurement_type?: string
           objective_type?: string
+          owner_id?: string | null
           primary_metric_id?: string | null
           product_id?: string | null
           progress?: number
@@ -4357,6 +4301,20 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "executive_objectives_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "executive_objectives_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "executive_objectives_primary_metric_id_fkey"
             columns: ["primary_metric_id"]
@@ -6985,6 +6943,7 @@ export type Database = {
           deviation: string | null
           deviation_decision: string | null
           id: string
+          notes: string | null
           objective_id: string
           period: string
           period_type: string
@@ -6999,6 +6958,7 @@ export type Database = {
           deviation?: string | null
           deviation_decision?: string | null
           id?: string
+          notes?: string | null
           objective_id: string
           period: string
           period_type?: string
@@ -7013,6 +6973,7 @@ export type Database = {
           deviation?: string | null
           deviation_decision?: string | null
           id?: string
+          notes?: string | null
           objective_id?: string
           period?: string
           period_type?: string

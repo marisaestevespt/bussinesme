@@ -228,6 +228,7 @@ function AppRoutes() {
         <Route path="/comercial/crm" element={<Navigate to="/hub/comercial/crm" replace />} />
         <Route path="/financeiro/entradas" element={<Navigate to="/hub/financeiro/entradas" replace />} />
         <Route path="/hub/pessoas" element={<Navigate to="/hub-equipa" replace />} />
+        {/* Legacy redirect — manter para compatibilidade com bookmarks externos. Não usar em novos links. */}
         <Route path="/executive/gestao-equipa" element={<Navigate to="/hub/recursos-humanos" replace />} />
         <Route path="/hub/marketing" element={<MarketingDashboard />} />
         <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />

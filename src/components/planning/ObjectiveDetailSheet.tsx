@@ -27,6 +27,8 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   const [form, setForm] = useState<any>({});
   const { products } = useProducts();
   const productsList = products.data || [];
+  const { members } = useTeamData({ members: true });
+  const teamMembersList = ((members.data || []) as unknown as Array<{ id: string; full_name?: string; name?: string }>);
 
   const obj = objective ? (planning.allObjectives.find((o: any) => o.id === objective.id) || objective) : null;
 
@@ -47,6 +49,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         primary_metric_id: obj.primary_metric_id || '',
         source_filter: obj.source_filter || {},
         contribui_visao_5_anos: !!obj.contribui_visao_5_anos,
+        owner_id: obj.owner_id || '',
       });
       setEditing(false);
     }
@@ -126,6 +129,17 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                   </Select>
                 </div>
                 <div><Label>Data limite</Label><Input type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} /></div>
+                <div><Label>Responsável</Label>
+                  <Select value={form.owner_id || '__ceo__'} onValueChange={v => set('owner_id', v === '__ceo__' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="CEO (por defeito)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__ceo__">CEO (por defeito)</SelectItem>
+                      {teamMembersList.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>{m.full_name || m.name || m.id}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               {form.objective_type === 'quantitativo' && (
                 <>

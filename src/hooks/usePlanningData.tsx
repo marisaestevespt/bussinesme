@@ -114,6 +114,29 @@ export function usePlanningData(year = currentYear) {
 
   const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
+  // ─── Period normalization (canonical ↔ legacy) ───
+  // DB canonical: 'Q1'..'Q4', 'S1'..'S2', 'YYYY-MM', 'YYYY'.
+  // UI legacy: 'T1'..'T4', 'Janeiro'..'Dezembro'.
+  // We keep the UI on legacy strings to avoid widespread refactors;
+  // conversion happens at IO boundary only.
+  const periodCanonicalToLegacy = (p: string | null | undefined): string => {
+    if (!p) return '';
+    if (/^Q[1-4]$/.test(p)) return 'T' + p.slice(1);
+    const m = p.match(/^\d{4}-(\d{2})$/);
+    if (m) {
+      const idx = parseInt(m[1], 10) - 1;
+      return MONTH_NAMES[idx] ?? p;
+    }
+    return p;
+  };
+  const periodLegacyToCanonical = (p: string | null | undefined): string => {
+    if (!p) return '';
+    if (/^T[1-4]$/.test(p)) return 'Q' + p.slice(1);
+    const idx = MONTH_NAMES.indexOf(p);
+    if (idx >= 0) return `${year}-${String(idx + 1).padStart(2, '0')}`;
+    return p;
+  };
+
   // Sync commercial objective → commercial_annual_goals
   const syncObjectiveToCommercial = async (obj: PlanningFormPayload) => {
     if (obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
@@ -145,8 +168,8 @@ export function usePlanningData(year = currentYear) {
       const period = String((rec as { period?: unknown }).period ?? '');
       const goalAmount = Number(rec.target_value) || 0;
 
-      // Trimestral: T1..T4 → commercial_quarterly_goals
-      const qMatch = period.match(/^T([1-4])$/);
+      // Trimestral: T1..T4 OR Q1..Q4 (canonical) → commercial_quarterly_goals
+      const qMatch = period.match(/^[TQ]([1-4])$/);
       if (qMatch) {
         const quarter = Number(qMatch[1]);
         const { data: existing } = await supabase
@@ -163,10 +186,16 @@ export function usePlanningData(year = currentYear) {
         return;
       }
 
-      // Mensal: nome do mês → commercial_monthly_goals
-      const monthIdx = MONTH_NAMES.indexOf(period);
-      if (monthIdx === -1) return;
-      const month = monthIdx + 1;
+      // Mensal: nome do mês OU 'YYYY-MM' (canonical) → commercial_monthly_goals
+      let month = 0;
+      const ymMatch = period.match(/^\d{4}-(\d{2})$/);
+      if (ymMatch) {
+        month = parseInt(ymMatch[1], 10);
+      } else {
+        const monthIdx = MONTH_NAMES.indexOf(period);
+        if (monthIdx === -1) return;
+        month = monthIdx + 1;
+      }
       const { data: existing } = await supabase
         .from('commercial_monthly_goals')
         .select('id')
@@ -254,7 +283,12 @@ export function usePlanningData(year = currentYear) {
     queryKey: [...key, 'goals'],
     queryFn: async () => {
       const { data } = await supabase.from('planning_goals').select('*').eq('year', year).order('created_at');
-      return data || [];
+      // Expose legacy period strings to existing UI consumers
+      return (data || []).map((g) => ({
+        ...g,
+        period_canonical: g.period,
+        period: periodCanonicalToLegacy(g.period as string),
+      }));
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -262,13 +296,17 @@ export function usePlanningData(year = currentYear) {
   const upsertGoal = useMutation({
     mutationFn: async (raw: PlanningFormPayload) => {
       const rec = clean(raw);
-      // auto period_type
+      // Convert legacy period strings → canonical before persisting
       if (rec.period && typeof rec.period === 'string') {
-        rec.period_type = rec.period.startsWith('T')
+        const canonical = periodLegacyToCanonical(rec.period);
+        rec.period = canonical;
+        rec.period_type = canonical.startsWith('Q')
           ? 'trimestral'
-          : rec.period.startsWith('S')
+          : canonical.startsWith('S')
             ? 'semestral'
-            : 'mensal';
+            : /^\d{4}-\d{2}$/.test(canonical)
+              ? 'mensal'
+              : 'anual';
       }
       if (rec.id) {
         const { error } = await supabase.from('planning_goals').update(rec as never).eq('id', rec.id as string);
@@ -813,7 +851,7 @@ export function usePlanningData(year = currentYear) {
   // For each goal: pct = atingido ? 100 : auto/actual ÷ target, capped at 100.
   // ════════════════════════════════════════════════════════════════
   const getPeriodProgress = (periodMonths: string[]): { pct: number; count: number; achievedCount: number } => {
-    const allG = (goals.data || []) as Array<GoalRow & { actual_value?: number | null; objective_id?: string | null }>;
+    const allG = (goals.data || []) as unknown as Array<GoalRow & { actual_value?: number | null; objective_id?: string | null }>;
     const allObj = (objectives.data || []) as ObjectiveRow[];
     const periodGoals = allG.filter((g) => periodMonths.includes(g.period ?? ''));
     if (periodGoals.length === 0) return { pct: 0, count: 0, achievedCount: 0 };
@@ -836,7 +874,7 @@ export function usePlanningData(year = currentYear) {
 
   // Helper: get goals with deviation info for alerts
   const getGoalsWithDeviations = () => {
-    const allG = (goals.data || []) as Array<GoalRow & { actual_value?: number | null }>;
+    const allG = (goals.data || []) as unknown as Array<GoalRow & { actual_value?: number | null }>;
     const now = new Date();
     const currentMonthIdx = now.getMonth();
     return allG.filter((g) => {
