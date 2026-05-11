@@ -30,6 +30,8 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
 import { ClientRequestsBlock } from '@/components/clients/ClientRequestsBlock';
+import { ClientPortalHealthBlock } from '@/components/clients/ClientPortalHealthBlock';
+import { ClientPortalAuditBlock } from '@/components/clients/ClientPortalAuditBlock';
 import { supabase } from '@/integrations/supabase/client';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DEPARTMENTS } from '@/lib/departments';
@@ -1264,6 +1266,8 @@ function ClienteDetailPageInner() {
           <EntityTabsContent value="gestao" className="space-y-6 mt-4">
             {/* Financial Health */}
             {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
+            {/* Portal Health */}
+            {!isNew && form.id && <ClientPortalHealthBlock clientId={form.id} />}
             {/* Account Manager */}
             <EntitySection title="Account Manager" icon={User}>
               <div className="space-y-2">
@@ -1291,6 +1295,8 @@ function ClienteDetailPageInner() {
             {!isNew && form.id && (
               <ClientRequestsBlock clientId={form.id} />
             )}
+            {/* Portal Audit Log */}
+            {!isNew && form.id && <ClientPortalAuditBlock clientId={form.id} />}
             {/* Meetings */}
             <EntitySection
               title={sectorConfig.t('reunioes')}
