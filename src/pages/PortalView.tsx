@@ -781,6 +781,7 @@ export default function PortalViewPage() {
             answerQuestion={answerQuestion}
             pc={pc}
             pcAlpha={pcAlpha}
+            playlistUrl={(portal.playlist_url as string) || ((settings as any)?.playlist_url as string) || null}
           />
         )}
 
