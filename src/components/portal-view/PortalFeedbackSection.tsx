@@ -283,22 +283,49 @@ function RecolhaDialog({
 }) {
   const isFeedback = recolha.kind === 'feedback';
   const questions: PortalRecolhaQuestion[] = isFeedback ? (recolha.questions || []) : [];
+  const npsCats: PortalNpsCategory[] = !isFeedback ? (recolha.categories || []) : [];
   const [score, setScore] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [answers, setAnswers] = useState<string[]>(() => questions.map(() => ''));
+  const [catScores, setCatScores] = useState<Record<string, number>>({});
+  const [catComments, setCatComments] = useState<Record<string, string>>({});
 
-  const requiredOk = questions.every((q, i) =>
+  const requiredQuestionsOk = questions.every((q, i) =>
     !q.required || (answers[i] && answers[i].trim().length > 0)
   );
-  const canSubmit = score !== null && requiredOk;
-  const cat = score !== null ? npsCategoryFor(score) : null;
+
+  // For NPS: every category must have a score; if score ≤ 6, comment is required
+  const allCatsScored = !isFeedback && npsCats.length > 0
+    && npsCats.every(c => typeof catScores[c.key] === 'number');
+  const lowScoreCommentsOk = !isFeedback
+    && npsCats.every(c => {
+      const s = catScores[c.key];
+      if (s == null || s > 6) return true;
+      return (catComments[c.key] || '').trim().length > 0;
+    });
+
+  const canSubmit = isFeedback
+    ? score !== null && requiredQuestionsOk
+    : allCatsScored && lowScoreCommentsOk;
+
+  const avgCatScore = !isFeedback && allCatsScored
+    ? Math.round(npsCats.reduce((s, c) => s + (catScores[c.key] || 0), 0) / npsCats.length)
+    : null;
 
   const handleSubmit = async () => {
-    if (score === null) return;
-    const responses = isFeedback
-      ? questions.map((q, i) => ({ question: q.text, answer: answers[i] || '' }))
-      : undefined;
-    await submitNps(recolha.id, score, notes, responses);
+    if (isFeedback) {
+      if (score === null) return;
+      const responses = questions.map((q, i) => ({ question: q.text, answer: answers[i] || '' }));
+      await submitNps(recolha.id, score, notes, responses);
+    } else {
+      if (!allCatsScored) return;
+      const categoryScores: PortalNpsCategoryScore[] = npsCats.map(c => ({
+        key: c.key,
+        score: catScores[c.key],
+        comment: (catComments[c.key] || '').trim() || null,
+      }));
+      await submitNps(recolha.id, null, notes, undefined, categoryScores);
+    }
     onOpenChange(false);
   };
 
@@ -336,68 +363,71 @@ function RecolhaDialog({
             </div>
           )}
 
-          <div className={isFeedback ? 'pt-4 border-t space-y-3' : 'space-y-3'} style={isFeedback ? { borderColor: pcAlpha(0.15) } : undefined}>
-            <p className="text-sm font-medium">
-              {isFeedback
-                ? 'Para terminar, qual a probabilidade de nos recomendares?'
-                : 'De 0 a 10, qual a probabilidade de nos recomendares?'}
-            </p>
+          {/* ─── kind='feedback': nota global ─── */}
+          {isFeedback && (
+            <div className="pt-4 border-t space-y-3" style={{ borderColor: pcAlpha(0.15) }}>
+              <p className="text-sm font-medium">Para terminar, qual a probabilidade de nos recomendares?</p>
+              <NpsScale value={score} onChange={setScore} />
+            </div>
+          )}
 
-            {/* Categorias com legendas */}
-            <div className="grid grid-cols-3 gap-2 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
-              {NPS_CATEGORIES.map(c => {
-                const Icon = c.icon;
+          {/* ─── kind='nps': nota por categoria temática ─── */}
+          {!isFeedback && (
+            <div className="space-y-4">
+              {npsCats.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Não há categorias configuradas. Contacta a equipa.
+                </p>
+              )}
+              {npsCats.map(c => {
+                const s = catScores[c.key];
+                const isLow = typeof s === 'number' && s <= 6;
                 return (
-                  <div key={c.key} className="flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5" style={{ color: c.color }} strokeWidth={1.5} />
-                    <span>{c.label}</span>
-                    <span className="text-muted-foreground/60 normal-case tracking-normal">({c.range[0]}{c.range[0] !== c.range[1] ? `–${c.range[1]}` : ''})</span>
+                  <div
+                    key={c.key}
+                    className="rounded-xl border p-4 space-y-3"
+                    style={{ borderColor: pcAlpha(0.15), backgroundColor: pcAlpha(0.03) }}
+                  >
+                    <div>
+                      <p className="text-sm font-semibold">{c.label}</p>
+                      {c.description && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{c.description}</p>
+                      )}
+                    </div>
+                    <NpsScale
+                      value={typeof s === 'number' ? s : null}
+                      onChange={(n) => setCatScores(prev => ({ ...prev, [c.key]: n! }))}
+                      compact
+                    />
+                    {isLow && (
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-medium text-destructive">
+                          O que correu menos bem em "{c.label}"? <span>*</span>
+                        </label>
+                        <Textarea
+                          rows={2}
+                          value={catComments[c.key] || ''}
+                          onChange={e => setCatComments(prev => ({ ...prev, [c.key]: e.target.value }))}
+                          placeholder="Ajuda-nos a melhorar..."
+                          className="rounded-lg border-border/40 bg-background text-sm"
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
-            </div>
 
-            {/* Botões 0-10 agrupados por categoria */}
-            <div className="grid grid-cols-3 gap-2">
-              {NPS_CATEGORIES.map(c => (
-                <div
-                  key={c.key}
-                  className="rounded-xl p-1.5 flex gap-1"
-                  style={{ backgroundColor: `${c.color.replace(')', ' / 0.08)')}`, border: `1px solid ${c.color.replace(')', ' / 0.2)')}` }}
-                >
-                  {Array.from({ length: c.range[1] - c.range[0] + 1 }).map((_, idx) => {
-                    const n = c.range[0] + idx;
-                    const active = score === n;
-                    return (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => setScore(n)}
-                        className={`flex-1 h-10 rounded-lg text-sm font-semibold transition-all border ${
-                          active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-transparent bg-background hover:border-border'
-                        }`}
-                        style={active ? { backgroundColor: c.color } : undefined}
-                      >
-                        {n}
-                      </button>
-                    );
-                  })}
+              {avgCatScore !== null && (
+                <div className="rounded-lg px-4 py-3 flex items-center justify-between" style={{ backgroundColor: pcAlpha(0.08) }}>
+                  <span className="text-xs uppercase tracking-wider font-semibold" style={{ color: pc }}>Nota global desta recolha</span>
+                  <span className="text-2xl font-bold" style={{ color: pc }}>{avgCatScore}<span className="text-sm text-muted-foreground">/10</span></span>
                 </div>
-              ))}
+              )}
             </div>
-
-            {cat && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                Selecionaste <strong className="text-foreground">{score}</strong> · categoria
-                <span className="inline-flex items-center gap-1 font-semibold" style={{ color: cat.color }}>
-                  <cat.icon className="h-3.5 w-3.5" strokeWidth={1.5} /> {cat.label}
-                </span>
-              </p>
-            )}
-          </div>
+          )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Comentário (opcional)</label>
+            <label className="text-sm font-medium">Comentário geral (opcional)</label>
             <Textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
@@ -407,8 +437,13 @@ function RecolhaDialog({
             />
           </div>
 
-          {!requiredOk && score !== null && (
+          {isFeedback && !requiredQuestionsOk && score !== null && (
             <p className="text-[12px] text-destructive">Preenche as perguntas obrigatórias.</p>
+          )}
+          {!isFeedback && allCatsScored && !lowScoreCommentsOk && (
+            <p className="text-[12px] text-destructive">
+              Para notas iguais ou inferiores a 6, deixa-nos um comentário em cada categoria.
+            </p>
           )}
         </div>
 
@@ -425,6 +460,63 @@ function RecolhaDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ─── Reusable 0–10 scale with category grouping ───────────────────── */
+function NpsScale({
+  value, onChange, compact = false,
+}: {
+  value: number | null;
+  onChange: (n: number) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-2">
+        {NPS_CATEGORIES.map(c => (
+          <div
+            key={c.key}
+            className="rounded-lg p-1 flex gap-0.5"
+            style={{
+              backgroundColor: c.color.replace(')', ' / 0.08)'),
+              border: `1px solid ${c.color.replace(')', ' / 0.2)')}`,
+            }}
+          >
+            {Array.from({ length: c.range[1] - c.range[0] + 1 }).map((_, idx) => {
+              const n = c.range[0] + idx;
+              const active = value === n;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => onChange(n)}
+                  className={`flex-1 ${compact ? 'h-8 text-xs' : 'h-10 text-sm'} rounded-md font-semibold transition-all border ${
+                    active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-transparent bg-background hover:border-border'
+                  }`}
+                  style={active ? { backgroundColor: c.color } : undefined}
+                >
+                  {n}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {!compact && (
+        <div className="grid grid-cols-3 gap-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+          {NPS_CATEGORIES.map(c => {
+            const Icon = c.icon;
+            return (
+              <div key={c.key} className="flex items-center gap-1.5">
+                <Icon className="h-3 w-3" style={{ color: c.color }} strokeWidth={1.5} />
+                <span>{c.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
