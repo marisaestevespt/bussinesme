@@ -580,20 +580,20 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
   }, [totalPerUnit, recBase, floorBase, testVal, scenario.id, hasCosts]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Header: matches VariablesWizard for visual consistency */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <Coins className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold">Custos &amp; Margens da Oferta</h3>
+          <Coins className="h-5 w-5 text-primary" />
+          <h3 className="text-base font-semibold">Custos &amp; Margens da Oferta</h3>
         </div>
-        <p className="text-[11px] text-muted-foreground">Define os custos internos e a margem para gerar mín / sugerido / máx.</p>
+        <p className="text-xs text-muted-foreground">Define os custos internos e a margem para gerar mín / sugerido / máx.</p>
       </div>
 
       {/* ── Configuração do cenário ── */}
-      <Card>
-        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
-        <CardContent className="space-y-4 px-4 pb-4">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3 pt-5 px-5"><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
+        <CardContent className="space-y-4 px-5 pb-5">
           {/* Perfil fiscal — vem das Definições e não é editável aqui */}
           {fiscalFromSettings ? (
             <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-3">
@@ -659,9 +659,9 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
       </div>
 
       {/* ── Breakdown ── */}
-      <Card>
-        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
-        <CardContent className="space-y-3 px-4 pb-4">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3 pt-5 px-5"><CardTitle className="text-base">Composição do custo por unidade</CardTitle></CardHeader>
+        <CardContent className="space-y-3 px-5 pb-5">
           {totalPerUnit === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Adiciona custos e define vendas estimadas para veres o breakdown.</p>
           ) : (
@@ -772,8 +772,8 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
       {/* ── Testar preço ── */}
       <Card>
-        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
-        <CardContent className="space-y-3 px-4 pb-4">
+        <CardHeader className="pb-3 pt-5 px-5"><CardTitle className="text-base">Testar um preço</CardTitle></CardHeader>
+        <CardContent className="space-y-3 px-5 pb-5">
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1">
               <Label className="text-sm text-foreground/70">Preço de venda (s/ IVA)</Label>
