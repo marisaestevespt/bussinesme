@@ -35,8 +35,8 @@ export function PortalContractSection({ contractDocs, pc, pcAlpha }: Props) {
                     </div>
                   </div>
                   <Button size="sm" variant="outline" className="rounded-lg shrink-0" asChild>
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                      <Download className="h-3.5 w-3.5 mr-1" />Abrir
+                    <a href={doc.url} target="_blank" rel="noopener noreferrer" download={doc.name || true}>
+                      <Download className="h-3.5 w-3.5 mr-1" />Descarregar
                     </a>
                   </Button>
                 </div>

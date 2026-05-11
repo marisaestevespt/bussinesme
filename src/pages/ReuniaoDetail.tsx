@@ -393,6 +393,21 @@ function ReuniaoDetailPageInner() {
   const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
   const [seriesSaveDialogOpen, setSeriesSaveDialogOpen] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [prepItems, setPrepItems] = useState<Array<{ id: string; content: string; source: string; author_label: string | null; created_at: string }>>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('meeting_prep_items' as any)
+        .select('id, content, source, author_label, created_at')
+        .eq('meeting_id', id)
+        .order('created_at', { ascending: true });
+      if (!cancelled) setPrepItems((data as any[]) || []);
+    })();
+    return () => { cancelled = true; };
+  }, [id]);
 
   useEffect(() => {
     if (meeting && !localMeeting) setLocalMeeting(meeting);
@@ -1152,6 +1167,29 @@ function ReuniaoDetailPageInner() {
               <span className="text-sm font-semibold text-warning dark:text-warning">Nota do cliente sobre horário</span>
             </div>
             <p className="text-sm text-warning dark:text-warning">{(m as any).portal_notes}</p>
+          </div>
+        )}
+
+        {/* Tópicos sugeridos pelo cliente / equipa via portal */}
+        {prepItems.filter((p) => p.source === 'portal').length > 0 && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold">Tópicos sugeridos pelo cliente</span>
+            </div>
+            <ul className="space-y-1.5">
+              {prepItems.filter((p) => p.source === 'portal').map((p) => (
+                <li key={p.id} className="flex items-start gap-2 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                  <div className="flex-1">
+                    <p>{p.content}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {p.author_label || 'Cliente'} · {new Date(p.created_at).toLocaleString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

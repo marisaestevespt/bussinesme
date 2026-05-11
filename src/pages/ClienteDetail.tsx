@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle, Hash, Activity, CalendarDays, Clock, Package, Mail, Phone, Cake, FileText, MapPin, NotebookText, Wallet, Link2, FolderOpen, MessageCircle, History, Briefcase, Heart, Users, Receipt, Calculator, User } from 'lucide-react';
+import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle, Hash, Activity, CalendarDays, Clock, Package, Mail, Phone, Cake, FileText, MapPin, NotebookText, Wallet, Link2, FolderOpen, MessageCircle, History, Briefcase, Heart, Users, Receipt, Calculator, User, Inbox, CheckCircle2 } from 'lucide-react';
 import { ClientQuotesSection } from '@/components/clients/ClientQuotesSection';
 import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
@@ -29,6 +29,7 @@ import {
 import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
+import { ClientRequestsBlock } from '@/components/clients/ClientRequestsBlock';
 import { supabase } from '@/integrations/supabase/client';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { DEPARTMENTS } from '@/lib/departments';
@@ -1286,6 +1287,10 @@ function ClienteDetailPageInner() {
                 <p className="text-[11px] text-muted-foreground">Aparece destacado no portal do cliente como ponto de contacto e recebe notificações de feedbacks, pedidos e NPS.</p>
               </div>
             </EntitySection>
+            {/* Pedidos do Cliente (vindos do portal) */}
+            {!isNew && form.id && (
+              <ClientRequestsBlock clientId={form.id} />
+            )}
             {/* Meetings */}
             <EntitySection
               title={sectorConfig.t('reunioes')}

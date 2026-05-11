@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { CalendarDays, Send, Download, ExternalLink, Clock, MessageSquare, CheckCircle2, Star, FileText, Paperclip } from 'lucide-react';
+import { CalendarDays, Send, Download, ExternalLink, Clock, MessageSquare, CheckCircle2, Star, FileText, Paperclip, Plus, X, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,7 @@ interface Props {
   portalToken: string;
   pc: string;
   meetingStatus: (s: string) => { text: string; cls: string };
+  authorLabel?: string;
 }
 
 const renderText = (item: unknown): string =>
@@ -28,7 +29,7 @@ const renderText = (item: unknown): string =>
 
 const normalizeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
 
-export function PortalMeetingsSection({ meetings, setMeetings, portalToken, pc, meetingStatus }: Props) {
+export function PortalMeetingsSection({ meetings, setMeetings, portalToken, pc, meetingStatus, authorLabel }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const openMeeting = meetings.find((m) => m.id === openId) || null;
 
@@ -70,6 +71,7 @@ export function PortalMeetingsSection({ meetings, setMeetings, portalToken, pc, 
         portalToken={portalToken}
         pc={pc}
         meetingStatus={meetingStatus}
+        authorLabel={authorLabel}
       />
     </div>
   );
@@ -121,6 +123,7 @@ function MeetingDialog({
   portalToken,
   pc,
   meetingStatus,
+  authorLabel,
 }: {
   meeting: PortalMeeting | null;
   onClose: () => void;
@@ -128,8 +131,28 @@ function MeetingDialog({
   portalToken: string;
   pc: string;
   meetingStatus: (s: string) => { text: string; cls: string };
+  authorLabel?: string;
 }) {
   const [noteDraft, setNoteDraft] = useState('');
+  const [prepItems, setPrepItems] = useState<Array<{ id: string; content: string; source: string; author_label: string | null; created_at: string }>>([]);
+  const [prepDraft, setPrepDraft] = useState('');
+  const [prepLoading, setPrepLoading] = useState(false);
+
+  useEffect(() => {
+    if (!meeting) return;
+    let cancelled = false;
+    (async () => {
+      setPrepLoading(true);
+      const { data } = await (
+        supabase as unknown as { rpc: (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }> }
+      ).rpc('get_portal_meeting_prep_items', { _token: portalToken, _meeting_id: meeting.id });
+      if (!cancelled) {
+        setPrepItems(Array.isArray(data) ? (data as any[]) : []);
+        setPrepLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [meeting, portalToken]);
 
   if (!meeting) return null;
   const m = meeting;
@@ -139,6 +162,26 @@ function MeetingDialog({
   // Se já foi confirmada (ou outro estado), não pedimos confirmação outra vez.
   const needsConfirmation = status === 'por_confirmar';
   const ms = meetingStatus(status);
+  const isDoneStatus = isMeetingDone({ status });
+
+  const addPrep = async () => {
+    const v = prepDraft.trim();
+    if (!v) return;
+    const { data, error } = await (
+      supabase as unknown as { rpc: (f: string, a: unknown) => Promise<{ data: unknown; error: { message: string } | null }> }
+    ).rpc('portal_add_meeting_prep_item', { _token: portalToken, _meeting_id: m.id, _content: v, _author_label: authorLabel || null });
+    if (error) { toast.error('Erro: ' + error.message); return; }
+    const newId = (data as string) || crypto.randomUUID();
+    setPrepItems((prev) => [...prev, { id: newId, content: v, source: 'portal', author_label: authorLabel || null, created_at: new Date().toISOString() }]);
+    setPrepDraft('');
+    toast.success('Adicionado à agenda ✓');
+  };
+  const removePrep = async (id: string) => {
+    const { data } = await (
+      supabase as unknown as { rpc: (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }> }
+    ).rpc('portal_delete_meeting_prep_item', { _token: portalToken, _item_id: id });
+    if (data) setPrepItems((prev) => prev.filter((x) => x.id !== id));
+  };
 
   const confirmMeeting = async () => {
     const { data, error } = await (
@@ -246,6 +289,54 @@ function MeetingDialog({
           <div className="mt-4 pt-4 border-t border-border/20">
             <p className="text-[11px] text-muted-foreground">📝 As tuas notas:</p>
             <p className="text-xs mt-1">{m.portal_notes}</p>
+          </div>
+        )}
+
+        {/* Preparação colaborativa: tópicos a discutir */}
+        {!isDoneStatus && (
+          <div className="mt-6 pt-6 border-t border-border/30">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="h-4 w-4" style={{ color: pc }} />
+              <h3 className="text-sm font-semibold tracking-tight">Tópicos a discutir</h3>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-3">
+              Adiciona aqui o que queres abordar — a equipa vê antes da reunião.
+            </p>
+            {prepLoading ? (
+              <p className="text-xs text-muted-foreground">A carregar…</p>
+            ) : prepItems.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Ainda sem tópicos.</p>
+            ) : (
+              <ul className="space-y-2 mb-3">
+                {prepItems.map((it) => (
+                  <li key={it.id} className="flex items-start gap-2 text-sm bg-muted/20 rounded-lg p-2.5">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: pc }} />
+                    <span className="flex-1">{it.content}</span>
+                    {it.source === 'portal' && (
+                      <button
+                        type="button"
+                        onClick={() => removePrep(it.id)}
+                        className="text-muted-foreground hover:text-destructive p-1 -m-1"
+                        aria-label="Remover"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex gap-2">
+              <Textarea
+                value={prepDraft}
+                onChange={(e) => setPrepDraft(e.target.value)}
+                placeholder="Ex: Rever campanha de Outubro…"
+                className="text-xs rounded-lg border-border/30 bg-muted/10 min-h-[44px]"
+              />
+              <Button size="sm" className="h-9 text-xs rounded-lg text-white shrink-0" style={{ backgroundColor: pc }} onClick={addPrep}>
+                <Plus className="h-3 w-3 mr-1" /> Adicionar
+              </Button>
+            </div>
           </div>
         )}
 

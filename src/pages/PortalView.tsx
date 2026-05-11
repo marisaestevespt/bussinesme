@@ -14,7 +14,7 @@ import { pt } from 'date-fns/locale';
 import {
   FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare,
   MessageSquare, Star, Send, ClipboardList, Clock, History,
-  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Check, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users, Mail, Phone
+  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Check, Circle, Image as ImageIcon, Pencil, LogOut, Repeat, Handshake, User, Users, Mail, Phone, Inbox
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
@@ -32,6 +32,7 @@ import { PortalPaymentsSection } from '@/components/portal-view/PortalPaymentsSe
 import { PortalWorkspaceSection } from '@/components/portal-view/PortalWorkspaceSection';
 import { PortalQuestionsSection } from '@/components/portal-view/PortalQuestionsSection';
 import { PortalFaqsSection } from '@/components/portal-view/PortalFaqsSection';
+import { PortalRequestsSection, type PortalRequest } from '@/components/portal-view/PortalRequestsSection';
 import { PortalDeliverableAttachment } from '@/components/portal/PortalDeliverableAttachment';
 import { BUSINESS_BRAND_FALLBACK_HSL, normalizePortalBranding, portalCssColorAlpha } from '@/lib/portalBranding';
 import type {
@@ -74,6 +75,7 @@ export default function PortalViewPage() {
   const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
   const [responsibilities, setResponsibilities] = useState<Array<Record<string, any>>>([]);
   const [routines, setRoutines] = useState<Array<Record<string, any>>>([]);
+  const [requests, setRequests] = useState<PortalRequest[]>([]);
   const [accountManager, setAccountManager] = useState<{
     id: string;
     full_name: string;
@@ -140,6 +142,7 @@ export default function PortalViewPage() {
         rpcAny('get_portal_routines', { _token: realToken }),
         rpcAny('portal_get_recolhas', { _token: realToken }),
         supabase.rpc('get_portal_account_manager', { _token: realToken }),
+        supabase.rpc('get_portal_client_requests', { _token: realToken }),
       ]);
       const value = <T,>(index: number): T[] => {
         const result = results[index];
@@ -181,6 +184,7 @@ export default function PortalViewPage() {
         presentation: string | null;
       }>(14);
       setAccountManager(amList[0] || null);
+      setRequests(value<PortalRequest>(15));
     } catch (error) {
       console.error('Erro ao carregar portal:', error);
       toast.error('Não foi possível carregar o portal.');
@@ -369,6 +373,7 @@ export default function PortalViewPage() {
     { key: 'workspace', label: 'Espaço de Trabalho', icon: Briefcase },
     ...(contractDocs.length > 0 ? [{ key: 'contract', label: 'Contrato', icon: FileText }] : []),
     { key: 'meetings', label: 'Reuniões', icon: CalendarDays },
+    { key: 'requests', label: 'Pedidos', icon: Inbox },
     { key: 'payments', label: 'Pagamentos', icon: CreditCard },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
     ...((routines.length > 0 || responsibilities.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
@@ -965,6 +970,17 @@ export default function PortalViewPage() {
             portalToken={portalToken}
             pc={pc}
             meetingStatus={meetingStatus}
+            authorLabel={client.full_name || undefined}
+          />
+        )}
+
+        {/* ═══ REQUESTS ═══ */}
+        {activeSection === 'requests' && (
+          <PortalRequestsSection
+            requests={requests}
+            setRequests={setRequests}
+            portalToken={portalToken}
+            pc={pc}
           />
         )}
 
