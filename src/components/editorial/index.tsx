@@ -184,3 +184,62 @@ export function Highlight({ children, className }: { children: React.ReactNode; 
 export function DisplayItalic({ children, className }: { children: React.ReactNode; className?: string }) {
   return <span className={cn('hq-display-italic', className)}>{children}</span>;
 }
+
+// ─── StatCard ───────────────────────────────────────────────
+// Editorial summary stat card with colored left border + BigKpi inside.
+// The signature pattern from HubEquipa's WeeklySummary, reusable everywhere.
+//
+// Tones map to brand colors via CSS vars. Pass `accent` to switch.
+const STAT_TONES: Record<string, string> = {
+  primary: 'border-primary',
+  gold: 'border-[hsl(var(--brand-gold))]',
+  mocha: 'border-[hsl(var(--brand-mocha))]',
+  success: 'border-success',
+  warning: 'border-warning',
+  destructive: 'border-destructive',
+  info: 'border-info',
+  violet: 'border-accent-violet',
+  muted: 'border-muted-foreground/40',
+};
+
+export function StatCard({
+  value,
+  label,
+  hint,
+  onClick,
+  tone = 'primary',
+  size = 'md',
+  className,
+}: {
+  value: React.ReactNode;
+  label: React.ReactNode;
+  hint?: React.ReactNode;
+  onClick?: () => void;
+  tone?: keyof typeof STAT_TONES;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}) {
+  const toneCls = STAT_TONES[tone] || STAT_TONES.primary;
+  const sizeCls = size === 'sm'
+    ? 'text-3xl sm:text-4xl'
+    : size === 'lg'
+      ? 'text-6xl sm:text-7xl'
+      : 'text-4xl sm:text-5xl';
+  return (
+    <div
+      onClick={onClick}
+      className={cn(
+        'border-l-2 pl-5 group',
+        toneCls,
+        onClick && 'cursor-pointer',
+        className,
+      )}
+    >
+      <Eyebrow>{label}</Eyebrow>
+      <div className={cn('font-display leading-none mt-2 text-foreground group-hover:text-primary transition-colors tabular-nums', sizeCls)}>
+        {value}
+      </div>
+      {hint && <div className="font-typewriter text-[11px] text-muted-foreground mt-2">{hint}</div>}
+    </div>
+  );
+}

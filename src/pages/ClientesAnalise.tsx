@@ -26,22 +26,23 @@ import { isDeliverableDone } from '@/lib/projectProgress';
 import { formatInt } from '@/lib/formatting';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { StatCard } from '@/components/editorial';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 function KpiCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color?: string }) {
+  // Map legacy color prop to StatCard tone
+  const tone = color?.includes('destructive') ? 'destructive'
+    : color?.includes('success') ? 'success'
+    : color?.includes('warning') ? 'warning'
+    : 'primary';
   return (
-    <Card className="border-secondary bg-background">
-      <CardContent className="p-4 flex items-center gap-3">
-        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="min-w-0">
-          <p className={`text-xl font-bold ${color || 'text-foreground'}`}>{value}</p>
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-        </div>
-      </CardContent>
-    </Card>
+    <StatCard
+      tone={tone}
+      size="sm"
+      value={value}
+      label={<><Icon className="h-3 w-3 inline mr-1.5 -mt-0.5" />{label}</>}
+    />
   );
 }
 
@@ -230,13 +231,13 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       {isAreaEnabled('clientes') && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs do Mês</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
           {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Clientes ativos" value={activeClients.length} icon={Users} />}
           {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Novos clientes" value={newClients.length} icon={UserPlus} />}
           {isKpiEnabled('clientes', 'churn') && <KpiCard label="Churn" value={churnClients.length} icon={UserMinus} color={churnClients.length > 0 ? 'text-destructive' : undefined} />}
           {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Em onboarding" value={onboardingClients.length} icon={Users} />}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mt-5">
           {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Valor médio / cliente" value={`${formatInt(avgValuePerClient)} €`} icon={DollarSign} />}
           {isKpiEnabled('clientes', 'taxa_renovacao') && <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />}
           {isKpiEnabled('clientes', 'marcos_atingidos') && <KpiCard label="Marcos atingidos" value={`${monthMilestonesDone.length} / ${monthMilestonesExpected.length}`} icon={Target} />}
@@ -482,7 +483,7 @@ export default function ClientesAnalisePage() {
         {/* ─── Annual Summary ─── */}
         <div className="space-y-4">
           <h3 className="text-base font-semibold">Resumo {year}</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5">
             <KpiCard label="Clientes ativos" value={annualSummary.activeCount} icon={Users} />
             <KpiCard label="Novos clientes" value={annualSummary.newClients} icon={UserPlus} />
             <KpiCard label="Churn total" value={annualSummary.churn} icon={UserMinus} color={annualSummary.churn > 0 ? 'text-destructive' : undefined} />

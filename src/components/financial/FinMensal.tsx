@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { FinancialHealthSection } from './FinancialHealthSection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileUp, BarChart3 } from 'lucide-react';
+import { FileUp, BarChart3, ArrowDownToLine, ArrowUpFromLine, Scale, Percent } from 'lucide-react';
+import { StatCard } from '@/components/editorial';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
@@ -341,11 +342,11 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       <FiscalChecklistCard month={m} year={currentYear} />
 
       <div id="fin-mensal-report" className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-2xl font-bold text-success">{formatEuro(totalEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas</p><p className="text-2xl font-bold text-destructive">{formatEuro(totalSaidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço</p><p className={`text-2xl font-bold ${resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(resultado)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-2xl font-bold ${margem >= 0 ? 'text-success' : 'text-destructive'}`}>{margem}%</p></CardContent></Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <StatCard tone="success" size="sm" value={formatEuro(totalEntradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />entradas</>} />
+          <StatCard tone="destructive" size="sm" value={formatEuro(totalSaidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />saídas</>} />
+          <StatCard tone={resultado >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(resultado)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />balanço</>} />
+          <StatCard tone={margem >= 0 ? 'gold' : 'destructive'} size="sm" value={`${margem}%`} label={<><Percent className="h-3 w-3 inline mr-1.5 -mt-0.5" />margem</>} />
         </div>
 
         <EntradasTable

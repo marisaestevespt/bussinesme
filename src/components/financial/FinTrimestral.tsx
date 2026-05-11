@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, ArrowDownToLine, ArrowUpFromLine, Scale, Percent } from 'lucide-react';
+import { StatCard } from '@/components/editorial';
 import { exportPdf } from '@/lib/exportPdf';
 import { formatEuro } from '@/lib/formatting';
 import type { TrimSale, TrimExpense } from './finTrimestral/types';
@@ -52,11 +52,11 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
       </Tabs>
 
       <div id="fin-trimestral-report" className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Entradas</p><p className="text-xl font-bold text-success">{formatEuro(dv.entradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Saídas</p><p className="text-xl font-bold text-destructive">{formatEuro(dv.saidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Resultado</p><p className={`text-xl font-bold ${dv.resultado >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(dv.resultado)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-xl font-bold ${dv.margem >= 0 ? 'text-success' : 'text-destructive'}`}>{dv.margem}%</p></CardContent></Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <StatCard tone="success" size="sm" value={formatEuro(dv.entradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />{selectedQ === 'todos' ? 'total' : selectedQ.toLowerCase()} entradas</>} />
+          <StatCard tone="destructive" size="sm" value={formatEuro(dv.saidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />{selectedQ === 'todos' ? 'total' : selectedQ.toLowerCase()} saídas</>} />
+          <StatCard tone={dv.resultado >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(dv.resultado)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />resultado</>} />
+          <StatCard tone={dv.margem >= 0 ? 'gold' : 'destructive'} size="sm" value={`${dv.margem}%`} label={<><Percent className="h-3 w-3 inline mr-1.5 -mt-0.5" />margem</>} />
         </div>
 
         {selectedQ === 'todos' ? (

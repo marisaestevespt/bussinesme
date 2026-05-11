@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertTriangle, X, Plus, Users } from 'lucide-react';
+import { AlertTriangle, X, Plus, Users, Target, Wallet, TrendingUp, CalendarDays, Package } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { saleRevenue } from '@/lib/salesCalculations';
 import { formatNumber } from '@/lib/formatting';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { StatCard } from '@/components/editorial';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -63,38 +64,45 @@ export function CommercialOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Meta Anual</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">€{formatNumber(data.annualGoalAmount)}</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Faturado</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">€{formatNumber(data.totalInvoiced)}</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">% Progresso Anual</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">{data.progressPct.toFixed(1)}%</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Faturado este mês</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">€{formatNumber(data.currentMonthTotal)}</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Produto mais vendido</CardTitle></CardHeader>
-          <CardContent>
-            {topProduct && topProduct.total > 0 ? (
-              <div><p className="text-2xl font-bold">{topProduct.name}</p><p className="text-sm text-muted-foreground">€{formatNumber(topProduct.total)}</p></div>
-            ) : (
-              <EmptyHint>Sem dados</EmptyHint>
-            )}
-          </CardContent></Card>
-        <Card
-          className="cursor-pointer hover:shadow-md transition-shadow"
+      {/* Summary stats — editorial ceramic style */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 items-stretch">
+        <StatCard
+          tone="primary"
+          value={`€${formatNumber(data.annualGoalAmount)}`}
+          label={<><Target className="h-3 w-3 inline mr-1.5 -mt-0.5" />meta anual</>}
+          hint={`para ${data.year}`}
+        />
+        <StatCard
+          tone="gold"
+          value={`€${formatNumber(data.totalInvoiced)}`}
+          label={<><Wallet className="h-3 w-3 inline mr-1.5 -mt-0.5" />total faturado</>}
+          hint={`${data.progressPct.toFixed(1)}% da meta`}
+        />
+        <StatCard
+          tone="success"
+          value={`${data.progressPct.toFixed(0)}%`}
+          label={<><TrendingUp className="h-3 w-3 inline mr-1.5 -mt-0.5" />progresso anual</>}
+          hint={`faltam €${formatNumber(remaining)}`}
+        />
+        <StatCard
+          tone="mocha"
+          value={`€${formatNumber(data.currentMonthTotal)}`}
+          label={<><CalendarDays className="h-3 w-3 inline mr-1.5 -mt-0.5" />faturado este mês</>}
+          hint="mês corrente"
+        />
+        <StatCard
+          tone="violet"
+          value={topProduct && topProduct.total > 0 ? topProduct.name : '—'}
+          label={<><Package className="h-3 w-3 inline mr-1.5 -mt-0.5" />top produto</>}
+          hint={topProduct && topProduct.total > 0 ? `€${formatNumber(topProduct.total)}` : 'sem vendas registadas'}
+        />
+        <StatCard
+          tone="info"
           onClick={() => navigate('/hub/comercial/crm')}
-        >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Users className="h-3.5 w-3.5" /> Leads Ativas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{activeLeadsCount}</p>
-            <p className="text-xs text-muted-foreground">em pipeline</p>
-          </CardContent>
-        </Card>
+          value={activeLeadsCount}
+          label={<><Users className="h-3 w-3 inline mr-1.5 -mt-0.5" />leads ativas</>}
+          hint="em pipeline →"
+        />
       </div>
 
       {/* Mismatch alert */}
