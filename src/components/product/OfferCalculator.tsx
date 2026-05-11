@@ -919,23 +919,24 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
   const active = scenarios.find(s => s.id === activeId) || scenarios[0];
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle className="text-base">Calculadora de Oferta</CardTitle>
-            <p className="text-sm text-foreground/70 mt-1">
-              Define todos os custos do produto (criação, recorrentes, por venda, horas de equipa) e simula preços com diferentes margens e regimes fiscais.
-            </p>
-          </div>
+    <div className="space-y-4">
+      {/* Header — alinhado com VariablesWizard (mesma altura, fonte e baseline) */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Calculadora de Oferta</h3>
+        </div>
+        <div className="flex items-center gap-3">
+          <p className="text-[11px] text-muted-foreground">Custos internos, margens e regimes fiscais.</p>
           {isOwner && scenarios.length > 1 && (
-            <Button size="sm" variant="outline" onClick={() => addScenario.mutate()}>
+            <Button size="sm" variant="outline" onClick={() => addScenario.mutate()} className="h-7">
               <Plus className="h-3 w-3 mr-1" /> Nova variante
             </Button>
           )}
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+
+      <div>
         {scenarios.length === 0 ? (
           <p className="text-sm text-muted-foreground py-8 text-center">A preparar cenário inicial…</p>
         ) : (
@@ -984,7 +985,7 @@ export function OfferCalculator({ productId, vatRate, isOwner }: Props) {
             ) : null}
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
