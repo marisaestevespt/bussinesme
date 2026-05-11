@@ -175,7 +175,7 @@ export default function PortalAuthPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4 sm:p-8"
-      style={{ background: '#FBF8F3' }}
+      style={{ background: 'hsl(var(--background))' }}
     >
       <div
         className="max-w-5xl w-full grid grid-cols-12 bg-white overflow-hidden"
@@ -296,11 +296,12 @@ export default function PortalAuthPage() {
                     value={email}
                     onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                    className="w-full h-12 pl-7 bg-transparent border-0 border-b text-base focus:outline-none transition-all placeholder:text-[#6D2E46]/30"
+                    className="w-full h-12 pl-7 bg-transparent border-0 border-b text-base focus:outline-none transition-all"
                     style={{
                       borderBottomColor: emailError ? 'hsl(var(--destructive))' : pcAlpha(0.2),
                       color: pc,
                       fontFamily: fontDisplay,
+                      ['--tw-placeholder-color' as any]: pcAlpha(0.3),
                     }}
                     onFocus={e => { e.currentTarget.style.borderBottomColor = pc; }}
                     onBlur={e => { e.currentTarget.style.borderBottomColor = emailError ? 'hsl(var(--destructive))' : pcAlpha(0.2); }}
@@ -317,7 +318,7 @@ export default function PortalAuthPage() {
               <div className="space-y-4">
                 <button
                   className="w-full py-4 text-[11px] font-semibold tracking-[0.25em] uppercase transition-all disabled:opacity-50 flex items-center justify-center gap-2 group"
-                  style={{ backgroundColor: pc, color: '#FBF8F3', boxShadow: `0 8px 20px -8px ${pcAlpha(0.4)}` }}
+                  style={{ backgroundColor: pc, color: 'hsl(var(--primary-foreground))', boxShadow: `0 8px 20px -8px ${pcAlpha(0.4)}` }}
                   disabled={submitting || !email.trim()}
                   onClick={handleSubmit}
                 >
