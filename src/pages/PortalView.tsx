@@ -403,9 +403,9 @@ export default function PortalViewPage() {
   const projectProgress = deliverableProgress(allDeliverables);
 
   return (
-    <div className="min-h-screen" style={{ background: '#FBF8F3' }}>
+    <div className="min-h-screen" style={{ background: 'hsl(var(--background))' }}>
       {/* ─── Header with integrated nav ─── */}
-      <header className="sticky top-0 z-30 backdrop-blur-md bg-[#FBF8F3]/85 border-b" style={{ borderColor: pcAlpha(0.1) }}>
+      <header className="sticky top-0 z-30 backdrop-blur-md bg-background/85 border-b" style={{ borderColor: pcAlpha(0.1) }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
