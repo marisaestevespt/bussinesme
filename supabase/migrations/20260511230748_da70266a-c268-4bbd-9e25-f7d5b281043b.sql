@@ -1,0 +1,1 @@
+DELETE FROM public.marketing_idea_views WHERE name <> 'Todas';
