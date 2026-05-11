@@ -172,7 +172,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {(m.role_title || '').toLowerCase() === 'owner' ? (
-                    <Badge className="text-[10px] gap-1 bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 border-amber-500/30">
+                    <Badge className="text-[10px] gap-1 bg-warning/15 text-warning hover:bg-warning/20 border-warning/30">
                       <Crown className="h-3 w-3" /> Owner
                     </Badge>
                   ) : (

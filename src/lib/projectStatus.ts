@@ -25,7 +25,7 @@ export interface ProjectStatusInfo {
 
 export const PROJECT_STATUSES: ProjectStatusInfo[] = [
   { value: 'em_ideia',      label: 'Em ideia',      color: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
-  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-warning' },
+  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-info/15 text-info border-info/30', dot: 'bg-info' },
   { value: 'agendado',      label: 'Agendado',      color: 'bg-accent-violet/15 text-accent-violet border-accent-violet/30', dot: 'bg-accent-violet' },
   { value: 'em_curso',      label: 'Em curso',      color: 'bg-info/15 text-info border-info/30',          dot: 'bg-info' },
   { value: 'em_pausa',      label: 'Em pausa',      color: 'bg-warning/15 text-warning border-warning/30', dot: 'bg-warning' },

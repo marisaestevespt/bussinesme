@@ -61,10 +61,10 @@ const TYPE_LABELS: Record<DiffType, string> = {
 };
 
 const TYPE_COLORS: Record<DiffType, string> = {
-  missing_payment: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
-  missing_expense: 'bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200',
+  missing_payment: 'bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning',
+  missing_expense: 'bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning',
   status_mismatch: 'bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200',
-  value_mismatch: 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200',
+  value_mismatch: 'bg-destructive/15 text-destructive dark:bg-destructive/30 dark:text-destructive',
 };
 
 function eqMoney(a: number | null | undefined, b: number | null | undefined) {
@@ -308,7 +308,7 @@ export function FinAuditoriaPagamentos() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               <span className="text-2xl font-semibold">{totalSynced}</span>
             </div>
           </CardContent>
@@ -320,7 +320,7 @@ export function FinAuditoriaPagamentos() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex items-center gap-2">
-                <AlertTriangle className={`h-4 w-4 ${counts[t] > 0 ? 'text-amber-600' : 'text-muted-foreground'}`} />
+                <AlertTriangle className={`h-4 w-4 ${counts[t] > 0 ? 'text-warning' : 'text-muted-foreground'}`} />
                 <span className="text-2xl font-semibold">{counts[t]}</span>
               </div>
             </CardContent>
@@ -353,7 +353,7 @@ export function FinAuditoriaPagamentos() {
         <CardContent>
           {diffs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle2 className="h-12 w-12 text-green-600 mb-3" />
+              <CheckCircle2 className="h-12 w-12 text-success mb-3" />
               <p className="font-medium">Tudo em ordem</p>
               <p className="text-sm text-muted-foreground">
                 Não há diferenças entre saídas financeiras e pagamentos de membros.

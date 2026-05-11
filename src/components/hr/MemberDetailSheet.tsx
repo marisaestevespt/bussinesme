@@ -266,7 +266,7 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
             </div>
             <div className="flex gap-2 flex-wrap">
               {(member.role_title || '').toLowerCase() === 'owner' ? (
-                <Badge className="text-xs gap-1 bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 border-amber-500/30">
+                <Badge className="text-xs gap-1 bg-warning/15 text-warning hover:bg-warning/20 border-warning/30">
                   <Crown className="h-3 w-3" /> Owner — acesso total
                 </Badge>
               ) : (

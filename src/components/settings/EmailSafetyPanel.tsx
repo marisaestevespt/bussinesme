@@ -119,13 +119,13 @@ export function EmailSafetyPanel() {
   const liveAndOpen = !state.email_test_mode && state.email_send_to_clients_enabled;
 
   return (
-    <Card className="border-amber-300/60">
+    <Card className="border-warning/60">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <ShieldAlert className="h-4 w-4 text-amber-600" />
+          <ShieldAlert className="h-4 w-4 text-warning" />
           Segurança de envios
           {state.email_test_mode && (
-            <Badge variant="outline" className="ml-2 border-amber-500 text-amber-700">
+            <Badge variant="outline" className="ml-2 border-warning text-warning">
               MODO TESTE
             </Badge>
           )}

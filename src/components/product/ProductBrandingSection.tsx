@@ -672,9 +672,9 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
                 {/* Browser chrome */}
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/60 border-b border-border">
                   <div className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-destructive/70" />
                     <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
                   </div>
                   <div className="flex-1 mx-3 h-6 rounded-md bg-background border border-border/50 flex items-center px-3 text-[11px] text-muted-foreground truncate">
                     portal.{(previewName || 'negocio').toLowerCase().replace(/\s+/g, '')}.com

@@ -23,9 +23,9 @@ export const CLIENT_STATUSES: ClientStatusInfo[] = [
   { value: 'em_onboarding',   label: 'Em onboarding',       color: 'bg-info/15 text-info' },
   { value: 'ativo',           label: 'Ativo',               color: 'bg-success/15 text-success' },
   { value: 'pausado',         label: 'Pausado',             color: 'bg-warning/15 text-warning' },
-  { value: 'altura_renovacao',label: 'Altura de renovação', color: 'bg-accent-violet/15 text-accent-violet' },
-  { value: 'em_offboarding',  label: 'Em offboarding',      color: 'bg-warning/15 text-warning' },
-  { value: 'terminado',       label: 'Terminado',           color: 'bg-muted text-muted-foreground' },
+  { value: 'altura_renovacao',label: 'Altura de renovação', color: 'bg-warning/15 text-warning' },
+  { value: 'em_offboarding',  label: 'Em offboarding',      color: 'bg-destructive/15 text-destructive' },
+  { value: 'terminado',       label: 'Terminado',           color: 'bg-destructive/15 text-destructive' },
 ];
 
 const CLIENT_STATUS_MAP: Record<string, ClientStatusInfo> = CLIENT_STATUSES.reduce(

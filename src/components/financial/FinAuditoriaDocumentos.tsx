@@ -69,14 +69,14 @@ const TYPE_LABELS: Record<DiffType, string> = {
 };
 
 const TYPE_COLORS: Record<DiffType, string> = {
-  declaration_no_file: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
-  declaration_no_period: 'bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200',
-  declaration_overdue: 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200',
-  declaration_invalid_period: 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200',
+  declaration_no_file: 'bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning',
+  declaration_no_period: 'bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning',
+  declaration_overdue: 'bg-destructive/15 text-destructive dark:bg-destructive/30 dark:text-destructive',
+  declaration_invalid_period: 'bg-destructive/15 text-destructive dark:bg-destructive/30 dark:text-destructive',
   sale_paid_no_doc: 'bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200',
   expense_paid_no_doc: 'bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200',
   duplicate_attachment: 'bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-200',
-  malformed_attachments: 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200',
+  malformed_attachments: 'bg-destructive/15 text-destructive dark:bg-destructive/30 dark:text-destructive',
 };
 
 function extractUrls(documents: any): string[] {
@@ -311,7 +311,7 @@ export function FinAuditoriaDocumentos() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex items-center gap-2">
-                <AlertTriangle className={`h-4 w-4 ${counts[t] > 0 ? 'text-amber-600' : 'text-muted-foreground'}`} />
+                <AlertTriangle className={`h-4 w-4 ${counts[t] > 0 ? 'text-warning' : 'text-muted-foreground'}`} />
                 <span className="text-2xl font-semibold">{counts[t]}</span>
               </div>
             </CardContent>
@@ -336,7 +336,7 @@ export function FinAuditoriaDocumentos() {
         <CardContent>
           {diffs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle2 className="h-12 w-12 text-green-600 mb-3" />
+              <CheckCircle2 className="h-12 w-12 text-success mb-3" />
               <p className="font-medium">Tudo em ordem</p>
               <p className="text-sm text-muted-foreground">Todos os documentos estão consistentes.</p>
             </div>

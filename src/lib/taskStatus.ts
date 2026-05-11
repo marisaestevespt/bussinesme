@@ -26,7 +26,7 @@ export const TASK_STATUSES = [
   { value: 'a_fazer', label: 'A fazer', color: 'bg-info/15 text-info border-info/30' },
   { value: 'aguarda_feedback', label: 'Aguarda feedback cliente', color: 'bg-warning/15 text-warning border-warning/30' },
   { value: 'para_aprovacao', label: 'Para aprovação (interna)', color: 'bg-primary/15 text-primary border-primary/30' },
-  { value: 'precisa_alteracoes', label: 'Precisa de alterações', color: 'bg-warning/20 text-warning border-warning/40' },
+  { value: 'precisa_alteracoes', label: 'Precisa de alterações', color: 'bg-destructive/15 text-destructive border-destructive/30' },
   { value: 'done', label: 'Feito', color: 'bg-success/15 text-success border-success/30' },
 ] as const;
 
