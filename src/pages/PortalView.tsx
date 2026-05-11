@@ -520,24 +520,16 @@ export default function PortalViewPage() {
                   .filter((m) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
                   .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                 return (
-                  <div
-                    className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
-                    style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.12), boxShadow: `0 4px 24px ${pcAlpha(0.10)}, 0 1px 4px rgba(0,0,0,0.04)` }}
+                  <PortalEarCard
+                    ear="01"
+                    icon={CalendarDays}
+                    label="Próxima reunião"
+                    value={next ? format(parseISO(next.date_time), "d 'de' MMMM", { locale: pt }) : '—'}
+                    hint={next ? format(parseISO(next.date_time), "HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
                     onClick={() => setActiveSection('meetings')}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.12) }}>
-                        <CalendarDays className="h-5 w-5" style={{ color: pc }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground font-medium">Próxima Reunião</p>
-                        <p className="text-sm font-bold mt-0.5">
-                          {next ? format(parseISO(next.date_time), "d 'de' MMMM, HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
+                    pc={pc}
+                    pcAlpha={pcAlpha}
+                  />
                 );
               })()}
               {portal.show_payments && (() => {
@@ -552,24 +544,16 @@ export default function PortalViewPage() {
                   })
                   .sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                 return (
-                  <div
-                    className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
-                    style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.12), boxShadow: `0 4px 24px ${pcAlpha(0.10)}, 0 1px 4px rgba(0,0,0,0.04)` }}
+                  <PortalEarCard
+                    ear="02"
+                    icon={CreditCard}
+                    label="Próximo pagamento"
+                    value={next?.amount != null ? `${Number(next.amount).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : (next ? format(parseISO(next.payment_date), "d MMM", { locale: pt }) : '—')}
+                    hint={next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
                     onClick={() => setActiveSection('payments')}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.12) }}>
-                        <CreditCard className="h-5 w-5" style={{ color: pc }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground font-medium">Próximo Pagamento</p>
-                        <p className="text-sm font-bold mt-0.5">
-                          {next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
+                    pc={pc}
+                    pcAlpha={pcAlpha}
+                  />
                 );
               })()}
             </div>
@@ -991,6 +975,60 @@ export default function PortalViewPage() {
         )}
 
       </main>
+    </div>
+  );
+}
+
+// ─── PortalEarCard ─────────────────────────────────────────
+// EarCard-style numbered card with brand-color (white-label) instead of --primary tokens.
+function PortalEarCard({
+  ear,
+  icon: Icon,
+  label,
+  value,
+  hint,
+  onClick,
+  pc,
+  pcAlpha,
+}: {
+  ear: string;
+  icon: any;
+  label: string;
+  value: React.ReactNode;
+  hint?: React.ReactNode;
+  onClick?: () => void;
+  pc: string;
+  pcAlpha: (a: number) => string;
+}) {
+  return (
+    <div className="relative">
+      <div
+        className="absolute -top-2 -left-1 z-10 px-2 py-0.5 text-[10px] uppercase tracking-widest rounded-sm shadow-sm"
+        style={{ backgroundColor: pc, color: '#fff' }}
+      >
+        {ear}
+      </div>
+      <div
+        onClick={onClick}
+        className="rounded-md bg-card border-2 transition-colors p-5 cursor-pointer group"
+        style={{ borderColor: pcAlpha(0.3) }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = pc)}
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = pcAlpha(0.3))}
+      >
+        <Icon className="h-5 w-5 mb-3" strokeWidth={1.5} style={{ color: pc }} />
+        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-1">{label}</div>
+        <div
+          className="text-2xl leading-none"
+          style={{ color: pc, fontFamily: 'var(--font-display, Cormorant Garamond), Georgia, serif' }}
+        >
+          {value}
+        </div>
+        {hint && (
+          <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1">
+            {hint} <ChevronRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
