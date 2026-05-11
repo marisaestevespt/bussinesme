@@ -1085,6 +1085,8 @@ function ClienteDetailPageInner() {
           <EntityTabsList>
             <EntityTabsTrigger value="jornada">Jornada</EntityTabsTrigger>
             <EntityTabsTrigger value="gestao">Gestão do Cliente</EntityTabsTrigger>
+            <EntityTabsTrigger value="pedidos">Pedidos</EntityTabsTrigger>
+            <EntityTabsTrigger value="links">Links</EntityTabsTrigger>
             <EntityTabsTrigger value="customer-success">Customer Success</EntityTabsTrigger>
           </EntityTabsList>
 
