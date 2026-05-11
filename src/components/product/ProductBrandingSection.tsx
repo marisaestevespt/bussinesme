@@ -1075,46 +1075,22 @@ function LinkList({
   onUploadFile: (file: File, items: LinkItem[]) => void;
   uploading: boolean;
 }) {
-  // Indices currently in edit mode (newly added items start in edit mode automatically).
-  const [editing, setEditing] = useState<Set<number>>(new Set());
-  const [drafts, setDrafts] = useState<Record<number, LinkItem>>({});
-
-  const startEdit = (i: number) => {
-    setDrafts((d) => ({ ...d, [i]: { ...items[i] } }));
-    setEditing((e) => new Set(e).add(i));
+  // Inline edit on blur — no explicit save button. Empty rows are removed automatically on blur.
+  const updateField = (i: number, field: 'label' | 'url', value: string) => {
+    const next = [...items];
+    next[i] = { ...next[i], [field]: value };
+    onChange(next);
   };
 
-  const cancelEdit = (i: number) => {
-    // If it's an empty new row, remove it; otherwise just revert.
-    if (!items[i]?.label && !items[i]?.url) {
+  const removeIfEmpty = (i: number) => {
+    const it = items[i];
+    if (!it?.label?.trim() && !it?.url?.trim()) {
       onChange(items.filter((_, j) => j !== i));
     }
-    setDrafts((d) => { const { [i]: _, ...rest } = d; return rest; });
-    setEditing((e) => { const next = new Set(e); next.delete(i); return next; });
-  };
-
-  const saveEdit = (i: number) => {
-    const draft = drafts[i] ?? items[i];
-    if (!draft?.url?.trim()) {
-      toast.error('Adiciona um link ou ficheiro antes de guardar.');
-      return;
-    }
-    const next = [...items];
-    next[i] = {
-      label: draft.label?.trim() || draft.url.split('/').pop() || 'Sem nome',
-      url: draft.url.trim(),
-    };
-    onChange(next);
-    setDrafts((d) => { const { [i]: _, ...rest } = d; return rest; });
-    setEditing((e) => { const n = new Set(e); n.delete(i); return n; });
-    toast.success('Guardado');
   };
 
   const addRow = () => {
-    const newIndex = items.length;
     onChange([...items, { label: '', url: '' }]);
-    setDrafts((d) => ({ ...d, [newIndex]: { label: '', url: '' } }));
-    setEditing((e) => new Set(e).add(newIndex));
   };
 
   return (
@@ -1127,95 +1103,58 @@ function LinkList({
 
       <div className="space-y-2">
         {items.map((item, i) => {
-          const isEditing = editing.has(i);
-          const draft = drafts[i] ?? item;
-
-          if (!isEditing) {
-            // Static (saved) view — chip-like row
-            const Icon = isLikelyFile(item.url) ? FileText : Link2;
-            return (
-              <div
-                key={i}
-                className="group flex items-center gap-3 p-2.5 rounded-lg border border-border bg-card hover:border-primary/40 transition-colors"
-              >
-                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+          const Icon = isLikelyFile(item.url) ? FileText : Link2;
+          return (
+            <div
+              key={i}
+              className="group flex items-center gap-2 p-2 rounded-lg border border-border bg-card hover:border-primary/40 transition-colors"
+            >
+              <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+              {isOwner ? (
+                <>
+                  <Input
+                    value={item.label}
+                    onChange={(e) => updateField(i, 'label', e.target.value)}
+                    onBlur={() => removeIfEmpty(i)}
+                    placeholder="Nome"
+                    className="h-8 text-sm sm:w-1/3 border-transparent hover:border-border focus:border-primary/40 bg-transparent"
+                  />
+                  <Input
+                    value={item.url}
+                    onChange={(e) => updateField(i, 'url', e.target.value)}
+                    onBlur={() => removeIfEmpty(i)}
+                    placeholder={placeholder}
+                    className="h-8 text-xs flex-1 border-transparent hover:border-border focus:border-primary/40 bg-transparent font-mono"
+                  />
+                </>
+              ) : (
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground truncate">{item.label || 'Sem nome'}</div>
                   <div className="text-[11px] text-muted-foreground truncate">{item.url}</div>
                 </div>
-                {item.url && (
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 p-1.5 hover:bg-primary/10 rounded-md text-primary"
-                    title="Abrir"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
-                {isOwner && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => startEdit(i)}
-                      title="Editar"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                      onClick={() => onChange(items.filter((_, j) => j !== i))}
-                      title="Remover"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            );
-          }
-
-          // Edit mode
-          return (
-            <div key={i} className="flex flex-col sm:flex-row gap-2 sm:items-center p-3 rounded-lg border border-primary/40 bg-primary/5">
-              <Input
-                value={draft.label}
-                onChange={(e) => setDrafts((d) => ({ ...d, [i]: { ...draft, label: e.target.value } }))}
-                placeholder="Nome"
-                className="h-9 text-sm sm:w-1/3"
-                autoFocus
-              />
-              <Input
-                value={draft.url}
-                onChange={(e) => setDrafts((d) => ({ ...d, [i]: { ...draft, url: e.target.value } }))}
-                onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(i); if (e.key === 'Escape') cancelEdit(i); }}
-                placeholder={placeholder}
-                className="h-9 text-sm flex-1"
-              />
-              <div className="flex gap-1 items-center self-end sm:self-auto">
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="h-8"
-                  onClick={() => saveEdit(i)}
+              )}
+              {item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 p-1.5 hover:bg-primary/10 rounded-md text-primary"
+                  title="Abrir"
                 >
-                  <Check className="h-3.5 w-3.5 mr-1" /> Guardar
-                </Button>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+              {isOwner && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
-                  onClick={() => cancelEdit(i)}
-                  title="Cancelar"
+                  className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                  onClick={() => onChange(items.filter((_, j) => j !== i))}
+                  title="Remover"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </Button>
-              </div>
+              )}
             </div>
           );
         })}
