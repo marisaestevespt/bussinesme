@@ -195,7 +195,7 @@
 @layer components {
   /* Premium card */
   .hq-card {
-    @apply rounded-md bg-card border border-border;
+    @apply rounded-md bg-card border border-primary/20;
     box-shadow: var(--shadow-subtle);
     transition: box-shadow var(--transition-base) var(--transition-ease),
                 transform var(--transition-base) var(--transition-ease),
@@ -204,7 +204,17 @@
 
   .hq-card:hover {
     box-shadow: var(--shadow-card);
-    border-color: hsl(var(--primary) / 0.35);
+    border-color: hsl(var(--primary) / 0.55);
+  }
+
+  /* Prominent variant — for important interactive boxes (CTAs, KPIs, navigation) */
+  .hq-card-strong {
+    @apply rounded-md bg-card border-2 border-primary/40;
+    transition: border-color var(--transition-base) var(--transition-ease),
+                background-color var(--transition-base) var(--transition-ease);
+  }
+  .hq-card-strong:hover {
+    @apply border-primary bg-primary/[0.03];
   }
 
   /* Vintage typewriter caption / metadata */
@@ -238,7 +248,7 @@
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm font-typewriter text-[11px] uppercase tracking-[0.18em] bg-primary text-primary-foreground border border-primary transition-colors hover:bg-[hsl(var(--primary))]/90;
   }
   .hq-btn-vintage-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm font-typewriter text-[11px] uppercase tracking-[0.18em] bg-transparent text-primary border border-primary/40 transition-colors hover:bg-primary/5 hover:border-primary;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm font-typewriter text-[11px] uppercase tracking-[0.18em] bg-transparent text-primary border-2 border-primary/50 transition-colors hover:bg-primary/5 hover:border-primary;
   }
 
   /* Glass card variant */
