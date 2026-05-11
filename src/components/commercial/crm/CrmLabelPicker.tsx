@@ -87,7 +87,7 @@ export function CrmLabelPicker({ leadId, selectedLabelIds }: CrmLabelPickerProps
               ))}
             </div>
             <div className="flex gap-1">
-              <Button size="sm" className="h-7 text-xs flex-1" onClick={handleCreate} disabled={!newName.trim()}>Criar</Button>
+              <Button variant="soft" size="sm" className="h-7 text-xs flex-1" onClick={handleCreate} disabled={!newName.trim()}>Criar</Button>
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setCreating(false)}>Cancelar</Button>
             </div>
           </div>

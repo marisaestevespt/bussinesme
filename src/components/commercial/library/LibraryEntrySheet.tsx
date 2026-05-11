@@ -417,7 +417,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <Button onClick={handleSave} disabled={saving}>
+              <Button variant="soft" onClick={handleSave} disabled={saving}>
                 <Check className="h-3.5 w-3.5 mr-1" /> {isNew ? 'Criar' : 'Guardar'}
               </Button>
               {!isNew && (
@@ -454,7 +454,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPromptOpen(false)}>Não, continuar</Button>
-            <Button onClick={() => { setPromptOpen(false); setPastLaunchesOpen(true); }}>
+            <Button variant="soft" onClick={() => { setPromptOpen(false); setPastLaunchesOpen(true); }}>
               <History className="h-3.5 w-3.5 mr-1" /> Ver lançamentos
             </Button>
           </DialogFooter>

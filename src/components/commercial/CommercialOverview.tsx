@@ -157,7 +157,7 @@ export function CommercialOverview() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Vendas deste mês</h3>
-          <Button size="sm" onClick={() => setSaleOpen(true)}><Plus className="h-4 w-4 mr-1" /> Registar Venda</Button>
+          <Button variant="soft" size="sm" onClick={() => setSaleOpen(true)}><Plus className="h-4 w-4 mr-1" /> Registar Venda</Button>
         </div>
         <Card>
           <Table>

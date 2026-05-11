@@ -181,7 +181,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus, manageStagesOpe
                 onKeyDown={e => e.key === 'Enter' && handleAddStage()}
                 className="h-8 text-sm"
               />
-              <Button size="sm" onClick={handleAddStage} disabled={!newStageName.trim()}>
+              <Button variant="soft" size="sm" onClick={handleAddStage} disabled={!newStageName.trim()}>
                 <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
               </Button>
             </div>
