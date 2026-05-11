@@ -9840,6 +9840,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ritual_banner_state: {
+        Row: {
+          completado: boolean
+          completado_em: string | null
+          created_at: string
+          dispensado_em: string | null
+          id: string
+          periodo: string
+          ritual_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completado?: boolean
+          completado_em?: string | null
+          created_at?: string
+          dispensado_em?: string | null
+          id?: string
+          periodo: string
+          ritual_type: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          completado?: boolean
+          completado_em?: string | null
+          created_at?: string
+          dispensado_em?: string | null
+          id?: string
+          periodo?: string
+          ritual_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       role_activity_log: {
         Row: {
           action: string
