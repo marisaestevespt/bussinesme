@@ -19,7 +19,7 @@ const TABLES_TO_BACKUP = [
   "team_members", "user_roles",
   // Operational data
   "clients", "client_activities", "client_contacts", "client_feedback",
-  "client_history", "client_milestones", "client_nps_records",
+  "client_history", "client_nps_records",
   "client_offboarding", "client_onboarding", "client_portals",
   "clients_monthly_analysis",
   "commercial_sales", "commercial_strategy", "commercial_annual_goals",
@@ -36,7 +36,7 @@ const TABLES_TO_BACKUP = [
   "products", "product_automations", "product_costs", "product_deliverable_templates",
   "product_documents", "product_feedbacks", "product_funnels",
   "product_improvements", "product_kpi_values", "product_kpi_reports",
-  "product_metrics_analysis", "product_milestones", "product_nps_config",
+  "product_metrics_analysis", "product_nps_config",
   "product_nps_records", "product_offboarding_templates", "product_onboarding_templates",
   "product_payment_methods", "product_project_templates", "product_team_members",
   "product_traffic_ads", "product_useful_links",
