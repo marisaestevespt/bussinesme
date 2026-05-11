@@ -183,66 +183,6 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
         </SectionCard>
       )}
 
-      {/* ─── Entregáveis & materiais ─── */}
-      <div className="space-y-4">
-        <header className="flex items-end justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Package className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
-            <h3 className="text-base font-semibold tracking-tight">Materiais</h3>
-            {allItems.length > 0 && (
-              <span className="text-xs text-muted-foreground">{allItems.length}</span>
-            )}
-          </div>
-          {allItems.length > 4 && (
-            <div className="relative max-w-xs w-full">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
-              <Input
-                value={matQuery}
-                onChange={(e) => setMatQuery(e.target.value)}
-                placeholder="Procurar material..."
-                className="h-8 pl-8 text-xs rounded-lg"
-              />
-            </div>
-          )}
-        </header>
-
-        {filteredItems.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filteredItems.map(item => (
-              <a
-                key={item.id}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block"
-              >
-                <SectionCard className="p-4 hover:-translate-y-0.5 transition-transform">
-                  <div
-                    className="h-10 w-10 rounded-lg flex items-center justify-center mb-3"
-                    style={{ backgroundColor: pcAlpha(0.08) }}
-                  >
-                    {item.type === 'link'
-                      ? <FolderOpen className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />
-                      : <FileText className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />}
-                  </div>
-                  <p className="text-xs font-medium leading-snug line-clamp-2 mb-2">{item.label}</p>
-                  <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1 group-hover:text-foreground transition-colors">
-                    <Download className="h-3 w-3" />{item.type === 'link' ? 'Abrir' : 'Descarregar'}
-                  </span>
-                </SectionCard>
-              </a>
-            ))}
-          </div>
-        ) : (
-          <SectionCard className="p-8 text-center">
-            <Package className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1.5} />
-            <p className="text-sm text-muted-foreground">
-              {matQuery ? 'Sem resultados para a tua pesquisa.' : 'Ainda sem materiais disponíveis.'}
-            </p>
-          </SectionCard>
-        )}
-      </div>
-
       {/* ─── As tuas entregas ─── */}
       <div className="space-y-4">
         <header className="flex items-end justify-between gap-3 flex-wrap">
@@ -342,6 +282,69 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
             <UserCheck className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1.5} />
             <p className="text-sm text-muted-foreground">
               {clientDeliverables.length === 0 ? 'Não tens nenhuma entrega pendente — está tudo connosco. ✨' : 'Sem entregas neste filtro.'}
+            </p>
+          </SectionCard>
+        )}
+      </div>
+
+      {/* ─── Divisor ─── */}
+      <div className="border-t border-border/40" />
+
+      {/* ─── Entregáveis (materiais para o cliente) ─── */}
+      <div className="space-y-4">
+        <header className="flex items-end justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Package className="h-4 w-4" style={{ color: pc }} strokeWidth={1.5} />
+            <h3 className="text-base font-semibold tracking-tight">Entregáveis</h3>
+            {allItems.length > 0 && (
+              <span className="text-xs text-muted-foreground">{allItems.length}</span>
+            )}
+          </div>
+          {allItems.length > 4 && (
+            <div className="relative max-w-xs w-full">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
+              <Input
+                value={matQuery}
+                onChange={(e) => setMatQuery(e.target.value)}
+                placeholder="Procurar entregável..."
+                className="h-8 pl-8 text-xs rounded-lg"
+              />
+            </div>
+          )}
+        </header>
+
+        {filteredItems.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {filteredItems.map(item => (
+              <a
+                key={item.id}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block"
+              >
+                <SectionCard className="p-4 hover:-translate-y-0.5 transition-transform">
+                  <div
+                    className="h-10 w-10 rounded-lg flex items-center justify-center mb-3"
+                    style={{ backgroundColor: pcAlpha(0.08) }}
+                  >
+                    {item.type === 'link'
+                      ? <FolderOpen className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />
+                      : <FileText className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />}
+                  </div>
+                  <p className="text-xs font-medium leading-snug line-clamp-2 mb-2">{item.label}</p>
+                  <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1 group-hover:text-foreground transition-colors">
+                    <Download className="h-3 w-3" />{item.type === 'link' ? 'Abrir' : 'Descarregar'}
+                  </span>
+                </SectionCard>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <SectionCard className="p-8 text-center">
+            <Package className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" strokeWidth={1.5} />
+            <p className="text-sm text-muted-foreground">
+              {matQuery ? 'Sem resultados para a tua pesquisa.' : 'Ainda sem entregáveis disponíveis.'}
             </p>
           </SectionCard>
         )}
