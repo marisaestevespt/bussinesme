@@ -51,7 +51,7 @@ function greetingText() {
   return 'Boa noite';
 }
 
-const FALLBACK_QUOTE = 'Define a missão, visão e proposta de valor em Definições → Marca.';
+const FALLBACK_QUOTE = 'Adiciona expressões em Marketing → Gestão de Marca → Expressões da Marca.';
 function pickQuote(quotes: string[]) {
   if (!quotes.length) return FALLBACK_QUOTE;
   const idx = new Date().getDate() % quotes.length;
