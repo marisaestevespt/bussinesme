@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,37 @@ import {
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
+
+/* ─── Auto-growing textarea ─── */
+function AutoTextarea({
+  value, onChange, placeholder, className, minRows = 2,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+  minRows?: number;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  };
+  useEffect(() => { resize(); }, [value]);
+  return (
+    <Textarea
+      ref={ref}
+      rows={minRows}
+      value={value}
+      placeholder={placeholder}
+      onChange={e => { onChange(e.target.value); }}
+      onInput={resize}
+      className={`resize-none overflow-hidden ${className || ''}`}
+    />
+  );
+}
 import type {
   PortalFeedback, PortalRecolha, PortalRecolhaQuestion, PortalRecolhaResponse,
   PortalNpsCategory, PortalNpsCategoryScore,
@@ -348,14 +379,14 @@ function RecolhaDialog({
                     {q.text}
                     {q.required && <span className="text-destructive ml-1">*</span>}
                   </label>
-                  <Textarea
-                    rows={3}
+                  <AutoTextarea
                     value={answers[i] || ''}
-                    onChange={e => {
+                    onChange={(v) => {
                       const next = [...answers];
-                      next[i] = e.target.value;
+                      next[i] = v;
                       setAnswers(next);
                     }}
+                    placeholder="A tua resposta…"
                     className="rounded-lg border-border/40 bg-background text-sm"
                   />
                 </div>
@@ -404,10 +435,9 @@ function RecolhaDialog({
                         <label className="text-[11px] font-medium text-destructive">
                           O que correu menos bem em "{c.label}"? <span>*</span>
                         </label>
-                        <Textarea
-                          rows={2}
+                        <AutoTextarea
                           value={catComments[c.key] || ''}
-                          onChange={e => setCatComments(prev => ({ ...prev, [c.key]: e.target.value }))}
+                          onChange={(v) => setCatComments(prev => ({ ...prev, [c.key]: v }))}
                           placeholder="Ajuda-nos a melhorar..."
                           className="rounded-lg border-border/40 bg-background text-sm"
                         />
@@ -426,16 +456,17 @@ function RecolhaDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Comentário geral (opcional)</label>
-            <Textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Queres deixar um comentário?"
-              rows={3}
-              className="rounded-lg border-border/40 bg-background text-sm"
-            />
-          </div>
+          {!isFeedback && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Comentário geral (opcional)</label>
+              <AutoTextarea
+                value={notes}
+                onChange={setNotes}
+                placeholder="Queres deixar um comentário?"
+                className="rounded-lg border-border/40 bg-background text-sm"
+              />
+            </div>
+          )}
 
           {isFeedback && !requiredQuestionsOk && score !== null && (
             <p className="text-[12px] text-destructive">Preenche as perguntas obrigatórias.</p>
