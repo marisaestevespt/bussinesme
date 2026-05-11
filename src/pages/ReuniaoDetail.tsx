@@ -1170,6 +1170,29 @@ function ReuniaoDetailPageInner() {
           </div>
         )}
 
+        {/* Tópicos sugeridos pelo cliente / equipa via portal */}
+        {prepItems.filter((p) => p.source === 'portal').length > 0 && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold">Tópicos sugeridos pelo cliente</span>
+            </div>
+            <ul className="space-y-1.5">
+              {prepItems.filter((p) => p.source === 'portal').map((p) => (
+                <li key={p.id} className="flex items-start gap-2 text-sm">
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                  <div className="flex-1">
+                    <p>{p.content}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {p.author_label || 'Cliente'} · {new Date(p.created_at).toLocaleString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Visibilidade no portal — só faz sentido com cliente associado */}
         {m.client_id && (
           <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 p-4">
