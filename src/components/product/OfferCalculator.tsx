@@ -581,10 +581,19 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
 
   return (
     <div className="space-y-4">
+      {/* Header: matches VariablesWizard for visual consistency */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Custos &amp; Margens da Oferta</h3>
+        </div>
+        <p className="text-[11px] text-muted-foreground">Define os custos internos e a margem para gerar mín / sugerido / máx.</p>
+      </div>
+
       {/* ── Configuração do cenário ── */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
+        <CardHeader className="pb-3 pt-4 px-4"><CardTitle className="text-base">Parâmetros do cenário</CardTitle></CardHeader>
+        <CardContent className="space-y-4 px-4 pb-4">
           {/* Perfil fiscal — vem das Definições e não é editável aqui */}
           {fiscalFromSettings ? (
             <div className="rounded-md border bg-muted/30 px-3 py-2 flex items-center justify-between gap-3">
