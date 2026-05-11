@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ArrowRight, Compass, CalendarRange, CalendarCheck, Building2, TrendingUp, Megaphone, Users, Cog, UserCog, Lightbulb, Workflow, Target, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
-import { PLAN_AREAS } from '@/hooks/usePlanningData';
+import { Building2, TrendingUp, Megaphone, Users, Cog, UserCog, Lightbulb, Workflow, Target, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { HorizonsView } from './HorizonsView';
 
 const AREA_META: Record<string, { label: string; icon: typeof Building2; color: string }> = {
   financeiro: { label: 'Financeiro', icon: Building2, color: 'text-success bg-success/10' },
@@ -29,7 +28,6 @@ interface Props {
 }
 
 export function PlanningOverviewView({ planning, year, stats }: Props) {
-  const navigate = useNavigate();
   const objectives = planning.allObjectives || [];
 
   // Cobertura por área
@@ -53,83 +51,8 @@ export function PlanningOverviewView({ planning, year, stats }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Cascata de horizontes */}
-      <Card className="hq-card">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Compass className="h-4 w-4 text-primary" />
-            Cascata de Planeamento
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">Estratégia → Tático → Operacional. Tudo o que defines em cima cascateia para baixo.</p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-stretch">
-            {/* Estratégico */}
-            <button
-              onClick={() => navigate('/executive/planeamento/estrategico')}
-              className="text-left group rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover:border-primary/60 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-8 w-8 rounded-lg bg-primary/20 text-primary flex items-center justify-center">
-                  <Compass className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Estratégico</p>
-                  <p className="text-sm font-semibold">Define o negócio</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">Plano de negócio, visão a longo prazo, missão, valores e SWOT.</p>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:gap-2 transition-all">
-                Definir negócio <ChevronRight className="h-3 w-3" />
-              </span>
-            </button>
-
-            <div className="hidden lg:flex items-center justify-center text-muted-foreground"><ArrowRight className="h-5 w-5" /></div>
-
-            {/* Tático */}
-            <button
-              onClick={() => navigate(`/executive/planeamento/tatico?ano=${year}`)}
-              className="text-left group rounded-xl border-2 border-accent-violet/30 bg-gradient-to-br from-accent-violet/10 to-accent-violet/5 p-4 hover:border-accent-violet/60 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-8 w-8 rounded-lg bg-accent-violet/20 text-accent-violet flex items-center justify-center">
-                  <CalendarRange className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-accent-violet">Tático</p>
-                  <p className="text-sm font-semibold">Define o plano</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">Plano por área: objetivos anuais, metas e projetos de cada departamento.</p>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-accent-violet group-hover:gap-2 transition-all">
-                Plano por área <ChevronRight className="h-3 w-3" />
-              </span>
-            </button>
-
-            <div className="hidden lg:flex items-center justify-center text-muted-foreground"><ArrowRight className="h-5 w-5" /></div>
-
-            {/* Operacional */}
-            <button
-              onClick={() => navigate(`/executive/planeamento/operacional?ano=${year}`)}
-              className="text-left group rounded-xl border-2 border-success/30 bg-gradient-to-br from-success/10 to-success/5 p-4 hover:border-success/60 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-8 w-8 rounded-lg bg-success/20 text-success flex items-center justify-center">
-                  <CalendarCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-success">Operacional</p>
-                  <p className="text-sm font-semibold">Gere a operação</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">Trimestres do ano e gestão mês-a-mês: metas, capacidade e relatório.</p>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-success group-hover:gap-2 transition-all">
-                Trimestral & mensal <ChevronRight className="h-3 w-3" />
-              </span>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Horizontes do ano (substitui cascata estratégico/tático/operacional) */}
+      <HorizonsView planning={planning} year={year} />
 
       {/* Cobertura por área */}
       <Card className="hq-card">
