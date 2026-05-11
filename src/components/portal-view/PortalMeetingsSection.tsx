@@ -32,6 +32,21 @@ export function PortalMeetingsSection({ meetings, setMeetings, portalToken, pc, 
   const [openId, setOpenId] = useState<string | null>(null);
   const openMeeting = meetings.find((m) => m.id === openId) || null;
 
+  // Ordenar: futuras primeiro (mais próxima → mais distante), depois passadas (mais recente → mais antiga).
+  const sortedMeetings = [...meetings].sort((a, b) => {
+    const ta = a.date_time ? new Date(a.date_time).getTime() : 0;
+    const tb = b.date_time ? new Date(b.date_time).getTime() : 0;
+    if (!ta && !tb) return 0;
+    if (!ta) return 1;
+    if (!tb) return -1;
+    const now = Date.now();
+    const aFuture = ta >= now;
+    const bFuture = tb >= now;
+    if (aFuture && !bFuture) return -1;
+    if (!aFuture && bFuture) return 1;
+    return aFuture ? ta - tb : tb - ta;
+  });
+
   return (
     <div className="space-y-5">
       <SectionTitle icon={CalendarDays}>Reuniões</SectionTitle>
@@ -42,7 +57,7 @@ export function PortalMeetingsSection({ meetings, setMeetings, portalToken, pc, 
         </SectionCard>
       ) : (
         <div className="space-y-3">
-          {meetings.map((m) => (
+          {sortedMeetings.map((m) => (
             <MeetingRow key={m.id} m={m} pc={pc} meetingStatus={meetingStatus} onClick={() => setOpenId(m.id)} />
           ))}
         </div>
