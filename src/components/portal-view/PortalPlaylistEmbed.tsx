@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Music, X, ChevronDown } from 'lucide-react';
 
 /**
@@ -74,6 +74,13 @@ function buildEmbed(url: string, autoplay: boolean): { src: string; height: numb
 export function PortalPlaylistEmbed({ url, brandColor }: Props) {
   const [open, setOpen] = useState(false);
   const embed = buildEmbed(url, open);
+
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener('portal-playlist-open', handler as EventListener);
+    return () => window.removeEventListener('portal-playlist-open', handler as EventListener);
+  }, []);
+
   if (!embed) return null;
 
   const accent = brandColor ? `hsl(${brandColor})` : 'hsl(var(--primary))';
