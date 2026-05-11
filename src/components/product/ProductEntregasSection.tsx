@@ -508,6 +508,7 @@ function PhaseCard({
           )}
           {deliverables.map((d, i) => (
             <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops} isRecurring={isRecurring}
+              allowRecurring={!phase.is_onboarding && !phase.is_offboarding}
               onUpdate={onUpdateDeliverable} onDelete={onDeleteDeliverable}
               onMoveUp={() => { if (i > 0) onSwapDeliverables(d.id, i, deliverables[i - 1].id, i - 1); }}
               onMoveDown={() => { if (i < deliverables.length - 1) onSwapDeliverables(d.id, i, deliverables[i + 1].id, i + 1); }}
