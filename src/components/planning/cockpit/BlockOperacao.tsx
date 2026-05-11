@@ -25,7 +25,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
       const [projects, time, routines, tasks, members] = await Promise.all([
         supabase.from('projects').select('id, name, status, deadline, progress').neq('status', 'concluido').neq('status', 'arquivado'),
         supabase.from('time_entries').select('duration, assigned_to, entry_year, entry_month').eq('entry_year', year).eq('entry_month', month),
-        supabase.from('routines').select('id, name, frequency, status').eq('status', 'ativa'),
+        supabase.from('routines').select('id, name, frequency'),
         supabase.from('tasks').select('id, name, status, priority, deadline').in('priority', ['P1','P2']).gte('deadline', start).lte('deadline', end),
         supabase.from('team_members').select('id, name, status').eq('status', 'ativo'),
       ]);
