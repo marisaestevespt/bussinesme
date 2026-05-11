@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -85,6 +86,7 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
 
   const totalTargetExpense = goals.reduce((s: number, g: any) => s + ((g as any).expense_target || 0), 0);
   const totalTargetProfit = goals.reduce((s: number, g: any) => s + ((g as any).profit_target || 0), 0);
+  const totalTargetRevenue = goals.reduce((s: number, g: any) => s + ((g as any).revenue_target || 0), 0);
   const totalActualExpense = actuals.reduce((s, a) => s + a.expense, 0);
   const totalActualProfit = actuals.reduce((s, a) => s + a.profit, 0);
 
@@ -119,13 +121,21 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Metas Despesa & Lucro — {currentYear}</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2">
+            Metas Despesa & Lucro — {currentYear}
+            {totalTargetRevenue > 0 && (
+              <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
+                Receita definida no Executive
+              </Badge>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Mês</TableHead>
+                <TableHead className="text-right">Meta Receita <span className="text-[9px] text-muted-foreground">(Executive)</span></TableHead>
                 <TableHead className="text-right">Receita Real</TableHead>
                 <TableHead className="text-right">Meta Despesa</TableHead>
                 <TableHead className="text-right">Despesa Real</TableHead>
@@ -139,9 +149,14 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
                 const m = i + 1;
                 const edit = getEdit(m);
                 const actual = actuals[i];
+                const goalRow: any = goals.find((g: any) => g.month === m);
+                const revenueTarget = goalRow?.revenue_target || 0;
                 return (
                   <TableRow key={m}>
                     <TableCell className="font-medium">{name}</TableCell>
+                    <TableCell className="text-right text-primary tabular-nums">
+                      {revenueTarget > 0 ? formatEuro(revenueTarget) : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
                     <TableCell className="text-right text-muted-foreground">{formatEuro(actual.revenue)}</TableCell>
                     <TableCell>
                       <Input
