@@ -92,6 +92,7 @@ export default function ProdutoDetailPage() {
   const [newEvent, setNewEvent] = useState({ title: '', start_date: '', end_date: '' });
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
+  const [showAdvancedProps, setShowAdvancedProps] = useState(false);
 
   if (product && !initialized) {
     setForm(product);
