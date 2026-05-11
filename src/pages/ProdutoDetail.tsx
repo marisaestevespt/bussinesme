@@ -938,17 +938,27 @@ export default function ProdutoDetailPage() {
               <ProductTabHeader
                 icon={Users}
                 title="Clientes & Métricas"
-                description="Quem está a comprar este produto, projetos em curso, KPIs de performance e notas de Customer Success."
+                description="Quem está a comprar este produto, projetos em curso e KPIs de performance."
               />
               <ProductSalesTab productName={form.name || ''} />
               {!isNew && id && (
                 <ProductClientsHub productId={id} productName={form.name || ''} />
               )}
               {!isNew && id && (
-                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
-              )}
-              {!isNew && id && (
                 <ProductMetricsTab productId={id} productName={form.name || ''} isOwner={isOwner} />
+              )}
+            </div>
+          )}
+
+          {openSection === 'nps-cs' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductTabHeader
+                icon={Star}
+                title="NPS & Customer Success"
+                description="Questões NPS específicas deste produto, configuração de ciclos, renovações e notas de Customer Success."
+              />
+              {!isNew && id && (
+                <ProductCustomerSuccess productId={id} productName={form.name || ''} isOwner={isOwner} />
               )}
             </div>
           )}
