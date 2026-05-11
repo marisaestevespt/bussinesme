@@ -121,7 +121,7 @@ export function AgendaToolbar({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-      <h3 className="text-xs font-normal lowercase text-muted-foreground tracking-tight truncate flex items-center gap-2">
+      <h3 className="font-typewriter text-[11px] uppercase tracking-[0.18em] text-primary/70 truncate flex items-center gap-2">
         {leftSlot}
         {mode === 'week' && (() => {
           const wn = getISOWeek(current);
@@ -477,9 +477,9 @@ export const DayView = forwardRef<HTMLDivElement, ViewProps>(function DayView(
     <div className="border rounded-lg overflow-hidden bg-card">
       {/* Header */}
       <div className="grid grid-cols-[60px_1fr] border-b bg-muted/20">
-        <div className="px-2 py-3 text-[10px] uppercase tracking-wider text-muted-foreground">all-day</div>
+        <div className="px-2 py-3 font-typewriter text-[10px] uppercase tracking-[0.22em] text-primary/60">all-day</div>
         <div className="px-3 py-3 text-center">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="font-typewriter text-[10px] uppercase tracking-[0.22em] text-primary/60">
             {format(current, 'EEEE', { locale: pt })}
           </div>
           <div className={cn(
@@ -551,12 +551,12 @@ export const WeekView = forwardRef<HTMLDivElement, ViewProps>(function WeekView(
     <div className="border rounded-lg overflow-hidden bg-card">
       {/* Header row */}
       <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b bg-muted/20">
-        <div className="px-2 py-3 text-[10px] uppercase tracking-wider text-muted-foreground">all-day</div>
+        <div className="px-2 py-3 font-typewriter text-[10px] uppercase tracking-[0.22em] text-primary/60">all-day</div>
         {weekDays.map((d, i) => {
           const isToday = isSameDay(d, new Date());
           return (
             <div key={i} className="px-2 py-2 text-center border-l border-border/40">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <div className="font-typewriter text-[10px] uppercase tracking-[0.22em] text-primary/60">
                 {format(d, 'EEE', { locale: pt })}
               </div>
               <div className={cn(
@@ -657,7 +657,7 @@ export const MonthView = forwardRef<HTMLDivElement, ViewProps>(function MonthVie
     <div className="border rounded-lg overflow-hidden bg-card">
       <div className="grid grid-cols-7 border-b bg-muted/20">
         {WEEKDAYS_PT.map(d => (
-          <div key={d} className="px-2 py-2 text-[10px] uppercase tracking-wider text-muted-foreground text-center">
+          <div key={d} className="px-2 py-2 font-typewriter text-[10px] uppercase tracking-[0.22em] text-primary/60 text-center">
             {d}
           </div>
         ))}
