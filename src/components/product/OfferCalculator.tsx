@@ -692,7 +692,7 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
             <Card className="border-dashed">
               <CardContent className="pt-4 pb-3 space-y-1">
                 <p className="text-sm text-foreground/70">Preço mínimo (lucro = 0)</p>
-                <p className="text-lg font-bold text-destructive">
+                <p className="text-2xl font-bold text-destructive">
                   {formatEuro(floorBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(floorWithVat)} c/ IVA)</span>
                 </p>
                 <p className="text-sm text-foreground/70">
@@ -707,14 +707,14 @@ function ScenarioPanel({ scenario, productId, vatRate, isOwner }: { scenario: Sc
                 <p className="text-sm text-foreground/70">Preço recomendado</p>
                 {recInfeasible ? (
                   <>
-                    <p className="text-lg font-bold text-warning">Margem inviável</p>
+                    <p className="text-2xl font-bold text-warning">Margem inviável</p>
                     <p className="text-sm text-foreground/70">
                       Pediste {recMargin.toFixed(0)}% líquidos, mas neste regime os impostos consomem {((1 - maxFeasibleMargin) * 100).toFixed(1)}% da receita — máximo possível ≈ {(maxFeasibleMargin * 100).toFixed(0)}%. Reduz a margem desejada.
                     </p>
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-bold text-success">
+                    <p className="text-2xl font-bold text-success">
                       {formatEuro(recBase)} <span className="text-sm font-medium text-muted-foreground">({formatEuro(recWithVat)} c/ IVA)</span>
                     </p>
                     <p className="text-sm text-foreground/70">Margem líquida alvo {recMargin.toFixed(1)}% (já considera IRS/{reg === 'simplificado' ? 'SS' : 'IRC'})</p>
