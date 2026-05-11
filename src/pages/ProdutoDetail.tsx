@@ -722,6 +722,7 @@ export default function ProdutoDetailPage() {
             {canSeeSection('comercial') && <SectionButton sectionKey="comercial" label="Comercial" />}
             {canSeeSection('contabilidade') && <SectionButton sectionKey="contabilidade" label="Contabilidade & Pricing" />}
             {canSeeSection('clientes-metricas') && <SectionButton sectionKey="clientes-metricas" label="Clientes & Métricas" />}
+            {canSeeSection('nps-cs') && <SectionButton sectionKey="nps-cs" label="NPS & Customer Success" />}
             {canSeeSection('processos') && <SectionButton sectionKey="processos" label="Processos" />}
             {canSeeSection('backoffice') && <SectionButton sectionKey="backoffice" label="Backoffice" />}
           </div>
