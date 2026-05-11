@@ -520,7 +520,7 @@ export default function PortalViewPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {portal.show_meetings && (() => {
+              {(() => {
                 const next = meetings
                   .filter((m) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
                   .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
@@ -535,7 +535,7 @@ export default function PortalViewPage() {
                   />
                 );
               })()}
-              {portal.show_payments && (() => {
+              {(() => {
                 const paidStatuses = ['pago', 'pago_falta_fatura', 'tudo_ok'];
                 const next = payments
                   .filter((p) => {
@@ -560,7 +560,7 @@ export default function PortalViewPage() {
             </div>
 
             {/* ── Onboarding Step Cards ── */}
-            {portal.show_onboarding && (
+            {true && (
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
