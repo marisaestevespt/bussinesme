@@ -18,6 +18,7 @@ const buttonVariants = cva(
         success: "bg-success text-success-foreground shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
         warning: "bg-warning text-warning-foreground shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
         info: "bg-info text-info-foreground shadow-md hover:shadow-lg hover:brightness-110 hover:-translate-y-[1px]",
+        soft: "bg-primary/10 text-primary border-2 border-primary/20 hover:bg-primary/15 hover:border-primary/35 hover:-translate-y-[1px]",
       },
       size: {
         default: "h-10 px-5 py-2",
