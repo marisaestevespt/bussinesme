@@ -37,6 +37,26 @@ export interface PortalFeedback {
   rating?: number | null;
   submitted_at?: string | null;
   created_at?: string | null;
+  category?: string | null;
+  team_response?: string | null;
+  responded_at?: string | null;
+}
+
+export interface PortalNpsPending {
+  id: string;
+  expected_date: string;
+  product_id?: string | null;
+  product_name?: string | null;
+}
+
+export interface PortalNpsHistory {
+  id: string;
+  nps_score: number;
+  notes?: string | null;
+  actual_date?: string | null;
+  source?: string | null;
+  product_name?: string | null;
+}
 }
 
 export interface PortalMeetingDoc {
