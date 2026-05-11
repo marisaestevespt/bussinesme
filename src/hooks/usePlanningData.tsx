@@ -292,13 +292,13 @@ export function usePlanningData(year = currentYear) {
       const rec = clean(raw);
       // Convert legacy period strings → canonical before persisting
       if (rec.period && typeof rec.period === 'string') {
-        rec.period = periodLegacyToCanonical(rec.period);
-        // auto period_type
-        rec.period_type = rec.period.startsWith('Q')
+        const canonical = periodLegacyToCanonical(rec.period);
+        rec.period = canonical;
+        rec.period_type = canonical.startsWith('Q')
           ? 'trimestral'
-          : rec.period.startsWith('S')
+          : canonical.startsWith('S')
             ? 'semestral'
-            : /^\d{4}-\d{2}$/.test(rec.period as string)
+            : /^\d{4}-\d{2}$/.test(canonical)
               ? 'mensal'
               : 'anual';
       }
@@ -845,7 +845,7 @@ export function usePlanningData(year = currentYear) {
   // For each goal: pct = atingido ? 100 : auto/actual ÷ target, capped at 100.
   // ════════════════════════════════════════════════════════════════
   const getPeriodProgress = (periodMonths: string[]): { pct: number; count: number; achievedCount: number } => {
-    const allG = (goals.data || []) as Array<GoalRow & { actual_value?: number | null; objective_id?: string | null }>;
+    const allG = (goals.data || []) as unknown as Array<GoalRow & { actual_value?: number | null; objective_id?: string | null }>;
     const allObj = (objectives.data || []) as ObjectiveRow[];
     const periodGoals = allG.filter((g) => periodMonths.includes(g.period ?? ''));
     if (periodGoals.length === 0) return { pct: 0, count: 0, achievedCount: 0 };
@@ -868,7 +868,7 @@ export function usePlanningData(year = currentYear) {
 
   // Helper: get goals with deviation info for alerts
   const getGoalsWithDeviations = () => {
-    const allG = (goals.data || []) as Array<GoalRow & { actual_value?: number | null }>;
+    const allG = (goals.data || []) as unknown as Array<GoalRow & { actual_value?: number | null }>;
     const now = new Date();
     const currentMonthIdx = now.getMonth();
     return allG.filter((g) => {
