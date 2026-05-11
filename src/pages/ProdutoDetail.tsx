@@ -14,7 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown, ListChecks, HelpCircle } from 'lucide-react';
+import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown, ListChecks, HelpCircle, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, deriveProjectMode, Product } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,6 +27,7 @@ import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSucc
 import { ProductEntregasSection } from '@/components/product/ProductEntregasSection';
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
 import { ProductSalesKitSection } from '@/components/product/ProductSalesKitSection';
+import { ProductTabHeader } from '@/components/product/_shared';
 import { ProductMarketingSection } from '@/components/product/ProductMarketingSection';
 import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSection, ProductContabilidadeSection } from '@/components/product/ProductSections';
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
