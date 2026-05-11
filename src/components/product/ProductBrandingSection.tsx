@@ -359,6 +359,12 @@ export function ProductBrandingSection({ branding, isOwner, onUpdate, portalBran
             <FolderOpen className="h-3.5 w-3.5 mr-1.5 inline" />
             Recursos & Notas
           </EntityTabsTrigger>
+          {welcomeEmailSlot && (
+            <EntityTabsTrigger value="welcome-email">
+              <Mail className="h-3.5 w-3.5 mr-1.5 inline" />
+              Email Boas-vindas
+            </EntityTabsTrigger>
+          )}
         </EntityTabsList>
 
         {/* ─────────────────────── ESTRATÉGIA ─────────────────────── */}
