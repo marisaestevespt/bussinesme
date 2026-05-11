@@ -896,7 +896,7 @@ async function executeTool(
       }
       return {
         tables: {
-          clientes: ["clients", "client_contacts", "client_feedback", "client_history", "client_milestones", "client_nps_records", "client_onboarding", "client_offboarding", "client_portals"],
+          clientes: ["clients", "client_contacts", "client_feedback", "client_history", "client_nps_records", "client_onboarding", "client_offboarding", "client_portals"],
           equipa: ["team_members", "member_contracts", "member_payments", "member_onboarding", "absence_coverage", "hiring_simulations"],
           tarefas: ["tasks", "task_time_entries", "time_entries"],
           projetos: ["projects", "project_deliverables", "project_payments", "project_members"],
@@ -906,7 +906,7 @@ async function executeTool(
           marketing: ["marketing_channels", "channel_monthly_metrics", "content_items", "content_channels", "marketing_funnels", "marketing_automations", "marketing_ideas"],
           reunioes: ["meetings", "meeting_participants", "meeting_projects"],
           planeamento: ["planning_goals", "planning_routines", "executive_objectives", "executive_goals", "executive_weekly_routines"],
-          produtos: ["products", "product_deliverable_templates", "product_kpis", "product_costs", "product_milestones"],
+          produtos: ["products", "product_deliverable_templates", "product_kpis", "product_costs"],
           marca: ["brand_competitors", "brand_differentials", "brand_swot_items", "brand_visual_cards"],
           configuracoes: ["business_settings", "business_setup", "automation_settings", "kpi_settings", "departments"],
           conteudo: ["content_items", "content_attachments", "sops", "internal_documents", "mural_posts"],
