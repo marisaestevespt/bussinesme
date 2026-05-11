@@ -1524,70 +1524,6 @@ export type Database = {
           },
         ]
       }
-      client_milestones: {
-        Row: {
-          client_id: string
-          created_at: string
-          expected_date: string
-          id: string
-          milestone: string
-          milestone_type: string
-          notes: string | null
-          product_id: string | null
-          responsible_id: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          client_id: string
-          created_at?: string
-          expected_date: string
-          id?: string
-          milestone?: string
-          milestone_type?: string
-          notes?: string | null
-          product_id?: string | null
-          responsible_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          client_id?: string
-          created_at?: string
-          expected_date?: string
-          id?: string
-          milestone?: string
-          milestone_type?: string
-          notes?: string | null
-          product_id?: string | null
-          responsible_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_milestones_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_milestones_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_milestones_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       client_nps_records: {
         Row: {
           actual_date: string | null
@@ -8273,50 +8209,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_metrics_analysis_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_milestones: {
-        Row: {
-          created_at: string
-          days_after_start: number
-          id: string
-          milestone: string
-          milestone_type: string
-          notes: string | null
-          product_id: string | null
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          days_after_start?: number
-          id?: string
-          milestone?: string
-          milestone_type?: string
-          notes?: string | null
-          product_id?: string | null
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          days_after_start?: number
-          id?: string
-          milestone?: string
-          milestone_type?: string
-          notes?: string | null
-          product_id?: string | null
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_milestones_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
