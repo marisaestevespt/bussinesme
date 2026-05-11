@@ -41,6 +41,11 @@ export function ProductProcessosSection({ productSops, isOwner, productId, onUpd
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+      <ProductTabHeader
+        icon={ListChecks}
+        title="Processos"
+        description="SOPs (procedimentos operacionais) e perguntas de diagnóstico associadas a este produto."
+      />
       <Card>
         <CardHeader><CardTitle className="text-base">Processos (SOPs)</CardTitle></CardHeader>
         <CardContent>
