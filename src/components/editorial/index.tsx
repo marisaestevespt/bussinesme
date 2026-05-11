@@ -208,6 +208,7 @@ export function StatCard({
   hint,
   onClick,
   tone = 'primary',
+  size = 'md',
   className,
 }: {
   value: React.ReactNode;
@@ -215,9 +216,15 @@ export function StatCard({
   hint?: React.ReactNode;
   onClick?: () => void;
   tone?: keyof typeof STAT_TONES;
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
   const toneCls = STAT_TONES[tone] || STAT_TONES.primary;
+  const sizeCls = size === 'sm'
+    ? 'text-3xl sm:text-4xl'
+    : size === 'lg'
+      ? 'text-6xl sm:text-7xl'
+      : 'text-4xl sm:text-5xl';
   return (
     <div
       onClick={onClick}
@@ -228,7 +235,11 @@ export function StatCard({
         className,
       )}
     >
-      <BigKpi value={value} label={label} hint={hint} />
+      <Eyebrow>{label}</Eyebrow>
+      <div className={cn('font-display leading-none mt-2 text-foreground group-hover:text-primary transition-colors tabular-nums', sizeCls)}>
+        {value}
+      </div>
+      {hint && <div className="font-typewriter text-[11px] text-muted-foreground mt-2">{hint}</div>}
     </div>
   );
 }
