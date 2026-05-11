@@ -181,8 +181,8 @@ export default function PortalAuthPage() {
         className="max-w-4xl w-full grid grid-cols-12 bg-white overflow-hidden"
         style={{
           borderRadius: 4,
-          border: `1px solid ${pcAlpha(0.1)}`,
-          boxShadow: `0 10px 50px -12px ${pcAlpha(0.08)}`,
+          border: `1px solid ${pcAlpha(0.45)}`,
+          boxShadow: `0 24px 60px -20px ${pcAlpha(0.28)}, 0 8px 20px -8px ${pcAlpha(0.18)}`,
         }}
       >
         {/* Editorial section */}
