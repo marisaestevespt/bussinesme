@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown, Check, Package, RefreshCw, ShoppingBag, Clock as ClockIcon } from 'lucide-react';
+import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown, Check, Package, RefreshCw, ShoppingBag, Clock as ClockIcon, Coins } from 'lucide-react';
 import { formatEuro } from '@/lib/formatting';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
