@@ -31,6 +31,7 @@ import { PortalMeetingsSection } from '@/components/portal-view/PortalMeetingsSe
 import { PortalPaymentsSection } from '@/components/portal-view/PortalPaymentsSection';
 import { PortalWorkspaceSection } from '@/components/portal-view/PortalWorkspaceSection';
 import { PortalQuestionsSection } from '@/components/portal-view/PortalQuestionsSection';
+import { PortalFaqsSection } from '@/components/portal-view/PortalFaqsSection';
 import { PortalDeliverableAttachment } from '@/components/portal/PortalDeliverableAttachment';
 import { BUSINESS_BRAND_FALLBACK_HSL, normalizePortalBranding, portalCssColorAlpha } from '@/lib/portalBranding';
 import type {
@@ -799,6 +800,11 @@ export default function PortalViewPage() {
         {/* ═══ CONTRACT ═══ */}
         {activeSection === 'contract' && (
           <PortalContractSection contractDocs={contractDocs} pc={pc} pcAlpha={pcAlpha} />
+        )}
+
+        {/* ═══ FAQs ═══ */}
+        {activeSection === 'faqs' && (
+          <PortalFaqsSection faqs={faqs} pc={pc} pcAlpha={pcAlpha} />
         )}
 
         {/* ═══ MEETINGS ═══ */}
