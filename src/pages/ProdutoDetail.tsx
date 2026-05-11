@@ -569,7 +569,6 @@ export default function ProdutoDetailPage() {
                       <SelectContent>{PRODUCT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                     </Select>
                   </Row>
-                  <Row icon={ListTree} label="Escada">
                   {/* Tipo de Ticket é essencial — fica visível */}
                   <Row icon={Wallet} label="Tipo de Ticket">
                     <Select value={ticketType} onValueChange={v => update('ticket_type', v)} disabled={!isOwner}>
