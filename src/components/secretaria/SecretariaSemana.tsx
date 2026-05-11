@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Calendar as CalendarIcon, ChevronDown, ChevronRight } from 'lucide-react';
+import { FileText, Calendar as CalendarIcon, ChevronDown, ChevronRight, ListTodo, Users, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useUnifiedResponsibilities } from '@/hooks/useUnifiedResponsibilities';
@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMyAgendaEvents } from '@/hooks/useMyAgendaEvents';
 import { AgendaCalendarView } from '@/components/agenda/AgendaCalendarView';
 import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
+import { StatCard } from '@/components/editorial';
 
 const today = startOfDay(new Date());
 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -53,10 +54,10 @@ export default function SecretariaSemana() {
     <div className="space-y-6">
       <RoutineMonthCard tasks={routineTasks.data || []} />
 
-      <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas esta semana</p><p className="text-2xl font-bold">{unified.weekItems.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões esta semana</p><p className="text-2xl font-bold">{weekMeetings.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-2xl font-bold">{weekHours.toFixed(1)}h</p></CardContent></Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5">
+        <StatCard tone="primary" size="sm" value={unified.weekItems.length} label={<><ListTodo className="h-3 w-3 inline mr-1.5 -mt-0.5" />tarefas esta semana</>} />
+        <StatCard tone="mocha" size="sm" value={weekMeetings.length} label={<><Users className="h-3 w-3 inline mr-1.5 -mt-0.5" />reuniões esta semana</>} />
+        <StatCard tone="gold" size="sm" value={`${weekHours.toFixed(1)}h`} label={<><Clock className="h-3 w-3 inline mr-1.5 -mt-0.5" />horas registadas</>} />
       </div>
 
       <Card>
