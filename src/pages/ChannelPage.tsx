@@ -226,7 +226,7 @@ export default function ChannelPage() {
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>
             Marketing e Branding
           </p>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary-foreground">
+          <h1 className="text-2xl md:kpi-display-sm mt-1 text-primary-foreground">
             {channel.name}
           </h1>
         </div>

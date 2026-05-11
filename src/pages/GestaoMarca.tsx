@@ -612,7 +612,7 @@ export default function GestaoMarcaPage() {
                   {/* PUV */}
                   <div className="group/puv">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Proposta Única de Valor</p>
+                      <p className="eyebrowr">Proposta Única de Valor</p>
                       {isOwner && !editingPuv && (
                         <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/puv:opacity-100 focus:opacity-100 transition-opacity" onClick={() => { setTempPuv(puv); setEditingPuv(true); }}>
                           <Pencil className="h-3 w-3" />
@@ -640,7 +640,7 @@ export default function GestaoMarcaPage() {
                   {/* About / Texto de Apresentação */}
                   <div className="group/about">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Texto de Apresentação</p>
+                      <p className="eyebrowr">Texto de Apresentação</p>
                       {isOwner && !editingAbout && (
                         <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6 opacity-0 group-hover/about:opacity-100 focus:opacity-100 transition-opacity" onClick={() => { setTempAbout(aboutText); setEditingAbout(true); }}>
                           <Pencil className="h-3 w-3" />
@@ -1231,7 +1231,7 @@ export default function GestaoMarcaPage() {
               {/* Description */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Descrição</p>
+                  <p className="eyebrowr">Descrição</p>
                   {isOwner && !editingVisualDesc && (
                     <Button variant="ghost" aria-label="Editar" size="icon" className="h-6 w-6" onClick={() => setEditingVisualDesc(true)}>
                       <Pencil className="h-3 w-3" />
@@ -1300,7 +1300,7 @@ export default function GestaoMarcaPage() {
               {/* Image grid */}
               {visualFiles.filter(f => f.file_type === 'image').length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Imagens</p>
+                  <p className="eyebrowr">Imagens</p>
                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-3xl">
                     {visualFiles.filter(f => f.file_type === 'image').map(file => (
                       <div key={file.id} className="relative group rounded-lg overflow-hidden border">
@@ -1345,7 +1345,7 @@ export default function GestaoMarcaPage() {
               {/* Files list */}
               {visualFiles.filter(f => f.file_type === 'file').length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Ficheiros</p>
+                  <p className="eyebrowr">Ficheiros</p>
                   <div className="space-y-2">
                     {visualFiles.filter(f => f.file_type === 'file').map(file => (
                       <div key={file.id} className="group space-y-1">
@@ -1398,7 +1398,7 @@ export default function GestaoMarcaPage() {
               {/* Links */}
               {visualFiles.filter(f => f.file_type === 'link').length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Links</p>
+                  <p className="eyebrowr">Links</p>
                   <div className="space-y-2">
                     {visualFiles.filter(f => f.file_type === 'link').map(file => (
                       <div key={file.id} className="flex items-center gap-2 group">

@@ -251,6 +251,68 @@
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm font-typewriter text-[11px] uppercase tracking-[0.18em] bg-transparent text-primary border-2 border-primary/50 transition-colors hover:bg-primary/5 hover:border-primary;
   }
 
+  /* ============================================================
+     Editorial signatures — usable anywhere in the app
+     ============================================================ */
+
+  /* Eyebrow label — small caps typewriter, above titles */
+  .eyebrow {
+    @apply font-typewriter text-[10px] uppercase tracking-[0.32em] text-primary/70;
+  }
+
+  /* KPI / big metric numbers — Cormorant italic, oversized */
+  .kpi-display {
+    @apply font-display italic text-5xl sm:text-6xl leading-none text-foreground;
+  }
+  .kpi-display-sm {
+    @apply font-display italic text-3xl sm:text-4xl leading-none text-foreground;
+  }
+
+  /* Bordô underline highlight on key words */
+  .editorial-mark {
+    background-image: linear-gradient(transparent 65%, hsl(var(--primary) / 0.35) 65%);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    padding: 0 0.1em;
+  }
+
+  /* Editorial speech bubble — mostarda, typewriter, with tail */
+  .editorial-bubble {
+    @apply relative inline-block font-typewriter text-xs px-3 py-2 rounded-sm;
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    border: 1px solid hsl(var(--accent-foreground) / 0.18);
+  }
+  .editorial-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 14px;
+    width: 12px;
+    height: 12px;
+    background: inherit;
+    border-right: 1px solid hsl(var(--accent-foreground) / 0.18);
+    border-bottom: 1px solid hsl(var(--accent-foreground) / 0.18);
+    transform: rotate(45deg);
+  }
+
+  /* Serif italic divider with ornament */
+  .editorial-divider {
+    @apply flex items-center gap-3 text-primary/60 font-display italic text-sm;
+  }
+  .editorial-divider::before,
+  .editorial-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: hsl(var(--primary) / 0.25);
+  }
+
+  /* Section heading — Cormorant italic, with eyebrow above */
+  .editorial-heading {
+    @apply font-display italic text-2xl sm:text-3xl leading-tight text-foreground;
+  }
+
   /* Glass card variant */
   .hq-glass {
     @apply rounded-xl border border-white/20;

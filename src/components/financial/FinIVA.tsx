@@ -300,7 +300,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                 </TableRow>
                 {qRow && (
                   <TableRow className="bg-muted/40 border-y">
-                    <TableCell className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">
+                    <TableCell className="font-semibold eyebrow">
                       Fecho {qRow.label}
                     </TableCell>
                     <TableCell colSpan={2} className="text-right text-xs text-muted-foreground">

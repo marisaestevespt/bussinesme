@@ -175,7 +175,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             <>
               <Separator />
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <div className="flex items-center gap-2 eyebrowr">
                   <FileText className="h-3.5 w-3.5" />
                   Dados para faturação
                 </div>

@@ -88,7 +88,7 @@ export default function ExecutiveBusinessPlanBlock() {
             <Icon className="h-7 w-7" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{col.label}</h1>
+            <h1 className="text-2xl sm:kpi-display-sm mt-1">{col.label}</h1>
             <p className="text-sm text-muted-foreground mt-1">Edita os pontos deste bloco do Business Model Canvas</p>
           </div>
         </div>

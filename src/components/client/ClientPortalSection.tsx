@@ -225,7 +225,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
         <CardContent className="pt-5 space-y-5">
           {/* URL Section */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">URL do Portal</Label>
+            <Label className="eyebrowr">URL do Portal</Label>
             <div className="flex gap-2 items-center">
               <Input value={portalUrl} readOnly className="text-xs font-mono bg-muted/30 flex-1" />
               <Button variant="outline" aria-label="Copiar" size="icon" className="shrink-0" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
@@ -279,7 +279,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
 
           {/* Slug */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Slug personalizado</Label>
+            <Label className="eyebrowr">Slug personalizado</Label>
             <div className="flex gap-2 items-center">
               <span className="text-xs text-muted-foreground whitespace-nowrap">{window.location.origin}/portal/</span>
               <Input
@@ -307,7 +307,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
 
           {/* Toggles */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <Label className="eyebrowr flex items-center gap-2">
               <Settings2 className="h-3.5 w-3.5" />
               Secções visíveis
             </Label>

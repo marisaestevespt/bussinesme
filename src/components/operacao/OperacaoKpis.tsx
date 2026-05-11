@@ -21,8 +21,8 @@ export function OperacaoKpis({ allActiveCount, pontuaisCount, recorrentesCount, 
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Projetos Ativos</p>
-              <p className="text-2xl font-bold mt-1">{allActiveCount}</p>
+              <p className="eyebrow">Projetos Ativos</p>
+              <p className="kpi-display-sm mt-1">{allActiveCount}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">{pontuaisCount} pontuais · {recorrentesCount} recorrentes</p>
             </div>
             <div className="p-2 rounded-md bg-primary/10"><FolderOpen className="h-4 w-4 text-primary" /></div>
@@ -40,8 +40,8 @@ export function OperacaoKpis({ allActiveCount, pontuaisCount, recorrentesCount, 
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Tarefas Atrasadas</p>
-              <p className={`text-2xl font-bold mt-1 ${overdueTasks > 0 ? 'text-destructive' : 'text-success'}`}>{overdueTasks}</p>
+              <p className="eyebrow">Tarefas Atrasadas</p>
+              <p className={`kpi-display-sm mt-1 ${overdueTasks > 0 ? 'text-destructive' : 'text-success'}`}>{overdueTasks}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">{overdueTasks > 0 ? (overdueClickable ? 'Clica para ver →' : 'Requer atenção') : 'Tudo em dia ✓'}</p>
             </div>
             <div className={`p-2 rounded-md ${overdueTasks > 0 ? 'bg-destructive/10' : 'bg-success/10'}`}>
@@ -55,7 +55,7 @@ export function OperacaoKpis({ allActiveCount, pontuaisCount, recorrentesCount, 
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Conclusão Semanal</p>
+              <p className="eyebrow">Conclusão Semanal</p>
               <div className="flex items-baseline gap-2 mt-1">
                 <p className="text-2xl font-bold">{weeklyCompletion.done}</p>
                 <span className="text-sm text-muted-foreground">/ {weeklyCompletion.total}</span>
@@ -74,8 +74,8 @@ export function OperacaoKpis({ allActiveCount, pontuaisCount, recorrentesCount, 
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Membros Alocados</p>
-              <p className="text-2xl font-bold mt-1">{allocatedMembers}</p>
+              <p className="eyebrow">Membros Alocados</p>
+              <p className="kpi-display-sm mt-1">{allocatedMembers}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">em projetos ativos</p>
             </div>
             <div className="p-2 rounded-md bg-accent-violet/10"><Users className="h-4 w-4 text-accent-violet" /></div>

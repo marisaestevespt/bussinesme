@@ -223,10 +223,10 @@ export default function SecretariaPage() {
             })()}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="border-l-4 border-l-primary/60"><CardContent className="pt-4"><p className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">Tarefas para hoje</p><p className="text-2xl sm:text-3xl font-bold mt-1">{todayTasks.length}</p></CardContent></Card>
+              <Card className="border-l-4 border-l-primary/60"><CardContent className="pt-4"><p className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">Tarefas para hoje</p><p className="text-2xl sm:kpi-display-sm mt-1">{todayTasks.length}</p></CardContent></Card>
               <Card className="border-l-4 border-l-destructive/60"><CardContent className="pt-4"><p className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">Tarefas em atraso</p><p className="text-2xl sm:text-3xl font-bold text-destructive mt-1">{overdueTasks.length}</p></CardContent></Card>
-              <Card className="border-l-4 border-l-info/60"><CardContent className="pt-4"><p className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">Reuniões hoje</p><p className="text-2xl sm:text-3xl font-bold mt-1">{todayMeetings.length}</p></CardContent></Card>
-              <Card className="border-l-4 border-l-success/60"><CardContent className="pt-4"><p className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">Projetos ativos</p><p className="text-2xl sm:text-3xl font-bold mt-1">{activeProjects.length}</p></CardContent></Card>
+              <Card className="border-l-4 border-l-info/60"><CardContent className="pt-4"><p className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">Reuniões hoje</p><p className="text-2xl sm:kpi-display-sm mt-1">{todayMeetings.length}</p></CardContent></Card>
+              <Card className="border-l-4 border-l-success/60"><CardContent className="pt-4"><p className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground">Projetos ativos</p><p className="text-2xl sm:kpi-display-sm mt-1">{activeProjects.length}</p></CardContent></Card>
             </div>
 
             {/* Absence alerts for owner */}
