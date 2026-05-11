@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Editorial primitives — vintage/editorial design language for Lirah.
+ * Editorial primitives — vintage/editorial design language.
  * These are the "signature gestures" that distinguish the app from generic SaaS.
  */
 
