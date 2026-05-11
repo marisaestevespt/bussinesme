@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, CalendarRange, CalendarDays } from 'lucide-r
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
-import { MonthlyReflectionCard } from '@/components/planning/MonthlyReflectionCard';
+import { MonthlyCockpit } from '@/components/planning/cockpit/MonthlyCockpit';
 
 /**
  * Planeamento Operacional — gere a operação.
@@ -25,10 +25,19 @@ export default function ExecutivePlaneamentoOperacional() {
   const [year, setYear] = useState(initialYear);
   const planning = usePlanningData(year);
 
-  // Mês inicial via ?mes=1..12 (ex.: banner "Mês novo" abre o mês corrente)
   const mesParam = parseInt(params.get('mes') || '', 10);
-  const initialMonth = Number.isFinite(mesParam) && mesParam >= 1 && mesParam <= 12 ? mesParam - 1 : null;
-  const reflectionMonth = initialMonth !== null ? initialMonth + 1 : new Date().getMonth() + 1;
+  const hasMesParam = Number.isFinite(mesParam) && mesParam >= 1 && mesParam <= 12;
+  const initialMonth = hasMesParam ? mesParam - 1 : null;
+  const cockpitMonth = hasMesParam ? mesParam : (year === new Date().getFullYear() ? new Date().getMonth() + 1 : 1);
+  const cockpitYear = year;
+
+  const setCockpit = (y: number, m: number) => {
+    setYear(y);
+    const sp = new URLSearchParams(params);
+    sp.set('ano', String(y));
+    sp.set('mes', String(m));
+    setParams(sp, { replace: true });
+  };
 
   const handleMonthChange = (monthIdx: number | null) => {
     const sp = new URLSearchParams(params);
@@ -48,7 +57,15 @@ export default function ExecutivePlaneamentoOperacional() {
     <AppLayout>
       <div className="space-y-8">
         <BackNavigation />
-        <PageHeader title="Planeamento Operacional" subtitle="O ano em trimestres e meses" />
+        <PageHeader title="Cockpit Mensal" subtitle="Planeia, acompanha e fecha o mês — tudo numa vista" />
+
+        <MonthlyCockpit year={cockpitYear} month={cockpitMonth} onChange={setCockpit} />
+
+        <details className="hq-card">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-medium select-none">
+            Ver vista anual completa (trimestres + galeria mensal)
+          </summary>
+          <div className="p-4 space-y-8">
 
         {/* Year switcher */}
         <div className="flex items-center justify-end gap-1 text-muted-foreground -mt-2">
@@ -93,11 +110,8 @@ export default function ExecutivePlaneamentoOperacional() {
             onMonthChange={handleMonthChange}
           />
         </section>
-
-        {/* Reflexão Mensal — apenas Owner (RLS no servidor) */}
-        <section className="space-y-3 pt-6 border-t border-border/60">
-          <MonthlyReflectionCard year={year} month={reflectionMonth} />
-        </section>
+          </div>
+        </details>
       </div>
     </AppLayout>
   );

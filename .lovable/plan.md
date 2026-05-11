@@ -1,122 +1,103 @@
-## Reestruturação do Planeamento Executive
 
-Princípio: **Executive é fonte única**. Objetivos nascem aqui e cascateiam Anual → S1/S2 → T1-T4 → Mensal. Departamentos consomem.
+# Cockpit Mensal do CEO
 
----
+Reestruturar `/executive/planeamento/operacional` quando há `?mes=` (ou por defeito mês atual) para uma vista única "planear + acompanhar" com 8 blocos. A galeria mensal/trimestral atuais passam a ser secundárias (acessíveis num toggle "Ver galeria do ano" ou só visíveis quando não há `?mes=`).
 
-### 1. Generalizar Objetivos Anuais (8 áreas)
+## Estrutura
 
-**Schema (`executive_objectives`):**
-- Adicionar coluna `contribui_visao_5_anos boolean default false`
-- Validar `area` para uma das 8: `comercial, marketing, financeiro, operacao, clientes, produtos, equipa, geral` (CHECK constraint)
-- Constraint única `(area, year)` para garantir 1 objetivo anual por área/ano
-- Migrar valores antigos de `area` (ex: `outro` → `geral`)
+Nova página/componente principal `MonthlyCockpit` montado no topo quando há mês selecionado. Recebe `year` + `month`.
 
-**UI (`ExecutivePlaneamentoTatico`):**
-- Atualizar `TacticalByAreaView` para mostrar exatamente 8 cards (uma por área), cada um com o seu objetivo anual ou CTA "Definir objetivo".
-- Form de criar/editar objetivo: campo `area` passa a Select fixo das 8; bloqueia se já existir objetivo nesse ano/área.
-- Adicionar toggle **"Este objetivo contribui para a visão a 5 anos? Sim/Não"**.
-
-**Sincronização Executive → Departamento (marketing/financeiro):**
-- Trigger DB `sync_exec_objective_to_dept_goals`:
-  - Quando objetivo `area='financeiro'` e `value_source` agregável → escreve/atualiza `financial_goals` por mês (distribui `target_value/12` no `revenue_target` ou conforme `target_unit`).
-  - Quando objetivo `area='marketing'` → escreve/atualiza `marketing_goals` para o canal/métrica correspondente (apenas referência mensal `target_value/12`).
-- Direcção é one-way; UI dos departamentos passa a marcar essas linhas como `read-only` (origem: Executive) com badge "Definido no Executive".
-
----
-
-### 2. Desdobramento Semestral
-
-**Schema (`planning_goals`):**
-- Adicionar `'semestral'` como valor válido para `period_type`, com `period IN ('S1','S2')`.
-- Atualizar constantes `PERIODS` em `usePlanningData` para incluir `S1`/`S2`.
-
-**UI:**
-- Em `PlanningGoalsTab`/`TacticalByAreaView`: para cada objetivo anual, mostrar uma cascata visual:
-  ```text
-  Anual (target / actual)
-    ├─ S1 (target / actual auto)   ├─ S2
-    │   └─ T1 / T2                 │   └─ T3 / T4
-    │       └─ meses               │       └─ meses
-  ```
-- `actual_value` semestral lido automaticamente das mesmas fontes (`goalAutoValue` em `usePlanningData`) — agregando os meses correspondentes.
-- Editor de meta semestral: CEO define `target`; status calculado igual aos restantes.
-
----
-
-### 3. Tabela `monthly_reflection`
-
-```sql
-CREATE TABLE public.monthly_reflection (
-  id uuid PK default gen_random_uuid(),
-  business_id uuid not null,
-  year int not null,
-  month int not null CHECK (month BETWEEN 1 AND 12),
-  o_que_correu_bem text,
-  o_que_nao_correu text,
-  decisoes_mes_seguinte text,
-  revisto boolean default false,
-  revisto_em timestamptz,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
-  UNIQUE(business_id, year, month)
-);
 ```
-- RLS: só `is_owner()` lê/escreve.
-- UI: nova secção em `/executive/planeamento/operacional?ano&mes=` — card "Reflexão de [Mês]" com 3 textareas + botão "Marcar como revisto" (define `revisto=true, revisto_em=now()`).
-
----
-
-### 4. Visão a 5 Anos
-
-**Schema:**
-```sql
-CREATE TABLE public.visao_5_anos (
-  id uuid PK,
-  business_id uuid not null,
-  ano_alvo int not null,
-  onde_quero_estar jsonb, -- { negocio, equipa, produtos, mercado, vida_pessoal }
-  condicoes_necessarias text,
-  riscos text,
-  alinhamento_anual text,
-  updated_at timestamptz default now(),
-  UNIQUE(business_id, ano_alvo)
-);
+┌─ Header ──────────────────────────────────────────────┐
+│ ◀  Maio 2026   [estado]            [Fechar mês]      │
+├───────────────────────────────────────────────────────┤
+│ B1  Objetivos do Mês       (8 área cards)            │
+│ B2  Agenda do Mês          (calendário compacto)     │
+│ B3  Comercial              (3 sub-blocos)            │
+│ B4  Marketing              (3 sub-blocos)            │
+│ B5  Clientes               (3 sub-blocos)            │
+│ B6  Operação               (4 sub-blocos)            │
+│ B7  Produtos               (lista compacta)          │
+│ B8  Reflexão & Fecho       (gated por data)          │
+└───────────────────────────────────────────────────────┘
 ```
-- RLS: só Owner.
 
-**UI (`ExecutivePlaneamentoEstrategico`):**
-- Novo bloco "Visão a 5 Anos" depois das Diretrizes Estratégicas.
-- Se vazio → CTA "Definir a tua visão a [ano+5]".
-- 4 campos rich text (reaproveitar editor já usado em SWOT/Diretrizes).
-- Sub-bloco 1 ("onde quero estar") expandido em 5 mini-cards: Negócio, Equipa, Produtos, Mercado, Vida pessoal.
+Cada bloco é `<CockpitSection collapsible storageKey="cockpit:{key}">` com persistência em `localStorage` (`cockpit-collapsed:{userId}:{blockKey}`).
 
-**Indicador no planeamento anual:**
-- Badge/ícone `Sparkles` ao lado do título do objetivo se `contribui_visao_5_anos=true`.
-- Tooltip: "Este objetivo contribui para a tua visão a 5 anos".
+## Header
 
----
+- Setas ◀ ▶ navegam mês/ano (preservam `?ano=&mes=`).
+- Estado do mês:
+  - Futuro → "Planeamento futuro"
+  - Atual e não revisto → "Em curso"
+  - Atual nos primeiros 3 dias → "A planear"
+  - Passado e revisto → "Revisto"
+  - Passado e não revisto → "Por rever"
+- Botão "Fechar mês" só visível nos últimos 3 dias do mês ou primeiros 3 dias do mês seguinte, e ainda não revisto. Faz scroll para B8.
 
-### Detalhes técnicos
+## Blocos — fontes de dados
 
-**Migrations (1 ficheiro, single transaction):**
-1. `ALTER executive_objectives ADD contribui_visao_5_anos`, CHECK área, constraint única `(area, year)`, backfill `outro → geral`.
-2. `ALTER planning_goals` — atualizar constraint de `period_type` para incluir `'semestral'`.
-3. `CREATE TABLE monthly_reflection` + RLS owner-only + trigger updated_at.
-4. `CREATE TABLE visao_5_anos` + RLS owner-only + trigger updated_at.
-5. `CREATE FUNCTION sync_exec_objective_to_dept_goals()` + trigger `AFTER INSERT/UPDATE` em `executive_objectives` para `area in ('financeiro','marketing')`.
+**B1 Objetivos do Mês** — `planning_goals` filtrado por `year/month/period_type='mensal'` para as 8 áreas. Reaproveita `goalAutoValue` (já existe em `usePlanningData`). Card sem meta → CTA "Definir meta" abre `ObjectiveDetailSheet` ou modal direto em `planning_goals` insert. Semáforo: ≥90% verde, 60–90% amarelo, <60% vermelho.
 
-**Código:**
-- `src/hooks/usePlanningData.tsx`: incluir `S1`/`S2` em `PERIODS`, agregação automática de actual semestral, expor `useMonthlyReflection` e `useVisao5Anos` (novos hooks separados).
-- `src/components/planning/TacticalByAreaView.tsx`: layout fixo de 8 áreas; injectar badge visão 5 anos.
-- `src/components/planning/PlanningGoalsTab.tsx`: nova vista semestral com cascata.
-- `src/components/planning/StrategicSection.tsx` (ou novo `Vision5YearsBlock.tsx`): bloco de visão.
-- `src/pages/ExecutivePlaneamentoEstrategico.tsx`: incluir bloco.
-- `src/pages/ExecutivePlaneamentoOperacional.tsx`: incluir card de Reflexão Mensal.
-- Marketing/Financeiro UI: marcar metas geradas pelo Executive com badge read-only.
+**B2 Agenda do Mês** — calendário compacto (grid 7 cols). Eventos de `events`, `meetings`, feriados PT (já existe `useHolidays` ou tabela `holidays`), `team_off_days`. Click → `Sheet` com lista do dia.
 
-**Fora de scope:**
-- Reescrita das tabelas `marketing_goals` / `financial_goals` (mantemos, apenas sync via trigger).
-- Notificações automáticas — fica para iteração futura.
+**B3 Comercial** —
+- a) Soma `commercial_payments` (status pago) do mês vs `executive_objectives` area=comercial OR `planning_goals` area=comercial mensal.
+- b) Leads agrupados por stage (filtrar stages "ativas/proposta/negociação"); follow-ups com `next_followup` no mês.
+- c) `commercial_sales_actions` com `start_date` ou `due_date` no mês.
 
-Posso prosseguir?
+**B4 Marketing** —
+- a) `marketing_goals` para o mês (já com sync do Executive).
+- b) `marketing_content` agrupado por status e por canal.
+- c) `commercial_sales_actions` filtrado tipo marketing (se campo existir; senão só comercial).
+
+**B5 Clientes** —
+- a) Contagens de `clients` por status (ativo/onboarding/offboarding) + média de progresso de `client_onboarding_checklists`.
+- b) `clients` com `end_of_cycle` no mês.
+- c) `nps_records` agendados para o mês.
+
+**B6 Operação** —
+- a) `projects` com atividade no mês (deadline ou tasks com due no mês).
+- b) `member_capacity` vs `time_entries` agregados por membro/mês.
+- c) `routines` mensais/semanais → contar `routine_occurrences` do mês concluídas/total.
+- d) `tasks` com `priority IN ('P1','P2')` e `due_date` no mês.
+
+**B7 Produtos** — `products` ativos: contagem clientes (`client_products` ou similar), NPS médio 90d, `product_deliverables` em atraso. Em desenvolvimento: lista nome/estado/próximo marco.
+
+**B8 Reflexão e Fecho** — Reaproveitar `MonthlyReflectionCard` existente. Adicionar gate: colapsado e bloqueado fora da janela (último dia + 3 primeiros do mês seguinte). Toggle "revisto" já existe; quando true, header mostra "Revisto" e desbloqueia banner do mês seguinte.
+
+## Componentes a criar
+
+```
+src/components/planning/cockpit/
+├── MonthlyCockpit.tsx            (orquestrador + header + setas)
+├── CockpitSection.tsx            (wrapper colapsável + persist)
+├── BlockObjetivos.tsx            (B1)
+├── BlockAgenda.tsx               (B2)
+├── BlockComercial.tsx            (B3)
+├── BlockMarketing.tsx            (B4)
+├── BlockClientes.tsx             (B5)
+├── BlockOperacao.tsx             (B6)
+├── BlockProdutos.tsx             (B7)
+└── useMonthState.ts              (calcula estado do mês + janela de fecho)
+```
+
+`MonthlyReflectionCard` já existe → reutilizar em B8 com prop `windowOnly`.
+
+## Página `ExecutivePlaneamentoOperacional.tsx`
+
+- Quando há mês selecionado (default = mês atual): renderizar `MonthlyCockpit` no topo.
+- Galeria trimestral + galeria mensal passam para baixo num `<details>` "Ver vista anual completa" (preserva o que já existe sem partir nada).
+
+## Modos passado/futuro
+
+- Mês futuro: blocos B2-B7 mostram dados zero/vazios com label "Planeamento futuro" no header da secção; B1 e B8 ativos (B1 para definir metas; B8 colapsado).
+- Mês passado: B8 read-only (já suportado pelo card); botão "Fechar mês" oculto se já revisto.
+
+## Out of scope
+
+- Reorder dos blocos (fixo nesta iteração).
+- Edição inline avançada além de CTAs para abrir sheets/modais existentes.
+- Mexer no schema (todas as tabelas já existem).
+
+Confirma para começar pela infraestrutura (MonthlyCockpit + CockpitSection + header) e depois B1-B8 sequencialmente.
