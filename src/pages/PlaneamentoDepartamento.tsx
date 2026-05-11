@@ -6,10 +6,14 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Target, Building2, FolderKanban, Plus } from 'lucide-react';
+import { Target, Building2, FolderKanban, Plus, MessageSquare } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { usePlanningData } from '@/hooks/usePlanningData';
-import { Button } from '@/components/ui/button';
 import { TacticalByAreaView } from '@/components/planning/TacticalByAreaView';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
@@ -36,6 +40,7 @@ export default function PlaneamentoDepartamento() {
   const [params] = useSearchParams();
   const yearParam = parseInt(params.get('ano') || '', 10);
   const year = Number.isFinite(yearParam) && yearParam > 2000 ? yearParam : new Date().getFullYear();
+  const { isOwner } = useAuth();
 
   const areaKey = areaParam ? (DEPT_TO_AREA[areaParam] || areaParam) : '';
   const planning = usePlanningData(year);
@@ -53,6 +58,27 @@ export default function PlaneamentoDepartamento() {
 
   const planAreaKey = planningAreaForDepartment(areaKey);
   const initiatives = projectsByDept[areaKey] || [];
+
+  // Local notes state — keyed by goal id
+  const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  // Filter monthly+quarterly goals belonging to this area via parent objective
+  const areaGoals = useMemo(() => {
+    const objs = (planning.objectives.data || []) as any[];
+    const objIds = new Set(objs.filter(o => o.area === planAreaKey).map(o => o.id));
+    return ((planning.goals.data || []) as any[]).filter(g => objIds.has(g.objective_id));
+  }, [planning.goals.data, planning.objectives.data, planAreaKey]);
+
+  const saveNotes = async (goalId: string) => {
+    setSavingId(goalId);
+    const value = notesDraft[goalId] ?? '';
+    const { error } = await supabase.from('planning_goals').update({ notes: value }).eq('id', goalId);
+    setSavingId(null);
+    if (error) { toast.error('Erro ao guardar nota'); return; }
+    toast.success('Nota guardada');
+    planning.goals.refetch?.();
+  };
 
   if (!areaParam) {
     return <Navigate to="/executive/planeamento/tatico" replace />;
@@ -81,9 +107,11 @@ export default function PlaneamentoDepartamento() {
                 <p className="text-xs text-muted-foreground">Big goals do ano para {label}</p>
               </div>
             </div>
-            <Button size="sm" onClick={() => setNewObjectiveOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Novo Objetivo
-            </Button>
+            {isOwner && (
+              <Button size="sm" onClick={() => setNewObjectiveOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Novo Objetivo
+              </Button>
+            )}
           </div>
           <PlanningObjectivesTab
             planning={planning}
@@ -107,6 +135,57 @@ export default function PlaneamentoDepartamento() {
             </div>
           </div>
           <PlanningGoalsTab planning={planning} viewMode="metas" areaFilter={planAreaKey} />
+        </section>
+
+        {/* Notas do departamento por meta — editável por qualquer membro */}
+        <section className="space-y-3 pt-6 border-t border-border/60">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <MessageSquare className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Notas do departamento</h2>
+              <p className="text-xs text-muted-foreground">Comentários do departamento sobre cada meta. Visível para o CEO.</p>
+            </div>
+          </div>
+          {areaGoals.length === 0 ? (
+            <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">
+              Sem metas para comentar.
+            </CardContent></Card>
+          ) : (
+            <div className="space-y-3">
+              {areaGoals.map((g: any) => {
+                const draft = notesDraft[g.id] ?? g.notes ?? '';
+                const dirty = draft !== (g.notes ?? '');
+                return (
+                  <Card key={g.id}>
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px]">{g.period}</Badge>
+                          <span className="text-sm">Alvo: <strong className="tabular-nums">{g.target_value || '—'}</strong></span>
+                          <span className="text-sm text-muted-foreground">Real: {g.actual_value || '—'}</span>
+                        </div>
+                      </div>
+                      <Textarea
+                        placeholder="Notas do departamento sobre esta meta…"
+                        value={draft}
+                        onChange={(e) => setNotesDraft({ ...notesDraft, [g.id]: e.target.value })}
+                        rows={2}
+                      />
+                      {dirty && (
+                        <div className="flex justify-end">
+                          <Button size="sm" onClick={() => saveNotes(g.id)} disabled={savingId === g.id}>
+                            {savingId === g.id ? 'A guardar…' : 'Guardar nota'}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {/* Tático filtrado a esta área */}
