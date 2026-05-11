@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { EntitySection } from '@/components/entity/EntityLayout';
+import { EntitySection } from '@/components/layout/entity';
 import { toast } from 'sonner';
 
 interface Request {
