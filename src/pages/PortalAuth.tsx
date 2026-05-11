@@ -174,16 +174,28 @@ export default function PortalAuthPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 sm:p-8"
+      className="relative min-h-screen flex items-center justify-center p-4 sm:p-8 overflow-hidden"
       style={{ background: `linear-gradient(135deg, ${pcAlpha(0.06)} 0%, hsl(var(--background)) 60%, ${pcAlpha(0.04)} 100%)` }}
     >
+      {loginBgUrl && (
+        <>
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: `url(${loginBgUrl}) center/cover no-repeat` }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: `linear-gradient(135deg, ${pcAlpha(0.65)} 0%, ${pcAlpha(0.45)} 50%, ${pcAlpha(0.7)} 100%)` }}
+          />
+        </>
+      )}
       <div
-        className="max-w-4xl w-full grid grid-cols-12 overflow-hidden"
+        className="relative z-10 max-w-4xl w-full grid grid-cols-12 overflow-hidden"
         style={{
           borderRadius: 4,
-          border: `1px solid ${pcAlpha(0.5)}`,
+          border: `1px solid ${pcAlpha(0.3)}`,
           background: 'hsl(var(--card))',
-          boxShadow: `0 30px 80px -24px ${pcAlpha(0.4)}, 0 10px 24px -10px ${pcAlpha(0.25)}`,
+          boxShadow: `0 40px 100px -20px rgba(0,0,0,0.45), 0 16px 30px -12px rgba(0,0,0,0.25)`,
         }}
       >
         {/* Editorial section */}
@@ -191,18 +203,6 @@ export default function PortalAuthPage() {
           className="col-span-12 md:col-span-7 p-6 md:p-12 flex flex-col justify-between border-b md:border-b-0 md:border-r relative overflow-hidden"
           style={{ borderColor: pcAlpha(0.18), minHeight: 'min(520px, 85vh)', background: `linear-gradient(160deg, hsl(var(--card)) 0%, ${pcAlpha(0.05)} 100%)` }}
         >
-          {loginBgUrl && (
-            <>
-              <div
-                className="absolute inset-0"
-                style={{ background: `url(${loginBgUrl}) center/cover no-repeat`, opacity: 0.18 }}
-              />
-              <div
-                className="absolute inset-0"
-                style={{ background: `linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.85) 100%)` }}
-              />
-            </>
-          )}
           <div className="relative z-10 space-y-8 md:space-y-10">
             <div className="flex items-center gap-4">
               {logoUrl ? (
