@@ -206,13 +206,18 @@ export default function PortalViewPage() {
   const submitNps = async (recordId: string, score: number, notes: string) => {
     if (!portal) return;
     const rpcAny = supabase.rpc as unknown as (f: string, a: unknown) => Promise<{ data: unknown; error: unknown }>;
-    const { data } = await rpcAny('portal_submit_nps', {
-      _token: portal.token, _record_id: recordId, _score: score, _notes: notes || null,
-    });
+    const isProactive = !recordId;
+    const { data } = isProactive
+      ? await rpcAny('portal_submit_proactive_nps', {
+          _token: portal.token, _score: score, _notes: notes || null,
+        })
+      : await rpcAny('portal_submit_nps', {
+          _token: portal.token, _record_id: recordId, _score: score, _notes: notes || null,
+        });
     if (data === true) {
-      setNpsPending(prev => prev.filter(p => p.id !== recordId));
+      if (!isProactive) setNpsPending(prev => prev.filter(p => p.id !== recordId));
       setNpsHistory(prev => [
-        { id: recordId, nps_score: score, notes: notes || null, actual_date: new Date().toISOString().slice(0,10), source: 'portal' } as PortalNpsHistory,
+        { id: recordId || `proactive-${Date.now()}`, nps_score: score, notes: notes || null, actual_date: new Date().toISOString().slice(0,10), source: 'portal' } as PortalNpsHistory,
         ...prev,
       ]);
       toast.success('Obrigado pela tua nota! ⭐');
