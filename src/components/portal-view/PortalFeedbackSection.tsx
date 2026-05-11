@@ -216,8 +216,8 @@ export function PortalFeedbackSection({
   );
 }
 
-/* ─── Form (dueRecord) ────────────────────────────────────────────── */
-function RecolhaForm({
+/* ─── Card (dueRecord) → abre Dialog ───────────────────────────────── */
+function RecolhaCard({
   recolha, submitNps, pc, pcAlpha,
 }: {
   recolha: PortalRecolha;
@@ -226,34 +226,16 @@ function RecolhaForm({
   pcAlpha: (a: number) => string;
 }) {
   const [open, setOpen] = useState(false);
-  const [score, setScore] = useState<number | null>(null);
-  const [notes, setNotes] = useState('');
   const isFeedback = recolha.kind === 'feedback';
   const questions: PortalRecolhaQuestion[] = isFeedback ? (recolha.questions || []) : [];
-  const [answers, setAnswers] = useState<string[]>(() => questions.map(() => ''));
-
-  const requiredOk = questions.every((q, i) =>
-    !q.required || (answers[i] && answers[i].trim().length > 0)
-  );
-  const canSubmit = score !== null && requiredOk;
-
-  const handleSubmit = async () => {
-    if (score === null) return;
-    const responses = isFeedback
-      ? questions.map((q, i) => ({ question: q.text, answer: answers[i] || '' }))
-      : undefined;
-    await submitNps(recolha.id, score, notes, responses);
-  };
 
   return (
-    <SectionCard
-      className="p-0 overflow-hidden"
-      style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.25) }}
-    >
+    <>
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left"
+        onClick={() => setOpen(true)}
+        className="w-full text-left rounded-2xl border px-5 py-4 flex items-center gap-3 transition-colors hover:bg-background/60"
+        style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.25) }}
       >
         <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: pcAlpha(0.12) }}>
           {isFeedback
@@ -269,15 +251,66 @@ function RecolhaForm({
             )}
           </p>
         </div>
-        {open
-          ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
       </button>
 
-      {open && (
-        <div className="px-5 pb-5 space-y-5 border-t" style={{ borderColor: pcAlpha(0.15) }}>
+      <RecolhaDialog
+        open={open}
+        onOpenChange={setOpen}
+        recolha={recolha}
+        submitNps={submitNps}
+        pc={pc}
+        pcAlpha={pcAlpha}
+      />
+    </>
+  );
+}
+
+/* ─── Dialog ──────────────────────────────────────────────────────── */
+function RecolhaDialog({
+  open, onOpenChange, recolha, submitNps, pc, pcAlpha,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  recolha: PortalRecolha;
+  submitNps: Props['submitNps'];
+  pc: string;
+  pcAlpha: (a: number) => string;
+}) {
+  const isFeedback = recolha.kind === 'feedback';
+  const questions: PortalRecolhaQuestion[] = isFeedback ? (recolha.questions || []) : [];
+  const [score, setScore] = useState<number | null>(null);
+  const [notes, setNotes] = useState('');
+  const [answers, setAnswers] = useState<string[]>(() => questions.map(() => ''));
+
+  const requiredOk = questions.every((q, i) =>
+    !q.required || (answers[i] && answers[i].trim().length > 0)
+  );
+  const canSubmit = score !== null && requiredOk;
+  const cat = score !== null ? npsCategoryFor(score) : null;
+
+  const handleSubmit = async () => {
+    if (score === null) return;
+    const responses = isFeedback
+      ? questions.map((q, i) => ({ question: q.text, answer: answers[i] || '' }))
+      : undefined;
+    await submitNps(recolha.id, score, notes, responses);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{recolha.title || (isFeedback ? 'Feedback' : 'NPS')}</DialogTitle>
+          {recolha.product_name && (
+            <DialogDescription>{recolha.product_name}</DialogDescription>
+          )}
+        </DialogHeader>
+
+        <div className="space-y-6 py-2">
           {isFeedback && questions.length > 0 && (
-            <div className="pt-4 space-y-3">
+            <div className="space-y-4">
               {questions.map((q, i) => (
                 <div key={i} className="space-y-1.5">
                   <label className="text-sm font-medium">
@@ -285,7 +318,7 @@ function RecolhaForm({
                     {q.required && <span className="text-destructive ml-1">*</span>}
                   </label>
                   <Textarea
-                    rows={2}
+                    rows={3}
                     value={answers[i] || ''}
                     onChange={e => {
                       const next = [...answers];
@@ -299,63 +332,95 @@ function RecolhaForm({
             </div>
           )}
 
-          <div className={isFeedback ? 'pt-3 border-t' : 'pt-4'} style={isFeedback ? { borderColor: pcAlpha(0.15) } : undefined}>
-            <p className="text-sm font-medium mb-2">
+          <div className={isFeedback ? 'pt-4 border-t space-y-3' : 'space-y-3'} style={isFeedback ? { borderColor: pcAlpha(0.15) } : undefined}>
+            <p className="text-sm font-medium">
               {isFeedback
-                ? 'Para terminar, qual a probabilidade de nos recomendares (0 a 10)?'
+                ? 'Para terminar, qual a probabilidade de nos recomendares?'
                 : 'De 0 a 10, qual a probabilidade de nos recomendares?'}
             </p>
-            <div className="grid grid-cols-11 gap-1.5">
-              {Array.from({ length: 11 }).map((_, n) => {
-                const active = score === n;
+
+            {/* Categorias com legendas */}
+            <div className="grid grid-cols-3 gap-2 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+              {NPS_CATEGORIES.map(c => {
+                const Icon = c.icon;
                 return (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setScore(n)}
-                    className={`h-10 rounded-lg text-sm font-semibold transition-all border ${
-                      active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-border/40 hover:border-border bg-background'
-                    }`}
-                    style={active ? { backgroundColor: pc } : undefined}
-                  >
-                    {n}
-                  </button>
+                  <div key={c.key} className="flex items-center gap-1.5">
+                    <Icon className="h-3.5 w-3.5" style={{ color: c.color }} strokeWidth={1.5} />
+                    <span>{c.label}</span>
+                    <span className="text-muted-foreground/60 normal-case tracking-normal">({c.range[0]}{c.range[0] !== c.range[1] ? `–${c.range[1]}` : ''})</span>
+                  </div>
                 );
               })}
             </div>
+
+            {/* Botões 0-10 agrupados por categoria */}
+            <div className="grid grid-cols-3 gap-2">
+              {NPS_CATEGORIES.map(c => (
+                <div
+                  key={c.key}
+                  className="rounded-xl p-1.5 flex gap-1"
+                  style={{ backgroundColor: `${c.color.replace(')', ' / 0.08)')}`, border: `1px solid ${c.color.replace(')', ' / 0.2)')}` }}
+                >
+                  {Array.from({ length: c.range[1] - c.range[0] + 1 }).map((_, idx) => {
+                    const n = c.range[0] + idx;
+                    const active = score === n;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setScore(n)}
+                        className={`flex-1 h-10 rounded-lg text-sm font-semibold transition-all border ${
+                          active ? 'text-white border-transparent shadow-sm scale-[1.05]' : 'border-transparent bg-background hover:border-border'
+                        }`}
+                        style={active ? { backgroundColor: c.color } : undefined}
+                      >
+                        {n}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+
+            {cat && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                Selecionaste <strong className="text-foreground">{score}</strong> · categoria
+                <span className="inline-flex items-center gap-1 font-semibold" style={{ color: cat.color }}>
+                  <cat.icon className="h-3.5 w-3.5" strokeWidth={1.5} /> {cat.label}
+                </span>
+              </p>
+            )}
           </div>
 
-          {score !== null && (
-            <div className="space-y-3">
-              <Textarea
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder="Queres deixar um comentário? (opcional)"
-                rows={2}
-                className="rounded-lg border-border/40 bg-background text-sm"
-              />
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" size="sm" onClick={() => { setScore(null); setNotes(''); }}>
-                  Cancelar
-                </Button>
-                <Button
-                  size="sm"
-                  className="text-white"
-                  style={{ backgroundColor: pc }}
-                  disabled={!canSubmit}
-                  onClick={handleSubmit}
-                >
-                  Enviar
-                </Button>
-              </div>
-              {!requiredOk && (
-                <p className="text-[11px] text-destructive">Preenche as perguntas obrigatórias.</p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Comentário (opcional)</label>
+            <Textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Queres deixar um comentário?"
+              rows={3}
+              className="rounded-lg border-border/40 bg-background text-sm"
+            />
+          </div>
+
+          {!requiredOk && score !== null && (
+            <p className="text-[12px] text-destructive">Preenche as perguntas obrigatórias.</p>
           )}
         </div>
-      )}
-    </SectionCard>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button
+            className="text-white"
+            style={{ backgroundColor: pc }}
+            disabled={!canSubmit}
+            onClick={handleSubmit}
+          >
+            Enviar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
