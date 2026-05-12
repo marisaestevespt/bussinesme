@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
@@ -7,28 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { CalendarDays, Megaphone, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const WEEK_DAYS = ['S','T','Q','Q','S','S','D'];
-const STATUS_TONE: Record<string, string> = {
-  publicado: 'bg-emerald-500',
-  agendado: 'bg-blue-500',
-  pronto_para_design: 'bg-violet-500',
-  por_planear: 'bg-amber-500',
-};
-const STATUS_LABEL: Record<string, string> = {
-  publicado: 'Publicado',
-  agendado: 'Agendado',
-  pronto_para_design: 'Pronto p/ design',
-  por_planear: 'Por planear',
-};
-
-function startOfMonthGrid(year: number, month: number) {
-  const first = new Date(year, month - 1, 1);
-  const offset = (first.getDay() + 6) % 7;
-  const start = new Date(first);
-  start.setDate(first.getDate() - offset);
-  return start;
-}
+import { ContentCalendar } from '@/components/marketing/ContentCalendar';
+import type { ContentItem, MarketingChannel, ContentChannelLink } from '@/lib/marketing-constants';
 
 export function BlockMarketing({ year, month }: { year: number; month: number }) {
   const { data, isLoading } = useQuery({
@@ -41,56 +20,42 @@ export function BlockMarketing({ year, month }: { year: number; month: number })
       const prevYear = month === 1 ? year - 1 : year;
       const prevStart = `${prevYear}-${String(prevMonth).padStart(2,'0')}-01`;
 
-      const [goals, content, leadsNow, leadsPrev, funnels, automations, campaigns] = await Promise.all([
+      const [goals, content, leadsNow, leadsPrev, funnels, automations, campaigns, channels, channelLinks, profiles, attachments] = await Promise.all([
         supabase.from('marketing_goals').select('*').eq('year', year).eq('month', month),
-        supabase.from('content_items').select('id,title,scheduled_at,status,format,content_type,channel:product_id').gte('scheduled_at', start).lte('scheduled_at', end + 'T23:59:59').order('scheduled_at', { ascending: true }),
+        supabase.from('content_items').select('*').gte('scheduled_at', start).lte('scheduled_at', end + 'T23:59:59').order('scheduled_at', { ascending: true }),
         supabase.from('crm_leads').select('id, added_at, status').gte('added_at', start).lte('added_at', end + 'T23:59:59'),
         supabase.from('crm_leads').select('id').gte('added_at', prevStart).lt('added_at', start),
         supabase.from('marketing_funnels').select('id, name, status, tipo_funil').eq('status', 'ativo'),
         supabase.from('marketing_automations').select('id, name, status').eq('status', 'ativo'),
         supabase.from('commercial_sales_actions').select('id, action_name, status, action_type, start_date, end_date').eq('action_type', 'marketing').or(`and(start_date.gte.${start},start_date.lte.${end}),and(end_date.gte.${start},end_date.lte.${end})`),
+        supabase.from('marketing_channels').select('*').order('sort_order'),
+        supabase.from('content_channels').select('*'),
+        supabase.from('profiles').select('id, full_name, avatar_url'),
+        supabase.from('content_attachments').select('*'),
       ]);
 
       const leads = leadsNow.data || [];
       const leadsClosed = leads.filter((l: any) => (l.status || '').toLowerCase() === 'ganha').length;
       return {
         goals: goals.data || [],
-        content: content.data || [],
+        content: (content.data || []) as ContentItem[],
         leadsCount: leads.length,
         leadsPrev: (leadsPrev.data || []).length,
         leadConversion: leads.length > 0 ? (leadsClosed / leads.length) * 100 : 0,
         funnels: funnels.data || [],
         automations: automations.data || [],
         campaigns: campaigns.data || [],
+        channels: (channels.data || []) as MarketingChannel[],
+        channelLinks: (channelLinks.data || []) as ContentChannelLink[],
+        profiles: profiles.data || [],
+        attachments: (attachments.data || []) as any[],
       };
     },
     staleTime: 60_000,
   });
 
-  const grid = useMemo(() => {
-    const arr: Date[] = [];
-    const start = startOfMonthGrid(year, month);
-    for (let i = 0; i < 42; i++) { const d = new Date(start); d.setDate(start.getDate() + i); arr.push(d); }
-    return arr;
-  }, [year, month]);
-
-  const byDay = useMemo(() => {
-    const map = new Map<string, any[]>();
-    (data?.content || []).forEach((c: any) => {
-      const k = (c.scheduled_at || '').slice(0,10);
-      if (!k) return;
-      const arr = map.get(k) || [];
-      arr.push(c);
-      map.set(k, arr);
-    });
-    return map;
-  }, [data]);
-
   if (isLoading || !data) return <div className="text-xs text-muted-foreground">A carregar…</div>;
 
-  const today = new Date();
-  const isToday = (d: Date) => d.toDateString() === today.toDateString();
-  const isSameMonth = (d: Date) => d.getMonth() === month - 1;
   const leadDelta = data.leadsCount - data.leadsPrev;
 
   // Status counts
