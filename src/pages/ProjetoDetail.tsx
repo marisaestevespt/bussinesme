@@ -1359,75 +1359,18 @@ function ProjetoDetailInner() {
 
             {/* ─── TAB 3: ANÁLISE DE PROJETO ───────────────── */}
             <EntityTabsContent value="analise" className="mt-4 space-y-8">
-              <EntitySection title="Saúde do Projeto" icon={BarChart3} description={isServicoMensal ? 'Contratado vs. consumido no mês corrente e total produtivo.' : 'Previsto vs. realizado, execução e distribuição de esforço.'}>
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  {[
-                    { label: isServicoMensal ? 'Horas contratadas/mês' : 'Tempo previsto', value: projectAnalysis.budgetMinutes > 0 ? formatMinutes(projectAnalysis.budgetMinutes) : '—', sub: projectAnalysis.estimatedTaskMinutes > 0 ? `${formatMinutes(projectAnalysis.estimatedTaskMinutes)} estimadas em tarefas` : 'Sem estimativa detalhada' },
-                    { label: 'Tempo produtivo total', value: projectAnalysis.totalMinutes > 0 ? formatMinutes(projectAnalysis.totalMinutes) : '—', sub: projectAnalysis.totalMinutes > 0 ? `${safePct(projectAnalysis.totalMinutes, projectAnalysis.budgetMinutes)}% do previsto` : 'Sem tempo registado' },
-                    { label: 'Tarefas feitas', value: `${projectAnalysis.doneTasks}/${projectAnalysis.totalTasks}`, sub: `${safePct(projectAnalysis.doneTasks, projectAnalysis.totalTasks)}% concluído` },
-                    { label: 'Entregas concluídas', value: `${projectAnalysis.completedDeliverables}/${projectAnalysis.totalDeliverables}`, sub: `${safePct(projectAnalysis.completedDeliverables, projectAnalysis.totalDeliverables)}% concluído` },
-                  ].map(kpi => (
-                    <div key={kpi.label} className="rounded-lg border border-border/60 bg-muted/30 p-4">
-                      <p className="text-xs text-muted-foreground">{kpi.label}</p>
-                      <p className="mt-1 text-2xl font-semibold tabular-nums">{kpi.value}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{kpi.sub}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">Consumo do orçamento</span>
-                        <span className="text-muted-foreground tabular-nums">{projectAnalysis.totalMinutes > 0 ? formatMinutes(projectAnalysis.totalMinutes) : '0m'}{projectAnalysis.budgetMinutes > 0 ? ` / ${formatMinutes(projectAnalysis.budgetMinutes)}` : ''}</span>
-                      </div>
-                      <Progress value={safePct(projectAnalysis.totalMinutes, projectAnalysis.budgetMinutes)} className="h-2" />
-                    </div>
-                    {isServicoMensal && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="font-medium">Mês corrente</span>
-                          <span className="text-muted-foreground tabular-nums">{formatMinutes(projectAnalysis.currentMonthMinutes)}{projectAnalysis.monthlyBudget > 0 ? ` / ${formatMinutes(projectAnalysis.monthlyBudget)}` : ''}</span>
-                        </div>
-                        <Progress value={safePct(projectAnalysis.currentMonthMinutes, projectAnalysis.monthlyBudget)} className="h-2" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="rounded-lg border border-border/60 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
-                      <h3 className="text-sm font-semibold">Tempo por pessoa</h3>
-                    </div>
-                    {projectAnalysis.people.length === 0 ? (
-                      <p className="p-4 text-sm text-muted-foreground">Sem tempo registado.</p>
-                    ) : (
-                      <div className="divide-y divide-border/60">
-                        {projectAnalysis.people.map(person => (
-                          <div key={person.id} className="px-4 py-3 flex items-center justify-between gap-3 text-sm">
-                            <span className="min-w-0 truncate font-medium">{person.name}</span>
-                            <span className="tabular-nums text-muted-foreground">{formatMinutes(person.minutes)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </EntitySection>
+              <ProjectAnaliseTab projectAnalysis={projectAnalysis} isServicoMensal={isServicoMensal} />
             </EntityTabsContent>
 
             {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
             {resolvedClientId && local.client_name && (
               <EntityTabsContent value="portal" className="mt-4 space-y-8">
-                <EntitySection title="Portal do Cliente" icon={Users}>
-                  <ClientPortalSection
-                    clientId={resolvedClientId}
-                    clientName={local.client_name}
-                    currentProduct={local.product_name || null}
-                    productId={local.product_id}
-                  />
-                </EntitySection>
-                {resolvedClientId && <ClientPortalAuditBlock clientId={resolvedClientId} />}
+                <ProjectPortalTab
+                  resolvedClientId={resolvedClientId}
+                  clientName={local.client_name}
+                  productName={local.product_name || null}
+                  productId={local.product_id}
+                />
               </EntityTabsContent>
             )}
 
@@ -1450,38 +1393,11 @@ function ProjetoDetailInner() {
 
             {/* ─── TAB 5: FECHO DE PROJETO ─────────────────── */}
             <EntityTabsContent value="fecho" className="mt-4 space-y-8">
-              <EntitySection title="Retrospetiva" icon={Flag}>
-                <div className="space-y-2">
-                  {[
-                    { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
-                    { field: 'closure_bad' as keyof ProjectFull, label: '❌ O que não voltaria a fazer' },
-                    { field: 'closure_lessons' as keyof ProjectFull, label: '💡 Lições finais' },
-                  ].map(({ field, label }) => (
-                    <Collapsible key={field}>
-                      <CollapsibleTrigger asChild>
-                        <button className="flex items-center justify-between w-full p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/40 transition-colors">
-                          <span className="text-sm font-medium">{label}</span>
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="px-3 pb-3 pt-2">
-                        <MentionTextarea
-                          value={(local[field] as string) || ''}
-                          onChange={v => updateField(field, v)}
-                          rows={4}
-                          placeholder="Escreve aqui..."
-                        />
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
-                </div>
-              </EntitySection>
-
-              {resolvedClientId && local.client_name && (
-                <EntitySection title="Feedback Recebido do Cliente" icon={MessageCircle}>
-                  <ClientPortalFeedbackSection clientId={resolvedClientId} />
-                </EntitySection>
-              )}
+              <ProjectFechoTab
+                local={local}
+                resolvedClientId={resolvedClientId}
+                updateField={updateField}
+              />
             </EntityTabsContent>
           </EntityTabs>
           </div>
