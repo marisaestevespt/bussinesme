@@ -19,15 +19,33 @@ interface Props {
   /** Optional comparison: another period to compare progress against */
   compareTo?: { months: string[]; label: string } | null;
   onSelectGoal?: (goal: any) => void;
+  /** Optional planning data so we can compute progress using auto sources. */
+  planning?: any;
 }
 
-function pct(arr: any[]): number {
+function fallbackPct(arr: any[]): number {
   if (!arr.length) return 0;
   const achieved = arr.filter((g) => g.status === 'atingido').length;
   return Math.round((achieved / arr.length) * 100);
 }
 
-export function TacticalAreasGrid({ goals, objectives = [], periodMonths, rangeStart, rangeEnd, compareTo, onSelectGoal, isLoading = false }: Props) {
+/** Compute progress using planning.goalAutoValue when available, falls back to status-based pct. */
+function computeAreaProgress(areaGoals: any[], objectives: any[], planning: any): number {
+  if (!areaGoals.length) return 0;
+  if (!planning?.goalAutoValue) return fallbackPct(areaGoals);
+  const pcts = areaGoals.map((g) => {
+    if (g.status === 'atingido') return 100;
+    const target = Number(g.target_value || 0);
+    if (target <= 0) return 0;
+    const linkedObj = g.objective_id ? objectives.find((o: any) => o.id === g.objective_id) : null;
+    const autoVal = linkedObj ? Number(planning.goalAutoValue(linkedObj, g.period ?? '') ?? 0) : 0;
+    const actual = autoVal > 0 ? autoVal : Number(g.actual_value || 0);
+    return Math.min(Math.round((actual / target) * 100), 100);
+  });
+  return Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length);
+}
+
+export function TacticalAreasGrid({ goals, objectives = [], periodMonths, rangeStart, rangeEnd, compareTo, onSelectGoal, isLoading = false, planning }: Props) {
   const { data: areas = [], isLoading: loadingAreas } = useTacticalAreas();
   const { data: membersByDept = {} } = useMembersByDepartment();
   const { data: projectsByDept = {} } = useProjectsByDepartmentInRange(rangeStart, rangeEnd);
@@ -61,13 +79,13 @@ export function TacticalAreasGrid({ goals, objectives = [], periodMonths, rangeS
       {areas.map((area) => {
         const areaGoals = periodGoals.filter((g: any) => goalBelongsToDepartment(g, goalAreaById, area.key));
         const areaInitiatives = projectsByDept[area.key] || [];
-        const areaProgress = pct(areaGoals);
+        const areaProgress = computeAreaProgress(areaGoals, objectives, planning);
         const responsibles = membersByDept[area.key] || [];
 
         let comparison: { previousPct: number; previousLabel: string } | null = null;
         if (compareTo) {
           const prevAreaGoals = compareGoals.filter((g: any) => goalBelongsToDepartment(g, goalAreaById, area.key));
-          comparison = { previousPct: pct(prevAreaGoals), previousLabel: compareTo.label };
+          comparison = { previousPct: computeAreaProgress(prevAreaGoals, objectives, planning), previousLabel: compareTo.label };
         }
 
         return (
