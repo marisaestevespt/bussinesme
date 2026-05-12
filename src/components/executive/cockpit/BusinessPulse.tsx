@@ -97,14 +97,18 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
     ? Math.round(((derived.monthRevenue - derived.prevMonthRevenue) / derived.prevMonthRevenue) * 100)
     : 0;
 
-  // Fôlego financeiro: compara receita do mês com burn médio (90d).
-  // Se receita cobre burn → "Saudável". Caso contrário, mostra défice mensal.
-  const burnNet = derived.burn90 - derived.monthRevenue;
-  const isHealthy = burnNet <= 0;
-  const runwayLabel = isHealthy ? 'Saudável' : `-${formatEuros(burnNet)}/mês`;
+  // Fôlego financeiro: compara a receita do MÊS CORRENTE com a média mensal
+  // de despesas dos últimos 90 dias (burn). Mostra o saldo médio mensal:
+  //   positivo = receita cobre burn (saudável)
+  //   negativo = receita não cobre burn (défice mensal)
+  const monthlyBalance = derived.monthRevenue - derived.burn90;
+  const isHealthy = monthlyBalance >= 0;
+  const runwayLabel = isHealthy
+    ? `+${formatEuros(monthlyBalance)}/mês`
+    : `-${formatEuros(Math.abs(monthlyBalance))}/mês`;
   const runwayStatus: 'good' | 'warn' | 'bad' = isHealthy
     ? 'good'
-    : burnNet > derived.burn90 * 0.3 ? 'bad' : 'warn';
+    : Math.abs(monthlyBalance) > derived.burn90 * 0.3 ? 'bad' : 'warn';
 
   const capacityPct = derived.capacity?.pct ?? 0;
   const capacityStatus: 'good' | 'warn' | 'bad' =
@@ -143,13 +147,13 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
           hint="Receita do mês menos despesas do mês. A percentagem entre parênteses compara a receita com o mês anterior."
         />
         <KpiTile
-          label="Fôlego financeiro"
+          label="Saldo mensal"
           value={runwayLabel}
           icon={TrendingUp}
           status={runwayStatus}
-          sub={`Burn 90d: ${formatEuros(derived.burn90)}/mês`}
+          sub={`Receita ${formatEuros(derived.monthRevenue)} − burn ${formatEuros(derived.burn90)}/mês`}
           link="/executive/planeamento/estrategico"
-          hint="Também conhecido como 'runway'. Indica quantos meses o negócio aguenta com as despesas atuais. 'Saudável' significa que a receita cobre as despesas e o negócio é sustentável. Burn = média de despesas dos últimos 90 dias."
+          hint="Saldo médio mensal: receita do mês corrente menos a média mensal de despesas dos últimos 90 dias (burn). Positivo = a operação paga-se a si própria. Negativo = défice médio por mês ao ritmo atual. Não é anual nem do dia de hoje — é uma vista mensal recorrente."
         />
         <KpiTile
           label="Capacidade"

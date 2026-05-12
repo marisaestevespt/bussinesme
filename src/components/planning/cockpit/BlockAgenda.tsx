@@ -202,7 +202,7 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
                     {i.meta && <Badge variant="outline" className="text-[10px]">{i.meta}</Badge>}
                   </div>
                 );
-                return <div key={i.id}>{i.href ? <Link to={i.href} onClick={() = target="_blank" rel="noopener noreferrer"> setDialogOpen(false)}>{content}</Link> : content}</div>;
+                return <div key={i.id}>{i.href ? <Link to={i.href} target="_blank" rel="noopener noreferrer" onClick={() => setDialogOpen(false)}>{content}</Link> : content}</div>;
               })
             )}
           </div>
