@@ -31,7 +31,7 @@ function statusTone(pct: number, hasGoal: boolean) {
 }
 
 export function BlockObjetivos({ year, month }: { year: number; month: number }) {
-  const periodLabel = MONTH_NAMES_PT[month - 1];
+  const periodLabel = `${year}-${String(month).padStart(2, '0')}`;
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [selected, setSelected] = useState<any>(null);
   const planning = usePlanningData(year);
