@@ -1103,260 +1103,35 @@ function ProjetoDetailInner() {
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
             <EntityTabsContent value="projeto" className="space-y-8 mt-6">
-              {/* ── Card: Próxima Reunião (atalho) ───────── */}
-              {(() => {
-                const now = new Date();
-                const next = [...(meetings || [])]
-                  .filter((m: any) => m.date_time && new Date(m.date_time) >= now)
-                  .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
-                if (!next) return null;
-                return (
-                  <button
-                    onClick={() => navigate(`/hub/reunioes/${(next as any).id}`)}
-                    className="w-full flex items-center justify-between gap-4 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent px-4 py-3 text-left transition-all hover:border-primary/60 hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="rounded-lg bg-primary/15 p-2">
-                        <Video className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Próxima Reunião</p>
-                        <p className="text-sm font-semibold truncate">{(next as any).title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date((next as any).date_time), "EEEE, d MMM 'às' HH:mm", { locale: pt })}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-                  </button>
-                );
-              })()}
-
-              {/* ── Section: Menu Inicial ─────────────────── */}
-              <EntitySection title="Menu Inicial" icon={Target}>
-                <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-                  {(() => {
-                    const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
-                    const base = local.type === 'cliente_servico_mensal' ? [
-                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes da Avença', filled: hasText(local.diretrizes) },
-                      { key: '__agenda__' as SubPage, icon: CalendarIcon, label: 'Calendário Editorial', filled: false },
-                      { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
-                    ] : [
-                      { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição', filled: hasText(local.objetivo) },
-                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais', filled: hasText(local.diretrizes) },
-                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral', filled: hasText(local.cronograma) },
-                      { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
-                    ];
-                    return base.map(({ key, icon: Icon, label, filled }) => (
-                    <button key={key} onClick={() => {
-                      if (key === ('__agenda__' as SubPage)) {
-                        const params = new URLSearchParams();
-                        if (resolvedClientId) params.set('client_id', resolvedClientId);
-                        if (local.client_name) params.set('client_name', local.client_name);
-                        navigate(`/hub/agenda?${params.toString()}`);
-                      } else {
-                        setSubPage(key);
-                      }
-                    }} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-                      <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="text-sm font-semibold text-foreground leading-tight flex items-center gap-2">
-                        {label}
-                        {filled && <span className="h-1.5 w-1.5 rounded-full bg-success" title="Já tem conteúdo" />}
-                      </span>
-                      <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
-                    </button>
-                    ));
-                  })()}
-                </div>
-              </EntitySection>
-
-              {/* ── Section: Desenvolvimento ──────────────── */}
-              <EntitySection title="Desenvolvimento" icon={FileText}>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {(() => {
-                    const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
-                    const tiles = [
-                      local.type === 'interno'
-                        ? { key: 'brainstorming' as SubPage, icon: Lightbulb, label: 'Brainstorming', filled: hasText((local as any).brainstorming) }
-                        : { key: 'briefing' as SubPage, icon: ClipboardList, label: local.type === 'cliente_servico_mensal' ? 'Âmbito da Avença' : 'Briefing', filled: false },
-                      { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis', filled: hasText(local.entregaveis) },
-                      { key: 'reunioes' as SubPage, icon: Users, label: 'Reuniões', filled: meetings.length > 0 },
-                      { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais', filled: hasText(local.recursos) },
-                    ];
-                    return tiles.map(({ key, icon: Icon, label, filled }) => (
-                      <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-                        <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
-                          <Icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="text-sm font-semibold text-foreground leading-tight flex items-center gap-2">
-                          {label}
-                          {filled && <span className="h-1.5 w-1.5 rounded-full bg-success" title="Já tem conteúdo" />}
-                        </span>
-                        <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
-                      </button>
-                    ));
-                  })()}
-                </div>
-              </EntitySection>
-
-              {/* ── Section: Fases do Projeto (galeria) ── */}
-              {taskMode === 'fases' && (
-                <EntitySection title="Fases do Projeto" icon={Workflow}>
-                  <ProjectPhasesGallery projectId={id!} projectStartDate={local.start_date} />
-                </EntitySection>
-              )}
-
+              <ProjectMainTab
+                projectId={id!}
+                local={local}
+                meetings={meetings}
+                resolvedClientId={resolvedClientId}
+                taskMode={taskMode}
+                setSubPage={setSubPage}
+              />
             </EntityTabsContent>
 
             {/* ─── TAB 2: TAREFAS & RESPONSABILIDADES ─────── */}
             <EntityTabsContent value="processos" className="mt-4 space-y-8">
-              {/* Avença Mensal: Responsabilidades primeiro, depois Rotinas, depois Tarefas. Sem SOPs. */}
-              {isServicoMensal && (
-                <>
-                  <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
-                    <ProjectResponsibilities projectId={id!} />
-                  </EntitySection>
-                  <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
-                    <ProjectRoutines projectId={id!} />
-                  </EntitySection>
-                </>
-              )}
-
-              <EntitySection
-                title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
-                icon={CheckSquare}
-                action={
-                  <div className="flex gap-2 items-center">
-                    <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
-                    {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar</Button>}
-                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-                  </div>
-                }
-              >
-                {tasks.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
-                    <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                    <p className="text-sm text-muted-foreground">{taskMode === 'tarefas_fixas' ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
-                  </div>
-                ) : (
-                  <div className="rounded-xl border overflow-hidden">
-                    <Table>
-                      <TableHeader><TableRow className="bg-muted/60">
-                        <TableHead className="font-semibold">Status</TableHead><TableHead className="font-semibold">Prioridade</TableHead><TableHead className="font-semibold">Tarefa</TableHead><TableHead className="font-semibold">Data final</TableHead><TableHead className="font-semibold">Responsável</TableHead>
-                      </TableRow></TableHeader>
-                      <TableBody>
-                        {tasks.map(t => {
-                          const si = getTaskStatusInfo(t.status);
-                          const pi = getPriorityInfo(t.priority);
-                          const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
-                          return (
-                            <TableRow
- key={t.id}
- className="cursor-pointer hover:bg-muted/30"
- onClick={() => setTaskDetailId(t.id)}
-                            >
-                              <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
-                              <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
-                              <TableCell className="font-medium text-sm">{t.name}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                              <TableCell>{assignee ? <div className="flex items-center gap-2"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </EntitySection>
-
-              {/* SOPs ligados ao projeto — apenas para projetos não-avença */}
-              {!isServicoMensal && (
-                <ProjectProcessosTab
-                  projectId={id!}
-                  clientId={resolvedClientId}
-                  productId={local.product_id}
-                  projectStartDate={local.start_date}
-                />
-              )}
-
-              {/* ── Reuniões: próximas + últimas 3 realizadas ── */}
-              <EntitySection
-                title={sectorConfig.t('reunioes')}
-                icon={Video}
-                action={
-                  <div className="flex gap-2 items-center">
-                    <Button size="sm" variant="ghost" className="gap-1" onClick={() => setSubPage('reunioes')}>Ver todas</Button>
-                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
-                  </div>
-                }
-              >
-                {(() => {
-                  const now = new Date();
-                  const sorted = [...(meetings || [])].sort((a: any, b: any) =>
-                    new Date(a.date_time || 0).getTime() - new Date(b.date_time || 0).getTime()
-                  );
-                  const upcoming = sorted.filter((m: any) => m.date_time && new Date(m.date_time) >= now);
-                  const pastDone = sorted
-                    .filter((m: any) => m.date_time && new Date(m.date_time) < now)
-                    .slice(-3)
-                    .reverse();
-                  const list = [...upcoming, ...pastDone];
-                  if (list.length === 0) {
-                    return (
-                      <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
-                        <Video className="h-8 w-8 text-muted-foreground/30 mb-2" />
-                        <p className="text-sm text-muted-foreground">Sem reuniões associadas a este projeto.</p>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div className="rounded-xl border overflow-hidden divide-y">
-                      {list.map((m: any) => {
-                        const isPast = m.date_time && new Date(m.date_time) < now;
-                        const isInternal = m.client_id && m.visible_in_portal === false;
-                        const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
-                          por_confirmar: { label: 'Por confirmar', variant: 'outline' },
-                          confirmada: { label: 'Confirmada', variant: 'default' },
-                          terminada: { label: 'Terminada', variant: 'secondary' },
-                          realizada: { label: 'Realizada', variant: 'secondary' },
-                          cancelada: { label: 'Cancelada', variant: 'destructive' },
-                        };
-                        const fallback = isPast
-                          ? { label: 'Realizada', variant: 'secondary' as const }
-                          : { label: 'Por confirmar', variant: 'outline' as const };
-                        const statusInfo = (m.status && statusMap[m.status]) || fallback;
-                        return (
-                          <div
-                            key={m.id}
-                            className="px-4 py-2.5 text-sm grid grid-cols-[100px_1fr_auto] gap-3 items-center cursor-pointer hover:bg-muted/40"
-                            onClick={() => navigate(`/hub/reunioes/${m.id}`)}
-                          >
-                            <Badge variant={statusInfo.variant} className="text-[10px] justify-center">
-                              {statusInfo.label}
-                            </Badge>
-                            <div className="min-w-0">
-                              <p className="font-medium truncate flex items-center gap-2">
-                                {m.title}
-                                {isInternal && (
-                                  <span className="text-[10px] font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded" title="Não visível para o cliente">
-                                    🔒 Interna
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {m.date_time ? format(new Date(m.date_time), "d MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}
-                              </p>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </EntitySection>
+              <ProjectProcessosSection
+                projectId={id!}
+                local={local}
+                isServicoMensal={isServicoMensal}
+                taskMode={taskMode}
+                tasks={tasks}
+                meetings={meetings}
+                profileMap={profileMap}
+                getPhotoUrl={getPhotoUrl}
+                resolvedClientId={resolvedClientId}
+                reunioesLabel={sectorConfig.t('reunioes')}
+                onGenerateMonthly={() => generateMonthlyTasksMutation.mutate()}
+                onAddTask={() => setTaskDialogOpen(true)}
+                onAddMeeting={() => setMeetingDialogOpen(true)}
+                onOpenTaskDetail={(taskId) => setTaskDetailId(taskId)}
+                onOpenAllMeetings={() => setSubPage('reunioes')}
+              />
             </EntityTabsContent>
 
             {/* ─── TAB 3: ANÁLISE DE PROJETO ───────────────── */}
