@@ -178,7 +178,7 @@ export default function SecretariaPage() {
 
         {/* Dashboard view (no tab active) */}
         {!activeTab && (
-          <>
+          <div className="space-y-6 pt-4 sm:pt-6">
             {/* Onboarding checklist */}
             {(onboarding.data || []).length > 0 && (() => {
               const items = onboarding.data || [];
@@ -288,7 +288,7 @@ export default function SecretariaPage() {
                 </Card>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* Tab content with lazy loading */}
