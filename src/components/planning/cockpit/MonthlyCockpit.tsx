@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ChevronLeft, ChevronRight, Target, Calendar, Briefcase,
-  Megaphone, Users, Settings2, Package, NotebookPen, CheckCircle2,
+  Megaphone, Users, Settings2, NotebookPen, CheckCircle2,
 } from 'lucide-react';
 import { CockpitSection } from './CockpitSection';
 import { BlockObjetivos } from './BlockObjetivos';
