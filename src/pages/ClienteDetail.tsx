@@ -109,21 +109,21 @@ function ClienteDetailPageInner() {
   });
 
   const scheduledRenewalProjectQuery = useQuery({
-    queryKey: ['scheduled-renewal-project', (form as any).pending_renewal_project_id],
+    queryKey: ['scheduled-renewal-project', form.pending_renewal_project_id],
     queryFn: async () => {
-      const pid = (form as any).pending_renewal_project_id;
+      const pid = form.pending_renewal_project_id;
       if (!pid) return null;
       const { data } = await supabase.from('projects')
         .select('id, name, start_date, deadline, status, product_name')
         .eq('id', pid).maybeSingle();
       return data;
     },
-    enabled: !!(form as any).pending_renewal_project_id,
+    enabled: !!form.pending_renewal_project_id,
   });
 
   // ─── Rollback: latest activated renewal project (≠ scheduled) ───
   const latestActivatedRenewal = (() => {
-    const pendingPid = (form as any).pending_renewal_project_id || null;
+    const pendingPid = form.pending_renewal_project_id || null;
     const items = (renewalsQuery.data || []) as any[];
     // pick highest cycle_number that has a project_id and isn't the scheduled one
     const candidate = items
@@ -199,7 +199,7 @@ function ClienteDetailPageInner() {
             form.portal_deactivation_date = deactivationDate;
           }
         }
-        await upsertClient.mutateAsync(form as any);
+        await upsertClient.mutateAsyncform;
         toast.success('Cliente guardado');
         return id || null;
       }
@@ -296,18 +296,18 @@ function ClienteDetailPageInner() {
               businessName: bs?.business_name || 'a equipa',
               ownerName: profile?.full_name || '',
               supportEmail: '',
-              primaryColor: (emailCustom as any)?.primary_color || bs?.primary_color,
-              primaryForeground: (emailCustom as any)?.primary_foreground || '0 0% 100%',
-              textColor: (emailCustom as any)?.text_color || bs?.text_color,
-              accentColor: (emailCustom as any)?.muted_color || bs?.accent_color,
-              fontDisplay: (emailCustom as any)?.font_display || bs?.font_display,
-              fontBody: (emailCustom as any)?.font_body || bs?.font_body,
+              primaryColor: emailCustom?.primary_color || bs?.primary_color,
+              primaryForeground: emailCustom?.primary_foreground || '0 0% 100%',
+              textColor: emailCustom?.text_color || bs?.text_color,
+              accentColor: emailCustom?.muted_color || bs?.accent_color,
+              fontDisplay: emailCustom?.font_display || bs?.font_display,
+              fontBody: emailCustom?.font_body || bs?.font_body,
               logoUrl: bs?.logo_url || undefined,
-              customTitle: (emailCustom as any)?.title_text || undefined,
-              customSubtitle: (emailCustom as any)?.subtitle_text || undefined,
-              customCta: (emailCustom as any)?.cta_text || undefined,
-              customFooter: (emailCustom as any)?.footer_text || undefined,
-              customEmoji: (emailCustom as any)?.emoji || undefined,
+              customTitle: emailCustom?.title_text || undefined,
+              customSubtitle: emailCustom?.subtitle_text || undefined,
+              customCta: emailCustom?.cta_text || undefined,
+              customFooter: emailCustom?.footer_text || undefined,
+              customEmoji: emailCustom?.emoji || undefined,
             },
           },
         });
@@ -872,9 +872,9 @@ function ClienteDetailPageInner() {
 
         {/* Hero: cover + icon (Notion-style) */}
         <EntityHeroHeader
-          icon={parseIcon((form as any).icon)}
+          icon={parseIcon(form.icon)}
           onIconChange={(next) => update('icon' as any, next as any)}
-          coverUrl={(form as any).cover_url}
+          coverUrl={form.cover_url}
           onCoverChange={(url) => update('cover_url' as any, url as any)}
           bucket="entity-icons"
           pathPrefix={`clients/${id || 'new'}`}
@@ -892,14 +892,14 @@ function ClienteDetailPageInner() {
           meta={
             <span className="flex items-center gap-2 flex-wrap">
               {form.client_id && <span className="text-xs text-muted-foreground font-mono">{form.client_id}</span>}
-              {(form as any).pending_renewal_project_id && (
+              {form.pending_renewal_project_id && (
                 <Badge variant="outline" className="bg-accent-violet/15 text-accent-violet border-accent-violet/30 gap-1">
                   <RefreshCw className="h-3 w-3" /> Renovação agendada
                 </Badge>
               )}
-              {(form as any).client_since && (
+              {form.client_since && (
                 <span className="text-xs text-muted-foreground">
-                  Cliente desde {format(parseISO((form as any).client_since), 'MMM yyyy', { locale: pt })}
+                  Cliente desde {format(parseISO(form.client_since), 'MMM yyyy', { locale: pt })}
                 </span>
               )}
             </span>
@@ -955,7 +955,7 @@ function ClienteDetailPageInner() {
           </EntityProperty>
           <EntityProperty icon={User} label="Responsável">
             <Select
-              value={(form as any).account_manager_id || 'none'}
+              value={form.account_manager_id || 'none'}
               onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
             >
               <SelectTrigger className={cn(inlineTriggerClass, '[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0')}>
@@ -989,11 +989,11 @@ function ClienteDetailPageInner() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Valor de Liquidação (€)</Label>
-                  <Input type="number" step="0.01" value={(form as any).final_settlement_amount || ''} onChange={e => update('final_settlement_amount', parseFloat(e.target.value) || 0)} />
+                  <Input type="number" step="0.01" value={form.final_settlement_amount || ''} onChange={e => update('final_settlement_amount', parseFloat(e.target.value) || 0)} />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Estado</Label>
-                  <Select value={(form as any).final_settlement_status || 'pendente'} onValueChange={v => update('final_settlement_status', v)}>
+                  <Select value={form.final_settlement_status || 'pendente'} onValueChange={v => update('final_settlement_status', v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pendente">Pendente</SelectItem>
@@ -1005,7 +1005,7 @@ function ClienteDetailPageInner() {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Notas</Label>
-                  <Input value={(form as any).final_settlement_notes || ''} onChange={e => update('final_settlement_notes', e.target.value)} placeholder="Notas sobre a liquidação..." />
+                  <Input value={form.final_settlement_notes || ''} onChange={e => update('final_settlement_notes', e.target.value)} placeholder="Notas sobre a liquidação..." />
                 </div>
             </div>
           </EntitySection>
@@ -1290,10 +1290,10 @@ function ClienteDetailPageInner() {
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Grupo WhatsApp</Label>
                   <div className="flex gap-2">
-                    <Input value={(form as any).whatsapp_group_url || ''} onChange={e => update('whatsapp_group_url' as any, e.target.value)} placeholder="https://chat.whatsapp.com/..." />
-                    {(form as any).whatsapp_group_url && (
+                    <Input value={form.whatsapp_group_url || ''} onChange={e => update('whatsapp_group_url' as any, e.target.value)} placeholder="https://chat.whatsapp.com/..." />
+                    {form.whatsapp_group_url && (
                       <Button variant="outline" aria-label="Abrir link externo" size="icon" asChild>
-                        <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                        <a href={form.whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
                       </Button>
                     )}
                   </div>

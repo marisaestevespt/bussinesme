@@ -229,7 +229,7 @@ function ContractDocUpload({ contract, setC, uploading, setUploading, memberId }
 export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const { settings } = useBusinessSettings();
   const isENI = settings?.business_type === 'eni';
-  const isAccountant = !!settings && !!initial?.id && (settings as any).accountant_member_id === initial.id;
+  const isAccountant = !!settings && !!initial?.id && settings.accountant_member_id === initial.id;
 
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });

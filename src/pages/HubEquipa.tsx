@@ -123,7 +123,7 @@ function TeamWhatsAppLink() {
     },
   });
 
-  const url = (settings as any)?.whatsapp_team_url || '';
+  const url = settings?.whatsapp_team_url || '';
 
   const saveMut = useMutation({
     mutationFn: async (newUrl: string) => {

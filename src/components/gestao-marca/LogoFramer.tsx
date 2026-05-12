@@ -12,13 +12,13 @@ interface Props {
 }
 
 export function LogoFramer({ settings, uploadLogo, uploadingLogo, refetchSettings, fill }: Props) {
-  const initialY = (settings as any)?.logo_position_y ?? 50;
+  const initialY = settings?.logo_position_y ?? 50;
   const [posY, setPosY] = useState<number>(initialY);
   const draggingRef = useRef<{ startY: number; startPos: number; moved: boolean } | null>(null);
 
   useEffect(() => {
-    setPosY((settings as any)?.logo_position_y ?? 50);
-  }, [settings?.id, (settings as any)?.logo_position_y]);
+    setPosY(settings?.logo_position_y ?? 50);
+  }, [settings?.id, settings?.logo_position_y]);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!settings?.logo_url) return;
@@ -41,7 +41,7 @@ export function LogoFramer({ settings, uploadLogo, uploadingLogo, refetchSetting
     try { (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId); } catch {}
     if (!d || !d.moved) return;
     const v = Math.round(posY);
-    if (v !== ((settings as any)?.logo_position_y ?? 50) && settings?.id) {
+    if (v !== (settings?.logo_position_y ?? 50) && settings?.id) {
       await supabase.from('business_settings').update({ logo_position_y: v } as any).eq('id', settings.id);
       refetchSettings();
     }

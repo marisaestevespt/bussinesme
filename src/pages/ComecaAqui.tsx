@@ -126,8 +126,8 @@ export default function ComecaAquiPage() {
 
   useEffect(() => {
     if (settings) {
-      setWelcomeText((settings as any).welcome_text || '');
-      setAboutText((settings as any).about_text || '');
+      setWelcomeText(settings.welcome_text || '');
+      setAboutText(settings.about_text || '');
     }
   }, [settings]);
 

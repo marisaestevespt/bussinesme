@@ -259,7 +259,7 @@ export default function GestaoMarcaPage() {
 
   // ── PUV ──
 
-  const puv = (settings as any)?.proposta_unica_valor || '';
+  const puv = settings?.proposta_unica_valor || '';
 
   const savePuv = async () => {
     if (!settings) return;
@@ -268,7 +268,7 @@ export default function GestaoMarcaPage() {
     else { toast.success('Guardado'); refetchSettings(); setEditingPuv(false); }
   };
 
-  const aboutText = (settings as any)?.about_text || '';
+  const aboutText = settings?.about_text || '';
 
   const saveAbout = async () => {
     if (!settings) return;
@@ -600,7 +600,7 @@ export default function GestaoMarcaPage() {
                       src={settings.logo_url}
                       alt={settings.business_name}
                       className="h-44 md:h-full w-full object-cover bg-muted/30"
-                      style={{ objectPosition: `center ${(settings as any)?.logo_position_y ?? 50}%` }}
+                      style={{ objectPosition: `center ${settings?.logo_position_y ?? 50}%` }}
                     />
                   ) : null}
                 </div>
@@ -761,7 +761,7 @@ export default function GestaoMarcaPage() {
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {(() => {
-                  const savedOrder: string[] = Array.isArray((settings as any)?.kanban_group_order) ? (settings as any).kanban_group_order : [];
+                  const savedOrder: string[] = Array.isArray(settings?.kanban_group_order) ? settings.kanban_group_order : [];
                   const ordered = [
                     ...savedOrder.map(k => KANBAN_GROUPS.find(g => g.key === k)).filter(Boolean) as typeof KANBAN_GROUPS,
                     ...KANBAN_GROUPS.filter(g => !savedOrder.includes(g.key)),
@@ -779,7 +779,7 @@ export default function GestaoMarcaPage() {
                   };
                   return ordered.map((group, colIdx) => {
                     const items = [...kanbanItems.filter(i => i.group_key === group.key)].sort((a, b) => a.sort_order - b.sort_order);
-                    const customLabel = ((settings as any)?.kanban_group_labels || {})[group.key] as string | undefined;
+                    const customLabel = (settings?.kanban_group_labels || {})[group.key] as string | undefined;
                     return (
                     <KanbanColumn
                       key={group.key}
@@ -797,7 +797,7 @@ export default function GestaoMarcaPage() {
                       onChangeEmoji={updateKanbanEmoji}
                       onRenameGroup={async (newLabel) => {
                         if (!settings) return;
-                        const current = ((settings as any)?.kanban_group_labels || {}) as Record<string, string>;
+                        const current = (settings?.kanban_group_labels || {}) as Record<string, string>;
                         const next = { ...current, [group.key]: newLabel };
                         const { error } = await supabase.from('business_settings').update({ kanban_group_labels: next } as any).eq('id', settings.id);
                         if (error) { toast.error('Erro ao renomear coluna'); return; }

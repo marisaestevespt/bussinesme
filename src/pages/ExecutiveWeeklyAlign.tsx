@@ -33,7 +33,7 @@ export default function ExecutiveWeeklyAlign() {
   const planning = usePlanningData(wa.currentYear);
   const cockpit = useCeoCockpit();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
-  const weeklyAlignDay = (settings as any)?.weekly_align_day ?? 5;
+  const weeklyAlignDay = settings?.weekly_align_day ?? 5;
 
   const updateWeeklyDay = useMutation({
     mutationFn: async (day: number) => {

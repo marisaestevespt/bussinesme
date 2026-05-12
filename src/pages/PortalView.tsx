@@ -523,10 +523,10 @@ export default function PortalViewPage() {
               </span>
             </div>
             <div className="flex items-center gap-3">
-              {(settings as any)?.support_hours && (
+              {settings?.support_hours && (
                 <div className="hidden sm:flex items-center gap-1.5" style={{ color: pcAlpha(0.5) }}>
                   <Clock className="h-3 w-3" strokeWidth={1.5} />
-                  <span className="text-[10px] tracking-wider uppercase">{(settings as any).support_hours}</span>
+                  <span className="text-[10px] tracking-wider uppercase">{settings.support_hours}</span>
                 </div>
               )}
               <div className="h-8 w-8 flex items-center justify-center text-xs font-medium" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
@@ -939,7 +939,7 @@ export default function PortalViewPage() {
             answerQuestion={answerQuestion}
             pc={pc}
             pcAlpha={pcAlpha}
-            playlistUrl={(portal.playlist_url as string) || ((settings as any)?.playlist_url as string) || null}
+            playlistUrl={(portal.playlist_url as string) || (settings?.playlist_url as string) || null}
           />
         )}
 
@@ -1167,8 +1167,8 @@ export default function PortalViewPage() {
         )}
 
         {/* ═══ PLAYLIST (vibe) — herda do produto, override por cliente ═══ */}
-        {(portal.playlist_url || (settings as any)?.playlist_url) && (
-          <PortalPlaylistEmbed url={(portal.playlist_url as string) || ((settings as any).playlist_url as string)} />
+        {(portal.playlist_url || settings?.playlist_url) && (
+          <PortalPlaylistEmbed url={(portal.playlist_url as string) || (settings.playlist_url as string)} />
         )}
 
       </main>

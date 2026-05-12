@@ -30,7 +30,7 @@ export function ExpenseFormFields({ form, setForm, paymentMethods }: Props) {
   const suggestedFileName = buildExpenseFileName({
     expenseDate: form.expense_date,
     supplierName,
-    expenseName: (form as any).expense_name || form.description,
+    expenseName: form.expense_name || form.description,
   });
 
   return (

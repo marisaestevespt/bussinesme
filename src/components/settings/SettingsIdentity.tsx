@@ -173,16 +173,16 @@ export function SettingsIdentity() {
     if (!settings) return;
     setBusinessName(settings.business_name);
     
-    setSupportHours((settings as any).support_hours || '');
+    setSupportHours(settings.support_hours || '');
     setLogoPreview(settings.logo_url);
-    setBgPreview((settings as any).login_bg_url || null);
-    setUseSystemTheme((settings as any).use_system_theme ?? true);
+    setBgPreview(settings.login_bg_url || null);
+    setUseSystemTheme(settings.use_system_theme ?? true);
     setColors({
       primary: hslToHex(settings.primary_color),
       secondary: hslToHex(settings.secondary_color),
       background: hslToHex(settings.background_color),
       text: hslToHex(settings.text_color),
-      accent: hslToHex((settings as any).accent_color || '0 0% 50%'),
+      accent: hslToHex(settings.accent_color || '0 0% 50%'),
     });
     setFontDisplay(settings.font_display);
     setFontBody(settings.font_body);
@@ -252,7 +252,7 @@ export function SettingsIdentity() {
       }
 
       // Upload login bg if changed
-      let loginBgUrl = (settings as any).login_bg_url || null;
+      let loginBgUrl = settings.login_bg_url || null;
       if (bgFile) {
         const ext = bgFile.name.split('.').pop();
         const { data: { user } } = await supabase.auth.getUser();

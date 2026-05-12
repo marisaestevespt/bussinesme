@@ -110,7 +110,7 @@ export function ExportContabilistaButton({ year, month }: Props) {
   }, [suppliersAll, monthExpenses]);
 
   const label = getMonthLabel(year, month);
-  const businessName = (settings as any)?.business_name || business?.business_legal_name || 'Negócio';
+  const businessName = settings?.business_name || business?.business_legal_name || 'Negócio';
 
   const totalEnt = sumRevenue(monthSales);
   const totalEntBase = monthSales.reduce((s, v) => s + (v.base_value || 0), 0);
