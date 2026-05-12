@@ -33,11 +33,11 @@ export function useQuarterBusinessSummary(year: number, quarterIdx: number) {
         leadsCur, leadsPrev,
         leadsWonCur, leadsWonPrev,
         expensesCur, expensesPrev,
-        tasksDoneCur, tasksDonePrev,
+        tasksDoneCur, tasksDonePrevRes,
         meetingsCur,
         npsCur,
         timeCur, timePrev,
-        clientsActive,
+        clientsActiveRes,
         newClientsCur, newClientsPrev,
       ] = await Promise.all([
         supabase.from('commercial_sales').select('invoice_total,sale_month').eq('sale_year', year).in('sale_month', months),
@@ -77,7 +77,7 @@ export function useQuarterBusinessSummary(year: number, quarterIdx: number) {
       const leadsWon = len(leadsWonCur.data);
       const conversion = leadsTotal ? Math.round((leadsWon / leadsTotal) * 100) : 0;
       const tasksDone = len(tasksDoneCur.data);
-      const tasksDonePrev = len(tasksDoneCur.data) === 0 ? 0 : len(tasksDonePrev.data);
+      const tasksDonePrev = len(tasksDonePrevRes.data);
       const npsScores = (npsCur.data || []).map((r: any) => Number(r.nps_score));
       const npsAvg = npsScores.length ? Math.round((npsScores.reduce((a, b) => a + b, 0) / npsScores.length) * 10) / 10 : null;
       const hours = sum(timeCur.data, 'duration') / 60;
@@ -99,7 +99,7 @@ export function useQuarterBusinessSummary(year: number, quarterIdx: number) {
         newClients: len(newClientsCur.data),
         newClientsPrev: len(newClientsPrev.data),
         newClientsGrowth: growth(len(newClientsCur.data), len(newClientsPrev.data)),
-        clientsActive: len(clientsActive.data),
+        clientsActive: len(clientsActiveRes.data),
         tasksDone, tasksDonePrev, tasksGrowth: growth(tasksDone, tasksDonePrev),
         tasksByDept,
         meetings: len(meetingsCur.data),
