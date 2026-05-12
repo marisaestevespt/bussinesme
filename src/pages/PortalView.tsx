@@ -861,7 +861,7 @@ export default function PortalViewPage() {
                                           const res = await supabase.rpc('get_portal_phases', { _token: portalToken });
                                           const phasesData = res.data || [];
                                           const parsed = Array.isArray(phasesData) ? phasesData : [];
-                                          const all = parsed.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+                                          const all = parsed.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
                                           setPhases(all);
                                           setOnboarding(all);
                                         }}

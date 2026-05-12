@@ -63,7 +63,7 @@ export default function PortalAuthPage() {
 
   const loadPortal = async () => {
     if (!token) return;
-    const portalData = await resolvePublicPortal(token, (fn, args) => supabase.rpc(fn, args));
+    const portalData = await resolvePublicPortal(token, (fn, args) => (supabase.rpc as any)(fn, args));
     if (!portalData) {
       setLoading(false);
       return;

@@ -119,7 +119,7 @@ export function DeliverableFormatCell({
   const updateFields = useMutation({
     mutationFn: async (fields: Record<string, any>) => {
       const { error } = await supabase
-        .from('project_deliverables').update(fields).eq('id', d.id);
+        .from('project_deliverables').update(fields as never).eq('id', d.id);
       if (error) throw error;
     },
     onSuccess: invalidate,
