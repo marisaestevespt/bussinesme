@@ -70,27 +70,27 @@ export function BlockClientes({ year, month }: { year: number; month: number }) 
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="hq-surface-sunken rounded-lg p-3">
+        <Link to="/hub/clientes?status=ativo" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Ativos</div>
           <div className="text-lg font-semibold tabular-nums">{data.ativos.length}</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/clientes?novos=mes" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1"><UserPlus className="h-3 w-3" />Novos no mês</div>
           <div className="text-lg font-semibold tabular-nums">{data.newThisMonth.length}</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/clientes?status=onboarding" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Em onboarding</div>
           <div className="text-lg font-semibold tabular-nums">{data.onboarding.length}</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/clientes?status=offboarding" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1"><UserMinus className="h-3 w-3" />Offboarding</div>
           <div className="text-lg font-semibold tabular-nums">{data.offboarding.length}</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/clientes?tab=nps" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1"><Heart className="h-3 w-3" />NPS médio</div>
           <div className="text-lg font-semibold tabular-nums">{data.npsAvg ?? '—'}</div>
           <div className="text-[10px] text-muted-foreground mt-0.5">{data.nps.length} agendados</div>
-        </div>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
