@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
-import { getTaskStatusInfo } from '@/lib/taskStatus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,52 +13,39 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake, Video, BarChart3 } from 'lucide-react';
+import { Save, Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, Plus, CheckSquare, Upload, Trash2, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, LayoutDashboard, Workflow, Settings2, BarChart3 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
-  EntitySection,
   EntityTabs,
   EntityTabsList,
   EntityTabsTrigger,
   EntityTabsContent,
 } from '@/components/layout/entity';
-import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { toast } from 'sonner';
-import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ProductIcon } from '@/components/entity-icon';
 import { isTaskDone } from '@/lib/taskStatus';
-import { MentionTextarea } from '@/components/MentionTextarea';
-import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
+import { PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getInitials } from './Projetos';
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
-import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
-import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
-import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
-import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
-import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
 import { computeProjectProgressFromSources } from '@/lib/projectProgress';
-import { ClientPortalSection } from '@/components/client/ClientPortalSection';
-import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
-import { ClientPortalAuditBlock } from '@/components/clients/ClientPortalAuditBlock';
 import { ProjectAnaliseTab } from '@/components/project/tabs/ProjectAnaliseTab';
 import { ProjectFechoTab } from '@/components/project/tabs/ProjectFechoTab';
 import { ProjectPortalTab } from '@/components/project/tabs/ProjectPortalTab';
 import { ProjectMainTab } from '@/components/project/tabs/ProjectMainTab';
 import { ProjectProcessosSection } from '@/components/project/tabs/ProjectProcessosSection';
-import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
-import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
-import { useProjectDetailData, calcTotalTime, type ProjectFull, type Profile, type Task, type Meeting } from '@/hooks/useProjectDetailData';
+import type { Profile as MeetingProfile } from '@/pages/Reunioes';
+import { useProjectDetailData, calcTotalTime, type ProjectFull } from '@/hooks/useProjectDetailData';
 import { useProducts, TASK_MODE_OPTIONS } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
@@ -78,38 +64,6 @@ import { useSectorConfig } from '@/hooks/useSectorConfig';
 // ─── Sub-page sections for Internal project ─────────────────────
 
 type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
-
-const TASK_PRIORITIES = [
-  { value: 'baixa', label: 'Baixa', color: 'bg-muted text-muted-foreground' },
-  { value: 'media', label: 'Média', color: 'bg-warning/15 text-warning' },
-  { value: 'alta', label: 'Alta', color: 'bg-warning/15 text-warning' },
-  { value: 'urgente', label: 'Urgente', color: 'bg-destructive/15 text-destructive' },
-];
-
-function getPriorityInfo(v: string) { return TASK_PRIORITIES.find(p => p.value === v) || TASK_PRIORITIES[1]; }
-
-function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
-  const { data: totalMinutes = 0 } = useTaskTimeTotals(taskIds);
-  if (totalMinutes === 0) return null;
-  return (
-    <Badge variant="secondary" className="gap-1 text-xs">
-      <Clock className="h-3 w-3" /> {formatDuration(totalMinutes)} investidas
-    </Badge>
-  );
-}
-
-function formatMinutes(min: number | null | undefined): string {
-  const value = Math.max(0, Math.round(Number(min || 0)));
-  if (value < 60) return `${value}m`;
-  const h = Math.floor(value / 60);
-  const m = value % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
-
-function safePct(value: number, total: number): number {
-  if (!total || total <= 0) return 0;
-  return Math.min(100, Math.round((value / total) * 100));
-}
 
 // ─── Main Component ─────────────────────────────────────────────
 
