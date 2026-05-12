@@ -149,7 +149,7 @@ export function ProjectProcessosSection({
           </div>
         ) : (
           <div className="rounded-xl border overflow-hidden divide-y">
-            {meetingList.map((m) => {
+            {meetingList.map((m: Meeting & { client_id?: string | null; visible_in_portal?: boolean }) => {
               const isPast = m.date_time && new Date(m.date_time) < now;
               const isInternal = m.client_id && m.visible_in_portal === false;
               const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
