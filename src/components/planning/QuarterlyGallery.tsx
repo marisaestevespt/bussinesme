@@ -34,10 +34,12 @@ const QUARTERS = [
 interface Props {
   planning: any;
   year: number;
+  /** Pre-selecciona um trimestre e abre directamente em modo detalhe. */
+  initialQuarter?: number | null;
 }
 
-export function QuarterlyGallery({ planning, year }: Props) {
-  const [selectedQ, setSelectedQ] = useState<number | null>(null);
+export function QuarterlyGallery({ planning, year, initialQuarter = null }: Props) {
+  const [selectedQ, setSelectedQ] = useState<number | null>(initialQuarter);
   const goals = planning.allGoals || [];
 
   const quarterProgress = useMemo(() => {
