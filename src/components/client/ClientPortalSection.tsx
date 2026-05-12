@@ -102,7 +102,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
     const portalRes = await supabase.from('client_portals').select('id').eq('client_id', clientId).maybeSingle();
     const pid = portalRes.data?.id;
     if (!pid || !product) return;
-    const { data: diagQuestions } = await (supabase as any)
+    const { data: diagQuestions } = await supabase
       .from('product_diagnostic_questions')
       .select('*')
       .eq('product_id', product.id)

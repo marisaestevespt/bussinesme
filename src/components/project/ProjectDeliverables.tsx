@@ -187,7 +187,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team-members-for-meeting-defaults'],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('team_members')
         .select('profile_id, department, status')
         .eq('status', 'ativo');
@@ -268,7 +268,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const { data: linkedTasks = [] } = useQuery({
     queryKey: ['project-deliverable-tasks', projectId],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('tasks')
         .select('*')
         .eq('project_id', projectId)

@@ -856,9 +856,9 @@ export default function PortalViewPage() {
                                         onClick={async () => {
                                           if (!isClient) return;
                                           const newCompleted = !dDone;
-                                          await (supabase as any).rpc('portal_toggle_deliverable', { _token: portalToken, _deliverable_id: d.id, _completed: newCompleted });
+                                          await supabase.rpc('portal_toggle_deliverable', { _token: portalToken, _deliverable_id: d.id, _completed: newCompleted });
                                           // Refresh phases
-                                          const res = await (supabase as any).rpc('get_portal_phases', { _token: portalToken });
+                                          const res = await supabase.rpc('get_portal_phases', { _token: portalToken });
                                           const phasesData = res.data || [];
                                           const parsed = Array.isArray(phasesData) ? phasesData : [];
                                           const all = parsed.map((p) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));

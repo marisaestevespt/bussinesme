@@ -38,7 +38,7 @@ export function HorizonsView({ planning, year }: Props) {
   const notesQuery = useQuery({
     queryKey: ['planning_quarter_notes', year],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('planning_quarter_notes')
         .select('*')
         .eq('year', year);
@@ -50,13 +50,13 @@ export function HorizonsView({ planning, year }: Props) {
     mutationFn: async ({ quarter, note, status_override }: { quarter: number; note: string | null; status_override: string | null }) => {
       const existing = (notesQuery.data || []).find(n => n.quarter === quarter);
       if (existing) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('planning_quarter_notes')
           .update({ note, status_override })
           .eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from('planning_quarter_notes')
           .insert({ year, quarter, note, status_override });
         if (error) throw error;

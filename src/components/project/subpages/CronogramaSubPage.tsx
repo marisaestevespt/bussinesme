@@ -40,7 +40,7 @@ export function CronogramaSubPage({ projectId, onBack, onSave, saving, dirty }: 
   const { data: phases = [], isLoading } = useQuery({
     queryKey: ['project-phases-cronograma', projectId],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('project_phases')
         .select('id, name, status, planned_start, planned_end, sort_order')
         .eq('project_id', projectId)

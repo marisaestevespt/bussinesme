@@ -134,7 +134,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team-members-for-meeting-defaults'],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('team_members')
         .select('profile_id, department, status')
         .eq('status', 'ativo');
@@ -173,7 +173,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
   const linkMeetingMutation = useMutation({
     mutationFn: async ({ deliverableId, meetingId }: { deliverableId: string; meetingId: string }) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('project_deliverables')
         .update({ meeting_id: meetingId })
         .eq('id', deliverableId);
@@ -218,7 +218,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   const { data: phases = [] } = useQuery({
     queryKey: phaseKey,
     queryFn: async () => {
-      const { data } = await (supabase as any).from('project_phases').select('*').eq('project_id', projectId).order('sort_order');
+      const { data } = await supabase.from('project_phases').select('*').eq('project_id', projectId).order('sort_order');
       return (data || []) as ProjectPhase[];
     },
   });
@@ -226,7 +226,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   const { data: deliverables = [] } = useQuery({
     queryKey: delKey,
     queryFn: async () => {
-      const { data } = await (supabase as any).from('project_deliverables').select('*').eq('project_id', projectId).order('sort_order');
+      const { data } = await supabase.from('project_deliverables').select('*').eq('project_id', projectId).order('sort_order');
       return (data || []) as ProjectDeliverable[];
     },
   });
@@ -237,7 +237,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   const { data: linkedTasks = [] } = useQuery({
     queryKey: taskKey,
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('tasks')
         .select('*')
         .eq('project_id', projectId)
@@ -286,7 +286,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
         delEnd = delStart;
       }
 
-      await (supabase as any).from('project_deliverables').update({
+      await supabase.from('project_deliverables').update({
         planned_start: format(delStart, 'yyyy-MM-dd'),
         planned_end: format(delEnd, 'yyyy-MM-dd'),
       }).eq('id', del.id);
@@ -335,7 +335,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       // Phase end = max of nominal end and last deliverable end
       if (lastDelEnd > phaseEnd) phaseEnd = lastDelEnd;
 
-      await (supabase as any).from('project_phases').update({
+      await supabase.from('project_phases').update({
         planned_start: format(phaseStart, 'yyyy-MM-dd'),
         planned_end: format(phaseEnd, 'yyyy-MM-dd'),
       }).eq('id', phase.id);
@@ -354,9 +354,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
     setRecalculating(true);
     try {
       const startDate = parseISO(projectStartDate);
-      const { data: latestPhases } = await (supabase as any).from('project_phases')
+      const { data: latestPhases } = await supabase.from('project_phases')
         .select('*').eq('project_id', projectId).order('sort_order');
-      const { data: latestDels } = await (supabase as any).from('project_deliverables')
+      const { data: latestDels } = await supabase.from('project_deliverables')
         .select('*').eq('project_id', projectId).order('sort_order');
 
       if (!latestPhases || !latestDels) throw new Error('Sem dados');
@@ -382,9 +382,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   const applyCascade = async (_delayDays: number, fromPhaseIdx: number) => {
     try {
       // Fetch latest data from DB
-      const { data: latestPhases } = await (supabase as any).from('project_phases')
+      const { data: latestPhases } = await supabase.from('project_phases')
         .select('*').eq('project_id', projectId).order('sort_order');
-      const { data: latestDels } = await (supabase as any).from('project_deliverables')
+      const { data: latestDels } = await supabase.from('project_deliverables')
         .select('*').eq('project_id', projectId).order('sort_order');
 
       if (!latestPhases || !latestDels) return;
@@ -429,7 +429,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
               delEnd = delStart;
             }
 
-            await (supabase as any).from('project_deliverables').update({
+            await supabase.from('project_deliverables').update({
               planned_start: format(delStart, 'yyyy-MM-dd'),
               planned_end: format(delEnd, 'yyyy-MM-dd'),
             }).eq('id', del.id);
@@ -446,7 +446,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
           if (d.planned_end && d.planned_end > maxEnd) maxEnd = d.planned_end;
         }
         if (maxEnd && maxEnd !== currentPhase.planned_end) {
-          await (supabase as any).from('project_phases').update({ planned_end: maxEnd }).eq('id', currentPhase.id);
+          await supabase.from('project_phases').update({ planned_end: maxEnd }).eq('id', currentPhase.id);
           currentPhase.planned_end = maxEnd;
         }
       }
@@ -455,7 +455,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       const anchor = currentPhase.planned_end ? parseISO(currentPhase.planned_end) : projectStart;
 
       // Re-fetch deliverables after same-phase updates
-      const { data: freshDels } = await (supabase as any).from('project_deliverables')
+      const { data: freshDels } = await supabase.from('project_deliverables')
         .select('*').eq('project_id', projectId).order('sort_order');
 
       await recalcPhasesFrom(
@@ -483,7 +483,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
 
-      await (supabase as any).from('project_phases').update(updates).eq('id', id);
+      await supabase.from('project_phases').update(updates).eq('id', id);
 
       // Check for delay AFTER saving — return info for cascade prompt
       if (fields.planned_end && typeof fields.planned_end === 'string') {
@@ -511,15 +511,15 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   const addPhase = useMutation({
     mutationFn: async (name: string) => {
       const maxOrder = phases.length > 0 ? Math.max(...phases.map(p => p.sort_order)) + 1 : 0;
-      await (supabase as any).from('project_phases').insert({ project_id: projectId, name, sort_order: maxOrder, status: 'pendente' });
+      await supabase.from('project_phases').insert({ project_id: projectId, name, sort_order: maxOrder, status: 'pendente' });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: phaseKey }); setAddingPhase(false); setNewName(''); toast.success('Fase adicionada'); },
   });
 
   const deletePhase = useMutation({
     mutationFn: async (id: string) => {
-      await (supabase as any).from('project_deliverables').delete().eq('phase_id', id);
-      await (supabase as any).from('project_phases').delete().eq('id', id);
+      await supabase.from('project_deliverables').delete().eq('phase_id', id);
+      await supabase.from('project_phases').delete().eq('id', id);
     },
     onSuccess: () => { invalidateAll(); toast.success('Fase removida'); },
   });
@@ -531,8 +531,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       if (swapIdx < 0 || swapIdx >= phases.length) return;
       const a = phases[idx], b = phases[swapIdx];
       await Promise.all([
-        (supabase as any).from('project_phases').update({ sort_order: b.sort_order }).eq('id', a.id),
-        (supabase as any).from('project_phases').update({ sort_order: a.sort_order }).eq('id', b.id),
+        supabase.from('project_phases').update({ sort_order: b.sort_order }).eq('id', a.id),
+        supabase.from('project_phases').update({ sort_order: a.sort_order }).eq('id', b.id),
       ]);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: phaseKey }),
@@ -541,7 +541,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
-      await (supabase as any).from('project_deliverables').update(fields).eq('id', id);
+      await supabase.from('project_deliverables').update(fields).eq('id', id);
 
       // Check for delay AFTER saving
       if (fields.planned_end && typeof fields.planned_end === 'string') {
@@ -686,7 +686,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
     const c = conflictPrompt;
     if (action === 'extend' && c.canExtend) {
       // Extend the parent phase first, then save the source change.
-      await (supabase as any)
+      await supabase
         .from('project_phases')
         .update({ [c.field]: c.extendDate })
         .eq('id', c.targetId);
@@ -703,7 +703,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
     mutationFn: async ({ phaseId, name }: { phaseId: string; name: string }) => {
       const phaseDels = deliverables.filter(d => d.phase_id === phaseId);
       const maxOrder = phaseDels.length > 0 ? Math.max(...phaseDels.map(d => d.sort_order)) + 1 : 0;
-      await (supabase as any).from('project_deliverables').insert({
+      await supabase.from('project_deliverables').insert({
         project_id: projectId, phase_id: phaseId, name, sort_order: maxOrder, status: 'pendente', portal_visible: true,
       });
     },
@@ -712,7 +712,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
   const deleteDeliverable = useMutation({
     mutationFn: async (id: string) => {
-      await (supabase as any).from('project_deliverables').delete().eq('id', id);
+      await supabase.from('project_deliverables').delete().eq('id', id);
     },
     onSuccess: () => { invalidateAll(); toast.success('Entrega removida'); },
   });
@@ -725,8 +725,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       if (swapIdx < 0 || swapIdx >= phaseDels.length) return;
       const a = phaseDels[idx], b = phaseDels[swapIdx];
       await Promise.all([
-        (supabase as any).from('project_deliverables').update({ sort_order: b.sort_order }).eq('id', a.id),
-        (supabase as any).from('project_deliverables').update({ sort_order: a.sort_order }).eq('id', b.id),
+        supabase.from('project_deliverables').update({ sort_order: b.sort_order }).eq('id', a.id),
+        supabase.from('project_deliverables').update({ sort_order: a.sort_order }).eq('id', b.id),
       ]);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
@@ -734,7 +734,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
   const applyDeliverables = useMutation({
     mutationFn: async () => {
-      const { data, error } = await (supabase as any).rpc('apply_project_deliverable_tasks', { _project_id: projectId });
+      const { data, error } = await supabase.rpc('apply_project_deliverable_tasks', { _project_id: projectId });
       if (error) throw error;
       return (data as number) ?? 0;
     },

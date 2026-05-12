@@ -94,7 +94,7 @@ export function DeliverableFormatCell({
     queryKey: ['deliverable-linked-task', d.id],
     enabled: isTarefa,
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('tasks').select('id').eq('deliverable_id', d.id).maybeSingle();
       return data as { id: string } | null;
     },
@@ -104,7 +104,7 @@ export function DeliverableFormatCell({
     queryKey: ['deliverable-linked-meeting', d.meeting_id],
     enabled: fmt === 'reuniao' && !!d.meeting_id,
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('meetings').select('id, title, date_time').eq('id', d.meeting_id!).maybeSingle();
       return data as { id: string; title: string | null; date_time: string | null } | null;
     },
@@ -118,7 +118,7 @@ export function DeliverableFormatCell({
 
   const updateFields = useMutation({
     mutationFn: async (fields: Record<string, any>) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('project_deliverables').update(fields).eq('id', d.id);
       if (error) throw error;
     },
@@ -145,7 +145,7 @@ export function DeliverableFormatCell({
     queryKey: ['project-meetings-for-link', projectId],
     enabled: meetPickerOpen,
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('meetings')
         .select('id, title, date_time')
         .eq('project_id', projectId)
@@ -158,7 +158,7 @@ export function DeliverableFormatCell({
     queryKey: ['project-meetings-already-linked', projectId],
     enabled: meetPickerOpen,
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('project_deliverables')
         .select('meeting_id')
         .eq('project_id', projectId)
@@ -180,11 +180,11 @@ export function DeliverableFormatCell({
     queryKey: ['deliverable-client-name', projectId],
     enabled: fmt === 'reuniao' && !d.meeting_id && !clientName && !!projectId,
     queryFn: async () => {
-      const { data: proj } = await (supabase as any)
+      const { data: proj } = await supabase
         .from('projects').select('client_id').eq('id', projectId).maybeSingle();
       const cid = proj?.client_id;
       if (!cid) return '';
-      const { data: cli } = await (supabase as any)
+      const { data: cli } = await supabase
         .from('clients').select('full_name').eq('id', cid).maybeSingle();
       return (cli?.full_name as string | undefined) || '';
     },
@@ -197,7 +197,7 @@ export function DeliverableFormatCell({
     enabled: fmt === 'reuniao' && !d.meeting_id && !!d.meeting_title_template,
     queryFn: async () => {
       const tpl = d.meeting_title_template!;
-      const { data: siblings } = await (supabase as any)
+      const { data: siblings } = await supabase
         .from('project_deliverables')
         .select('id, sort_order, meeting_title_template')
         .eq('project_id', projectId)

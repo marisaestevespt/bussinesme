@@ -270,7 +270,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
   const { data: questions = [], isLoading } = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('product_diagnostic_questions')
         .select('*')
         .eq('product_id', productId)
@@ -295,7 +295,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
       const maxOrder = questions.filter(q => q.question_group === group).reduce((max, q) => Math.max(max, q.sort_order), -1);
       const allGroups = [...DIAGNOSTIC_GROUPS, ...CONFIG_GROUPS];
       const groupSortOrder = allGroups.indexOf(group);
-      const { data, error } = await (supabase as any).from('product_diagnostic_questions').insert({
+      const { data, error } = await supabase.from('product_diagnostic_questions').insert({
         product_id: productId,
         question_group: group,
         question: '',
@@ -317,7 +317,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
 
   const updateQuestion = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; [k: string]: unknown }) => {
-      const { error } = await (supabase as any).from('product_diagnostic_questions').update(data).eq('id', id);
+      const { error } = await supabase.from('product_diagnostic_questions').update(data).eq('id', id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
@@ -330,7 +330,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
 
   const deleteQuestion = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any).from('product_diagnostic_questions').delete().eq('id', id);
+      const { error } = await supabase.from('product_diagnostic_questions').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),

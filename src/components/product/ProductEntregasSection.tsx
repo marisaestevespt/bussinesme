@@ -529,7 +529,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
   const { data: phases = [] } = useQuery({
     queryKey: phaseKey,
     queryFn: async () => {
-      const { data } = await (supabase as any).from('product_phases').select('*').eq('product_id', productId).order('sort_order');
+      const { data } = await supabase.from('product_phases').select('*').eq('product_id', productId).order('sort_order');
       return (data || []) as Phase[];
     },
   });

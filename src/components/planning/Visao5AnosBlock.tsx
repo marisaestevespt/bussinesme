@@ -33,7 +33,7 @@ export function Visao5AnosBlock() {
   const { data, isLoading } = useQuery({
     queryKey: ['visao_5_anos', anoAlvo],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('visao_5_anos')
         .select('*')
         .eq('ano_alvo', anoAlvo)
@@ -71,10 +71,10 @@ export function Visao5AnosBlock() {
         alinhamento_anual: payload.alinhamento_anual,
       };
       if (data?.id) {
-        const { error } = await (supabase as any).from('visao_5_anos').update(row).eq('id', data.id);
+        const { error } = await supabase.from('visao_5_anos').update(row).eq('id', data.id);
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any).from('visao_5_anos').insert(row);
+        const { error } = await supabase.from('visao_5_anos').insert(row);
         if (error) throw error;
       }
     },

@@ -98,7 +98,7 @@ function ClienteDetailPageInner() {
     queryKey: ['client-renewals', id],
     queryFn: async () => {
       if (!id) return [];
-      const { data } = await (supabase as any).from('client_renewals')
+      const { data } = await supabase.from('client_renewals')
         .select('*')
         .eq('client_id', id)
         .order('cycle_number', { ascending: false })
@@ -591,7 +591,7 @@ function ClienteDetailPageInner() {
             supabase.from('projects')
               .select('id, name, product_name, start_date, deadline, notes')
               .in('id', projIds),
-            (supabase as any).from('project_phases')
+            supabase.from('project_phases')
               .select('project_id, name, status, sort_order')
               .in('project_id', projIds)
               .order('sort_order'),
@@ -696,7 +696,7 @@ function ClienteDetailPageInner() {
 
       // 3.2 Create renewal checklist from product_renewal_templates
       const cycleNumber = (form.renewal_count || 0) + 1;
-      const { data: templates } = await (supabase as any)
+      const { data: templates } = await supabase
         .from('product_renewal_templates')
         .select('*')
         .eq('product_id', matchedProduct?.id)
@@ -727,7 +727,7 @@ function ClienteDetailPageInner() {
             completed: false,
           };
         });
-        await (supabase as any).from('client_renewals').insert(renewalRows);
+        await supabase.from('client_renewals').insert(renewalRows);
       }
 
       // 4. Update client current_product, start_date and end_of_cycle
@@ -737,9 +737,9 @@ function ClienteDetailPageInner() {
         // again automatically when the cron activates the scheduled project.
         const updates: any = { pending_renewal_project_id: newProject.id };
         if (form.status === 'altura_renovacao') updates.status = 'ativo';
-        await (supabase as any).from('clients').update(updates).eq('id', id);
+        await supabase.from('clients').update(updates).eq('id', id);
       } else {
-        await (supabase as any).from('clients').update({
+        await supabase.from('clients').update({
           current_product: renewProduct,
           current_product_id: matchedProduct?.id || null,
           start_date: renewStartDate,
@@ -1129,7 +1129,7 @@ function ClienteDetailPageInner() {
                         </Button>
                         <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => {
                           if (!await confirm({ title: 'Cancelar renovação agendada?', description: 'O projeto agendado será eliminado e os pagamentos pendentes removidos.' })) return;
-                          const { data, error } = await (supabase as any).rpc('cancel_scheduled_renewal', { _client_id: id });
+                          const { data, error } = await supabase.rpc('cancel_scheduled_renewal', { _client_id: id });
                           if (error) { toast.error(error.message || 'Erro ao cancelar renovação'); return; }
                           setForm(prev => ({ ...prev, pending_renewal_project_id: null } as any));
                           queryClient.invalidateQueries({ queryKey: ['scheduled-renewal-project'] });
@@ -1154,7 +1154,7 @@ function ClienteDetailPageInner() {
                             title: `Reverter ciclo #${latestActivatedRenewal.cycle_number}?`,
                             description: 'O projeto, checklist e pagamentos pendentes deste ciclo serão eliminados. Pagamentos já pagos bloqueiam a operação.',
                           })) return;
-                          const { data, error } = await (supabase as any).rpc('rollback_renewal_project', { _project_id: latestActivatedRenewal.project_id });
+                          const { data, error } = await supabase.rpc('rollback_renewal_project', { _project_id: latestActivatedRenewal.project_id });
                           if (error) { toast.error(error.message || 'Erro ao reverter renovação'); return; }
                           queryClient.invalidateQueries({ queryKey: ['client-renewals', id] });
                           queryClient.invalidateQueries({ queryKey: ['rollback-renewal-project'] });

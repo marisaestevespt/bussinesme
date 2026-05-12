@@ -428,13 +428,13 @@ function ReuniaoDetailPageInner() {
     queryKey: ['meeting-linked-deliverable', m?.id],
     enabled: !!m?.id,
     queryFn: async () => {
-      const { data: del } = await (supabase as any)
+      const { data: del } = await supabase
         .from('project_deliverables')
         .select('id, name, phase_id, planned_start, planned_end')
         .eq('meeting_id', m!.id)
         .maybeSingle();
       if (!del?.phase_id) return del ? { ...del, phase: null } : null;
-      const { data: phase } = await (supabase as any)
+      const { data: phase } = await supabase
         .from('project_phases')
         .select('id, name, planned_start, planned_end')
         .eq('id', del.phase_id)

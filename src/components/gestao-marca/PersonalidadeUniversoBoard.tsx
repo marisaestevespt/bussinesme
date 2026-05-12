@@ -70,7 +70,7 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
   const { data: images = [] } = useQuery({
     queryKey: ['brand-personality-images', kind],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('brand_personality_images')
         .select('*')
         .eq('kind', kind)
@@ -87,7 +87,7 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
     const { error: upErr } = await supabase.storage.from('brand-section-files').upload(path, file);
     if (upErr) { toast.error('Erro ao carregar imagem'); return; }
     const { data: pub } = supabase.storage.from('brand-section-files').getPublicUrl(path);
-    const { error } = await (supabase as any).from('brand_personality_images').insert({
+    const { error } = await supabase.from('brand_personality_images').insert({
       kind, image_url: pub.publicUrl, file_path: path, caption: null, sort_order: images.length,
     });
     if (error) toast.error('Erro ao guardar imagem'); else invalidate();
@@ -106,12 +106,12 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
 
   const remove = async (img: PersonalityImage) => {
     if (img.file_path) await supabase.storage.from('brand-section-files').remove([img.file_path]);
-    await (supabase as any).from('brand_personality_images').delete().eq('id', img.id);
+    await supabase.from('brand_personality_images').delete().eq('id', img.id);
     invalidate();
   };
 
   const saveCaption = async (id: string) => {
-    const { error } = await (supabase as any).from('brand_personality_images').update({ caption: draftCaption }).eq('id', id);
+    const { error } = await supabase.from('brand_personality_images').update({ caption: draftCaption }).eq('id', id);
     if (error) toast.error('Erro ao guardar'); else { setEditingId(null); invalidate(); }
   };
 
@@ -221,7 +221,7 @@ function UniverseNotes({ isOwner }: { isOwner: boolean }) {
   const { data: notes = [] } = useQuery({
     queryKey: ['brand-universe-notes'],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('brand_universe_notes')
         .select('*')
         .order('sort_order');
@@ -233,7 +233,7 @@ function UniverseNotes({ isOwner }: { isOwner: boolean }) {
 
   const add = async () => {
     if (!newTitle.trim()) return;
-    const { error } = await (supabase as any).from('brand_universe_notes').insert({
+    const { error } = await supabase.from('brand_universe_notes').insert({
       title: newTitle.trim(), description: newDesc.trim() || null, sort_order: notes.length,
     });
     if (error) toast.error('Erro ao adicionar');
@@ -246,7 +246,7 @@ function UniverseNotes({ isOwner }: { isOwner: boolean }) {
 
   const saveEdit = async () => {
     if (!editingId) return;
-    const { error } = await (supabase as any).from('brand_universe_notes')
+    const { error } = await supabase.from('brand_universe_notes')
       .update({ title: draftTitle.trim() || 'Sem título', description: draftDesc.trim() || null })
       .eq('id', editingId);
     if (error) toast.error('Erro ao guardar');
@@ -254,7 +254,7 @@ function UniverseNotes({ isOwner }: { isOwner: boolean }) {
   };
 
   const remove = async (id: string) => {
-    await (supabase as any).from('brand_universe_notes').delete().eq('id', id);
+    await supabase.from('brand_universe_notes').delete().eq('id', id);
     invalidate();
   };
 

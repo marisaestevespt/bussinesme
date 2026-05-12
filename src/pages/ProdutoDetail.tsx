@@ -182,7 +182,7 @@ export default function ProdutoDetailPage() {
     queryKey: [key, filterVal],
     queryFn: async (): Promise<Record<string, unknown>[]> => {
       if (!filterVal) return [];
-      const { data } = await (supabase as any).from(table).select('*').eq(filterCol, filterVal).order(orderCol);
+      const { data } = await supabase.from(table).select('*').eq(filterCol, filterVal).order(orderCol);
       return data || [];
     },
     enabled: !!filterVal,

@@ -144,7 +144,7 @@ export function StrategicSection() {
   const dirQuery = useQuery({
     queryKey: ['strategic', 'directives'],
     queryFn: async () => {
-      const { data } = await (supabase as any).from('strategic_directives').select('*').order('sort_order').order('created_at');
+      const { data } = await supabase.from('strategic_directives').select('*').order('sort_order').order('created_at');
       return (data || []) as Directive[];
     },
   });
@@ -157,7 +157,7 @@ export function StrategicSection() {
 
   const addDirective = useMutation({
     mutationFn: async (d: Partial<Directive>) => {
-      const { error } = await (supabase as any).from('strategic_directives').insert({
+      const { error } = await supabase.from('strategic_directives').insert({
         title: d.title, description: d.description || null, horizon: d.horizon || '3_anos',
         area: d.area || null, status: d.status || 'ativa', sort_order: directives.length,
       });
@@ -168,14 +168,14 @@ export function StrategicSection() {
   });
   const updateDirective = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Directive> }) => {
-      const { error } = await (supabase as any).from('strategic_directives').update(patch).eq('id', id);
+      const { error } = await supabase.from('strategic_directives').update(patch).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }); setEditDirId(null); },
     onError: (e: any) => toast.error(e?.message || 'Erro'),
   });
   const deleteDirective = useMutation({
-    mutationFn: async (id: string) => { await (supabase as any).from('strategic_directives').delete().eq('id', id); },
+    mutationFn: async (id: string) => { await supabase.from('strategic_directives').delete().eq('id', id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }),
   });
 
