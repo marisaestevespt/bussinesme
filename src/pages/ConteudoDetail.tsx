@@ -129,6 +129,18 @@ export default function ConteudoDetailPage() {
     },
   });
 
+  const { data: phaseSettings = [] } = useQuery({
+    queryKey: ['content-phase-settings'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('content_phase_settings' as any)
+        .select('status, days_before_publish, enabled, sort_order')
+        .eq('enabled', true)
+        .order('sort_order');
+      return (data || []) as unknown as Array<{ status: string; days_before_publish: number; enabled: boolean; sort_order: number }>;
+    },
+  });
+
   useEffect(() => {
     if (item) {
       setForm({
