@@ -25,9 +25,7 @@ interface Props {
 export function MonthlyCockpit({ year, month, onChange }: Props) {
   const reflectionRef = useRef<HTMLDivElement>(null);
   const { state, isFuture, showCloseButton } = useMonthState(year, month);
-  const [reflectionOpen, setReflectionOpen] = useState(false);
-  // Reset quando muda de mês
-  useEffect(() => { setReflectionOpen(false); }, [year, month]);
+  const [openSignal, setOpenSignal] = useState(0);
 
   const prev = () => {
     const m = month - 1;
@@ -70,8 +68,8 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
           <Button
             size="sm"
             onClick={() => {
-              setReflectionOpen(true);
-              setTimeout(() => reflectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+              setOpenSignal((s) => s + 1);
+              setTimeout(() => reflectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
             }}
           >
             <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
@@ -143,7 +141,8 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
           icon={<NotebookPen className="h-4 w-4" />}
           title="Reflexão e fecho"
           subtitle="Escreve a reflexão e marca o mês como concluído"
-          defaultOpen={reflectionOpen}
+          defaultOpen={false}
+          openSignal={openSignal}
         >
           {isFuture ? (
             <p className="text-xs text-muted-foreground">Disponível no final do mês.</p>
