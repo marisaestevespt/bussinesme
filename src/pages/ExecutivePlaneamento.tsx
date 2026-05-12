@@ -187,23 +187,7 @@ export default function ExecutivePlaneamento() {
           </Card>
         </Collapsible>
 
-        {/* Estratégia 3-5 anos vive no Plano de Negócio */}
-        <Card className="hq-card border-dashed">
-          <CardContent className="p-4 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                <Compass className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Estratégia 3-5 anos</p>
-                <p className="text-xs text-muted-foreground">Identidade, SWOT e diretrizes vivem agora no Plano de Negócio.</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => navigate('/executive/planeamento/estrategico')}>
-              Abrir Plano de Negócio <ArrowRight className="h-3 w-3 ml-1" />
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Estratégia 3-5 anos vive no Plano de Negócio (oculto aqui) */}
       </div>
     </AppLayout>
   );
