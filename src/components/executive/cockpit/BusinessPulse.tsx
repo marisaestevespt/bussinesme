@@ -97,11 +97,14 @@ export function BusinessPulse({ derived }: { derived: Derived }) {
     ? Math.round(((derived.monthRevenue - derived.prevMonthRevenue) / derived.prevMonthRevenue) * 100)
     : 0;
 
-  // Runway: only meaningful if burn > revenue (ie negative net). Otherwise mark as healthy.
+  // Fôlego financeiro: compara receita do mês com burn médio (90d).
+  // Se receita cobre burn → "Saudável". Caso contrário, mostra défice mensal.
   const burnNet = derived.burn90 - derived.monthRevenue;
-  const runwayMonths = burnNet > 0 ? null : Infinity;
-  const runwayLabel = runwayMonths === Infinity ? 'Saudável' : '—';
-  const runwayStatus: 'good' | 'warn' | 'bad' = runwayMonths === Infinity ? 'good' : 'warn';
+  const isHealthy = burnNet <= 0;
+  const runwayLabel = isHealthy ? 'Saudável' : `-${formatEuros(burnNet)}/mês`;
+  const runwayStatus: 'good' | 'warn' | 'bad' = isHealthy
+    ? 'good'
+    : burnNet > derived.burn90 * 0.3 ? 'bad' : 'warn';
 
   const capacityPct = derived.capacity?.pct ?? 0;
   const capacityStatus: 'good' | 'warn' | 'bad' =
