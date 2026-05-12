@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
-import { getTaskStatusInfo } from '@/lib/taskStatus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,50 +13,40 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, ChevronRight, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, MessageCircle, ExternalLink, AlertTriangle, DollarSign, Check, ListChecks, Flag, ClipboardList, LayoutDashboard, Workflow, Settings2, Repeat, Handshake, Video, BarChart3 } from 'lucide-react';
+import { Save, Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, StickyNote, Plus, CheckSquare, Upload, Trash2, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, Flag, LayoutDashboard, Workflow, Settings2, BarChart3 } from 'lucide-react';
+import { useTaskTimeTotals } from '@/components/TaskTimeTracker';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
-  EntitySection,
   EntityTabs,
   EntityTabsList,
   EntityTabsTrigger,
   EntityTabsContent,
 } from '@/components/layout/entity';
-import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { toast } from 'sonner';
-import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ProductIcon } from '@/components/entity-icon';
 import { isTaskDone } from '@/lib/taskStatus';
-import { MentionTextarea } from '@/components/MentionTextarea';
-import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
+import { PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getInitials } from './Projetos';
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
-import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
-import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
-import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
-import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
-import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
 import { computeProjectProgressFromSources } from '@/lib/projectProgress';
-import { ClientPortalSection } from '@/components/client/ClientPortalSection';
-import { ClientPortalFeedbackSection } from '@/components/client/ClientPortalFeedbackSection';
-import { ClientPortalAuditBlock } from '@/components/clients/ClientPortalAuditBlock';
 import { ProjectAnaliseTab } from '@/components/project/tabs/ProjectAnaliseTab';
 import { ProjectFechoTab } from '@/components/project/tabs/ProjectFechoTab';
 import { ProjectPortalTab } from '@/components/project/tabs/ProjectPortalTab';
-import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { ProjectMainTab } from '@/components/project/tabs/ProjectMainTab';
+import { ProjectProcessosSection } from '@/components/project/tabs/ProjectProcessosSection';
+import { type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
-import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
-import { useProjectDetailData, calcTotalTime, type ProjectFull, type Profile, type Task, type Meeting } from '@/hooks/useProjectDetailData';
+import type { Profile as MeetingProfile } from '@/pages/Reunioes';
+import { useProjectDetailData, calcTotalTime, type ProjectFull } from '@/hooks/useProjectDetailData';
 import { useProducts, TASK_MODE_OPTIONS } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
@@ -76,38 +65,6 @@ import { useSectorConfig } from '@/hooks/useSectorConfig';
 // ─── Sub-page sections for Internal project ─────────────────────
 
 type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
-
-const TASK_PRIORITIES = [
-  { value: 'baixa', label: 'Baixa', color: 'bg-muted text-muted-foreground' },
-  { value: 'media', label: 'Média', color: 'bg-warning/15 text-warning' },
-  { value: 'alta', label: 'Alta', color: 'bg-warning/15 text-warning' },
-  { value: 'urgente', label: 'Urgente', color: 'bg-destructive/15 text-destructive' },
-];
-
-function getPriorityInfo(v: string) { return TASK_PRIORITIES.find(p => p.value === v) || TASK_PRIORITIES[1]; }
-
-function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
-  const { data: totalMinutes = 0 } = useTaskTimeTotals(taskIds);
-  if (totalMinutes === 0) return null;
-  return (
-    <Badge variant="secondary" className="gap-1 text-xs">
-      <Clock className="h-3 w-3" /> {formatDuration(totalMinutes)} investidas
-    </Badge>
-  );
-}
-
-function formatMinutes(min: number | null | undefined): string {
-  const value = Math.max(0, Math.round(Number(min || 0)));
-  if (value < 60) return `${value}m`;
-  const h = Math.floor(value / 60);
-  const m = value % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
-}
-
-function safePct(value: number, total: number): number {
-  if (!total || total <= 0) return 0;
-  return Math.min(100, Math.round((value / total) * 100));
-}
 
 // ─── Main Component ─────────────────────────────────────────────
 
@@ -1101,260 +1058,35 @@ function ProjetoDetailInner() {
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
             <EntityTabsContent value="projeto" className="space-y-8 mt-6">
-              {/* ── Card: Próxima Reunião (atalho) ───────── */}
-              {(() => {
-                const now = new Date();
-                const next = [...(meetings || [])]
-                  .filter((m: any) => m.date_time && new Date(m.date_time) >= now)
-                  .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
-                if (!next) return null;
-                return (
-                  <button
-                    onClick={() => navigate(`/hub/reunioes/${(next as any).id}`)}
-                    className="w-full flex items-center justify-between gap-4 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent px-4 py-3 text-left transition-all hover:border-primary/60 hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="rounded-lg bg-primary/15 p-2">
-                        <Video className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">Próxima Reunião</p>
-                        <p className="text-sm font-semibold truncate">{(next as any).title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date((next as any).date_time), "EEEE, d MMM 'às' HH:mm", { locale: pt })}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-                  </button>
-                );
-              })()}
-
-              {/* ── Section: Menu Inicial ─────────────────── */}
-              <EntitySection title="Menu Inicial" icon={Target}>
-                <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-                  {(() => {
-                    const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
-                    const base = local.type === 'cliente_servico_mensal' ? [
-                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes da Avença', filled: hasText(local.diretrizes) },
-                      { key: '__agenda__' as SubPage, icon: CalendarIcon, label: 'Calendário Editorial', filled: false },
-                      { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
-                    ] : [
-                      { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição', filled: hasText(local.objetivo) },
-                      { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais', filled: hasText(local.diretrizes) },
-                      { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral', filled: hasText(local.cronograma) },
-                      { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
-                    ];
-                    return base.map(({ key, icon: Icon, label, filled }) => (
-                    <button key={key} onClick={() => {
-                      if (key === ('__agenda__' as SubPage)) {
-                        const params = new URLSearchParams();
-                        if (resolvedClientId) params.set('client_id', resolvedClientId);
-                        if (local.client_name) params.set('client_name', local.client_name);
-                        navigate(`/hub/agenda?${params.toString()}`);
-                      } else {
-                        setSubPage(key);
-                      }
-                    }} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-                      <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
-                        <Icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="text-sm font-semibold text-foreground leading-tight flex items-center gap-2">
-                        {label}
-                        {filled && <span className="h-1.5 w-1.5 rounded-full bg-success" title="Já tem conteúdo" />}
-                      </span>
-                      <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
-                    </button>
-                    ));
-                  })()}
-                </div>
-              </EntitySection>
-
-              {/* ── Section: Desenvolvimento ──────────────── */}
-              <EntitySection title="Desenvolvimento" icon={FileText}>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  {(() => {
-                    const hasText = (v: any) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
-                    const tiles = [
-                      local.type === 'interno'
-                        ? { key: 'brainstorming' as SubPage, icon: Lightbulb, label: 'Brainstorming', filled: hasText((local as any).brainstorming) }
-                        : { key: 'briefing' as SubPage, icon: ClipboardList, label: local.type === 'cliente_servico_mensal' ? 'Âmbito da Avença' : 'Briefing', filled: false },
-                      { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis', filled: hasText(local.entregaveis) },
-                      { key: 'reunioes' as SubPage, icon: Users, label: 'Reuniões', filled: meetings.length > 0 },
-                      { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais', filled: hasText(local.recursos) },
-                    ];
-                    return tiles.map(({ key, icon: Icon, label, filled }) => (
-                      <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-start gap-3 rounded-xl border border-border/60 bg-gradient-to-br from-card to-card/80 p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-                        <div className="rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 p-2.5 ring-1 ring-primary/10 transition-all group-hover:from-primary/25 group-hover:to-primary/10 group-hover:ring-primary/30">
-                          <Icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="text-sm font-semibold text-foreground leading-tight flex items-center gap-2">
-                          {label}
-                          {filled && <span className="h-1.5 w-1.5 rounded-full bg-success" title="Já tem conteúdo" />}
-                        </span>
-                        <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary" />
-                      </button>
-                    ));
-                  })()}
-                </div>
-              </EntitySection>
-
-              {/* ── Section: Fases do Projeto (galeria) ── */}
-              {taskMode === 'fases' && (
-                <EntitySection title="Fases do Projeto" icon={Workflow}>
-                  <ProjectPhasesGallery projectId={id!} projectStartDate={local.start_date} />
-                </EntitySection>
-              )}
-
+              <ProjectMainTab
+                projectId={id!}
+                local={local}
+                meetings={meetings}
+                resolvedClientId={resolvedClientId}
+                taskMode={taskMode}
+                setSubPage={setSubPage}
+              />
             </EntityTabsContent>
 
             {/* ─── TAB 2: TAREFAS & RESPONSABILIDADES ─────── */}
             <EntityTabsContent value="processos" className="mt-4 space-y-8">
-              {/* Avença Mensal: Responsabilidades primeiro, depois Rotinas, depois Tarefas. Sem SOPs. */}
-              {isServicoMensal && (
-                <>
-                  <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
-                    <ProjectResponsibilities projectId={id!} />
-                  </EntitySection>
-                  <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
-                    <ProjectRoutines projectId={id!} />
-                  </EntitySection>
-                </>
-              )}
-
-              <EntitySection
-                title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
-                icon={CheckSquare}
-                action={
-                  <div className="flex gap-2 items-center">
-                    <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
-                    {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar</Button>}
-                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-                  </div>
-                }
-              >
-                {tasks.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
-                    <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                    <p className="text-sm text-muted-foreground">{taskMode === 'tarefas_fixas' ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
-                  </div>
-                ) : (
-                  <div className="rounded-xl border overflow-hidden">
-                    <Table>
-                      <TableHeader><TableRow className="bg-muted/60">
-                        <TableHead className="font-semibold">Status</TableHead><TableHead className="font-semibold">Prioridade</TableHead><TableHead className="font-semibold">Tarefa</TableHead><TableHead className="font-semibold">Data final</TableHead><TableHead className="font-semibold">Responsável</TableHead>
-                      </TableRow></TableHeader>
-                      <TableBody>
-                        {tasks.map(t => {
-                          const si = getTaskStatusInfo(t.status);
-                          const pi = getPriorityInfo(t.priority);
-                          const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
-                          return (
-                            <TableRow
- key={t.id}
- className="cursor-pointer hover:bg-muted/30"
- onClick={() => setTaskDetailId(t.id)}
-                            >
-                              <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
-                              <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
-                              <TableCell className="font-medium text-sm">{t.name}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                              <TableCell>{assignee ? <div className="flex items-center gap-2"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </EntitySection>
-
-              {/* SOPs ligados ao projeto — apenas para projetos não-avença */}
-              {!isServicoMensal && (
-                <ProjectProcessosTab
-                  projectId={id!}
-                  clientId={resolvedClientId}
-                  productId={local.product_id}
-                  projectStartDate={local.start_date}
-                />
-              )}
-
-              {/* ── Reuniões: próximas + últimas 3 realizadas ── */}
-              <EntitySection
-                title={sectorConfig.t('reunioes')}
-                icon={Video}
-                action={
-                  <div className="flex gap-2 items-center">
-                    <Button size="sm" variant="ghost" className="gap-1" onClick={() => setSubPage('reunioes')}>Ver todas</Button>
-                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
-                  </div>
-                }
-              >
-                {(() => {
-                  const now = new Date();
-                  const sorted = [...(meetings || [])].sort((a: any, b: any) =>
-                    new Date(a.date_time || 0).getTime() - new Date(b.date_time || 0).getTime()
-                  );
-                  const upcoming = sorted.filter((m: any) => m.date_time && new Date(m.date_time) >= now);
-                  const pastDone = sorted
-                    .filter((m: any) => m.date_time && new Date(m.date_time) < now)
-                    .slice(-3)
-                    .reverse();
-                  const list = [...upcoming, ...pastDone];
-                  if (list.length === 0) {
-                    return (
-                      <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
-                        <Video className="h-8 w-8 text-muted-foreground/30 mb-2" />
-                        <p className="text-sm text-muted-foreground">Sem reuniões associadas a este projeto.</p>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div className="rounded-xl border overflow-hidden divide-y">
-                      {list.map((m: any) => {
-                        const isPast = m.date_time && new Date(m.date_time) < now;
-                        const isInternal = m.client_id && m.visible_in_portal === false;
-                        const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
-                          por_confirmar: { label: 'Por confirmar', variant: 'outline' },
-                          confirmada: { label: 'Confirmada', variant: 'default' },
-                          terminada: { label: 'Terminada', variant: 'secondary' },
-                          realizada: { label: 'Realizada', variant: 'secondary' },
-                          cancelada: { label: 'Cancelada', variant: 'destructive' },
-                        };
-                        const fallback = isPast
-                          ? { label: 'Realizada', variant: 'secondary' as const }
-                          : { label: 'Por confirmar', variant: 'outline' as const };
-                        const statusInfo = (m.status && statusMap[m.status]) || fallback;
-                        return (
-                          <div
-                            key={m.id}
-                            className="px-4 py-2.5 text-sm grid grid-cols-[100px_1fr_auto] gap-3 items-center cursor-pointer hover:bg-muted/40"
-                            onClick={() => navigate(`/hub/reunioes/${m.id}`)}
-                          >
-                            <Badge variant={statusInfo.variant} className="text-[10px] justify-center">
-                              {statusInfo.label}
-                            </Badge>
-                            <div className="min-w-0">
-                              <p className="font-medium truncate flex items-center gap-2">
-                                {m.title}
-                                {isInternal && (
-                                  <span className="text-[10px] font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded" title="Não visível para o cliente">
-                                    🔒 Interna
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {m.date_time ? format(new Date(m.date_time), "d MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}
-                              </p>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </EntitySection>
+              <ProjectProcessosSection
+                projectId={id!}
+                local={local}
+                isServicoMensal={isServicoMensal}
+                taskMode={taskMode}
+                tasks={tasks}
+                meetings={meetings}
+                profileMap={profileMap}
+                getPhotoUrl={getPhotoUrl}
+                resolvedClientId={resolvedClientId}
+                reunioesLabel={sectorConfig.t('reunioes')}
+                onGenerateMonthly={() => generateMonthlyTasksMutation.mutate()}
+                onAddTask={() => setTaskDialogOpen(true)}
+                onAddMeeting={() => setMeetingDialogOpen(true)}
+                onOpenTaskDetail={(taskId) => setTaskDetailId(taskId)}
+                onOpenAllMeetings={() => setSubPage('reunioes')}
+              />
             </EntityTabsContent>
 
             {/* ─── TAB 3: ANÁLISE DE PROJETO ───────────────── */}
