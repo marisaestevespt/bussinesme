@@ -317,7 +317,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
 
   const updateQuestion = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; [k: string]: unknown }) => {
-      const { error } = await supabase.from('product_diagnostic_questions').update(data).eq('id', id);
+      const { error } = await (supabase as any).from('product_diagnostic_questions').update(data).eq('id', id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
