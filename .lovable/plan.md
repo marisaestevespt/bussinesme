@@ -1,64 +1,59 @@
-# Fase 4 — Downloads centralizados + Auditoria + Qualidade
+## Cockpit Mensal — redesign
 
-Última fase do plano de melhoria dos portais. Foco em centralizar tudo o que é descarregável, registar auditoria das ações do cliente, e dar à equipa um único sítio para verificar saúde do portal.
+A vista actual é fofa demais para servir de planeamento e acompanhamento mensal. Proposta de reestruturação por bloco, mantendo a navegação trimestre/mês que já está no topo.
 
-## 1. Downloads centralizados (cliente)
+### Nova ordem dos blocos
 
-Nova secção **"Documentos"** no portal que agrega num só sítio:
-- Contratos (de `clients.contract_documents`)
-- Atas e materiais de reuniões (de `meetings.documents`)
-- Anexos de entregas visíveis (de `phase_deliverables.attachments`)
-- Ficheiros enviados em respostas a recolhas
+1. **Objetivos do mês** — tabela
+2. **Agenda do mês** — calendário visual
+3. **Comercial + Produtos** (fundidos)
+4. **Marketing** — com calendário de conteúdo inline
+5. **Clientes**
+6. **Operação** — com análise operacional
+7. **Reflexão e fecho**
 
-Cada item mostra: nome, origem (contrato/reunião/entrega), data, botão **Descarregar**.
+(Produtos sai como bloco isolado e passa a viver dentro de Comercial.)
 
-Implementação:
-- Nova RPC `get_portal_all_documents(_token)` que une as 4 fontes
-- Novo componente `PortalDownloadsSection.tsx`
-- Adicionado ao `navItems` do `PortalView` entre "Contrato" e "Histórico"
+### Bloco 1 — Objetivos do mês (tabela)
+Substituir cards por tabela densa: **Objetivo · Área/Departamento · Meta · Atual · % · Estado · Ação**.
+Linha clicável abre o detail sheet existente. Filtro rápido por área no topo.
 
-## 2. Auditoria do portal
+### Bloco 2 — Agenda do mês
+Mostrar mesmo agenda: mini-calendário do mês com pontos por dia (reuniões, deadlines, eventos), e à direita lista cronológica das próximas 10 ocorrências (reuniões, entregas de projeto, deadlines fiscais, lançamentos). Hoje só mostra contadores.
 
-Tabela `audit_logs` já existe. Adicionar registo automático para 5 ações via triggers:
-- `portal.session.created` (login do cliente — via novo RPC `portal_log_login`)
-- `portal.request.created` (trigger em `client_requests`)
-- `portal.meeting_prep.created` (trigger em `meeting_prep_items`)
-- `portal.feedback.submitted` (trigger em `client_feedback`)
-- `portal.document.downloaded` (RPC `portal_log_download` chamada do botão)
+### Bloco 3 — Comercial + Produtos
+- KPIs: receita do mês, novas vendas, pipeline, taxa de conversão
+- Tabela **Vendas por produto** (qtd, receita, ticket médio, % do total)
+- Pipeline por estágio com valor agregado
+- Lista das vendas mais recentes
+- Produtos ativos com quick-stats (vendas mês, clientes ativos)
 
-Frontend interno: novo `ClientPortalAuditBlock.tsx` na tab **Gestão** do `ClienteDetail`, mostra os últimos 20 eventos do portal deste cliente, ordenados por data.
+### Bloco 4 — Marketing
+- KPIs: leads do mês, custo por lead, conversão lead→cliente
+- **Calendário de conteúdo do mês** (grid 7 colunas, conteúdos planeados/publicados por dia)
+- Funis ativos com performance
+- Campanhas/automações em curso
 
-## 3. Saúde do portal (qualidade)
+### Bloco 5 — Clientes
+- KPIs: ativos, novos no mês, em offboarding, NPS
+- Tabela: clientes com aniversário de contrato no mês, renovações pendentes, onboardings em curso
+- Alertas: clientes sem actividade > X dias
 
-Novo bloco `ClientPortalHealthBlock.tsx` no topo da tab **Portal** do `ClienteDetail`, com 6 indicadores:
+### Bloco 6 — Operação
+- KPIs: projetos ativos, entregas no mês, tarefas concluídas vs planeadas, ocupação da equipa
+- **Análise operacional**: distribuição de horas por área/cliente, tarefas atrasadas, gargalos por membro
+- Rotinas executadas no mês
 
-| Indicador | Verde | Amarelo | Vermelho |
-|---|---|---|---|
-| Portal ativo | sim | — | não |
-| Account Manager atribuído | sim | — | não |
-| Último acesso | < 7 dias | 7–30 dias | > 30 dias ou nunca |
-| Pedidos pendentes | 0 | 1–2 | ≥3 |
-| Recolhas/feedback em atraso | 0 | 1 | ≥2 |
-| Onboarding (perguntas iniciais) | 100% | 1–99% | 0% |
+### Bloco 7 — Reflexão e fecho
+Mantém-se como está.
 
-RPC `get_client_portal_health(_client_id)` calcula tudo server-side com `SECURITY DEFINER`.
+### Detalhes técnicos
+- Editar `MonthlyCockpit.tsx` para reordenar e remover `BlockProdutos` standalone
+- Reescrever `BlockObjetivos` para tabela
+- Estender `BlockAgenda` com mini-calendário (componente novo)
+- Fundir `BlockProdutos` dentro de `BlockComercial`
+- Estender `BlockMarketing` com calendário de conteúdo (lê de `marketing_content_calendar` ou equivalente — verifico schema antes)
+- Estender `BlockClientes` e `BlockOperacao` com tabelas e análise
 
-## Detalhes técnicos
-
-**Migração SQL** (uma só):
-1. RPC `get_portal_all_documents(_token uuid)` — `SECURITY DEFINER`, valida portal ativo, retorna `jsonb[]` com `{name, url, source, source_label, created_at}`
-2. RPC `portal_log_login(_token uuid)` — chamada após sucesso de OTP
-3. RPC `portal_log_download(_token uuid, _file_name text, _source text)` — chamada do botão de download
-4. Triggers `AFTER INSERT` em `client_requests`, `meeting_prep_items`, `client_feedback` que inserem em `audit_logs` com `entity_type='portal'`
-5. RPC `get_client_portal_audit(_client_id uuid)` — admin only, retorna últimos 50 eventos
-6. RPC `get_client_portal_health(_client_id uuid)` — admin only, retorna estrutura agregada
-
-**Frontend**:
-- `src/components/portal-view/PortalDownloadsSection.tsx` (novo)
-- `src/components/clients/ClientPortalAuditBlock.tsx` (novo)
-- `src/components/clients/ClientPortalHealthBlock.tsx` (novo)
-- `src/pages/PortalView.tsx` (adicionar item nav + render + chamar `portal_log_login` no `init`)
-- `src/pages/PortalAuth.tsx` (chamar `portal_log_login` após sucesso de OTP)
-- `src/pages/ClienteDetail.tsx` (montar os 2 blocos novos nas tabs)
-
-Sem mudanças destrutivas: tudo são novas RPCs, novo componente e triggers idempotentes. Os portais existentes continuam a funcionar exatamente como antes; ganham apenas a nova secção "Documentos" e auditoria silenciosa.
+### Nota
+Este redesign toca em 6 ficheiros de bloco. Se preferires, fazemos por fases (ex.: começar por Objetivos+Agenda+Comercial, validar, depois o resto) — diz-me.
