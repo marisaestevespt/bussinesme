@@ -171,7 +171,7 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
                 );
                 return (
                   <li key={i.id} className="rounded-md hover:bg-background/60 px-1 py-0.5">
-                    {i.href ? <Link to={i.href}>{content}</Link> : content}
+                    {i.href ? <Link to={i.href} target="_blank" rel="noopener noreferrer">{content}</Link> : content}
                   </li>
                 );
               })}
@@ -202,7 +202,7 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
                     {i.meta && <Badge variant="outline" className="text-[10px]">{i.meta}</Badge>}
                   </div>
                 );
-                return <div key={i.id}>{i.href ? <Link to={i.href} onClick={() => setDialogOpen(false)}>{content}</Link> : content}</div>;
+                return <div key={i.id}>{i.href ? <Link to={i.href} onClick={() = target="_blank" rel="noopener noreferrer"> setDialogOpen(false)}>{content}</Link> : content}</div>;
               })
             )}
           </div>

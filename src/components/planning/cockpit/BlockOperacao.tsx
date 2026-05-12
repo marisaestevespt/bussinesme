@@ -138,7 +138,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
           { label: 'Tarefas concluídas', value: `${data.done}/${data.tasksTotal}`, icon: ListTodo, href: '/hub/tarefas', sub: `${Math.round(data.completionPct)}%` },
           { label: 'Horas registadas', value: `${data.totalHours.toFixed(0)}h`, icon: Clock, href: '/hub/equipa', sub: data.overloaded > 0 ? `${data.overloaded} em sobrecarga` : undefined, alert: data.overloaded > 0 },
         ].map((k: any, i) => (
-          <Link key={i} to={k.href} className="hq-surface-sunken rounded-lg p-2.5 hover:bg-accent/40 hq-transition block">
+          <Link key={i} to={k.href} className="hq-surface-sunken rounded-lg p-2.5 hover:bg-accent/40 hq-transition block" target="_blank" rel="noopener noreferrer">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
               {k.icon && <k.icon className="h-3 w-3" />}
               {k.label}
@@ -189,7 +189,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                 return (
                   <tr key={p.id} className="border-t border-border/40 hover:bg-accent/30 hq-transition">
                     <td className="px-3 py-2 font-medium">
-                      <Link to={`/hub/projetos/${p.id}`} className="hover:underline truncate block max-w-[240px]">{p.name}</Link>
+                      <Link to={`/hub/projetos/${p.id}`} className="hover:underline truncate block max-w-[240px]" target="_blank" rel="noopener noreferrer">{p.name}</Link>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground truncate max-w-[160px]">{p.client || '—'}</td>
                     <td className="px-3 py-2">
@@ -256,7 +256,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                   return (
                     <tr key={t.id} className="border-t border-border/40 hover:bg-accent/30 hq-transition">
                       <td className="px-3 py-2 font-medium">
-                        <Link to={t.project_id ? `/hub/projetos/${t.project_id}` : '/hub/tarefas'} className="hover:underline truncate block max-w-[260px]">{t.name}</Link>
+                        <Link to={t.project_id ? `/hub/projetos/${t.project_id}` : '/hub/tarefas'} className="hover:underline truncate block max-w-[260px]" target="_blank" rel="noopener noreferrer">{t.name}</Link>
                       </td>
                       <td className="px-3 py-2 text-muted-foreground truncate max-w-[140px]">{t.assignee || '—'}</td>
                       <td className="px-3 py-2 text-muted-foreground truncate max-w-[140px]">{t.client || '—'}</td>
@@ -286,7 +286,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                 const overload = hours > 144;
                 return (
                   <li key={m.id} className="text-xs space-y-1">
-                    <Link to={`/hub/equipa/${m.id}`} className="block hover:bg-accent/30 rounded px-1 py-0.5">
+                    <Link to={`/hub/equipa/${m.id}`} className="block hover:bg-accent/30 rounded px-1 py-0.5" target="_blank" rel="noopener noreferrer">
                       <div className="flex justify-between">
                         <span className="truncate">{m.name}</span>
                         <span className={cn('tabular-nums', overload ? 'text-red-600 font-medium' : 'text-muted-foreground')}>{hours.toFixed(0)}h</span>
@@ -313,7 +313,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                   const pct = data.totalHours > 0 ? (d.hours / data.totalHours) * 100 : 0;
                   return (
                     <li key={d.name} className="text-xs space-y-1">
-                      <Link to={`/hub/tarefas?dept=${encodeURIComponent(d.name)}`} className="block hover:bg-accent/30 rounded px-1 py-0.5">
+                      <Link to={`/hub/tarefas?dept=${encodeURIComponent(d.name)}`} className="block hover:bg-accent/30 rounded px-1 py-0.5" target="_blank" rel="noopener noreferrer">
                         <div className="flex justify-between">
                           <span className="truncate capitalize">{d.name}</span>
                           <span className="tabular-nums text-muted-foreground">{d.hours.toFixed(0)}h · {Math.round(pct)}%</span>
@@ -339,7 +339,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
               <ul className="space-y-1">
                 {data.topClients.map((c: any) => (
                   <li key={c.id}>
-                    <Link to={c.id && c.id !== 'undefined' ? `/hub/clientes/${c.id}` : '/hub/clientes'} className="flex items-center gap-2 text-xs hover:bg-accent/30 rounded px-1 py-1 hq-transition">
+                    <Link to={c.id && c.id !== 'undefined' ? `/hub/clientes/${c.id}` : '/hub/clientes'} className="flex items-center gap-2 text-xs hover:bg-accent/30 rounded px-1 py-1 hq-transition" target="_blank" rel="noopener noreferrer">
                       <span className="truncate flex-1">{c.name}</span>
                       <span className="tabular-nums text-muted-foreground">{c.hours.toFixed(1)}h</span>
                     </Link>

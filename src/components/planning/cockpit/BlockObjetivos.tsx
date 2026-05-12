@@ -69,7 +69,7 @@ export function BlockObjetivos({ year, month }: { year: number; month: number })
           ))}
         </ToggleGroup>
         <Button asChild size="sm" variant="outline" className="h-7 text-xs">
-          <Link to={`/executive/planeamento`}><Plus className="h-3 w-3 mr-1" />Novo objetivo</Link>
+          <Link to={`/executive/planeamento`} target="_blank" rel="noopener noreferrer"><Plus className="h-3 w-3 mr-1" />Novo objetivo</Link>
         </Button>
       </div>
 
