@@ -483,6 +483,77 @@ export default function ConteudoDetailPage() {
               </div>
             </PropRow>
 
+            {form.scheduled_at && phaseSettings.length > 0 && (
+              <PropRow label="Prazos por fase">
+                <div className="py-2 space-y-1.5 w-full">
+                  {phaseSettings.map(ps => {
+                    const opt = STATUS_OPTIONS.find(s => s.value === ps.status);
+                    if (!opt) return null;
+                    const override = form.phase_deadlines?.[ps.status] || '';
+                    const baseDate = new Date(form.scheduled_at!);
+                    const computed = new Date(baseDate);
+                    computed.setDate(computed.getDate() - ps.days_before_publish);
+                    const effective = override ? new Date(override) : computed;
+                    const isOverridden = !!override;
+                    return (
+                      <div key={ps.status} className="flex items-center justify-between gap-2 text-xs">
+                        <span className={cn('flex-1 truncate', form.status === ps.status && 'font-semibold text-foreground')}>
+                          {opt.label}
+                        </span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                'h-7 px-2 text-xs font-normal hover:bg-muted/50 tabular-nums',
+                                isOverridden ? 'text-foreground' : 'text-muted-foreground'
+                              )}
+                            >
+                              <CalendarIcon className="h-3 w-3 mr-1.5 opacity-60" />
+                              {format(effective, 'dd/MM', { locale: pt })}
+                              {!isOverridden && <span className="ml-1 opacity-60">(auto)</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-2 space-y-2" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={effective}
+                              onSelect={(d) => {
+                                if (!d) return;
+                                const iso = format(d, 'yyyy-MM-dd');
+                                setForm(f => ({ ...f, phase_deadlines: { ...(f.phase_deadlines || {}), [ps.status]: iso } }));
+                              }}
+                              className="p-3 pointer-events-auto"
+                            />
+                            {isOverridden && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full h-7 text-xs"
+                                onClick={() => {
+                                  setForm(f => {
+                                    const next = { ...(f.phase_deadlines || {}) };
+                                    delete next[ps.status];
+                                    return { ...f, phase_deadlines: next };
+                                  });
+                                }}
+                              >
+                                Limpar (voltar a automático)
+                              </Button>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    );
+                  })}
+                  <p className="text-[10px] text-muted-foreground pt-1">
+                    Prazos calculados a partir da data de publicação. As tarefas geradas para cada fase usam estas datas.
+                  </p>
+                </div>
+              </PropRow>
+            )}
+
             <PropRow label="Canais">
               <div className="flex flex-wrap gap-1.5 py-2">
                 {channels.filter(c => c.is_active).map(ch => {
