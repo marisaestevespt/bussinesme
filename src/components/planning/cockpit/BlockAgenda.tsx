@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Calendar as CalIcon, Users as UsersIcon, ListTodo, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -46,7 +47,13 @@ const KIND_ICON: Record<string, any> = {
 };
 
 export function BlockAgenda({ year, month }: { year: number; month: number }) {
-  const [openDay, setOpenDay] = useState<string | null>(null);
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month;
+  const defaultDay = isCurrentMonth
+    ? `${year}-${String(month).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+    : `${year}-${String(month).padStart(2,'0')}-01`;
+  const [selectedDay, setSelectedDay] = useState<string>(defaultDay);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const startISO = `${year}-${String(month).padStart(2,'0')}-01`;
   const endDay = new Date(year, month, 0).getDate();
@@ -84,12 +91,6 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
     return map;
   }, [items]);
 
-  const todayISO = new Date().toISOString().slice(0,10);
-  const upcoming = useMemo(
-    () => items.filter(i => i.date >= todayISO).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 12),
-    [items, todayISO]
-  );
-
   const grid: Date[] = [];
   const start = startOfMonthGrid(year, month);
   for (let i = 0; i < 42; i++) {
@@ -98,10 +99,14 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
     grid.push(d);
   }
 
-  const today = new Date();
   const isToday = (d: Date) => d.toDateString() === today.toDateString();
   const isSameMonth = (d: Date) => d.getMonth() === month - 1;
-  const dayDetail = openDay ? byDay.get(openDay) || [] : [];
+  const dayDetail = (byDay.get(selectedDay) || []).sort((a, b) => (a.meta || '').localeCompare(b.meta || ''));
+  const selectedLabel = new Date(selectedDay).toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' });
+  const monthSorted = useMemo(
+    () => [...items].sort((a, b) => a.date.localeCompare(b.date) || (a.meta || '').localeCompare(b.meta || '')),
+    [items],
+  );
 
   return (
     <>
@@ -116,15 +121,16 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
               const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
               const dayData = byDay.get(key) || [];
               const kinds = new Set(dayData.map(x => x.kind));
+              const isSelected = key === selectedDay;
               return (
                 <button
                   key={i}
-                  onClick={() => dayData.length && setOpenDay(key)}
+                  onClick={() => setSelectedDay(key)}
                   className={cn(
-                    'aspect-square rounded-md p-1 text-left text-[11px] border transition-colors',
+                    'aspect-square rounded-md p-1 text-left text-[11px] border transition-colors hover:bg-accent',
                     isSameMonth(d) ? 'bg-background border-border/60' : 'bg-muted/30 border-transparent text-muted-foreground/50',
                     isToday(d) && 'ring-2 ring-primary/40',
-                    dayData.length > 0 && 'hover:bg-accent cursor-pointer',
+                    isSelected && 'border-primary bg-primary/5',
                   )}
                 >
                   <div className="font-medium tabular-nums">{d.getDate()}</div>
@@ -146,23 +152,23 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
           </div>
         </div>
 
-        {/* Próximos */}
+        {/* Dia selecionado */}
         <div className="hq-surface-sunken rounded-lg p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-medium text-muted-foreground">Próximos no mês</div>
-            <span className="text-[10px] text-muted-foreground">{upcoming.length} de {items.length}</span>
+            <div className="text-xs font-medium capitalize">{selectedLabel}</div>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setDialogOpen(true)}>
+              Ver mês ({items.length})
+            </Button>
           </div>
-          {upcoming.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Nada agendado.</p>
+          {dayDetail.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4 text-center">Nada agendado neste dia.</p>
           ) : (
             <ul className="space-y-1.5 max-h-72 overflow-auto pr-1">
-              {upcoming.map(i => {
+              {dayDetail.map(i => {
                 const Icon = KIND_ICON[i.kind];
-                const date = new Date(i.date);
-                const dayLabel = date.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
                 const content = (
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="tabular-nums text-muted-foreground w-12 shrink-0">{dayLabel}</span>
+                    <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', KIND_DOT[i.kind])} />
                     <Icon className="h-3 w-3 text-muted-foreground shrink-0" />
                     <span className="truncate flex-1">{i.title}</span>
                     {i.meta && <Badge variant="outline" className="text-[9px] px-1 py-0">{i.meta}</Badge>}
@@ -179,27 +185,34 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
         </div>
       </div>
 
-      <Sheet open={!!openDay} onOpenChange={(o) => !o && setOpenDay(null)}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>{openDay ? new Date(openDay).toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' }) : ''}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4 space-y-2 text-sm">
-            {dayDetail.map(i => {
-              const Icon = KIND_ICON[i.kind];
-              return (
-                <div key={i.id} className="flex items-start gap-2 p-2 rounded border">
-                  <Icon className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                  <div className="flex-1">
-                    <div className="text-xs text-muted-foreground">{KIND_LABEL[i.kind]}{i.meta ? ` · ${i.meta}` : ''}</div>
-                    <div className="font-medium">{i.title}</div>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Agenda completa do mês ({items.length})</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-auto -mx-6 px-6 space-y-1">
+            {monthSorted.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">Nada agendado este mês.</p>
+            ) : (
+              monthSorted.map(i => {
+                const Icon = KIND_ICON[i.kind];
+                const date = new Date(i.date);
+                const dayLabel = date.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' });
+                const content = (
+                  <div className="flex items-center gap-2 text-sm py-1.5 px-2 rounded hover:bg-muted/40">
+                    <span className="tabular-nums text-muted-foreground w-14 shrink-0 text-xs">{dayLabel}</span>
+                    <span className={cn('h-2 w-2 rounded-full shrink-0', KIND_DOT[i.kind])} />
+                    <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate flex-1">{i.title}</span>
+                    {i.meta && <Badge variant="outline" className="text-[10px]">{i.meta}</Badge>}
                   </div>
-                </div>
-              );
-            })}
+                );
+                return <div key={i.id}>{i.href ? <Link to={i.href} onClick={() => setDialogOpen(false)}>{content}</Link> : content}</div>;
+              })
+            )}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
