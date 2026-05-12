@@ -79,24 +79,24 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="hq-surface-sunken rounded-lg p-3">
+        <Link to="/hub/projetos" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1"><FolderKanban className="h-3 w-3" />Projetos ativos</div>
           <div className="text-lg font-semibold tabular-nums">{data.projects.length}</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/projetos?tab=entregas" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Entregas no mês</div>
           <div className="text-lg font-semibold tabular-nums">{data.deliveredCount}<span className="text-sm font-normal text-muted-foreground">/{data.deliverableCount}</span></div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/tarefas" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1"><ListTodo className="h-3 w-3" />Tarefas concluídas</div>
           <div className="text-lg font-semibold tabular-nums">{data.done}<span className="text-sm font-normal text-muted-foreground">/{data.tasksTotal}</span></div>
           <Progress value={data.completionPct} className="h-1 mt-1" />
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/equipa" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Horas registadas</div>
           <div className="text-lg font-semibold tabular-nums">{data.totalHours.toFixed(0)}h</div>
           {data.overloaded > 0 && <div className="text-[10px] text-red-600 mt-0.5">{data.overloaded} membro(s) em sobrecarga</div>}
-        </div>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -109,8 +109,10 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
               const pct = Math.min(100, (hours / 160) * 100);
               return (
                 <li key={m.id} className="text-xs space-y-0.5">
-                  <div className="flex justify-between"><span className="truncate">{m.name}</span><span className="tabular-nums text-muted-foreground">{hours.toFixed(0)}h</span></div>
-                  <Progress value={pct} className="h-1" />
+                  <Link to={`/hub/equipa/${m.id}`} className="block hover:bg-accent/40 rounded px-1 py-0.5 hq-transition">
+                    <div className="flex justify-between"><span className="truncate">{m.name}</span><span className="tabular-nums text-muted-foreground">{hours.toFixed(0)}h</span></div>
+                    <Progress value={pct} className="h-1" />
+                  </Link>
                 </li>
               );
             })}
@@ -128,8 +130,10 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                 const pct = data.totalHours > 0 ? (d.hours / data.totalHours) * 100 : 0;
                 return (
                   <li key={d.name} className="text-xs space-y-0.5">
-                    <div className="flex justify-between"><span className="truncate capitalize">{d.name}</span><span className="tabular-nums text-muted-foreground">{d.hours.toFixed(0)}h · {Math.round(pct)}%</span></div>
-                    <Progress value={pct} className="h-1" />
+                    <Link to={`/hub/tarefas?dept=${encodeURIComponent(d.name)}`} className="block hover:bg-accent/40 rounded px-1 py-0.5 hq-transition">
+                      <div className="flex justify-between"><span className="truncate capitalize">{d.name}</span><span className="tabular-nums text-muted-foreground">{d.hours.toFixed(0)}h · {Math.round(pct)}%</span></div>
+                      <Progress value={pct} className="h-1" />
+                    </Link>
                   </li>
                 );
               })}
@@ -145,9 +149,11 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
           ) : (
             <ul className="space-y-1">
               {data.topClients.map((c: any) => (
-                <li key={c.id} className="flex items-center gap-2 text-xs">
-                  <span className="truncate flex-1">{c.name}</span>
-                  <span className="tabular-nums text-muted-foreground">{c.hours.toFixed(1)}h</span>
+                <li key={c.id}>
+                  <Link to={c.id && c.id !== 'undefined' ? `/hub/clientes/${c.id}` : '/hub/clientes'} className="flex items-center gap-2 text-xs hover:bg-accent/40 rounded px-1 py-0.5 hq-transition">
+                    <span className="truncate flex-1">{c.name}</span>
+                    <span className="tabular-nums text-muted-foreground">{c.hours.toFixed(1)}h</span>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -168,10 +174,12 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
           ) : (
             <ul className="space-y-1 max-h-40 overflow-auto pr-1">
               {data.overdue.slice(0, 8).map((t: any) => (
-                <li key={t.id} className="flex items-center gap-2 text-xs">
-                  <Badge variant="outline" className="text-[9px] px-1 py-0">{t.priority || '—'}</Badge>
-                  <span className="truncate flex-1">{t.name}</span>
-                  <span className="tabular-nums text-red-600">{t.deadline}</span>
+                <li key={t.id}>
+                  <Link to={t.project_id ? `/hub/projetos/${t.project_id}` : '/hub/tarefas'} className="flex items-center gap-2 text-xs hover:bg-accent/40 rounded px-1 py-0.5 hq-transition">
+                    <Badge variant="outline" className="text-[9px] px-1 py-0">{t.priority || '—'}</Badge>
+                    <span className="truncate flex-1">{t.name}</span>
+                    <span className="tabular-nums text-red-600">{t.deadline}</span>
+                  </Link>
                 </li>
               ))}
             </ul>
