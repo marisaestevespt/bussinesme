@@ -32,7 +32,7 @@ export function MonthlyReflectionCard({ year, month }: Props) {
   const { data, isLoading } = useQuery({
     queryKey: ['monthly_reflection', year, month],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('monthly_reflection')
         .select('*')
         .eq('year', year).eq('month', month)
@@ -65,10 +65,10 @@ export function MonthlyReflectionCard({ year, month }: Props) {
         row.revisto_em = new Date().toISOString();
       }
       if (data?.id) {
-        const { error } = await (supabase as any).from('monthly_reflection').update(row).eq('id', data.id);
+        const { error } = await supabase.from('monthly_reflection').update(row).eq('id', data.id);
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any).from('monthly_reflection').insert(row);
+        const { error } = await supabase.from('monthly_reflection').insert(row);
         if (error) throw error;
       }
     },

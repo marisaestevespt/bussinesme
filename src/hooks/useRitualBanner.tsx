@@ -58,7 +58,7 @@ export function useRitualBanner() {
   const reflections = useQuery({
     queryKey: ['ritual-banner-reflections', y, m, prevMonthYear, prevMonth],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('monthly_reflection')
         .select('year, month, revisto')
         .in('year', [y, prevMonthYear, y - 1])
@@ -71,7 +71,7 @@ export function useRitualBanner() {
   const yearReviews = useQuery({
     queryKey: ['ritual-banner-year-reviews', y],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('year_review')
         .select('year, status')
         .in('year', [y - 1, y]);
@@ -96,7 +96,7 @@ export function useRitualBanner() {
   const states = useQuery({
     queryKey: ['ritual-banner-states'],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('ritual_banner_state')
         .select('*');
       return data as Array<{
@@ -257,10 +257,10 @@ export function useRitualBanner() {
       if (dismiss) patch.dispensado_em = new Date().toISOString();
       if (complete) { patch.completado = true; patch.completado_em = new Date().toISOString(); }
       if (existing) {
-        await (supabase as any).from('ritual_banner_state')
+        await supabase.from('ritual_banner_state')
           .update(patch).eq('id', existing.id);
       } else {
-        await (supabase as any).from('ritual_banner_state')
+        await supabase.from('ritual_banner_state')
           .insert({ ritual_type: type, periodo, ...patch });
       }
     },

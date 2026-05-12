@@ -196,7 +196,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       return;
     }
     const timer = setTimeout(async () => {
-      const { data } = await (supabase as any).rpc('suggest_task_estimate', {
+      const { data } = await supabase.rpc('suggest_task_estimate', {
         _name: name.trim(),
         _sop_id: sopId || null,
         _project_id: projectId || defaultProjectId || null,

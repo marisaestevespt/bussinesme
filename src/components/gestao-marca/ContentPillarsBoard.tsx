@@ -24,7 +24,7 @@ export function ContentPillarsBoard({ isOwner }: { isOwner: boolean }) {
   const { data: pillars = [] } = useQuery({
     queryKey: ['brand-content-pillars'],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('brand_content_pillars')
         .select('*')
         .order('position', { ascending: true });
@@ -41,7 +41,7 @@ export function ContentPillarsBoard({ isOwner }: { isOwner: boolean }) {
   };
 
   const addPillar = async () => {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('brand_content_pillars')
       .insert({ name: '', description: '', position: pillars.length })
       .select()
@@ -52,7 +52,7 @@ export function ContentPillarsBoard({ isOwner }: { isOwner: boolean }) {
   };
 
   const save = async (id: string) => {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('brand_content_pillars')
       .update({ name: draftName, description: draftDesc })
       .eq('id', id);
@@ -64,7 +64,7 @@ export function ContentPillarsBoard({ isOwner }: { isOwner: boolean }) {
 
   const remove = async (id: string) => {
     if (!confirm('Eliminar este pilar?')) return;
-    const { error } = await (supabase as any).from('brand_content_pillars').delete().eq('id', id);
+    const { error } = await supabase.from('brand_content_pillars').delete().eq('id', id);
     if (error) { toast.error('Erro ao eliminar'); return; }
     refresh();
   };

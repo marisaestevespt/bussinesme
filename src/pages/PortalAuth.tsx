@@ -51,7 +51,7 @@ export default function PortalAuthPage() {
           if (elapsed < 24 * 60 * 60 * 1000) {
             // Log the returning visit (server-side via RPC, contorna RLS)
             const email = parsed.email || '';
-            (supabase as any).rpc('portal_record_visit', { _token: portal.token, _email: email || null }).then(() => {});
+            supabase.rpc('portal_record_visit', { _token: portal.token, _email: email || null }).then(() => {});
             navigate(`/portal/${token}/view`, { replace: true });
             return;
           }
@@ -63,7 +63,7 @@ export default function PortalAuthPage() {
 
   const loadPortal = async () => {
     if (!token) return;
-    const portalData = await resolvePublicPortal(token, (fn, args) => (supabase as any).rpc(fn, args));
+    const portalData = await resolvePublicPortal(token, (fn, args) => supabase.rpc(fn, args));
     if (!portalData) {
       setLoading(false);
       return;
@@ -77,7 +77,7 @@ export default function PortalAuthPage() {
     const inputEmail = email.trim().toLowerCase();
     setEmailError(null);
 
-    const { data: emailAllowed, error: emailCheckError } = await (supabase as any).rpc('portal_email_allowed', {
+    const { data: emailAllowed, error: emailCheckError } = await supabase.rpc('portal_email_allowed', {
       _token: portal.token,
       _email: inputEmail,
     });
@@ -93,7 +93,7 @@ export default function PortalAuthPage() {
     }
 
     setSubmitting(true);
-    await (supabase as any).rpc('portal_record_visit', { _token: portal.token, _email: inputEmail });
+    await supabase.rpc('portal_record_visit', { _token: portal.token, _email: inputEmail });
     localStorage.setItem(
       `portal_session_${portal.id}`,
       JSON.stringify({

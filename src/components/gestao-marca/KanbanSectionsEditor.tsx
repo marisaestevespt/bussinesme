@@ -40,7 +40,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
   const { data: sections = [] } = useQuery({
     queryKey: ['brand-kanban-sections', itemId],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('brand_kanban_sections')
         .select('*')
         .eq('item_id', itemId)
@@ -54,7 +54,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
     queryKey: ['brand-kanban-section-attachments', itemId, sectionIds.join(',')],
     enabled: sectionIds.length > 0,
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('brand_kanban_section_attachments')
         .select('*')
         .in('section_id', sectionIds)
@@ -68,7 +68,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
 
   const addSection = async () => {
     if (!newTitle.trim()) return;
-    const { error } = await (supabase as any).from('brand_kanban_sections').insert({
+    const { error } = await supabase.from('brand_kanban_sections').insert({
       item_id: itemId,
       title: newTitle.trim(),
       content: null,
@@ -86,7 +86,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
 
   const saveEdit = async () => {
     if (!editingId) return;
-    const { error } = await (supabase as any).from('brand_kanban_sections')
+    const { error } = await supabase.from('brand_kanban_sections')
       .update({ title: editingTitle.trim() || 'Sem título', content: editingContent })
       .eq('id', editingId);
     if (error) toast.error('Erro ao guardar');
@@ -94,7 +94,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
   };
 
   const deleteSection = async (id: string) => {
-    await (supabase as any).from('brand_kanban_sections').delete().eq('id', id);
+    await supabase.from('brand_kanban_sections').delete().eq('id', id);
     invalidate();
   };
 
@@ -104,8 +104,8 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
     const a = sections[idx];
     const b = sections[target];
     await Promise.all([
-      (supabase as any).from('brand_kanban_sections').update({ sort_order: b.sort_order }).eq('id', a.id),
-      (supabase as any).from('brand_kanban_sections').update({ sort_order: a.sort_order }).eq('id', b.id),
+      supabase.from('brand_kanban_sections').update({ sort_order: b.sort_order }).eq('id', a.id),
+      supabase.from('brand_kanban_sections').update({ sort_order: a.sort_order }).eq('id', b.id),
     ]);
     invalidate();
   };
@@ -115,7 +115,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
     if (!label.trim() || !url.trim()) return;
     const count = attachments.filter(a => a.section_id === sectionId).length;
     const safeUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-    const { error } = await (supabase as any).from('brand_kanban_section_attachments').insert({
+    const { error } = await supabase.from('brand_kanban_section_attachments').insert({
       section_id: sectionId, kind: 'link', label: label.trim(), url: safeUrl, sort_order: count,
     });
     if (error) toast.error('Erro ao adicionar link');
@@ -129,7 +129,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
     if (upErr) { toast.error('Erro ao carregar ficheiro'); return; }
     const { data: pub } = supabase.storage.from('brand-section-files').getPublicUrl(path);
     const count = attachments.filter(a => a.section_id === sectionId).length;
-    const { error } = await (supabase as any).from('brand_kanban_section_attachments').insert({
+    const { error } = await supabase.from('brand_kanban_section_attachments').insert({
       section_id: sectionId, kind: 'file', label: file.name, url: pub.publicUrl,
       file_path: path, file_type: file.type, sort_order: count,
     });
@@ -141,7 +141,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
     if (att.kind === 'file' && att.file_path) {
       await supabase.storage.from('brand-section-files').remove([att.file_path]);
     }
-    await (supabase as any).from('brand_kanban_section_attachments').delete().eq('id', att.id);
+    await supabase.from('brand_kanban_section_attachments').delete().eq('id', att.id);
     invalidateAttachments();
   };
 

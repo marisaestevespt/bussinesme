@@ -17,7 +17,7 @@ export function useMonthState(year: number, month: number /* 1-12 */) {
   const { data: reflection } = useQuery({
     queryKey: ['monthly_reflection', year, month],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('monthly_reflection')
         .select('id, revisto, revisto_em')
         .eq('year', year).eq('month', month)

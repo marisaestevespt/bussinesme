@@ -31,7 +31,7 @@ export function FolderSystemTable({ isOwner }: Props) {
   const { data: items = [] } = useQuery({
     queryKey: ['brand-folder-links'],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('brand_folder_links')
         .select('*')
         .order('sort_order');
@@ -52,14 +52,14 @@ export function FolderSystemTable({ isOwner }: Props) {
   const save = async () => {
     if (!form.title.trim()) { toast.error('Título obrigatório'); return; }
     if (editingId) {
-      const { error } = await (supabase as any).from('brand_folder_links').update({
+      const { error } = await supabase.from('brand_folder_links').update({
         title: form.title.trim(),
         url: form.url.trim() || null,
         notes: form.notes.trim() || null,
       }).eq('id', editingId);
       if (error) { toast.error('Erro ao guardar'); return; }
     } else {
-      const { error } = await (supabase as any).from('brand_folder_links').insert({
+      const { error } = await supabase.from('brand_folder_links').insert({
         title: form.title.trim(),
         url: form.url.trim() || null,
         notes: form.notes.trim() || null,
@@ -73,7 +73,7 @@ export function FolderSystemTable({ isOwner }: Props) {
   };
 
   const remove = async (id: string) => {
-    await (supabase as any).from('brand_folder_links').delete().eq('id', id);
+    await supabase.from('brand_folder_links').delete().eq('id', id);
     invalidate();
   };
 

@@ -61,7 +61,7 @@ export default function ExecutiveFechoAno() {
   const { data: review } = useQuery({
     queryKey: ['year_review', year],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('year_review').select('*').eq('year', year).maybeSingle();
       return (data as Review | null) ?? null;
     },
@@ -105,10 +105,10 @@ export default function ExecutiveFechoAno() {
         ...(extra || {}),
       };
       if (review?.id) {
-        const { error } = await (supabase as any).from('year_review').update(row).eq('id', review.id);
+        const { error } = await supabase.from('year_review').update(row).eq('id', review.id);
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any).from('year_review').insert(row);
+        const { error } = await supabase.from('year_review').insert(row);
         if (error) throw error;
       }
     },

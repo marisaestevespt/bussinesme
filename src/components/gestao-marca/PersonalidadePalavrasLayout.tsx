@@ -28,7 +28,7 @@ export function PersonalidadePalavrasLayout({ itemId, isOwner }: { itemId: strin
   const { data: sections = [], isSuccess } = useQuery({
     queryKey: ['brand-kanban-sections', itemId],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('brand_kanban_sections')
         .select('*')
         .eq('item_id', itemId)
@@ -47,7 +47,7 @@ export function PersonalidadePalavrasLayout({ itemId, isOwner }: { itemId: strin
       const rows = missing.map((m, i) => ({
         item_id: itemId, title: m.title, content: null, sort_order: baseOrder + i,
       }));
-      const { error } = await (supabase as any).from('brand_kanban_sections').insert(rows);
+      const { error } = await supabase.from('brand_kanban_sections').insert(rows);
       if (!error) qc.invalidateQueries({ queryKey: ['brand-kanban-sections', itemId] });
     })();
   }, [sections, itemId, isOwner, isSuccess, qc]);
@@ -87,7 +87,7 @@ function SectionCard({ itemId, fixedKey, section, isOwner }: {
 
   const save = async () => {
     if (!section) return;
-    const { error } = await (supabase as any).from('brand_kanban_sections')
+    const { error } = await supabase.from('brand_kanban_sections')
       .update({ content: draft }).eq('id', section.id);
     if (error) toast.error('Erro ao guardar');
     else { setEditing(false); qc.invalidateQueries({ queryKey: ['brand-kanban-sections', itemId] }); }

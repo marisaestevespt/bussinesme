@@ -35,7 +35,7 @@ export function ArchetypesBoard({ isOwner }: { isOwner: boolean }) {
   const { data: rows = [] } = useQuery({
     queryKey: ['brand-archetypes'],
     queryFn: async () => {
-      const { data } = await (supabase as any).from('brand_archetypes').select('*');
+      const { data } = await supabase.from('brand_archetypes').select('*');
       return (data || []) as Archetype[];
     },
   });
@@ -49,7 +49,7 @@ export function ArchetypesBoard({ isOwner }: { isOwner: boolean }) {
   };
 
   const save = async (slot: string) => {
-    const { error } = await (supabase as any).from('brand_archetypes')
+    const { error } = await supabase.from('brand_archetypes')
       .update({ archetype: draftArchetype || null, notes: draftNotes })
       .eq('slot', slot);
     if (error) { toast.error('Erro ao guardar'); return; }
