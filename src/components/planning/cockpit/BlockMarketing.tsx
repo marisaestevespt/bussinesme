@@ -101,27 +101,27 @@ export function BlockMarketing({ year, month }: { year: number; month: number })
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="hq-surface-sunken rounded-lg p-3">
+        <Link to="/hub/comercial?tab=pipeline" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Leads no mês</div>
           <div className="text-lg font-semibold tabular-nums">{data.leadsCount}</div>
           <div className={cn('text-[10px] mt-0.5', leadDelta >= 0 ? 'text-emerald-600' : 'text-red-600')}>
             {leadDelta >= 0 ? '+' : ''}{leadDelta} vs. mês anterior
           </div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/comercial?tab=pipeline" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Conversão lead→cliente</div>
           <div className="text-lg font-semibold tabular-nums">{data.leadConversion.toFixed(1)}%</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/marketing" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Conteúdos planeados</div>
           <div className="text-lg font-semibold tabular-nums">{data.content.length}</div>
           <div className="text-[10px] text-muted-foreground mt-0.5">{counts.publicado || 0} publicados</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/marketing?tab=funis" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Funis e automações</div>
           <div className="text-lg font-semibold tabular-nums">{data.funnels.length + data.automations.length}</div>
           <div className="text-[10px] text-muted-foreground mt-0.5">{data.funnels.length} funis · {data.automations.length} autom.</div>
-        </div>
+        </Link>
       </div>
 
       {/* Metas marketing */}
@@ -206,16 +206,18 @@ export function BlockMarketing({ year, month }: { year: number; month: number })
             <Filter className="h-3.5 w-3.5 text-muted-foreground" />
             <div className="text-xs font-medium">Funis ativos</div>
           </div>
-          {data.funnels.length === 0 ? (
+            {data.funnels.length === 0 ? (
             <p className="text-xs text-muted-foreground">Sem funis ativos</p>
           ) : (
             <ul className="space-y-1 max-h-32 overflow-auto pr-1">
-              {data.funnels.slice(0, 6).map((f: any) => (
-                <li key={f.id} className="flex items-center gap-2 text-xs">
-                  <span className="truncate flex-1">{f.name}</span>
-                  {f.tipo_funil && <Badge variant="outline" className="text-[9px] px-1 py-0">{f.tipo_funil}</Badge>}
-                </li>
-              ))}
+                {data.funnels.slice(0, 6).map((f: any) => (
+                  <li key={f.id}>
+                    <Link to={`/hub/marketing/funis/${f.id}`} className="flex items-center gap-2 text-xs hover:bg-accent/40 rounded px-1 py-0.5 hq-transition">
+                      <span className="truncate flex-1">{f.name}</span>
+                      {f.tipo_funil && <Badge variant="outline" className="text-[9px] px-1 py-0">{f.tipo_funil}</Badge>}
+                    </Link>
+                  </li>
+                ))}
             </ul>
           )}
         </div>
@@ -224,16 +226,18 @@ export function BlockMarketing({ year, month }: { year: number; month: number })
             <Megaphone className="h-3.5 w-3.5 text-muted-foreground" />
             <div className="text-xs font-medium">Campanhas no mês</div>
           </div>
-          {data.campaigns.length === 0 ? (
+            {data.campaigns.length === 0 ? (
             <p className="text-xs text-muted-foreground">Sem campanhas</p>
           ) : (
             <ul className="space-y-1 max-h-32 overflow-auto pr-1">
-              {data.campaigns.slice(0, 6).map((a: any) => (
-                <li key={a.id} className="flex items-center gap-2 text-xs">
-                  <Badge variant="outline" className="text-[9px] px-1 py-0">{a.status || '—'}</Badge>
-                  <span className="truncate">{a.action_name}</span>
-                </li>
-              ))}
+                {data.campaigns.slice(0, 6).map((a: any) => (
+                  <li key={a.id}>
+                    <Link to="/hub/comercial?tab=acoes" className="flex items-center gap-2 text-xs hover:bg-accent/40 rounded px-1 py-0.5 hq-transition">
+                      <Badge variant="outline" className="text-[9px] px-1 py-0">{a.status || '—'}</Badge>
+                      <span className="truncate">{a.action_name}</span>
+                    </Link>
+                  </li>
+                ))}
             </ul>
           )}
         </div>
