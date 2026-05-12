@@ -37,7 +37,7 @@ export function WelcomeClientEmailSettings({ onPreviewChange }: { onPreviewChang
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const stored = (settings as any)?.welcome_client_email_settings;
+    const stored = settings?.welcome_client_email_settings;
     if (stored) {
       setData({
         intro_text: stored.intro_text ?? DEFAULT_WELCOME_CLIENT_EMAIL_SETTINGS.intro_text,

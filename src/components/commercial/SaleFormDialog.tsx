@@ -33,7 +33,7 @@ interface SaleFormDialogProps {
 
 export function SaleFormDialog({ open, onOpenChange, products, onSave, initialData }: SaleFormDialogProps) {
   const { settings } = useBusinessSettings();
-  const ivaExempt = (settings as any)?.iva_exempt === true;
+  const ivaExempt = settings?.iva_exempt === true;
   const [form, setForm] = useState({
     id: '',
     sale_id: '',

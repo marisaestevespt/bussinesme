@@ -159,7 +159,7 @@ export function AppSidebar() {
   const isOwner = realIsOwner && !impersonating;
   const isAdminOrOwner = realIsAdminOrOwner && !impersonating;
 
-  const disabledModules: string[] = (settings as any)?.disabled_modules ?? [];
+  const disabledModules: string[] = settings?.disabled_modules ?? [];
   const canAccessWithToggles = (key: string) => {
     if (disabledModules.includes(key)) return false;
     return canAccess(key);

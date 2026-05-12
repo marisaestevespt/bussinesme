@@ -40,7 +40,7 @@ function isoWeekStart(d: Date): string {
 export function useRitualBanner() {
   const qc = useQueryClient();
   const { settings } = useBusinessSettings();
-  const weeklyAlignIso = (settings as any)?.weekly_align_day ?? 5;
+  const weeklyAlignIso = settings?.weekly_align_day ?? 5;
   const weeklyAlignJsDay = isoToJsDay(weeklyAlignIso);
   const dayBeforeJs = (weeklyAlignJsDay - 1 + 7) % 7;
 
