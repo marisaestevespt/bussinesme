@@ -37,6 +37,9 @@ export function useMonthState(year: number, month: number /* 1-12 */) {
   const isCurrent = year === ty && month === tm;
 
   const lastDay = new Date(year, month, 0).getDate();
+  // "Closing window" no sentido restrito (fim do mês / início do seguinte) — mantido
+  // para badges/avisos. A possibilidade de fechar manualmente é mais permissiva
+  // (ver showCloseButton abaixo) — qualquer mês passado ou em curso pode ser fechado.
   const inClosingWindow =
     (isCurrent && td >= lastDay - 2) ||
     (year === ty && month === tm - 1 && td <= 3) ||
@@ -60,7 +63,9 @@ export function useMonthState(year: number, month: number /* 1-12 */) {
     inPlanningWindow,
     revisto: !!reflection?.revisto,
     canEditReflection: !isFuture, // futuro: bloqueado; passado/atual ok
-    showCloseButton: inClosingWindow && !reflection?.revisto,
+    // Permite fechar qualquer mês passado ou em curso que ainda não esteja revisto
+    // (antes ficava bloqueado fora da janela apertada do fim de mês).
+    showCloseButton: !isFuture && !reflection?.revisto,
   };
 }
 
