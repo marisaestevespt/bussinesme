@@ -9,7 +9,12 @@ import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx'
 import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx'
 import { EmailChangeEmail } from '../_shared/email-templates/email-change.tsx'
 import { ReauthenticationEmail } from '../_shared/email-templates/reauthentication.tsx'
-import { getCorsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-lovable-signature, x-lovable-timestamp, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+}
 
 const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirm your email',
@@ -33,8 +38,8 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 // Configuration
 const SITE_NAME = "bussinesme"
 const SENDER_DOMAIN = "notify.notify.lyrata.pt"
-const ROOT_DOMAIN = "lyrata.pt"
-const FROM_DOMAIN = "notify.notify.lyrata.pt" // Must align with SENDER_DOMAIN
+const ROOT_DOMAIN = "notify.lyrata.pt"
+const FROM_DOMAIN = "notify.lyrata.pt" // Domain shown in From address (may be root or sender subdomain)
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
@@ -65,6 +70,7 @@ const SAMPLE_DATA: Record<string, object> = {
   },
   email_change: {
     siteName: SITE_NAME,
+    oldEmail: SAMPLE_EMAIL,
     email: SAMPLE_EMAIL,
     newEmail: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
@@ -76,7 +82,10 @@ const SAMPLE_DATA: Record<string, object> = {
 
 // Preview endpoint handler - returns rendered HTML without sending email
 async function handlePreview(req: Request): Promise<Response> {
-  const previewCorsHeaders = getCorsHeaders(req)
+  const previewCorsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, content-type',
+  }
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: previewCorsHeaders })
@@ -112,19 +121,7 @@ async function handlePreview(req: Request): Promise<Response> {
     })
   }
 
-  // Fetch brand color for preview consistency
-  let brandColor: string | undefined
-  try {
-    const sb = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    )
-    const { data: bs } = await sb.from('business_settings').select('primary_color').maybeSingle()
-    brandColor = bs?.primary_color || undefined
-  } catch (e) {
-    console.warn('Could not fetch brand color for preview', e)
-  }
-  const sampleData = { ...(SAMPLE_DATA[type] || {}), brandColor }
+  const sampleData = SAMPLE_DATA[type] || {}
   const html = await renderAsync(React.createElement(EmailTemplate, sampleData))
 
   return new Response(html, {
@@ -135,7 +132,6 @@ async function handlePreview(req: Request): Promise<Response> {
 
 // Webhook handler - verifies signature and sends email
 async function handleWebhook(req: Request): Promise<Response> {
-  const corsHeaders = getCorsHeaders(req)
   const apiKey = Deno.env.get('LOVABLE_API_KEY')
 
   if (!apiKey) {
@@ -222,22 +218,6 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // Fetch brand color from business_settings (best-effort)
-  const sbForBrand = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
-  let brandColor: string | undefined
-  try {
-    const { data: bs } = await sbForBrand
-      .from('business_settings')
-      .select('primary_color')
-      .maybeSingle()
-    brandColor = bs?.primary_color || undefined
-  } catch (e) {
-    console.warn('Could not fetch brand color', e)
-  }
-
   // Build template props from payload.data (HookData structure)
   const templateProps = {
     siteName: SITE_NAME,
@@ -246,8 +226,8 @@ async function handleWebhook(req: Request): Promise<Response> {
     confirmationUrl: payload.data.url,
     token: payload.data.token,
     email: payload.data.email,
+    oldEmail: payload.data.old_email,
     newEmail: payload.data.new_email,
-    brandColor,
   }
 
   // Render React Email to HTML and plain text
@@ -313,7 +293,6 @@ async function handleWebhook(req: Request): Promise<Response> {
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req)
   const url = new URL(req.url)
 
   // Handle CORS preflight for main endpoint
