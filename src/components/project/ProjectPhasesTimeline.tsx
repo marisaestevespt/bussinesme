@@ -483,7 +483,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
 
-      await supabase.from('project_phases').update(updates).eq('id', id);
+      await supabase.from('project_phases').update(updates as never).eq('id', id);
 
       // Check for delay AFTER saving — return info for cascade prompt
       if (fields.planned_end && typeof fields.planned_end === 'string') {
@@ -541,7 +541,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
-      await supabase.from('project_deliverables').update(fields).eq('id', id);
+      await supabase.from('project_deliverables').update(fields as never).eq('id', id);
 
       // Check for delay AFTER saving
       if (fields.planned_end && typeof fields.planned_end === 'string') {
@@ -688,7 +688,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       // Extend the parent phase first, then save the source change.
       await supabase
         .from('project_phases')
-        .update({ [c.field]: c.extendDate })
+        .update({ [c.field]: c.extendDate } as never)
         .eq('id', c.targetId);
     }
     if (c.sourceTable === 'project_phases') {

@@ -182,8 +182,8 @@ export default function ProdutoDetailPage() {
     queryKey: [key, filterVal],
     queryFn: async (): Promise<Record<string, unknown>[]> => {
       if (!filterVal) return [];
-      const { data } = await supabase.from(table).select('*').eq(filterCol, filterVal).order(orderCol);
-      return data || [];
+      const { data } = await (supabase as any).from(table).select('*').eq(filterCol, filterVal).order(orderCol);
+      return (data as Record<string, unknown>[]) || [];
     },
     enabled: !!filterVal,
     staleTime: 2 * 60 * 1000,

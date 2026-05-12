@@ -761,7 +761,7 @@ export default function GestaoMarcaPage() {
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {(() => {
-                  const savedOrder: string[] = Array.isArray(settings?.kanban_group_order) ? settings.kanban_group_order : [];
+                  const savedOrder: string[] = Array.isArray(settings?.kanban_group_order) ? (settings.kanban_group_order as string[]) : [];
                   const ordered = [
                     ...savedOrder.map(k => KANBAN_GROUPS.find(g => g.key === k)).filter(Boolean) as typeof KANBAN_GROUPS,
                     ...KANBAN_GROUPS.filter(g => !savedOrder.includes(g.key)),

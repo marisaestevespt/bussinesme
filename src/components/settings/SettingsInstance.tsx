@@ -75,7 +75,7 @@ export function SettingsInstance() {
   useEffect(() => {
     if (!settings) return;
     setSector((settings.business_sector as BusinessSector) || 'servicos_digitais');
-    setDisabledModules(settings.disabled_modules || []);
+    setDisabledModules((settings.disabled_modules as string[]) || []);
   }, [settings]);
 
   const sectorConfig = buildSectorConfig(sector);
