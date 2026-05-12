@@ -18,6 +18,7 @@ import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { TacticalAreasGrid } from './TacticalAreasGrid';
+import { QuarterBusinessOverview } from './QuarterBusinessOverview';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -203,6 +204,9 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
 
       <Separator />
 
+      {/* ─── 0. RESULTADOS DO TRIMESTRE (negócio consolidado) ─── */}
+      <QuarterBusinessOverview year={year} quarterIdx={qIdx} quarterLabel={q.short} />
+
       {/* ─── 1. ÁREAS DO TRIMESTRE ─── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -223,6 +227,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
           periodMonths={q.monthNames}
           rangeStart={new Date(year, q.months[0], 1)}
           rangeEnd={endOfMonth(new Date(year, q.months[2], 1))}
+          planning={planning}
           onSelectGoal={(g) => {
             const obj = objectives.find((o: any) => o.id === g.objective_id);
             if (obj) setSelectedObjective(obj);
