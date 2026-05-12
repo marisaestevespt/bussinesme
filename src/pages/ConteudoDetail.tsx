@@ -203,6 +203,7 @@ export default function ConteudoDetailPage() {
         cover_url: autoCover,
         body_template: form.body_template || null,
         account_id: form.account_id || null,
+        phase_deadlines: form.phase_deadlines || {},
       } as any).eq('id', id);
       if (updateErr) throw updateErr;
       await supabase.from('content_channels').delete().eq('content_id', id);
