@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalIcon, Users as UsersIcon, ListTodo, Package } from 'lucide-react';
+import { Calendar as CalIcon, Users as UsersIcon, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
@@ -21,7 +21,7 @@ function startOfMonthGrid(year: number, month: number) {
 type AgendaItem = {
   id: string;
   date: string;
-  kind: 'event' | 'meeting' | 'task' | 'deliverable';
+  kind: 'event' | 'meeting' | 'deliverable';
   title: string;
   meta?: string;
   href?: string;
@@ -30,19 +30,16 @@ type AgendaItem = {
 const KIND_LABEL: Record<string, string> = {
   event: 'Evento',
   meeting: 'Reunião',
-  task: 'Tarefa',
   deliverable: 'Entrega',
 };
 const KIND_DOT: Record<string, string> = {
   event: 'bg-blue-500',
   meeting: 'bg-emerald-500',
-  task: 'bg-amber-500',
   deliverable: 'bg-violet-500',
 };
 const KIND_ICON: Record<string, any> = {
   event: CalIcon,
   meeting: UsersIcon,
-  task: ListTodo,
   deliverable: Package,
 };
 
@@ -62,16 +59,14 @@ export function BlockAgenda({ year, month }: { year: number; month: number }) {
   const { data } = useQuery({
     queryKey: ['cockpit-agenda', year, month],
     queryFn: async () => {
-      const [events, meetings, tasks, deliverables] = await Promise.all([
+      const [events, meetings, deliverables] = await Promise.all([
         supabase.from('events').select('id,title,start_date').gte('start_date', startISO).lte('start_date', endISO + 'T23:59:59'),
         supabase.from('meetings').select('id,title,date_time').gte('date_time', startISO).lte('date_time', endISO + 'T23:59:59'),
-        supabase.from('tasks').select('id,name,deadline,priority').gte('deadline', startISO).lte('deadline', endISO),
         supabase.from('project_deliverables').select('id,name,deadline,project_id').gte('deadline', startISO).lte('deadline', endISO),
       ]);
       const items: AgendaItem[] = [
         ...(events.data || []).map((e: any) => ({ id: 'e'+e.id, date: (e.start_date||'').slice(0,10), kind: 'event' as const, title: e.title, href: '/hub/agenda' })),
         ...(meetings.data || []).map((m: any) => ({ id: 'm'+m.id, date: (m.date_time||'').slice(0,10), kind: 'meeting' as const, title: m.title, meta: (m.date_time||'').slice(11,16), href: `/hub/reunioes/${m.id}` })),
-        ...(tasks.data || []).map((t: any) => ({ id: 't'+t.id, date: t.deadline, kind: 'task' as const, title: t.name, meta: t.priority, href: '/hub/tarefas' })),
         ...(deliverables.data || []).map((d: any) => ({ id: 'd'+d.id, date: d.deadline, kind: 'deliverable' as const, title: d.name, href: d.project_id ? `/hub/projetos/${d.project_id}` : undefined })),
       ].filter(i => i.date);
       return items;
