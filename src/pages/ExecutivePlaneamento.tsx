@@ -155,7 +155,7 @@ export default function ExecutivePlaneamento() {
               onNewDialogChange={setNewObjOpen}
               layout="gallery"
               hideCascade
-              showGoalsInline
+              compact
             />
           </CardContent>
         </Card>
