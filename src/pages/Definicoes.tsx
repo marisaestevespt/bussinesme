@@ -110,7 +110,12 @@ export default function DefinicoesPage() {
         <div className="w-full">
           {tab === 'identidade' && <SettingsIdentity />}
           {tab === 'dados-fiscal' && <DadosFiscalLayout />}
-          {tab === 'marketing' && <ChannelSettings />}
+          {tab === 'marketing' && (
+            <div className="space-y-10">
+              <ChannelSettings />
+              <ContentPhaseDeadlineSettings />
+            </div>
+          )}
           {tab === 'resumo' && <SettingsDigest />}
           {tab === 'emails' && <SettingsEmails />}
           {tab === 'preferencias' && (
