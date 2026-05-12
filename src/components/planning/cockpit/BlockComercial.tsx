@@ -91,7 +91,7 @@ export function BlockComercial({ year, month }: { year: number; month: number })
     <div className="space-y-4">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="hq-surface-sunken rounded-lg p-3">
+        <Link to="/hub/comercial" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Receita do mês</div>
           <div className="text-lg font-semibold tabular-nums">{fmtEur(data.revenueNow)}</div>
           {data.goal ? (
@@ -106,22 +106,22 @@ export function BlockComercial({ year, month }: { year: number; month: number })
             {delta >= 0 ? <ArrowUpRight className="h-3 w-3 text-emerald-500" /> : <ArrowDownRight className="h-3 w-3 text-red-500" />}
             <span className={delta >= 0 ? 'text-emerald-600' : 'text-red-600'}>{delta >= 0 ? '+' : ''}{fmtEur(delta)} vs. mês anterior</span>
           </div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/comercial?tab=vendas" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Vendas</div>
           <div className="text-lg font-semibold tabular-nums">{data.sales.length}</div>
           <div className="text-[10px] text-muted-foreground mt-1">Ticket médio: {fmtEur(ticket)}</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/comercial?tab=pipeline" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Pipeline ativo</div>
           <div className="text-lg font-semibold tabular-nums">{fmtEur(data.pipelineValue)}</div>
           <div className="text-[10px] text-muted-foreground mt-1">{data.activeLeads} leads</div>
-        </div>
-        <div className="hq-surface-sunken rounded-lg p-3">
+        </Link>
+        <Link to="/hub/comercial?tab=pipeline" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block">
           <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Conversão</div>
           <div className="text-lg font-semibold tabular-nums">{data.conversion.toFixed(1)}%</div>
           <div className="text-[10px] text-muted-foreground mt-1">leads → venda no mês</div>
-        </div>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -144,14 +144,22 @@ export function BlockComercial({ year, month }: { year: number; month: number })
                 </tr>
               </thead>
               <tbody>
-                {data.salesByProduct.map((p, i) => (
-                  <tr key={i} className="border-t border-border/40">
-                    <td className="py-1 truncate max-w-[160px]">{p.name}</td>
-                    <td className="text-right tabular-nums">{p.qty}</td>
-                    <td className="text-right tabular-nums">{fmtEur(p.revenue)}</td>
-                    <td className="text-right tabular-nums text-muted-foreground">{Math.round((p.revenue / data.revenueNow) * 100)}%</td>
-                  </tr>
-                ))}
+                {data.salesByProduct.map((p: any, i) => {
+                  const prod = data.activeProducts.find((ap: any) => ap.name === p.name);
+                  const href = prod ? `/hub/produtos/${prod.id}` : '/hub/comercial?tab=vendas';
+                  return (
+                    <tr
+                      key={i}
+                      className="border-t border-border/40 hover:bg-accent/40 cursor-pointer hq-transition"
+                      onClick={() => (window.location.href = href)}
+                    >
+                      <td className="py-1 truncate max-w-[160px]">{p.name}</td>
+                      <td className="text-right tabular-nums">{p.qty}</td>
+                      <td className="text-right tabular-nums">{fmtEur(p.revenue)}</td>
+                      <td className="text-right tabular-nums text-muted-foreground">{Math.round((p.revenue / data.revenueNow) * 100)}%</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -168,11 +176,16 @@ export function BlockComercial({ year, month }: { year: number; month: number })
           ) : (
             <ul className="space-y-1.5">
               {Object.entries(data.byStage).map(([stage, info]: any) => (
-                <li key={stage} className="flex items-center justify-between text-xs">
-                  <span className="capitalize truncate">{stage}</span>
-                  <span className="tabular-nums text-muted-foreground">
-                    {info.count} · <span className="text-foreground">{fmtEur(info.value)}</span>
-                  </span>
+                <li key={stage}>
+                  <Link
+                    to={`/hub/comercial?tab=pipeline&stage=${encodeURIComponent(stage)}`}
+                    className="flex items-center justify-between text-xs hover:bg-accent/40 rounded px-1 py-0.5 hq-transition"
+                  >
+                    <span className="capitalize truncate">{stage}</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {info.count} · <span className="text-foreground">{fmtEur(info.value)}</span>
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -195,11 +208,16 @@ export function BlockComercial({ year, month }: { year: number; month: number })
           ) : (
             <ul className="space-y-1 max-h-40 overflow-auto pr-1">
               {data.sales.slice(0, 8).map((s: any) => (
-                <li key={s.id} className="flex items-center gap-2 text-xs">
-                  <span className="tabular-nums text-muted-foreground w-12 shrink-0">{(s.payment_date || '').slice(8,10)}/{(s.payment_date || '').slice(5,7)}</span>
-                  <span className="truncate flex-1">{s.client || '—'}</span>
-                  <Badge variant="outline" className="text-[9px] px-1 py-0">{s.product || '—'}</Badge>
-                  <span className="tabular-nums">{fmtEur(Number(s.invoice_total) || 0)}</span>
+                <li key={s.id}>
+                  <Link
+                    to={s.product_id ? `/hub/produtos/${s.product_id}` : '/hub/comercial?tab=vendas'}
+                    className="flex items-center gap-2 text-xs hover:bg-accent/40 rounded px-1 py-0.5 hq-transition"
+                  >
+                    <span className="tabular-nums text-muted-foreground w-12 shrink-0">{(s.payment_date || '').slice(8,10)}/{(s.payment_date || '').slice(5,7)}</span>
+                    <span className="truncate flex-1">{s.client || '—'}</span>
+                    <Badge variant="outline" className="text-[9px] px-1 py-0">{s.product || '—'}</Badge>
+                    <span className="tabular-nums">{fmtEur(Number(s.invoice_total) || 0)}</span>
+                  </Link>
                 </li>
               ))}
             </ul>
