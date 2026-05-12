@@ -190,7 +190,7 @@ export function BlockClientes({ year, month }: { year: number; month: number }) 
                 return (
                   <tr key={c.id} className="border-t border-border/40 hover:bg-accent/30 hq-transition">
                     <td className="px-3 py-2 font-medium">
-                      <Link to={`/hub/clientes/${c.id}`} className="hover:underline flex items-center gap-1.5">
+                      <Link to={`/hub/clientes/${c.id}`} className="hover:underline flex items-center gap-1.5" target="_blank" rel="noopener noreferrer">
                         {stale && <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />}
                         <span className="truncate max-w-[200px]">{c.full_name}</span>
                       </Link>
@@ -251,7 +251,7 @@ export function BlockClientes({ year, month }: { year: number; month: number }) 
                 return (
                   <tr key={c.id} className="border-t border-border/40 hover:bg-accent/30 hq-transition">
                     <td className="px-3 py-2 font-medium">
-                      <Link to={`/hub/clientes/${c.id}`} className="hover:underline">{c.full_name}</Link>
+                      <Link to={`/hub/clientes/${c.id}`} className="hover:underline" target="_blank" rel="noopener noreferrer">{c.full_name}</Link>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{enriched?.product || '—'}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{c.monthly_value ? Number(c.monthly_value).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }) : '—'}</td>
