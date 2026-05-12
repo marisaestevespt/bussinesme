@@ -12,7 +12,6 @@ import { BlockComercial } from './BlockComercial';
 import { BlockMarketing } from './BlockMarketing';
 import { BlockClientes } from './BlockClientes';
 import { BlockOperacao } from './BlockOperacao';
-import { BlockProdutos } from './BlockProdutos';
 import { MonthlyReflectionCard } from '../MonthlyReflectionCard';
 import { MONTH_NAMES_PT, useMonthState, STATE_LABELS, STATE_TONES } from './useMonthState';
 import { cn } from '@/lib/utils';
@@ -99,8 +98,8 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
       <CockpitSection
         storageKey={`b3:${year}-${month}`}
         icon={<Briefcase className="h-4 w-4" />}
-        title="Comercial"
-        subtitle="Vendas, pipeline e ações"
+        title="Comercial e Produtos"
+        subtitle="KPIs, vendas por produto, pipeline e portefólio ativo"
       >
         <BlockComercial year={year} month={month} />
       </CockpitSection>
@@ -109,7 +108,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b4:${year}-${month}`}
         icon={<Megaphone className="h-4 w-4" />}
         title="Marketing"
-        subtitle="Metas, conteúdos e campanhas"
+        subtitle="KPIs, calendário de conteúdo, funis e campanhas"
       >
         <BlockMarketing year={year} month={month} />
       </CockpitSection>
@@ -118,7 +117,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b5:${year}-${month}`}
         icon={<Users className="h-4 w-4" />}
         title="Clientes"
-        subtitle="Portefólio, renovações e NPS"
+        subtitle="Portefólio, renovações, onboardings e alertas"
       >
         <BlockClientes year={year} month={month} />
       </CockpitSection>
@@ -127,18 +126,9 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b6:${year}-${month}`}
         icon={<Settings2 className="h-4 w-4" />}
         title="Operação"
-        subtitle="Projetos, capacidade, rotinas e tarefas"
+        subtitle="Projetos, capacidade, análise por área/cliente e tarefas atrasadas"
       >
         <BlockOperacao year={year} month={month} />
-      </CockpitSection>
-
-      <CockpitSection
-        storageKey={`b7:${year}-${month}`}
-        icon={<Package className="h-4 w-4" />}
-        title="Produtos"
-        subtitle="Ativos e em desenvolvimento"
-      >
-        <BlockProdutos />
       </CockpitSection>
 
       <div ref={reflectionRef}>
