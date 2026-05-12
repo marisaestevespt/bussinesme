@@ -121,47 +121,14 @@ export function BlockMarketing({ year, month }: { year: number; month: number })
             <Link to="/hub/marketing">Abrir editor →</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-7 gap-1 text-[10px] text-muted-foreground mb-1">
-          {WEEK_DAYS.map((d, i) => <div key={i} className="text-center">{d}</div>)}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {grid.map((d, i) => {
-            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            const items = byDay.get(key) || [];
-            return (
-              <div
-                key={i}
-                className={cn(
-                  'min-h-[60px] rounded-md p-1 text-[10px] border',
-                  isSameMonth(d) ? 'bg-background border-border/60' : 'bg-muted/20 border-transparent text-muted-foreground/40',
-                  isToday(d) && 'ring-1 ring-primary/40',
-                )}
-              >
-                <div className="font-medium tabular-nums">{d.getDate()}</div>
-                <div className="space-y-0.5 mt-0.5">
-                  {items.slice(0, 3).map((c: any) => (
-                    <Link
-                      key={c.id}
-                      to="/hub/marketing"
-                      className={cn('block px-1 rounded text-[9px] truncate text-white', STATUS_TONE[c.status] || 'bg-muted')}
-                      title={`${STATUS_LABEL[c.status] || c.status} · ${c.title}`}
-                    >
-                      {c.title}
-                    </Link>
-                  ))}
-                  {items.length > 3 && <div className="text-[9px] text-muted-foreground">+{items.length - 3}</div>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap pt-1">
-          {Object.entries(STATUS_LABEL).map(([k, label]) => (
-            <span key={k} className="inline-flex items-center gap-1">
-              <span className={cn('h-1.5 w-1.5 rounded-full', STATUS_TONE[k])} />{label}
-            </span>
-          ))}
-        </div>
+        <ContentCalendar
+          items={data.content}
+          channels={data.channels}
+          contentChannelLinks={data.channelLinks}
+          profiles={data.profiles}
+          attachments={data.attachments}
+          calendarOnly
+        />
       </div>
 
       {/* Funis + Campanhas */}
