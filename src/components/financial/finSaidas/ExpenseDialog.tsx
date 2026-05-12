@@ -36,7 +36,7 @@ export function ExpenseDialog({ open, onOpenChange, form, setForm, ivaExempt, pa
   const suggestedFileName = buildExpenseFileName({
     expenseDate: form.expense_date,
     supplierName,
-    expenseName: (form as any).expense_name || form.description,
+    expenseName: form.expense_name || form.description,
   });
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

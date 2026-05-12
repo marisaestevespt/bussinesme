@@ -516,7 +516,7 @@ export default function ProdutoDetailPage() {
         {/* Properties — Notion-style */}
         <div className="rounded-lg border border-border/60 bg-card">
           {(() => {
-            const ticketType = ((form as any).ticket_type || 'fixo') as string;
+            const ticketType = (form.ticket_type || 'fixo') as string;
             // Reusable styles for inline (borderless) controls
             const inlineTrigger = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 [&>svg]:opacity-50";
             const inlineInput = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-muted/40 rounded-md";
@@ -553,7 +553,7 @@ export default function ProdutoDetailPage() {
                   <SectionTitle>Configuração de Projeto</SectionTitle>
                   <Row icon={Settings2} label="Modo Operacional (Entregas)">
                     {(() => {
-                      const modes: string[] = (form as any).task_modes || [(form as any).task_mode || 'fases'];
+                      const modes: string[] = form.task_modes || [form.task_mode || 'fases'];
                       const labels = TASK_MODE_OPTIONS.filter(o => modes.includes(o.value)).map(o => o.label);
                       const summary = labels.length > 0 ? labels.join(' + ') : 'Selecionar…';
                       return (
@@ -641,7 +641,7 @@ export default function ProdutoDetailPage() {
                   )}
                   {form.product_type && !['servico_mensal', 'curso', 'ebook', 'template'].includes(form.product_type) && (
                     <Row icon={Clock} label="Horas por projeto pontual">
-                      <Input type="number" value={(form as any).estimated_project_hours ?? ''} onChange={e => update('estimated_project_hours', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 35" className={inlineInput} readOnly={!isOwner} />
+                      <Input type="number" value={form.estimated_project_hours ?? ''} onChange={e => update('estimated_project_hours', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 35" className={inlineInput} readOnly={!isOwner} />
                     </Row>
                   )}
                   <Row
@@ -661,12 +661,12 @@ export default function ProdutoDetailPage() {
                     }
                   >
                     <div className="flex flex-col gap-1 w-full">
-                      <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
+                      <Input type="number" min={0} value={form.max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className={inlineInput} readOnly={!isOwner} />
                       {(() => {
                         const hpc = Number(form.monthly_hours_per_client) || 0;
                         if (!hpc || !teamMonthlyCapacity) return null;
                         const technical = Math.floor(teamMonthlyCapacity / hpc);
-                        const strategic = Number((form as any).max_simultaneous_clients) || 0;
+                        const strategic = Number(form.max_simultaneous_clients) || 0;
                         const overcommit = strategic > 0 && strategic > technical;
                         return (
                           <p className={cn('text-[11px]', overcommit ? 'text-destructive' : 'text-muted-foreground')}>
@@ -996,12 +996,12 @@ export default function ProdutoDetailPage() {
                 onAddSalesAction={() => addRow.mutate({ table: 'commercial_sales_actions', data: { action_name: `Nova Ação — ${form.name}`, product: form.name, status: 'planeada', action_type: 'campanha' } })}
               />
               <ProductSalesKitSection
-                presentationUrl={(form as any).sales_presentation_url || ''}
-                pitch={(form as any).sales_pitch || ''}
-                benefits={((form as any).sales_benefits || []) as Array<{ title: string; description: string }>}
-                materials={((form as any).sales_materials || []) as Array<{ name: string; url: string; type: string }>}
-                objections={((form as any).sales_objections || []) as Array<{ objection: string; response: string }>}
-                caseStudies={((form as any).sales_case_studies || []) as Array<{ client: string; result: string; description: string }>}
+                presentationUrl={form.sales_presentation_url || ''}
+                pitch={form.sales_pitch || ''}
+                benefits={(form.sales_benefits || []) as Array<{ title: string; description: string }>}
+                materials={(form.sales_materials || []) as Array<{ name: string; url: string; type: string }>}
+                objections={(form.sales_objections || []) as Array<{ objection: string; response: string }>}
+                caseStudies={(form.sales_case_studies || []) as Array<{ client: string; result: string; description: string }>}
                 isOwner={isOwner}
                 onUpdate={update}
               />
@@ -1016,7 +1016,7 @@ export default function ProdutoDetailPage() {
               trafficAds={trafficAds}
               isOwner={isOwner}
               productName={form.name || ''}
-              salesPage={((form as any).sales_page || {}) as Record<string, unknown>}
+              salesPage={(form.sales_page || {}) as Record<string, unknown>}
               salesPageUrl={form.sales_page_url || ''}
               onUpdateSalesPage={(next) => update('sales_page', next)}
               onUpdateSalesPageUrl={(url) => update('sales_page_url', url)}
@@ -1083,18 +1083,18 @@ export default function ProdutoDetailPage() {
           {openSection === 'branding' && (
             <div className="space-y-6">
               <ProductBrandingSection
-                branding={((form as any).branding || {}) as Record<string, unknown>}
+                branding={(form.branding || {}) as Record<string, unknown>}
                 isOwner={isOwner}
                 onUpdate={(next) => update('branding', next)}
-                portalBranding={((form as any).portal_branding || {}) as Record<string, unknown>}
+                portalBranding={(form.portal_branding || {}) as Record<string, unknown>}
                 onUpdatePortalBranding={(next) => update('portal_branding', next)}
                 productId={id!}
-                calendarColor={(form as any).calendar_color ?? null}
+                calendarColor={form.calendar_color ?? null}
                 onUpdateCalendarColor={(next) => update('calendar_color', next)}
                 welcomeEmailSlot={id && id !== 'novo' ? (
                   <ProductWelcomeEmailSection
                     productId={id}
-                    bannerUrl={(form as any).welcome_email_banner_url}
+                    bannerUrl={form.welcome_email_banner_url}
                     isOwner={isOwner}
                     onUpdate={(field, value) => update(field as any, value)}
                   />
