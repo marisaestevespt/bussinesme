@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { SettingsIdentity } from '@/components/settings/SettingsIdentity';
 import { DadosFiscalLayout } from '@/components/settings/DadosFiscalLayout';
 import { ChannelSettings } from '@/components/settings/ChannelSettings';
+import { ContentPhaseDeadlineSettings } from '@/components/settings/ContentPhaseDeadlineSettings';
 import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsRecolhas } from '@/components/settings/SettingsRecolhas';
