@@ -11,10 +11,12 @@ interface Props {
   defaultOpen?: boolean;
   children: ReactNode;
   rightSlot?: ReactNode;
+  /** Quando muda (qualquer valor truthy diferente do anterior), força a abrir. */
+  openSignal?: number | string | boolean;
 }
 
 export function CockpitSection({
-  storageKey, icon, title, subtitle, badge, defaultOpen = true, children, rightSlot,
+  storageKey, icon, title, subtitle, badge, defaultOpen = true, children, rightSlot, openSignal,
 }: Props) {
   const fullKey = `cockpit-collapsed:${storageKey}`;
   const [open, setOpen] = useState<boolean>(() => {
@@ -28,6 +30,12 @@ export function CockpitSection({
   useEffect(() => {
     try { localStorage.setItem(fullKey, open ? '0' : '1'); } catch { /* noop */ }
   }, [open, fullKey]);
+
+  // Force-open quando o signal muda (e é truthy)
+  useEffect(() => {
+    if (openSignal) setOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSignal]);
 
   return (
     <section className="hq-card overflow-hidden">
