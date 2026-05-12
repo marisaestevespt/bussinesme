@@ -2796,6 +2796,7 @@ export type Database = {
           id: string
           launch_id: string | null
           objective: string | null
+          phase_deadlines: Json
           product_id: string | null
           product_name: string | null
           project_id: string | null
@@ -2819,6 +2820,7 @@ export type Database = {
           id?: string
           launch_id?: string | null
           objective?: string | null
+          phase_deadlines?: Json
           product_id?: string | null
           product_name?: string | null
           project_id?: string | null
@@ -2842,6 +2844,7 @@ export type Database = {
           id?: string
           launch_id?: string | null
           objective?: string | null
+          phase_deadlines?: Json
           product_id?: string | null
           product_name?: string | null
           project_id?: string | null
@@ -2982,6 +2985,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_phase_settings: {
+        Row: {
+          created_at: string
+          days_before_publish: number
+          enabled: boolean
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_before_publish?: number
+          enabled?: boolean
+          sort_order?: number
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_before_publish?: number
+          enabled?: boolean
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       crm_custom_stages: {
         Row: {
@@ -12195,6 +12225,10 @@ export type Database = {
       can_edit_task: { Args: { _task_id: string }; Returns: boolean }
       cancel_scheduled_renewal: { Args: { _client_id: string }; Returns: Json }
       cleanup_old_audit_logs: { Args: never; Returns: undefined }
+      compute_phase_deadline: {
+        Args: { p_content_id: string; p_status: string }
+        Returns: string
+      }
       current_team_member_id: { Args: never; Returns: string }
       current_user_departments: { Args: never; Returns: string[] }
       current_user_has_sensitive_access: {
