@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useMemo, useState } from 'react';
 import { Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, Target, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,35 +29,32 @@ function statusTone(pct: number, hasGoal: boolean) {
 }
 
 export function BlockObjetivos({ year, month }: { year: number; month: number }) {
-  const periodLabel = `${year}-${String(month).padStart(2, '0')}`;
+  const periodCanonical = `${year}-${String(month).padStart(2, '0')}`;
+  const periodLegacy = MONTH_NAMES_PT[month - 1];
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [selected, setSelected] = useState<any>(null);
   const planning = usePlanningData(year);
 
-  const { data: rows = [], isLoading } = useQuery({
-    queryKey: ['cockpit-objectives-table', year, month],
-    queryFn: async () => {
-      const [{ data: goals }, { data: objs }] = await Promise.all([
-        supabase.from('planning_goals').select('*').eq('year', year).eq('period', periodLabel),
-        supabase.from('executive_objectives').select('*').eq('year', year),
-      ]);
-      const goalsByObj = new Map<string, any>();
-      (goals || []).forEach((g: any) => goalsByObj.set(g.objective_id, g));
-      return (objs || []).map((o: any) => {
-        const g = goalsByObj.get(o.id);
-        const target = Number(g?.target_value ?? o.target_value ?? 0);
-        const actual = Number(g?.actual_value ?? o.current_value ?? 0);
-        const pct = target > 0 ? Math.min(100, (actual / target) * 100) : 0;
-        return { obj: o, goal: g, target, actual, pct, hasGoal: !!g };
-      });
-    },
-    staleTime: 60_000,
-  });
+  const rows = useMemo(() => {
+    const goalsByObj = new Map<string, any>();
+    (planning.allGoals || [])
+      .filter((g: any) => g.period === periodLegacy || g.period_canonical === periodCanonical)
+      .forEach((g: any) => goalsByObj.set(g.objective_id, g));
+
+    return (planning.allObjectives || []).map((o: any) => {
+      const g = goalsByObj.get(o.id);
+      const target = Number(g?.target_value ?? o.target_value ?? 0);
+      const autoActual = g ? planning.goalAutoValue(o, g.period || periodLegacy) : null;
+      const actual = Number(autoActual ?? g?.actual_value ?? o.current_value ?? 0);
+      const pct = target > 0 ? Math.min(100, (actual / target) * 100) : 0;
+      return { obj: o, goal: g, target, actual, pct, hasGoal: !!g };
+    });
+  }, [periodCanonical, periodLegacy, planning]);
 
   const filtered = areaFilter === 'all' ? rows : rows.filter((r: any) => r.obj.area === areaFilter);
   const areaCounts = AREAS.map(a => ({ ...a, count: rows.filter((r: any) => r.obj.area === a.key).length }));
 
-  if (isLoading) return <div className="text-xs text-muted-foreground">A carregar metas…</div>;
+  if (planning.objectives.isLoading || planning.goals.isLoading) return <div className="text-xs text-muted-foreground">A carregar metas…</div>;
 
   return (
     <div className="space-y-3">
