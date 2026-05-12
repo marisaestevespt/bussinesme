@@ -54,6 +54,8 @@ import { ClientPortalAuditBlock } from '@/components/clients/ClientPortalAuditBl
 import { ProjectAnaliseTab } from '@/components/project/tabs/ProjectAnaliseTab';
 import { ProjectFechoTab } from '@/components/project/tabs/ProjectFechoTab';
 import { ProjectPortalTab } from '@/components/project/tabs/ProjectPortalTab';
+import { ProjectMainTab } from '@/components/project/tabs/ProjectMainTab';
+import { ProjectProcessosSection } from '@/components/project/tabs/ProjectProcessosSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
