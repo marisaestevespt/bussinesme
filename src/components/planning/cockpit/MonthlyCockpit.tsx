@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -25,6 +25,7 @@ interface Props {
 export function MonthlyCockpit({ year, month, onChange }: Props) {
   const reflectionRef = useRef<HTMLDivElement>(null);
   const { state, isFuture, showCloseButton } = useMonthState(year, month);
+  const [openSignal, setOpenSignal] = useState(0);
 
   const prev = () => {
     const m = month - 1;
@@ -66,7 +67,10 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         {showCloseButton && (
           <Button
             size="sm"
-            onClick={() => reflectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            onClick={() => {
+              setOpenSignal((s) => s + 1);
+              setTimeout(() => reflectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+            }}
           >
             <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
             Fechar mês
@@ -136,8 +140,9 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
           storageKey={`b8:${year}-${month}`}
           icon={<NotebookPen className="h-4 w-4" />}
           title="Reflexão e fecho"
-          subtitle="Disponível no fim do mês ou nos primeiros 3 dias do mês seguinte"
+          subtitle="Escreve a reflexão e marca o mês como concluído"
           defaultOpen={false}
+          openSignal={openSignal}
         >
           {isFuture ? (
             <p className="text-xs text-muted-foreground">Disponível no final do mês.</p>
