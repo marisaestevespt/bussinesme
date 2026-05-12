@@ -199,7 +199,7 @@ function ClienteDetailPageInner() {
             form.portal_deactivation_date = deactivationDate;
           }
         }
-        await upsertClient.mutateAsyncform;
+        await upsertClient.mutateAsync(form as any);
         toast.success('Cliente guardado');
         return id || null;
       }
