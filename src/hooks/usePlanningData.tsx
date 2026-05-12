@@ -703,8 +703,10 @@ export function usePlanningData(year = currentYear) {
     if (!obj || obj.value_source === 'manual' || obj.value_source === 'metrica') return null;
     const source = obj.value_source;
     const sf = obj.source_filter || {};
-    const monthIdx = MONTH_NAMES.indexOf(goalPeriod);
-    const quarterMatch = goalPeriod.match(/^T([1-4])$/);
+    // Accept legacy ('Maio', 'T2') or canonical ('2026-05', 'Q2') periods.
+    const normalized = periodCanonicalToLegacy(goalPeriod) || goalPeriod;
+    const monthIdx = MONTH_NAMES.indexOf(normalized);
+    const quarterMatch = normalized.match(/^T([1-4])$/);
     const periodMonths = monthIdx !== -1
       ? [monthIdx + 1]
       : quarterMatch
