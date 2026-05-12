@@ -13,7 +13,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Save, Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, Plus, CheckSquare, Upload, Trash2, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, LayoutDashboard, Workflow, Settings2, BarChart3 } from 'lucide-react';
+import { Save, Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, StickyNote, Plus, CheckSquare, Upload, Trash2, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check, Flag, LayoutDashboard, Workflow, Settings2, BarChart3 } from 'lucide-react';
+import { useTaskTimeTotals } from '@/components/TaskTimeTracker';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   EntityTabs,
