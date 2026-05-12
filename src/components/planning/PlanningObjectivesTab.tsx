@@ -20,6 +20,7 @@ export function PlanningObjectivesTab({
   areaFilter,
   hideCascade = false,
   showGoalsInline = false,
+  compact = false,
 }: {
   planning: any;
   showHeaderButton?: boolean;
@@ -29,6 +30,7 @@ export function PlanningObjectivesTab({
   areaFilter?: string;
   hideCascade?: boolean;
   showGoalsInline?: boolean;
+  compact?: boolean;
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const newDialogOpen = controlledOpen ?? internalOpen;
@@ -75,6 +77,25 @@ export function PlanningObjectivesTab({
         <div className={gridClass}>
           {objs.map((obj: any) => {
             const prog = planning.objectiveProgress(obj);
+            if (compact) {
+              return (
+                <Card
+                  key={obj.id}
+                  className="cursor-pointer hover:shadow-md hover:border-primary/40 hq-transition"
+                  onClick={() => setDetailObj(obj)}
+                >
+                  <CardContent className="p-4 space-y-2">
+                    <h3 className="font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+                      {obj.title}
+                    </h3>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-lg font-bold tabular-nums">{prog}%</span>
+                    </div>
+                    <Progress value={prog} className="h-1.5" />
+                  </CardContent>
+                </Card>
+              );
+            }
             return (
               <Card
                 key={obj.id}
