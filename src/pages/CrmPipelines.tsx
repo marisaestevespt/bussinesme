@@ -387,7 +387,16 @@ export default function CrmPipelines() {
             products={products}
             profiles={profiles}
             onSave={handleSaveLead}
-            onDelete={(id) => deleteLead.mutate(id)}
+            onDelete={async (id) => {
+              const lead = allLeads.find(l => l.id === id);
+              const ok = await confirm({
+                title: 'Eliminar lead?',
+                description: `"${lead?.name || 'Lead sem nome'}" será permanentemente eliminada. Esta ação não pode ser desfeita.`,
+                confirmText: 'Eliminar',
+                variant: 'destructive',
+              });
+              if (ok) deleteLead.mutate(id);
+            }}
           />
         </div>
       </AppLayout>

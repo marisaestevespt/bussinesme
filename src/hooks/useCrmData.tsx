@@ -124,10 +124,11 @@ export function useCrmData() {
 
   const deleteLead = useMutation({
     mutationFn: async (id: string) => {
-      const { data: snap } = await supabase.from('crm_leads').select('name, status').eq('id', id).maybeSingle();
+      // Snapshot completo antes de eliminar — permite recuperação a partir do audit log
+      const { data: snap } = await supabase.from('crm_leads').select('*').eq('id', id).maybeSingle();
       const { error } = await supabase.from('crm_leads').delete().eq('id', id);
       if (error) throw error;
-      logAudit('deleted', 'crm_lead', id, { name: snap?.name, status: snap?.status });
+      logAudit('deleted', 'crm_lead', id, { snapshot: snap });
     },
     onSuccess: invalidate,
   });
