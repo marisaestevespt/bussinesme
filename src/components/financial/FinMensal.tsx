@@ -20,6 +20,7 @@ import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/
 import { formatEuro } from '@/lib/formatting';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { MonthlyDocUpload, FiscalChecklistCard } from './finMensal/MonthlyDocs';
+import { FinAlertasMes } from './FinAlertasMes';
 import { EntradasTable, IvaCobradoDialog } from './finMensal/EntradasTable';
 import { SegurancaSocialCard, SaidasTable, IvaPagoDialog, NewExpenseDialog } from './finMensal/SaidasSection';
 import { MONTHS, getSubscriptionDueDate, canRenderSubscriptionForMonth, type Sale } from './finMensal/helpers';
