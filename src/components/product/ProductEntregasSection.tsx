@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Repeat as RepeatIcon, Link2 } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -153,7 +153,7 @@ function DeliverableRow({
             )}
             {isRecurring && allowRecurring && template.is_recurring && (
               <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
-                <RepeatIcon className="h-2.5 w-2.5" /> Recorrente
+                <Repeat className="h-2.5 w-2.5" /> Recorrente
               </Badge>
             )}
             {!portalVisible && (
