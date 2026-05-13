@@ -128,21 +128,7 @@ export function CommercialCRM() {
     const lead = allLeads.find(l => l.id === leadId);
     if (!lead) return;
     if (newStatus === 'perdido') { setSelectedLead({ ...lead, status: newStatus }); setSheetOpen(true); return; }
-    // 'ganho' requer conversão completa: abrir sheet em vez de update direto
-    if (newStatus === 'ganho') {
-      setSelectedLead({ ...lead });
-      setSheetOpen(true);
-      toast.info('Para marcar como ganho, completa a conversão em "Converter em Cliente".');
-      return;
-    }
-    upsertLead.mutate({ id: leadId, status: newStatus }, {
-      onError: (err: any) => {
-        const msg = err?.message || '';
-        if (msg.includes('conversão para cliente')) {
-          toast.error('Lead só pode ser marcado como ganho após conversão. Abre o lead e usa "Converter em Cliente".');
-        }
-      },
-    });
+    upsertLead.mutate({ id: leadId, status: newStatus });
   }, [allLeads, upsertLead]);
 
   const handleDelete = async (id: string) => {
