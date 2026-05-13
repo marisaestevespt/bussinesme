@@ -1,1 +1,3 @@
 Product deliverable templates: products can define phase/delivery templates via product_deliverable_templates table. Projects can import them via "Importar do Produto" button in ProjectDeliverables component. Imported as recurring deliverables without dates — dates/recurrence are configured per-project.
+
+Deliverable types: tarefa, reuniao, documento, aprovacao, link, email, mensagem. Content fields: link_url, document_url/document_file_path, email_subject/email_body, message_body. Edited via ContentSheet (Sheet drawer) opened from a content button in DeliverableRow. Mirror columns exist on project_deliverables for per-cliente overrides.

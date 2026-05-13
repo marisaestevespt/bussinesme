@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2 } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2, FileText, Mail, MessageSquare, FileUp } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ProductTabHeader } from './_shared';
@@ -30,9 +33,15 @@ interface Template {
   offset_trigger?: string;
   responsible_type?: string;
   responsible_role?: string | null;
-  deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao' | 'link';
+  deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao' | 'link' | 'email' | 'mensagem';
   estimated_minutes?: number | null;
   meeting_title_template?: string | null;
+  link_url?: string | null;
+  document_url?: string | null;
+  document_file_path?: string | null;
+  email_subject?: string | null;
+  email_body?: string | null;
+  message_body?: string | null;
 }
 
 interface Phase {
@@ -125,9 +134,20 @@ function DeliverableRow({
     reuniao: { icon: '📅', label: 'Reunião' },
     documento: { icon: '📄', label: 'Documento' },
     link: { icon: '🔗', label: 'Link' },
+    email: { icon: '✉️', label: 'Email' },
+    mensagem: { icon: '💬', label: 'Mensagem' },
+    aprovacao: { icon: '✅', label: 'Aprovação' },
   };
-  const tMeta = typeMeta[template.deliverable_type || 'tarefa'];
+  const tMeta = typeMeta[template.deliverable_type || 'tarefa'] || typeMeta.tarefa;
   const linkedSopName = sops.find(s => s.id === template.linked_sop_id)?.name;
+  const [contentOpen, setContentOpen] = useState(false);
+  const dType = template.deliverable_type || 'tarefa';
+  const hasContentSlot = dType === 'link' || dType === 'documento' || dType === 'email' || dType === 'mensagem';
+  const hasContent =
+    (dType === 'link' && !!template.link_url) ||
+    (dType === 'documento' && (!!template.document_url || !!template.document_file_path)) ||
+    (dType === 'email' && (!!template.email_subject || !!template.email_body)) ||
+    (dType === 'mensagem' && !!template.message_body);
 
   // ── Static view ────────────────────────────────────────────
   if (!editing) {
@@ -165,6 +185,18 @@ function DeliverableRow({
           </span>
           {isOwner ? (
             <div className="w-32 shrink-0 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100">
+              {hasContentSlot && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button aria-label="Editar conteúdo" size="icon" variant="ghost" className={`h-7 w-7 ${hasContent ? 'text-primary' : ''}`} onClick={() => setContentOpen(true)}>
+                      {dType === 'email' ? <Mail className="h-3 w-3" /> : dType === 'mensagem' ? <MessageSquare className="h-3 w-3" /> : dType === 'documento' ? <FileUp className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {hasContent ? 'Editar conteúdo' : 'Adicionar conteúdo'}
+                  </TooltipContent>
+                </Tooltip>
+              )}
               <Button aria-label="Editar" size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(true)}>
                 <Pencil className="h-3 w-3" />
               </Button>
@@ -194,6 +226,7 @@ function DeliverableRow({
             )}
           </div>
         )}
+        <ContentSheet open={contentOpen} onOpenChange={setContentOpen} template={template} isOwner={isOwner} onUpdate={onUpdate} />
       </div>
     );
   }
@@ -224,6 +257,9 @@ function DeliverableRow({
             <SelectItem value="reuniao">📅 Reunião</SelectItem>
             <SelectItem value="documento">📄 Documento</SelectItem>
             <SelectItem value="link">🔗 Link</SelectItem>
+            <SelectItem value="email">✉️ Email</SelectItem>
+            <SelectItem value="mensagem">💬 Mensagem</SelectItem>
+            <SelectItem value="aprovacao">✅ Aprovação</SelectItem>
           </SelectContent>
         </Select>
         <Input value={name} onChange={e => setName(e.target.value)}
@@ -308,6 +344,11 @@ function DeliverableRow({
         )}
         {isOwner && (
           <div className="flex items-center gap-0.5">
+            {hasContentSlot && (
+              <Button aria-label="Editar conteúdo" size="icon" variant="ghost" className={`h-7 w-7 ${hasContent ? 'text-primary' : ''}`} onClick={() => setContentOpen(true)}>
+                {dType === 'email' ? <Mail className="h-3.5 w-3.5" /> : dType === 'mensagem' ? <MessageSquare className="h-3.5 w-3.5" /> : dType === 'documento' ? <FileUp className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
+              </Button>
+            )}
             <Button aria-label="Concluir edição" size="icon" variant="ghost" className="h-7 w-7 text-primary" onClick={() => setEditing(false)}>
               <Check className="h-3.5 w-3.5" />
             </Button>
@@ -366,7 +407,150 @@ function DeliverableRow({
           </Tooltip>
         </div>
       )}
+      <ContentSheet open={contentOpen} onOpenChange={setContentOpen} template={template} isOwner={isOwner} onUpdate={onUpdate} />
     </div>
+  );
+}
+
+// ─── Content Sheet (link/documento/email/mensagem) ───────────
+function ContentSheet({
+  open, onOpenChange, template, isOwner, onUpdate,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  template: Template;
+  isOwner: boolean;
+  onUpdate: (id: string, data: Record<string, unknown>) => void;
+}) {
+  const dType = template.deliverable_type || 'tarefa';
+  const [linkUrl, setLinkUrl] = useState(template.link_url || '');
+  const [docUrl, setDocUrl] = useState(template.document_url || '');
+  const [emailSubject, setEmailSubject] = useState(template.email_subject || '');
+  const [emailBody, setEmailBody] = useState(template.email_body || '');
+  const [messageBody, setMessageBody] = useState(template.message_body || '');
+
+  useEffect(() => {
+    if (open) {
+      setLinkUrl(template.link_url || '');
+      setDocUrl(template.document_url || '');
+      setEmailSubject(template.email_subject || '');
+      setEmailBody(template.email_body || '');
+      setMessageBody(template.message_body || '');
+    }
+  }, [open, template.id]);
+
+  const save = () => {
+    const patch: Record<string, unknown> = {};
+    if (dType === 'link') patch.link_url = linkUrl.trim() || null;
+    if (dType === 'documento') patch.document_url = docUrl.trim() || null;
+    if (dType === 'email') {
+      patch.email_subject = emailSubject.trim() || null;
+      patch.email_body = emailBody || null;
+    }
+    if (dType === 'mensagem') patch.message_body = messageBody || null;
+    onUpdate(template.id, patch);
+    toast.success('Conteúdo guardado');
+    onOpenChange(false);
+  };
+
+  const titleMap: Record<string, string> = {
+    link: '🔗 Link',
+    documento: '📄 Documento',
+    email: '✉️ Template de email',
+    mensagem: '💬 Template de mensagem',
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>{titleMap[dType] || 'Conteúdo'}</SheetTitle>
+          <SheetDescription>
+            {template.name || 'Entrega sem nome'}
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="py-6 space-y-4">
+          {dType === 'link' && (
+            <div className="space-y-2">
+              <Label className="text-xs">URL</Label>
+              <Input
+                value={linkUrl}
+                onChange={e => setLinkUrl(e.target.value)}
+                placeholder="https://..."
+                readOnly={!isOwner}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Link que aparece para a equipa/cliente quando esta entrega é executada.
+              </p>
+            </div>
+          )}
+
+          {dType === 'documento' && (
+            <div className="space-y-2">
+              <Label className="text-xs">URL do documento (Drive, Notion, etc.)</Label>
+              <Input
+                value={docUrl}
+                onChange={e => setDocUrl(e.target.value)}
+                placeholder="https://docs.google.com/..."
+                readOnly={!isOwner}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Link para o documento template. Pode ser duplicado por cada cliente.
+              </p>
+            </div>
+          )}
+
+          {dType === 'email' && (
+            <>
+              <div className="space-y-2">
+                <Label className="text-xs">Assunto</Label>
+                <Input
+                  value={emailSubject}
+                  onChange={e => setEmailSubject(e.target.value)}
+                  placeholder="Ex: Bem-vindo ao {produto}, {cliente}!"
+                  readOnly={!isOwner}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Corpo do email</Label>
+                <Textarea
+                  value={emailBody}
+                  onChange={e => setEmailBody(e.target.value)}
+                  placeholder="Olá {cliente},..."
+                  rows={12}
+                  readOnly={!isOwner}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Variáveis disponíveis: <code>{'{cliente}'}</code>, <code>{'{produto}'}</code>
+                </p>
+              </div>
+            </>
+          )}
+
+          {dType === 'mensagem' && (
+            <div className="space-y-2">
+              <Label className="text-xs">Mensagem (WhatsApp / SMS)</Label>
+              <Textarea
+                value={messageBody}
+                onChange={e => setMessageBody(e.target.value)}
+                placeholder="Olá {cliente}, ..."
+                rows={8}
+                readOnly={!isOwner}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Variáveis: <code>{'{cliente}'}</code>, <code>{'{produto}'}</code>
+              </p>
+            </div>
+          )}
+        </div>
+
+        <SheetFooter className="gap-2">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          {isOwner && <Button onClick={save}>Guardar</Button>}
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 

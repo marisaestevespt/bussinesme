@@ -7856,6 +7856,8 @@ export type Database = {
           document_url: string | null
           duration_days: number | null
           duration_unit: string
+          email_body: string | null
+          email_subject: string | null
           estimated_minutes: number | null
           id: string
           is_meeting: boolean
@@ -7863,6 +7865,7 @@ export type Database = {
           link_url: string | null
           linked_sop_id: string | null
           meeting_title_template: string | null
+          message_body: string | null
           name: string
           offset_days: number
           offset_trigger: string
@@ -7881,6 +7884,8 @@ export type Database = {
           document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
+          email_body?: string | null
+          email_subject?: string | null
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
@@ -7888,6 +7893,7 @@ export type Database = {
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_title_template?: string | null
+          message_body?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
@@ -7906,6 +7912,8 @@ export type Database = {
           document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
+          email_body?: string | null
+          email_subject?: string | null
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
@@ -7913,6 +7921,7 @@ export type Database = {
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_title_template?: string | null
+          message_body?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
@@ -9480,6 +9489,8 @@ export type Database = {
           document_url: string | null
           duration_days: number | null
           duration_unit: string
+          email_body: string | null
+          email_subject: string | null
           estimated_minutes: number | null
           id: string
           is_meeting: boolean
@@ -9488,6 +9499,7 @@ export type Database = {
           linked_sop_id: string | null
           meeting_id: string | null
           meeting_title_template: string | null
+          message_body: string | null
           name: string
           offset_days: number
           offset_trigger: string
@@ -9517,6 +9529,8 @@ export type Database = {
           document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
+          email_body?: string | null
+          email_subject?: string | null
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
@@ -9525,6 +9539,7 @@ export type Database = {
           linked_sop_id?: string | null
           meeting_id?: string | null
           meeting_title_template?: string | null
+          message_body?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
@@ -9554,6 +9569,8 @@ export type Database = {
           document_url?: string | null
           duration_days?: number | null
           duration_unit?: string
+          email_body?: string | null
+          email_subject?: string | null
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
@@ -9562,6 +9579,7 @@ export type Database = {
           linked_sop_id?: string | null
           meeting_id?: string | null
           meeting_title_template?: string | null
+          message_body?: string | null
           name?: string
           offset_days?: number
           offset_trigger?: string
@@ -12852,6 +12870,8 @@ export type Database = {
         | "documento"
         | "aprovacao"
         | "link"
+        | "email"
+        | "mensagem"
       digest_frequency: "diario" | "semanal" | "mensal"
       google_calendar_scope:
         | "produto"
@@ -13022,7 +13042,15 @@ export const Constants = {
         "viewer",
       ],
       brain_dump_status: ["em_ideia", "aplicado", "desconsiderado"],
-      deliverable_type: ["tarefa", "reuniao", "documento", "aprovacao", "link"],
+      deliverable_type: [
+        "tarefa",
+        "reuniao",
+        "documento",
+        "aprovacao",
+        "link",
+        "email",
+        "mensagem",
+      ],
       digest_frequency: ["diario", "semanal", "mensal"],
       google_calendar_scope: [
         "produto",
