@@ -628,6 +628,9 @@ function ProjetoDetailInner() {
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
               <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
+              {(local as any)?.project_mode === 'recorrente' && (
+                <Badge variant="outline" className="text-xs font-medium gap-1">🔄 Operacional</Badge>
+              )}
               <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
               {local.department && <span className="text-sm text-muted-foreground">{getDeptLabel(local.department)}</span>}
             </div>
