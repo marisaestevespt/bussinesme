@@ -170,7 +170,25 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
 
   const handleConvertToClient = async () => {
     if (!lead?.id) return;
+    if (!form.name?.trim()) {
+      toast.error('Define o nome da lead antes de converter.');
+      return;
+    }
     try {
+      // Já convertido? (existe client_history.lead_id) → atualiza só o status para ganho
+      const { data: existingHistory } = await supabase
+        .from('client_history')
+        .select('client_id')
+        .eq('lead_id', lead.id)
+        .maybeSingle();
+      if (existingHistory?.client_id) {
+        await supabase.from('crm_leads').update({ status: 'ganho' } as any).eq('id', lead.id);
+        toast.success('Lead já estava convertido — marcado como ganho.');
+        onOpenChange(false);
+        navigate(`/hub/clientes/${existingHistory.client_id}`);
+        return;
+      }
+
       const productName = form.closed_product || form.potential_product || null;
       const productId = await resolveProductId(productName);
       const quoteId = (lead as any)?.quote_id || form.quote_id || null;
@@ -338,13 +356,26 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
 
       const successParts = ['Cliente criado'];
       if (createdProjectId) successParts.push('projeto criado');
+
+      // Marca o lead como ganho (agora o trigger passa porque já existe client_history.lead_id)
+      const { error: statusErr } = await supabase
+        .from('crm_leads')
+        .update({ status: 'ganho' } as any)
+        .eq('id', lead.id);
+      if (statusErr) {
+        console.error('Erro a marcar lead como ganho', statusErr);
+        toast.warning('Cliente criado mas não consegui marcar a lead como ganha. Atualiza manualmente.');
+      } else {
+        successParts.push('lead marcada como ganha');
+      }
+
       toast.success(successParts.join(', ') + '!');
 
       onOpenChange(false);
       navigate(`/hub/clientes/${newClient.id}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Erro ao converter lead em cliente');
+      toast.error(`Erro ao converter: ${err?.message || 'verifica permissões e tenta novamente'}`);
     }
   };
 
