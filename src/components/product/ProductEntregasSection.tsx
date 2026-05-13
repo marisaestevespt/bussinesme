@@ -453,7 +453,7 @@ function ContentSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-2xl lg:max-w-3xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Anexos da entrega</SheetTitle>
           <SheetDescription>
