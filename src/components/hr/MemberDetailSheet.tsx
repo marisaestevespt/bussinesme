@@ -30,6 +30,7 @@ import { Progress } from '@/components/ui/progress';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { OnboardingItem } from '@/components/onboarding/OnboardingItem';
 
 function MemberIconBlock({ member }: { member: any }) {
   const qc = useQueryClient();
