@@ -8768,6 +8768,7 @@ export type Database = {
           recurrence_anchor_day: number | null
           recurrence_frequency: string | null
           recurrence_lead_days: number | null
+          recurrence_week_of_month: number | null
           sort_order: number
         }
         Insert: {
@@ -8787,6 +8788,7 @@ export type Database = {
           recurrence_anchor_day?: number | null
           recurrence_frequency?: string | null
           recurrence_lead_days?: number | null
+          recurrence_week_of_month?: number | null
           sort_order?: number
         }
         Update: {
@@ -8806,6 +8808,7 @@ export type Database = {
           recurrence_anchor_day?: number | null
           recurrence_frequency?: string | null
           recurrence_lead_days?: number | null
+          recurrence_week_of_month?: number | null
           sort_order?: number
         }
         Relationships: [
@@ -9705,6 +9708,7 @@ export type Database = {
           recurrence_frequency: string | null
           recurrence_lead_days: number | null
           recurrence_period: string | null
+          recurrence_week_of_month: number | null
           sort_order: number
           source_phase_id: string | null
           started_at: string | null
@@ -9732,6 +9736,7 @@ export type Database = {
           recurrence_frequency?: string | null
           recurrence_lead_days?: number | null
           recurrence_period?: string | null
+          recurrence_week_of_month?: number | null
           sort_order?: number
           source_phase_id?: string | null
           started_at?: string | null
@@ -9759,6 +9764,7 @@ export type Database = {
           recurrence_frequency?: string | null
           recurrence_lead_days?: number | null
           recurrence_period?: string | null
+          recurrence_week_of_month?: number | null
           sort_order?: number
           source_phase_id?: string | null
           started_at?: string | null
