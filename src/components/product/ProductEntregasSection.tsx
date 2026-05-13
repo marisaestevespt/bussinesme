@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -113,8 +113,101 @@ function DeliverableRow({
     if (t !== titleTplRef.current) { titleTplRef.current = t; setTitleTpl(t); }
   }, [template.meeting_title_template]);
 
+  const [editing, setEditing] = useState(!template.name); // open editor for empty new rows
+  const portalVisible = template.portal_visible ?? true;
+  const respType = (template.responsible_type || 'equipa') as 'equipa' | 'cliente';
+  const respValue = respType === 'cliente' ? '__cliente__' : (template.responsible_role || '__equipa_none__');
+  const respLabel = respType === 'cliente'
+    ? 'Cliente'
+    : (template.responsible_role ? `Equipa · ${template.responsible_role}` : 'Equipa');
+  const typeMeta: Record<string, { icon: string; label: string }> = {
+    tarefa: { icon: '📋', label: 'Tarefa' },
+    reuniao: { icon: '📅', label: 'Reunião' },
+    documento: { icon: '📄', label: 'Documento' },
+    link: { icon: '🔗', label: 'Link' },
+  };
+  const tMeta = typeMeta[template.deliverable_type || 'tarefa'];
+  const linkedSopName = sops.find(s => s.id === template.linked_sop_id)?.name;
+
+  // ── Static view ────────────────────────────────────────────
+  if (!editing) {
+    return (
+      <div className="pl-6 group">
+        <div className="flex items-center gap-3 rounded-md px-2 py-1.5 -mx-2 hover:bg-muted/40 transition-colors">
+          <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{index + 1}.</span>
+          <span className="text-sm shrink-0" title={tMeta.label}>{tMeta.icon}</span>
+          <span className="flex-1 text-sm font-medium truncate">{template.name || <span className="italic text-muted-foreground">Sem nome</span>}</span>
+          <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-muted-foreground">
+            {template.estimated_minutes != null && (
+              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
+                <Clock className="h-2.5 w-2.5" /> {template.estimated_minutes}min
+              </Badge>
+            )}
+            <Badge variant="outline" className={`h-5 px-1.5 gap-1 text-[10px] font-normal ${respType === 'cliente' ? 'border-warning/40 text-warning' : ''}`}>
+              {respType === 'cliente' ? <User className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />} {respLabel}
+            </Badge>
+            {linkedSopName && (
+              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
+                <Link2 className="h-2.5 w-2.5" /> {linkedSopName}
+              </Badge>
+            )}
+            {isRecurring && allowRecurring && template.is_recurring && (
+              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
+                <Repeat className="h-2.5 w-2.5" /> Recorrente
+              </Badge>
+            )}
+            {!portalVisible && (
+              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
+                <EyeOff className="h-2.5 w-2.5" /> Oculto
+              </Badge>
+            )}
+          </div>
+          {isOwner && (
+            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 shrink-0">
+              <Button aria-label="Editar" size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(true)}>
+                <Pencil className="h-3 w-3" />
+              </Button>
+              <Button aria-label="Mover para cima" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={index === 0}>
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button aria-label="Mover para baixo" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveDown} disabled={index === total - 1}>
+                <ArrowDown className="h-3 w-3" />
+              </Button>
+              <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(template.id)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+        {(template.description || (template.deliverable_type === 'reuniao' && template.meeting_title_template)) && (
+          <div className="pl-9 pr-2 space-y-0.5">
+            {template.description && (
+              <p className="text-[11px] text-muted-foreground italic">{template.description}</p>
+            )}
+            {template.deliverable_type === 'reuniao' && template.meeting_title_template && (
+              <p className="text-[10px] text-muted-foreground">
+                <span className="uppercase tracking-wide">Título: </span>{template.meeting_title_template}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Edit view ──────────────────────────────────────────────
+  const handleResponsibleChange = (v: string) => {
+    if (v === '__cliente__') {
+      onUpdate(template.id, { responsible_type: 'cliente', responsible_role: null });
+    } else if (v === '__equipa_none__') {
+      onUpdate(template.id, { responsible_type: 'equipa', responsible_role: null });
+    } else {
+      onUpdate(template.id, { responsible_type: 'equipa', responsible_role: v });
+    }
+  };
+
   return (
-    <div className="space-y-1 pl-6 group">
+    <div className="space-y-1 pl-6 group rounded-md bg-muted/20 -mx-2 px-2 py-2 border border-border/50">
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{index + 1}.</span>
         <Select value={template.deliverable_type || 'tarefa'}
@@ -182,36 +275,28 @@ function DeliverableRow({
             {(template.portal_visible ?? true) ? 'Visível no portal' : 'Oculto no portal'}
           </TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button aria-label="Utilizador" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
-              onClick={() => onUpdate(template.id, { responsible_type: (template.responsible_type || 'equipa') === 'equipa' ? 'cliente' : 'equipa' })}>
-              {(template.responsible_type || 'equipa') === 'cliente'
-                ? <User className="h-3.5 w-3.5 text-warning" />
-                : <Users className="h-3.5 w-3.5 text-muted-foreground" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            {(template.responsible_type || 'equipa') === 'cliente' ? 'Responsável: Cliente' : 'Responsável: Equipa'}
-          </TooltipContent>
-        </Tooltip>
-        {(template.responsible_type || 'equipa') === 'equipa' && (
-          <Select
-            value={template.responsible_role || 'none'}
-            onValueChange={(v) => onUpdate(template.id, { responsible_role: v === 'none' ? null : v })}
-            disabled={!isOwner}
-          >
-            <SelectTrigger className="h-9 w-40 text-xs shrink-0" title="Função responsável">
-              <SelectValue placeholder="Função…" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Sem função</SelectItem>
-              {roles.map(r => (
-                <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <Select
+          value={respValue}
+          onValueChange={handleResponsibleChange}
+          disabled={!isOwner}
+        >
+          <SelectTrigger className="h-9 w-48 text-xs shrink-0" title="Responsável">
+            <SelectValue placeholder="Responsável…" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__cliente__">
+              <span className="flex items-center gap-1.5"><User className="h-3 w-3" /> Cliente</span>
+            </SelectItem>
+            <SelectItem value="__equipa_none__">
+              <span className="flex items-center gap-1.5"><Users className="h-3 w-3" /> Equipa (sem função)</span>
+            </SelectItem>
+            {roles.map(r => (
+              <SelectItem key={r.id} value={r.name}>
+                <span className="flex items-center gap-1.5"><Users className="h-3 w-3" /> Equipa · {r.name}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {isRecurring && allowRecurring && (
           <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-muted-foreground">
             <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
@@ -219,14 +304,11 @@ function DeliverableRow({
           </label>
         )}
         {isOwner && (
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
-            <Button aria-label="Mover para cima" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={index === 0}>
-              <ArrowUp className="h-3 w-3" />
+          <div className="flex items-center gap-0.5">
+            <Button aria-label="Concluir edição" size="icon" variant="ghost" className="h-7 w-7 text-primary" onClick={() => setEditing(false)}>
+              <Check className="h-3.5 w-3.5" />
             </Button>
-            <Button aria-label="Mover para baixo" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveDown} disabled={index === total - 1}>
-              <ArrowDown className="h-3 w-3" />
-            </Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(template.id)}>
+            <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(template.id)}>
               <X className="h-3 w-3" />
             </Button>
           </div>
