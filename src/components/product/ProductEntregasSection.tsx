@@ -134,9 +134,20 @@ function DeliverableRow({
     reuniao: { icon: '📅', label: 'Reunião' },
     documento: { icon: '📄', label: 'Documento' },
     link: { icon: '🔗', label: 'Link' },
+    email: { icon: '✉️', label: 'Email' },
+    mensagem: { icon: '💬', label: 'Mensagem' },
+    aprovacao: { icon: '✅', label: 'Aprovação' },
   };
-  const tMeta = typeMeta[template.deliverable_type || 'tarefa'];
+  const tMeta = typeMeta[template.deliverable_type || 'tarefa'] || typeMeta.tarefa;
   const linkedSopName = sops.find(s => s.id === template.linked_sop_id)?.name;
+  const [contentOpen, setContentOpen] = useState(false);
+  const dType = template.deliverable_type || 'tarefa';
+  const hasContentSlot = dType === 'link' || dType === 'documento' || dType === 'email' || dType === 'mensagem';
+  const hasContent =
+    (dType === 'link' && !!template.link_url) ||
+    (dType === 'documento' && (!!template.document_url || !!template.document_file_path)) ||
+    (dType === 'email' && (!!template.email_subject || !!template.email_body)) ||
+    (dType === 'mensagem' && !!template.message_body);
 
   // ── Static view ────────────────────────────────────────────
   if (!editing) {
