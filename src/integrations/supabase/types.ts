@@ -10357,7 +10357,6 @@ export type Database = {
       }
       sops: {
         Row: {
-          apply_to_all_active_clients: boolean
           cover_url: string | null
           created_at: string
           created_by: string | null
@@ -10392,7 +10391,6 @@ export type Database = {
           version_notes: string | null
         }
         Insert: {
-          apply_to_all_active_clients?: boolean
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -10427,7 +10425,6 @@ export type Database = {
           version_notes?: string | null
         }
         Update: {
-          apply_to_all_active_clients?: boolean
           cover_url?: string | null
           created_at?: string
           created_by?: string | null

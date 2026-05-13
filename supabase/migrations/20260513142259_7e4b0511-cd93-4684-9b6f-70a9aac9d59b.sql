@@ -1,0 +1,1 @@
+ALTER TABLE public.sops DROP COLUMN IF EXISTS apply_to_all_active_clients;
