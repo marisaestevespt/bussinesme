@@ -6297,6 +6297,8 @@ export type Database = {
           deadline_date: string | null
           id: string
           member_id: string
+          sop_id: string | null
+          sop_step_id: string | null
           sort_order: number
           task: string
         }
@@ -6306,6 +6308,8 @@ export type Database = {
           deadline_date?: string | null
           id?: string
           member_id: string
+          sop_id?: string | null
+          sop_step_id?: string | null
           sort_order?: number
           task: string
         }
@@ -6315,6 +6319,8 @@ export type Database = {
           deadline_date?: string | null
           id?: string
           member_id?: string
+          sop_id?: string | null
+          sop_step_id?: string | null
           sort_order?: number
           task?: string
         }
@@ -6331,6 +6337,20 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_onboarding_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_onboarding_sop_step_id_fkey"
+            columns: ["sop_step_id"]
+            isOneToOne: false
+            referencedRelation: "sop_steps"
             referencedColumns: ["id"]
           },
         ]
@@ -10239,31 +10259,52 @@ export type Database = {
       }
       sop_step_documents: {
         Row: {
+          content: string | null
           created_at: string
-          file_name: string
-          file_url: string
+          document_type: string
+          file_name: string | null
+          file_url: string | null
           id: string
           notes: string | null
           sop_id: string | null
+          sort_order: number
           step_id: string | null
+          step_index: number
+          subject: string | null
+          title: string | null
+          url: string | null
         }
         Insert: {
+          content?: string | null
           created_at?: string
-          file_name: string
-          file_url: string
+          document_type?: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           notes?: string | null
           sop_id?: string | null
+          sort_order?: number
           step_id?: string | null
+          step_index?: number
+          subject?: string | null
+          title?: string | null
+          url?: string | null
         }
         Update: {
+          content?: string | null
           created_at?: string
-          file_name?: string
-          file_url?: string
+          document_type?: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           notes?: string | null
           sop_id?: string | null
+          sort_order?: number
           step_id?: string | null
+          step_index?: number
+          subject?: string | null
+          title?: string | null
+          url?: string | null
         }
         Relationships: []
       }

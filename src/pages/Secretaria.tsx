@@ -29,6 +29,7 @@ import { isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { DashboardPersonalWidgets } from '@/components/secretaria/SecretariaWidgets';
 import { KpiSkeleton, CardListSkeleton } from '@/components/ui/loading-skeletons';
 import { StatCard } from '@/components/editorial';
+import { OnboardingItem } from '@/components/onboarding/OnboardingItem';
 
 // ─── Lazy-loaded tab components ─────────────────────────────
 const SecretariaDia = lazy(() => import('@/components/secretaria/SecretariaDia'));
@@ -196,27 +197,15 @@ export default function SecretariaPage() {
                   <CardContent className="space-y-2">
                     <Progress value={(doneCount / items.length) * 100} className="h-2" />
                     {items.filter((i: any) => !i.completed).map((item: any) => (
-                      <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-md bg-background border hover:shadow-sm transition-shadow">
-                        <Checkbox
-                          checked={false}
-                          onCheckedChange={async () => {
-                            await supabase.from('member_onboarding').update({ completed: true }).eq('id', item.id);
-                            qc.invalidateQueries({ queryKey: ['my-onboarding'] });
-                            toast.success('Item concluído!');
-                          }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm">{item.task}</span>
-                          {item.deadline_date && (
-                            <span className={cn(
-                              "text-[10px] ml-2",
-                              isBefore(parseISO(item.deadline_date), today) ? "text-destructive" : "text-muted-foreground"
-                            )}>
-                              até {format(parseISO(item.deadline_date), 'd MMM', { locale: pt })}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <OnboardingItem
+                        key={item.id}
+                        item={item}
+                        onToggle={async (id, next) => {
+                          await supabase.from('member_onboarding').update({ completed: next }).eq('id', id);
+                          qc.invalidateQueries({ queryKey: ['my-onboarding'] });
+                          if (next) toast.success('Item concluído!');
+                        }}
+                      />
                     ))}
                   </CardContent>
                 </Card>
