@@ -704,7 +704,11 @@ function PhaseCard({
                     <label className="text-[11px] text-muted-foreground">Cadência</label>
                     <Select
                       value={phase.recurrence_frequency || 'mensal'}
-                      onValueChange={v => onUpdatePhase(phase.id, { recurrence_frequency: v })}
+                      onValueChange={v => onUpdatePhase(phase.id, {
+                        recurrence_frequency: v,
+                        // limpa o "Nª semana" se sair de mensal
+                        recurrence_week_of_month: v === 'mensal' ? phase.recurrence_week_of_month ?? null : null,
+                      })}
                     >
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -714,20 +718,51 @@ function PhaseCard({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-muted-foreground">
-                      {phase.recurrence_frequency === 'semanal' ? 'Dia da semana (1=Seg … 7=Dom)' : 'Dia do mês'}
-                    </label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={phase.recurrence_frequency === 'semanal' ? 7 : 31}
-                      className="h-8 text-sm px-2"
-                      value={phase.recurrence_anchor_day ?? ''}
-                      placeholder={phase.recurrence_frequency === 'semanal' ? '5' : '20'}
-                      onChange={e => onUpdatePhase(phase.id, { recurrence_anchor_day: e.target.value ? parseInt(e.target.value) : null })}
-                    />
-                  </div>
+                  {phase.recurrence_frequency === 'mensal' ? (
+                    <div className="space-y-1 sm:col-span-1">
+                      <label className="text-[11px] text-muted-foreground">Padrão</label>
+                      <Select
+                        value={phase.recurrence_week_of_month ? 'nth_weekday' : 'day_of_month'}
+                        onValueChange={v => onUpdatePhase(phase.id, {
+                          recurrence_week_of_month: v === 'nth_weekday' ? 1 : null,
+                          recurrence_anchor_day: null,
+                        })}
+                      >
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="day_of_month">Dia fixo do mês</SelectItem>
+                          <SelectItem value="nth_weekday">Nª semana + dia da semana</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-muted-foreground">
+                        {phase.recurrence_frequency === 'semanal' ? 'Dia da semana' : 'Dia do mês'}
+                      </label>
+                      {phase.recurrence_frequency === 'semanal' ? (
+                        <Select
+                          value={phase.recurrence_anchor_day ? String(phase.recurrence_anchor_day) : ''}
+                          onValueChange={v => onUpdatePhase(phase.id, { recurrence_anchor_day: parseInt(v) })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                          <SelectContent>
+                            {['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'].map((d, i) => (
+                              <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          type="number" min={1} max={31}
+                          className="h-8 text-sm px-2"
+                          value={phase.recurrence_anchor_day ?? ''}
+                          placeholder="20"
+                          onChange={e => onUpdatePhase(phase.id, { recurrence_anchor_day: e.target.value ? parseInt(e.target.value) : null })}
+                        />
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <label className="text-[11px] text-muted-foreground">Abre antes (dias úteis)</label>
                     <Input
@@ -738,6 +773,43 @@ function PhaseCard({
                       onChange={e => onUpdatePhase(phase.id, { recurrence_lead_days: e.target.value ? parseInt(e.target.value) : 0 })}
                     />
                   </div>
+                  {phase.recurrence_frequency === 'mensal' && phase.recurrence_week_of_month && (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-muted-foreground">Qual semana</label>
+                        <Select
+                          value={String(phase.recurrence_week_of_month)}
+                          onValueChange={v => onUpdatePhase(phase.id, { recurrence_week_of_month: parseInt(v) })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1ª semana</SelectItem>
+                            <SelectItem value="2">2ª semana</SelectItem>
+                            <SelectItem value="3">3ª semana</SelectItem>
+                            <SelectItem value="4">4ª semana</SelectItem>
+                            <SelectItem value="5">Última semana</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-muted-foreground">Dia da semana</label>
+                        <Select
+                          value={phase.recurrence_anchor_day ? String(phase.recurrence_anchor_day) : ''}
+                          onValueChange={v => onUpdatePhase(phase.id, { recurrence_anchor_day: parseInt(v) })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Escolher" /></SelectTrigger>
+                          <SelectContent>
+                            {['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'].map((d, i) => (
+                              <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="sm:col-span-3 text-[11px] text-muted-foreground italic">
+                        Ex: "2ª semana + Sexta" → fase abre toda a 2ª sexta-feira do mês.
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
