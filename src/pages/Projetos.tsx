@@ -699,7 +699,14 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                   </Select>
                 </TableCell>
                 <TableCell className="font-medium whitespace-nowrap">{p.name}</TableCell>
-                <TableCell className="whitespace-nowrap"><Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge></TableCell>
+                <TableCell className="whitespace-nowrap">
+                  <div className="flex items-center gap-1.5">
+                    <Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge>
+                    {p.project_mode === 'recorrente' && (
+                      <Badge variant="outline" className="text-[10px] font-medium gap-1">🔄 Operacional</Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell><ProjectDeptBadges project={p} /></TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
@@ -734,6 +741,9 @@ function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }
               <div className="flex items-center gap-2 mb-3">
                 <Badge className={`${typeI.color} border text-[10px] font-medium`}>{typeI.label}</Badge>
                 <StatusBadge status={p.status} className="text-[10px]" />
+                {p.project_mode === 'recorrente' && (
+                  <Badge variant="outline" className="text-[10px] font-medium gap-1">🔄 Operacional</Badge>
+                )}
               </div>
               <h3 className="font-semibold mb-1">{p.name}</h3>
               {(() => {
