@@ -42,7 +42,8 @@ type DiffType =
   | 'unused_supplier'         // active supplier with zero expenses
   | 'recurring_drift'         // child instance value/vat differs from parent
   | 'expired_contract'        // expense after contract_end_date
-  | 'inactive_supplier_used'; // expense linked to is_active=false supplier
+  | 'inactive_supplier_used'  // expense linked to is_active=false supplier
+  | 'overdue_payment';        // unpaid expense with date in the past
 
 interface Diff {
   key: string;
@@ -62,6 +63,7 @@ const TYPE_LABELS: Record<DiffType, string> = {
   recurring_drift: 'Instância divergente do recorrente',
   expired_contract: 'Contrato expirado',
   inactive_supplier_used: 'Fornecedor inativo em uso',
+  overdue_payment: 'Pagamento em atraso',
 };
 
 const TYPE_COLORS: Record<DiffType, string> = {
@@ -71,6 +73,7 @@ const TYPE_COLORS: Record<DiffType, string> = {
   recurring_drift: 'bg-warning/15 text-warning dark:bg-warning/30 dark:text-warning',
   expired_contract: 'bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200',
   inactive_supplier_used: 'bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-200',
+  overdue_payment: 'bg-destructive/15 text-destructive dark:bg-destructive/30 dark:text-destructive',
 };
 
 function normalizeName(s: string | null | undefined): string {
@@ -147,6 +150,22 @@ export function FinAuditoriaFornecedores() {
       // The remaining checks belong to the member auditor — skip them here.
       if (isMemberExpense) {
         return;
+      }
+
+      // 0. Overdue payment — unpaid expense with date in the past
+      const statusLower = (e.status || '').toLowerCase();
+      const isUnpaid = !['pago', 'cancelado', 'tudo_ok', 'pago_falta_fatura'].includes(statusLower);
+      const today = new Date().toISOString().slice(0, 10);
+      if (isUnpaid && e.expense_date && e.expense_date < today) {
+        const sup = e.supplier_id ? supplierById.get(e.supplier_id) : undefined;
+        result.push({
+          key: `overdue-${e.id}`,
+          type: 'overdue_payment',
+          expense: e,
+          supplier: sup,
+          details: `Despesa "${e.expense_name || e.description || e.expense_id}" de ${e.expense_date} continua por pagar (estado: ${e.status || '—'}).`,
+          fixable: false,
+        });
       }
 
       // 1. Orphan supplier reference
@@ -242,7 +261,7 @@ export function FinAuditoriaFornecedores() {
     });
 
     return result.sort((a, b) => {
-      const order: DiffType[] = ['orphan_supplier', 'recurring_drift', 'unlinked_match', 'inactive_supplier_used', 'expired_contract', 'unused_supplier'];
+      const order: DiffType[] = ['overdue_payment', 'orphan_supplier', 'recurring_drift', 'unlinked_match', 'inactive_supplier_used', 'expired_contract', 'unused_supplier'];
       return order.indexOf(a.type) - order.indexOf(b.type);
     });
   }, [expenses, suppliers, supplierById]);
@@ -255,6 +274,7 @@ export function FinAuditoriaFornecedores() {
       recurring_drift: 0,
       expired_contract: 0,
       inactive_supplier_used: 0,
+      overdue_payment: 0,
     };
     diffs.forEach(d => { c[d.type] += 1; });
     return c;
