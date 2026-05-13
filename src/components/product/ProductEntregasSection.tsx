@@ -135,35 +135,36 @@ function DeliverableRow({
       <div className="pl-6 group">
         <div className="flex items-center gap-3 rounded-md px-2 py-1.5 -mx-2 hover:bg-muted/40 transition-colors">
           <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{index + 1}.</span>
-          <span className="text-sm shrink-0" title={tMeta.label}>{tMeta.icon}</span>
-          <span className="flex-1 text-sm font-medium truncate">{template.name || <span className="italic text-muted-foreground">Sem nome</span>}</span>
-          <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-muted-foreground">
-            {template.estimated_minutes != null && (
-              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
-                <Clock className="h-2.5 w-2.5" /> {template.estimated_minutes}min
-              </Badge>
-            )}
-            <Badge variant="outline" className={`h-5 px-1.5 gap-1 text-[10px] font-normal ${respType === 'cliente' ? 'border-warning/40 text-warning' : ''}`}>
-              {respType === 'cliente' ? <User className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />} {respLabel}
-            </Badge>
+          <span className="w-7 shrink-0 text-sm text-center" title={tMeta.label}>{tMeta.icon}</span>
+          <span className="flex-1 min-w-0 text-sm font-medium truncate flex items-center gap-1.5">
+            {template.name || <span className="italic text-muted-foreground">Sem nome</span>}
             {linkedSopName && (
-              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
-                <Link2 className="h-2.5 w-2.5" /> {linkedSopName}
+              <Badge variant="outline" className="h-4 px-1 gap-0.5 text-[9px] font-normal shrink-0">
+                <Link2 className="h-2.5 w-2.5" /> SOP
               </Badge>
             )}
             {isRecurring && allowRecurring && template.is_recurring && (
-              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
-                <Repeat className="h-2.5 w-2.5" /> Recorrente
+              <Badge variant="outline" className="h-4 px-1 gap-0.5 text-[9px] font-normal shrink-0">
+                <Repeat className="h-2.5 w-2.5" />
               </Badge>
             )}
-            {!portalVisible && (
-              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal">
-                <EyeOff className="h-2.5 w-2.5" /> Oculto
-              </Badge>
-            )}
-          </div>
-          {isOwner && (
-            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 shrink-0">
+          </span>
+          <span className="w-20 shrink-0 text-center text-[11px] text-muted-foreground">
+            {template.estimated_minutes != null ? `${template.estimated_minutes} min` : '—'}
+          </span>
+          <span className="w-32 shrink-0 text-[11px] truncate">
+            <span className={`inline-flex items-center gap-1 ${respType === 'cliente' ? 'text-warning' : 'text-foreground'}`}>
+              {respType === 'cliente' ? <User className="h-3 w-3 shrink-0" /> : <Users className="h-3 w-3 shrink-0" />}
+              <span className="truncate">{respLabel}</span>
+            </span>
+          </span>
+          <span className="w-12 shrink-0 flex items-center justify-center">
+            {portalVisible
+              ? <Eye className="h-3.5 w-3.5 text-primary" />
+              : <EyeOff className="h-3.5 w-3.5 text-muted-foreground/60" />}
+          </span>
+          {isOwner ? (
+            <div className="w-32 shrink-0 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100">
               <Button aria-label="Editar" size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(true)}>
                 <Pencil className="h-3 w-3" />
               </Button>
@@ -177,6 +178,8 @@ function DeliverableRow({
                 <X className="h-3 w-3" />
               </Button>
             </div>
+          ) : (
+            <span className="w-32 shrink-0" />
           )}
         </div>
         {(template.description || (template.deliverable_type === 'reuniao' && template.meeting_title_template)) && (
@@ -616,14 +619,14 @@ function PhaseCard({
             <EmptyHint>Sem entregas nesta fase.</EmptyHint>
           )}
           {deliverables.length > 0 && (
-            <div className="flex items-center gap-3 pl-6 pr-2 pb-1 border-b border-border/40">
+            <div className="flex items-center gap-3 pl-6 pr-2 pb-1 border-b border-border/40 -mx-2 px-2">
               <span className="w-6 shrink-0" />
-              <span className="w-7 shrink-0 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</span>
-              <span className="flex-1 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Nome da entrega</span>
-              <span className="w-20 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider text-center">Tempo</span>
-              <span className="w-32 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Responsável</span>
-              <span className="w-16 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider text-center">Portal</span>
-              <span className="w-12 shrink-0" />
+              <span className="w-7 shrink-0 text-center text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</span>
+              <span className="flex-1 min-w-0 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Nome da entrega</span>
+              <span className="w-20 shrink-0 text-center text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Tempo</span>
+              <span className="w-32 shrink-0 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Responsável</span>
+              <span className="w-12 shrink-0 text-center text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Portal</span>
+              <span className="w-32 shrink-0" />
             </div>
           )}
           {deliverables.map((d, i) => (
