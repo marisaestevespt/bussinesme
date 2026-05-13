@@ -183,8 +183,7 @@ export function LinkedSopsSection({ entityType, entityId, productId, clientId, p
         if (productId) {
           const { data: prodData } = await supabase.from('sops').select('*')
             .eq('linked_entity_type', 'produto')
-            .eq('linked_entity_id', productId)
-            .eq('apply_to_all_active_clients', true) as any;
+            .eq('linked_entity_id', productId) as any;
           const prodSops = prodData || [];
           const map = new Map([...direct, ...prodSops].map((s: any) => [s.id, s]));
           return Array.from(map.values());
