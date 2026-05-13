@@ -11,55 +11,12 @@ import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsRecolhas } from '@/components/settings/SettingsRecolhas';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
-import { FinAuditoriaPagamentos } from '@/components/financial/FinAuditoriaPagamentos';
-import { FinAuditoriaFornecedores } from '@/components/financial/FinAuditoriaFornecedores';
-import { FinAuditoriaVendas } from '@/components/financial/FinAuditoriaVendas';
-import { FinAuditoriaDocumentos } from '@/components/financial/FinAuditoriaDocumentos';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { SettingsEdgeMonitoring } from '@/components/settings/SettingsEdgeMonitoring';
 import { SettingsInstance } from '@/components/settings/SettingsInstance';
 import { useAuth } from '@/hooks/useAuth';
-import { cn as _cn } from '@/lib/utils';
-
-function AuditoriaFinanceira() {
-  const [sub, setSub] = useState<'pagamentos' | 'fornecedores' | 'vendas' | 'documentos'>('pagamentos');
-  const SUBS = [
-    { key: 'pagamentos' as const, label: 'Pagamentos a Membros' },
-    { key: 'fornecedores' as const, label: 'Fornecedores' },
-    { key: 'vendas' as const, label: 'Vendas / Entradas' },
-    { key: 'documentos' as const, label: 'Documentos' },
-  ];
-  return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">Auditoria Financeira</h2>
-        <p className="text-sm text-muted-foreground">Verifica a integridade das ligações entre o financeiro e os módulos relacionados.</p>
-      </div>
-      <div className="flex gap-2 flex-wrap">
-        {SUBS.map(s => (
-          <button
-            key={s.key}
-            onClick={() => setSub(s.key)}
-            className={_cn(
-              'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-              sub === s.key
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-background border border-secondary text-secondary-foreground hover:bg-muted'
-            )}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
-      {sub === 'pagamentos' && <FinAuditoriaPagamentos />}
-      {sub === 'fornecedores' && <FinAuditoriaFornecedores />}
-      {sub === 'vendas' && <FinAuditoriaVendas />}
-      {sub === 'documentos' && <FinAuditoriaDocumentos />}
-    </div>
-  );
-}
 
 const BASE_TABS = [
   { key: 'identidade', label: 'Identidade' },
@@ -130,7 +87,6 @@ export default function DefinicoesPage() {
           {tab === 'auditoria' && (
             <div className="space-y-10">
               <SettingsAuditLog />
-              <AuditoriaFinanceira />
               <SettingsUsers />
             </div>
           )}
