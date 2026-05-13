@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, Package, CalendarCheck, LineChart, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Truck, Package, CalendarCheck, LineChart, type LucideIcon } from 'lucide-react';
 import { getPlanningSection } from '@/lib/department-planning';
 
 export interface SectionDef {
@@ -27,7 +27,6 @@ export const ALL_SECTIONS_ROW2: SectionDef[] = [
   { path: '/hub/financeiro/setup-financeiro', label: 'Lista de Fornecedores', icon: Truck, iconColor: 'text-muted-foreground', color: 'from-border/20 to-border/10 border-border/60 hover:from-border/30 hover:to-border/15 hover:border-border/80', key: 'fornecedores' },
   { path: '/hub/financeiro/lista-produtos', label: 'Lista de Produtos', icon: Package, iconColor: 'text-info', color: 'from-info/20 to-info/10 border-info/60 hover:from-info/30 hover:to-info/15 hover:border-info/80', key: 'produtos' },
   { path: '/hub/financeiro/previsibilidade', label: 'Previsibilidade', icon: LineChart, iconColor: 'text-primary', color: 'from-primary/20 to-primary/10 border-primary/60 hover:from-primary/30 hover:to-primary/15 hover:border-primary/80', key: 'previsibilidade' },
-  { path: '/hub/financeiro/auditoria', label: 'Auditoria', icon: ShieldCheck, iconColor: 'text-warning', color: 'from-warning/20 to-warning/10 border-warning/30/60 hover:from-warning/30 hover:to-warning/15 hover:border-warning/30/80', key: 'auditoria' },
 ];
 
 export const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];

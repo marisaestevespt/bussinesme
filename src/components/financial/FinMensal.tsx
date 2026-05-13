@@ -20,6 +20,7 @@ import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/
 import { formatEuro } from '@/lib/formatting';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { MonthlyDocUpload, FiscalChecklistCard } from './finMensal/MonthlyDocs';
+import { FinAlertasMes } from './FinAlertasMes';
 import { EntradasTable, IvaCobradoDialog } from './finMensal/EntradasTable';
 import { SegurancaSocialCard, SaidasTable, IvaPagoDialog, NewExpenseDialog } from './finMensal/SaidasSection';
 import { MONTHS, getSubscriptionDueDate, canRenderSubscriptionForMonth, type Sale } from './finMensal/helpers';
@@ -340,6 +341,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       </div>
 
       <FiscalChecklistCard month={m} year={currentYear} />
+      <FinAlertasMes year={currentYear} month={m} />
 
       <div id="fin-mensal-report" className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
