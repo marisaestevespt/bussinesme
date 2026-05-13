@@ -185,6 +185,18 @@ function DeliverableRow({
           </span>
           {isOwner ? (
             <div className="w-32 shrink-0 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100">
+              {hasContentSlot && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button aria-label="Editar conteúdo" size="icon" variant="ghost" className={`h-7 w-7 ${hasContent ? 'text-primary' : ''}`} onClick={() => setContentOpen(true)}>
+                      {dType === 'email' ? <Mail className="h-3 w-3" /> : dType === 'mensagem' ? <MessageSquare className="h-3 w-3" /> : dType === 'documento' ? <FileUp className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {hasContent ? 'Editar conteúdo' : 'Adicionar conteúdo'}
+                  </TooltipContent>
+                </Tooltip>
+              )}
               <Button aria-label="Editar" size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(true)}>
                 <Pencil className="h-3 w-3" />
               </Button>
@@ -214,6 +226,7 @@ function DeliverableRow({
             )}
           </div>
         )}
+        <ContentSheet open={contentOpen} onOpenChange={setContentOpen} template={template} isOwner={isOwner} onUpdate={onUpdate} />
       </div>
     );
   }
@@ -244,6 +257,9 @@ function DeliverableRow({
             <SelectItem value="reuniao">📅 Reunião</SelectItem>
             <SelectItem value="documento">📄 Documento</SelectItem>
             <SelectItem value="link">🔗 Link</SelectItem>
+            <SelectItem value="email">✉️ Email</SelectItem>
+            <SelectItem value="mensagem">💬 Mensagem</SelectItem>
+            <SelectItem value="aprovacao">✅ Aprovação</SelectItem>
           </SelectContent>
         </Select>
         <Input value={name} onChange={e => setName(e.target.value)}
