@@ -615,6 +615,17 @@ function PhaseCard({
           {deliverables.length === 0 && sopSteps.length === 0 && (
             <EmptyHint>Sem entregas nesta fase.</EmptyHint>
           )}
+          {deliverables.length > 0 && (
+            <div className="flex items-center gap-3 pl-6 pr-2 pb-1 border-b border-border/40">
+              <span className="w-6 shrink-0" />
+              <span className="w-7 shrink-0 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</span>
+              <span className="flex-1 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Nome da entrega</span>
+              <span className="w-20 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider text-center">Tempo</span>
+              <span className="w-32 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Responsável</span>
+              <span className="w-16 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider text-center">Portal</span>
+              <span className="w-12 shrink-0" />
+            </div>
+          )}
           {deliverables.map((d, i) => (
             <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops} isRecurring={isRecurring}
               allowRecurring={!phase.is_onboarding && !phase.is_offboarding}
