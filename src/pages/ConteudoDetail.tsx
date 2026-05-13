@@ -8,6 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -449,8 +450,21 @@ export default function ConteudoDetailPage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-          <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            className="text-2xl md:text-3xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6 leading-tight" placeholder="Título do conteúdo" />
+          <Textarea
+            value={form.title}
+            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            rows={1}
+            onInput={e => {
+              const t = e.currentTarget;
+              t.style.height = 'auto';
+              t.style.height = t.scrollHeight + 'px';
+            }}
+            ref={el => {
+              if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+            }}
+            className="text-xl md:text-2xl font-bold border-0 px-0 py-0 min-h-0 h-auto resize-none focus-visible:ring-0 mb-6 leading-tight shadow-none break-words whitespace-pre-wrap"
+            placeholder="Título do conteúdo"
+          />
 
           {/* Propriedades — campos principais */}
           <div className="mb-8 rounded-xl border border-border/60 bg-card px-5 py-2">
