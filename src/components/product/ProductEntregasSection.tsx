@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2 } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2, FileText, Mail, MessageSquare, FileUp } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ProductTabHeader } from './_shared';
@@ -30,9 +33,15 @@ interface Template {
   offset_trigger?: string;
   responsible_type?: string;
   responsible_role?: string | null;
-  deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao' | 'link';
+  deliverable_type?: 'tarefa' | 'reuniao' | 'documento' | 'aprovacao' | 'link' | 'email' | 'mensagem';
   estimated_minutes?: number | null;
   meeting_title_template?: string | null;
+  link_url?: string | null;
+  document_url?: string | null;
+  document_file_path?: string | null;
+  email_subject?: string | null;
+  email_body?: string | null;
+  message_body?: string | null;
 }
 
 interface Phase {
