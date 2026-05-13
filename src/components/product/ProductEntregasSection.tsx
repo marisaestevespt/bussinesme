@@ -619,7 +619,7 @@ function PhaseCard({
             <EmptyHint>Sem entregas nesta fase.</EmptyHint>
           )}
           {deliverables.length > 0 && (
-            <div className="flex items-center gap-3 pl-6 pr-2 pb-1 border-b border-border/40 -mx-2 px-2">
+            <div className="flex items-center gap-3 pl-6 -mx-2 px-2 pb-1 border-b border-border/40">
               <span className="w-6 shrink-0" />
               <span className="w-7 shrink-0 text-center text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</span>
               <span className="flex-1 min-w-0 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Nome da entrega</span>
