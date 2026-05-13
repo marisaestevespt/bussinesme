@@ -683,9 +683,21 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               {lead?.id && onDelete && (
                 <>
                   <Separator />
-                  <Button variant="destructive" size="sm" className="w-full" onClick={() => { onDelete(lead.id); onOpenChange(false); }}>
-                    Eliminar Lead
-                  </Button>
+                  <div className="flex justify-end pt-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={async () => {
+                        const ok = window.confirm(`Eliminar definitivamente a lead "${form.name || 'sem nome'}"?\n\nEsta ação não pode ser desfeita.`);
+                        if (!ok) return;
+                        onDelete(lead.id);
+                        onOpenChange(false);
+                      }}
+                    >
+                      Eliminar lead
+                    </Button>
+                  </div>
                 </>
               )}
             </div>
