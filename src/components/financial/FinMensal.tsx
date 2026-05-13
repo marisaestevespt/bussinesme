@@ -340,6 +340,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       </div>
 
       <FiscalChecklistCard month={m} year={currentYear} />
+      <FinAlertasMes year={currentYear} month={m} />
 
       <div id="fin-mensal-report" className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
