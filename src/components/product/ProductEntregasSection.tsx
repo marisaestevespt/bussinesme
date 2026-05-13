@@ -60,6 +60,7 @@ interface Phase {
   recurrence_frequency?: string | null;
   recurrence_anchor_day?: number | null;
   recurrence_lead_days?: number | null;
+  recurrence_week_of_month?: number | null;
 }
 
 interface Props {
