@@ -204,35 +204,47 @@ Deno.serve(async (req) => {
           .ilike("role_title", role_title.trim());
 
         if (onboardingSops && onboardingSops.length > 0) {
-          // For each onboarding SOP, use its own checklist (inputs field) as onboarding items.
-          // SOPs are documentation only — no template tables involved.
+          // Pull real sop_steps from each matching SOP and create one
+          // member_onboarding row per step, linked back via sop_step_id so
+          // the UI can surface the step's documents/templates/emails.
+          const todayDate = new Date();
+          const onboardingRows: any[] = [];
+          let runningOrder = 0;
+
           for (const onbSop of onboardingSops) {
-            if (!onboarding_created) {
-              const checklist = Array.isArray((onbSop as any).inputs) ? (onbSop as any).inputs : [];
-              if (checklist.length > 0) {
-                const todayDate = new Date();
-                const onboardingRows = checklist.map((item: any, idx: number) => {
-                  const text = typeof item === 'string' ? item : item.text || '';
-                  const deadlineDate = new Date(todayDate);
-                  deadlineDate.setDate(deadlineDate.getDate() + 7); // default 7 days
-                  return {
-                    member_id: team_member_id,
-                    task: text,
-                    sort_order: idx,
-                    completed: false,
-                    deadline_date: deadlineDate.toISOString().split("T")[0],
-                  };
-                }).filter((r: any) => r.task);
-                if (onboardingRows.length > 0) {
-                  await supabase.from("member_onboarding").insert(onboardingRows);
-                  onboarding_created = true;
-                }
-              }
+            const { data: steps } = await supabase
+              .from("sop_steps")
+              .select("id, description, deadline_days, deadline_unit")
+              .eq("sop_id", onbSop.id)
+              .order("sort_order", { ascending: true });
+
+            if (!steps || steps.length === 0) continue;
+
+            for (const step of steps) {
+              const desc = (step as any).description?.trim();
+              if (!desc) continue;
+              const days = Number((step as any).deadline_days ?? 7);
+              const unit = (step as any).deadline_unit || "dias";
+              const multiplier = unit === "semanas" ? 7 : unit === "meses" ? 30 : 1;
+              const deadlineDate = new Date(todayDate);
+              deadlineDate.setDate(deadlineDate.getDate() + (Number.isFinite(days) ? days * multiplier : 7));
+              onboardingRows.push({
+                member_id: team_member_id,
+                task: desc,
+                sort_order: runningOrder++,
+                completed: false,
+                deadline_date: deadlineDate.toISOString().split("T")[0],
+                sop_id: onbSop.id,
+                sop_step_id: (step as any).id,
+              });
             }
           }
 
-          if (!onboarding_created) {
-            onboarding_warning = `Os SOPs de onboarding para "${role_title}" existem mas não têm itens de checklist.`;
+          if (onboardingRows.length > 0) {
+            await supabase.from("member_onboarding").insert(onboardingRows);
+            onboarding_created = true;
+          } else {
+            onboarding_warning = `Os SOPs de onboarding para "${role_title}" existem mas não têm passos definidos.`;
           }
         } else {
           onboarding_warning = `Não existe SOP de onboarding para a função "${role_title}". Cria um SOP com tipo "Onboarding" e função "${role_title}" para automatizar.`;
