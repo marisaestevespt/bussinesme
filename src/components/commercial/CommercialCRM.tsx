@@ -145,7 +145,16 @@ export function CommercialCRM() {
     });
   }, [allLeads, upsertLead]);
 
-  const handleDelete = (id: string) => { deleteLead.mutate(id); };
+  const handleDelete = async (id: string) => {
+    const lead = allLeads.find(l => l.id === id);
+    const ok = await confirm({
+      title: 'Eliminar lead?',
+      description: `"${lead?.name || 'Lead sem nome'}" será permanentemente eliminada (incluindo interações, ações e propostas associadas). Esta ação não pode ser desfeita.`,
+      confirmText: 'Eliminar',
+      variant: 'destructive',
+    });
+    if (ok) deleteLead.mutate(id);
+  };
 
   const handleNewView = async () => {
     const name = await askText({
