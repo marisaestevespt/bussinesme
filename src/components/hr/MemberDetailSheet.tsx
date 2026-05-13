@@ -483,15 +483,18 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
               ) : (
                 <div className="space-y-1">
                   {items.map((i: any) => (
-                    <div key={i.id} className="flex items-center gap-2 group py-1">
-                      <Checkbox checked={i.completed} onCheckedChange={v => team.toggleOnboardingItem.mutate({ id: i.id, completed: !!v })} />
-                      <span className={`text-sm flex-1 ${i.completed ? 'line-through text-muted-foreground' : ''}`}>{i.task}</span>
-                      {i.deadline_date && (
-                        <span className={`text-[10px] ${!i.completed && parseISO(i.deadline_date) < startOfDay(new Date()) ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-                          {i.deadline_date}
-                        </span>
-                      )}
-                      <button onClick={() => team.deleteOnboardingItem.mutate(i.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                    <div key={i.id} className="group relative">
+                      <OnboardingItem
+                        item={i}
+                        onToggle={(id, next) => team.toggleOnboardingItem.mutate({ id, completed: next })}
+                      />
+                      <button
+                        onClick={() => team.deleteOnboardingItem.mutate(i.id)}
+                        className="absolute top-2 right-1 opacity-0 group-hover:opacity-100 z-10"
+                        aria-label="Eliminar"
+                      >
+                        <Trash2 className="h-3 w-3 text-muted-foreground" />
+                      </button>
                     </div>
                   ))}
                 </div>
