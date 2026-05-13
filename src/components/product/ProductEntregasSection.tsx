@@ -707,6 +707,9 @@ function PhaseCard({
               </label>
               {phase.is_recurring && (
                 <div className="grid gap-3 sm:grid-cols-3 mt-3 pt-3 border-t border-primary/15">
+                  <p className="sm:col-span-3 text-[11px] text-muted-foreground -mt-1">
+                    A <b>cadência</b> é definida aqui na fase. Cada entrega abaixo segue automaticamente esta cadência — basta marcar "Repete em cada ciclo" nas que devem aparecer todos os ciclos (e desmarcar nas one-shot, ex: kickoff).
+                  </p>
                   <div className="space-y-1">
                     <label className="text-[11px] text-muted-foreground">Cadência</label>
                     <Select
