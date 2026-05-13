@@ -383,6 +383,7 @@ function PhaseCard({
 }) {
   const [expanded, setExpanded] = useState(true);
   const [sopExpanded, setSopExpanded] = useState(false);
+  const [editingTiming, setEditingTiming] = useState(false);
   const [name, setName] = useState(phase.name);
 
   useEffect(() => setName(phase.name), [phase.name]);
@@ -437,10 +438,40 @@ function PhaseCard({
       </CardHeader>
       {expanded && (
         <CardContent className="pb-3 pt-0 px-4 space-y-3">
-          {/* Timeline config — clean labeled grid */}
-          {isOwner && (
-            <div className="rounded-md border bg-muted/30 px-3 py-2.5">
-              <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">Quando acontece</div>
+          {/* Timeline config — static summary with pencil-on-hover */}
+          {isOwner && (() => {
+            const unitLabel = (phase.duration_unit || 'dias_uteis') === 'dias_uteis' ? 'dias úteis' : 'dias corridos';
+            const triggerLabel: Record<string, string> = {
+              inicio_projeto: 'início do projeto',
+              data_conversao: 'data de conversão',
+              fase_anterior: 'fase anterior',
+            };
+            const trig = triggerLabel[phase.offset_trigger || 'inicio_projeto'];
+            const offset = phase.offset_days ?? 0;
+            const dur = phase.duration_days;
+            return (
+              <div className="group rounded-md border-l-2 border-l-primary/60 border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-1.5 text-[10px] font-semibold text-primary uppercase tracking-wider">
+                    <Clock className="h-3 w-3" /> Quando acontece
+                  </div>
+                  {!editingTiming && (
+                    <Button aria-label="Editar quando acontece" size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => setEditingTiming(true)}>
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {editingTiming && (
+                    <Button aria-label="Concluir edição" size="icon" variant="ghost" className="h-6 w-6 text-primary" onClick={() => setEditingTiming(false)}>
+                      <Check className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+                {!editingTiming ? (
+                  <p className="text-xs text-foreground leading-relaxed">
+                    Começa <span className="font-medium">{offset} {unitLabel}</span> após <span className="font-medium">{trig}</span>
+                    {dur != null && <> · Duração <span className="font-medium">{dur} {unitLabel}</span></>}
+                  </p>
+                ) : (
               <div className="grid gap-3 sm:grid-cols-4">
                 <div className="space-y-1">
                   <label className="text-[11px] text-muted-foreground">Começa após</label>
@@ -492,8 +523,10 @@ function PhaseCard({
                   </Select>
                 </div>
               </div>
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
           {/* Recorrência da fase — só roadmap principal (não onboarding/offboarding) */}
           {isOwner && isRecurring && !phase.is_onboarding && !phase.is_offboarding && (
             <div className="rounded-md border border-primary/20 bg-primary/[0.04] px-3 py-2.5">
