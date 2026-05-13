@@ -1044,10 +1044,16 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
                     </p>
                   )}
                   {zoneConfig.phases.map(renderPhase)}
-                  {isOwner && (
+                  {isOwner && (openZone === 'roadmap' || zoneConfig.phases.length === 0) && (
                     <Button size="sm" variant="outline" className="w-full" onClick={() => addPhase.mutate(openZone)}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> {zoneConfig.addLabel}
                     </Button>
+                  )}
+                  {isOwner && openZone !== 'roadmap' && zoneConfig.phases.length > 0 && (
+                    <p className="text-[11px] text-muted-foreground text-center pt-1">
+                      {openZone === 'onboarding' ? 'O onboarding tem uma única fase.' : 'O offboarding tem uma única fase.'}{' '}
+                      Adiciona entregas dentro dela. Só o roadmap principal suporta múltiplas fases.
+                    </p>
                   )}
                 </div>
               </>
