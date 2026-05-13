@@ -406,25 +406,61 @@ Deno.serve(async (req) => {
       const prodNameToId = new Map<string, string>();
       (allProducts || []).forEach((p: Row) => prodNameToId.set(p.name, p.id));
       const productIds = [...new Set([...prodNameToId.values()])];
-      const { data: npsConfigs } = await supabase.from("product_nps_config").select("product_id, cadence_days").in("product_id", productIds);
-      const configMap = new Map<string, number>();
-      (npsConfigs || []).forEach((c: Row) => configMap.set(c.product_id, c.cadence_days));
+      const { data: npsConfigs } = await supabase
+        .from("product_nps_config")
+        .select("id, product_id, cadence_days, kind, title")
+        .in("product_id", productIds);
+      // Group configs by product
+      const configsByProduct = new Map<string, Row[]>();
+      (npsConfigs || []).forEach((c: Row) => {
+        if (!c.cadence_days) return;
+        const arr = configsByProduct.get(c.product_id) || [];
+        arr.push(c);
+        configsByProduct.set(c.product_id, arr);
+      });
       for (const client of activeClients) {
         const productId = prodNameToId.get(client.current_product || "");
         if (!productId) continue;
-        const cadence = configMap.get(productId);
-        if (!cadence) continue;
-        const { data: existingNps } = await supabase.from("client_nps_records").select("id").eq("client_id", client.id).limit(1);
-        if (existingNps && existingNps.length > 0) continue;
+        const configs = configsByProduct.get(productId);
+        if (!configs || configs.length === 0) continue;
         const start = new Date(client.start_date + "T00:00:00");
-        const records = [];
-        for (let i = 1; i <= Math.floor(730 / cadence); i++) {
-          const expectedDate = new Date(start);
-          expectedDate.setDate(expectedDate.getDate() + cadence * i);
-          records.push({ client_id: client.id, product_id: productId, expected_date: expectedDate.toISOString().slice(0, 10), status: "por_fazer", is_manual: false });
-        }
-        if (records.length > 0) {
-          const { error: npsErr } = await supabase.from("client_nps_records").insert(records);
+        for (const cfg of configs) {
+          const cadence = cfg.cadence_days;
+          // Find latest record for this client+config (by expected_date)
+          const { data: latestArr } = await supabase
+            .from("client_nps_records")
+            .select("id, expected_date, status")
+            .eq("client_id", client.id)
+            .eq("config_id", cfg.id)
+            .order("expected_date", { ascending: false })
+            .limit(1);
+          const latest = latestArr && latestArr[0];
+          let nextDate: Date;
+          if (!latest) {
+            // First record: start_date + cadence
+            nextDate = new Date(start);
+            nextDate.setDate(nextDate.getDate() + cadence);
+          } else {
+            const latestDate = new Date(latest.expected_date + "T00:00:00");
+            // Only roll forward when the latest is already due/past
+            if (latestDate > today) continue;
+            nextDate = new Date(latestDate);
+            nextDate.setDate(nextDate.getDate() + cadence);
+          }
+          // Don't generate too far into the future (cap ~90 days ahead)
+          const maxAhead = new Date(today);
+          maxAhead.setDate(maxAhead.getDate() + 90);
+          if (nextDate > maxAhead) continue;
+          const { error: npsErr } = await supabase.from("client_nps_records").insert({
+            client_id: client.id,
+            product_id: productId,
+            config_id: cfg.id,
+            kind: cfg.kind || "nps",
+            title: cfg.title || null,
+            expected_date: nextDate.toISOString().slice(0, 10),
+            status: "por_fazer",
+            is_manual: false,
+          });
           if (!npsErr) npsGenerated++;
         }
       }
