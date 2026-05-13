@@ -32,7 +32,21 @@ function addBusinessDays(date: Date, days: number): Date {
   return d;
 }
 
-function nextDeadline(today: Date, freq: string, anchorDay: number): { deadline: Date; period: string } {
+function nthWeekdayOfMonth(year: number, month: number, weekday: number, n: number): Date {
+  // weekday: 1=Mon..7=Sun. n: 1..4 ou 5 = última.
+  const targetDow = weekday % 7; // JS: 0=Sun..6=Sat → Mon=1..Sun=0
+  if (n >= 5) {
+    // última ocorrência: começa no último dia do mês e recua
+    const last = new Date(year, month + 1, 0);
+    const diff = (last.getDay() - targetDow + 7) % 7;
+    return new Date(year, month, last.getDate() - diff);
+  }
+  const first = new Date(year, month, 1);
+  const diff = (targetDow - first.getDay() + 7) % 7;
+  return new Date(year, month, 1 + diff + (n - 1) * 7);
+}
+
+function nextDeadline(today: Date, freq: string, anchorDay: number, weekOfMonth?: number | null): { deadline: Date; period: string } {
   if (freq === 'semanal') {
     // anchorDay: 1=Mon..7=Sun
     const target = ((anchorDay - 1) % 7);
@@ -66,11 +80,22 @@ function nextDeadline(today: Date, freq: string, anchorDay: number): { deadline:
   // mensal (default)
   let year = today.getFullYear();
   let month = today.getMonth();
-  let candidate = new Date(year, month, anchorDay);
-  if (candidate <= today) {
-    month += 1;
-    if (month > 11) { month = 0; year += 1; }
+  let candidate: Date;
+  if (weekOfMonth) {
+    // anchorDay = dia da semana (1=Seg..7=Dom); weekOfMonth = 1..5
+    candidate = nthWeekdayOfMonth(year, month, anchorDay, weekOfMonth);
+    if (candidate <= today) {
+      month += 1;
+      if (month > 11) { month = 0; year += 1; }
+      candidate = nthWeekdayOfMonth(year, month, anchorDay, weekOfMonth);
+    }
+  } else {
     candidate = new Date(year, month, anchorDay);
+    if (candidate <= today) {
+      month += 1;
+      if (month > 11) { month = 0; year += 1; }
+      candidate = new Date(year, month, anchorDay);
+    }
   }
   return { deadline: candidate, period: `${year}-${String(month + 1).padStart(2, '0')}` };
 }
@@ -90,7 +115,7 @@ Deno.serve(async (req) => {
     // 1. Buscar templates de fases recorrentes
     const { data: templates, error: tErr } = await supabase
       .from('product_phases')
-      .select('id, product_id, name, description, sort_order, duration_unit, is_onboarding, linked_sop_id, recurrence_frequency, recurrence_anchor_day, recurrence_lead_days')
+      .select('id, product_id, name, description, sort_order, duration_unit, is_onboarding, linked_sop_id, recurrence_frequency, recurrence_anchor_day, recurrence_lead_days, recurrence_week_of_month')
       .eq('is_recurring', true)
       .not('recurrence_anchor_day', 'is', null);
 
@@ -102,7 +127,7 @@ Deno.serve(async (req) => {
     for (const tpl of templates || []) {
       const freq = tpl.recurrence_frequency || 'mensal';
       const lead = tpl.recurrence_lead_days ?? 5;
-      const { deadline, period } = nextDeadline(today, freq, tpl.recurrence_anchor_day!);
+      const { deadline, period } = nextDeadline(today, freq, tpl.recurrence_anchor_day!, (tpl as any).recurrence_week_of_month);
       const start = addBusinessDays(deadline, -lead);
 
       // Só agimos se a abertura é hoje ou já passou (evita criar com muita antecedência)
@@ -146,6 +171,7 @@ Deno.serve(async (req) => {
             recurrence_frequency: freq,
             recurrence_anchor_day: tpl.recurrence_anchor_day,
             recurrence_lead_days: lead,
+            recurrence_week_of_month: (tpl as any).recurrence_week_of_month ?? null,
             recurrence_period: period,
           })
           .select('id')
