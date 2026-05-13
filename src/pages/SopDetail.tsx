@@ -134,7 +134,6 @@ export default function SopDetailPage() {
   const [notas, setNotas] = useState<string[]>(['']);
   const [linkedEntityType, setLinkedEntityType] = useState('geral');
   const [linkedEntityId, setLinkedEntityId] = useState<string>('');
-  const [applyToAllActiveClients, setApplyToAllActiveClients] = useState(false);
   const [sopType, setSopType] = useState('operacional');
   const [sopRoleTitle, setSopRoleTitle] = useState('');
   const [sopProductId, setSopProductId] = useState('');
@@ -239,7 +238,6 @@ export default function SopDetailPage() {
     setNotas(parseJsonList(sop.notas).length ? parseJsonList(sop.notas) : ['']);
     setLinkedEntityType(sop.linked_entity_type || 'geral');
     setLinkedEntityId(sop.linked_entity_id || '');
-    setApplyToAllActiveClients(sop.apply_to_all_active_clients || false);
     setSopType(sop.sop_type || 'operacional');
     setSopRoleTitle(sop.role_title || '');
     setSopProductId(sop.product_id || '');
@@ -269,7 +267,6 @@ export default function SopDetailPage() {
         notas: notas as unknown as Json,
         linked_entity_type: linkedEntityType,
         linked_entity_id: linkedEntityId || null,
-        apply_to_all_active_clients: applyToAllActiveClients,
         sop_type: sopType,
         role_title: sopRoleTitle || null,
         product_id: sopProductId || null,
@@ -594,7 +591,7 @@ export default function SopDetailPage() {
         {/* Linked entity */}
         <EntityProperties>
           <EntityProperty icon={Link2} label="Tipo de ligação">
-            <Select value={linkedEntityType} onValueChange={v => { setLinkedEntityType(v); setLinkedEntityId(''); setApplyToAllActiveClients(false); }}>
+            <Select value={linkedEntityType} onValueChange={v => { setLinkedEntityType(v); setLinkedEntityId(''); }}>
               <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="geral">Geral</SelectItem>
@@ -612,9 +609,6 @@ export default function SopDetailPage() {
                     {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-              </EntityProperty>
-              <EntityProperty icon={UserCircle2} label="Aplicar a todos os clientes ativos">
-                <Switch checked={applyToAllActiveClients} onCheckedChange={setApplyToAllActiveClients} />
               </EntityProperty>
             </>
           )}
