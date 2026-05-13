@@ -340,10 +340,17 @@ function DeliverableRow({
           </SelectContent>
         </Select>
         {isRecurring && allowRecurring && (
-          <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-muted-foreground">
-            <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
-            Recorrente
-          </label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-muted-foreground">
+                <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
+                Repete em cada ciclo
+              </label>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs max-w-xs">
+              Marca esta entrega como parte do ciclo recorrente da fase. A <b>cadência</b> (semanal/mensal/dia, etc.) é definida na própria fase — as entregas seguem-na. Desmarca para entregas one-shot que só acontecem uma vez (ex: kickoff).
+            </TooltipContent>
+          </Tooltip>
         )}
         {isOwner && (
           <div className="flex items-center gap-0.5">
