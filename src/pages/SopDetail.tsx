@@ -610,9 +610,6 @@ export default function SopDetailPage() {
                   </SelectContent>
                 </Select>
               </EntityProperty>
-              <EntityProperty icon={UserCircle2} label="Aplicar a todos os clientes ativos">
-                <Switch checked={applyToAllActiveClients} onCheckedChange={setApplyToAllActiveClients} />
-              </EntityProperty>
             </>
           )}
           {linkedEntityType === 'projeto' && (
