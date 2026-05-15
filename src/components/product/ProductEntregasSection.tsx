@@ -794,168 +794,52 @@ function PhaseCard({
                 <span className="text-xs font-medium text-foreground">Esta fase repete-se ao longo do projeto</span>
               </label>
               {phase.is_recurring && (
-                <div className="grid gap-3 sm:grid-cols-3 mt-3 pt-3 border-t border-primary/15">
-                  <p className="sm:col-span-3 text-[11px] text-muted-foreground -mt-1">
-                    A <b>cadência</b> é definida aqui na fase. Cada entrega abaixo segue automaticamente esta cadência — basta marcar "Repete em cada ciclo" nas que devem aparecer todos os ciclos (e desmarcar nas one-shot, ex: kickoff).
-                  </p>
-                  {/* Predefinições rápidas (apenas para mensal sem padrão Nª weekday) */}
-                  {(phase.recurrence_frequency || 'mensal') === 'mensal' && !phase.recurrence_week_of_month && (
-                    <div className="sm:col-span-3 flex flex-wrap items-center gap-2 -mt-1">
-                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Predefinições</span>
-                      <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]"
-                        onClick={() => onUpdatePhase(phase.id, { recurrence_anchor_day: 31, recurrence_lead_days: 5, recurrence_week_of_month: null })}>
-                        Mês de calendário (1 → fim)
-                      </Button>
-                      <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]"
-                        onClick={() => onUpdatePhase(phase.id, { recurrence_anchor_day: 14, recurrence_lead_days: 22, recurrence_week_of_month: null })}>
-                        Mês fiscal (15 → 14)
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-muted-foreground"
-                        title="Define manualmente abaixo">
-                        ou personaliza ↓
-                      </Button>
-                    </div>
-                  )}
+                <div className="mt-3 pt-3 border-t border-primary/15 flex flex-wrap items-end gap-3">
                   <div className="space-y-1">
-                    <label className="text-[11px] text-muted-foreground">Cadência</label>
+                    <label className="text-[11px] text-muted-foreground">Repete</label>
                     <Select
                       value={phase.recurrence_frequency || 'mensal'}
-                      onValueChange={v => onUpdatePhase(phase.id, {
-                        recurrence_frequency: v,
-                        // limpa o "Nª semana" se sair de mensal
-                        recurrence_week_of_month: v === 'mensal' ? phase.recurrence_week_of_month ?? null : null,
-                      })}
+                      onValueChange={v => {
+                        const patch: Record<string, unknown> = {
+                          recurrence_frequency: v,
+                          recurrence_lead_days: 5,
+                          recurrence_week_of_month: null,
+                        };
+                        if (v === 'mensal') patch.recurrence_anchor_day = 31;       // fim do mês
+                        else if (v === 'trimestral') patch.recurrence_anchor_day = 31; // fim do trimestre
+                        else if (v === 'semanal') patch.recurrence_anchor_day = phase.recurrence_anchor_day ?? 5; // sexta
+                        onUpdatePhase(phase.id, patch);
+                      }}
                     >
-                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-8 w-40 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="semanal">Semanal</SelectItem>
-                        <SelectItem value="mensal">Mensal</SelectItem>
-                        <SelectItem value="trimestral">Trimestral</SelectItem>
+                        <SelectItem value="semanal">Todas as semanas</SelectItem>
+                        <SelectItem value="mensal">Todos os meses</SelectItem>
+                        <SelectItem value="trimestral">Todos os trimestres</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  {phase.recurrence_frequency === 'mensal' ? (
-                    <div className="space-y-1 sm:col-span-1">
-                      <label className="text-[11px] text-muted-foreground">Padrão</label>
+                  {phase.recurrence_frequency === 'semanal' && (
+                    <div className="space-y-1">
+                      <label className="text-[11px] text-muted-foreground">Dia da semana</label>
                       <Select
-                        value={phase.recurrence_week_of_month ? 'nth_weekday' : 'day_of_month'}
-                        onValueChange={v => onUpdatePhase(phase.id, {
-                          recurrence_week_of_month: v === 'nth_weekday' ? 1 : null,
-                          recurrence_anchor_day: null,
-                        })}
+                        value={phase.recurrence_anchor_day ? String(phase.recurrence_anchor_day) : '5'}
+                        onValueChange={v => onUpdatePhase(phase.id, { recurrence_anchor_day: parseInt(v) })}
                       >
-                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="day_of_month">Dia fixo do mês</SelectItem>
-                          <SelectItem value="nth_weekday">Nª semana + dia da semana</SelectItem>
+                          {['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'].map((d, i) => (
+                            <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <label className="text-[11px] text-muted-foreground">
-                        {phase.recurrence_frequency === 'semanal' ? 'Dia da semana' : 'Dia do mês'}
-                      </label>
-                      {phase.recurrence_frequency === 'semanal' ? (
-                        <Select
-                          value={phase.recurrence_anchor_day ? String(phase.recurrence_anchor_day) : ''}
-                          onValueChange={v => onUpdatePhase(phase.id, { recurrence_anchor_day: parseInt(v) })}
-                        >
-                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Escolher" /></SelectTrigger>
-                          <SelectContent>
-                            {['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'].map((d, i) => (
-                              <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          type="number" min={1} max={31}
-                          className="h-8 text-sm px-2"
-                          value={phase.recurrence_anchor_day ?? ''}
-                          placeholder="20"
-                          onChange={e => onUpdatePhase(phase.id, { recurrence_anchor_day: e.target.value ? parseInt(e.target.value) : null })}
-                        />
-                      )}
-                    </div>
                   )}
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-muted-foreground">Abre antes (dias úteis)</label>
-                    <Input
-                      type="number"
-                      min={0}
-                      className="h-8 text-sm px-2"
-                      value={phase.recurrence_lead_days ?? 5}
-                      onChange={e => onUpdatePhase(phase.id, { recurrence_lead_days: e.target.value ? parseInt(e.target.value) : 0 })}
-                    />
-                  </div>
-                  {/* Pré-visualização da janela */}
-                  {(() => {
-                    const freq = phase.recurrence_frequency || 'mensal';
-                    const anchor = phase.recurrence_anchor_day;
-                    const lead = phase.recurrence_lead_days ?? 5;
-                    if (!anchor) return null;
-                    let preview = '';
-                    if (freq === 'mensal' && !phase.recurrence_week_of_month) {
-                      // janela "de X a Y" do mês
-                      const close = anchor === 31 ? 'último dia' : `dia ${anchor}`;
-                      // openDay = anchor - lead (em dias úteis aprox.); para preview simples mostramos "N dias antes"
-                      const openDay = anchor === 31 ? `~${30 - Math.round(lead * 1.4)}` : Math.max(1, anchor - Math.round(lead * 1.4));
-                      preview = `📅 Janela de cada ciclo: dia ${openDay} → ${close} do mês (abre ${lead} dias úteis antes do fecho)`;
-                    } else if (freq === 'semanal') {
-                      const days = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-                      preview = `📅 Janela: abre ${lead}d antes → fecha toda a ${days[anchor - 1]}`;
-                    } else if (freq === 'mensal' && phase.recurrence_week_of_month) {
-                      const wom = phase.recurrence_week_of_month;
-                      const days = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-                      const ord = wom === 5 ? 'última' : `${wom}ª`;
-                      preview = `📅 Janela: abre ${lead}d antes → fecha na ${ord} ${days[anchor - 1]} do mês`;
-                    } else if (freq === 'trimestral') {
-                      preview = `📅 Janela: abre ${lead}d antes → fecha dia ${anchor} do último mês de cada trimestre`;
-                    }
-                    return preview ? (
-                      <div className="sm:col-span-3 text-[11px] text-primary/80 italic bg-background/60 rounded px-2 py-1.5 border border-primary/10">
-                        {preview}
-                      </div>
-                    ) : null;
-                  })()}
-                  {phase.recurrence_frequency === 'mensal' && phase.recurrence_week_of_month && (
-                    <>
-                      <div className="space-y-1">
-                        <label className="text-[11px] text-muted-foreground">Qual semana</label>
-                        <Select
-                          value={String(phase.recurrence_week_of_month)}
-                          onValueChange={v => onUpdatePhase(phase.id, { recurrence_week_of_month: parseInt(v) })}
-                        >
-                          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1ª semana</SelectItem>
-                            <SelectItem value="2">2ª semana</SelectItem>
-                            <SelectItem value="3">3ª semana</SelectItem>
-                            <SelectItem value="4">4ª semana</SelectItem>
-                            <SelectItem value="5">Última semana</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] text-muted-foreground">Dia da semana</label>
-                        <Select
-                          value={phase.recurrence_anchor_day ? String(phase.recurrence_anchor_day) : ''}
-                          onValueChange={v => onUpdatePhase(phase.id, { recurrence_anchor_day: parseInt(v) })}
-                        >
-                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Escolher" /></SelectTrigger>
-                          <SelectContent>
-                            {['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'].map((d, i) => (
-                              <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="sm:col-span-3 text-[11px] text-muted-foreground italic">
-                        Ex: "2ª semana + Sexta" → fase abre toda a 2ª sexta-feira do mês.
-                      </div>
-                    </>
-                  )}
+                  <p className="text-[11px] text-muted-foreground italic flex-1 min-w-[200px] self-center pt-3">
+                    {phase.recurrence_frequency === 'mensal' && '→ Mês de calendário (1 → fim do mês)'}
+                    {phase.recurrence_frequency === 'trimestral' && '→ Fim de cada trimestre (Mar/Jun/Set/Dez)'}
+                    {phase.recurrence_frequency === 'semanal' && '→ Fecha todas as semanas'}
+                  </p>
                 </div>
               )}
             </div>
