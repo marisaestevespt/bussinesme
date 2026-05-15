@@ -700,8 +700,19 @@ function PhaseCard({
       </CardHeader>
       {expanded && (
         <CardContent className="pb-3 pt-0 px-4 space-y-3">
+          {/* Offboarding: acionado por status do cliente, sem timing */}
+          {phase.is_offboarding && (
+            <div className="rounded-md border-l-2 border-l-destructive/60 border border-destructive/15 bg-destructive/[0.04] px-3 py-2.5">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-destructive uppercase tracking-wider mb-1">
+                <Clock className="h-3 w-3" /> Quando acontece
+              </div>
+              <p className="text-xs text-foreground leading-relaxed">
+                Acionada quando o cliente passa a <span className="font-medium">"em offboarding"</span>. Não tem data planeada.
+              </p>
+            </div>
+          )}
           {/* Timeline config — static summary with pencil-on-hover */}
-          {isOwner && (() => {
+          {isOwner && !phase.is_offboarding && (() => {
             const unitLabel = (phase.duration_unit || 'dias_uteis') === 'dias_uteis' ? 'dias úteis' : 'dias corridos';
             const triggerLabel: Record<string, string> = {
               inicio_projeto: 'início do projeto',
