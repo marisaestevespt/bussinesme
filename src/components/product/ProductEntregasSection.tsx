@@ -395,9 +395,11 @@ function DeliverableRow({
               onValueChange={(v) => {
                 const patch: Record<string, unknown> = { cadence: v };
                 if (v === 'propria') {
-                  patch.recurrence_frequency = template.recurrence_frequency || 'semanal';
+                  // simplificado: cadência própria = sempre semanal num dia da semana
+                  patch.recurrence_frequency = 'semanal';
                   patch.recurrence_anchor_day = template.recurrence_anchor_day ?? 5; // sexta
-                  patch.recurrence_lead_days = template.recurrence_lead_days ?? 5;
+                  patch.recurrence_lead_days = 5; // default fixo
+                  patch.recurrence_week_of_month = null;
                 } else {
                   patch.recurrence_frequency = null;
                   patch.recurrence_anchor_day = null;
@@ -407,124 +409,19 @@ function DeliverableRow({
               }}
               disabled={!isOwner}
             >
-              <SelectTrigger className="h-8 w-44 text-xs">
+              <SelectTrigger className="h-8 w-52 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unica">Uma vez (1×)</SelectItem>
+                <SelectItem value="unica">Só uma vez no início</SelectItem>
                 {isRecurring && (
-                  <SelectItem value="por_ciclo_fase">A cada ciclo da fase</SelectItem>
+                  <SelectItem value="por_ciclo_fase">Uma vez por ciclo da fase</SelectItem>
                 )}
-                <SelectItem value="propria">Cadência própria…</SelectItem>
+                <SelectItem value="propria">Todas as semanas…</SelectItem>
                 <SelectItem value="sem_data">Sem data</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        )}
-      </div>
-      {allowRecurring && cadence === 'propria' && (
-        <div className="flex flex-wrap items-end gap-3 pl-9 rounded-md bg-muted/30 px-3 py-2 mt-1 border border-dashed">
-          {/* Frequência */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Frequência</label>
-            <Select
-              value={template.recurrence_frequency || 'semanal'}
-              onValueChange={(v) => onUpdate(template.id, {
-                recurrence_frequency: v,
-                recurrence_anchor_day: v === 'mensal' ? (template.recurrence_anchor_day ?? 1) : (template.recurrence_anchor_day ?? 5),
-                recurrence_week_of_month: v === 'mensal' ? template.recurrence_week_of_month ?? null : null,
-              })}
-              disabled={!isOwner}
-            >
-              <SelectTrigger className="h-8 w-32 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="semanal">Semanal</SelectItem>
-                <SelectItem value="quinzenal">Quinzenal</SelectItem>
-                <SelectItem value="mensal">Mensal</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Padrão (só visível em mensal) */}
-          {template.recurrence_frequency === 'mensal' && (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Padrão</label>
-              <Select
-                value={template.recurrence_week_of_month ? 'nth_weekday' : 'day_of_month'}
-                onValueChange={(v) => onUpdate(template.id, {
-                  recurrence_week_of_month: v === 'nth_weekday' ? 1 : null,
-                  recurrence_anchor_day: v === 'nth_weekday' ? 5 : 1, // default: 1ª sexta / dia 1
-                })}
-                disabled={!isOwner}
-              >
-                <SelectTrigger className="h-8 w-44 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day_of_month">Dia X do mês</SelectItem>
-                  <SelectItem value="nth_weekday">Nª dia da semana</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Dia: depende da frequência e do padrão */}
-          {template.recurrence_frequency === 'mensal' && !template.recurrence_week_of_month ? (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Dia do mês</label>
-              <Input
-                type="number" min={1} max={31}
-                className="h-8 w-20 text-xs px-2 text-center"
-                value={template.recurrence_anchor_day ?? ''}
-                placeholder="1-31"
-                onChange={e => onUpdate(template.id, { recurrence_anchor_day: e.target.value ? parseInt(e.target.value) : null })}
-                readOnly={!isOwner}
-              />
-            </div>
-          ) : template.recurrence_frequency === 'mensal' && template.recurrence_week_of_month ? (
-            <>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Semana</label>
-                <Select
-                  value={String(template.recurrence_week_of_month)}
-                  onValueChange={v => onUpdate(template.id, { recurrence_week_of_month: parseInt(v) })}
-                  disabled={!isOwner}
-                >
-                  <SelectTrigger className="h-8 w-28 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1ª</SelectItem>
-                    <SelectItem value="2">2ª</SelectItem>
-                    <SelectItem value="3">3ª</SelectItem>
-                    <SelectItem value="4">4ª</SelectItem>
-                    <SelectItem value="5">Última</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Dia da semana</label>
-                <Select
-                  value={template.recurrence_anchor_day ? String(template.recurrence_anchor_day) : '5'}
-                  onValueChange={v => onUpdate(template.id, { recurrence_anchor_day: parseInt(v) })}
-                  disabled={!isOwner}
-                >
-                  <SelectTrigger className="h-8 w-24 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {weekdayLabels.map((d, i) => (
-                      <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Dia da semana</label>
+            {cadence === 'propria' && (
               <Select
                 value={template.recurrence_anchor_day ? String(template.recurrence_anchor_day) : '5'}
                 onValueChange={v => onUpdate(template.id, { recurrence_anchor_day: parseInt(v) })}
@@ -539,27 +436,10 @@ function DeliverableRow({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          )}
-
-          {/* Antecedência */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Abre antes (dias úteis)</label>
-            <Input
-              type="number" min={0} max={30}
-              className="h-8 w-20 text-xs px-2 text-center"
-              value={template.recurrence_lead_days ?? 5}
-              onChange={e => onUpdate(template.id, { recurrence_lead_days: e.target.value ? parseInt(e.target.value) : 0 })}
-              readOnly={!isOwner}
-            />
+            )}
           </div>
-
-          {/* Pré-visualização textual */}
-          <div className="flex-1 min-w-[200px] text-[11px] text-muted-foreground italic self-center pt-3">
-            → {cadenceLabel} · abre {template.recurrence_lead_days ?? 5}d antes
-          </div>
-        </div>
-      )}
+        )}
+      </div>
       {showDesc ? (
         <div className="flex items-center gap-3 pl-9">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">Descrição</span>
