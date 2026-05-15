@@ -213,10 +213,19 @@ Deno.serve(async (req) => {
           if (isPropria) {
             const freq = (dt as any).recurrence_frequency || 'semanal';
             const anchor = (dt as any).recurrence_anchor_day ?? null;
+            const wom = (dt as any).recurrence_week_of_month ?? null;
             propriaFields.is_recurring = true;
-            propriaFields.recurrence_label = freq === 'mensal' && anchor ? `mensal:${anchor}` : freq;
-            if (freq !== 'mensal' && anchor) {
-              propriaFields.recurrence_weekday = anchor;
+            if (freq === 'mensal' && wom && anchor) {
+              // "Nª <weekday> do mês" → recurrence_week (1..4 ou -1 para última) + weekday (0..6, Dom=0)
+              propriaFields.recurrence_label = `mensal:${wom === 5 ? 'ultima' : wom}:${anchor}`;
+              propriaFields.recurrence_week = wom === 5 ? -1 : wom;
+              // anchor 1=Seg..7=Dom → JS 1..6,0
+              propriaFields.recurrence_weekday = anchor === 7 ? 0 : anchor;
+            } else if (freq === 'mensal' && anchor) {
+              propriaFields.recurrence_label = `mensal:${anchor}`;
+            } else {
+              propriaFields.recurrence_label = freq;
+              if (anchor) propriaFields.recurrence_weekday = anchor === 7 ? 0 : anchor;
             }
             // 'unica' já clonou uma vez; 'propria' também só uma vez por projeto
             const { data: already } = await supabase
