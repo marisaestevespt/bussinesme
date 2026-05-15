@@ -42,6 +42,10 @@ interface Template {
   email_subject?: string | null;
   email_body?: string | null;
   message_body?: string | null;
+  cadence?: 'unica' | 'por_ciclo_fase' | 'propria' | 'sem_data';
+  recurrence_frequency?: 'semanal' | 'quinzenal' | 'mensal' | null;
+  recurrence_anchor_day?: number | null;
+  recurrence_lead_days?: number | null;
 }
 
 interface Phase {
