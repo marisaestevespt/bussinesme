@@ -629,6 +629,7 @@ function ContentSheet({
 function PhaseCard({
   phase, deliverables, sops, isOwner, productId, isRecurring,
   onUpdatePhase, onDeletePhase, onAddDeliverable, onUpdateDeliverable, onDeleteDeliverable, onSwapDeliverables,
+  onMoveUp, onMoveDown, canReorder,
 }: {
   phase: Phase; deliverables: Template[]; sops: Array<{ id: string; name: string }>;
   isOwner: boolean; productId: string; isRecurring: boolean;
@@ -638,6 +639,9 @@ function PhaseCard({
   onUpdateDeliverable: (id: string, data: Record<string, unknown>) => void;
   onDeleteDeliverable: (id: string) => void;
   onSwapDeliverables: (idA: string, orderA: number, idB: string, orderB: number) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canReorder?: { up: boolean; down: boolean };
 }) {
   const [expanded, setExpanded] = useState(true);
   const [sopExpanded, setSopExpanded] = useState(false);
