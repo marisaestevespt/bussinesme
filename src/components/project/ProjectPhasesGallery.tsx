@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CalendarDays, Check, ChevronRight, Layers, Plus, Users as UsersIcon, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, Layers, Plus, Repeat, Users as UsersIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -47,6 +47,15 @@ interface Deliverable {
   planned_end: string | null;
 }
 
+interface RecurringOccurrence {
+  id: string;
+  name: string;
+  scheduled_date: string;
+  scheduled_time: string | null;
+  item_type: 'reuniao' | 'tarefa' | 'entrega';
+  status: 'pendente' | 'concluida' | 'cancelada' | 'reagendada';
+}
+
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
   const [addingPhase, setAddingPhase] = useState(false);
@@ -77,6 +86,31 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       return (data || []) as Deliverable[];
     },
   });
+
+  const { data: occurrences = [] } = useQuery({
+    queryKey: ['project-recurring-occurrences', projectId],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('project_recurring_occurrences')
+        .select('id, name, scheduled_date, scheduled_time, item_type, status')
+        .eq('project_id', projectId)
+        .order('scheduled_date');
+      return (data || []) as RecurringOccurrence[];
+    },
+  });
+
+  // Group recurring occurrences by month — render as "pseudo-phases" alongside real phases
+  const recurringMonths = useMemo(() => {
+    const map = new Map<string, RecurringOccurrence[]>();
+    for (const o of occurrences) {
+      const key = o.scheduled_date.slice(0, 7); // YYYY-MM
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(o);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [occurrences]);
+
+  const [openMonthKey, setOpenMonthKey] = useState<string | null>(null);
 
   // Profiles for responsibles
   const assigneeIds = useMemo(
@@ -120,12 +154,16 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     return <div className="text-sm text-muted-foreground">A carregar fases…</div>;
   }
 
+  const totalCards = phases.length + recurringMonths.length;
+
   return (
     <>
       {/* Toolbar: Nova fase */}
       <div className="flex items-center justify-between mb-3">
         <div className="text-xs text-muted-foreground">
-          {phases.length > 0 ? `${phases.length} ${phases.length === 1 ? 'fase' : 'fases'}` : ''}
+          {totalCards > 0
+            ? `${phases.length} ${phases.length === 1 ? 'fase' : 'fases'}${recurringMonths.length > 0 ? ` · ${recurringMonths.length} ${recurringMonths.length === 1 ? 'ciclo mensal' : 'ciclos mensais'}` : ''}`
+            : ''}
         </div>
         {addingPhase ? (
           <div className="flex items-center gap-2">
@@ -151,7 +189,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         )}
       </div>
 
-      {phases.length === 0 ? (
+      {totalCards === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed rounded-xl">
           <Layers className="h-9 w-9 text-muted-foreground/30 mb-3" />
           <p className="text-sm text-muted-foreground">
@@ -299,6 +337,103 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </button>
           );
         })}
+        {recurringMonths.map(([monthKey, items], idx) => {
+          const total = items.length;
+          const done = items.filter(o => o.status === 'concluida').length;
+          const cancelled = items.filter(o => o.status === 'cancelada').length;
+          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+          const monthDate = parseISO(monthKey + '-01');
+          const now = new Date();
+          const isCurrentMonth = monthDate.getFullYear() === now.getFullYear() && monthDate.getMonth() === now.getMonth();
+          const isPast = monthDate < new Date(now.getFullYear(), now.getMonth(), 1);
+          const allDone = total > 0 && done + cancelled === total;
+
+          return (
+            <button
+              key={`recurring-${monthKey}`}
+              type="button"
+              onClick={() => setOpenMonthKey(monthKey)}
+              className={cn(
+                'group relative flex flex-col gap-3 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
+                allDone && 'border-success/30 bg-success/5 opacity-70 shadow-none hover:opacity-90 hover:border-success/50',
+                isCurrentMonth && !allDone &&
+                  'border-primary/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg shadow-primary/15 ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/25',
+                !allDone && !isCurrentMonth &&
+                  'border-border/60 bg-gradient-to-br from-card to-card/80 shadow-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10'
+              )}
+            >
+              {isCurrentMonth && !allDone && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
+                </span>
+              )}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Repeat className="h-3 w-3 text-muted-foreground/70 shrink-0" />
+                    <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground/70">
+                      Ciclo Mensal
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold leading-tight truncate mt-1 capitalize">
+                    {format(monthDate, 'MMMM yyyy', { locale: pt })}
+                  </h3>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary shrink-0" />
+              </div>
+
+              <Badge
+                className={cn(
+                  'border self-start text-[10px]',
+                  allDone
+                    ? 'bg-success/15 text-success border-success/30'
+                    : isCurrentMonth
+                    ? 'bg-primary/15 text-primary border-primary/30'
+                    : isPast
+                    ? 'bg-warning/15 text-warning border-warning/30'
+                    : 'bg-muted text-muted-foreground border-border'
+                )}
+              >
+                {allDone ? 'Concluído' : isCurrentMonth ? 'Em curso' : isPast ? 'Em atraso' : 'Pendente'}
+              </Badge>
+
+              <div>
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                  <span>{done}/{total} ocorrências</span>
+                  <span className="font-semibold text-foreground">{pct}%</span>
+                </div>
+                <Progress value={pct} className="h-1.5" />
+              </div>
+
+              <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
+                {items.slice(0, 3).map(o => (
+                  <div key={o.id} className="flex items-center gap-2 text-[11px]">
+                    <span
+                      className={cn(
+                        'h-1.5 w-1.5 rounded-full shrink-0',
+                        o.status === 'concluida' ? 'bg-success' : o.status === 'cancelada' ? 'bg-destructive/40' : 'bg-muted-foreground/30'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'truncate',
+                        o.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
+                      )}
+                    >
+                      {format(parseISO(o.scheduled_date), 'd MMM', { locale: pt })} · {o.name}
+                    </span>
+                  </div>
+                ))}
+                {items.length > 3 && (
+                  <div className="text-[10px] text-muted-foreground/70 pl-3.5">
+                    +{items.length - 3} ocorrências…
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
         </div>
       )}
 
@@ -315,6 +450,50 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
               focusPhaseId={openPhaseId}
             />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail dialog for recurring monthly cycle */}
+      <Dialog open={!!openMonthKey} onOpenChange={open => !open && setOpenMonthKey(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="capitalize">
+              {openMonthKey
+                ? `Ciclo Mensal — ${format(parseISO(openMonthKey + '-01'), 'MMMM yyyy', { locale: pt })}`
+                : 'Ciclo Mensal'}
+            </DialogTitle>
+          </DialogHeader>
+          {openMonthKey && (
+            <div className="space-y-2 mt-2">
+              {(recurringMonths.find(([k]) => k === openMonthKey)?.[1] || []).map(o => (
+                <div
+                  key={o.id}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-md border bg-card text-sm',
+                    o.status === 'concluida' && 'opacity-60 line-through',
+                    o.status === 'cancelada' && 'opacity-40 line-through'
+                  )}
+                >
+                  <span className="text-base shrink-0">
+                    {o.item_type === 'reuniao' ? '📅' : o.item_type === 'tarefa' ? '📋' : '📦'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{o.name}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {format(parseISO(o.scheduled_date), "EEEE, d 'de' MMMM", { locale: pt })}
+                      {o.scheduled_time && ` · ${o.scheduled_time.slice(0, 5)}`}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] capitalize">
+                    {o.status}
+                  </Badge>
+                </div>
+              ))}
+              <p className="text-[11px] text-muted-foreground italic pt-2">
+                Para editar datas, marcar como concluída ou ocultar do portal, usa a secção "Itens Recorrentes do Ciclo" abaixo.
+              </p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
