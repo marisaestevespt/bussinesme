@@ -382,7 +382,7 @@ export default function PortalViewPage() {
     { key: 'requests', label: 'Pedidos', icon: Inbox },
     { key: 'payments', label: 'Pagamentos', icon: CreditCard },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
-    ...((routines.length > 0 || responsibilities.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
+    ...((routines.length > 0 || responsibilities.length > 0 || recurringOccurrences.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
     { key: 'feedback', label: 'A tua opinião', icon: MessageSquare },
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
