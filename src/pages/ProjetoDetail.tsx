@@ -1072,6 +1072,7 @@ function ProjetoDetailInner() {
                 meetings={meetings}
                 resolvedClientId={resolvedClientId}
                 taskMode={taskMode}
+                taskModes={taskModes}
                 setSubPage={setSubPage}
               />
             </EntityTabsContent>
@@ -1083,6 +1084,7 @@ function ProjetoDetailInner() {
                 local={local}
                 isServicoMensal={isServicoMensal}
                 taskMode={taskMode}
+                taskModes={taskModes}
                 tasks={tasks}
                 meetings={meetings}
                 profileMap={profileMap}
