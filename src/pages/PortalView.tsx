@@ -76,6 +76,7 @@ export default function PortalViewPage() {
   const [contractDocs, setContractDocs] = useState<PortalContractDocument[]>([]);
   const [responsibilities, setResponsibilities] = useState<Array<Record<string, any>>>([]);
   const [routines, setRoutines] = useState<Array<Record<string, any>>>([]);
+  const [recurringOccurrences, setRecurringOccurrences] = useState<Array<Record<string, any>>>([]);
   const [requests, setRequests] = useState<PortalRequest[]>([]);
   const [accountManager, setAccountManager] = useState<{
     id: string;
@@ -144,6 +145,7 @@ export default function PortalViewPage() {
         rpcAny('portal_get_recolhas', { _token: realToken }),
         supabase.rpc('get_portal_account_manager', { _token: realToken }),
         supabase.rpc('get_portal_client_requests', { _token: realToken }),
+        rpcAny('get_portal_recurring_occurrences', { _token: realToken }),
       ]);
       const value = <T,>(index: number): T[] => {
         const result = results[index];
@@ -186,6 +188,7 @@ export default function PortalViewPage() {
       }>(14);
       setAccountManager(amList[0] || null);
       setRequests(value<PortalRequest>(15));
+      setRecurringOccurrences(value<Record<string, any>>(16));
       // Audit: log portal session (fire-and-forget)
       try { await supabase.rpc('portal_log_login', { _token: realToken }); } catch { /* ignore */ }
     } catch (error) {
@@ -379,7 +382,7 @@ export default function PortalViewPage() {
     { key: 'requests', label: 'Pedidos', icon: Inbox },
     { key: 'payments', label: 'Pagamentos', icon: CreditCard },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
-    ...((routines.length > 0 || responsibilities.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
+    ...((routines.length > 0 || responsibilities.length > 0 || recurringOccurrences.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
     { key: 'feedback', label: 'A tua opinião', icon: MessageSquare },
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
@@ -1014,6 +1017,51 @@ export default function PortalViewPage() {
         {/* ═══ AVENÇA: Rotinas + Responsabilidades ═══ */}
         {activeSection === 'avenca' && (
           <div className="space-y-6">
+            {recurringOccurrences.length > 0 && (
+              <section className="rounded-2xl border bg-card p-5 sm:p-6">
+                <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><CalendarDays className="h-5 w-5" style={{ color: pc }} /> Cronograma do ciclo</h2>
+                <p className="text-xs text-muted-foreground mb-4">Reuniões, entregas e tarefas planeadas para o ciclo atual.</p>
+                <div className="space-y-2">
+                  {(() => {
+                    const groups: Record<string, any[]> = {};
+                    recurringOccurrences.forEach((o: any) => {
+                      const d = new Date(o.scheduled_date);
+                      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                      (groups[key] ||= []).push(o);
+                    });
+                    const months = Object.keys(groups).sort();
+                    return months.map((mk) => {
+                      const [y, m] = mk.split('-');
+                      const label = new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
+                      return (
+                        <div key={mk} className="space-y-1.5">
+                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground mt-2">{label}</p>
+                          {groups[mk].map((o: any) => {
+                            const date = new Date(o.scheduled_date);
+                            const dStr = date.toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' });
+                            const tStr = o.scheduled_time ? ` · ${String(o.scheduled_time).slice(0, 5)}` : '';
+                            const done = o.status === 'concluida';
+                            return (
+                              <div key={o.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                                <div className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-medium shrink-0" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
+                                  {o.item_type}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm font-medium truncate ${done ? 'line-through text-muted-foreground' : ''}`}>{o.name}</p>
+                                  <p className="text-xs text-muted-foreground">{dStr}{tStr}</p>
+                                </div>
+                                {done && <span className="text-[10px] font-semibold uppercase" style={{ color: pc }}>Concluída</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </section>
+            )}
+
             {routines.length > 0 && (
               <section className="rounded-2xl border bg-card p-5 sm:p-6">
                 <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><Repeat className="h-5 w-5" style={{ color: pc }} /> Rotinas</h2>

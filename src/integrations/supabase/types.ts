@@ -12750,6 +12750,22 @@ export type Database = {
           timeline_phases: Json
         }[]
       }
+      get_portal_recurring_occurrences: {
+        Args: { _token: string }
+        Returns: {
+          cycle_index: number
+          description: string
+          id: string
+          item_type: string
+          name: string
+          project_id: string
+          project_name: string
+          scheduled_date: string
+          scheduled_time: string
+          sort_order: number
+          status: string
+        }[]
+      }
       get_portal_responsibilities: {
         Args: { _token: string }
         Returns: {
@@ -12981,6 +12997,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      renew_recurring_cycles: { Args: never; Returns: number }
       resolve_deliverable_assignee: {
         Args: { _deliverable_id: string }
         Returns: string
