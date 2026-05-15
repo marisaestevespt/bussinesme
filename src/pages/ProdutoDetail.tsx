@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown, ListChecks, HelpCircle, Briefcase, Star } from 'lucide-react';
 import { toast } from 'sonner';
-import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, deriveProjectMode, Product } from '@/hooks/useProducts';
+import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, deriveProjectMode, normalizeTaskModes, Product } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ProductDescriptionEditor } from '@/components/product/ProductDescriptionEditor';
 import { useAuth } from '@/hooks/useAuth';
@@ -577,7 +577,9 @@ export default function ProdutoDetailPage() {
                                         const next = v
                                           ? Array.from(new Set([...modes, opt.value]))
                                           : modes.filter((m: string) => m !== opt.value);
-                                        update('task_modes', next.length > 0 ? next : ['fases']);
+                                        const normalizedNext = normalizeTaskModes(next.length > 0 ? next : ['fases']);
+                                        update('task_modes', normalizedNext);
+                                        update('task_mode', normalizedNext[0]);
                                       }}
                                       className="mt-0.5"
                                     />

@@ -14,13 +14,15 @@ interface Props {
   meetings: Meeting[];
   resolvedClientId: string | null | undefined;
   taskMode: string;
+  taskModes?: string[];
   setSubPage: (s: SubPage) => void;
 }
 
 const hasText = (v: unknown) => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim().length > 0;
 
-export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, taskMode, setSubPage }: Props) {
+export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, taskMode, taskModes, setSubPage }: Props) {
   const navigate = useNavigate();
+  const hasPhases = (taskModes || [taskMode]).includes('fases');
   const now = new Date();
   const next = [...(meetings || [])]
     .filter((m) => m.date_time && new Date(m.date_time) >= now)
@@ -112,7 +114,7 @@ export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, t
         </div>
       </EntitySection>
 
-      {taskMode === 'fases' && (
+      {hasPhases && (
         <EntitySection title="Fases do Projeto" icon={Workflow}>
           <ProjectPhasesGallery projectId={projectId} projectStartDate={local.start_date} />
         </EntitySection>

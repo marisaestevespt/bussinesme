@@ -29,6 +29,7 @@ import { resolveProductId } from '@/lib/productResolver';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { QuoteCalculatorDialog } from '@/components/product/QuoteCalculatorDialog';
 import { Calculator } from 'lucide-react';
+import { normalizeTaskModes } from '@/hooks/useProducts';
 
 interface LeadDetailSheetProps {
   open: boolean;
@@ -264,7 +265,8 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
 
         const isRecurringLead = (matchedProduct as any)?.default_project_mode === 'recorrente' || matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
         const projectMode = (matchedProduct as any)?.default_project_mode || (isRecurringLead ? 'recorrente' : 'pontual');
-        const taskMode = (matchedProduct as any)?.task_mode || 'fases';
+        const taskModes = normalizeTaskModes((matchedProduct as any)?.task_modes, (matchedProduct as any)?.task_mode);
+        const taskMode = taskModes[0];
 
         const { data: newProject } = await supabase.from('projects').insert({
           name: `${productName} — ${form.name || 'Cliente'}`,
@@ -280,7 +282,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           deadline, // alinhado com end_of_cycle do cliente, mesmo em recorrente
           project_mode: projectMode,
           task_mode: taskMode,
-          task_modes: (matchedProduct as any)?.task_modes || [taskMode],
+          task_modes: taskModes,
           session_count: (matchedProduct as any)?.session_count ?? null,
           session_duration_minutes: (matchedProduct as any)?.session_duration_minutes ?? null,
           budgeted_minutes: (matchedProduct as any)?.estimated_project_hours

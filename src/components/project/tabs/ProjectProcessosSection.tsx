@@ -38,6 +38,7 @@ interface Props {
   local: ProjectFull;
   isServicoMensal: boolean;
   taskMode: string;
+  taskModes?: string[];
   tasks: Task[];
   meetings: Meeting[];
   profileMap: Map<string, Profile & { avatar_url: string | null }>;
@@ -52,10 +53,12 @@ interface Props {
 }
 
 export function ProjectProcessosSection({
-  projectId, local, isServicoMensal, taskMode, tasks, meetings, profileMap, getPhotoUrl,
+  projectId, local, isServicoMensal, taskMode, taskModes, tasks, meetings, profileMap, getPhotoUrl,
   resolvedClientId, reunioesLabel, onGenerateMonthly, onAddTask, onAddMeeting, onOpenTaskDetail, onOpenAllMeetings,
 }: Props) {
   const navigate = useNavigate();
+  const modes = taskModes || [taskMode];
+  const hasFixedTasks = modes.includes('tarefas_fixas');
   const now = new Date();
   const sorted = [...(meetings || [])].sort((a, b) =>
     new Date(a.date_time || 0).getTime() - new Date(b.date_time || 0).getTime()
@@ -81,12 +84,12 @@ export function ProjectProcessosSection({
       )}
 
       <EntitySection
-        title={taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
+        title={hasFixedTasks ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}
         icon={CheckSquare}
         action={
           <div className="flex gap-2 items-center">
             <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
-            {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1" onClick={onGenerateMonthly}>📋 Gerar</Button>}
+            {hasFixedTasks && <Button size="sm" variant="outline" className="gap-1" onClick={onGenerateMonthly}>📋 Gerar</Button>}
             <Button size="sm" variant="outline" className="gap-1" onClick={onAddTask}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
           </div>
         }
@@ -94,7 +97,7 @@ export function ProjectProcessosSection({
         {tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
             <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
-            <p className="text-sm text-muted-foreground">{taskMode === 'tarefas_fixas' ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+            <p className="text-sm text-muted-foreground">{hasFixedTasks ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
           </div>
         ) : (
           <div className="rounded-xl border overflow-hidden">

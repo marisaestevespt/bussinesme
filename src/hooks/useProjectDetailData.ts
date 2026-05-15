@@ -22,6 +22,7 @@ export interface ProjectFull {
   total_time_minutes: number | null;
   project_mode: string | null;
   task_mode: string | null;
+  task_modes?: string[] | null;
   whatsapp_group_url: string | null;
   contract_documents: Array<{ name: string; url: string }> | null;
   payment_method: string | null;

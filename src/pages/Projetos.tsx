@@ -37,6 +37,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
 import { CollectionPage, CollectionHeader } from '@/components/layout/collection';
 import { PROJECT_TEMPLATES, type ProjectTemplate } from '@/components/project/PROJECT_TEMPLATES';
+import { normalizeTaskModes } from '@/hooks/useProducts';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -305,6 +306,7 @@ export default function ProjetosPage() {
     mutationFn: async () => {
       if (!user) throw new Error('Não autenticado');
       const selectedProduct = fProduct ? allProducts.find(p => p.id === fProduct) : null;
+      const taskModes = normalizeTaskModes((selectedProduct as any)?.task_modes, selectedProduct?.task_mode);
       const { data: proj, error } = await supabase.from('projects').insert({
         name: fName,
         type: fType,
@@ -318,8 +320,8 @@ export default function ProjetosPage() {
         project_mode: fMode,
         product_id: selectedProduct?.id || null,
         product_name: selectedProduct?.name || null,
-        task_mode: selectedProduct?.task_mode || 'fases',
-        task_modes: (selectedProduct as any)?.task_modes || [selectedProduct?.task_mode || 'fases'],
+        task_mode: taskModes[0],
+        task_modes: taskModes,
         session_count: (selectedProduct as any)?.session_count ?? null,
         session_duration_minutes: (selectedProduct as any)?.session_duration_minutes ?? null,
         budgeted_minutes: selectedProduct?.estimated_project_hours

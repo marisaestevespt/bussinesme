@@ -47,7 +47,7 @@ import { type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile } from '@/pages/Reunioes';
 import { useProjectDetailData, calcTotalTime, type ProjectFull } from '@/hooks/useProjectDetailData';
-import { useProducts, TASK_MODE_OPTIONS } from '@/hooks/useProducts';
+import { useProducts, TASK_MODE_OPTIONS, normalizeTaskModes } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EntregaveisSubPage } from '@/components/project/subpages/EntregaveisSubPage';
@@ -126,6 +126,8 @@ function ProjetoDetailInner() {
   const { products: productsQ } = useProducts();
   const productsList = productsQ.data || [];
   const selectedProduct = productsList.find((p: any) => p.id === local?.product_id);
+  const effectiveTaskModes = normalizeTaskModes(local?.task_modes, local?.task_mode);
+  const primaryTaskMode = effectiveTaskModes[0];
 
   const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
   const { data: trackedTaskMinutes = 0 } = useTaskTimeTotals(taskIds);
@@ -345,7 +347,8 @@ function ProjetoDetailInner() {
         payment_method: local.payment_method || null, payment_config: local.payment_config || null,
         budgeted_minutes: local.budgeted_minutes ?? null,
         project_mode: (local as any).project_mode || 'pontual',
-        task_mode: (local as any).task_mode || 'fases',
+        task_modes: effectiveTaskModes,
+        task_mode: primaryTaskMode,
         brainstorming: (local as any).brainstorming ?? null,
       };
       // Auto-calculate total time when marking as concluded
@@ -665,8 +668,8 @@ function ProjetoDetailInner() {
     local.type === 'cliente_projeto_unico' ||
     local.type === 'interno'
   ) {
-    const taskMode: string = (local as any).task_mode || 'fases';
-    const taskModes: string[] = (local as any).task_modes || [taskMode];
+    const taskMode = primaryTaskMode;
+    const taskModes = effectiveTaskModes;
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -769,7 +772,9 @@ function ProjetoDetailInner() {
                           const next = v
                             ? Array.from(new Set([...taskModes, opt.value]))
                             : taskModes.filter(m => m !== opt.value);
-                          updateField('task_modes' as keyof ProjectFull, next.length > 0 ? next : ['fases']);
+                          const normalizedNext = normalizeTaskModes(next.length > 0 ? next : ['fases']);
+                          updateField('task_modes' as keyof ProjectFull, normalizedNext);
+                          updateField('task_mode' as keyof ProjectFull, normalizedNext[0]);
                         }}
                         className="mt-0.5"
                       />
@@ -1067,6 +1072,7 @@ function ProjetoDetailInner() {
                 meetings={meetings}
                 resolvedClientId={resolvedClientId}
                 taskMode={taskMode}
+                taskModes={taskModes}
                 setSubPage={setSubPage}
               />
             </EntityTabsContent>
@@ -1078,6 +1084,7 @@ function ProjetoDetailInner() {
                 local={local}
                 isServicoMensal={isServicoMensal}
                 taskMode={taskMode}
+                taskModes={taskModes}
                 tasks={tasks}
                 meetings={meetings}
                 profileMap={profileMap}
