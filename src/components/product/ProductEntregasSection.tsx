@@ -918,6 +918,24 @@ function PhaseCard({
                   <p className="sm:col-span-3 text-[11px] text-muted-foreground -mt-1">
                     A <b>cadência</b> é definida aqui na fase. Cada entrega abaixo segue automaticamente esta cadência — basta marcar "Repete em cada ciclo" nas que devem aparecer todos os ciclos (e desmarcar nas one-shot, ex: kickoff).
                   </p>
+                  {/* Predefinições rápidas (apenas para mensal sem padrão Nª weekday) */}
+                  {(phase.recurrence_frequency || 'mensal') === 'mensal' && !phase.recurrence_week_of_month && (
+                    <div className="sm:col-span-3 flex flex-wrap items-center gap-2 -mt-1">
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Predefinições</span>
+                      <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]"
+                        onClick={() => onUpdatePhase(phase.id, { recurrence_anchor_day: 31, recurrence_lead_days: 5, recurrence_week_of_month: null })}>
+                        Mês de calendário (1 → fim)
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]"
+                        onClick={() => onUpdatePhase(phase.id, { recurrence_anchor_day: 14, recurrence_lead_days: 22, recurrence_week_of_month: null })}>
+                        Mês fiscal (15 → 14)
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px] text-muted-foreground"
+                        title="Define manualmente abaixo">
+                        ou personaliza ↓
+                      </Button>
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <label className="text-[11px] text-muted-foreground">Cadência</label>
                     <Select
@@ -991,6 +1009,36 @@ function PhaseCard({
                       onChange={e => onUpdatePhase(phase.id, { recurrence_lead_days: e.target.value ? parseInt(e.target.value) : 0 })}
                     />
                   </div>
+                  {/* Pré-visualização da janela */}
+                  {(() => {
+                    const freq = phase.recurrence_frequency || 'mensal';
+                    const anchor = phase.recurrence_anchor_day;
+                    const lead = phase.recurrence_lead_days ?? 5;
+                    if (!anchor) return null;
+                    let preview = '';
+                    if (freq === 'mensal' && !phase.recurrence_week_of_month) {
+                      // janela "de X a Y" do mês
+                      const close = anchor === 31 ? 'último dia' : `dia ${anchor}`;
+                      // openDay = anchor - lead (em dias úteis aprox.); para preview simples mostramos "N dias antes"
+                      const openDay = anchor === 31 ? `~${30 - Math.round(lead * 1.4)}` : Math.max(1, anchor - Math.round(lead * 1.4));
+                      preview = `📅 Janela de cada ciclo: dia ${openDay} → ${close} do mês (abre ${lead} dias úteis antes do fecho)`;
+                    } else if (freq === 'semanal') {
+                      const days = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+                      preview = `📅 Janela: abre ${lead}d antes → fecha toda a ${days[anchor - 1]}`;
+                    } else if (freq === 'mensal' && phase.recurrence_week_of_month) {
+                      const wom = phase.recurrence_week_of_month;
+                      const days = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+                      const ord = wom === 5 ? 'última' : `${wom}ª`;
+                      preview = `📅 Janela: abre ${lead}d antes → fecha na ${ord} ${days[anchor - 1]} do mês`;
+                    } else if (freq === 'trimestral') {
+                      preview = `📅 Janela: abre ${lead}d antes → fecha dia ${anchor} do último mês de cada trimestre`;
+                    }
+                    return preview ? (
+                      <div className="sm:col-span-3 text-[11px] text-primary/80 italic bg-background/60 rounded px-2 py-1.5 border border-primary/10">
+                        {preview}
+                      </div>
+                    ) : null;
+                  })()}
                   {phase.recurrence_frequency === 'mensal' && phase.recurrence_week_of_month && (
                     <>
                       <div className="space-y-1">
