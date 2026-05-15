@@ -161,7 +161,13 @@ function DeliverableRow({
       const day = dow && dow >= 1 && dow <= 7 ? ` · ${weekdayLabels[dow - 1]}` : '';
       return f === 'semanal' ? `Semanal${day}` : `Quinzenal${day}`;
     }
+    // mensal: ou "dia X" ou "Nª <weekday>"
+    const wom = template.recurrence_week_of_month;
     const d = template.recurrence_anchor_day;
+    if (wom && d && d >= 1 && d <= 7) {
+      const ord = wom === 5 ? 'Última' : `${wom}ª`;
+      return `Mensal · ${ord} ${weekdayLabels[d - 1]}`;
+    }
     return d ? `Mensal · dia ${d}` : 'Mensal';
   })();
   const [contentOpen, setContentOpen] = useState(false);
