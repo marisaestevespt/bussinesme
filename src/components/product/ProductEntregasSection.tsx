@@ -380,18 +380,83 @@ function DeliverableRow({
             ))}
           </SelectContent>
         </Select>
-        {isRecurring && allowRecurring && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <label className="flex items-center gap-2 shrink-0 cursor-pointer text-xs text-muted-foreground">
-                <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
-                Repete em cada ciclo
-              </label>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs max-w-xs">
-              Marca esta entrega como parte do ciclo recorrente da fase. A <b>cadência</b> (semanal/mensal/dia, etc.) é definida na própria fase — as entregas seguem-na. Desmarca para entregas one-shot que só acontecem uma vez (ex: kickoff).
-            </TooltipContent>
-          </Tooltip>
+        {allowRecurring && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+            <Select
+              value={cadence}
+              onValueChange={(v) => {
+                const patch: Record<string, unknown> = { cadence: v };
+                if (v === 'propria') {
+                  patch.recurrence_frequency = template.recurrence_frequency || 'semanal';
+                  patch.recurrence_anchor_day = template.recurrence_anchor_day ?? 5; // sexta
+                  patch.recurrence_lead_days = template.recurrence_lead_days ?? 5;
+                } else {
+                  patch.recurrence_frequency = null;
+                  patch.recurrence_anchor_day = null;
+                }
+                onUpdate(template.id, patch);
+              }}
+              disabled={!isOwner}
+            >
+              <SelectTrigger className="h-8 w-44 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unica">Uma vez (1×)</SelectItem>
+                {isRecurring && (
+                  <SelectItem value="por_ciclo_fase">A cada ciclo da fase</SelectItem>
+                )}
+                <SelectItem value="propria">Cadência própria…</SelectItem>
+                <SelectItem value="sem_data">Sem data</SelectItem>
+              </SelectContent>
+            </Select>
+            {cadence === 'propria' && (
+              <>
+                <Select
+                  value={template.recurrence_frequency || 'semanal'}
+                  onValueChange={(v) => onUpdate(template.id, {
+                    recurrence_frequency: v,
+                    recurrence_anchor_day: v === 'mensal' ? (template.recurrence_anchor_day ?? 1) : (template.recurrence_anchor_day ?? 5),
+                  })}
+                  disabled={!isOwner}
+                >
+                  <SelectTrigger className="h-8 w-28 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="semanal">Semanal</SelectItem>
+                    <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                    <SelectItem value="mensal">Mensal</SelectItem>
+                  </SelectContent>
+                </Select>
+                {template.recurrence_frequency === 'mensal' ? (
+                  <Input
+                    type="number" min={1} max={31}
+                    className="h-8 w-16 text-xs px-2 text-center"
+                    value={template.recurrence_anchor_day ?? ''}
+                    placeholder="Dia"
+                    onChange={e => onUpdate(template.id, { recurrence_anchor_day: e.target.value ? parseInt(e.target.value) : null })}
+                  />
+                ) : (
+                  <Select
+                    value={template.recurrence_anchor_day ? String(template.recurrence_anchor_day) : '5'}
+                    onValueChange={v => onUpdate(template.id, { recurrence_anchor_day: parseInt(v) })}
+                    disabled={!isOwner}
+                  >
+                    <SelectTrigger className="h-8 w-24 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {weekdayLabels.map((d, i) => (
+                        <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
       {showDesc ? (
