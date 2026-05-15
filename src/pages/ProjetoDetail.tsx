@@ -47,7 +47,7 @@ import { type DocEntry } from '@/components/financial/InvoiceUpload';
 import { MeetingFormDialog } from '@/pages/Reunioes';
 import type { Profile as MeetingProfile } from '@/pages/Reunioes';
 import { useProjectDetailData, calcTotalTime, type ProjectFull } from '@/hooks/useProjectDetailData';
-import { useProducts, TASK_MODE_OPTIONS } from '@/hooks/useProducts';
+import { useProducts, TASK_MODE_OPTIONS, normalizeTaskModes } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EntregaveisSubPage } from '@/components/project/subpages/EntregaveisSubPage';
@@ -126,6 +126,8 @@ function ProjetoDetailInner() {
   const { products: productsQ } = useProducts();
   const productsList = productsQ.data || [];
   const selectedProduct = productsList.find((p: any) => p.id === local?.product_id);
+  const effectiveTaskModes = normalizeTaskModes((local as any)?.task_modes, (local as any)?.task_mode);
+  const primaryTaskMode = effectiveTaskModes[0];
 
   const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
   const { data: trackedTaskMinutes = 0 } = useTaskTimeTotals(taskIds);
@@ -345,7 +347,8 @@ function ProjetoDetailInner() {
         payment_method: local.payment_method || null, payment_config: local.payment_config || null,
         budgeted_minutes: local.budgeted_minutes ?? null,
         project_mode: (local as any).project_mode || 'pontual',
-        task_mode: (local as any).task_mode || 'fases',
+        task_modes: effectiveTaskModes,
+        task_mode: primaryTaskMode,
         brainstorming: (local as any).brainstorming ?? null,
       };
       // Auto-calculate total time when marking as concluded
