@@ -206,12 +206,11 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       }
       const today = new Date();
       const startDateStr = format(today, 'yyyy-MM-dd');
-      let endOfCycleStr: string | null = null;
-      if (matchedProduct?.cycle_duration) {
-        const end = new Date(today);
-        end.setMonth(end.getMonth() + matchedProduct.cycle_duration);
-        endOfCycleStr = format(end, 'yyyy-MM-dd');
-      }
+      // Default cycle = 12 meses quando o produto não tem cycle_duration definido
+      const cycleMonths = matchedProduct?.cycle_duration ?? 12;
+      const endOfCycleDate = new Date(today);
+      endOfCycleDate.setMonth(endOfCycleDate.getMonth() + cycleMonths);
+      const endOfCycleStr = format(endOfCycleDate, 'yyyy-MM-dd');
 
       const { data: newClient, error: clientError } = await supabase.from('clients').insert({
         full_name: form.name || '',
