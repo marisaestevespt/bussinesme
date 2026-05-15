@@ -126,7 +126,7 @@ function ProjetoDetailInner() {
   const { products: productsQ } = useProducts();
   const productsList = productsQ.data || [];
   const selectedProduct = productsList.find((p: any) => p.id === local?.product_id);
-  const effectiveTaskModes = normalizeTaskModes((local as any)?.task_modes, (local as any)?.task_mode);
+  const effectiveTaskModes = normalizeTaskModes(local?.task_modes, local?.task_mode);
   const primaryTaskMode = effectiveTaskModes[0];
 
   const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
