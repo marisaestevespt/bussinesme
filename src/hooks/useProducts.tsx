@@ -50,6 +50,14 @@ export const TASK_MODE_OPTIONS = [
   { value: 'tarefas_livres', label: 'Tarefas Livres', description: 'Tarefas ad-hoc adicionadas conforme necessário.' },
 ] as const;
 
+export function normalizeTaskModes(modes?: readonly (string | null | undefined)[] | null, fallback?: string | null): string[] {
+  const allowed = TASK_MODE_OPTIONS.map(o => o.value as string);
+  const source = modes && modes.length > 0 ? modes : (fallback ? [fallback] : ['fases']);
+  const unique = Array.from(new Set(source.filter((m): m is string => typeof m === 'string' && allowed.includes(m))));
+  const ordered = allowed.filter(mode => unique.includes(mode));
+  return ordered.length > 0 ? ordered : ['fases'];
+}
+
 /** Tipos onde faz sentido perguntar nº de sessões. */
 export const SESSION_BASED_TYPES = new Set([
   'consulta',
@@ -102,12 +110,14 @@ export function useProducts() {
 
   const upsertProduct = useMutation({
     mutationFn: async (product: Partial<Product> & { name: string }): Promise<string | null> => {
+      const taskModes = normalizeTaskModes((product as any).task_modes, (product as any).task_mode);
+      const payload = { ...product, task_modes: taskModes, task_mode: taskModes[0] };
       if (product.id) {
-        const { error } = await supabase.from('products').update(product).eq('id', product.id);
+        const { error } = await supabase.from('products').update(payload).eq('id', product.id);
         if (error) throw error;
         return product.id;
       } else {
-        const { data, error } = await supabase.from('products').insert(product as TablesInsert<'products'>).select('id').single();
+        const { data, error } = await supabase.from('products').insert(payload as TablesInsert<'products'>).select('id').single();
         if (error) throw error;
         const newId = data.id;
 
