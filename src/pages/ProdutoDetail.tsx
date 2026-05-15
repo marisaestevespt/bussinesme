@@ -26,6 +26,8 @@ import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { ProductClientsHub } from '@/components/product/ProductClientsHub';
 import { ProductEntregasSection } from '@/components/product/ProductEntregasSection';
+import { ProductRecurringItems } from '@/components/product/ProductRecurringItems';
+import { Switch } from '@/components/ui/switch';
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
 import { ProductSalesKitSection } from '@/components/product/ProductSalesKitSection';
 import { ProductTabHeader } from '@/components/product/_shared';
@@ -686,6 +688,17 @@ export default function ProdutoDetailPage() {
                       <span className="text-xs text-muted-foreground shrink-0">meses</span>
                     </div>
                   </Row>
+                  {deriveProjectMode(form.product_type, form.sales_type) === 'recorrente' && (
+                    <Row icon={Repeat} label="Renovação automática">
+                      <div className="flex items-center gap-2">
+                        <Switch checked={!!form.cycle_renewable} disabled={!isOwner}
+                          onCheckedChange={(v) => update('cycle_renewable', v)} />
+                        <span className="text-xs text-muted-foreground">
+                          {form.cycle_renewable ? 'Renova automaticamente no fim do ciclo' : 'Ciclo fixo (termina no fim)'}
+                        </span>
+                      </div>
+                    </Row>
+                  )}
 
                   {/* ── Links ── */}
                   <SectionTitle>Links</SectionTitle>
