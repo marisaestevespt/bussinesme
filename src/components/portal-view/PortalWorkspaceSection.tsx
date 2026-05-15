@@ -53,7 +53,8 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
     phases.forEach((p) => {
       const dels = Array.isArray(p.deliverables) ? p.deliverables : [];
       dels.forEach((d: any) => {
-        if ((d.responsible_type || 'equipa') !== 'cliente') return;
+        const rt = d.responsible_type || 'equipa';
+        if (rt !== 'cliente' && rt !== 'ambos') return;
         items.push({
           id: d.id,
           name: d.name,
