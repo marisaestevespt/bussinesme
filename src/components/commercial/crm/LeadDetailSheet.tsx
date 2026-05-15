@@ -193,6 +193,26 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       const productId = await resolveProductId(productName);
       const quoteId = (lead as any)?.quote_id || form.quote_id || null;
       const contractValue = parseFloat(form.estimated_value) || null;
+
+      // Pre-fetch product to derive start_date / end_of_cycle defaults
+      let matchedProduct: any = null;
+      if (productName) {
+        const { data } = await supabase
+          .from('products')
+          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode, task_modes, session_count, session_duration_minutes, estimated_project_hours')
+          .eq('name', productName)
+          .maybeSingle();
+        matchedProduct = data;
+      }
+      const today = new Date();
+      const startDateStr = format(today, 'yyyy-MM-dd');
+      let endOfCycleStr: string | null = null;
+      if (matchedProduct?.cycle_duration) {
+        const end = new Date(today);
+        end.setMonth(end.getMonth() + matchedProduct.cycle_duration);
+        endOfCycleStr = format(end, 'yyyy-MM-dd');
+      }
+
       const { data: newClient, error: clientError } = await supabase.from('clients').insert({
         full_name: form.name || '',
         email: form.email || null,
@@ -201,7 +221,9 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         current_product_id: productId,
         documents: form.documents || null,
         status: 'em_onboarding',
-        conversion_date: format(new Date(), 'yyyy-MM-dd'),
+        conversion_date: startDateStr,
+        start_date: startDateStr,
+        end_of_cycle: endOfCycleStr,
       } as any).select('id').single();
       if (clientError) throw clientError;
 
@@ -239,18 +261,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
 
       let createdProjectId: string | null = null;
       if (productName) {
-        const { data: matchedProduct } = await supabase
-          .from('products')
-          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode, task_modes, session_count, session_duration_minutes, estimated_project_hours')
-          .eq('name', productName)
-          .maybeSingle();
-
-        let deadline: string | null = null;
-        if (matchedProduct?.cycle_duration) {
-          const end = new Date();
-          end.setMonth(end.getMonth() + matchedProduct.cycle_duration);
-          deadline = format(end, 'yyyy-MM-dd');
-        }
+        const deadline: string | null = endOfCycleStr;
 
         const isRecurringLead = (matchedProduct as any)?.default_project_mode === 'recorrente' || matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
         const projectMode = (matchedProduct as any)?.default_project_mode || (isRecurringLead ? 'recorrente' : 'pontual');
@@ -266,8 +277,8 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           client_id: newClient.id,
           product_id: matchedProduct?.id || null,
           product_name: productName,
-          start_date: format(new Date(), 'yyyy-MM-dd'),
-          deadline: projectMode === 'recorrente' ? null : deadline,
+          start_date: startDateStr,
+          deadline, // alinhado com end_of_cycle do cliente, mesmo em recorrente
           project_mode: projectMode,
           task_mode: taskMode,
           task_modes: (matchedProduct as any)?.task_modes || [taskMode],
