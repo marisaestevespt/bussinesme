@@ -1085,15 +1085,30 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
     qc.invalidateQueries({ queryKey: ['product-deliverable-templates', productId] });
   };
 
+  const swapPhases = async (idA: string, orderA: number, idB: string, orderB: number) => {
+    await Promise.all([
+      supabase.from('product_phases' as any).update({ sort_order: orderB } as any).eq('id', idA),
+      supabase.from('product_phases' as any).update({ sort_order: orderA } as any).eq('id', idB),
+    ]);
+    qc.invalidateQueries({ queryKey: phaseKey });
+  };
+
   const sortedPhases = [...phases].sort((a, b) => a.sort_order - b.sort_order);
   const onboardingPhases = sortedPhases.filter(p => p.is_onboarding && !p.is_offboarding);
   const offboardingPhases = sortedPhases.filter(p => p.is_offboarding && !p.is_onboarding);
   const roadmapPhases = sortedPhases.filter(p => !p.is_onboarding && !p.is_offboarding);
 
-  const renderPhase = (phase: Phase) => {
+  const renderPhase = (phase: Phase, index?: number, list?: Phase[]) => {
     const phaseDeliverables = deliverableTemplates
       .filter(d => d.phase_id === phase.id)
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    const reorderable = !!list && list.length > 1;
+    const move = (dir: -1 | 1) => {
+      if (!list || index == null) return;
+      const target = list[index + dir];
+      if (!target) return;
+      swapPhases(phase.id, phase.sort_order, target.id, target.sort_order);
+    };
     return (
       <PhaseCard key={phase.id} phase={phase} deliverables={phaseDeliverables} sops={sops}
         isOwner={isOwner} productId={productId} isRecurring={isRecurring}
@@ -1101,7 +1116,11 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
         onDeletePhase={(id) => deletePhase.mutate(id)}
         onAddDeliverable={addDeliverableToPhase}
         onUpdateDeliverable={onUpdate} onDeleteDeliverable={onDelete}
-        onSwapDeliverables={swapDeliverables} />
+        onSwapDeliverables={swapDeliverables}
+        onMoveUp={reorderable ? () => move(-1) : undefined}
+        onMoveDown={reorderable ? () => move(1) : undefined}
+        canReorder={reorderable && index != null && list ? { up: index > 0, down: index < list.length - 1 } : undefined}
+      />
     );
   };
 
@@ -1203,7 +1222,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
                       Sem fases definidas. Adiciona a primeira em baixo.
                     </p>
                   )}
-                  {zoneConfig.phases.map(renderPhase)}
+                  {zoneConfig.phases.map((p, i, arr) => renderPhase(p, i, arr))}
                   {isOwner && (openZone === 'roadmap' || zoneConfig.phases.length === 0) && (
                     <Button size="sm" variant="outline" className="w-full" onClick={() => addPhase.mutate(openZone)}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> {zoneConfig.addLabel}
