@@ -13,7 +13,7 @@ import {
   DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import {
-  Video, CheckSquare, User, Link2, FileText, Plus, Upload,
+  Video, CheckSquare, User, Users, Link2, FileText, Plus, Upload,
   ExternalLink, Unlink, ChevronDown, Paperclip,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,7 @@ import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 export type DeliverableFormat =
   | 'tarefa_interna'
   | 'tarefa_cliente'
+  | 'tarefa_partilhada'
   | 'reuniao'
   | 'link'
   | 'documento';
@@ -56,12 +57,16 @@ export function getDeliverableFormat(d: DeliverableForFormat): DeliverableFormat
   if (t === 'link') return 'link';
   if (t === 'documento') return 'documento';
   // tarefa
-  return (d.responsible_type || 'equipa') === 'cliente' ? 'tarefa_cliente' : 'tarefa_interna';
+  const rt = d.responsible_type || 'equipa';
+  if (rt === 'cliente') return 'tarefa_cliente';
+  if (rt === 'ambos') return 'tarefa_partilhada';
+  return 'tarefa_interna';
 }
 
 const FORMAT_META: Record<DeliverableFormat, { label: string; icon: any; cls: string }> = {
   tarefa_interna: { label: 'Tarefa', icon: CheckSquare, cls: 'bg-muted text-muted-foreground' },
   tarefa_cliente: { label: 'Cliente', icon: User, cls: 'bg-warning/10 text-warning' },
+  tarefa_partilhada: { label: 'Equipa + Cliente', icon: Users, cls: 'bg-primary/10 text-primary' },
   reuniao:        { label: 'Reunião', icon: Video, cls: 'bg-primary/10 text-primary' },
   link:           { label: 'Link', icon: Link2, cls: 'bg-info/10 text-info' },
   documento:      { label: 'Doc', icon: FileText, cls: 'bg-accent/40 text-foreground' },
@@ -70,6 +75,7 @@ const FORMAT_META: Record<DeliverableFormat, { label: string; icon: any; cls: st
 const FORMAT_TO_FIELDS: Record<DeliverableFormat, Record<string, any>> = {
   tarefa_interna: { deliverable_type: 'tarefa', is_meeting: false, responsible_type: 'equipa' },
   tarefa_cliente: { deliverable_type: 'tarefa', is_meeting: false, responsible_type: 'cliente' },
+  tarefa_partilhada: { deliverable_type: 'tarefa', is_meeting: false, responsible_type: 'ambos' },
   reuniao:        { deliverable_type: 'reuniao', is_meeting: true, responsible_type: 'equipa' },
   link:           { deliverable_type: 'link', is_meeting: false, responsible_type: 'equipa' },
   documento:      { deliverable_type: 'documento', is_meeting: false, responsible_type: 'equipa' },
