@@ -130,10 +130,14 @@ function DeliverableRow({
 
   const [editing, setEditing] = useState(!template.name); // open editor for empty new rows
   const portalVisible = template.portal_visible ?? true;
-  const respType = (template.responsible_type || 'equipa') as 'equipa' | 'cliente';
-  const respValue = respType === 'cliente' ? '__cliente__' : (template.responsible_role || '__equipa_none__');
-  const respLabel = respType === 'cliente'
-    ? 'Cliente'
+  const respType = (template.responsible_type || 'equipa') as 'equipa' | 'cliente' | 'ambos';
+  const respValue =
+    respType === 'cliente' ? '__cliente__'
+    : respType === 'ambos' ? '__ambos__'
+    : (template.responsible_role || '__equipa_none__');
+  const respLabel =
+    respType === 'cliente' ? 'Cliente'
+    : respType === 'ambos' ? 'Equipa + Cliente'
     : (template.responsible_role ? `Equipa · ${template.responsible_role}` : 'Equipa');
   const typeMeta: Record<string, { icon: string; label: string }> = {
     tarefa: { icon: '📋', label: 'Tarefa' },
@@ -208,7 +212,7 @@ function DeliverableRow({
             {template.estimated_minutes != null ? `${template.estimated_minutes} min` : '—'}
           </span>
           <span className="w-32 shrink-0 text-[11px] truncate">
-            <span className={`inline-flex items-center gap-1 ${respType === 'cliente' ? 'text-warning' : 'text-foreground'}`}>
+            <span className={`inline-flex items-center gap-1 ${respType === 'cliente' ? 'text-warning' : respType === 'ambos' ? 'text-primary' : 'text-foreground'}`}>
               {respType === 'cliente' ? <User className="h-3 w-3 shrink-0" /> : <Users className="h-3 w-3 shrink-0" />}
               <span className="truncate">{respLabel}</span>
             </span>
@@ -268,6 +272,8 @@ function DeliverableRow({
   const handleResponsibleChange = (v: string) => {
     if (v === '__cliente__') {
       onUpdate(template.id, { responsible_type: 'cliente', responsible_role: null });
+    } else if (v === '__ambos__') {
+      onUpdate(template.id, { responsible_type: 'ambos', responsible_role: null });
     } else if (v === '__equipa_none__') {
       onUpdate(template.id, { responsible_type: 'equipa', responsible_role: null });
     } else {
@@ -376,6 +382,9 @@ function DeliverableRow({
           <SelectContent>
             <SelectItem value="__cliente__">
               <span className="flex items-center gap-1.5"><User className="h-3 w-3" /> Cliente</span>
+            </SelectItem>
+            <SelectItem value="__ambos__">
+              <span className="flex items-center gap-1.5"><Users className="h-3 w-3" /> Equipa + Cliente</span>
             </SelectItem>
             <SelectItem value="__equipa_none__">
               <span className="flex items-center gap-1.5"><Users className="h-3 w-3" /> Equipa (sem função)</span>
