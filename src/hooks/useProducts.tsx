@@ -110,7 +110,7 @@ export function useProducts() {
 
   const upsertProduct = useMutation({
     mutationFn: async (product: Partial<Product> & { name: string }): Promise<string | null> => {
-      const taskModes = normalizeTaskModes((product as any).task_modes, (product as any).task_mode);
+      const taskModes = normalizeTaskModes(product.task_modes, product.task_mode);
       const payload = { ...product, task_modes: taskModes, task_mode: taskModes[0] };
       if (product.id) {
         const { error } = await supabase.from('products').update(payload).eq('id', product.id);
