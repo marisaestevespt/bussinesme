@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CalendarDays, Check, ChevronRight, Layers, Plus, RefreshCw, Users as UsersIcon, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, Layers, Plus, Users as UsersIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -145,26 +145,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={async () => {
-                const { data, error } = await supabase.rpc('sync_project_with_template' as any, { _project_id: projectId });
-                if (error) { toast.error('Erro ao sincronizar: ' + error.message); return; }
-                const added = (data as any)?.added ?? 0;
-                toast.success(added > 0 ? `${added} entregas adicionadas do template` : 'Já está sincronizado com o template');
-                queryClient.invalidateQueries({ queryKey: ['project-phases', projectId] });
-                queryClient.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
-              }}
-              title="Adiciona ao projeto as entregas do template do produto que ainda não existam"
-            >
-              <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Sincronizar com Template
-            </Button>
-            <Button size="sm" onClick={() => setAddingPhase(true)}>
-              <Plus className="h-3.5 w-3.5 mr-1.5" /> Nova fase
-            </Button>
-          </div>
+          <Button size="sm" onClick={() => setAddingPhase(true)}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" /> Nova fase
+          </Button>
         )}
       </div>
 
