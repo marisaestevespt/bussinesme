@@ -1,59 +1,62 @@
-## Cockpit Mensal — redesign
+## O problema
 
-A vista actual é fofa demais para servir de planeamento e acompanhamento mensal. Proposta de reestruturação por bloco, mantendo a navegação trimestre/mês que já está no topo.
+Hoje a recorrência vive **só na fase**. As entregas só podem dizer "sim, repito-me a cada ciclo da fase" ou "não, sou one-shot". Isto não cobre o caso real:
 
-### Nova ordem dos blocos
+> Fase **Trabalho contínuo** = mensal (ciclo da fase)
+> Lá dentro:
+> - Kickoff → 1 vez (one-shot)
+> - Briefing → 1 vez (one-shot)
+> - Reunião de status → **semanal**
+> - Mensagem de check-in → **semanal**
+> - Notas internas → sem data, sem cadência
 
-1. **Objetivos do mês** — tabela
-2. **Agenda do mês** — calendário visual
-3. **Comercial + Produtos** (fundidos)
-4. **Marketing** — com calendário de conteúdo inline
-5. **Clientes**
-6. **Operação** — com análise operacional
-7. **Reflexão e fecho**
+Também não há forma de **reordenar fases** dentro do roadmap.
 
-(Produtos sai como bloco isolado e passa a viver dentro de Comercial.)
+## O que vou mudar
 
-### Bloco 1 — Objetivos do mês (tabela)
-Substituir cards por tabela densa: **Objetivo · Área/Departamento · Meta · Atual · % · Estado · Ação**.
-Linha clicável abre o detail sheet existente. Filtro rápido por área no topo.
+### 1. Cadência por entrega (schema)
 
-### Bloco 2 — Agenda do mês
-Mostrar mesmo agenda: mini-calendário do mês com pontos por dia (reuniões, deadlines, eventos), e à direita lista cronológica das próximas 10 ocorrências (reuniões, entregas de projeto, deadlines fiscais, lançamentos). Hoje só mostra contadores.
+Adicionar à `product_deliverable_templates`:
+- `cadence` — enum: `unica` (one-shot) · `por_ciclo_fase` (segue a cadência da fase, comportamento atual) · `propria` (define a sua própria cadência) · `sem_data` (existe mas não tem timing definido)
+- `recurrence_frequency` — `semanal` / `quinzenal` / `mensal` (só usado quando `cadence = 'propria'`)
+- `recurrence_anchor_day` — dia da semana (1-7) ou do mês (1-31)
+- `recurrence_lead_days` — quantos dias úteis antes abre
 
-### Bloco 3 — Comercial + Produtos
-- KPIs: receita do mês, novas vendas, pipeline, taxa de conversão
-- Tabela **Vendas por produto** (qtd, receita, ticket médio, % do total)
-- Pipeline por estágio com valor agregado
-- Lista das vendas mais recentes
-- Produtos ativos com quick-stats (vendas mês, clientes ativos)
+Migrar dados:
+- entregas com `is_recurring = true` → `cadence = 'por_ciclo_fase'`
+- entregas com `is_recurring = false` numa fase recorrente → `cadence = 'unica'`
+- entregas em fases não recorrentes → `cadence = 'unica'` (comportamento atual)
 
-### Bloco 4 — Marketing
-- KPIs: leads do mês, custo por lead, conversão lead→cliente
-- **Calendário de conteúdo do mês** (grid 7 colunas, conteúdos planeados/publicados por dia)
-- Funis ativos com performance
-- Campanhas/automações em curso
+Manter `is_recurring` por compatibilidade (computado a partir do novo campo) até remover usages.
 
-### Bloco 5 — Clientes
-- KPIs: ativos, novos no mês, em offboarding, NPS
-- Tabela: clientes com aniversário de contrato no mês, renovações pendentes, onboardings em curso
-- Alertas: clientes sem actividade > X dias
+### 2. UI da entrega — controlo "Quando acontece?"
 
-### Bloco 6 — Operação
-- KPIs: projetos ativos, entregas no mês, tarefas concluídas vs planeadas, ocupação da equipa
-- **Análise operacional**: distribuição de horas por área/cliente, tarefas atrasadas, gargalos por membro
-- Rotinas executadas no mês
+Dentro do editor de cada entrega (linha 2 dos metadados), substituir o checkbox "Repete em cada ciclo" por um **único select compacto** com 4 opções:
 
-### Bloco 7 — Reflexão e fecho
-Mantém-se como está.
+- **Uma vez** (default para entregas tipo kickoff)
+- **A cada ciclo da fase** (default quando a fase é recorrente — ex: relatório mensal numa fase mensal)
+- **Cadência própria…** (abre micro-form: frequência + dia)
+- **Sem data** (para itens tipo "notas internas" que existem mas não geram timing)
 
-### Detalhes técnicos
-- Editar `MonthlyCockpit.tsx` para reordenar e remover `BlockProdutos` standalone
-- Reescrever `BlockObjetivos` para tabela
-- Estender `BlockAgenda` com mini-calendário (componente novo)
-- Fundir `BlockProdutos` dentro de `BlockComercial`
-- Estender `BlockMarketing` com calendário de conteúdo (lê de `marketing_content_calendar` ou equivalente — verifico schema antes)
-- Estender `BlockClientes` e `BlockOperacao` com tabelas e análise
+Quando `Cadência própria` está selecionada, mostra inline: `Semanal · Sexta · abre 5 dias antes`, com botão de editar.
 
-### Nota
-Este redesign toca em 6 ficheiros de bloco. Se preferires, fazemos por fases (ex.: começar por Objetivos+Agenda+Comercial, validar, depois o resto) — diz-me.
+### 3. Reordenar fases no Roadmap
+
+Adicionar setas ↑ ↓ no header de cada `PhaseCard` (visível só no roadmap principal — onboarding e offboarding mantêm fase única). Atualizam `sort_order` na tabela `product_phases` com o mesmo padrão de swap já usado nas entregas.
+
+### 4. Sincronização com projetos ativos
+
+O trigger `sync_product_deliverable_to_projects` já existe — vou estendê-lo para também sincronizar os novos campos (`cadence`, `recurrence_frequency`, etc.) sem sobrescrever datas planeadas manualmente nos projetos.
+
+## Detalhes técnicos
+
+- Nova migração: ALTER TABLE + backfill + atualizar trigger.
+- Componentes tocados: `ProductEntregasSection.tsx` (DeliverableRow + PhaseCard).
+- O badge no display estático passa a refletir a nova cadência (ex: "Semanal", "1x", "Mensal (fase)").
+- Edge functions que geram tarefas/reuniões a partir de templates (`generate-deliverable-tasks`, `regenerate-recurring-meetings`) precisam de ler `cadence` em vez de `is_recurring`.
+
+## O que NÃO vou fazer agora
+
+- Não toco onboarding/offboarding (ficam com fase única + entregas one-shot).
+- Não introduzo cadências exóticas (bi-mensal, anual) — só semanal/quinzenal/mensal.
+- Não mexo na cadência da fase em si — continua a ser definida ao nível da fase.

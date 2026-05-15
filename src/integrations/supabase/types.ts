@@ -7849,6 +7849,7 @@ export type Database = {
       }
       product_deliverable_templates: {
         Row: {
+          cadence: string
           created_at: string
           deliverable_type: Database["public"]["Enums"]["deliverable_type"]
           description: string | null
@@ -7872,11 +7873,15 @@ export type Database = {
           phase_id: string | null
           portal_visible: boolean
           product_id: string
+          recurrence_anchor_day: number | null
+          recurrence_frequency: string | null
+          recurrence_lead_days: number
           responsible_role: string | null
           responsible_type: string
           sort_order: number
         }
         Insert: {
+          cadence?: string
           created_at?: string
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
@@ -7900,11 +7905,15 @@ export type Database = {
           phase_id?: string | null
           portal_visible?: boolean
           product_id: string
+          recurrence_anchor_day?: number | null
+          recurrence_frequency?: string | null
+          recurrence_lead_days?: number
           responsible_role?: string | null
           responsible_type?: string
           sort_order?: number
         }
         Update: {
+          cadence?: string
           created_at?: string
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
@@ -7928,6 +7937,9 @@ export type Database = {
           phase_id?: string | null
           portal_visible?: boolean
           product_id?: string
+          recurrence_anchor_day?: number | null
+          recurrence_frequency?: string | null
+          recurrence_lead_days?: number
           responsible_role?: string | null
           responsible_type?: string
           sort_order?: number

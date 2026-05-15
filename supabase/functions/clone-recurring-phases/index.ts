@@ -187,6 +187,48 @@ Deno.serve(async (req) => {
           .eq('phase_id', tpl.id);
 
         for (const dt of dts || []) {
+          const cadence = (dt as any).cadence || 'por_ciclo_fase';
+
+          // 'sem_data' nunca gera tarefas calendarizadas — ignora.
+          if (cadence === 'sem_data') continue;
+
+          // 'unica' só é clonada uma vez por projeto (na primeira ocorrência da fase).
+          if (cadence === 'unica') {
+            const { data: already } = await supabase
+              .from('project_deliverables')
+              .select('id')
+              .eq('project_id', proj.id)
+              .eq('source_template_id', dt.id)
+              .limit(1)
+              .maybeSingle();
+            if (already) continue;
+          }
+
+          // 'propria' guarda a sua própria cadência em project_deliverables;
+          // o gerador diário (generate-deliverable-tasks) usa recurrence_week/weekday.
+          // Para semanal/quinzenal mapeamos anchor_day -> recurrence_weekday.
+          // Para mensal mapeamos anchor_day -> dia do mês via recurrence_label.
+          const isPropria = cadence === 'propria';
+          const propriaFields: Record<string, unknown> = {};
+          if (isPropria) {
+            const freq = (dt as any).recurrence_frequency || 'semanal';
+            const anchor = (dt as any).recurrence_anchor_day ?? null;
+            propriaFields.is_recurring = true;
+            propriaFields.recurrence_label = freq === 'mensal' && anchor ? `mensal:${anchor}` : freq;
+            if (freq !== 'mensal' && anchor) {
+              propriaFields.recurrence_weekday = anchor;
+            }
+            // 'unica' já clonou uma vez; 'propria' também só uma vez por projeto
+            const { data: already } = await supabase
+              .from('project_deliverables')
+              .select('id')
+              .eq('project_id', proj.id)
+              .eq('source_template_id', dt.id)
+              .limit(1)
+              .maybeSingle();
+            if (already) continue;
+          }
+
           await supabase.from('project_deliverables').insert({
             project_id: proj.id,
             phase_id: newPhase.id,
@@ -203,6 +245,7 @@ Deno.serve(async (req) => {
             deadline: deadline.toISOString().slice(0, 10),
             planned_end: deadline.toISOString().slice(0, 10),
             status: 'pendente',
+            ...propriaFields,
           });
         }
 
