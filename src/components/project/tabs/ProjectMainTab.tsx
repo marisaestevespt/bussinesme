@@ -1,9 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import { EntitySection } from '@/components/layout/entity';
 import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery';
-import { Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, StickyNote, ClipboardList, ChevronRight, Workflow, Video } from 'lucide-react';
+import { Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, StickyNote, ClipboardList, ChevronRight, Workflow, Video, RefreshCw } from 'lucide-react';
 import type { ProjectFull, Meeting } from '@/hooks/useProjectDetailData';
 
 type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
@@ -22,7 +27,40 @@ const hasText = (v: unknown) => typeof v === 'string' && v.replace(/<[^>]*>/g, '
 
 export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, taskMode, taskModes, setSubPage }: Props) {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [syncing, setSyncing] = useState(false);
   const hasPhases = (taskModes || [taskMode]).includes('fases');
+
+  const handleSyncTemplate = async () => {
+    if (!local.product_id) {
+      toast.error('Este projeto não está associado a um produto.');
+      return;
+    }
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.rpc('sync_project_with_template', { _project_id: projectId });
+      if (error) throw error;
+      const result = (data ?? {}) as { phases_added?: number; added?: number; error?: string };
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        const phases = result.phases_added ?? 0;
+        const deliverables = result.added ?? 0;
+        if (phases === 0 && deliverables === 0) {
+          toast.success('Projeto já está sincronizado com o produto.');
+        } else {
+          toast.success(`Sincronizado: +${phases} fase(s), +${deliverables} entregável(eis).`);
+        }
+        qc.invalidateQueries({ queryKey: ['project-phases', projectId] });
+        qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      }
+    } catch (e) {
+      toast.error('Erro ao sincronizar com o produto', { description: (e as Error).message });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const now = new Date();
   const next = [...(meetings || [])]
     .filter((m) => m.date_time && new Date(m.date_time) >= now)
@@ -115,7 +153,16 @@ export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, t
       </EntitySection>
 
       {hasPhases && (
-        <EntitySection title="Fases do Projeto" icon={Workflow}>
+        <EntitySection
+          title="Fases do Projeto"
+          icon={Workflow}
+          action={local.product_id ? (
+            <Button size="sm" variant="outline" className="gap-1.5" disabled={syncing} onClick={handleSyncTemplate} title="Importa fases e entregáveis novos do produto sem apagar nada existente">
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'A sincronizar...' : 'Sincronizar com produto'}
+            </Button>
+          ) : undefined}
+        >
           <ProjectPhasesGallery projectId={projectId} projectStartDate={local.start_date} />
         </EntitySection>
       )}
