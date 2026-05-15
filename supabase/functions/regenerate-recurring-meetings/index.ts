@@ -131,8 +131,21 @@ Deno.serve(async (req) => {
         }
       }
     }
+    // Also clamp to project.deadline when present — recurrence must not extend
+    // past the project's planned end either.
+    if (parent.project_id) {
+      const { data: project } = await supabase
+        .from('projects').select('deadline').eq('id', parent.project_id).maybeSingle();
+      const deadlineStr = (project as any)?.deadline as string | null | undefined;
+      if (deadlineStr) {
+        const projectEnd = new Date(deadlineStr + 'T23:59:59');
+        if (!effectiveEnd || projectEnd.getTime() < effectiveEnd.getTime()) {
+          effectiveEnd = projectEnd;
+        }
+      }
+    }
     if (!effectiveEnd) {
-      return new Response(JSON.stringify({ error: 'No end date defined (recurrence_end_date or client end_of_cycle)' }), {
+      return new Response(JSON.stringify({ error: 'No end date defined (recurrence_end_date, client end_of_cycle or project deadline)' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
