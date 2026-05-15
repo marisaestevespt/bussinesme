@@ -979,15 +979,20 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'operacao' && (
-            <ProductEntregasSection
-              deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string; is_recurring?: boolean }>}
-              isOwner={isOwner}
-              productId={id!}
-              isRecurring={deriveProjectMode(form.product_type, form.sales_type) === 'recorrente'}
-              onAdd={() => addRow.mutate({ table: 'product_deliverable_templates', data: { product_id: id, name: '', sort_order: deliverableTemplates.length } })}
-              onUpdate={(rowId, data) => updateRow.mutate({ table: 'product_deliverable_templates', id: rowId, data })}
-              onDelete={(rowId) => deleteRow.mutate({ table: 'product_deliverable_templates', id: rowId })}
-            />
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductEntregasSection
+                deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string; is_recurring?: boolean }>}
+                isOwner={isOwner}
+                productId={id!}
+                isRecurring={deriveProjectMode(form.product_type, form.sales_type) === 'recorrente'}
+                onAdd={() => addRow.mutate({ table: 'product_deliverable_templates', data: { product_id: id, name: '', sort_order: deliverableTemplates.length } })}
+                onUpdate={(rowId, data) => updateRow.mutate({ table: 'product_deliverable_templates', id: rowId, data })}
+                onDelete={(rowId) => deleteRow.mutate({ table: 'product_deliverable_templates', id: rowId })}
+              />
+              {deriveProjectMode(form.product_type, form.sales_type) === 'recorrente' && id && (
+                <ProductRecurringItems productId={id} isOwner={isOwner} />
+              )}
+            </div>
           )}
 
           {openSection === 'comercial' && (
