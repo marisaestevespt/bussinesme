@@ -190,9 +190,10 @@ function DeliverableRow({
                 <Link2 className="h-2.5 w-2.5" /> SOP
               </Badge>
             )}
-            {isRecurring && allowRecurring && template.is_recurring && (
+            {allowRecurring && cadence !== 'unica' && (
               <Badge variant="outline" className="h-4 px-1 gap-0.5 text-[9px] font-normal shrink-0">
                 <Repeat className="h-2.5 w-2.5" />
+                <span>{cadenceLabel}</span>
               </Badge>
             )}
           </span>
