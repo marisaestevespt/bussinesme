@@ -850,7 +850,8 @@ export default function PortalViewPage() {
                                 <div className="space-y-2 mt-2">
                                   {dels.map((d) => {
                                     const dDone = isDeliverableDone(d);
-                                    const isClient = (d.responsible_type || 'equipa') === 'cliente';
+                                    const rt = d.responsible_type || 'equipa';
+                                    const isClient = rt === 'cliente' || rt === 'ambos';
                                     return (
                                       <div key={d.id} className={`flex items-start gap-3 p-3 rounded-lg border ${dDone ? 'bg-muted/30 border-border/20' : 'bg-background border-border/40'} ${isClient && !dDone ? 'cursor-pointer hover:border-primary/40' : ''}`}
                                         onClick={async () => {
