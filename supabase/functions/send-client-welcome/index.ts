@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
     // Fetch portal
     const { data: portal } = await supabase
       .from("client_portals")
-      .select("id, token, is_active")
+      .select("id, token, slug, is_active")
       .eq("client_id", project.client_id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -116,7 +116,8 @@ Deno.serve(async (req) => {
     const ws = (settings?.welcome_client_email_settings ?? {}) as Record<string, any>;
 
     const appOrigin = req.headers.get("origin") || new URL(req.url).origin;
-    const portalUrl = `${appOrigin}/portal-auth`;
+    const portalSlugOrToken = (portal as any).slug || portal.token;
+    const portalUrl = `${appOrigin}/portal/${portalSlugOrToken}`;
 
     // Compute primary_foreground heuristic (white on dark, dark on light)
     const primaryFg = "0 0% 100%";
