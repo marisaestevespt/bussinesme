@@ -246,7 +246,8 @@ function DeliverableRow({
   };
 
   return (
-    <div className="space-y-1 pl-6 group rounded-md bg-muted/20 -mx-2 px-2 py-2 border border-border/50">
+    <div className="space-y-2 pl-6 group rounded-md bg-muted/20 -mx-2 px-2 py-2 border border-border/50">
+      {/* Linha 1: tipo + nome + ações */}
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{index + 1}.</span>
         <Select value={template.deliverable_type || 'tarefa'}
@@ -267,7 +268,24 @@ function DeliverableRow({
         </Select>
         <Input value={name} onChange={e => setName(e.target.value)}
           onBlur={() => { const t = name.trim(); if (t !== template.name) { nameRef.current = t; onUpdate(template.id, { name: t }); } }}
-          className="flex-1 h-9 text-sm" placeholder="Nome da entrega..." readOnly={!isOwner} />
+          className="flex-1 h-9 text-sm min-w-0" placeholder="Nome da entrega..." readOnly={!isOwner} />
+        {isOwner && (
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button aria-label="Anexar conteúdo" size="icon" variant="ghost" className={`h-7 w-7 ${hasContent ? 'text-primary' : ''}`} onClick={() => setContentOpen(true)}>
+              <Link2 className="h-3.5 w-3.5" />
+            </Button>
+            <Button aria-label="Concluir edição" size="icon" variant="ghost" className="h-7 w-7 text-primary" onClick={() => setEditing(false)}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+            <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(template.id)}>
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+      {/* Linha 2: metadados */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="w-6 shrink-0" />
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-1 shrink-0">
@@ -285,7 +303,7 @@ function DeliverableRow({
                     onUpdate(template.id, { estimated_minutes: safe });
                   }
                 }}
-                className="h-9 w-16 text-xs text-center px-1"
+                className="h-8 w-16 text-xs text-center px-1"
                 placeholder="—"
                 readOnly={!isOwner}
               />
@@ -297,7 +315,7 @@ function DeliverableRow({
         {sops.length > 0 && (
           <Select value={template.linked_sop_id || 'none'}
             onValueChange={(v) => onUpdate(template.id, { linked_sop_id: v === 'none' ? null : v })}>
-            <SelectTrigger className="h-9 text-xs w-32">
+            <SelectTrigger className="h-8 text-xs w-32">
               <SelectValue placeholder="SOP..." />
             </SelectTrigger>
             <SelectContent>
@@ -322,7 +340,7 @@ function DeliverableRow({
           onValueChange={handleResponsibleChange}
           disabled={!isOwner}
         >
-          <SelectTrigger className="h-9 w-48 text-xs shrink-0" title="Responsável">
+          <SelectTrigger className="h-8 w-48 text-xs shrink-0" title="Responsável">
             <SelectValue placeholder="Responsável…" />
           </SelectTrigger>
           <SelectContent>
@@ -351,19 +369,6 @@ function DeliverableRow({
               Marca esta entrega como parte do ciclo recorrente da fase. A <b>cadência</b> (semanal/mensal/dia, etc.) é definida na própria fase — as entregas seguem-na. Desmarca para entregas one-shot que só acontecem uma vez (ex: kickoff).
             </TooltipContent>
           </Tooltip>
-        )}
-        {isOwner && (
-          <div className="flex items-center gap-0.5">
-            <Button aria-label="Anexar conteúdo" size="icon" variant="ghost" className={`h-7 w-7 ${hasContent ? 'text-primary' : ''}`} onClick={() => setContentOpen(true)}>
-              <Link2 className="h-3.5 w-3.5" />
-            </Button>
-            <Button aria-label="Concluir edição" size="icon" variant="ghost" className="h-7 w-7 text-primary" onClick={() => setEditing(false)}>
-              <Check className="h-3.5 w-3.5" />
-            </Button>
-            <Button aria-label="Eliminar" size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(template.id)}>
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
         )}
       </div>
       {showDesc ? (
