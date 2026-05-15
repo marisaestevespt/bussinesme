@@ -46,6 +46,7 @@ interface Template {
   recurrence_frequency?: 'semanal' | 'quinzenal' | 'mensal' | null;
   recurrence_anchor_day?: number | null;
   recurrence_lead_days?: number | null;
+  recurrence_week_of_month?: number | null;
 }
 
 interface Phase {
