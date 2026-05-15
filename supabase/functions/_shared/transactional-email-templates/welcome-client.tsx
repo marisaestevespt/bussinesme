@@ -232,7 +232,7 @@ export const template = {
     projectName: 'Mentoria — Joana Silva',
     startDate: '2026-05-05',
     endDate: '2026-08-05',
-    portalUrl: 'https://app.exemplo.com/portal-auth',
+    portalUrl: 'https://businessme.lyrata.pt/portal/dianabraga',
     introText: 'Estamos muito felizes por te ter connosco! Vamos trabalhar juntos para alcançar os teus objetivos.',
     nextSteps: [
       'Aceder ao Portal do Cliente e explorar o teu espaço',

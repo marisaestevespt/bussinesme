@@ -2,6 +2,17 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
+const DEFAULT_PUBLIC_APP_ORIGIN = "https://businessme.lyrata.pt";
+
+function normalizeOrigin(value: string | null | undefined) {
+  if (!value) return null;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -115,9 +126,14 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const ws = (settings?.welcome_client_email_settings ?? {}) as Record<string, any>;
 
-    const appOrigin = req.headers.get("origin") || new URL(req.url).origin;
+    const appOrigin =
+      normalizeOrigin(Deno.env.get("PUBLIC_APP_URL")) ||
+      DEFAULT_PUBLIC_APP_ORIGIN ||
+      normalizeOrigin(req.headers.get("origin")) ||
+      new URL(req.url).origin;
     const portalSlugOrToken = (portal as any).slug || portal.token;
     const portalUrl = `${appOrigin}/portal/${portalSlugOrToken}`;
+    console.log("send-client-welcome portalUrl", { project_id, portal_id: portal.id, portalUrl });
 
     // Compute primary_foreground heuristic (white on dark, dark on light)
     const primaryFg = "0 0% 100%";
