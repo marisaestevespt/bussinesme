@@ -1074,7 +1074,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
 
       {/* ── ZONE DIALOG ──────────────────────────────── */}
       <Dialog open={openZone !== null} onOpenChange={(o) => !o && setOpenZone(null)}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-7xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
           {openZone && (() => {
             const zoneConfig = {
               onboarding: { title: 'Onboarding', subtitle: 'Fases de acolhimento e arranque do serviço', phases: onboardingPhases, addLabel: 'Fase de onboarding', dot: 'bg-warning', text: 'text-warning' },
