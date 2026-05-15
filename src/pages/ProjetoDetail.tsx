@@ -668,8 +668,8 @@ function ProjetoDetailInner() {
     local.type === 'cliente_projeto_unico' ||
     local.type === 'interno'
   ) {
-    const taskMode: string = (local as any).task_mode || 'fases';
-    const taskModes: string[] = (local as any).task_modes || [taskMode];
+    const taskMode = primaryTaskMode;
+    const taskModes = effectiveTaskModes;
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -772,7 +772,9 @@ function ProjetoDetailInner() {
                           const next = v
                             ? Array.from(new Set([...taskModes, opt.value]))
                             : taskModes.filter(m => m !== opt.value);
-                          updateField('task_modes' as keyof ProjectFull, next.length > 0 ? next : ['fases']);
+                          const normalizedNext = normalizeTaskModes(next.length > 0 ? next : ['fases']);
+                          updateField('task_modes' as keyof ProjectFull, normalizedNext);
+                          updateField('task_mode' as keyof ProjectFull, normalizedNext[0]);
                         }}
                         className="mt-0.5"
                       />
