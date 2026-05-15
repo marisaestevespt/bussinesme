@@ -9033,6 +9033,74 @@ export type Database = {
           },
         ]
       }
+      product_recurring_items: {
+        Row: {
+          created_at: string
+          day_of_month: number | null
+          day_of_week: number | null
+          default_responsible_role: string | null
+          description: string | null
+          duration_minutes: number | null
+          frequency: string
+          id: string
+          item_type: string
+          linked_sop_id: string | null
+          name: string
+          product_id: string
+          scheduled_time: string | null
+          sort_order: number
+          updated_at: string
+          visible_in_portal: boolean
+          week_of_month: number | null
+        }
+        Insert: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          default_responsible_role?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          frequency: string
+          id?: string
+          item_type: string
+          linked_sop_id?: string | null
+          name: string
+          product_id: string
+          scheduled_time?: string | null
+          sort_order?: number
+          updated_at?: string
+          visible_in_portal?: boolean
+          week_of_month?: number | null
+        }
+        Update: {
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          default_responsible_role?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          frequency?: string
+          id?: string
+          item_type?: string
+          linked_sop_id?: string | null
+          name?: string
+          product_id?: string
+          scheduled_time?: string | null
+          sort_order?: number
+          updated_at?: string
+          visible_in_portal?: boolean
+          week_of_month?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_recurring_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_renewal_templates: {
         Row: {
           activity: string | null
@@ -9234,6 +9302,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           cycle_duration: number | null
+          cycle_renewable: boolean
           default_project_mode: string
           description: string | null
           drive_url: string | null
@@ -9291,6 +9360,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cycle_duration?: number | null
+          cycle_renewable?: boolean
           default_project_mode?: string
           description?: string | null
           drive_url?: string | null
@@ -9348,6 +9418,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cycle_duration?: number | null
+          cycle_renewable?: boolean
           default_project_mode?: string
           description?: string | null
           drive_url?: string | null
@@ -9810,6 +9881,101 @@ export type Database = {
           },
         ]
       }
+      project_recurring_occurrences: {
+        Row: {
+          created_at: string
+          cycle_index: number | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          item_type: string
+          linked_deliverable_id: string | null
+          linked_meeting_id: string | null
+          linked_task_id: string | null
+          name: string
+          notes: string | null
+          project_id: string
+          scheduled_date: string
+          scheduled_time: string | null
+          sort_order: number
+          source_recurring_item_id: string | null
+          status: string
+          updated_at: string
+          visible_in_portal: boolean
+        }
+        Insert: {
+          created_at?: string
+          cycle_index?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          item_type: string
+          linked_deliverable_id?: string | null
+          linked_meeting_id?: string | null
+          linked_task_id?: string | null
+          name: string
+          notes?: string | null
+          project_id: string
+          scheduled_date: string
+          scheduled_time?: string | null
+          sort_order?: number
+          source_recurring_item_id?: string | null
+          status?: string
+          updated_at?: string
+          visible_in_portal?: boolean
+        }
+        Update: {
+          created_at?: string
+          cycle_index?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          item_type?: string
+          linked_deliverable_id?: string | null
+          linked_meeting_id?: string | null
+          linked_task_id?: string | null
+          name?: string
+          notes?: string | null
+          project_id?: string
+          scheduled_date?: string
+          scheduled_time?: string | null
+          sort_order?: number
+          source_recurring_item_id?: string | null
+          status?: string
+          updated_at?: string
+          visible_in_portal?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_recurring_occurrences_linked_deliverable_id_fkey"
+            columns: ["linked_deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "project_deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_recurring_occurrences_linked_meeting_id_fkey"
+            columns: ["linked_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_recurring_occurrences_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_recurring_occurrences_source_recurring_item_id_fkey"
+            columns: ["source_recurring_item_id"]
+            isOneToOne: false
+            referencedRelation: "product_recurring_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_responsibilities: {
         Row: {
           created_at: string
@@ -9870,6 +10036,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           cronograma: string | null
+          cycle_duration_months: number | null
+          cycle_renewable: boolean
+          cycle_start_date: string | null
           deadline: string | null
           department: string | null
           departments: Json | null
@@ -9916,6 +10085,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cronograma?: string | null
+          cycle_duration_months?: number | null
+          cycle_renewable?: boolean
+          cycle_start_date?: string | null
           deadline?: string | null
           department?: string | null
           departments?: Json | null
@@ -9962,6 +10134,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cronograma?: string | null
+          cycle_duration_months?: number | null
+          cycle_renewable?: boolean
+          cycle_start_date?: string | null
           deadline?: string | null
           department?: string | null
           departments?: Json | null
@@ -12320,6 +12495,10 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      generate_cycle_occurrences: {
+        Args: { _project_id: string }
+        Returns: Json
       }
       get_client_portal_audit: {
         Args: { _client_id: string }
