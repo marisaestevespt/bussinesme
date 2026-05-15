@@ -13,7 +13,7 @@ import {
   DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import {
-  Video, CheckSquare, User, Link2, FileText, Plus, Upload,
+  Video, CheckSquare, User, Users, Link2, FileText, Plus, Upload,
   ExternalLink, Unlink, ChevronDown, Paperclip,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
