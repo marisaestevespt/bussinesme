@@ -691,6 +691,16 @@ function PhaseCard({
               </SelectContent>
             </Select>
           )}
+          {isOwner && onMoveUp && (
+            <Button aria-label="Subir fase" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={!canReorder?.up}>
+              <ArrowUp className="h-3 w-3" />
+            </Button>
+          )}
+          {isOwner && onMoveDown && (
+            <Button aria-label="Descer fase" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveDown} disabled={!canReorder?.down}>
+              <ArrowDown className="h-3 w-3" />
+            </Button>
+          )}
           {isOwner && (
             <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDeletePhase(phase.id)}>
               <X className="h-3 w-3" />
