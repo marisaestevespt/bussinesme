@@ -14,7 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown, ListChecks, HelpCircle, Briefcase, Star } from 'lucide-react';
+import { Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, Pencil, Check, Circle, Layers, Settings2, Tag, ListTree, ShoppingCart, Wallet, Clock, Users, Timer, Link2, FolderOpen, Info, MessageSquare, CalendarClock, ChevronDown, ListChecks, HelpCircle, Briefcase, Star, Repeat } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, TASK_MODE_OPTIONS, SESSION_BASED_TYPES, deriveProjectMode, normalizeTaskModes, Product } from '@/hooks/useProducts';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,6 +26,8 @@ import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { ProductClientsHub } from '@/components/product/ProductClientsHub';
 import { ProductEntregasSection } from '@/components/product/ProductEntregasSection';
+import { ProductRecurringItems } from '@/components/product/ProductRecurringItems';
+import { Switch } from '@/components/ui/switch';
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
 import { ProductSalesKitSection } from '@/components/product/ProductSalesKitSection';
 import { ProductTabHeader } from '@/components/product/_shared';
@@ -686,6 +688,17 @@ export default function ProdutoDetailPage() {
                       <span className="text-xs text-muted-foreground shrink-0">meses</span>
                     </div>
                   </Row>
+                  {deriveProjectMode(form.product_type, form.sales_type) === 'recorrente' && (
+                    <Row icon={Repeat} label="Renovação automática">
+                      <div className="flex items-center gap-2">
+                        <Switch checked={!!form.cycle_renewable} disabled={!isOwner}
+                          onCheckedChange={(v) => update('cycle_renewable', v)} />
+                        <span className="text-xs text-muted-foreground">
+                          {form.cycle_renewable ? 'Renova automaticamente no fim do ciclo' : 'Ciclo fixo (termina no fim)'}
+                        </span>
+                      </div>
+                    </Row>
+                  )}
 
                   {/* ── Links ── */}
                   <SectionTitle>Links</SectionTitle>
@@ -966,15 +979,20 @@ export default function ProdutoDetailPage() {
           )}
 
           {openSection === 'operacao' && (
-            <ProductEntregasSection
-              deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string; is_recurring?: boolean }>}
-              isOwner={isOwner}
-              productId={id!}
-              isRecurring={deriveProjectMode(form.product_type, form.sales_type) === 'recorrente'}
-              onAdd={() => addRow.mutate({ table: 'product_deliverable_templates', data: { product_id: id, name: '', sort_order: deliverableTemplates.length } })}
-              onUpdate={(rowId, data) => updateRow.mutate({ table: 'product_deliverable_templates', id: rowId, data })}
-              onDelete={(rowId) => deleteRow.mutate({ table: 'product_deliverable_templates', id: rowId })}
-            />
+            <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
+              <ProductEntregasSection
+                deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string; is_recurring?: boolean }>}
+                isOwner={isOwner}
+                productId={id!}
+                isRecurring={deriveProjectMode(form.product_type, form.sales_type) === 'recorrente'}
+                onAdd={() => addRow.mutate({ table: 'product_deliverable_templates', data: { product_id: id, name: '', sort_order: deliverableTemplates.length } })}
+                onUpdate={(rowId, data) => updateRow.mutate({ table: 'product_deliverable_templates', id: rowId, data })}
+                onDelete={(rowId) => deleteRow.mutate({ table: 'product_deliverable_templates', id: rowId })}
+              />
+              {deriveProjectMode(form.product_type, form.sales_type) === 'recorrente' && id && (
+                <ProductRecurringItems productId={id} isOwner={isOwner} />
+              )}
+            </div>
           )}
 
           {openSection === 'comercial' && (

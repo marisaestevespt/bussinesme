@@ -9,6 +9,7 @@ import { EntitySection } from '@/components/layout/entity';
 import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
 import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
+import { ProjectRecurringOccurrences } from '@/components/project/ProjectRecurringOccurrences';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { getTaskStatusInfo } from '@/lib/taskStatus';
 import { Handshake, Repeat, CheckSquare, Plus, Video, ChevronRight, Clock } from 'lucide-react';
@@ -77,6 +78,13 @@ export function ProjectProcessosSection({
           <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
             <ProjectResponsibilities projectId={projectId} />
           </EntitySection>
+          {(local as any).cycle_duration_months && (
+            <ProjectRecurringOccurrences
+              projectId={projectId}
+              cycleStartDate={(local as any).cycle_start_date || local.start_date}
+              cycleDurationMonths={(local as any).cycle_duration_months}
+            />
+          )}
           <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
             <ProjectRoutines projectId={projectId} />
           </EntitySection>
