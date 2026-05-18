@@ -16,17 +16,26 @@ interface Props {
   pc: string;
   pcAlpha: (a: number) => string;
   hasOngoingWork?: boolean;
+  /**
+   * Unified progress (mesma fórmula da app: fases done + occurrences done + tasks done / total).
+   * Quando fornecido, substitui o cálculo baseado apenas em entregáveis das fases.
+   */
+  unifiedProgress?: { done: number; total: number; pct: number };
 }
 
 type TaskFilter = 'pendentes' | 'concluidas' | 'todas';
 
-export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha, hasOngoingWork = false }: Props) {
+export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha, hasOngoingWork = false, unifiedProgress }: Props) {
   // Use the SAME progress calculation as the home banner: based on deliverables
   // across all (portal-visible) phases. Keeps the % consistent between sections.
   const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
-  const total = allDeliverables.length;
-  const done = allDeliverables.filter(isDeliverableDone).length;
-  const pct = deliverableProgress(allDeliverables);
+  // Quando unifiedProgress é fornecido (avenças/serviços recorrentes), usamos a
+  // mesma fórmula da app — caso contrário, caímos no cálculo por entregáveis.
+  const useUnified = !!unifiedProgress && unifiedProgress.total > 0;
+  const total = useUnified ? unifiedProgress!.total : allDeliverables.length;
+  const done = useUnified ? unifiedProgress!.done : allDeliverables.filter(isDeliverableDone).length;
+  const pct = useUnified ? unifiedProgress!.pct : deliverableProgress(allDeliverables);
+  const progressLabel = useUnified ? 'itens' : 'entregas';
   const activeIdx = (() => {
     const i = phases.findIndex(p => p.status === 'em_curso');
     if (i >= 0) return i;
@@ -139,7 +148,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
                 <div className="flex-1 max-w-[260px] h-1.5 bg-muted/40 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: pc }} />
                 </div>
-                <span className="text-xs text-muted-foreground">{done}/{total} entregas</span>
+                <span className="text-xs text-muted-foreground">{done}/{total} {progressLabel}</span>
               </div>
             )}
           </div>
