@@ -183,7 +183,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
   const updateTaskStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('tasks')
         .update({ status, completed_at: status === 'done' ? new Date().toISOString() : null })
         .eq('id', id);
