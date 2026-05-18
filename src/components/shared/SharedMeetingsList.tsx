@@ -17,26 +17,12 @@ export interface SharedMeetingItem {
   title: string;
   date_time: string | null;
   status: string;
+  /** @deprecated tipos de reunião foram unificados */
   meeting_type?: string | null;
   client_name?: string | null;
   project_name?: string | null;
   department?: string | null;
 }
-
-const TYPE_COLORS: Record<string, string> = {
-  recorrente: '#6366f1',
-  projeto: '#3b82f6',
-  cliente: '#10b981',
-  diagnostico: '#f59e0b',
-  inicial: '#a855f7',
-};
-const TYPE_LABELS: Record<string, string> = {
-  recorrente: 'Recorrente',
-  projeto: 'Projeto',
-  cliente: 'Cliente',
-  diagnostico: 'Diagnóstico',
-  inicial: 'Inicial',
-};
 
 function StatusBadge({ status }: { status: string }) {
   const s = MEETING_STATUSES.find(x => x.value === status) ?? MEETING_STATUSES[0];
@@ -46,19 +32,6 @@ function StatusBadge({ status }: { status: string }) {
       style={{ backgroundColor: `${s.dotColor}20`, color: s.dotColor }}
     >
       {s.label}
-    </span>
-  );
-}
-
-function MeetingTypeBadge({ type }: { type: string }) {
-  const c = TYPE_COLORS[type] || '#6b7280';
-  const label = TYPE_LABELS[type] || type;
-  return (
-    <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
-      style={{ backgroundColor: `${c}20`, color: c }}
-    >
-      {label}
     </span>
   );
 }
@@ -81,7 +54,7 @@ export function SharedMeetingsList({ items, emptyLabel }: { items: SharedMeeting
         <div className="col-span-2">Status</div>
         <div className="col-span-4">Reunião</div>
         <div className="col-span-3">Data / Hora</div>
-        <div className="col-span-3">Tipo / Contexto</div>
+        <div className="col-span-3">Contexto</div>
       </div>
       {items.map(m => {
         const ctx =
@@ -108,7 +81,6 @@ export function SharedMeetingsList({ items, emptyLabel }: { items: SharedMeeting
               {m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}
             </div>
             <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
-              {m.meeting_type && <MeetingTypeBadge type={m.meeting_type} />}
               <span className="truncate">{ctx}</span>
             </div>
           </div>
