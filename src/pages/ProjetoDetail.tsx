@@ -38,7 +38,7 @@ import { PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
-import { computeProjectProgressFromSources } from '@/lib/projectProgress';
+import { computeMonthlyCycleProgress, computeProjectProgressFromSources } from '@/lib/projectProgress';
 import { ProjectAnaliseTab } from '@/components/project/tabs/ProjectAnaliseTab';
 import { ProjectFechoTab } from '@/components/project/tabs/ProjectFechoTab';
 import { ProjectPortalTab } from '@/components/project/tabs/ProjectPortalTab';
@@ -121,6 +121,8 @@ function ProjetoDetailInner() {
     projectPhases,
     projectDeliverables,
     monthlyTasks,
+    monthlyOccurrences,
+    monthlyCycleLoading,
     meetings,
     toggleMember,
     deleteMutation,
@@ -219,28 +221,40 @@ function ProjetoDetailInner() {
       .replace(/\{cliente\}/gi, clientName);
   }, [projectDeliverables, (local as any)?.client_name, (clientForProject as any)?.full_name]);
 
+  const monthlyCycleProgress = useMemo(() => {
+    const monthPhases = (projectPhases as any[]).filter(p =>
+      p.cycle_month_index != null &&
+      p.planned_start &&
+      p.planned_start >= monthStart &&
+      p.planned_start <= monthEnd,
+    );
+    return computeMonthlyCycleProgress({
+      phases: monthPhases as any,
+      occurrences: monthlyOccurrences as any,
+      tasks: monthlyTasks as any,
+    });
+  }, [projectPhases, monthlyOccurrences, monthlyTasks, monthStart, monthEnd]);
+
   function getProjectProgress() {
     // Single source of truth — same rule used by Operação's "Saúde dos Projetos"
     // card and by the project detail health badge. Do NOT inline a different rule.
     if (!local) return 0;
+    if (isRecorrenteMensal && monthlyCycleLoading) return local.progress || 0;
     return computeProjectProgressFromSources(
       local as any,
       projectDeliverables as any,
       projectPhases as any,
       isRecorrenteMensal
-        ? () => ({
-            done: monthlyTasks.filter(isTaskDone).length,
-            total: monthlyTasks.length,
-          })
+        ? () => monthlyCycleProgress
         : null,
     );
   }
 
   function getProjectProgressSummary() {
     if (isRecorrenteMensal) {
-      if (monthlyTasks.length === 0) return 'Sem tarefas este mês';
-      const completed = monthlyTasks.filter(isTaskDone).length;
-      return `${completed}/${monthlyTasks.length} tarefas do mês concluídas`;
+      if (monthlyCycleLoading) return 'A carregar agenda do mês';
+      if (monthlyCycleProgress.total === 0) return 'Sem agenda este mês';
+      return `${monthlyCycleProgress.done}/${monthlyCycleProgress.total} itens do mês concluídos`;
     }
 
     if (projectDeliverables.length > 0) {
@@ -261,12 +275,13 @@ function ProjetoDetailInner() {
   // (project.progress) is out of sync — avoids a write on every render/keypress.
   useEffect(() => {
     if (!local || !project) return;
+    if (isRecorrenteMensal && monthlyCycleLoading) return;
     if (autoProgress === project.progress) return;
     const t = setTimeout(() => {
       supabase.from('projects').update({ progress: autoProgress }).eq('id', local.id);
     }, 1500);
     return () => clearTimeout(t);
-  }, [autoProgress, project?.progress, local?.id]);
+  }, [autoProgress, project?.progress, local?.id, isRecorrenteMensal, monthlyCycleLoading]);
 
   // Deadline overdue check
   const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date()
