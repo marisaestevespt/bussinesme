@@ -956,6 +956,7 @@ export default function PortalViewPage() {
               tasks={tasks}
               pc={pc}
               pcAlpha={pcAlpha}
+              hasOngoingWork={recurringOccurrences.some((o: any) => o.status !== 'concluida') || routines.length > 0}
             />
             {(recurringOccurrences.length > 0 || routines.length > 0 || responsibilities.length > 0) && (
               <div className="space-y-6">
