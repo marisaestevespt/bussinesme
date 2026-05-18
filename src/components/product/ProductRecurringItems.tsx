@@ -96,57 +96,82 @@ export function ProductRecurringItems({ productId, isOwner, phaseId, defaultFreq
       ) : (
         <div className="space-y-2">
           {items.map((it) => (
-            <div key={it.id} className="flex flex-wrap items-center gap-2 p-3 rounded-lg border bg-card">
-              <Select value={it.item_type} disabled={!isOwner}
-                onValueChange={(v) => updateItem.mutate({ id: it.id, patch: { item_type: v as RecurringItem['item_type'] } })}>
-                <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="reuniao">📅 Reunião</SelectItem>
-                  <SelectItem value="tarefa">📋 Tarefa</SelectItem>
-                  <SelectItem value="entrega">📦 Entrega</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input className="h-8 text-sm flex-1 min-w-[180px]" value={it.name} readOnly={!isOwner}
-                onChange={(e) => updateItem.mutate({ id: it.id, patch: { name: e.target.value } })} />
-              <Select value={it.frequency} disabled={!isOwner || !!phaseId}
-                onValueChange={(v) => updateItem.mutate({ id: it.id, patch: { frequency: v as RecurringItem['frequency'] } })}>
-                <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="semanal">Semanal</SelectItem>
-                  <SelectItem value="quinzenal">Quinzenal</SelectItem>
-                  <SelectItem value="mensal">Mensal</SelectItem>
-                  <SelectItem value="trimestral">Trimestral</SelectItem>
-                </SelectContent>
-              </Select>
-              {(it.frequency === 'semanal' || it.frequency === 'quinzenal') && (
-                <Select value={String(it.day_of_week ?? 1)} disabled={!isOwner}
-                  onValueChange={(v) => updateItem.mutate({ id: it.id, patch: { day_of_week: parseInt(v) } })}>
+            <div key={it.id} className="flex flex-wrap items-end gap-2 p-3 rounded-lg border bg-card">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Tipo</span>
+                <Select value={it.item_type} disabled={!isOwner}
+                  onValueChange={(v) => updateItem.mutate({ id: it.id, patch: { item_type: v as RecurringItem['item_type'] } })}>
                   <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {WEEKDAY_LABELS.map((d, i) => <SelectItem key={i} value={String(i)}>{d}</SelectItem>)}
+                    <SelectItem value="reuniao">📅 Reunião</SelectItem>
+                    <SelectItem value="tarefa">📋 Tarefa</SelectItem>
+                    <SelectItem value="entrega">📦 Entrega</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex flex-col gap-0.5 flex-1 min-w-[180px]">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Nome</span>
+                <Input className="h-8 text-sm" value={it.name} readOnly={!isOwner}
+                  placeholder="Nome do item recorrente…"
+                  onChange={(e) => updateItem.mutate({ id: it.id, patch: { name: e.target.value } })} />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Frequência</span>
+                <Select value={it.frequency} disabled={!isOwner || !!phaseId}
+                  onValueChange={(v) => updateItem.mutate({ id: it.id, patch: { frequency: v as RecurringItem['frequency'] } })}>
+                  <SelectTrigger className="h-8 w-32 text-xs" title={phaseId ? 'Definida pela fase' : undefined}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="semanal">Semanal</SelectItem>
+                    <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                    <SelectItem value="mensal">Mensal</SelectItem>
+                    <SelectItem value="trimestral">Trimestral</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {(it.frequency === 'semanal' || it.frequency === 'quinzenal') && (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Dia da semana</span>
+                  <Select value={String(it.day_of_week ?? 1)} disabled={!isOwner}
+                    onValueChange={(v) => updateItem.mutate({ id: it.id, patch: { day_of_week: parseInt(v) } })}>
+                    <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {WEEKDAY_LABELS.map((d, i) => <SelectItem key={i} value={String(i)}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
               {(it.frequency === 'mensal' || it.frequency === 'trimestral') && (
-                <Input type="number" min={1} max={31} className="h-8 w-24 text-xs"
-                  placeholder="Dia" value={it.day_of_month ?? ''} readOnly={!isOwner}
-                  onChange={(e) => updateItem.mutate({ id: it.id, patch: { day_of_month: e.target.value ? parseInt(e.target.value) : null } })} />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Dia do mês</span>
+                  <Input type="number" min={1} max={31} className="h-8 w-24 text-xs"
+                    placeholder="1-31" value={it.day_of_month ?? ''} readOnly={!isOwner}
+                    onChange={(e) => updateItem.mutate({ id: it.id, patch: { day_of_month: e.target.value ? parseInt(e.target.value) : null } })} />
+                </div>
               )}
               {it.item_type === 'reuniao' && (
-                <Input type="number" min={0} className="h-8 w-20 text-xs"
-                  placeholder="min" value={it.duration_minutes ?? ''} readOnly={!isOwner}
-                  onChange={(e) => updateItem.mutate({ id: it.id, patch: { duration_minutes: e.target.value ? parseInt(e.target.value) : null } })} />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Duração</span>
+                  <Input type="number" min={0} className="h-8 w-20 text-xs"
+                    placeholder="min" value={it.duration_minutes ?? ''} readOnly={!isOwner}
+                    onChange={(e) => updateItem.mutate({ id: it.id, patch: { duration_minutes: e.target.value ? parseInt(e.target.value) : null } })} />
+                </div>
               )}
-              <Button size="icon" variant="ghost" className="h-8 w-8"
-                title={it.visible_in_portal ? 'Visível no portal do cliente' : 'Oculto do cliente'}
-                onClick={() => isOwner && updateItem.mutate({ id: it.id, patch: { visible_in_portal: !it.visible_in_portal } })}>
-                {it.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
-              </Button>
-              {isOwner && (
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive"
-                  onClick={() => { if (confirm('Eliminar este item recorrente?')) deleteItem.mutate(it.id); }}>
-                  <Trash2 className="h-3.5 w-3.5" />
+              <div className="flex flex-col gap-0.5 items-center">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Portal</span>
+                <Button size="icon" variant="ghost" className="h-8 w-8"
+                  title={it.visible_in_portal ? 'Visível no portal do cliente' : 'Oculto do cliente'}
+                  onClick={() => isOwner && updateItem.mutate({ id: it.id, patch: { visible_in_portal: !it.visible_in_portal } })}>
+                  {it.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
                 </Button>
+              </div>
+              {isOwner && (
+                <div className="flex flex-col gap-0.5 items-center">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">&nbsp;</span>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive"
+                    onClick={() => { if (confirm('Eliminar este item recorrente?')) deleteItem.mutate(it.id); }}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               )}
             </div>
           ))}
