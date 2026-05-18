@@ -60,6 +60,12 @@ interface RecurringOccurrence {
   visible_in_portal?: boolean;
 }
 
+interface MonthTask {
+  id: string;
+  status: string | null;
+  deadline: string | null;
+}
+
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
   const [addingPhase, setAddingPhase] = useState(false);
@@ -103,6 +109,20 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     },
   });
 
+  // Tasks with deadline → used to enrich monthly buckets so the % matches
+  // the "tarefas do mês" indicator shown at the top of the project page.
+  const { data: monthTasks = [] } = useQuery({
+    queryKey: ['project-month-tasks', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, status, deadline')
+        .eq('project_id', projectId)
+        .not('deadline', 'is', null);
+      return (data || []) as MonthTask[];
+    },
+  });
+
   const updateOccurrence = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<RecurringOccurrence> }) => {
       const { error } = await (supabase as any)
@@ -139,9 +159,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
   // Unified monthly buckets: each month aggregates mini-fases + cadências
   const monthlyBuckets = useMemo(() => {
-    const map = new Map<string, { miniPhases: Phase[]; occurrences: RecurringOccurrence[] }>();
+    const map = new Map<string, { miniPhases: Phase[]; occurrences: RecurringOccurrence[]; tasks: MonthTask[] }>();
     const ensure = (k: string) => {
-      if (!map.has(k)) map.set(k, { miniPhases: [], occurrences: [] });
+      if (!map.has(k)) map.set(k, { miniPhases: [], occurrences: [], tasks: [] });
       return map.get(k)!;
     };
     for (const p of cyclePhases) {
@@ -153,12 +173,20 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       const key = o.scheduled_date.slice(0, 7);
       ensure(key).occurrences.push(o);
     }
+    for (const t of monthTasks) {
+      const key = (t.deadline || '').slice(0, 7);
+      if (!key) continue;
+      // Only add tasks to months that already have cadências/mini-fases,
+      // so we don't invent buckets for purely one-shot work.
+      if (!map.has(key)) continue;
+      ensure(key).tasks.push(t);
+    }
     for (const v of map.values()) {
       v.miniPhases.sort((a, b) => (a.planned_start || '').localeCompare(b.planned_start || ''));
       v.occurrences.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [cyclePhases, occurrences]);
+  }, [cyclePhases, occurrences, monthTasks]);
 
   const [openMonthKey, setOpenMonthKey] = useState<string | null>(null);
 
@@ -390,14 +418,16 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           );
         })}
         {monthlyBuckets.map(([monthKey, bucket]) => {
-          const { miniPhases, occurrences: items } = bucket;
+          const { miniPhases, occurrences: items, tasks: bTasks } = bucket;
           const occTotal = items.length;
           const occDone = items.filter(o => o.status === 'concluida').length;
           const occCancelled = items.filter(o => o.status === 'cancelada').length;
           const phaseTotal = miniPhases.length;
           const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
-          const total = occTotal + phaseTotal;
-          const done = occDone + phaseDoneCount;
+          const taskTotal = bTasks.length;
+          const taskDone = bTasks.filter(t => (t.status || '') === 'done').length;
+          const total = occTotal + phaseTotal + taskTotal;
+          const done = occDone + phaseDoneCount + taskDone;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           const monthDate = parseISO(monthKey + '-01');
           const now = new Date();
@@ -461,6 +491,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                     {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
                     {phaseTotal > 0 && occTotal > 0 && ' · '}
                     {occTotal > 0 && `${occDone}/${occTotal} cadências`}
+                    {(phaseTotal > 0 || occTotal > 0) && taskTotal > 0 && ' · '}
+                    {taskTotal > 0 && `${taskDone}/${taskTotal} tarefas`}
                   </span>
                   <span className="font-semibold text-foreground">{pct}%</span>
                 </div>
