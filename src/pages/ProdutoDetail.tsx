@@ -1015,9 +1015,6 @@ export default function ProdutoDetailPage() {
                 onUpdate={(rowId, data) => updateRow.mutate({ table: 'product_deliverable_templates', id: rowId, data })}
                 onDelete={(rowId) => deleteRow.mutate({ table: 'product_deliverable_templates', id: rowId })}
               />
-              {deriveProjectMode(form.product_type, form.sales_type) === 'recorrente' && id && (
-                <ProductRecurringItems productId={id} isOwner={isOwner} />
-              )}
             </div>
           )}
 
