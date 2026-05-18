@@ -99,7 +99,8 @@ function getFileIcon(type: string) {
 
 export function FloatingAiChat() {
   const [open, setOpen] = useState(() => sessionStorage.getItem(STORAGE_KEY_OPEN) === "true");
-  const [messages, setMessages] = useState<Msg[]>(loadPersistedMessages);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [pendingFile, setPendingFile] = useState<FileAttachment | null>(null);
@@ -108,12 +109,42 @@ export function FloatingAiChat() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY_OPEN, String(open));
   }, [open]);
+
+  // Load latest non-archived conversation + messages from DB on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: convs } = await supabase
+        .from("ai_conversations")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("archived", false)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      const conv = convs?.[0];
+      if (!conv || cancelled) return;
+      setConversationId(conv.id);
+      const { data: msgs } = await supabase
+        .from("ai_messages")
+        .select("role, content, action_proposal, confirmed, file, model")
+        .eq("conversation_id", conv.id)
+        .order("created_at", { ascending: true });
+      if (cancelled || !msgs) return;
+      setMessages(msgs.map((m: Record<string, unknown>) => ({
+        role: m.role as "user" | "assistant",
+        content: (m.content as string) ?? "",
+        action_proposal: (m.action_proposal as ActionProposal | null) ?? null,
+        confirmed: (m.confirmed as boolean | null) ?? undefined,
+        file: (m.file as { name: string; type: string } | null) ?? null,
+        model: (m.model as string | null) ?? null,
+      })));
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
