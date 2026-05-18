@@ -195,6 +195,9 @@ function DeliverableRow({
             <span className={`inline-flex items-center gap-1 ${respType === 'cliente' ? 'text-warning' : respType === 'ambos' ? 'text-primary' : 'text-foreground'}`}>
               {respType === 'cliente' ? <User className="h-3 w-3 shrink-0" /> : <Users className="h-3 w-3 shrink-0" />}
               <span className="truncate">{respLabel}</span>
+              {respType === 'equipa' && !template.responsible_role && (
+                <AlertCircle className="h-3 w-3 shrink-0 text-destructive" aria-label="Falta indicar a função responsável" />
+              )}
             </span>
           </span>
           <span className="w-12 shrink-0 flex items-center justify-center">
