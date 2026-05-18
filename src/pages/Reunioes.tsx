@@ -150,17 +150,6 @@ function StatusBadge({ status }: { status: MeetingStatus }) {
   );
 }
 
-function MeetingTypeBadge({ type }: { type: MeetingType }) {
-  const colors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b' };
-  const labels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente', diagnostico: 'Diagnóstico' };
-  const c = colors[type] || '#6b7280';
-  return (
-    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: `${c}20`, color: c }}>
-      {labels[type] || type}
-    </span>
-  );
-}
-
 function initials(name: string | null) {
   if (!name) return '?';
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
