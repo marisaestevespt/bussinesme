@@ -89,7 +89,7 @@ async function fetchGaps(): Promise<GapRow[]> {
       label: 'Fornecedores sem NIF',
       desc: 'Fornecedores ativos sem número fiscal registado.',
       count: queries[7].count ?? 0,
-      link: '/hub/fornecedores',
+      link: '/hub/financeiro/fornecedores',
       linkLabel: 'Abrir Fornecedores',
     },
   ];
