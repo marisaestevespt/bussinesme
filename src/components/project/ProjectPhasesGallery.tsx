@@ -127,16 +127,38 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     onError: (e: Error) => toast.error('Erro ao eliminar', { description: e.message }),
   });
 
-  // Group recurring occurrences by month — render as "pseudo-phases" alongside real phases
-  const recurringMonths = useMemo(() => {
-    const map = new Map<string, RecurringOccurrence[]>();
+  // Split phases: cycle (mini-fases mensais) vs one-shot
+  const cyclePhases = useMemo(
+    () => phases.filter(p => p.cycle_month_index != null),
+    [phases]
+  );
+  const oneShotPhases = useMemo(
+    () => phases.filter(p => p.cycle_month_index == null),
+    [phases]
+  );
+
+  // Unified monthly buckets: each month aggregates mini-fases + cadências
+  const monthlyBuckets = useMemo(() => {
+    const map = new Map<string, { miniPhases: Phase[]; occurrences: RecurringOccurrence[] }>();
+    const ensure = (k: string) => {
+      if (!map.has(k)) map.set(k, { miniPhases: [], occurrences: [] });
+      return map.get(k)!;
+    };
+    for (const p of cyclePhases) {
+      const key = (p.planned_start || '').slice(0, 7);
+      if (!key) continue;
+      ensure(key).miniPhases.push(p);
+    }
     for (const o of occurrences) {
-      const key = o.scheduled_date.slice(0, 7); // YYYY-MM
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(o);
+      const key = o.scheduled_date.slice(0, 7);
+      ensure(key).occurrences.push(o);
+    }
+    for (const v of map.values()) {
+      v.miniPhases.sort((a, b) => (a.planned_start || '').localeCompare(b.planned_start || ''));
+      v.occurrences.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [occurrences]);
+  }, [cyclePhases, occurrences]);
 
   const [openMonthKey, setOpenMonthKey] = useState<string | null>(null);
 
@@ -182,10 +204,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     return <div className="text-sm text-muted-foreground">A carregar fases…</div>;
   }
 
-  const totalCards = phases.length + recurringMonths.length;
-
-  const offboardingPhases = phases.filter(p => /offboarding/i.test(p.name || ''));
-  const nonOffboardingPhases = phases.filter(p => !/offboarding/i.test(p.name || ''));
+  const offboardingPhases = oneShotPhases.filter(p => /offboarding/i.test(p.name || ''));
+  const nonOffboardingPhases = oneShotPhases.filter(p => !/offboarding/i.test(p.name || ''));
+  const totalCards = oneShotPhases.length + monthlyBuckets.length;
 
   return (
     <>
