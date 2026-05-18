@@ -60,6 +60,12 @@ interface RecurringOccurrence {
   visible_in_portal?: boolean;
 }
 
+interface MonthTask {
+  id: string;
+  status: string | null;
+  deadline: string | null;
+}
+
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
   const [addingPhase, setAddingPhase] = useState(false);
@@ -100,6 +106,20 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         .eq('project_id', projectId)
         .order('scheduled_date');
       return (data || []) as RecurringOccurrence[];
+    },
+  });
+
+  // Tasks with deadline → used to enrich monthly buckets so the % matches
+  // the "tarefas do mês" indicator shown at the top of the project page.
+  const { data: monthTasks = [] } = useQuery({
+    queryKey: ['project-month-tasks', projectId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, status, deadline')
+        .eq('project_id', projectId)
+        .not('deadline', 'is', null);
+      return (data || []) as MonthTask[];
     },
   });
 
