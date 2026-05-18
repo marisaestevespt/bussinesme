@@ -17,6 +17,7 @@ import { ENTRY_STATUSES } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { SPECIAL_OFFER_REASONS } from '@/lib/salesConstants';
+import { validateSaleSeller } from '@/lib/formValidation';
 
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
