@@ -25,7 +25,6 @@ import {
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
   LayoutDashboard, Settings, LogOut, Package, Heart, BookOpen, Star,
   Clock, Lightbulb, MessageSquareHeart, ChevronRight, LifeBuoy,
-  Wrench,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = {
