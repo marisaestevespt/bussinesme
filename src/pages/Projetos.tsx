@@ -359,6 +359,29 @@ export default function ProjetosPage() {
           fMembers.map(pid => ({ project_id: proj.id, profile_id: pid }))
         );
       }
+
+      // Auto-clone phases, deliverables and (for recurring) cycle occurrences from product
+      if (selectedProduct?.id) {
+        try {
+          const { data: boot, error: bootErr } = await supabase.rpc(
+            'bootstrap_project_from_product',
+            { _project_id: proj.id }
+          );
+          if (bootErr) {
+            console.warn('bootstrap_project_from_product:', bootErr);
+          } else if (boot && typeof boot === 'object') {
+            const b: any = boot;
+            const parts: string[] = [];
+            if (b.phases_created) parts.push(`${b.phases_created} fase(s)`);
+            if (b.deliverables_created) parts.push(`${b.deliverables_created} entrega(s)`);
+            if (b.occurrences?.inserted) parts.push(`${b.occurrences.inserted} ocorrência(s)`);
+            if (parts.length > 0) toast.success(`Geradas automaticamente: ${parts.join(', ')}`);
+          }
+        } catch (err) {
+          console.warn('bootstrap_project_from_product failed:', err);
+        }
+      }
+
       return proj;
     },
     onSuccess: () => {
