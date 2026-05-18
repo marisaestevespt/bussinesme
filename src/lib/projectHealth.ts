@@ -43,76 +43,31 @@ export function computeProjectHealth(
   today: Date,
   progressOverride?: number | null,
 ): ProjectHealthResult {
-  const modes = project.task_modes && project.task_modes.length > 0
-    ? project.task_modes
-    : (project.task_mode ? [project.task_mode] : []);
-  // Considera "tarefas livres" sempre que esse modo estiver ativo (mesmo combinado com fases/recorrentes).
-  const isTarefasLivres = modes.includes('tarefas_livres') && !modes.includes('fases');
-  const isRecorrenteMensal =
-    project.type === 'cliente_servico_mensal' && project.project_mode === 'recorrente';
-  const useOverdueOnly = isTarefasLivres || isRecorrenteMensal;
-
+  // Regra única: a saúde reflete apenas atrasos concretos.
+  // - 1+ tarefa em atraso → 🔴 Em risco
+  // - Prazo do projeto ultrapassado e ainda não concluído → 🔴 Em risco
+  // - Sem nada em atraso → 🟢 Em dia
+  // (Sem "ritmo esperado" — projetos podem avançar ao seu próprio tempo.)
   const projectTasks = tasks.filter(t => t.project_id === project.id);
   const overdueTasks = projectTasks.filter(t => isTaskOverdue(t, today));
   const overdueCount = overdueTasks.length;
 
-  const prog = useOverdueOnly
-    ? null
-    : (progressOverride ?? project.progress ?? 0);
+  const prog = progressOverride ?? project.progress ?? 0;
+  const daysLeft = project.deadline
+    ? differenceInDays(new Date(project.deadline), today)
+    : null;
+  const projectDeadlineOverdue =
+    daysLeft !== null && daysLeft < 0 && prog < 100;
 
-  let daysLeft: number | null = null;
-  let expectedProg: number | null = null;
   let health: ProjectHealth = 'green';
   let reason = 'Sem atrasos.';
 
-  if (useOverdueOnly) {
-    if (overdueCount > 0) {
-      health = 'red';
-      reason = `${overdueCount} tarefa${overdueCount === 1 ? '' : 's'} em atraso.`;
-    } else {
-      reason = isRecorrenteMensal
-        ? 'Avença em curso, sem tarefas em atraso.'
-        : 'Sem tarefas em atraso.';
-    }
-  } else if (prog !== null) {
-    if (project.deadline) {
-      daysLeft = differenceInDays(new Date(project.deadline), today);
-      const startRef = new Date(project.start_date || project.created_at || today);
-      const totalSpan = Math.max(1, differenceInDays(new Date(project.deadline), startRef));
-      expectedProg = Math.max(
-        0,
-        Math.min(100, (differenceInDays(today, startRef) / totalSpan) * 100),
-      );
-
-      if (prog < expectedProg - 25 || (daysLeft <= 3 && prog < 80)) {
-        health = 'red';
-        reason =
-          daysLeft <= 3 && prog < 80
-            ? `Faltam ${Math.max(daysLeft, 0)} dia${daysLeft === 1 ? '' : 's'} e progresso em ${Math.round(prog)}%.`
-            : `Atrasado >25pp face ao esperado (${Math.round(prog)}% vs ${Math.round(expectedProg)}%).`;
-      } else if (prog < expectedProg - 10 || (daysLeft <= 7 && prog < 60)) {
-        health = 'yellow';
-        reason =
-          daysLeft <= 7 && prog < 60
-            ? `Faltam ${Math.max(daysLeft, 0)} dia${daysLeft === 1 ? '' : 's'} e progresso em ${Math.round(prog)}%.`
-            : `Ligeiramente atrasado (${Math.round(prog)}% vs ${Math.round(expectedProg)}% esperado).`;
-      } else {
-        reason = `No bom caminho (${Math.round(prog)}% vs ${Math.round(expectedProg)}% esperado).`;
-      }
-    }
-    if (
-      prog === 0 &&
-      differenceInDays(today, new Date(project.start_date || project.created_at || today)) > 7
-    ) {
-      health = 'red';
-      reason = 'Sem progresso há mais de 7 dias desde o arranque.';
-    }
-  }
-
-  // Overdue tasks always degrade health, even on deadline-driven projects.
-  if (overdueCount > 0 && health === 'green') {
-    health = 'yellow';
+  if (overdueCount > 0) {
+    health = 'red';
     reason = `${overdueCount} tarefa${overdueCount === 1 ? '' : 's'} em atraso.`;
+  } else if (projectDeadlineOverdue) {
+    health = 'red';
+    reason = `Prazo ultrapassado há ${Math.abs(daysLeft!)} dia${Math.abs(daysLeft!) === 1 ? '' : 's'}.`;
   }
 
   return {
@@ -120,8 +75,8 @@ export function computeProjectHealth(
     prog,
     overdueCount,
     daysLeft,
-    expectedProg,
-    useOverdueOnly,
+    expectedProg: null,
+    useOverdueOnly: true,
     reason,
   };
 }
