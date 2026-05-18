@@ -458,40 +458,26 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </button>
           );
         })}
-        {monthlyBuckets.map(([monthKey, bucket]) => {
-          const { miniPhases, occurrences: items, tasks: bTasks } = bucket;
-          const occTotal = items.length;
-          const occDone = items.filter(o => o.status === 'concluida').length;
-          const occCancelled = items.filter(o => o.status === 'cancelada').length;
-          const phaseTotal = miniPhases.length;
-          const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
-          const taskTotal = bTasks.length;
-          const taskDone = bTasks.filter(isTaskDone).length;
-          const monthlyProgress = computeMonthlyCycleProgress({ phases: miniPhases, occurrences: items, tasks: bTasks });
-          const total = monthlyProgress.total;
-          const done = monthlyProgress.done;
-          const pct = monthlyProgress.pct;
-          const monthDate = parseISO(monthKey + '-01');
-          const now = new Date();
-          const isCurrentMonth = monthDate.getFullYear() === now.getFullYear() && monthDate.getMonth() === now.getMonth();
-          const isPast = monthDate < new Date(now.getFullYear(), now.getMonth(), 1);
-          const allDone = total > 0 && (taskTotal > 0 ? done === total : (done + occCancelled) === total);
-
+        {hasContinuous && (() => {
+          const { total, done, pct } = continuousTotals;
+          const allDone = total > 0 && done === total;
+          const nowKey = new Date().toISOString().slice(0, 7);
+          const currentBucket = continuousByMonth.find(([k]) => k === nowKey)?.[1];
+          const upcoming = (currentBucket?.occurrences || [])
+            .filter(o => o.status !== 'concluida' && o.status !== 'cancelada')
+            .slice(0, 3);
           return (
             <button
-              key={`month-${monthKey}`}
+              key="continuous"
               type="button"
-              onClick={() => setOpenMonthKey(monthKey)}
+              onClick={() => setContinuousOpen(true)}
               className={cn(
                 'group relative flex flex-col gap-3 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
                 allDone && 'border-success/30 bg-success/5 opacity-70 shadow-none hover:opacity-90 hover:border-success/50',
-                isCurrentMonth && !allDone &&
-                  'border-primary/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg shadow-primary/15 ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/25',
-                !allDone && !isCurrentMonth &&
-                  'border-border/60 bg-gradient-to-br from-card to-card/80 shadow-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10'
+                !allDone && 'border-primary/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg shadow-primary/15 ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/25',
               )}
             >
-              {isCurrentMonth && !allDone && (
+              {!allDone && (
                 <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
                   <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
@@ -500,14 +486,17 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <Repeat className="h-3 w-3 text-muted-foreground/70 shrink-0" />
+                    <InfinityIcon className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground/70">
-                      Mês do contrato
+                      Recorrente
                     </span>
                   </div>
-                  <h3 className="text-sm font-semibold leading-tight truncate mt-1 capitalize">
-                    {format(monthDate, 'MMMM yyyy', { locale: pt })}
+                  <h3 className="text-sm font-semibold leading-tight truncate mt-1">
+                    Trabalho Contínuo
                   </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Cadências e tarefas regulares ao longo do contrato
+                  </p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary shrink-0" />
               </div>
@@ -517,85 +506,38 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   'border self-start text-[10px]',
                   allDone
                     ? 'bg-success/15 text-success border-success/30'
-                    : isCurrentMonth
-                    ? 'bg-primary/15 text-primary border-primary/30'
-                    : isPast
-                    ? 'bg-warning/15 text-warning border-warning/30'
-                    : 'bg-muted text-muted-foreground border-border'
+                    : 'bg-primary/15 text-primary border-primary/30',
                 )}
               >
-                {allDone ? 'Concluído' : isCurrentMonth ? 'Em curso' : isPast ? 'Em atraso' : 'Pendente'}
+                {allDone ? 'Concluído' : 'Em curso'}
               </Badge>
 
               <div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>
-                    {taskTotal > 0 ? (
-                      <>
-                        {`${taskDone}/${taskTotal} tarefas do mês`}
-                        {occTotal > 0 && ` · ${occTotal} cadências planeadas`}
-                      </>
-                    ) : (
-                      <>
-                        {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
-                        {phaseTotal > 0 && occTotal > 0 && ' · '}
-                        {occTotal > 0 && `${occDone}/${occTotal} cadências`}
-                      </>
-                    )}
-                  </span>
+                  <span>{done}/{total} itens · {continuousByMonth.length} {continuousByMonth.length === 1 ? 'mês' : 'meses'}</span>
                   <span className="font-semibold text-foreground">{pct}%</span>
                 </div>
                 <Progress value={pct} className="h-1.5" />
               </div>
 
-              {miniPhases.length > 0 && (
+              {upcoming.length > 0 && (
                 <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
-                  {miniPhases.map(mp => {
-                    const done = isPhaseDone(mp);
-                    const dStart = mp.planned_start ? parseISO(mp.planned_start).getDate() : null;
-                    const dEnd = mp.planned_end ? parseISO(mp.planned_end).getDate() : null;
-                    return (
-                      <div key={mp.id} className="flex items-center gap-2 text-[11px]">
-                        <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', done ? 'bg-success' : 'bg-primary/40')} />
-                        <span className={cn('truncate', done ? 'line-through text-muted-foreground' : 'text-foreground font-medium')}>
-                          {dStart != null && dEnd != null ? `${dStart}–${dEnd} · ` : ''}{mp.name}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {items.length > 0 && (
-                <div className={cn('space-y-1', miniPhases.length === 0 && 'border-t border-border/50 pt-2 mt-1')}>
-                  {items.slice(0, 3).map(o => (
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground/70 mb-1">
+                    Próximos este mês
+                  </div>
+                  {upcoming.map(o => (
                     <div key={o.id} className="flex items-center gap-2 text-[11px]">
-                      <span
-                        className={cn(
-                          'h-1.5 w-1.5 rounded-full shrink-0',
-                          o.status === 'concluida' ? 'bg-success' : o.status === 'cancelada' ? 'bg-destructive/40' : 'bg-muted-foreground/30'
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          'truncate',
-                          o.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
-                        )}
-                      >
+                      <span className="h-1.5 w-1.5 rounded-full shrink-0 bg-muted-foreground/30" />
+                      <span className="truncate text-foreground">
                         {format(parseISO(o.scheduled_date), 'd MMM', { locale: pt })} · {o.name}
                       </span>
                     </div>
                   ))}
-                  {items.length > 3 && (
-                    <div className="text-[10px] text-muted-foreground/70 pl-3.5">
-                      +{items.length - 3} cadências…
-                    </div>
-                  )}
                 </div>
               )}
             </button>
           );
-        })}
+        })()}
         {offboardingPhases.map(phase => {
           const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
           const total = phaseDeliverables.length;
