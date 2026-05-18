@@ -134,7 +134,6 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
                 Fases iniciais concluídas. O serviço continua com reuniões, rotinas e entregas recorrentes em curso.
               </p>
             ) : null}
-            )}
             {total > 0 && (
               <div className="flex items-center gap-3 pt-2">
                 <div className="flex-1 max-w-[260px] h-1.5 bg-muted/40 rounded-full overflow-hidden">
