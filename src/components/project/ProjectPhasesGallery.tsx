@@ -723,9 +723,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
       {/* Detail dialog for recurring monthly cycle */}
       <Dialog open={!!openMonthKey} onOpenChange={open => !open && setOpenMonthKey(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="capitalize">
+            <DialogTitle className="capitalize text-xl">
               {openMonthKey
                 ? format(parseISO(openMonthKey + '-01'), 'MMMM yyyy', { locale: pt })
                 : 'Mês do contrato'}
@@ -735,8 +735,25 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             const bucket = monthlyBuckets.find(([k]) => k === openMonthKey)?.[1];
             const mini = bucket?.miniPhases || [];
             const occs = bucket?.occurrences || [];
+            const tks = bucket?.tasks || [];
+            const taskMap = new Map(monthTasks.map(t => [t.id, t]));
+            const monthTasksFull = tks.map(t => taskMap.get(t.id)).filter(Boolean) as MonthTask[];
+            const doneOccs = occs.filter(o => o.status === 'concluida').length;
+            const doneTasks = monthTasksFull.filter(t => isTaskDone({ status: t.status } as any)).length;
+            const meetingOptions = projectMeetings.map(m => ({
+              value: m.id,
+              label: m.title || 'Sem título',
+              date: m.date_time ? format(parseISO(m.date_time), "d MMM · HH:mm", { locale: pt }) : '',
+            }));
             return (
-            <div className="space-y-4 mt-2">
+            <div className="space-y-6 mt-2">
+              {(mini.length + occs.length + monthTasksFull.length) > 0 && (
+                <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
+                  {mini.length > 0 && <span><strong>{mini.length}</strong> mini-fases</span>}
+                  {occs.length > 0 && <span><strong>{doneOccs}/{occs.length}</strong> cadências</span>}
+                  {monthTasksFull.length > 0 && <span><strong>{doneTasks}/{monthTasksFull.length}</strong> tarefas</span>}
+                </div>
+              )}
               {mini.length > 0 && (
                 <div className="space-y-2">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Mini-fases do mês</div>
@@ -775,72 +792,149 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                 </div>
               )}
               {occs.length > 0 && (
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Cadências do mês</div>
-              {occs.map(o => (
-                <div
-                  key={o.id}
-                  className={cn(
-                    'flex flex-wrap items-center gap-2 px-3 py-2 rounded-md border bg-card text-sm',
-                    o.status === 'cancelada' && 'opacity-50 line-through'
-                  )}
-                >
-                  <span className="text-base shrink-0">
-                    {o.item_type === 'reuniao' ? '📅' : o.item_type === 'tarefa' ? '📋' : '📦'}
-                  </span>
-                  <Input
-                    type="date"
-                    value={o.scheduled_date}
-                    className="h-7 w-36 text-xs"
-                    onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_date: e.target.value } })}
-                  />
-                  <Input
-                    className="h-7 text-sm flex-1 min-w-[160px]"
-                    value={o.name}
-                    onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { name: e.target.value } })}
-                  />
-                  {o.item_type === 'reuniao' && (
-                    <Input
-                      type="time"
-                      value={o.scheduled_time || ''}
-                      className="h-7 w-24 text-xs"
-                      onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_time: e.target.value || null } })}
-                    />
-                  )}
-                  <Select
-                    value={o.status}
-                    onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { status: v as RecurringOccurrence['status'] } })}
-                  >
-                    <SelectTrigger className="h-7 w-32 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pendente">Pendente</SelectItem>
-                      <SelectItem value="concluida">Concluída</SelectItem>
-                      <SelectItem value="reagendada">Reagendada</SelectItem>
-                      <SelectItem value="cancelada">Cancelada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7"
-                    title={o.visible_in_portal ? 'Visível no portal' : 'Oculto do cliente'}
-                    onClick={() => updateOccurrence.mutate({ id: o.id, patch: { visible_in_portal: !o.visible_in_portal } })}
-                  >
-                    {o.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-destructive"
-                    title="Eliminar ocorrência"
-                    onClick={() => { if (confirm('Eliminar esta ocorrência?')) deleteOccurrence.mutate(o.id); }}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
+                  {occs.map(o => {
+                    const date = parseISO(o.scheduled_date);
+                    const weekday = format(date, 'EEE', { locale: pt });
+                    const dayLabel = format(date, "d 'de' MMM", { locale: pt });
+                    const linkedMeeting = o.linked_meeting_id
+                      ? projectMeetings.find(m => m.id === o.linked_meeting_id)
+                      : null;
+                    return (
+                      <div
+                        key={o.id}
+                        className={cn(
+                          'rounded-lg border border-border bg-card p-3 space-y-2',
+                          o.status === 'cancelada' && 'opacity-50'
+                        )}
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
+                            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="capitalize">{weekday}</span>
+                            <span>{dayLabel}</span>
+                            {o.item_type === 'reuniao' && o.scheduled_time && (
+                              <span className="text-muted-foreground">· {o.scheduled_time.slice(0, 5)}</span>
+                            )}
+                          </div>
+                          <Input
+                            className={cn('h-8 text-sm flex-1 min-w-[180px]', o.status === 'cancelada' && 'line-through')}
+                            value={o.name}
+                            onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { name: e.target.value } })}
+                          />
+                          <Select
+                            value={o.status}
+                            onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { status: v as RecurringOccurrence['status'] } })}
+                          >
+                            <SelectTrigger className="h-8 w-32 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pendente">Pendente</SelectItem>
+                              <SelectItem value="concluida">Concluída</SelectItem>
+                              <SelectItem value="reagendada">Reagendada</SelectItem>
+                              <SelectItem value="cancelada">Cancelada</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            title={o.visible_in_portal ? 'Visível no portal' : 'Oculto do cliente'}
+                            onClick={() => updateOccurrence.mutate({ id: o.id, patch: { visible_in_portal: !o.visible_in_portal } })}
+                          >
+                            {o.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-destructive"
+                            title="Eliminar ocorrência"
+                            onClick={() => { if (confirm('Eliminar esta ocorrência?')) deleteOccurrence.mutate(o.id); }}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 pl-1">
+                          <Input
+                            type="date"
+                            value={o.scheduled_date}
+                            className="h-7 w-36 text-xs"
+                            onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_date: e.target.value } })}
+                          />
+                          {o.item_type === 'reuniao' && (
+                            <>
+                              <Input
+                                type="time"
+                                value={o.scheduled_time || ''}
+                                className="h-7 w-24 text-xs"
+                                onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_time: e.target.value || null } })}
+                              />
+                              <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Reunião:</span>
+                                <Select
+                                  value={o.linked_meeting_id || '__none__'}
+                                  onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { linked_meeting_id: v === '__none__' ? null : v } })}
+                                >
+                                  <SelectTrigger className="h-7 text-xs flex-1">
+                                    <SelectValue placeholder="Associar reunião…" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__none__">— Nenhuma —</SelectItem>
+                                    {meetingOptions.map(m => (
+                                      <SelectItem key={m.value} value={m.value}>
+                                        {m.label}{m.date ? ` · ${m.date}` : ''}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {linkedMeeting && (
+                                  <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[11px]">
+                                    <a href={`/hub/reunioes/${linkedMeeting.id}`} target="_blank" rel="noreferrer">Abrir</a>
+                                  </Button>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
+              {monthTasksFull.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Tarefas do mês</div>
+                  {monthTasksFull.map(t => {
+                    const done = isTaskDone({ status: t.status } as any);
+                    const due = t.deadline ? parseISO(t.deadline) : null;
+                    return (
+                      <a
+                        key={t.id}
+                        href={`/hub/tarefas/${t.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={cn(
+                          'flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 hover:border-primary/50 transition-colors',
+                          done && 'opacity-60'
+                        )}
+                      >
+                        <div className={cn(
+                          'h-4 w-4 rounded-full border-2 shrink-0',
+                          done ? 'bg-success border-success' : 'border-muted-foreground/40'
+                        )} />
+                        <span className={cn('text-sm flex-1 truncate', done && 'line-through text-muted-foreground')}>
+                          {t.name || 'Tarefa'}
+                        </span>
+                        {due && (
+                          <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                            {format(due, "d MMM", { locale: pt })}
+                          </span>
+                        )}
+                      </a>
+                    );
+                  })}
                 </div>
               )}
               {mini.length === 0 && occs.length === 0 && (
