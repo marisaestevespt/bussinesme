@@ -491,6 +491,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                     {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
                     {phaseTotal > 0 && occTotal > 0 && ' · '}
                     {occTotal > 0 && `${occDone}/${occTotal} cadências`}
+                    {(phaseTotal > 0 || occTotal > 0) && taskTotal > 0 && ' · '}
+                    {taskTotal > 0 && `${taskDone}/${taskTotal} tarefas`}
                   </span>
                   <span className="font-semibold text-foreground">{pct}%</span>
                 </div>
