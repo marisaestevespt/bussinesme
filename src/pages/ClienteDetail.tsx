@@ -72,7 +72,7 @@ function ClienteDetailPageInner() {
   const sectorConfig = useSectorConfig();
 
   const { data: client, isLoading } = useClient(isNew ? undefined : id);
-  const { upsertClient, duplicateClient, deleteClient } = useClients();
+  const { upsertClient, duplicateClient, deleteClient, reactivateClient } = useClients();
   const { products } = useProducts();
   const commercialData = useCommercialData();
 
