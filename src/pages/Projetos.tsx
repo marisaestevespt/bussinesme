@@ -233,16 +233,16 @@ export default function ProjetosPage() {
   const { data: allProjectPhases = [] } = useQuery({
     queryKey: ['projects-progress-phases'],
     queryFn: async () => {
-      const { data } = await supabase.from('project_phases').select('project_id, status');
-      return (data || []) as { project_id: string; status: string }[];
+      const { data } = await supabase.from('project_phases').select('id, project_id, status, is_offboarding');
+      return (data || []) as { id: string; project_id: string; status: string; is_offboarding: boolean | null }[];
     },
   });
 
   const { data: allProjectDeliverables = [] } = useQuery({
     queryKey: ['projects-progress-deliverables'],
     queryFn: async () => {
-      const { data } = await supabase.from('project_deliverables').select('project_id, status');
-      return (data || []) as { project_id: string; status: string }[];
+      const { data } = await supabase.from('project_deliverables').select('project_id, status, phase_id');
+      return (data || []) as { project_id: string; status: string; phase_id: string | null }[];
     },
   });
 
@@ -265,8 +265,8 @@ export default function ProjetosPage() {
   const { data: allClients = [] } = useQuery({
     queryKey: ['clients-for-progress'],
     queryFn: async () => {
-      const { data } = await supabase.from('clients' as any).select('id,full_name');
-      return (data || []) as unknown as { id: string; full_name: string }[];
+      const { data } = await supabase.from('clients' as any).select('id,full_name,status');
+      return (data || []) as unknown as { id: string; full_name: string; status: string | null }[];
     },
   });
 
