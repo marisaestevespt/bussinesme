@@ -8,7 +8,7 @@ const TABLES_TO_BACKUP = [
   "brand_competitors", "brand_differentials", "brand_kanban_items",
   "brand_links", "brand_swot_items", "brand_visual_cards", "brand_visual_files",
   "automation_settings", "custom_fields", "custom_field_values", "custom_fonts",
-  "custom_roles", "custom_views", "departments", "department_whatsapp_links",
+  "custom_roles", "departments", "department_whatsapp_links",
   "digest_settings", "event_types", "financial_categories", "kpi_settings",
   "marketing_channels", "channel_pages", "marketing_automations", "marketing_funnels",
   "marketing_pages", "internal_documents", "members", "member_sensitive_access",
