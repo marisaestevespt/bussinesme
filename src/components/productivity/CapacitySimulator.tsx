@@ -201,9 +201,9 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
   const tasksQ = useQuery({
     queryKey: ['simulator-dept-tasks'],
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('id, name, department, priority, deadline, estimated_time, assigned_to, status')
+      const { data } = await supabase.from('tasks').select('id, name, department, priority, deadline, estimated_minutes, assigned_to, status')
         .not('department', 'is', null)
-        .order('estimated_time', { ascending: false, nullsFirst: false })
+        .order('estimated_minutes', { ascending: false, nullsFirst: false })
         .limit(500);
       return data || [];
     },
