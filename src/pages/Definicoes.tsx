@@ -15,6 +15,7 @@ import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { SettingsEdgeMonitoring } from '@/components/settings/SettingsEdgeMonitoring';
+import { SettingsReconciliation } from '@/components/settings/SettingsReconciliation';
 import { SettingsInstance } from '@/components/settings/SettingsInstance';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -93,6 +94,7 @@ export default function DefinicoesPage() {
           {tab === 'sistema' && (
             <div className="space-y-10">
               <SettingsEdgeMonitoring />
+              <SettingsReconciliation />
               <SettingsBackups />
             </div>
           )}
