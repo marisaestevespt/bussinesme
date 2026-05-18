@@ -179,59 +179,57 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     onError: (e: Error) => toast.error('Erro ao eliminar', { description: e.message }),
   });
 
-  // Split phases: cycle (mini-fases mensais) vs one-shot
-  const cyclePhases = useMemo(
-    () => phases.filter(p => p.cycle_month_index != null),
+  // One-shot phases = todas as fases normais (Onboarding, Alinhamento, Offboarding…).
+  // Já não temos fases-mês — o trabalho recorrente vive numa única fase virtual "Trabalho Contínuo".
+  const oneShotPhases = useMemo(
+    () => phases.filter(p => p.cycle_month_index == null),
     [phases]
   );
-  const oneShotPhases = useMemo(() => {
-    // Hide monthly-cycle template rows: any phase that is the parent template
-    // of one or more cycle instances (cycle_month_index !== null with same source_phase_id).
-    const templateSourceIds = new Set(
-      phases
-        .filter(p => p.cycle_month_index != null && p.source_phase_id)
-        .map(p => p.source_phase_id as string)
-    );
-    return phases.filter(p => {
-      if (p.cycle_month_index != null) return false;
-      // If this phase itself is referenced as a template, hide it.
-      if (p.source_phase_id && templateSourceIds.has(p.source_phase_id)) return false;
-      return true;
-    });
-  }, [phases]);
 
-  // Unified monthly buckets: each month aggregates mini-fases + cadências
-  const monthlyBuckets = useMemo(() => {
-    const map = new Map<string, { miniPhases: Phase[]; occurrences: RecurringOccurrence[]; tasks: MonthTask[] }>();
+  // Agenda contínua: todas as ocorrências + tarefas standalone agrupadas por mês.
+  // Usada tanto para o card global como para o detalhe expandido por mês.
+  const continuousByMonth = useMemo(() => {
+    const linkedTaskIds = new Set(occurrences.map(o => o.linked_task_id).filter(Boolean) as string[]);
+    const standaloneTasks = monthTasks.filter(t => !linkedTaskIds.has(t.id));
+    const map = new Map<string, { occurrences: RecurringOccurrence[]; tasks: MonthTask[] }>();
     const ensure = (k: string) => {
-      if (!map.has(k)) map.set(k, { miniPhases: [], occurrences: [], tasks: [] });
+      if (!map.has(k)) map.set(k, { occurrences: [], tasks: [] });
       return map.get(k)!;
     };
-    for (const p of cyclePhases) {
-      const key = (p.planned_start || '').slice(0, 7);
-      if (!key) continue;
-      ensure(key).miniPhases.push(p);
-    }
     for (const o of occurrences) {
       const key = o.scheduled_date.slice(0, 7);
+      if (!key) continue;
       ensure(key).occurrences.push(o);
     }
-    for (const t of monthTasks) {
+    for (const t of standaloneTasks) {
       const key = (t.deadline || '').slice(0, 7);
       if (!key) continue;
-      // Only add tasks to months that already have cadências/mini-fases,
-      // so we don't invent buckets for purely one-shot work.
+      // Só agregamos tarefas em meses que já tenham cadências planeadas,
+      // para não inventar meses com tarefas one-shot.
       if (!map.has(key)) continue;
       ensure(key).tasks.push(t);
     }
     for (const v of map.values()) {
-      v.miniPhases.sort((a, b) => (a.planned_start || '').localeCompare(b.planned_start || ''));
       v.occurrences.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
+      v.tasks.sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [cyclePhases, occurrences, monthTasks]);
+  }, [occurrences, monthTasks]);
 
-  const [openMonthKey, setOpenMonthKey] = useState<string | null>(null);
+  const continuousTotals = useMemo(() => {
+    let total = 0;
+    let done = 0;
+    for (const [, bucket] of continuousByMonth) {
+      total += bucket.occurrences.length + bucket.tasks.length;
+      done += bucket.occurrences.filter(o => o.status === 'concluida').length;
+      done += bucket.tasks.filter(t => isTaskDone({ status: t.status } as any)).length;
+    }
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    return { total, done, pct };
+  }, [continuousByMonth]);
+
+  const hasContinuous = continuousByMonth.length > 0;
+  const [continuousOpen, setContinuousOpen] = useState(false);
 
   // Profiles for responsibles
   const assigneeIds = useMemo(
