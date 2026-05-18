@@ -1,12 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { logRun } from "../_shared/resilience.ts";
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const startedAt = new Date();
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -304,11 +306,13 @@ Deno.serve(async (req) => {
       }
     }
 
+    await logRun({ functionName: "generate-monthly-report", startedAt, status: "success", context: { reportId, period: reportData.period } });
     return new Response(
       JSON.stringify({ success: true, reportId, period: reportData.period }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
+    await logRun({ functionName: "generate-monthly-report", startedAt, status: "failed", errorMessage: err?.message ?? String(err) });
     return new Response(
       JSON.stringify({ error: err.message }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
