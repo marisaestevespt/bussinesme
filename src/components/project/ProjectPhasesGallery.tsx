@@ -451,8 +451,12 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
           const taskTotal = bTasks.length;
           const taskDone = bTasks.filter(isTaskDone).length;
-          const total = taskTotal > 0 ? taskTotal : occTotal + phaseTotal;
-          const done = taskTotal > 0 ? taskDone : occDone + phaseDoneCount;
+          // Dedupe: tasks linked from an occurrence are counted only once (via the occurrence).
+          const linkedTaskIds = new Set(items.map(o => o.linked_task_id).filter(Boolean) as string[]);
+          const standaloneTasks = bTasks.filter(t => !linkedTaskIds.has(t.id));
+          const standaloneDone = standaloneTasks.filter(isTaskDone).length;
+          const total = occTotal + phaseTotal + standaloneTasks.length;
+          const done = occDone + phaseDoneCount + standaloneDone;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           const monthDate = parseISO(monthKey + '-01');
           const now = new Date();
