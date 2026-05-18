@@ -609,12 +609,45 @@ function PhaseCard({
           <Badge variant="outline" className="text-[10px] shrink-0">Fase {phase.sort_order + 1}</Badge>
           {phase.is_onboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-warning/15 text-warning border-warning/30">Onboarding</Badge>}
           {phase.is_offboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-destructive/15 text-destructive border-destructive/30">Offboarding</Badge>}
+          {phase.is_recurring && <Badge variant="secondary" className="text-[10px] shrink-0 bg-primary/15 text-primary border-primary/30 gap-1"><Repeat className="h-2.5 w-2.5" /> Recorrente</Badge>}
           <Input value={name} onChange={e => setName(e.target.value)}
             onBlur={() => { const t = name.trim(); if (t !== phase.name) onUpdatePhase(phase.id, { name: t }); }}
             className="h-7 text-sm font-medium border-none shadow-none p-0 focus-visible:ring-0"
             placeholder="Nome da fase..." readOnly={!isOwner} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {isOwner && !phase.is_onboarding && !phase.is_offboarding && (
+            <Select
+              value={phase.is_recurring ? 'recorrente' : 'unica'}
+              onValueChange={(v) => {
+                if (v === 'recorrente') {
+                  onUpdatePhase(phase.id, { is_recurring: true, recurrence_frequency: phase.recurrence_frequency || 'mensal' });
+                } else {
+                  onUpdatePhase(phase.id, { is_recurring: false, recurrence_frequency: null });
+                }
+              }}
+            >
+              <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unica">Única</SelectItem>
+                <SelectItem value="recorrente">Recorrente</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          {isOwner && phase.is_recurring && (
+            <Select
+              value={phase.recurrence_frequency || 'mensal'}
+              onValueChange={(v) => onUpdatePhase(phase.id, { recurrence_frequency: v })}
+            >
+              <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="semanal">Semanal</SelectItem>
+                <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                <SelectItem value="mensal">Mensal</SelectItem>
+                <SelectItem value="trimestral">Trimestral</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
           {sops.length > 0 && (
             <Select value={phase.linked_sop_id || 'none'}
               onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
