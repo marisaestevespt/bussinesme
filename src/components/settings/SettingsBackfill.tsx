@@ -1,10 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { AlertCircle, ChevronRight, CheckCircle2, Loader2, Wand2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { fetchPaymentMethods, buildPaymentMethodOptions } from '@/lib/paymentMethods';
 
 type GapRow = {
   key: string;
@@ -13,6 +18,7 @@ type GapRow = {
   count: number;
   link: string | null;
   linkLabel: string;
+  bulk?: 'entregas-role' | 'vendas-vendedor' | 'despesas-metodo';
 };
 
 async function fetchGaps(): Promise<GapRow[]> {
@@ -43,6 +49,7 @@ async function fetchGaps(): Promise<GapRow[]> {
       count: queries[0].count ?? 0,
       link: '/hub/projetos',
       linkLabel: 'Abrir Projetos',
+      bulk: 'entregas-role',
     },
     {
       key: 'vendas-sem-vendedor',
@@ -51,6 +58,7 @@ async function fetchGaps(): Promise<GapRow[]> {
       count: queries[1].count ?? 0,
       link: '/hub/comercial?tab=vendas',
       linkLabel: 'Abrir Vendas',
+      bulk: 'vendas-vendedor',
     },
     {
       key: 'despesas-sem-metodo',
@@ -59,6 +67,7 @@ async function fetchGaps(): Promise<GapRow[]> {
       count: queries[2].count ?? 0,
       link: '/hub/financeiro?tab=saidas',
       linkLabel: 'Abrir Despesas',
+      bulk: 'despesas-metodo',
     },
     {
       key: 'clientes-sem-responsavel',
