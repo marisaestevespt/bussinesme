@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake, CalendarDays } from 'lucide-react';
+import { CalendarIcon, Plus, Users, Clock, Repeat, Video, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getMeetingTemplate } from '@/components/meeting/MEETING_TEMPLATES';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
@@ -44,17 +44,10 @@ import { Lock } from 'lucide-react';
 import { MEETING_STATUSES as CANON_MEETING_STATUSES, type MeetingStatusValue } from '@/lib/meetingStatus';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 type MeetingStatus = MeetingStatusValue;
-type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
+// Tipos de reunião foram unificados. Mantemos o alias para os registos antigos.
+type MeetingType = 'standard' | 'recorrente' | 'projeto' | 'cliente' | 'diagnostico' | 'inicial';
 
 const STATUSES = CANON_MEETING_STATUSES.map(s => ({ value: s.value, label: s.label, color: s.dotColor }));
-
-const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode; description: string }[] = [
-  { value: 'inicial' as MeetingType, label: 'Reunião Inicial', icon: <Handshake className="h-5 w-5" />, description: 'Primeira reunião com o cliente (1 por cliente)' },
-  { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica interna ou com cliente' },
-  { value: 'projeto', label: 'Reunião de Projeto', icon: <FolderOpen className="h-5 w-5" />, description: 'Reunião associada a um projeto específico' },
-  { value: 'cliente', label: 'Reunião com Cliente', icon: <UserCheck className="h-5 w-5" />, description: 'Reunião com cliente associado' },
-  { value: 'diagnostico', label: 'Reunião de Diagnóstico', icon: <Users className="h-5 w-5" />, description: 'Reunião de diagnóstico com lead ou potencial cliente' },
-];
 
 interface MeetingRow {
   id: string;
