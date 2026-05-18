@@ -279,8 +279,10 @@ export default function ProjetosPage() {
   });
 
   const profileMap = new Map(profiles.map(p => [p.id, p]));
+  const clientStatusById = new Map(allClients.map((c: any) => [c.id, c.status as string | null]));
+  const phaseById = new Map(allProjectPhases.map(p => [p.id, p]));
 
-  function getTaskProgress(projectId: string, projectType?: string, projectMode?: string) {
+  function getTaskProgress(projectId: string, projectType?: string, projectMode?: string, clientId?: string | null) {
     // Only recorrente serviço mensal uses monthly tasks
     if (projectType === 'cliente_servico_mensal' && projectMode === 'recorrente') {
       const tasks = monthlyTasksByProject.filter(t => t.project_id === projectId);
@@ -289,12 +291,22 @@ export default function ProjetosPage() {
       return Math.round((completed / tasks.length) * 100);
     }
 
-    const projectDeliverables = allProjectDeliverables.filter(d => d.project_id === projectId);
+    // Match portal logic: exclude deliverables of Offboarding phases when the
+    // client is NOT yet in offboarding/terminado — otherwise the % shown here
+    // doesn't match the % shown in the client portal.
+    const clientStatus = clientId ? clientStatusById.get(clientId) : null;
+    const includeOffboarding = clientStatus === 'em_offboarding' || clientStatus === 'terminado';
+    const projectDeliverables = allProjectDeliverables.filter(d => {
+      if (d.project_id !== projectId) return false;
+      if (includeOffboarding) return true;
+      const ph = d.phase_id ? phaseById.get(d.phase_id) : null;
+      return !(ph && ph.is_offboarding);
+    });
     if (projectDeliverables.length > 0) {
       return deliverableProgress(projectDeliverables);
     }
 
-    const projectPhases = allProjectPhases.filter(p => p.project_id === projectId);
+    const projectPhases = allProjectPhases.filter(p => p.project_id === projectId && (includeOffboarding || !p.is_offboarding));
     if (projectPhases.length > 0) {
       return phaseProgress(projectPhases);
     }
