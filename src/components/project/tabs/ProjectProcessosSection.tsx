@@ -7,12 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EntitySection } from '@/components/layout/entity';
 import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
-import { ProjectRoutines } from '@/components/project/ProjectRoutines';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
-import { ProjectRecurringOccurrences } from '@/components/project/ProjectRecurringOccurrences';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { getTaskStatusInfo } from '@/lib/taskStatus';
-import { Handshake, Repeat, CheckSquare, Plus, Video, ChevronRight, Clock } from 'lucide-react';
+import { Handshake, CheckSquare, Plus, Video, ChevronRight, Clock } from 'lucide-react';
 import { getInitials } from '@/pages/Projetos';
 import type { ProjectFull, Task, Meeting, Profile } from '@/hooks/useProjectDetailData';
 
@@ -74,21 +72,9 @@ export function ProjectProcessosSection({
   return (
     <>
       {isServicoMensal && (
-        <>
-          <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
-            <ProjectResponsibilities projectId={projectId} />
-          </EntitySection>
-          {(local as any).cycle_duration_months && (
-            <ProjectRecurringOccurrences
-              projectId={projectId}
-              cycleStartDate={(local as any).cycle_start_date || local.start_date}
-              cycleDurationMonths={(local as any).cycle_duration_months}
-            />
-          )}
-          <EntitySection title="Rotinas / Tarefas Fixas" icon={Repeat}>
-            <ProjectRoutines projectId={projectId} />
-          </EntitySection>
-        </>
+        <EntitySection title="Responsabilidades Acordadas" icon={Handshake}>
+          <ProjectResponsibilities projectId={projectId} />
+        </EntitySection>
       )}
 
       <EntitySection

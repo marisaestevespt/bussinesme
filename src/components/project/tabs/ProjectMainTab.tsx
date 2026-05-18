@@ -30,6 +30,9 @@ export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, t
   const qc = useQueryClient();
   const [syncing, setSyncing] = useState(false);
   const hasPhases = (taskModes || [taskMode]).includes('fases');
+  // Monthly services also render the gallery so each cycle month appears as a card.
+  const isMonthlyService = local.type === 'cliente_servico_mensal';
+  const showGallery = hasPhases || isMonthlyService;
 
   const handleSyncTemplate = async () => {
     if (!local.product_id) {
@@ -152,9 +155,9 @@ export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, t
         </div>
       </EntitySection>
 
-      {hasPhases && (
+      {showGallery && (
         <EntitySection
-          title="Fases do Projeto"
+          title={isMonthlyService && !hasPhases ? 'Ciclos Mensais' : 'Fases do Projeto'}
           icon={Workflow}
           action={local.product_id ? (
             <Button size="sm" variant="outline" className="gap-1.5" disabled={syncing} onClick={handleSyncTemplate} title="Importa fases e entregáveis novos do produto sem apagar nada existente">

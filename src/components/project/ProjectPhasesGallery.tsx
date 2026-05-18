@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CalendarDays, Check, ChevronRight, Layers, Plus, Repeat, Users as UsersIcon, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CalendarDays, Check, ChevronRight, Eye, EyeOff, Layers, Plus, Repeat, Users as UsersIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -54,6 +55,7 @@ interface RecurringOccurrence {
   scheduled_time: string | null;
   item_type: 'reuniao' | 'tarefa' | 'entrega';
   status: 'pendente' | 'concluida' | 'cancelada' | 'reagendada';
+  visible_in_portal?: boolean;
 }
 
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
@@ -92,11 +94,35 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from('project_recurring_occurrences')
-        .select('id, name, scheduled_date, scheduled_time, item_type, status')
+        .select('id, name, scheduled_date, scheduled_time, item_type, status, visible_in_portal')
         .eq('project_id', projectId)
         .order('scheduled_date');
       return (data || []) as RecurringOccurrence[];
     },
+  });
+
+  const updateOccurrence = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<RecurringOccurrence> }) => {
+      const { error } = await (supabase as any)
+        .from('project_recurring_occurrences')
+        .update(patch)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-recurring-occurrences', projectId] }),
+    onError: (e: Error) => toast.error('Erro ao atualizar', { description: e.message }),
+  });
+
+  const deleteOccurrence = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any)
+        .from('project_recurring_occurrences')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-recurring-occurrences', projectId] }),
+    onError: (e: Error) => toast.error('Erro ao eliminar', { description: e.message }),
   });
 
   // Group recurring occurrences by month — render as "pseudo-phases" alongside real phases
@@ -581,7 +607,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
       {/* Detail dialog for recurring monthly cycle */}
       <Dialog open={!!openMonthKey} onOpenChange={open => !open && setOpenMonthKey(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="capitalize">
               {openMonthKey
@@ -590,34 +616,71 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </DialogTitle>
           </DialogHeader>
           {openMonthKey && (
-            <div className="space-y-2 mt-2">
+            <div className="space-y-1.5 mt-2">
               {(recurringMonths.find(([k]) => k === openMonthKey)?.[1] || []).map(o => (
                 <div
                   key={o.id}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-md border bg-card text-sm',
-                    o.status === 'concluida' && 'opacity-60 line-through',
-                    o.status === 'cancelada' && 'opacity-40 line-through'
+                    'flex flex-wrap items-center gap-2 px-3 py-2 rounded-md border bg-card text-sm',
+                    o.status === 'cancelada' && 'opacity-50 line-through'
                   )}
                 >
                   <span className="text-base shrink-0">
                     {o.item_type === 'reuniao' ? '📅' : o.item_type === 'tarefa' ? '📋' : '📦'}
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{o.name}</div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {format(parseISO(o.scheduled_date), "EEEE, d 'de' MMMM", { locale: pt })}
-                      {o.scheduled_time && ` · ${o.scheduled_time.slice(0, 5)}`}
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] capitalize">
-                    {o.status}
-                  </Badge>
+                  <Input
+                    type="date"
+                    value={o.scheduled_date}
+                    className="h-7 w-36 text-xs"
+                    onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_date: e.target.value } })}
+                  />
+                  <Input
+                    className="h-7 text-sm flex-1 min-w-[160px]"
+                    value={o.name}
+                    onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { name: e.target.value } })}
+                  />
+                  {o.item_type === 'reuniao' && (
+                    <Input
+                      type="time"
+                      value={o.scheduled_time || ''}
+                      className="h-7 w-24 text-xs"
+                      onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_time: e.target.value || null } })}
+                    />
+                  )}
+                  <Select
+                    value={o.status}
+                    onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { status: v as RecurringOccurrence['status'] } })}
+                  >
+                    <SelectTrigger className="h-7 w-32 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="concluida">Concluída</SelectItem>
+                      <SelectItem value="reagendada">Reagendada</SelectItem>
+                      <SelectItem value="cancelada">Cancelada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    title={o.visible_in_portal ? 'Visível no portal' : 'Oculto do cliente'}
+                    onClick={() => updateOccurrence.mutate({ id: o.id, patch: { visible_in_portal: !o.visible_in_portal } })}
+                  >
+                    {o.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-destructive"
+                    title="Eliminar ocorrência"
+                    onClick={() => { if (confirm('Eliminar esta ocorrência?')) deleteOccurrence.mutate(o.id); }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               ))}
-              <p className="text-[11px] text-muted-foreground italic pt-2">
-                Para editar datas, marcar como concluída ou ocultar do portal, usa a secção "Itens Recorrentes do Ciclo" abaixo.
-              </p>
             </div>
           )}
         </DialogContent>
