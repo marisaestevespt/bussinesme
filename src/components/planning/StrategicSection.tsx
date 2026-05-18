@@ -7,9 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Compass, Eye, Heart, Grid2x2, Plus, X, Save, ExternalLink, Sparkles, Target } from 'lucide-react';
+import { Compass, Eye, Heart, Grid2x2, Plus, X, Pencil, Save, ExternalLink, Sparkles, Target } from 'lucide-react';
 import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type SwotItem = { id: string; quadrant: string; content: string; sort_order: number };
