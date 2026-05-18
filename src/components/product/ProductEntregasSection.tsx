@@ -152,7 +152,6 @@ function DeliverableRow({
   const linkedSopName = sops.find(s => s.id === template.linked_sop_id)?.name;
   const cadence = (template.cadence === 'sem_data' ? 'sem_data' : 'unica') as
     'unica' | 'sem_data';
-  const weekdayLabels = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
   const cadenceLabel = (() => {
     if (cadence === 'unica') return '1×';
     if (cadence === 'sem_data') return 'Sem data';
