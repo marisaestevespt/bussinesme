@@ -7643,53 +7643,6 @@ export type Database = {
           },
         ]
       }
-      product_automations: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          notes: string | null
-          product_id: string | null
-          sort_order: number | null
-          status: string | null
-          trigger: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          notes?: string | null
-          product_id?: string | null
-          sort_order?: number | null
-          status?: string | null
-          trigger?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          notes?: string | null
-          product_id?: string | null
-          sort_order?: number | null
-          status?: string | null
-          trigger?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_automations_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       product_costs: {
         Row: {
           cost_name: string
@@ -8006,53 +7959,6 @@ export type Database = {
           },
         ]
       }
-      product_funnels: {
-        Row: {
-          conversion_rate: number | null
-          created_at: string
-          description: string | null
-          funnel_type: string | null
-          id: string
-          name: string
-          notes: string | null
-          product_id: string | null
-          sort_order: number | null
-          updated_at: string
-        }
-        Insert: {
-          conversion_rate?: number | null
-          created_at?: string
-          description?: string | null
-          funnel_type?: string | null
-          id?: string
-          name: string
-          notes?: string | null
-          product_id?: string | null
-          sort_order?: number | null
-          updated_at?: string
-        }
-        Update: {
-          conversion_rate?: number | null
-          created_at?: string
-          description?: string | null
-          funnel_type?: string | null
-          id?: string
-          name?: string
-          notes?: string | null
-          product_id?: string | null
-          sort_order?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_funnels_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       product_improvements: {
         Row: {
           created_at: string
@@ -8084,44 +7990,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_improvements_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_kpi_reports: {
-        Row: {
-          created_at: string
-          id: string
-          notes: string | null
-          product_id: string | null
-          report_month: number | null
-          report_year: number | null
-          summary: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          product_id?: string | null
-          report_month?: number | null
-          report_year?: number | null
-          summary?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          product_id?: string | null
-          report_month?: number | null
-          report_year?: number | null
-          summary?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_kpi_reports_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -9087,38 +8955,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_renewal_templates_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_team_members: {
-        Row: {
-          created_at: string
-          id: string
-          member_id: string | null
-          product_id: string | null
-          role: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          member_id?: string | null
-          product_id?: string | null
-          role?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          member_id?: string | null
-          product_id?: string | null
-          role?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_team_members_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
