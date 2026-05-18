@@ -24,6 +24,7 @@ import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { getInitials } from '@/pages/Projetos';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AddCadenceDialog } from '@/components/project/AddCadenceDialog';
+import { OccurrenceRow } from '@/components/project/OccurrenceRow';
 
 interface Props {
   projectId: string;
@@ -705,113 +706,14 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                             );
                           }
                           const o = item.occ;
-                          const date = parseISO(o.scheduled_date);
-                          const weekday = format(date, 'EEE', { locale: pt });
-                          const dayLabel = format(date, "d 'de' MMM", { locale: pt });
-                          const linkedMeeting = o.linked_meeting_id
-                            ? projectMeetings.find(m => m.id === o.linked_meeting_id)
-                            : null;
                           return (
-                            <div
+                            <OccurrenceRow
                               key={`o-${o.id}`}
-                              className={cn(
-                                'rounded-lg border border-border bg-card p-3 space-y-2',
-                                o.status === 'cancelada' && 'opacity-50',
-                              )}
-                            >
-                              <div className="flex flex-wrap items-center gap-2">
-                                <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
-                                  <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                                  <span className="capitalize">{weekday}</span>
-                                  <span>{dayLabel}</span>
-                                  {o.item_type === 'reuniao' && o.scheduled_time && (
-                                    <span className="text-muted-foreground">· {o.scheduled_time.slice(0, 5)}</span>
-                                  )}
-                                </div>
-                                <Input
-                                  className={cn('h-8 text-sm flex-1 min-w-[180px]', o.status === 'cancelada' && 'line-through')}
-                                  value={o.name}
-                                  onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { name: e.target.value } })}
-                                />
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
-                                  {o.item_type === 'reuniao' ? 'Reunião' : 'Tarefa'}
-                                </span>
-                                <Select
-                                  value={o.status}
-                                  onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { status: v as RecurringOccurrence['status'] } })}
-                                >
-                                  <SelectTrigger className="h-8 w-32 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pendente">Pendente</SelectItem>
-                                    <SelectItem value="concluida">Concluída</SelectItem>
-                                    <SelectItem value="reagendada">Reagendada</SelectItem>
-                                    <SelectItem value="cancelada">Cancelada</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8"
-                                  title={o.visible_in_portal ? 'Visível no portal' : 'Oculto do cliente'}
-                                  onClick={() => updateOccurrence.mutate({ id: o.id, patch: { visible_in_portal: !o.visible_in_portal } })}
-                                >
-                                  {o.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-destructive"
-                                  title="Eliminar ocorrência"
-                                  onClick={() => { if (confirm('Eliminar esta ocorrência?')) deleteOccurrence.mutate(o.id); }}
-                                >
-                                  <X className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2 pl-1">
-                                <Input
-                                  type="date"
-                                  value={o.scheduled_date}
-                                  className="h-7 w-36 text-xs"
-                                  onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_date: e.target.value } })}
-                                />
-                                {o.item_type === 'reuniao' && (
-                                  <>
-                                    <Input
-                                      type="time"
-                                      value={o.scheduled_time || ''}
-                                      className="h-7 w-24 text-xs"
-                                      onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_time: e.target.value || null } })}
-                                    />
-                                    <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
-                                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Reunião:</span>
-                                      <Select
-                                        value={o.linked_meeting_id || '__none__'}
-                                        onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { linked_meeting_id: v === '__none__' ? null : v } })}
-                                      >
-                                        <SelectTrigger className="h-7 text-xs flex-1">
-                                          <SelectValue placeholder="Associar reunião…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="__none__">— Nenhuma —</SelectItem>
-                                          {meetingOptions.map(m => (
-                                            <SelectItem key={m.value} value={m.value}>
-                                              {m.label}{m.date ? ` · ${m.date}` : ''}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      {linkedMeeting && (
-                                        <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[11px]">
-                                          <a href={`/hub/reunioes/${linkedMeeting.id}`} target="_blank" rel="noreferrer">Abrir</a>
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
+                              occurrence={o}
+                              meetingOptions={meetingOptions}
+                              onUpdate={(patch) => updateOccurrence.mutate({ id: o.id, patch: patch as Partial<RecurringOccurrence> })}
+                              onDelete={() => deleteOccurrence.mutate(o.id)}
+                            />
                           );
                         })}
                       </CollapsibleContent>
