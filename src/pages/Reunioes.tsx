@@ -560,11 +560,6 @@ export function MeetingFormDialog({
 
     if (actualId) {
       setDepartment('clientes');
-      // Auto-set title for inicial meeting
-      if (meetingType === ('inicial' as MeetingType)) {
-        const c = clients.find((c: any) => c.id === actualId);
-        if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
-      }
       const cProjects = projects.filter(p => p.client_id === actualId);
       if (cProjects.length === 1) {
         setSelectedProjectIds([cProjects[0].id]);
