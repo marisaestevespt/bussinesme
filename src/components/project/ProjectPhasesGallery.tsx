@@ -156,6 +156,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
   const totalCards = phases.length + recurringMonths.length;
 
+  const offboardingPhases = phases.filter(p => /offboarding/i.test(p.name || ''));
+  const nonOffboardingPhases = phases.filter(p => !/offboarding/i.test(p.name || ''));
+
   return (
     <>
       {/* Toolbar: Nova fase */}
@@ -201,7 +204,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {phases.map(phase => {
+        {nonOffboardingPhases.map(phase => {
           const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
           const total = phaseDeliverables.length;
           const done = phaseDeliverables.filter(isDeliverableDone).length;
@@ -431,6 +434,129 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   </div>
                 )}
               </div>
+            </button>
+          );
+        })}
+        {offboardingPhases.map(phase => {
+          const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
+          const total = phaseDeliverables.length;
+          const done = phaseDeliverables.filter(isDeliverableDone).length;
+          const pct = total > 0 ? Math.round((done / total) * 100) : (isPhaseDone(phase) ? 100 : 0);
+          const statusInfo = getPhaseStatusInfo(phase.status);
+          const responsibles = Array.from(
+            new Set(phaseDeliverables.map(d => d.assigned_to).filter(Boolean) as string[])
+          );
+          const phaseDone = isPhaseDone(phase);
+          const inProgress = !phaseDone && (phase.status === 'em_curso' || phase.status === 'em_progresso');
+
+          return (
+            <button
+              key={phase.id}
+              type="button"
+              onClick={() => setOpenPhaseId(phase.id)}
+              className={cn(
+                'group relative flex flex-col gap-3 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
+                phaseDone &&
+                  'border-success/30 bg-success/5 opacity-70 shadow-none hover:opacity-90 hover:border-success/50',
+                inProgress &&
+                  'border-primary/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg shadow-primary/15 ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/25',
+                !phaseDone && !inProgress &&
+                  'border-border/60 bg-gradient-to-br from-card to-card/80 shadow-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10'
+              )}
+            >
+              {inProgress && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
+                </span>
+              )}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground/70">
+                      Fim
+                    </span>
+                    <h3 className="text-sm font-semibold leading-tight truncate">
+                      {phase.name}
+                    </h3>
+                  </div>
+                  {phase.description && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {phase.description}
+                    </p>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary shrink-0" />
+              </div>
+              <Badge className={cn(statusInfo.color, 'border self-start text-[10px]')}>
+                {statusInfo.label}
+              </Badge>
+              <div>
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                  <span>{done}/{total} entregas</span>
+                  <span className="font-semibold text-foreground">{pct}%</span>
+                </div>
+                <Progress value={pct} className="h-1.5" />
+              </div>
+              {(phase.planned_start || phase.planned_end) && (
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <CalendarDays className="h-3 w-3 shrink-0" />
+                  <span className="truncate">
+                    {phase.planned_start ? format(parseISO(phase.planned_start), 'd MMM', { locale: pt }) : '—'}
+                    {' → '}
+                    {phase.planned_end ? format(parseISO(phase.planned_end), 'd MMM', { locale: pt }) : '—'}
+                  </span>
+                </div>
+              )}
+              {responsibles.length > 0 && (
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <UsersIcon className="h-3 w-3 shrink-0" />
+                  <div className="flex -space-x-1">
+                    {responsibles.slice(0, 4).map(pid => {
+                      const p = profileMap.get(pid);
+                      if (!p) return null;
+                      return (
+                        <Avatar key={pid} className="h-5 w-5 border border-background">
+                          <AvatarImage src={getPhotoUrl(p as any)} />
+                          <AvatarFallback className="text-[8px]">
+                            {getInitials(p.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      );
+                    })}
+                    {responsibles.length > 4 && (
+                      <span className="ml-2 text-[10px]">+{responsibles.length - 4}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {phaseDeliverables.length > 0 && (
+                <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
+                  {phaseDeliverables.slice(0, 3).map(d => (
+                    <div key={d.id} className="flex items-center gap-2 text-[11px]">
+                      <span
+                        className={cn(
+                          'h-1.5 w-1.5 rounded-full shrink-0',
+                          isDeliverableDone(d) ? 'bg-success' : 'bg-muted-foreground/30'
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          'truncate',
+                          isDeliverableDone(d) ? 'line-through text-muted-foreground' : 'text-foreground'
+                        )}
+                      >
+                        {d.name}
+                      </span>
+                    </div>
+                  ))}
+                  {phaseDeliverables.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground/70 pl-3.5">
+                      +{phaseDeliverables.length - 3} entregas…
+                    </div>
+                  )}
+                </div>
+              )}
             </button>
           );
         })}
