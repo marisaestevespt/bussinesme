@@ -20,6 +20,7 @@ import { useMyTasks, useMyTimeEntries, useMyTeamMember, useMyMeetings, useProjec
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { StatCard } from '@/components/editorial';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const today = startOfDay(new Date());
 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -245,6 +246,7 @@ export default function SecretariaProdutividade() {
   const monthCompletedTasks = useMemo(() => allTasks.filter((t: any) => isTaskDone(t) && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: monthStart, end: monthEnd })), [allTasks]);
 
   const deleteEntry = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     if (id.startsWith('meeting-')) {
       toast.error('Reuniões não podem ser eliminadas aqui');
       return;

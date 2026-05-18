@@ -24,6 +24,7 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, displayObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { safeUrl } from '@/lib/url';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-accent-violet/15 text-accent-violet' },
@@ -93,6 +94,7 @@ export default function MarketingTrafegoPago() {
   };
 
   const deleteCreative = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('traffic_creatives').delete().eq('id', id) as any;
     qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
     toast.success('Criativo eliminado');
@@ -109,6 +111,7 @@ export default function MarketingTrafegoPago() {
   };
 
   const deleteCard = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('traffic_report_cards').delete().eq('id', id) as any;
     qc.invalidateQueries({ queryKey: ['traffic-report-cards'] });
     toast.success('Card eliminado');

@@ -21,6 +21,7 @@ import type { MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ChannelCard } from '@/components/marketing/ChannelCard';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const DIST_COLUMNS = [
   { key: 'segunda', label: 'Segunda', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', addColor: 'text-[hsl(351,35%,55%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
@@ -101,6 +102,7 @@ export default function MarketingEstrategia() {
     qc.invalidateQueries({ queryKey: ['strategy-editorial-lines'] });
   };
   const deleteEditorialLine = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('strategy_editorial_lines').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['strategy-editorial-lines'] });
   };
@@ -115,6 +117,7 @@ export default function MarketingEstrategia() {
     qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
   };
   const deleteDistCard = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('strategy_distribution_cards').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
   };

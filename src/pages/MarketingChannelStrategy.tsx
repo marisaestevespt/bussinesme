@@ -21,6 +21,7 @@ import { ChevronLeft, Plus, Trash2, ExternalLink, Paperclip, X, Upload } from 'l
 import { BackNavigation } from '@/components/BackNavigation';
 import type { MarketingChannel } from '@/lib/marketing-constants';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const DIST_COLUMNS = [
   { key: 'segunda', label: 'Seg', headerBg: 'bg-[hsl(351,30%,94%)] dark:bg-[hsl(351,30%,15%)]', headerText: 'text-[hsl(351,40%,45%)] dark:text-[hsl(351,40%,65%)]', cardBorder: 'border-l-[3px] border-[hsl(351,40%,70%)]' },
@@ -111,6 +112,7 @@ export default function MarketingChannelStrategy() {
   };
 
   const deleteFormat = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('strategy_channel_formats').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['strategy-channel-formats', channelId] });
   };
@@ -129,6 +131,7 @@ export default function MarketingChannelStrategy() {
   };
 
   const deleteFrame = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('strategy_channel_frames').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['strategy-channel-frames', channelId] });
   };
@@ -184,6 +187,7 @@ export default function MarketingChannelStrategy() {
     setDistDialog({ open: false, columnKey: '' });
   };
   const deleteDist = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('strategy_distribution_cards').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['strategy-distribution-cards'] });
   };

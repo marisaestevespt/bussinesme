@@ -22,6 +22,7 @@ import { WEEKS_PER_MONTH } from './productivity-constants';
 import { isTaskDone, isTaskInProgress } from '@/lib/taskStatus';
 import { formatEuro } from '@/lib/formatting';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Props {
   members: any[];
@@ -186,6 +187,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
   };
 
   const deleteSimulation = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('hiring_simulations').delete().eq('id', id);
     if (activeSimId === id) {
       setActiveSimId(null);

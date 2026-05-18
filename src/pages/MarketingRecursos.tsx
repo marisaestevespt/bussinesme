@@ -26,6 +26,7 @@ import { CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, type MarketingChannel } from '@/l
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { safeUrl } from '@/lib/url';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const IDEA_CATEGORY_OPTIONS = [
   { value: '__none__', label: '— Sem categoria —' },
@@ -135,6 +136,7 @@ export default function MarketingRecursos() {
   };
 
   const deleteUtil = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('marketing_resource_links').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['marketing-resource-links'] });
   };
@@ -164,6 +166,7 @@ export default function MarketingRecursos() {
   };
 
   const deleteIdea = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('marketing_ideas').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
   };
@@ -240,6 +243,7 @@ export default function MarketingRecursos() {
     toast.success(editingView ? 'Vista atualizada' : 'Vista criada');
   };
   const deleteView = async (v: IdeaView) => {
+    if (!(await confirmDestructive())) return;
     if (v.is_system) { toast.error('Vistas do sistema não podem ser eliminadas'); return; }
     if (!confirm(`Eliminar a vista "${v.name}"?`)) return;
     const { error } = await supabase.from('marketing_idea_views' as any).delete().eq('id', v.id);

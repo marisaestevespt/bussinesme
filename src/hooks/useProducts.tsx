@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 import { logAudit } from '@/lib/auditLog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type Product = Tables<'products'>;
 
@@ -158,6 +159,7 @@ export function useProducts() {
 
   const deleteProduct = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { data: snap } = await supabase.from('products').select('name').eq('id', id).maybeSingle();
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) throw error;

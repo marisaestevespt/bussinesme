@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { Badge } from '@/components/ui/badge';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export function DashboardPersonalWidgets({ userId }: { userId?: string }) {
   const qc = useQueryClient();
@@ -57,6 +58,7 @@ export function DashboardPersonalWidgets({ userId }: { userId?: string }) {
   };
 
   const deleteLink = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('member_personal_links').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['personal-links'] });
   };

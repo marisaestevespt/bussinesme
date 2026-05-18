@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint, InlineLoader } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type ReportFile = {
   id: string;
@@ -93,6 +94,7 @@ export default function TrafegoReportDetail() {
   };
 
   const deleteFile = async (file: ReportFile) => {
+    if (!(await confirmDestructive())) return;
     const pathMatch = file.file_url.split('/traffic-reports/')[1];
     if (pathMatch) {
       await supabase.storage.from('traffic-reports').remove([decodeURIComponent(pathMatch)]);

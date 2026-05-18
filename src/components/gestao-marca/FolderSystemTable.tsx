@@ -9,6 +9,7 @@ import { Plus, Pencil, Check, X, Trash2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { safeUrl } from '@/lib/url';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface FolderLink {
   id: string;
@@ -73,6 +74,7 @@ export function FolderSystemTable({ isOwner }: Props) {
   };
 
   const remove = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_folder_links').delete().eq('id', id);
     invalidate();
   };

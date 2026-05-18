@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isWithinInterval, parseISO, isBefore, isAfter, startOfDay } from 'date-fns';
 import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type AbsenceCoverage = {
   id: string;
@@ -54,6 +55,7 @@ export function useAbsenceCoverage() {
 
   const deleteCoverage = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('absence_coverage').delete().eq('id', id);
       if (error) throw error;
     },

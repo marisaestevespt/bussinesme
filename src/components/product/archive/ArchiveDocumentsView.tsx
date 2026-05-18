@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Plus, Trash2, Upload, ExternalLink, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface ProductDocument {
   id: string;
@@ -58,6 +59,7 @@ export function ArchiveDocumentsView({ productId, documents, isOwner, onBack }: 
   };
 
   const deleteRow = async (doc: ProductDocument) => {
+    if (!(await confirmDestructive())) return;
     if (doc.file_path) {
       await supabase.storage.from('product-files').remove([doc.file_path]);
     }

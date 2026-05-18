@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { MentionTextarea, RichText } from '@/components/MentionTextarea';
 import { notifyMentions } from '@/hooks/useNotifications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type Comment = {
   id: string;
@@ -83,6 +84,7 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
   };
 
   const removeComment = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     const { error } = await supabase.from('content_item_comments' as any).delete().eq('id', id);
     if (error) { toast.error('Erro ao apagar'); return; }
     qc.invalidateQueries({ queryKey: ['content-item-comments', contentItemId] });

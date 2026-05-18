@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Plus, Trash2, GripVertical, EyeOff, Eye } from 'lucide-react';
 import {
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 
@@ -68,6 +69,7 @@ export function SettingsRecolhas() {
   };
 
   const remove = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     if (!confirm('Remover esta categoria?')) return;
     const { error } = await supabase.from('nps_categories' as any).delete().eq('id', id);
     if (error) toast.error(error.message);

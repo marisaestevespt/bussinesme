@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { Pencil, Check, X, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Pillar {
   id: string;
@@ -63,6 +64,7 @@ export function ContentPillarsBoard({ isOwner }: { isOwner: boolean }) {
   };
 
   const remove = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     if (!confirm('Eliminar este pilar?')) return;
     const { error } = await supabase.from('brand_content_pillars').delete().eq('id', id);
     if (error) { toast.error('Erro ao eliminar'); return; }

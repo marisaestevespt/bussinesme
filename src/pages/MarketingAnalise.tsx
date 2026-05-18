@@ -23,6 +23,7 @@ import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { cn } from '@/lib/utils';
 import { FORMAT_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -253,6 +254,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
     toast.success('Meta guardada');
   };
   const deleteGoal = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('marketing_goals').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['marketing-goals', year, month] });
   };
