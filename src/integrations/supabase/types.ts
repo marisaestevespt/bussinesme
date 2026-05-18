@@ -12075,51 +12075,6 @@ export type Database = {
         }
         Relationships: []
       }
-      year_review: {
-        Row: {
-          alinhamento_visao_5_anos: string | null
-          area_notes: Json
-          created_at: string
-          decisoes_ano_seguinte: string | null
-          fechado_em: string | null
-          id: string
-          o_que_funcionou: string | null
-          o_que_mudar: string | null
-          status: string
-          updated_at: string
-          user_id: string
-          year: number
-        }
-        Insert: {
-          alinhamento_visao_5_anos?: string | null
-          area_notes?: Json
-          created_at?: string
-          decisoes_ano_seguinte?: string | null
-          fechado_em?: string | null
-          id?: string
-          o_que_funcionou?: string | null
-          o_que_mudar?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-          year: number
-        }
-        Update: {
-          alinhamento_visao_5_anos?: string | null
-          area_notes?: Json
-          created_at?: string
-          decisoes_ano_seguinte?: string | null
-          fechado_em?: string | null
-          id?: string
-          o_que_funcionou?: string | null
-          o_que_mudar?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-          year?: number
-        }
-        Relationships: []
-      }
     }
     Views: {
       business_setup_public: {

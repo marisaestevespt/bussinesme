@@ -10,15 +10,14 @@ import { AllGoalsList } from '@/components/planning/AllGoalsList';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Sparkles, Compass, ChevronDown, Plus, ListChecks, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Compass, ChevronDown, Plus, ListChecks, ArrowRight } from 'lucide-react';
+
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
   const planning = usePlanningData(year);
-  const navigate = useNavigate();
   const [allGoalsOpen, setAllGoalsOpen] = useState(false);
   const [newObjOpen, setNewObjOpen] = useState(false);
 
@@ -53,18 +52,6 @@ export default function ExecutivePlaneamento() {
           <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano seguinte" onClick={() => setYear(year + 1)}>
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
-          {year <= new Date().getFullYear() && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="ml-3 h-7 text-xs"
-              onClick={() => navigate(`/executive/fecho-de-ano/${year}`)}
-            >
-              <Sparkles className="h-3 w-3 mr-1" />
-              Fecho de {year}
-            </Button>
-          )}
         </div>
 
         {/* Pulse — resumo rápido do ano */}

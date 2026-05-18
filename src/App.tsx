@@ -49,7 +49,7 @@ const ExecutivePlaneamento = lazy(() => import("./pages/ExecutivePlaneamento"));
 const ExecutivePlaneamentoTatico = lazy(() => import("./pages/ExecutivePlaneamentoTatico"));
 const ExecutivePlaneamentoEstrategico = lazy(() => import("./pages/ExecutivePlaneamentoEstrategico"));
 const ExecutivePlaneamentoOperacional = lazy(() => import("./pages/ExecutivePlaneamentoOperacional"));
-const ExecutiveFechoAno = lazy(() => import("./pages/ExecutiveFechoAno"));
+
 const PlaneamentoDepartamento = lazy(() => import("./pages/PlaneamentoDepartamento"));
 const ExecutiveWeeklyAlign = lazy(() => import("./pages/ExecutiveWeeklyAlign"));
 const ExecutiveGestaoEquipa = lazy(() => import("./pages/ExecutiveGestaoEquipa"));
@@ -282,7 +282,6 @@ function AppRoutes() {
         <Route path="/executive/planeamento/estrategico" element={<ExecutivePlaneamentoEstrategico />} />
         <Route path="/executive/planeamento/tatico" element={<ExecutivePlaneamentoTatico />} />
         <Route path="/executive/planeamento/operacional" element={<ExecutivePlaneamentoOperacional />} />
-        <Route path="/executive/fecho-de-ano/:ano" element={<ExecutiveFechoAno />} />
         <Route path="/planeamento/dep/:area" element={<PlaneamentoDepartamento />} />
         <Route path="/executive/weekly-align" element={<ExecutiveWeeklyAlign />} />
         <Route path="/executive/business-plan" element={<ExecutiveBusinessPlan />} />

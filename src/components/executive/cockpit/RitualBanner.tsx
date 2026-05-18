@@ -2,13 +2,12 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  ArrowRight, CalendarCheck, Target, Compass, NotebookPen, Sparkles, X,
+  ArrowRight, CalendarCheck, Target, Compass, NotebookPen, X,
 } from 'lucide-react';
 import { useRitualBanner, type RitualType } from '@/hooks/useRitualBanner';
 import { cn } from '@/lib/utils';
 
 const ICON: Record<RitualType, React.ElementType> = {
-  fecho_ano: Sparkles,
   fecho_mes: NotebookPen,
   planear_mes: Target,
   inicio_semestre: Compass,
