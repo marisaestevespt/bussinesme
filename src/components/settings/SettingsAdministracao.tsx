@@ -8,11 +8,13 @@ import { SupplierExtensionSuggestions } from '@/components/settings/SupplierExte
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsPerformance } from '@/components/settings/SettingsPerformance';
+import { SettingsBackfill } from '@/components/settings/SettingsBackfill';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, Wrench, CalendarClock, Zap, Database, FlaskConical, ChevronRight, Gauge } from 'lucide-react';
+import { Activity, Wrench, CalendarClock, Zap, Database, FlaskConical, ChevronRight, Gauge, ClipboardCheck } from 'lucide-react';
 
 const TABS = [
+  { key: 'backfill', label: 'Pendentes', icon: ClipboardCheck, desc: 'Registos incompletos a preencher' },
   { key: 'monitorizacao', label: 'Monitorização', icon: Activity, desc: 'Saúde e logs das funções automáticas' },
   { key: 'reconciliacao', label: 'Reconciliação', icon: Wrench, desc: 'Detetar e corrigir drift entre tabelas' },
   { key: 'previews', label: 'Previews', icon: CalendarClock, desc: 'Pré-visualizar próximas execuções' },
@@ -24,7 +26,7 @@ const TABS = [
 type TabKey = typeof TABS[number]['key'];
 
 export function SettingsAdministracao() {
-  const [tab, setTab] = useState<TabKey>('monitorizacao');
+  const [tab, setTab] = useState<TabKey>('backfill');
 
   return (
     <div className="space-y-6">
@@ -69,6 +71,7 @@ export function SettingsAdministracao() {
       </p>
 
       <div className="w-full space-y-10">
+        {tab === 'backfill' && <SettingsBackfill />}
         {tab === 'monitorizacao' && <SettingsEdgeMonitoring />}
         {tab === 'reconciliacao' && <SettingsReconciliation />}
         {tab === 'previews' && (
