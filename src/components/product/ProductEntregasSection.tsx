@@ -62,6 +62,7 @@ interface Phase {
   recurrence_frequency?: 'semanal' | 'quinzenal' | 'mensal' | 'trimestral' | null;
   cycle_day_start?: number | null;
   cycle_day_end?: number | null;
+  is_monthly_cycle?: boolean | null;
 }
 
 interface Props {
