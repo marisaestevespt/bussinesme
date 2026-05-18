@@ -61,6 +61,7 @@ import { BrainstormingSubPage } from '@/components/project/subpages/Brainstormin
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { safeUrl } from '@/lib/url';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
+import { validateProjectDeadline } from '@/lib/formValidation';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
@@ -328,6 +329,12 @@ function ProjetoDetailInner() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!local) return;
+      const deadlineErr = validateProjectDeadline(
+        ((local as any).project_mode || 'pontual'),
+        local.status,
+        local.deadline ?? null,
+      );
+      if (deadlineErr) throw new Error(deadlineErr);
       const payload: Record<string, any> = {
         name: local.name, type: local.type, status: local.status, department: local.department,
         departments: local.departments,
