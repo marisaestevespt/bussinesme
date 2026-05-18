@@ -157,7 +157,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         .eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-recurring-occurrences', projectId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-recurring-occurrences', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project-monthly-occurrences', projectId] });
+    },
     onError: (e: Error) => toast.error('Erro ao atualizar', { description: e.message }),
   });
 
@@ -169,7 +172,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         .eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-recurring-occurrences', projectId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-recurring-occurrences', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project-monthly-occurrences', projectId] });
+    },
     onError: (e: Error) => toast.error('Erro ao eliminar', { description: e.message }),
   });
 
