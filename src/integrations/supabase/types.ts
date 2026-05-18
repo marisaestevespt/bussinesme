@@ -3281,35 +3281,6 @@ export type Database = {
           },
         ]
       }
-      crm_pipeline_labels: {
-        Row: {
-          color: string | null
-          id: string
-          label_name: string
-          pipeline_id: string | null
-        }
-        Insert: {
-          color?: string | null
-          id?: string
-          label_name: string
-          pipeline_id?: string | null
-        }
-        Update: {
-          color?: string | null
-          id?: string
-          label_name?: string
-          pipeline_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "crm_pipeline_labels_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "crm_pipelines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       crm_pipeline_leads: {
         Row: {
           created_at: string
@@ -9207,47 +9178,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_team_members_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_traffic_ads: {
-        Row: {
-          ad_name: string
-          budget: number | null
-          created_at: string
-          id: string
-          notes: string | null
-          platform: string | null
-          product_id: string | null
-          status: string | null
-        }
-        Insert: {
-          ad_name: string
-          budget?: number | null
-          created_at?: string
-          id?: string
-          notes?: string | null
-          platform?: string | null
-          product_id?: string | null
-          status?: string | null
-        }
-        Update: {
-          ad_name?: string
-          budget?: number | null
-          created_at?: string
-          id?: string
-          notes?: string | null
-          platform?: string | null
-          product_id?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_traffic_ads_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
