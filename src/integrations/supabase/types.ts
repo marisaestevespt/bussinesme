@@ -4621,14 +4621,12 @@ export type Database = {
       }
       financial_documents: {
         Row: {
-          cover_url: string | null
           created_at: string
           created_by: string | null
           doc_type: string
           document_name: string | null
           document_url: string | null
           due_date: string | null
-          icon: Json | null
           id: string
           notes: string | null
           period_end: string | null
@@ -4640,14 +4638,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           doc_type?: string
           document_name?: string | null
           document_url?: string | null
           due_date?: string | null
-          icon?: Json | null
           id?: string
           notes?: string | null
           period_end?: string | null
@@ -4659,14 +4655,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           doc_type?: string
           document_name?: string | null
           document_url?: string | null
           due_date?: string | null
-          icon?: Json | null
           id?: string
           notes?: string | null
           period_end?: string | null
@@ -4683,7 +4677,6 @@ export type Database = {
         Row: {
           base_value: number
           category: string
-          cover_url: string | null
           created_at: string
           created_by: string | null
           department: string | null
@@ -4695,7 +4688,6 @@ export type Database = {
           expense_name: string | null
           expense_quarter: number | null
           expense_year: number | null
-          icon: Json | null
           id: string
           is_recurring: boolean | null
           location: string
@@ -4720,7 +4712,6 @@ export type Database = {
         Insert: {
           base_value?: number
           category?: string
-          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
@@ -4732,7 +4723,6 @@ export type Database = {
           expense_name?: string | null
           expense_quarter?: number | null
           expense_year?: number | null
-          icon?: Json | null
           id?: string
           is_recurring?: boolean | null
           location?: string
@@ -4757,7 +4747,6 @@ export type Database = {
         Update: {
           base_value?: number
           category?: string
-          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
@@ -4769,7 +4758,6 @@ export type Database = {
           expense_name?: string | null
           expense_quarter?: number | null
           expense_year?: number | null
-          icon?: Json | null
           id?: string
           is_recurring?: boolean | null
           location?: string
@@ -5005,29 +4993,23 @@ export type Database = {
       fiscal_deadline_completions: {
         Row: {
           completed_by: string | null
-          completion_date: string | null
           created_at: string
           deadline_key: string
           id: string
-          notes: string | null
           year: number | null
         }
         Insert: {
           completed_by?: string | null
-          completion_date?: string | null
           created_at?: string
           deadline_key: string
           id?: string
-          notes?: string | null
           year?: number | null
         }
         Update: {
           completed_by?: string | null
-          completion_date?: string | null
           created_at?: string
           deadline_key?: string
           id?: string
-          notes?: string | null
           year?: number | null
         }
         Relationships: []
@@ -5040,7 +5022,6 @@ export type Database = {
           created_at: string
           id: string
           month: number
-          notes: string | null
           year: number
         }
         Insert: {
@@ -5050,7 +5031,6 @@ export type Database = {
           created_at?: string
           id?: string
           month: number
-          notes?: string | null
           year: number
         }
         Update: {
@@ -5060,7 +5040,6 @@ export type Database = {
           created_at?: string
           id?: string
           month?: number
-          notes?: string | null
           year?: number
         }
         Relationships: []
