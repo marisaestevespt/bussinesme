@@ -78,6 +78,8 @@ function ProjetoDetailInner() {
   const { isOwner } = useAuth();
   const { impersonating } = useImpersonation();
   const effectiveUserId = impersonating?.user_id || user?.id;
+  const { canSee: canSeeSensitive } = useSensitiveAccess();
+  const canSeeFinancial = canSeeSensitive('financial_values');
   const { getPhotoUrl } = useTeamPhotos();
 
   const [subPage, setSubPage] = useState<SubPage>(null);
@@ -1045,7 +1047,7 @@ function ProjetoDetailInner() {
                   Portal de Cliente
                 </EntityTabsTrigger>
               )}
-              {local.type !== 'interno' && (
+              {local.type !== 'interno' && canSeeFinancial && (
                 <EntityTabsTrigger
                   value="gestao"
                   className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
@@ -1117,7 +1119,8 @@ function ProjetoDetailInner() {
               </EntityTabsContent>
             )}
 
-            {/* ─── TAB 4: GESTÃO ───────────────────────────── */}
+            {/* ─── TAB 4: GESTÃO (apenas com acesso a valores financeiros) ─── */}
+            {canSeeFinancial && (
             <EntityTabsContent value="gestao" className="mt-4">
               <ProjectGestaoTab
                 projectId={id!}
@@ -1133,6 +1136,7 @@ function ProjetoDetailInner() {
                 onUpdateProject={(field, value) => updateField(field as keyof ProjectFull, value)}
               />
             </EntityTabsContent>
+            )}
 
             {/* ─── TAB 5: FECHO DE PROJETO ─────────────────── */}
             <EntityTabsContent value="fecho" className="mt-4 space-y-8">
