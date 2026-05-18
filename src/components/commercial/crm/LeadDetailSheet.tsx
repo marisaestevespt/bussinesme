@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { enrichQuestionsWithAutoFill } from '@/lib/portalAutoFill';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -29,7 +28,6 @@ import { resolveProductId } from '@/lib/productResolver';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { QuoteCalculatorDialog } from '@/components/product/QuoteCalculatorDialog';
 import { Calculator } from 'lucide-react';
-import { normalizeTaskModes } from '@/hooks/useProducts';
 
 interface LeadDetailSheetProps {
   open: boolean;
@@ -193,22 +191,18 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       const productName = form.closed_product || form.potential_product || null;
       const productId = await resolveProductId(productName);
       const quoteId = (lead as any)?.quote_id || form.quote_id || null;
-      const contractValue = parseFloat(form.estimated_value) || null;
-
-      // Pre-fetch product to derive start_date / end_of_cycle defaults
-      let matchedProduct: any = null;
+      // Look up product just for cycle defaults on the client record
+      let cycleMonths = 12;
       if (productName) {
         const { data } = await supabase
           .from('products')
-          .select('id, product_type, sales_type, cycle_duration, default_project_mode, task_mode, task_modes, session_count, session_duration_minutes, estimated_project_hours')
+          .select('cycle_duration')
           .eq('name', productName)
           .maybeSingle();
-        matchedProduct = data;
+        if (data?.cycle_duration) cycleMonths = data.cycle_duration;
       }
       const today = new Date();
       const startDateStr = format(today, 'yyyy-MM-dd');
-      // Default cycle = 12 meses quando o produto não tem cycle_duration definido
-      const cycleMonths = matchedProduct?.cycle_duration ?? 12;
       const endOfCycleDate = new Date(today);
       endOfCycleDate.setMonth(endOfCycleDate.getMonth() + cycleMonths);
       const endOfCycleStr = format(endOfCycleDate, 'yyyy-MM-dd');
@@ -259,116 +253,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         lead_id: lead.id,
       } as any);
 
-      let createdProjectId: string | null = null;
-      if (productName) {
-        const deadline: string | null = endOfCycleStr;
-
-        const isRecurringLead = (matchedProduct as any)?.default_project_mode === 'recorrente' || matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
-        const projectMode = (matchedProduct as any)?.default_project_mode || (isRecurringLead ? 'recorrente' : 'pontual');
-        const taskModes = normalizeTaskModes((matchedProduct as any)?.task_modes, (matchedProduct as any)?.task_mode);
-        const taskMode = taskModes[0];
-
-        const { data: newProject } = await supabase.from('projects').insert({
-          name: `${productName} — ${form.name || 'Cliente'}`,
-          type: isRecurringLead ? 'cliente_servico_mensal' : 'cliente_projeto_unico',
-          status: 'em_onboarding',
-          department: 'clientes',
-          departments: ['clientes', 'operacao'],
-          client_name: form.name || null,
-          client_id: newClient.id,
-          product_id: matchedProduct?.id || null,
-          product_name: productName,
-          start_date: startDateStr,
-          deadline, // alinhado com end_of_cycle do cliente, mesmo em recorrente
-          project_mode: projectMode,
-          task_mode: taskMode,
-          task_modes: taskModes,
-          session_count: (matchedProduct as any)?.session_count ?? null,
-          session_duration_minutes: (matchedProduct as any)?.session_duration_minutes ?? null,
-          budgeted_minutes: (matchedProduct as any)?.estimated_project_hours
-            ? Math.round(Number((matchedProduct as any).estimated_project_hours) * 60)
-            : null,
-          budget: contractValue,
-          source_quote_id: quoteId,
-        } as any).select('id').single();
-
-        createdProjectId = newProject?.id || null;
-
-        if (matchedProduct?.product_type) {
-          const projetoTypes = ['projeto_1_1', 'servico_pontual', 'consulta', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo', 'workshop'];
-          let portalType: 'projeto_unico' | 'servico_mensal' | null = null;
-          if (projetoTypes.includes(matchedProduct.product_type)) portalType = 'projeto_unico';
-          else if (matchedProduct.product_type === 'servico_mensal') portalType = 'servico_mensal';
-
-          if (portalType) {
-            await supabase.from('client_portals').insert({
-              client_id: newClient.id,
-              portal_type: portalType,
-              is_active: true,
-            });
-
-            if (matchedProduct.id) {
-              // Carrega FAQs do produto (podem estar vazias)
-              const { data: productData } = await supabase
-                .from('products')
-                .select('faqs')
-                .eq('id', matchedProduct.id)
-                .maybeSingle();
-              const productFaqs: { question: string; answer: string }[] = Array.isArray(productData?.faqs)
-                ? (productData.faqs as unknown as { question: string; answer: string }[])
-                : [];
-              const validFaqs = productFaqs.filter(f => f.question?.trim());
-
-              // Procura o portal recém-criado (independente de haver FAQs)
-              const { data: portal } = await supabase
-                .from('client_portals')
-                .select('id')
-                .eq('client_id', newClient.id)
-                .maybeSingle();
-
-              if (portal?.id) {
-                // 1) Copia FAQs (se houver pelo menos uma válida)
-                if (validFaqs.length > 0) {
-                  await supabase.from('portal_faqs').insert(
-                    validFaqs.map((f, i) => ({
-                      portal_id: portal.id,
-                      question: f.question,
-                      answer: f.answer || '',
-                      sort_order: i,
-                    }))
-                  );
-                }
-
-                // 2) Copia perguntas de diagnóstico SEMPRE (independente de FAQs)
-                const { data: diagQuestions } = await supabase
-                  .from('product_diagnostic_questions')
-                  .select('question, sort_order, question_group, answer_type, group_sort_order')
-                  .eq('product_id', matchedProduct.id!)
-                  .order('group_sort_order')
-                  .order('sort_order');
-                if (diagQuestions?.length) {
-                  const { data: businessData } = await supabase.from('business_setup').select('*').limit(1).maybeSingle();
-                  const clientData = { email: lead.email, full_name: lead.name };
-                  const rows = diagQuestions.map((dq, i) => ({
-                      portal_id: portal.id,
-                      question: dq.question,
-                      sort_order: dq.sort_order ?? i,
-                      question_group: dq.question_group || null,
-                      answer_type: dq.answer_type || 'text',
-                      group_sort_order: dq.group_sort_order ?? 0,
-                  }));
-                  const enrichedRows = enrichQuestionsWithAutoFill(rows, clientData, businessData || null);
-                  await supabase.from('portal_initial_questions').insert(enrichedRows as any);
-                }
-              }
-            }
-          }
-        }
-      }
-
-      const successParts = ['Cliente criado'];
-      if (createdProjectId) successParts.push('projeto criado');
-
       // Marca o lead como ganho (agora o trigger passa porque já existe client_history.lead_id)
       const { error: statusErr } = await supabase
         .from('crm_leads')
@@ -377,11 +261,9 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       if (statusErr) {
         console.error('Erro a marcar lead como ganho', statusErr);
         toast.warning('Cliente criado mas não consegui marcar a lead como ganha. Atualiza manualmente.');
-      } else {
-        successParts.push('lead marcada como ganha');
       }
 
-      toast.success(successParts.join(', ') + '!');
+      toast.success('Cliente criado. Agora podes criar o projeto e ativar o portal na ficha do cliente.');
 
       onOpenChange(false);
       navigate(`/hub/clientes/${newClient.id}`);
