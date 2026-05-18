@@ -263,6 +263,8 @@ export default function ProjetosPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Não autenticado');
+      const deadlineErr = validateProjectDeadline(fMode, fStatus, fDeadline ?? null);
+      if (deadlineErr) throw new Error(deadlineErr);
       const selectedProduct = fProduct ? allProducts.find(p => p.id === fProduct) : null;
       const taskModes = normalizeTaskModes((selectedProduct as any)?.task_modes, selectedProduct?.task_mode);
       const { data: proj, error } = await supabase.from('projects').insert({
