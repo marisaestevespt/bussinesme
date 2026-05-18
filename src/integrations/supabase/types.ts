@@ -3490,6 +3490,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_runs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          function_name: string
+          id: string
+          items_processed: number | null
+          metadata: Json | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          function_name: string
+          id?: string
+          items_processed?: number | null
+          metadata?: Json | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          function_name?: string
+          id?: string
+          items_processed?: number | null
+          metadata?: Json | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       custom_field_values: {
         Row: {
           created_at: string
@@ -12877,6 +12916,7 @@ export type Database = {
       }
       portal_token_active: { Args: { _token: string }; Returns: boolean }
       profile_id_to_user_id: { Args: { _profile_id: string }; Returns: string }
+      purge_old_cron_runs: { Args: never; Returns: undefined }
       queue_transactional_email: {
         Args: {
           _data?: Json
