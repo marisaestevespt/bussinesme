@@ -3,7 +3,6 @@ import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { CalendarDays, Check, Eye, EyeOff, Pencil, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -99,7 +98,25 @@ export function OccurrenceRow({ occurrence: o, meetingOptions, onUpdate, onDelet
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 hidden sm:inline">
           {o.item_type === 'reuniao' ? 'Reunião' : 'Tarefa'}
         </span>
-        <Badge className={cn('border text-[10px] shrink-0', statusMeta.cls)}>{statusMeta.label}</Badge>
+        <Select
+          value={o.status}
+          onValueChange={(v) => onUpdate({ status: v as OccurrenceRowData['status'] })}
+        >
+          <SelectTrigger
+            className={cn(
+              'h-6 px-2 py-0 rounded-full border text-[10px] font-medium shrink-0 w-auto gap-1 [&>svg]:h-3 [&>svg]:w-3',
+              statusMeta.cls,
+            )}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="concluida">Concluída</SelectItem>
+            <SelectItem value="reagendada">Reagendada</SelectItem>
+            <SelectItem value="cancelada">Cancelada</SelectItem>
+          </SelectContent>
+        </Select>
         {o.visible_in_portal && (
           <Eye className="h-3.5 w-3.5 text-primary shrink-0" aria-label="Visível no portal" />
         )}
