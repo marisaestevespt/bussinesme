@@ -26,7 +26,7 @@ import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { OperacaoAnaliseTab } from '@/components/operacao/OperacaoAnaliseTab';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { computeProjectHealth } from '@/lib/projectHealth';
-import { isDeliverableDone, computeProjectProgressFromSources } from '@/lib/projectProgress';
+import { isDeliverableDone } from '@/lib/projectProgress';
 import { cn } from '@/lib/utils';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -130,19 +130,6 @@ export default function OperacaoPage() {
         .from('project_phases')
         .select('id, status, project_id');
       return (data || []) as { id: string; status: string; project_id: string }[];
-    },
-  });
-
-  // Todos os entregáveis (qualquer status) — necessário para calcular o progresso real
-  // por projeto, em coerência com a fonte de verdade usada no detalhe do projeto e
-  // no trigger DB `update_project_progress`.
-  const { data: allDeliverablesForProgress = [] } = useQuery({
-    queryKey: ['op-all-deliverables-for-progress'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('project_deliverables')
-        .select('id, status, project_id, phase_id');
-      return (data || []) as { id: string; status: string; project_id: string; phase_id: string | null }[];
     },
   });
 
