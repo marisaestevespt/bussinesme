@@ -19,8 +19,6 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
       const start = `${year}-${String(month).padStart(2,'0')}-01`;
       const endDay = new Date(year, month, 0).getDate();
       const end = `${year}-${String(month).padStart(2,'0')}-${String(endDay).padStart(2,'0')}`;
-      const todayISO = new Date().toISOString().slice(0,10);
-
       const [projects, deliverables, tasks, members, time, clients] = await Promise.all([
         supabase.from('projects').select('id, name, status, deadline, progress, client_id, type').neq('status', 'concluido').neq('status', 'arquivado'),
         supabase.from('project_deliverables').select('id, name, deadline, completed_at, project_id').gte('deadline', start).lte('deadline', end),
