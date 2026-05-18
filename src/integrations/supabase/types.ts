@@ -9585,6 +9585,7 @@ export type Database = {
           estimated_minutes: number | null
           id: string
           is_meeting: boolean
+          is_recurring: boolean
           link_url: string | null
           linked_sop_id: string | null
           meeting_id: string | null
@@ -9622,6 +9623,7 @@ export type Database = {
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
+          is_recurring?: boolean
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
@@ -9659,6 +9661,7 @@ export type Database = {
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
+          is_recurring?: boolean
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
