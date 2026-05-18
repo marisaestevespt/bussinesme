@@ -415,31 +415,6 @@ function generateRecurrenceDates(startDate: Date, frequency: string, endDate?: D
 
 // ─── Meeting Type Picker Step ───────────────────────────────────
 
-function MeetingTypeStep({ onSelect }: { onSelect: (type: MeetingType) => void }) {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Selecione o tipo de reunião que pretende criar:</p>
-      <div className="grid gap-3">
-        {MEETING_TYPES.map(t => (
-          <button
-            key={t.value}
-            onClick={() => onSelect(t.value)}
-            className="flex items-center gap-4 rounded-lg border border-border p-4 text-left hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              {t.icon}
-            </div>
-            <div>
-              <p className="font-medium text-foreground">{t.label}</p>
-              <p className="text-xs text-muted-foreground">{t.description}</p>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 export function MeetingFormDialog({
