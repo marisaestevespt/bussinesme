@@ -65,7 +65,6 @@ Deno.serve(async (req) => {
       "portal_faqs",
       "portal_project_history",
       "portal_visits",
-      "portal_timeline_phases",
 
       // ── Content children ──
       "content_attachments",
