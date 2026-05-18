@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { getEntityDepartments } from '@/lib/departments';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +24,7 @@ import { InfiniteScrollList } from '@/components/InfiniteScrollList';
 import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isWithinInterval, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -210,7 +211,19 @@ export default function ProjetosPage() {
     },
     getNextPageParam: (last) => last.nextPage,
   });
-  const projects = flattenInfiniteData(projectsQuery.data?.pages);
+  const allProjects = flattenInfiniteData(projectsQuery.data?.pages);
+  const { isOwner } = useAuth();
+  const { userDepartments } = usePermissions();
+  // Restrição por departamento: membros não-Owner só veem projetos do(s) seu(s) dept, multi-dept ou sem dept
+  const projects = useMemo(() => {
+    if (isOwner || userDepartments.includes('admin')) return allProjects;
+    const userDepts = new Set(userDepartments);
+    return allProjects.filter((p: any) => {
+      const depts = getEntityDepartments(p);
+      if (!depts || depts.length === 0) return true; // sem dept = transversal
+      return depts.some((d: string) => userDepts.has(d));
+    });
+  }, [allProjects, isOwner, userDepartments]);
   const projectsTotal = getInfiniteCount(projectsQuery.data?.pages);
   const isLoading = projectsQuery.isLoading;
 
