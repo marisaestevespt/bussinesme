@@ -46,6 +46,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     product: '',
     client: '',
     source: '',
+    assigned_to: '' as string,
     documents: [] as DocEntry[],
     is_special_offer: false,
     special_offer_reason: '',
@@ -66,12 +67,13 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
         product: initialData.product || '',
         client: initialData.client || '',
         source: initialData.source || '',
+        assigned_to: initialData.assigned_to || '',
         documents: Array.isArray(rawDocs) ? rawDocs : [],
         is_special_offer: initialData.is_special_offer || false,
         special_offer_reason: initialData.special_offer_reason || '',
       });
     } else {
-      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', vat_rate: '', invoice_total: '', product: '', client: '', source: '', documents: [], is_special_offer: false, special_offer_reason: '' });
+      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', vat_rate: '', invoice_total: '', product: '', client: '', source: '', assigned_to: '', documents: [], is_special_offer: false, special_offer_reason: '' });
     }
   }, [initialData, open]);
 
@@ -119,6 +121,20 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
   });
   const sourceOptions = buildSaleSourceOptions(customSources.data || []);
 
+  // Fetch active team members for seller selection
+  const sellersList = useQuery({
+    queryKey: ['sales-sellers'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('profile_id, full_name')
+        .eq('status', 'ativo')
+        .not('profile_id', 'is', null)
+        .order('full_name');
+      return (data || []).filter(m => m.profile_id) as { profile_id: string; full_name: string }[];
+    },
+  });
+
   const getEffectiveVatRate = () => {
     if (form.vat_rate !== '') return parseFloat(form.vat_rate) || 0;
     const rate = productInfo.data?.vat_rate;
@@ -149,6 +165,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     if (!form.base_value || parseFloat(form.base_value) <= 0) { toast.error('Valor base deve ser maior que 0'); return; }
     if (!form.client) { toast.error('Seleciona um cliente'); return; }
     if (!form.product) { toast.error('Seleciona um produto'); return; }
+    if (!form.assigned_to) { toast.error('Seleciona o vendedor responsável'); return; }
 
     onSave({
       ...(form.id ? { id: form.id } : {}),
@@ -161,6 +178,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
       product: form.product || null,
       client: form.client || null,
       source: form.source || null,
+      assigned_to: form.assigned_to || null,
       documents: form.documents,
       is_special_offer: form.is_special_offer,
       special_offer_reason: form.is_special_offer ? form.special_offer_reason : null,
