@@ -262,13 +262,21 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from('project_deliverables').update({ status }).eq('id', id);
+      const { data, error } = await supabase
+        .from('project_deliverables')
+        .update({ status })
+        .eq('id', id)
+        .select('id');
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Sem permissão para alterar o status desta entrega (verifica acesso ao projeto).');
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
       qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
     },
+    onError: (e: Error) => toast.error(e.message || 'Erro ao atualizar status'),
   });
 
   const deleteMutation = useMutation({
