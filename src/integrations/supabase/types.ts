@@ -12728,6 +12728,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_team_member: { Args: never; Returns: boolean }
       is_admin_or_owner: { Args: never; Returns: boolean }
       is_hr_or_admin: { Args: never; Returns: boolean }
       is_owner: { Args: never; Returns: boolean }
