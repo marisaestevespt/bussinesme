@@ -150,29 +150,13 @@ function DeliverableRow({
   };
   const tMeta = typeMeta[template.deliverable_type || 'tarefa'] || typeMeta.tarefa;
   const linkedSopName = sops.find(s => s.id === template.linked_sop_id)?.name;
-  const cadence = (template.cadence || (template.is_recurring ? 'por_ciclo_fase' : 'unica')) as
-    'unica' | 'por_ciclo_fase' | 'propria' | 'sem_data';
+  const cadence = (template.cadence === 'sem_data' ? 'sem_data' : 'unica') as
+    'unica' | 'sem_data';
   const weekdayLabels = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
   const cadenceLabel = (() => {
     if (cadence === 'unica') return '1×';
     if (cadence === 'sem_data') return 'Sem data';
-    if (cadence === 'por_ciclo_fase') return 'Cada ciclo';
-    // propria
-    const f = template.recurrence_frequency;
-    if (!f) return 'Própria';
-    if (f === 'semanal' || f === 'quinzenal') {
-      const dow = template.recurrence_anchor_day;
-      const day = dow && dow >= 1 && dow <= 7 ? ` · ${weekdayLabels[dow - 1]}` : '';
-      return f === 'semanal' ? `Semanal${day}` : `Quinzenal${day}`;
-    }
-    // mensal: ou "dia X" ou "Nª <weekday>"
-    const wom = template.recurrence_week_of_month;
-    const d = template.recurrence_anchor_day;
-    if (wom && d && d >= 1 && d <= 7) {
-      const ord = wom === 5 ? 'Última' : `${wom}ª`;
-      return `Mensal · ${ord} ${weekdayLabels[d - 1]}`;
-    }
-    return d ? `Mensal · dia ${d}` : 'Mensal';
+    return '';
   })();
   const [contentOpen, setContentOpen] = useState(false);
   const dType = template.deliverable_type || 'tarefa';
