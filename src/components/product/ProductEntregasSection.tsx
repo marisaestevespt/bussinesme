@@ -666,6 +666,36 @@ function PhaseCard({
               </Select>
             </div>
           )}
+          {isOwner && phase.is_recurring && (phase.recurrence_frequency === 'mensal' || phase.recurrence_frequency === 'trimestral' || !phase.recurrence_frequency) && (
+            <>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none" title="Dia do mês em que a fase começa">Dia início</span>
+                <Input
+                  type="number" min={1} max={31}
+                  className="h-7 w-14 text-xs text-center px-1"
+                  placeholder="—"
+                  value={phase.cycle_day_start ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value === '' ? null : Math.max(1, Math.min(31, parseInt(e.target.value)));
+                    onUpdatePhase(phase.id, { cycle_day_start: v });
+                  }}
+                />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none" title="Dia do mês em que a fase acaba (opcional)">Dia fim</span>
+                <Input
+                  type="number" min={1} max={31}
+                  className="h-7 w-14 text-xs text-center px-1"
+                  placeholder="—"
+                  value={phase.cycle_day_end ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value === '' ? null : Math.max(1, Math.min(31, parseInt(e.target.value)));
+                    onUpdatePhase(phase.id, { cycle_day_end: v });
+                  }}
+                />
+              </div>
+            </>
+          )}
           {sops.length > 0 && (
             <div className="flex flex-col gap-0.5">
               <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">SOP ligado</span>
