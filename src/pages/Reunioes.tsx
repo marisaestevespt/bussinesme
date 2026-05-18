@@ -788,18 +788,11 @@ export function MeetingFormDialog({
       <Dialog open={open} onOpenChange={o => { if (!o) resetForm(); onOpenChange(o); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{step === 'type' ? 'Tipo de Reunião' : `Nova ${MEETING_TYPES.find(t => t.value === meetingType)?.label}`}</DialogTitle>
+            <DialogTitle>Nova reunião</DialogTitle>
           </DialogHeader>
 
-          {step === 'type' ? (
-            <MeetingTypeStep onSelect={handleTypeSelect} />
-          ) : (
+          {(
             <div className="space-y-4">
-              {/* Back to type selection */}
-              <Button variant="ghost" size="sm" onClick={() => setStep('type')} className="text-xs text-muted-foreground">
-                ← Alterar tipo
-              </Button>
-
               <div>
                 <Label>Nome da reunião *</Label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Reunião de Alinhamento Semanal" />
