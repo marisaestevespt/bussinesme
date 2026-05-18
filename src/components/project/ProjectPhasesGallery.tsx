@@ -59,12 +59,23 @@ interface RecurringOccurrence {
   item_type: 'reuniao' | 'tarefa' | 'entrega';
   status: 'pendente' | 'concluida' | 'cancelada' | 'reagendada';
   visible_in_portal?: boolean;
+  linked_meeting_id?: string | null;
+  linked_task_id?: string | null;
 }
 
 interface MonthTask {
   id: string;
+  name?: string | null;
   status: string | null;
   deadline: string | null;
+  assigned_to?: string | null;
+}
+
+interface ProjectMeeting {
+  id: string;
+  title: string | null;
+  date_time: string | null;
+  status: string | null;
 }
 
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
@@ -103,7 +114,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from('project_recurring_occurrences')
-        .select('id, name, scheduled_date, scheduled_time, item_type, status, visible_in_portal')
+        .select('id, name, scheduled_date, scheduled_time, item_type, status, visible_in_portal, linked_meeting_id, linked_task_id')
         .eq('project_id', projectId)
         .order('scheduled_date');
       return (data || []) as RecurringOccurrence[];
@@ -117,10 +128,23 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
-        .select('id, status, deadline')
+        .select('id, name, status, deadline, assigned_to')
         .eq('project_id', projectId)
         .not('deadline', 'is', null);
       return (data || []) as MonthTask[];
+    },
+  });
+
+  // Meetings of the project: used to link cadências do tipo 'reuniao'
+  const { data: projectMeetings = [] } = useQuery({
+    queryKey: ['project-meetings-for-occurrences', projectId],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('meetings')
+        .select('id, title, date_time, status')
+        .eq('project_id', projectId)
+        .order('date_time', { ascending: false });
+      return (data || []) as ProjectMeeting[];
     },
   });
 
