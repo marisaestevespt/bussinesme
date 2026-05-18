@@ -768,12 +768,17 @@ function ReuniaoDetailPageInner() {
                     label: 'Eliminar',
                     icon: Trash2,
                     variant: 'destructive' as const,
-                    onClick: () => {
+                    onClick: async () => {
                       if (isSeriesParent && seriesCount > 0) {
                         setDeleteDialogOpen(true);
-                      } else {
-                        deleteMutation.mutate('single');
+                        return;
                       }
+                      const ok = await confirmDestructive({
+                        title: 'Eliminar reunião?',
+                        description: `"${m?.title || 'Sem título'}" será removida. Esta ação não pode ser desfeita.`,
+                      });
+                      if (!ok) return;
+                      deleteMutation.mutate('single');
                     },
                     disabled: deleteMutation.isPending,
                   },
