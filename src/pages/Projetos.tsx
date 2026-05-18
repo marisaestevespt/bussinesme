@@ -47,7 +47,7 @@ const PROJECT_TYPES = [
   { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-success/15 text-success border-success' },
 ];
 
-import { PROJECT_STATUSES, getProjectStatusInfo } from '@/lib/projectStatus';
+import { PROJECT_STATUSES, getProjectStatusInfo, isProjectOverdue } from '@/lib/projectStatus';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 const DEPARTMENTS = [
