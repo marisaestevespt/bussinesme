@@ -9,6 +9,7 @@ import { FileText, Upload, Trash2, Download, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 function formatBytes(bytes: number | null) {
   if (!bytes) return '';
@@ -88,6 +89,7 @@ export function BusinessLegalDocs() {
 
   const remove = useMutation({
     mutationFn: async (doc: any) => {
+      await requireConfirm();
       await supabase.storage.from('business-legal-docs').remove([doc.file_path]);
       const { error } = await supabase
         .from('business_legal_documents' as any)

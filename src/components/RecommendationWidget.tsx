@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { DEPARTMENTS } from '@/lib/departments';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const AREA_OPTIONS = [
   ...DEPARTMENTS.map(d => ({ value: d.value, label: d.label })),
@@ -68,6 +69,7 @@ export function RecommendationWidget({ memberName }: Props) {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('recommendations').delete().eq('id', id);
       if (error) throw error;
     },

@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useTeamData } from '@/hooks/useTeamData';
 import { Plus, Pencil, Trash2, GripVertical, MessageSquare, Heart, X } from 'lucide-react';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Props {
   productId: string;
@@ -119,6 +120,7 @@ export function ProductCustomerSuccess({ productId, productName, isOwner }: Prop
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('product_nps_config' as any).delete().eq('id', id);
       if (error) throw error;
     },

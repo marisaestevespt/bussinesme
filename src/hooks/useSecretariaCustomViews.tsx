@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import type { TablesInsert, TablesUpdate, Json } from '@/integrations/supabase/types';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type ViewScope = 'today' | 'week' | 'tasks';
 export type ViewLayout = 'table' | 'list' | 'board';
@@ -118,6 +119,7 @@ export function useSecretariaCustomViews(scope: ViewScope) {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('secretaria_custom_views').delete().eq('id', id);
       if (error) throw error;
     },
