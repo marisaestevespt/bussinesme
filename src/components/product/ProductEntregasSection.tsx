@@ -806,7 +806,17 @@ function PhaseCard({
             </div>
           )}
 
-          {/* Deliverables */}
+          {/* Items: recurring phase shows recurring items; otherwise shows deliverable templates */}
+          {phase.is_recurring ? (
+            <ProductRecurringItems
+              productId={productId}
+              isOwner={isOwner}
+              phaseId={phase.id}
+              defaultFrequency={(phase.recurrence_frequency as 'semanal' | 'quinzenal' | 'mensal' | 'trimestral') || 'mensal'}
+              embedded
+            />
+          ) : (
+            <>
           {deliverables.length === 0 && sopSteps.length === 0 && (
             <EmptyHint>Sem entregas nesta fase.</EmptyHint>
           )}
@@ -835,6 +845,8 @@ function PhaseCard({
             <Button size="sm" variant="ghost" className="text-xs ml-6" onClick={() => onAddDeliverable(phase.id)}>
               <Plus className="h-3 w-3 mr-1" /> Entrega
             </Button>
+          )}
+            </>
           )}
         </CardContent>
       )}
