@@ -12,12 +12,7 @@ import { SettingsRecolhas } from '@/components/settings/SettingsRecolhas';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
-import { SupplierExtensionSuggestions } from '@/components/settings/SupplierExtensionSuggestions';
-import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
-import { SettingsEdgeMonitoring } from '@/components/settings/SettingsEdgeMonitoring';
-import { SettingsReconciliation } from '@/components/settings/SettingsReconciliation';
-import { RecurringPhasesPreview } from '@/components/settings/RecurringPhasesPreview';
 import { SettingsInstance } from '@/components/settings/SettingsInstance';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -34,7 +29,6 @@ const OWNER_TABS = [
   ...BASE_TABS,
   { key: 'instancia' as const, label: 'Instância' },
   { key: 'auditoria' as const, label: 'Auditoria' },
-  { key: 'sistema' as const, label: 'Sistema' },
 ] as const;
 
 type TabKey = typeof OWNER_TABS[number]['key'];
@@ -83,7 +77,6 @@ export default function DefinicoesPage() {
             <div className="space-y-10">
               <SettingsKpis />
               <SettingsRecolhas />
-              <SupplierExtensionSuggestions />
               <SettingsAutomations />
             </div>
           )}
@@ -92,14 +85,6 @@ export default function DefinicoesPage() {
             <div className="space-y-10">
               <SettingsAuditLog />
               <SettingsUsers />
-            </div>
-          )}
-          {tab === 'sistema' && (
-            <div className="space-y-10">
-              <SettingsEdgeMonitoring />
-              <SettingsReconciliation />
-              <RecurringPhasesPreview />
-              <SettingsBackups />
             </div>
           )}
         </div>
