@@ -438,7 +438,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                   const delegatedCount = p.delegatedTaskIds.length;
                   const delegatedHours = (tasksQ.data || [])
                     .filter(t => p.delegatedTaskIds.includes(t.id))
-                    .reduce((s, t) => s + (Number(t.estimated_time) || 0), 0);
+                    .reduce((s, t) => s + ((Number(t.estimated_minutes) || 0) / 60), 0);
 
                   return (
                     <Fragment key={p.id}>
@@ -532,7 +532,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                                 <div className="py-2 pl-5 space-y-1 max-h-56 overflow-y-auto">
                                   <p className="text-[10px] text-muted-foreground/60 mb-1">Ordenado por tempo estimado · Inclui tarefas concluídas para referência</p>
                                   {[...deptTasks]
-                                    .sort((a, b) => (Number(b.estimated_time) || 0) - (Number(a.estimated_time) || 0))
+                                    .sort((a, b) => (Number(b.estimated_minutes) || 0) - (Number(a.estimated_minutes) || 0))
                                     .map(task => (
                                     <label key={task.id} className={`flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 ${isTaskDone(task) ? 'opacity-70' : ''}`}>
                                       <Checkbox
@@ -545,8 +545,8 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                                         <div className="flex items-center gap-2 text-muted-foreground flex-wrap">
                                           {isTaskDone(task) && <Badge variant="secondary" className="text-[10px] h-4 px-1">concluída</Badge>}
                                           {isTaskInProgress(task) && <Badge className="text-[10px] h-4 px-1 bg-primary/15 text-primary border-0">em curso</Badge>}
-                                          {task.estimated_time ? (
-                                            <Badge variant="outline" className="text-[10px] h-4 px-1">{task.estimated_time}h</Badge>
+                                          {task.estimated_minutes ? (
+                                            <Badge variant="outline" className="text-[10px] h-4 px-1">{Math.round((Number(task.estimated_minutes) / 60) * 10) / 10}h</Badge>
                                           ) : (
                                             <span className="text-muted-foreground/50 italic">sem estimativa</span>
                                           )}
