@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { Archive } from 'lucide-react';
 import { resolveProductId } from '@/lib/productResolver';
+import { confirmNoClientDuplicates } from '@/lib/clientDuplicateCheck';
+import { isConfirmCancelled } from '@/lib/confirmDestructive';
 
 interface AddLegacyClientDialogProps {
   open: boolean;
@@ -41,6 +43,8 @@ export function AddLegacyClientDialog({ open, onOpenChange }: AddLegacyClientDia
     }
     setSaving(true);
     try {
+      const ok = await confirmNoClientDuplicates({ email: form.email });
+      if (!ok) { setSaving(false); return; }
       const productId = form.legacy_product_description.trim()
         ? await resolveProductId(form.legacy_product_description.trim())
         : null;
@@ -60,6 +64,7 @@ export function AddLegacyClientDialog({ open, onOpenChange }: AddLegacyClientDia
       qc.invalidateQueries({ queryKey: ['clients'] });
       onOpenChange(false);
     } catch (e: any) {
+      if (isConfirmCancelled(e)) { setSaving(false); return; }
       toast.error(e.message || 'Não foi possível guardar');
     } finally {
       setSaving(false);
