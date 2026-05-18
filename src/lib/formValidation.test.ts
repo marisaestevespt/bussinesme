@@ -3,6 +3,7 @@ import {
   validateSaleSeller,
   validateExpensePaymentMethod,
   validateDeliverableTeamRole,
+  validateProjectDeadline,
 } from './formValidation';
 
 describe('validateSaleSeller', () => {
@@ -44,5 +45,24 @@ describe('validateDeliverableTeamRole', () => {
   });
   it('aceita quando há membro atribuído (assigned_to)', () => {
     expect(validateDeliverableTeamRole('equipa', null, 'member-uuid')).toBeNull();
+  });
+});
+
+describe('validateProjectDeadline', () => {
+  it('ignora projetos recorrentes', () => {
+    expect(validateProjectDeadline('recorrente', 'em_curso', null)).toBeNull();
+  });
+  it('ignora projetos concluídos/arquivados/cancelados', () => {
+    expect(validateProjectDeadline('pontual', 'concluido', null)).toBeNull();
+    expect(validateProjectDeadline('pontual', 'arquivo', null)).toBeNull();
+    expect(validateProjectDeadline('pontual', 'cancelado', null)).toBeNull();
+  });
+  it('exige deadline em projetos pontuais ativos', () => {
+    expect(validateProjectDeadline('pontual', 'em_curso', null)).not.toBeNull();
+    expect(validateProjectDeadline('pontual', 'em_curso', '')).not.toBeNull();
+  });
+  it('aceita projetos pontuais com deadline', () => {
+    expect(validateProjectDeadline('pontual', 'em_curso', '2026-12-31')).toBeNull();
+    expect(validateProjectDeadline('pontual', 'em_curso', new Date())).toBeNull();
   });
 });

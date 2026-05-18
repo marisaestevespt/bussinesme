@@ -13,6 +13,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { exportCsv } from '@/lib/exportCsv';
+import { validateExpensePaymentMethod } from '@/lib/formValidation';
 import { exportPdf } from '@/lib/exportPdf';
 import { formatEuro } from '@/lib/formatting';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -82,10 +83,8 @@ export function FinSaidas({ fin, currentYear }: Props) {
   };
 
   const saveExpense = async () => {
-    if (!expForm.payment_method) {
-      toast.error('Seleciona o método de pagamento');
-      return;
-    }
+    const pmErr = validateExpensePaymentMethod(expForm.payment_method);
+    if (pmErr) { toast.error(pmErr); return; }
     const inputValue = parseFloat(String(expForm.base_value ?? '')) || 0;
     const vat = ivaExempt ? 0 : (parseFloat(String(expForm.vat_rate ?? '')) || 0);
     let base: number, total: number;

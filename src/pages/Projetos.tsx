@@ -26,6 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
 import { toast } from 'sonner';
+import { validateProjectDeadline } from '@/lib/formValidation';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isWithinInterval, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -262,6 +263,8 @@ export default function ProjetosPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Não autenticado');
+      const deadlineErr = validateProjectDeadline(fMode, fStatus, fDeadline ?? null);
+      if (deadlineErr) throw new Error(deadlineErr);
       const selectedProduct = fProduct ? allProducts.find(p => p.id === fProduct) : null;
       const taskModes = normalizeTaskModes((selectedProduct as any)?.task_modes, selectedProduct?.task_mode);
       const { data: proj, error } = await supabase.from('projects').insert({
