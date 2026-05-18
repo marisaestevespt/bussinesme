@@ -214,6 +214,8 @@ export function FloatingAiChat() {
 
     // Prepare body
     const body: Record<string, unknown> = {
+      conversation_id: conversationId,
+      stream: true,
       messages: newMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -243,25 +245,89 @@ export function FloatingAiChat() {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-assistant", { body });
-
-      if (error) throw error;
-
-      if (data?.error) {
-        setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${data.error}` }]);
-      } else {
-        const assistantMsg: Msg = {
-          role: "assistant",
-          content: data.content || "Sem resposta.",
-          action_proposal: data.action_proposal || null,
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
-      }
+      await streamChat(body);
     } catch (err) {
       console.error("AI chat error:", err);
       setMessages((prev) => [...prev, { role: "assistant", content: "❌ Erro ao comunicar com o assistente." }]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Stream SSE from the edge function and update the in-flight assistant message
+  const streamChat = async (body: Record<string, unknown>) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) throw new Error("Sem sessão.");
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let errMsg = "Erro no assistente.";
+      try { const j = await res.json(); errMsg = j.error || errMsg; } catch { /* ignore */ }
+      setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${errMsg}` }]);
+      return;
+    }
+    const ct = res.headers.get("content-type") || "";
+    if (!ct.includes("text/event-stream")) {
+      const data = await res.json();
+      if (data.conversation_id) setConversationId((c) => c || data.conversation_id);
+      if (data?.error) {
+        setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${data.error}` }]);
+      } else {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: data.content || "Sem resposta.",
+          action_proposal: data.action_proposal || null,
+          model: data.model,
+        }]);
+      }
+      return;
+    }
+    let assistantIndex = -1;
+    setMessages((prev) => {
+      assistantIndex = prev.length;
+      return [...prev, { role: "assistant", content: "", streaming: true }];
+    });
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    let currentEvent = "message";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split("\n");
+      buf = parts.pop() || "";
+      for (const line of parts) {
+        if (line.startsWith("event:")) {
+          currentEvent = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          const payload = line.slice(5).trim();
+          if (!payload) continue;
+          try {
+            const j = JSON.parse(payload);
+            if (currentEvent === "meta") {
+              if (j.conversation_id) setConversationId((c) => c || j.conversation_id);
+              if (j.model) setMessages((prev) => prev.map((m, i) => i === assistantIndex ? { ...m, model: j.model } : m));
+            } else if (currentEvent === "chunk" && typeof j.text === "string") {
+              setMessages((prev) => prev.map((m, i) => i === assistantIndex ? { ...m, content: m.content + j.text } : m));
+            } else if (currentEvent === "done") {
+              if (j.conversation_id) setConversationId((c) => c || j.conversation_id);
+              setMessages((prev) => prev.map((m, i) => i === assistantIndex ? { ...m, streaming: false, action_proposal: j.action_proposal || null, model: j.model || m.model } : m));
+            }
+          } catch { /* skip */ }
+        } else if (line === "") {
+          currentEvent = "message";
+        }
+      }
     }
   };
 
@@ -286,6 +352,8 @@ export function FloatingAiChat() {
     setLoading(true);
     // Send the full message with details but don't add it again to messages visually
     const body: Record<string, unknown> = {
+      conversation_id: conversationId,
+      stream: true,
       messages: [...messages.filter((_, i) => i !== msgIndex || true), userMsg].map((m) => ({
         role: m.role,
         content: m.content,
@@ -299,15 +367,7 @@ export function FloatingAiChat() {
 
     const invokeConfirmation = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("ai-assistant", { body });
-        if (error) throw error;
-        const parsed = typeof data === "string" ? JSON.parse(data) : data;
-        const assistantMsg: Msg = {
-          role: "assistant",
-          content: parsed.reply || parsed.error || "Sem resposta.",
-          action_proposal: parsed.action_proposal || null,
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
+        await streamChat(body);
       } catch (err) {
         console.error("AI chat error:", err);
         setMessages((prev) => [...prev, { role: "assistant", content: "❌ Erro ao comunicar com o assistente." }]);
