@@ -105,11 +105,13 @@ async function fetchGaps(): Promise<GapRow[]> {
 }
 
 export function SettingsBackfill() {
+  const qc = useQueryClient();
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['admin-backfill-gaps'],
     queryFn: fetchGaps,
     staleTime: 60_000,
   });
+  const [bulkOpen, setBulkOpen] = useState<null | GapRow>(null);
 
   const gaps = (data ?? []).filter(g => g.count > 0);
   const total = gaps.reduce((s, g) => s + g.count, 0);
@@ -157,15 +159,168 @@ export function SettingsBackfill() {
                   </div>
                 </div>
                 {g.link && (
-                  <Button asChild variant="outline" size="sm" className="gap-1 shrink-0">
-                    <Link to={g.link}>{g.linkLabel} <ChevronRight className="h-3.5 w-3.5" /></Link>
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {g.bulk && (
+                      <Button variant="default" size="sm" className="gap-1" onClick={() => setBulkOpen(g)}>
+                        <Wand2 className="h-3.5 w-3.5" /> Resolver em massa
+                      </Button>
+                    )}
+                    <Button asChild variant="outline" size="sm" className="gap-1">
+                      <Link to={g.link}>{g.linkLabel} <ChevronRight className="h-3.5 w-3.5" /></Link>
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+      <BulkFixDialog
+        gap={bulkOpen}
+        onClose={() => setBulkOpen(null)}
+        onDone={() => { qc.invalidateQueries({ queryKey: ['admin-backfill-gaps'] }); setBulkOpen(null); }}
+      />
     </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Bulk fix dialog
+// ──────────────────────────────────────────────
+function BulkFixDialog({ gap, onClose, onDone }: { gap: GapRow | null; onClose: () => void; onDone: () => void }) {
+  const [value, setValue] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+
+  const rolesQ = useQuery({
+    queryKey: ['bulk-roles'],
+    enabled: gap?.bulk === 'entregas-role',
+    queryFn: async () => {
+      const { data } = await supabase.from('custom_roles').select('id, name').order('name');
+      return (data || []).filter((r: any) => !r.name.startsWith('dept_')) as { id: string; name: string }[];
+    },
+  });
+
+  const sellersQ = useQuery({
+    queryKey: ['bulk-sellers'],
+    enabled: gap?.bulk === 'vendas-vendedor',
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('profile_id, full_name')
+        .eq('status', 'ativo')
+        .not('profile_id', 'is', null)
+        .order('full_name');
+      return (data || []) as { profile_id: string; full_name: string }[];
+    },
+  });
+
+  const methodsQ = useQuery({
+    queryKey: ['bulk-payment-methods'],
+    enabled: gap?.bulk === 'despesas-metodo',
+    queryFn: async () => buildPaymentMethodOptions(await fetchPaymentMethods()),
+  });
+
+  if (!gap || !gap.bulk) return null;
+
+  const handleApply = async () => {
+    if (!value) {
+      toast.error('Escolhe um valor antes de aplicar.');
+      return;
+    }
+    setSaving(true);
+    try {
+      let affected = 0;
+      if (gap.bulk === 'entregas-role') {
+        // Apply role to project_deliverables AND product_deliverable_templates with equipa+no role
+        const { data, error } = await supabase
+          .from('project_deliverables')
+          .update({ responsible_role: value })
+          .eq('responsible_type', 'equipa')
+          .is('responsible_role', null)
+          .is('assigned_to', null)
+          .select('id');
+        if (error) throw error;
+        affected += data?.length || 0;
+        // Optional: also fix templates so future projects inherit it
+        const { data: t } = await supabase
+          .from('product_deliverable_templates')
+          .update({ responsible_role: value })
+          .eq('responsible_type', 'equipa')
+          .is('responsible_role', null)
+          .select('id');
+        affected += t?.length || 0;
+      } else if (gap.bulk === 'vendas-vendedor') {
+        const { data, error } = await supabase
+          .from('commercial_sales')
+          .update({ assigned_to: value })
+          .is('assigned_to', null)
+          .select('id');
+        if (error) throw error;
+        affected = data?.length || 0;
+      } else if (gap.bulk === 'despesas-metodo') {
+        const { data, error } = await supabase
+          .from('financial_expenses')
+          .update({ payment_method: value })
+          .or('payment_method.is.null,payment_method.eq.')
+          .eq('is_recurring', false)
+          .select('id');
+        if (error) throw error;
+        affected = data?.length || 0;
+      }
+      toast.success(`Atualizados ${affected} registos.`);
+      setValue('');
+      onDone();
+    } catch (e: any) {
+      toast.error(`Erro: ${e?.message || 'falha ao aplicar'}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const options =
+    gap.bulk === 'entregas-role'
+      ? (rolesQ.data || []).map(r => ({ value: r.name, label: `Equipa · ${r.name}` }))
+      : gap.bulk === 'vendas-vendedor'
+        ? (sellersQ.data || []).map(s => ({ value: s.profile_id, label: s.full_name }))
+        : (methodsQ.data || []);
+
+  const labelForField =
+    gap.bulk === 'entregas-role' ? 'Função responsável (role)' :
+    gap.bulk === 'vendas-vendedor' ? 'Vendedor a atribuir' :
+    'Método de pagamento';
+
+  return (
+    <Dialog open={!!gap} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Resolver em massa — {gap.label}</DialogTitle>
+          <DialogDescription>
+            Vais atualizar <strong>{gap.count}</strong> registos de uma só vez.
+            Esta ação aplica o mesmo valor a todos os registos em falta.
+            {gap.bulk === 'entregas-role' && ' Também atualiza os templates de entrega correspondentes para evitar que novos projetos voltem a ficar incompletos.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2 py-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{labelForField}</label>
+          <Select value={value} onValueChange={setValue}>
+            <SelectTrigger><SelectValue placeholder="Seleciona…" /></SelectTrigger>
+            <SelectContent>
+              {options.length === 0 ? (
+                <SelectItem value="__none__" disabled>Sem opções disponíveis</SelectItem>
+              ) : options.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleApply} disabled={saving || !value}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Wand2 className="h-4 w-4 mr-2" />}
+            Aplicar a {gap.count} registos
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
