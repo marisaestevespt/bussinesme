@@ -296,65 +296,71 @@ function DeliverableRow({
         )}
       </div>
       {/* Linha 2: metadados */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-end gap-3 flex-wrap">
         <span className="w-6 shrink-0" />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-1 shrink-0">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                type="number"
-                min={0}
-                value={minutes}
-                onChange={e => setMinutes(e.target.value)}
-                onBlur={() => {
-                  const parsed = minutes === '' ? null : parseInt(minutes);
-                  const safe = parsed !== null && !Number.isNaN(parsed) && parsed >= 0 ? parsed : null;
-                  if (safe !== (template.estimated_minutes ?? null)) {
-                    minutesRef.current = safe;
-                    onUpdate(template.id, { estimated_minutes: safe });
-                  }
-                }}
-                className="h-8 w-16 text-xs text-center px-1"
-                placeholder="—"
-                readOnly={!isOwner}
-              />
-              <span className="text-[10px] text-muted-foreground">min</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">Tempo estimado (minutos)</TooltipContent>
-        </Tooltip>
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Tempo estimado</span>
+          <div className="flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              type="number"
+              min={0}
+              value={minutes}
+              onChange={e => setMinutes(e.target.value)}
+              onBlur={() => {
+                const parsed = minutes === '' ? null : parseInt(minutes);
+                const safe = parsed !== null && !Number.isNaN(parsed) && parsed >= 0 ? parsed : null;
+                if (safe !== (template.estimated_minutes ?? null)) {
+                  minutesRef.current = safe;
+                  onUpdate(template.id, { estimated_minutes: safe });
+                }
+              }}
+              className="h-8 w-16 text-xs text-center px-1"
+              placeholder="—"
+              readOnly={!isOwner}
+            />
+            <span className="text-[10px] text-muted-foreground">min</span>
+          </div>
+        </div>
         {sops.length > 0 && (
-          <Select value={template.linked_sop_id || 'none'}
-            onValueChange={(v) => onUpdate(template.id, { linked_sop_id: v === 'none' ? null : v })}>
-            <SelectTrigger className="h-8 text-xs w-32">
-              <SelectValue placeholder="SOP..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Sem SOP</SelectItem>
-              {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">SOP ligado</span>
+            <Select value={template.linked_sop_id || 'none'}
+              onValueChange={(v) => onUpdate(template.id, { linked_sop_id: v === 'none' ? null : v })}>
+              <SelectTrigger className="h-8 text-xs w-32">
+                <SelectValue placeholder="SOP..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem SOP</SelectItem>
+                {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         )}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button aria-label="Mostrar" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
-              onClick={() => onUpdate(template.id, { portal_visible: !(template.portal_visible ?? true) })}>
-              {(template.portal_visible ?? true) ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            {(template.portal_visible ?? true) ? 'Visível no portal' : 'Oculto no portal'}
-          </TooltipContent>
-        </Tooltip>
-        <Select
-          value={respValue}
-          onValueChange={handleResponsibleChange}
-          disabled={!isOwner}
-        >
-          <SelectTrigger className="h-8 w-48 text-xs shrink-0" title="Responsável">
-            <SelectValue placeholder="Responsável…" />
-          </SelectTrigger>
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Portal cliente</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button aria-label="Mostrar" size="icon" variant="ghost" className="h-8 w-8"
+                onClick={() => onUpdate(template.id, { portal_visible: !(template.portal_visible ?? true) })}>
+                {(template.portal_visible ?? true) ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              {(template.portal_visible ?? true) ? 'Visível no portal' : 'Oculto no portal'}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <div className="flex flex-col gap-0.5 shrink-0">
+          <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Responsável</span>
+          <Select
+            value={respValue}
+            onValueChange={handleResponsibleChange}
+            disabled={!isOwner}
+          >
+            <SelectTrigger className="h-8 w-48 text-xs" title="Quem fica responsável por este ponto">
+              <SelectValue placeholder="Responsável…" />
+            </SelectTrigger>
           <SelectContent>
             <SelectItem value="__cliente__">
               <span className="flex items-center gap-1.5"><User className="h-3 w-3" /> Cliente</span>
@@ -371,27 +377,31 @@ function DeliverableRow({
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+          </Select>
+        </div>
         {allowRecurring && (
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
-            <Select
-              value={cadence}
-              onValueChange={(v) => {
-                onUpdate(template.id, {
-                  cadence: v,
-                });
-              }}
-              disabled={!isOwner}
-            >
-              <SelectTrigger className="h-8 w-52 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unica">Só uma vez no início</SelectItem>
-                <SelectItem value="sem_data">Sem data</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col gap-0.5 shrink-0">
+            <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Cadência neste ciclo</span>
+            <div className="flex items-center gap-1.5">
+              <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select
+                value={cadence}
+                onValueChange={(v) => {
+                  onUpdate(template.id, {
+                    cadence: v,
+                  });
+                }}
+                disabled={!isOwner}
+              >
+                <SelectTrigger className="h-8 w-52 text-xs" title="Como este ponto se comporta dentro do ciclo recorrente">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unica">Só uma vez no início</SelectItem>
+                  <SelectItem value="sem_data">Sem data</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
       </div>
@@ -617,48 +627,57 @@ function PhaseCard({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {isOwner && !phase.is_onboarding && !phase.is_offboarding && (
-            <Select
-              value={phase.is_recurring ? 'recorrente' : 'unica'}
-              onValueChange={(v) => {
-                if (v === 'recorrente') {
-                  onUpdatePhase(phase.id, { is_recurring: true, recurrence_frequency: phase.recurrence_frequency || 'mensal' });
-                } else {
-                  onUpdatePhase(phase.id, { is_recurring: false, recurrence_frequency: null });
-                }
-              }}
-            >
-              <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unica">Única</SelectItem>
-                <SelectItem value="recorrente">Recorrente</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Modo</span>
+              <Select
+                value={phase.is_recurring ? 'recorrente' : 'unica'}
+                onValueChange={(v) => {
+                  if (v === 'recorrente') {
+                    onUpdatePhase(phase.id, { is_recurring: true, recurrence_frequency: phase.recurrence_frequency || 'mensal' });
+                  } else {
+                    onUpdatePhase(phase.id, { is_recurring: false, recurrence_frequency: null });
+                  }
+                }}
+              >
+                <SelectTrigger className="h-7 text-xs w-28" title="Acontece uma vez no contrato ou repete em ciclos"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unica">Única</SelectItem>
+                  <SelectItem value="recorrente">Recorrente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
           {isOwner && phase.is_recurring && (
-            <Select
-              value={phase.recurrence_frequency || 'mensal'}
-              onValueChange={(v) => onUpdatePhase(phase.id, { recurrence_frequency: v })}
-            >
-              <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="semanal">Semanal</SelectItem>
-                <SelectItem value="quinzenal">Quinzenal</SelectItem>
-                <SelectItem value="mensal">Mensal</SelectItem>
-                <SelectItem value="trimestral">Trimestral</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Frequência</span>
+              <Select
+                value={phase.recurrence_frequency || 'mensal'}
+                onValueChange={(v) => onUpdatePhase(phase.id, { recurrence_frequency: v })}
+              >
+                <SelectTrigger className="h-7 text-xs w-28" title="De quanto em quanto tempo o ciclo se repete"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="semanal">Semanal</SelectItem>
+                  <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
           {sops.length > 0 && (
-            <Select value={phase.linked_sop_id || 'none'}
-              onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
-              <SelectTrigger className="h-7 text-xs w-40">
-                <SelectValue placeholder="Ligar SOP..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem SOP</SelectItem>
-                {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">SOP ligado</span>
+              <Select value={phase.linked_sop_id || 'none'}
+                onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
+                <SelectTrigger className="h-7 text-xs w-40" title="Procedimento operacional associado a esta fase">
+                  <SelectValue placeholder="Ligar SOP..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem SOP</SelectItem>
+                  {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           )}
           {isOwner && onMoveUp && (
             <Button aria-label="Subir fase" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={!canReorder?.up}>
