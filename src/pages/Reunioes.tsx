@@ -450,12 +450,9 @@ export function MeetingFormDialog({
   const { data: offRanges } = useOffDates();
 
   const hasDefaults = !!defaultClientId || !!defaultProjectId;
-  const hasPreselectedType = !!initialMeetingType;
-  const skipTypeStep = hasDefaults || hasPreselectedType;
-  const initialType: MeetingType = initialMeetingType
-    ?? (hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
-  const [step, setStep] = useState<'type' | 'form'>(skipTypeStep ? 'form' : 'type');
-  const [meetingType, setMeetingType] = useState<MeetingType>(initialType);
+  // Tipos de reunião foram unificados; mantemos 'standard' como valor único.
+  const initialType: MeetingType = 'standard';
+  const [meetingType] = useState<MeetingType>(initialType);
   const [title, setTitle] = useState(defaultTitle || '');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
@@ -487,12 +484,8 @@ export function MeetingFormDialog({
   // When opened with a preselected template, sync state and apply default department
   useEffect(() => {
     if (!open) return;
-    if (initialMeetingType) {
-      setMeetingType(initialMeetingType);
-      setStep('form');
-      const tpl = getMeetingTemplate(initialMeetingType as string);
-      if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
-    }
+    const tpl = getMeetingTemplate('standard');
+    if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
     // Always sync the title to the latest defaultTitle when the dialog opens,
     // so a late-resolved template (e.g. from a deliverable's meeting_title_template)
     // overrides the initial fallback that was captured at mount time.
@@ -502,15 +495,12 @@ export function MeetingFormDialog({
       setSelectedMembers(defaultMemberIds);
     }
     // Planned minutes: prefer caller-provided default, else the template default
-    const tplPlanned = initialMeetingType ? getMeetingTemplate(initialMeetingType as string)?.defaultDurationMinutes : undefined;
-    const want = defaultPlannedMinutes ?? tplPlanned ?? null;
+    const want = defaultPlannedMinutes ?? tpl?.defaultDurationMinutes ?? null;
     if (want != null && plannedMinutes === '') setPlannedMinutes(want);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialMeetingType, defaultTitle, defaultDepartment, defaultMemberIds, defaultPlannedMinutes]);
+  }, [open, defaultTitle, defaultDepartment, defaultMemberIds, defaultPlannedMinutes]);
 
   const resetForm = () => {
-    setStep(skipTypeStep ? 'form' : 'type');
-    setMeetingType(initialType);
     setTitle(defaultTitle || ''); setDateTime(undefined); setStatus('por_confirmar');
     setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []);
     setDepartment(defaultDepartment || (hasDefaults ? 'clientes' : ''));
@@ -520,17 +510,6 @@ export function MeetingFormDialog({
     setHolidayOverrides({});
     setVisibleInPortal(true);
     skipAutoFillRef.current = false;
-  };
-
-  const handleTypeSelect = (type: MeetingType) => {
-    setMeetingType(type);
-    setStep('form');
-    if (type === 'cliente' || type === ('inicial' as MeetingType)) setDepartment('clientes');
-    // Auto-set title for inicial meeting if client already selected
-    if (type === ('inicial' as MeetingType) && clientId) {
-      const c = clients.find((c: any) => c.id === clientId);
-      if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
-    }
   };
 
   // Projects for selected client
