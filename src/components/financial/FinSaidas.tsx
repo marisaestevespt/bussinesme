@@ -13,6 +13,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { exportCsv } from '@/lib/exportCsv';
+import { validateExpensePaymentMethod } from '@/lib/formValidation';
 import { exportPdf } from '@/lib/exportPdf';
 import { formatEuro } from '@/lib/formatting';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
