@@ -156,6 +156,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
   const totalCards = phases.length + recurringMonths.length;
 
+  const offboardingPhases = phases.filter(p => /offboarding/i.test(p.name || ''));
+  const nonOffboardingPhases = phases.filter(p => !/offboarding/i.test(p.name || ''));
+
   return (
     <>
       {/* Toolbar: Nova fase */}
