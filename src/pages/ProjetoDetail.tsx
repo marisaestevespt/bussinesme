@@ -61,6 +61,7 @@ import { BrainstormingSubPage } from '@/components/project/subpages/Brainstormin
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { safeUrl } from '@/lib/url';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
+import { validateProjectDeadline } from '@/lib/formValidation';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
