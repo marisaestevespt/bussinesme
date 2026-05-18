@@ -11,7 +11,6 @@ import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsRecolhas } from '@/components/settings/SettingsRecolhas';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
-import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { SettingsInstance } from '@/components/settings/SettingsInstance';
 import { useAuth } from '@/hooks/useAuth';
@@ -77,7 +76,6 @@ export default function DefinicoesPage() {
             <div className="space-y-10">
               <SettingsKpis />
               <SettingsRecolhas />
-              <SettingsAutomations />
             </div>
           )}
           {tab === 'instancia' && <SettingsInstance />}
