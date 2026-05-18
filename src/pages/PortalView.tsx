@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
-import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
+import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, phaseProgress, computeMonthlyCycleProgress } from '@/lib/projectProgress';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
