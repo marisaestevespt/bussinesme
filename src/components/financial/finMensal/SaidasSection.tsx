@@ -436,6 +436,14 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
               <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{locationLabel(l)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          <div><Label>Método Pagamento *</Label>
+            <Select value={expForm.payment_method} onValueChange={v => setExpForm(f => ({ ...f, payment_method: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar método" /></SelectTrigger>
+              <SelectContent>
+                {paymentMethods.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <InvoiceUpload
             documents={Array.isArray(expForm.documents) ? expForm.documents : []}
             onChange={docs => setExpForm(f => ({ ...f, documents: docs }))}
