@@ -32,6 +32,7 @@ export interface ProjectFull {
 export interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
 export interface Task { id: string; name: string; status: string; priority: string; deadline: string | null; assigned_to: string | null; project_id: string | null; department: string | null; estimated_time?: number | null; estimated_minutes?: number | null; }
 export interface Meeting { id: string; title: string; date_time: string; status: string; project_id: string | null; }
+export interface MonthlyOccurrence { id: string; status: string | null; linked_task_id: string | null; scheduled_date: string; }
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -158,7 +159,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
     queryKey: ['project-phases', id],
     queryFn: async () => {
       const { data } = await supabase.from('project_phases').select('*').eq('project_id', id!).order('sort_order');
-      return (data || []) as { status: string }[];
+      return (data || []) as { status: string; planned_start?: string | null; cycle_month_index?: number | null }[];
     },
     enabled: !!id,
   });
@@ -182,6 +183,20 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
         .gte('deadline', opts!.monthStart!)
         .lte('deadline', opts!.monthEnd!);
       return (data || []) as { id: string; status: string; deadline: string }[];
+    },
+    enabled: !!id && !!opts?.isRecorrenteMensal && !!opts?.monthStart && !!opts?.monthEnd,
+  });
+
+  const monthlyOccurrencesQ = useQuery({
+    queryKey: ['project-monthly-occurrences', id, opts?.monthStart],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from('project_recurring_occurrences')
+        .select('id, status, linked_task_id, scheduled_date')
+        .eq('project_id', id!)
+        .gte('scheduled_date', opts!.monthStart!)
+        .lte('scheduled_date', opts!.monthEnd!);
+      return (data || []) as MonthlyOccurrence[];
     },
     enabled: !!id && !!opts?.isRecorrenteMensal && !!opts?.monthStart && !!opts?.monthEnd,
   });
@@ -284,6 +299,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
     projectPhases: projectPhasesQ.data || [],
     projectDeliverables: projectDeliverablesQ.data || [],
     monthlyTasks: monthlyTasksQ.data || [],
+    monthlyOccurrences: monthlyOccurrencesQ.data || [],
     meetings: meetingsQ.data || [],
     toggleMember,
     deleteMutation,
