@@ -204,7 +204,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {phases.map(phase => {
+        {nonOffboardingPhases.map(phase => {
           const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
           const total = phaseDeliverables.length;
           const done = phaseDeliverables.filter(isDeliverableDone).length;
