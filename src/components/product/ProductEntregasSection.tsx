@@ -867,13 +867,52 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
 
   const deletePhase = useMutation({
     mutationFn: async (id: string) => {
-      // Unlink deliverables first
+      // Snapshot phase + deliverables that belonged to it (for Undo)
+      const { data: phaseSnap } = await supabase
+        .from('product_phases' as any)
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      const { data: linkedDeliverables } = await supabase
+        .from('product_deliverable_templates' as any)
+        .select('id')
+        .eq('phase_id', id);
+      const linkedIds = ((linkedDeliverables ?? []) as Array<{ id: string }>).map(d => d.id);
+      // Unlink deliverables first, then delete phase
       await supabase.from('product_deliverable_templates' as any).update({ phase_id: null } as any).eq('phase_id', id);
       await supabase.from('product_phases' as any).delete().eq('id', id);
+      return { phaseSnap, linkedIds } as { phaseSnap: Record<string, unknown> | null; linkedIds: string[] };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: phaseKey });
       qc.invalidateQueries({ queryKey: ['product-deliverable-templates', productId] });
+      if (result?.phaseSnap) {
+        const { phaseSnap, linkedIds } = result;
+        toast.success('Fase eliminada', {
+          action: {
+            label: 'Desfazer',
+            onClick: async () => {
+              const { error } = await supabase
+                .from('product_phases' as any)
+                .insert(phaseSnap as any);
+              if (error) {
+                toast.error('Não foi possível restaurar a fase');
+                return;
+              }
+              if (linkedIds.length > 0) {
+                await supabase
+                  .from('product_deliverable_templates' as any)
+                  .update({ phase_id: (phaseSnap as any).id } as any)
+                  .in('id', linkedIds);
+              }
+              qc.invalidateQueries({ queryKey: phaseKey });
+              qc.invalidateQueries({ queryKey: ['product-deliverable-templates', productId] });
+              toast.success('Fase restaurada');
+            },
+          },
+          duration: 8000,
+        });
+      }
     },
   });
 
