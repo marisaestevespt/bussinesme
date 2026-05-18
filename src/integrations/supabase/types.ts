@@ -7862,7 +7862,6 @@ export type Database = {
           estimated_minutes: number | null
           id: string
           is_meeting: boolean
-          is_recurring: boolean
           link_url: string | null
           linked_sop_id: string | null
           meeting_title_template: string | null
@@ -7873,10 +7872,6 @@ export type Database = {
           phase_id: string | null
           portal_visible: boolean
           product_id: string
-          recurrence_anchor_day: number | null
-          recurrence_frequency: string | null
-          recurrence_lead_days: number
-          recurrence_week_of_month: number | null
           responsible_role: string | null
           responsible_type: string
           sort_order: number
@@ -7895,7 +7890,6 @@ export type Database = {
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
-          is_recurring?: boolean
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_title_template?: string | null
@@ -7906,10 +7900,6 @@ export type Database = {
           phase_id?: string | null
           portal_visible?: boolean
           product_id: string
-          recurrence_anchor_day?: number | null
-          recurrence_frequency?: string | null
-          recurrence_lead_days?: number
-          recurrence_week_of_month?: number | null
           responsible_role?: string | null
           responsible_type?: string
           sort_order?: number
@@ -7928,7 +7918,6 @@ export type Database = {
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
-          is_recurring?: boolean
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_title_template?: string | null
@@ -7939,10 +7928,6 @@ export type Database = {
           phase_id?: string | null
           portal_visible?: boolean
           product_id?: string
-          recurrence_anchor_day?: number | null
-          recurrence_frequency?: string | null
-          recurrence_lead_days?: number
-          recurrence_week_of_month?: number | null
           responsible_role?: string | null
           responsible_type?: string
           sort_order?: number
@@ -9342,7 +9327,6 @@ export type Database = {
           updated_at: string
           vat_rate: string | null
           volume_discounts: Json
-          welcome_email_accent_color: string | null
           welcome_email_banner_url: string | null
         }
         Insert: {
@@ -9400,7 +9384,6 @@ export type Database = {
           updated_at?: string
           vat_rate?: string | null
           volume_discounts?: Json
-          welcome_email_accent_color?: string | null
           welcome_email_banner_url?: string | null
         }
         Update: {
@@ -9458,7 +9441,6 @@ export type Database = {
           updated_at?: string
           vat_rate?: string | null
           volume_discounts?: Json
-          welcome_email_accent_color?: string | null
           welcome_email_banner_url?: string | null
         }
         Relationships: []
@@ -9583,7 +9565,6 @@ export type Database = {
           estimated_minutes: number | null
           id: string
           is_meeting: boolean
-          is_recurring: boolean
           link_url: string | null
           linked_sop_id: string | null
           meeting_id: string | null
@@ -9597,9 +9578,6 @@ export type Database = {
           planned_start: string | null
           portal_visible: boolean
           project_id: string
-          recurrence_label: string | null
-          recurrence_week: number | null
-          recurrence_weekday: number | null
           responsible_role: string | null
           responsible_type: string
           scheduled_date: string | null
@@ -9623,7 +9601,6 @@ export type Database = {
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
-          is_recurring?: boolean
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
@@ -9637,9 +9614,6 @@ export type Database = {
           planned_start?: string | null
           portal_visible?: boolean
           project_id: string
-          recurrence_label?: string | null
-          recurrence_week?: number | null
-          recurrence_weekday?: number | null
           responsible_role?: string | null
           responsible_type?: string
           scheduled_date?: string | null
@@ -9663,7 +9637,6 @@ export type Database = {
           estimated_minutes?: number | null
           id?: string
           is_meeting?: boolean
-          is_recurring?: boolean
           link_url?: string | null
           linked_sop_id?: string | null
           meeting_id?: string | null
@@ -9677,9 +9650,6 @@ export type Database = {
           planned_start?: string | null
           portal_visible?: boolean
           project_id?: string
-          recurrence_label?: string | null
-          recurrence_week?: number | null
-          recurrence_weekday?: number | null
           responsible_role?: string | null
           responsible_type?: string
           scheduled_date?: string | null
@@ -9782,7 +9752,6 @@ export type Database = {
           id: string
           is_offboarding: boolean
           is_onboarding: boolean
-          is_recurring: boolean
           linked_sop_id: string | null
           name: string
           offset_days: number | null
@@ -9790,11 +9759,7 @@ export type Database = {
           planned_end: string | null
           planned_start: string | null
           project_id: string
-          recurrence_anchor_day: number | null
-          recurrence_frequency: string | null
-          recurrence_lead_days: number | null
           recurrence_period: string | null
-          recurrence_week_of_month: number | null
           sort_order: number
           source_phase_id: string | null
           started_at: string | null
@@ -9810,7 +9775,6 @@ export type Database = {
           id?: string
           is_offboarding?: boolean
           is_onboarding?: boolean
-          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -9818,11 +9782,7 @@ export type Database = {
           planned_end?: string | null
           planned_start?: string | null
           project_id: string
-          recurrence_anchor_day?: number | null
-          recurrence_frequency?: string | null
-          recurrence_lead_days?: number | null
           recurrence_period?: string | null
-          recurrence_week_of_month?: number | null
           sort_order?: number
           source_phase_id?: string | null
           started_at?: string | null
@@ -9838,7 +9798,6 @@ export type Database = {
           id?: string
           is_offboarding?: boolean
           is_onboarding?: boolean
-          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -9846,11 +9805,7 @@ export type Database = {
           planned_end?: string | null
           planned_start?: string | null
           project_id?: string
-          recurrence_anchor_day?: number | null
-          recurrence_frequency?: string | null
-          recurrence_lead_days?: number | null
           recurrence_period?: string | null
-          recurrence_week_of_month?: number | null
           sort_order?: number
           source_phase_id?: string | null
           started_at?: string | null
