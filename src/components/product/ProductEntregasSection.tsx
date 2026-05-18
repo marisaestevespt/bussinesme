@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2, FileText, Mail, MessageSquare, FileUp } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2, FileText, Mail, MessageSquare, FileUp, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
