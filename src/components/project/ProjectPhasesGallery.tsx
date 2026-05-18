@@ -389,20 +389,25 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </button>
           );
         })}
-        {recurringMonths.map(([monthKey, items], idx) => {
-          const total = items.length;
-          const done = items.filter(o => o.status === 'concluida').length;
-          const cancelled = items.filter(o => o.status === 'cancelada').length;
+        {monthlyBuckets.map(([monthKey, bucket]) => {
+          const { miniPhases, occurrences: items } = bucket;
+          const occTotal = items.length;
+          const occDone = items.filter(o => o.status === 'concluida').length;
+          const occCancelled = items.filter(o => o.status === 'cancelada').length;
+          const phaseTotal = miniPhases.length;
+          const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
+          const total = occTotal + phaseTotal;
+          const done = occDone + phaseDoneCount;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           const monthDate = parseISO(monthKey + '-01');
           const now = new Date();
           const isCurrentMonth = monthDate.getFullYear() === now.getFullYear() && monthDate.getMonth() === now.getMonth();
           const isPast = monthDate < new Date(now.getFullYear(), now.getMonth(), 1);
-          const allDone = total > 0 && done + cancelled === total;
+          const allDone = total > 0 && (done + occCancelled) === total;
 
           return (
             <button
-              key={`recurring-${monthKey}`}
+              key={`month-${monthKey}`}
               type="button"
               onClick={() => setOpenMonthKey(monthKey)}
               className={cn(
@@ -425,7 +430,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   <div className="flex items-center gap-2">
                     <Repeat className="h-3 w-3 text-muted-foreground/70 shrink-0" />
                     <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground/70">
-                      Ciclo Mensal
+                      Mês do contrato
                     </span>
                   </div>
                   <h3 className="text-sm font-semibold leading-tight truncate mt-1 capitalize">
@@ -452,37 +457,61 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
               <div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>{done}/{total} ocorrências</span>
+                  <span>
+                    {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
+                    {phaseTotal > 0 && occTotal > 0 && ' · '}
+                    {occTotal > 0 && `${occDone}/${occTotal} cadências`}
+                  </span>
                   <span className="font-semibold text-foreground">{pct}%</span>
                 </div>
                 <Progress value={pct} className="h-1.5" />
               </div>
 
-              <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
-                {items.slice(0, 3).map(o => (
-                  <div key={o.id} className="flex items-center gap-2 text-[11px]">
-                    <span
-                      className={cn(
-                        'h-1.5 w-1.5 rounded-full shrink-0',
-                        o.status === 'concluida' ? 'bg-success' : o.status === 'cancelada' ? 'bg-destructive/40' : 'bg-muted-foreground/30'
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        'truncate',
-                        o.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
-                      )}
-                    >
-                      {format(parseISO(o.scheduled_date), 'd MMM', { locale: pt })} · {o.name}
-                    </span>
-                  </div>
-                ))}
-                {items.length > 3 && (
-                  <div className="text-[10px] text-muted-foreground/70 pl-3.5">
-                    +{items.length - 3} ocorrências…
-                  </div>
-                )}
-              </div>
+              {miniPhases.length > 0 && (
+                <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
+                  {miniPhases.map(mp => {
+                    const done = isPhaseDone(mp);
+                    const dStart = mp.planned_start ? parseISO(mp.planned_start).getDate() : null;
+                    const dEnd = mp.planned_end ? parseISO(mp.planned_end).getDate() : null;
+                    return (
+                      <div key={mp.id} className="flex items-center gap-2 text-[11px]">
+                        <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', done ? 'bg-success' : 'bg-primary/40')} />
+                        <span className={cn('truncate', done ? 'line-through text-muted-foreground' : 'text-foreground font-medium')}>
+                          {dStart != null && dEnd != null ? `${dStart}–${dEnd} · ` : ''}{mp.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {items.length > 0 && (
+                <div className={cn('space-y-1', miniPhases.length === 0 && 'border-t border-border/50 pt-2 mt-1')}>
+                  {items.slice(0, 3).map(o => (
+                    <div key={o.id} className="flex items-center gap-2 text-[11px]">
+                      <span
+                        className={cn(
+                          'h-1.5 w-1.5 rounded-full shrink-0',
+                          o.status === 'concluida' ? 'bg-success' : o.status === 'cancelada' ? 'bg-destructive/40' : 'bg-muted-foreground/30'
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          'truncate',
+                          o.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
+                        )}
+                      >
+                        {format(parseISO(o.scheduled_date), 'd MMM', { locale: pt })} · {o.name}
+                      </span>
+                    </div>
+                  ))}
+                  {items.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground/70 pl-3.5">
+                      +{items.length - 3} cadências…
+                    </div>
+                  )}
+                </div>
+              )}
             </button>
           );
         })}
