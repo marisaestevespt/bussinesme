@@ -11,7 +11,7 @@ import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery'
 import { Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, StickyNote, ClipboardList, ChevronRight, Workflow, Video, RefreshCw } from 'lucide-react';
 import type { ProjectFull, Meeting } from '@/hooks/useProjectDetailData';
 
-type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
+type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas';
 
 interface Props {
   projectId: string;
