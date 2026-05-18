@@ -8753,6 +8753,8 @@ export type Database = {
       product_phases: {
         Row: {
           created_at: string
+          cycle_day_end: number | null
+          cycle_day_start: number | null
           description: string | null
           duration_days: number | null
           duration_unit: string
@@ -8773,6 +8775,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          cycle_day_end?: number | null
+          cycle_day_start?: number | null
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
@@ -8793,6 +8797,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          cycle_day_end?: number | null
+          cycle_day_start?: number | null
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
