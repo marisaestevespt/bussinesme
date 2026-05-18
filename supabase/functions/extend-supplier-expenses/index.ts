@@ -50,6 +50,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const targetSupplierId: string | undefined = body?.supplier_id;
     const monthsAhead: number = Number(body?.months_ahead ?? 12);
+    // Default agora é "scan" (apenas sugere via notificação).
+    // Para realmente criar despesas, passar { apply: true } ou { mode: "apply" }.
+    const apply: boolean = body?.apply === true || body?.mode === "apply";
 
     let query = supabase
       .from("suppliers")
@@ -66,6 +69,7 @@ Deno.serve(async (req) => {
 
     let inserted = 0;
     let skipped = 0;
+    const pending: { supplier_id: string; supplier_name: string; months: string[] }[] = [];
 
     for (const s of (suppliers || []) as Supplier[]) {
       // Buscar contrato de membro associado (se existir) para extrair valor/IVA/dia
@@ -128,6 +132,17 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        if (!apply) {
+          // Modo scan: regista a sugestão e não insere nada
+          let bucket = pending.find((p) => p.supplier_id === s.id);
+          if (!bucket) {
+            bucket = { supplier_id: s.id, supplier_name: s.name, months: [] };
+            pending.push(bucket);
+          }
+          bucket.months.push(`${String(month).padStart(2, "0")}/${year}`);
+          continue;
+        }
+
         const day = Math.min(paymentDay, 28);
         const expDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         const description =
@@ -172,9 +187,51 @@ Deno.serve(async (req) => {
       }
     }
 
-    await logRun({ functionName: "extend-supplier-expenses", startedAt, status: "success", context: { inserted, skipped, suppliers: suppliers?.length || 0 } });
+    // Em scan mode: se há sugestões, notifica owners
+    let notified = 0;
+    if (!apply && pending.length > 0) {
+      const totalMonths = pending.reduce((a, p) => a + p.months.length, 0);
+      const { data: owners } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "owner");
+      const summary = pending
+        .slice(0, 5)
+        .map((p) => `${p.supplier_name} (${p.months.length}m)`)
+        .join(", ");
+      const more = pending.length > 5 ? ` e mais ${pending.length - 5}` : "";
+      const dedup = `supplier-extensions-${new Date().toISOString().slice(0, 7)}`;
+
+      for (const o of owners ?? []) {
+        const { error: nErr } = await supabase.from("notifications").insert({
+          user_id: (o as any).user_id,
+          type: "supplier_extension_suggestion",
+          title: "Despesas recorrentes a expirar",
+          message: `${pending.length} fornecedor(es) · ${totalMonths} mês(es) por estender — ${summary}${more}`,
+          link: "/definicoes?tab=preferencias",
+          read: false,
+          dedup_key: dedup,
+        });
+        if (!nErr) notified++;
+      }
+    }
+
+    await logRun({
+      functionName: "extend-supplier-expenses",
+      startedAt,
+      status: "success",
+      context: { mode: apply ? "apply" : "scan", inserted, skipped, suppliers: suppliers?.length || 0, pending: pending.length, notified },
+    });
     return new Response(
-      JSON.stringify({ ok: true, inserted, skipped, suppliers: suppliers?.length || 0 }),
+      JSON.stringify({
+        ok: true,
+        mode: apply ? "apply" : "scan",
+        inserted,
+        skipped,
+        suppliers: suppliers?.length || 0,
+        pending,
+        notified,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
