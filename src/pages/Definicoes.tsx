@@ -13,6 +13,7 @@ import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { SettingsInstance } from '@/components/settings/SettingsInstance';
+import { SettingsAdministracao } from '@/components/settings/SettingsAdministracao';
 import { useAuth } from '@/hooks/useAuth';
 
 const BASE_TABS = [
@@ -27,6 +28,7 @@ const BASE_TABS = [
 const OWNER_TABS = [
   ...BASE_TABS,
   { key: 'instancia' as const, label: 'Instância' },
+  { key: 'administracao' as const, label: 'Administração' },
   { key: 'auditoria' as const, label: 'Auditoria' },
 ] as const;
 
@@ -79,6 +81,7 @@ export default function DefinicoesPage() {
             </div>
           )}
           {tab === 'instancia' && <SettingsInstance />}
+          {tab === 'administracao' && <SettingsAdministracao />}
           {tab === 'auditoria' && (
             <div className="space-y-10">
               <SettingsAuditLog />
