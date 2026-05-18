@@ -319,7 +319,6 @@ Deno.serve(async (req) => {
       "custom_field_values",
       "custom_fields",
       "custom_fonts",
-      "custom_views",
 
       // Internal documents / library
       "internal_documents",
