@@ -282,7 +282,6 @@ function AppRoutes() {
         <Route path="/executive/planeamento/estrategico" element={<ExecutivePlaneamentoEstrategico />} />
         <Route path="/executive/planeamento/tatico" element={<ExecutivePlaneamentoTatico />} />
         <Route path="/executive/planeamento/operacional" element={<ExecutivePlaneamentoOperacional />} />
-        <Route path="/executive/fecho-de-ano/:ano" element={<ExecutiveFechoAno />} />
         <Route path="/planeamento/dep/:area" element={<PlaneamentoDepartamento />} />
         <Route path="/executive/weekly-align" element={<ExecutiveWeeklyAlign />} />
         <Route path="/executive/business-plan" element={<ExecutiveBusinessPlan />} />
