@@ -709,7 +709,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                               >
                                 <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
                                   <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                                  {due && <span className="capitalize">{format(due, "EEE d 'de' MMM", { locale: pt })}</span>}
+                                  {due && <span className="capitalize">{format(due, 'EEE', { locale: pt })}</span>}
+                                  {due && <span>{format(due, "d 'de' MMM", { locale: pt })}</span>}
                                 </div>
                                 <a
                                   href={`/hub/tarefas?id=${t.id}`}
@@ -741,6 +742,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                                     ))}
                                   </SelectContent>
                                 </Select>
+                                {/* spacer to match OccurrenceRow's portal-eye icon slot */}
+                                <span className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                                {/* spacer to match OccurrenceRow's pencil button slot */}
+                                <span className="h-7 w-7 shrink-0" aria-hidden />
                               </div>
                             );
                           }
