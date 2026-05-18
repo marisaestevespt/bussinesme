@@ -22,7 +22,6 @@ interface Template {
   id: string;
   name: string;
   description?: string;
-  is_recurring?: boolean;
   sort_order?: number;
   phase_id?: string | null;
   linked_sop_id?: string | null;
@@ -42,11 +41,7 @@ interface Template {
   email_subject?: string | null;
   email_body?: string | null;
   message_body?: string | null;
-  cadence?: 'unica' | 'por_ciclo_fase' | 'propria' | 'sem_data';
-  recurrence_frequency?: 'semanal' | 'quinzenal' | 'mensal' | null;
-  recurrence_anchor_day?: number | null;
-  recurrence_lead_days?: number | null;
-  recurrence_week_of_month?: number | null;
+  cadence?: 'unica' | 'sem_data';
 }
 
 interface Phase {
@@ -61,11 +56,6 @@ interface Phase {
   offset_trigger?: string;
   is_onboarding?: boolean;
   is_offboarding?: boolean;
-  is_recurring?: boolean;
-  recurrence_frequency?: string | null;
-  recurrence_anchor_day?: number | null;
-  recurrence_lead_days?: number | null;
-  recurrence_week_of_month?: number | null;
 }
 
 interface Props {
@@ -387,11 +377,6 @@ function DeliverableRow({
               onValueChange={(v) => {
                 onUpdate(template.id, {
                   cadence: v,
-                  is_recurring: false,
-                  recurrence_frequency: null,
-                  recurrence_anchor_day: null,
-                  recurrence_lead_days: null,
-                  recurrence_week_of_month: null,
                 });
               }}
               disabled={!isOwner}
