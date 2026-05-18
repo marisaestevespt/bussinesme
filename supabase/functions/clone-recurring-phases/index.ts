@@ -111,8 +111,14 @@ Deno.serve(async (req) => {
 
   const startedAt = new Date();
   try {
+    const body = await req.json().catch(() => ({}));
+    const preview: boolean = body?.preview === true || body?.mode === 'preview';
+    const previewDays: number = Number(body?.preview_days ?? 60);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const horizon = new Date(today);
+    horizon.setDate(horizon.getDate() + previewDays);
 
     // 1. Buscar templates de fases recorrentes
     const { data: templates, error: tErr } = await supabase
@@ -125,12 +131,52 @@ Deno.serve(async (req) => {
 
     let cloned = 0;
     let skipped = 0;
+    const upcoming: Array<{
+      template_id: string;
+      template_name: string;
+      project_id: string;
+      project_name: string | null;
+      period: string;
+      deadline: string;
+      opens_on: string;
+      already_exists: boolean;
+    }> = [];
 
     for (const tpl of templates || []) {
       const freq = tpl.recurrence_frequency || 'mensal';
       const lead = tpl.recurrence_lead_days ?? 5;
       const { deadline, period } = nextDeadline(today, freq, tpl.recurrence_anchor_day!, (tpl as any).recurrence_week_of_month);
       const start = addBusinessDays(deadline, -lead);
+
+      if (preview) {
+        // Em preview mostramos apenas os que abrem dentro do horizonte
+        if (start > horizon) { skipped++; continue; }
+        const { data: projects } = await supabase
+          .from('projects')
+          .select('id, name')
+          .eq('product_id', tpl.product_id)
+          .not('status', 'in', '(concluido,cancelado,arquivado)');
+        for (const proj of projects || []) {
+          const { data: existing } = await supabase
+            .from('project_phases')
+            .select('id')
+            .eq('project_id', proj.id)
+            .eq('source_phase_id', tpl.id)
+            .eq('recurrence_period', period)
+            .maybeSingle();
+          upcoming.push({
+            template_id: tpl.id,
+            template_name: tpl.name,
+            project_id: proj.id,
+            project_name: (proj as any).name ?? null,
+            period,
+            deadline: deadline.toISOString().slice(0, 10),
+            opens_on: start.toISOString().slice(0, 10),
+            already_exists: !!existing,
+          });
+        }
+        continue;
+      }
 
       // Só agimos se a abertura é hoje ou já passou (evita criar com muita antecedência)
       if (start > today) { skipped++; continue; }
@@ -264,8 +310,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    await logRun({ functionName: 'clone-recurring-phases', startedAt, status: 'success', context: { cloned, skipped, templates: templates?.length ?? 0 } });
-    return new Response(JSON.stringify({ ok: true, cloned, skipped, templates: templates?.length ?? 0 }), {
+    await logRun({
+      functionName: 'clone-recurring-phases',
+      startedAt,
+      status: 'success',
+      context: { mode: preview ? 'preview' : 'apply', cloned, skipped, templates: templates?.length ?? 0, upcoming: upcoming.length },
+    });
+    return new Response(JSON.stringify({
+      ok: true,
+      mode: preview ? 'preview' : 'apply',
+      cloned,
+      skipped,
+      templates: templates?.length ?? 0,
+      upcoming,
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
