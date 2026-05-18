@@ -229,7 +229,6 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   }, [continuousByMonth]);
 
   const hasContinuous = continuousByMonth.length > 0;
-  const [continuousOpen, setContinuousOpen] = useState(false);
 
   // Profiles for responsibles
   const assigneeIds = useMemo(
@@ -276,6 +275,12 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const offboardingPhases = oneShotPhases.filter(p => /offboarding/i.test(p.name || ''));
   const nonOffboardingPhases = oneShotPhases.filter(p => !/offboarding/i.test(p.name || ''));
   const totalCards = oneShotPhases.length + (hasContinuous ? 1 : 0);
+  const meetingOptions = projectMeetings.map(m => ({
+    value: m.id,
+    label: m.title || 'Sem título',
+    date: m.date_time ? format(parseISO(m.date_time), "d MMM · HH:mm", { locale: pt }) : '',
+  }));
+  const nowKey = new Date().toISOString().slice(0, 7);
 
   return (
     <>
