@@ -1108,19 +1108,19 @@ function ReuniaoDetailPageInner() {
           </EntityProperty>
 
           <EntityProperty icon={Link2} label="Link de acesso">
-            {m.meeting_url ? (
-              <a href={m.meeting_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-2">
-                {m.meeting_url.replace(/^https?:\/\//, '').slice(0, 40)}{m.meeting_url.length > 50 ? '…' : ''}
-                <ExternalLink className="h-4 w-4 shrink-0" />
-              </a>
-            ) : (
+            <div className="flex items-center gap-2 w-full">
               <Input
-                value=""
+                value={m.meeting_url || ''}
                 onChange={e => update({ meeting_url: e.target.value || null })}
                 placeholder="https://zoom.us/j/..."
                 className={inlineInputClass}
               />
-            )}
+              {m.meeting_url && (
+                <a href={m.meeting_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0" title="Abrir link">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              )}
+            </div>
           </EntityProperty>
         </EntityProperties>
 
@@ -1133,13 +1133,6 @@ function ReuniaoDetailPageInner() {
             recurrence: calendarRecurrence,
             attendees: clientEmail ? [clientEmail] : [],
           }} />
-          {m.meeting_url && (
-            <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => {
-              update({ meeting_url: null });
-            }}>
-              Editar link
-            </Button>
-          )}
         </div>
 
         {/* ═══ CARD: Documentos & Transcrição ═══ */}
