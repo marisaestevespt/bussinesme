@@ -49,7 +49,7 @@ const ExecutivePlaneamento = lazy(() => import("./pages/ExecutivePlaneamento"));
 const ExecutivePlaneamentoTatico = lazy(() => import("./pages/ExecutivePlaneamentoTatico"));
 const ExecutivePlaneamentoEstrategico = lazy(() => import("./pages/ExecutivePlaneamentoEstrategico"));
 const ExecutivePlaneamentoOperacional = lazy(() => import("./pages/ExecutivePlaneamentoOperacional"));
-const ExecutiveFechoAno = lazy(() => import("./pages/ExecutiveFechoAno"));
+
 const PlaneamentoDepartamento = lazy(() => import("./pages/PlaneamentoDepartamento"));
 const ExecutiveWeeklyAlign = lazy(() => import("./pages/ExecutiveWeeklyAlign"));
 const ExecutiveGestaoEquipa = lazy(() => import("./pages/ExecutiveGestaoEquipa"));
