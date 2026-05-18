@@ -747,14 +747,31 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             }));
             return (
             <div className="space-y-6 mt-2">
-              {(mini.length + occs.length + monthTasksFull.length) > 0 && (
-                <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
-                  {mini.length > 0 && <span><strong>{mini.length}</strong> mini-fases</span>}
-                  {occs.length > 0 && <span><strong>{doneOccs}/{occs.length}</strong> cadências</span>}
-                  {monthTasksFull.length > 0 && <span><strong>{doneTasks}/{monthTasksFull.length}</strong> tarefas</span>}
-                </div>
-              )}
-              {mini.length > 0 && (
+              {(() => {
+                // Unified chronological agenda for the month.
+                // Dedupe: skip tasks that are already linked from an occurrence (they'd appear twice).
+                const linkedTaskIds = new Set(occs.map(o => o.linked_task_id).filter(Boolean) as string[]);
+                const standaloneTasks = monthTasksFull.filter(t => !linkedTaskIds.has(t.id));
+                type AgendaItem =
+                  | { kind: 'occ'; date: string; occ: RecurringOccurrence }
+                  | { kind: 'task'; date: string; task: MonthTask };
+                const agenda: AgendaItem[] = [
+                  ...occs.map(o => ({ kind: 'occ' as const, date: o.scheduled_date, occ: o })),
+                  ...standaloneTasks.map(t => ({ kind: 'task' as const, date: t.deadline || '', task: t })),
+                ].sort((a, b) => a.date.localeCompare(b.date));
+                const totalAgenda = agenda.length;
+                const doneAgenda =
+                  occs.filter(o => o.status === 'concluida').length +
+                  standaloneTasks.filter(t => isTaskDone({ status: t.status } as any)).length;
+                return (
+                  <>
+                    {(mini.length + totalAgenda) > 0 && (
+                      <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
+                        {mini.length > 0 && <span><strong>{mini.length}</strong> mini-fases</span>}
+                        {totalAgenda > 0 && <span><strong>{doneAgenda}/{totalAgenda}</strong> itens da agenda</span>}
+                      </div>
+                    )}
+                    {mini.length > 0 && (
                 <div className="space-y-2">
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Mini-fases do mês</div>
                   {mini.map(mp => {
@@ -790,11 +807,38 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                     );
                   })}
                 </div>
-              )}
-              {occs.length > 0 && (
+                    )}
+                    {agenda.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Cadências do mês</div>
-                  {occs.map(o => {
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Agenda do mês</div>
+                  {agenda.map(item => {
+                    if (item.kind === 'task') {
+                      const t = item.task;
+                      const done = isTaskDone({ status: t.status } as any);
+                      const due = t.deadline ? parseISO(t.deadline) : null;
+                      return (
+                        <a
+                          key={`t-${t.id}`}
+                          href={`/hub/tarefas?id=${t.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={cn(
+                            'flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 hover:border-primary/50 transition-colors',
+                            done && 'opacity-60'
+                          )}
+                        >
+                          <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
+                            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                            {due && <span>{format(due, "EEE d MMM", { locale: pt })}</span>}
+                          </div>
+                          <span className={cn('text-sm flex-1 truncate', done && 'line-through text-muted-foreground')}>
+                            {t.name || 'Tarefa'}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">Tarefa</span>
+                        </a>
+                      );
+                    }
+                    const o = item.occ;
                     const date = parseISO(o.scheduled_date);
                     const weekday = format(date, 'EEE', { locale: pt });
                     const dayLabel = format(date, "d 'de' MMM", { locale: pt });
@@ -803,7 +847,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                       : null;
                     return (
                       <div
-                        key={o.id}
+                        key={`o-${o.id}`}
                         className={cn(
                           'rounded-lg border border-border bg-card p-3 space-y-2',
                           o.status === 'cancelada' && 'opacity-50'
@@ -823,6 +867,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                             value={o.name}
                             onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { name: e.target.value } })}
                           />
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+                            {o.item_type === 'reuniao' ? 'Reunião' : 'Tarefa'}
+                          </span>
                           <Select
                             value={o.status}
                             onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { status: v as RecurringOccurrence['status'] } })}
@@ -902,44 +949,13 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                     );
                   })}
                 </div>
-              )}
-              {monthTasksFull.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Tarefas do mês</div>
-                  {monthTasksFull.map(t => {
-                    const done = isTaskDone({ status: t.status } as any);
-                    const due = t.deadline ? parseISO(t.deadline) : null;
-                    return (
-                      <a
-                        key={t.id}
-                        href={`/hub/tarefas?id=${t.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={cn(
-                          'flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 hover:border-primary/50 transition-colors',
-                          done && 'opacity-60'
-                        )}
-                      >
-                        <div className={cn(
-                          'h-4 w-4 rounded-full border-2 shrink-0',
-                          done ? 'bg-success border-success' : 'border-muted-foreground/40'
-                        )} />
-                        <span className={cn('text-sm flex-1 truncate', done && 'line-through text-muted-foreground')}>
-                          {t.name || 'Tarefa'}
-                        </span>
-                        {due && (
-                          <span className="text-[11px] font-mono text-muted-foreground shrink-0">
-                            {format(due, "d MMM", { locale: pt })}
-                          </span>
-                        )}
-                      </a>
-                    );
-                  })}
-                </div>
-              )}
-              {mini.length === 0 && occs.length === 0 && (
-                <div className="text-sm text-muted-foreground text-center py-6">Sem mini-fases nem cadências neste mês.</div>
-              )}
+                    )}
+                    {mini.length === 0 && agenda.length === 0 && (
+                      <div className="text-sm text-muted-foreground text-center py-6">Sem itens planeados neste mês.</div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
             );
           })()}
