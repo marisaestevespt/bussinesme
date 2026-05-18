@@ -88,11 +88,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const [parentTaskId, setParentTaskId] = useState('');
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
   const [isSubtask, setIsSubtask] = useState(false);
-  const [recurrenceType, setRecurrenceType] = useState('');
-  const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
-  const [recurrenceIntervalDays, setRecurrenceIntervalDays] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('');
   const [sopId, setSopId] = useState('');
   // timerPromptTaskId removed — timer auto-starts on status change
 
