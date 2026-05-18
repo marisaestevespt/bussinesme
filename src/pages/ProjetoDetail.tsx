@@ -328,6 +328,12 @@ function ProjetoDetailInner() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!local) return;
+      const deadlineErr = validateProjectDeadline(
+        ((local as any).project_mode || 'pontual'),
+        local.status,
+        local.deadline ?? null,
+      );
+      if (deadlineErr) throw new Error(deadlineErr);
       const payload: Record<string, any> = {
         name: local.name, type: local.type, status: local.status, department: local.department,
         departments: local.departments,
