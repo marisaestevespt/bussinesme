@@ -82,6 +82,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
   };
 
   const saveExpense = async () => {
+    if (!expForm.payment_method) {
+      toast.error('Seleciona o método de pagamento');
+      return;
+    }
     const inputValue = parseFloat(String(expForm.base_value ?? '')) || 0;
     const vat = ivaExempt ? 0 : (parseFloat(String(expForm.vat_rate ?? '')) || 0);
     let base: number, total: number;
