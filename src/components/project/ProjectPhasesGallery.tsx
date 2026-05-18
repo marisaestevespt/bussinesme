@@ -229,7 +229,6 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   }, [continuousByMonth]);
 
   const hasContinuous = continuousByMonth.length > 0;
-  const [continuousOpen, setContinuousOpen] = useState(false);
 
   // Profiles for responsibles
   const assigneeIds = useMemo(
@@ -276,6 +275,12 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const offboardingPhases = oneShotPhases.filter(p => /offboarding/i.test(p.name || ''));
   const nonOffboardingPhases = oneShotPhases.filter(p => !/offboarding/i.test(p.name || ''));
   const totalCards = oneShotPhases.length + (hasContinuous ? 1 : 0);
+  const meetingOptions = projectMeetings.map(m => ({
+    value: m.id,
+    label: m.title || 'Sem título',
+    date: m.date_time ? format(parseISO(m.date_time), "d MMM · HH:mm", { locale: pt }) : '',
+  }));
+  const nowKey = new Date().toISOString().slice(0, 7);
 
   return (
     <>
@@ -458,86 +463,6 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </button>
           );
         })}
-        {hasContinuous && (() => {
-          const { total, done, pct } = continuousTotals;
-          const allDone = total > 0 && done === total;
-          const nowKey = new Date().toISOString().slice(0, 7);
-          const currentBucket = continuousByMonth.find(([k]) => k === nowKey)?.[1];
-          const upcoming = (currentBucket?.occurrences || [])
-            .filter(o => o.status !== 'concluida' && o.status !== 'cancelada')
-            .slice(0, 3);
-          return (
-            <button
-              key="continuous"
-              type="button"
-              onClick={() => setContinuousOpen(true)}
-              className={cn(
-                'group relative flex flex-col gap-3 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
-                allDone && 'border-success/30 bg-success/5 opacity-70 shadow-none hover:opacity-90 hover:border-success/50',
-                !allDone && 'border-primary/60 bg-gradient-to-br from-primary/10 via-card to-card shadow-lg shadow-primary/15 ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/25',
-              )}
-            >
-              {!allDone && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
-                </span>
-              )}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <InfinityIcon className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground/70">
-                      Recorrente
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-semibold leading-tight truncate mt-1">
-                    Trabalho Contínuo
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Cadências e tarefas regulares ao longo do contrato
-                  </p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary shrink-0" />
-              </div>
-
-              <Badge
-                className={cn(
-                  'border self-start text-[10px]',
-                  allDone
-                    ? 'bg-success/15 text-success border-success/30'
-                    : 'bg-primary/15 text-primary border-primary/30',
-                )}
-              >
-                {allDone ? 'Concluído' : 'Em curso'}
-              </Badge>
-
-              <div>
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>{done}/{total} itens · {continuousByMonth.length} {continuousByMonth.length === 1 ? 'mês' : 'meses'}</span>
-                  <span className="font-semibold text-foreground">{pct}%</span>
-                </div>
-                <Progress value={pct} className="h-1.5" />
-              </div>
-
-              {upcoming.length > 0 && (
-                <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground/70 mb-1">
-                    Próximos este mês
-                  </div>
-                  {upcoming.map(o => (
-                    <div key={o.id} className="flex items-center gap-2 text-[11px]">
-                      <span className="h-1.5 w-1.5 rounded-full shrink-0 bg-muted-foreground/30" />
-                      <span className="truncate text-foreground">
-                        {format(parseISO(o.scheduled_date), 'd MMM', { locale: pt })} · {o.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </button>
-          );
-        })()}
         {offboardingPhases.map(phase => {
           const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
           const total = phaseDeliverables.length;
@@ -680,34 +605,25 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Detail dialog: Trabalho Contínuo agrupado por mês */}
-      <Dialog open={continuousOpen} onOpenChange={setContinuousOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2">
-              <InfinityIcon className="h-5 w-5 text-primary" />
-              Trabalho Contínuo
-            </DialogTitle>
-          </DialogHeader>
-          {(() => {
-            const meetingOptions = projectMeetings.map(m => ({
-              value: m.id,
-              label: m.title || 'Sem título',
-              date: m.date_time ? format(parseISO(m.date_time), "d MMM · HH:mm", { locale: pt }) : '',
-            }));
-            const nowKey = new Date().toISOString().slice(0, 7);
-            return (
-              <div className="space-y-4 mt-2">
-                <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
-                  <span><strong>{continuousTotals.done}/{continuousTotals.total}</strong> itens concluídos no contrato</span>
-                  <span className="text-muted-foreground">·</span>
-                  <span><strong>{continuousTotals.pct}%</strong> de progresso global</span>
-                </div>
-                {continuousByMonth.length === 0 && (
-                  <div className="text-sm text-muted-foreground text-center py-6">
-                    Ainda não há cadências geradas para este projeto.
-                  </div>
-                )}
+      {/* Inline: Trabalho Contínuo agrupado por mês — vista calma e estática */}
+      {hasContinuous && (
+        <section className="mt-6 rounded-xl border border-border/60 bg-muted/20 p-4 md:p-5">
+          <header className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2 min-w-0">
+              <InfinityIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+              <h3 className="text-sm font-semibold truncate">Trabalho Contínuo</h3>
+              <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                · cadências e tarefas regulares ao longo do contrato
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              <span><strong className="text-foreground">{continuousTotals.done}/{continuousTotals.total}</strong> itens</span>
+              <span>·</span>
+              <span><strong className="text-foreground">{continuousTotals.pct}%</strong></span>
+              <div className="w-32"><Progress value={continuousTotals.pct} className="h-1.5" /></div>
+            </div>
+          </header>
+          <div className="space-y-2">
                 {continuousByMonth.map(([monthKey, bucket]) => {
                   const monthDate = parseISO(monthKey + '-01');
                   const isCurrent = monthKey === nowKey;
@@ -728,10 +644,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   ].sort((a, b) => a.date.localeCompare(b.date));
                   return (
                     <Collapsible key={monthKey} defaultOpen={isCurrent}>
-                      <CollapsibleTrigger className="w-full group flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-border bg-card hover:border-primary/40 transition-colors">
+                      <CollapsibleTrigger className="w-full group flex items-center justify-between gap-3 px-3 py-2 rounded-md border border-border/60 bg-card hover:bg-card/80 transition-colors">
                         <div className="flex items-center gap-3 min-w-0">
                           <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90 shrink-0" />
-                          <h4 className="text-sm font-semibold capitalize">
+                          <h4 className="text-sm font-medium capitalize">
                             {format(monthDate, 'MMMM yyyy', { locale: pt })}
                           </h4>
                           <Badge
@@ -900,11 +816,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                     </Collapsible>
                   );
                 })}
-              </div>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
+          </div>
+        </section>
+      )}
     </>
   );
 }
