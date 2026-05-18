@@ -315,7 +315,7 @@ export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props)
               )}
               {filtered.map(t => {
                 const realMin = timeMap[t.id] || 0;
-                const estMin = t.estimated_time ? Math.round(t.estimated_time * 60) : 0;
+                const estMin = Number(t.estimated_minutes || 0);
                 const diff = realMin > 0 && estMin > 0 ? realMin - estMin : null;
                 const timesCount = countSimilar(t.name, tasks);
 
@@ -394,7 +394,7 @@ export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props)
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <span className="text-muted-foreground text-xs">Tempo estimado</span>
-                  <p>{selectedTask.estimated_time ? formatMinutes(Math.round(selectedTask.estimated_time * 60)) : '—'}</p>
+                  <p>{selectedTask.estimated_minutes ? formatMinutes(Number(selectedTask.estimated_minutes)) : '—'}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground text-xs">Tempo real</span>
@@ -404,7 +404,7 @@ export function HistoricoView({ tasks, profiles, projects, timeEntries }: Props)
                   <span className="text-muted-foreground text-xs">Diferença</span>
                   {(() => {
                     const real = timeMap[selectedTask.id] || 0;
-                    const est = selectedTask.estimated_time ? Math.round(selectedTask.estimated_time * 60) : 0;
+                    const est = Number(selectedTask.estimated_minutes || 0);
                     if (!real || !est) return <p>—</p>;
                     const d = real - est;
                     return <p className={cn(d <= 0 ? 'text-success' : 'text-destructive', 'font-medium')}>
