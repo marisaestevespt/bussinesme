@@ -18,6 +18,7 @@ import {
   isDeliverableDone,
   isPhaseDone,
 } from '@/lib/projectProgress';
+import { isTaskDone } from '@/lib/taskStatus';
 import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { getInitials } from '@/pages/Projetos';
@@ -425,15 +426,15 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           const phaseTotal = miniPhases.length;
           const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
           const taskTotal = bTasks.length;
-          const taskDone = bTasks.filter(t => (t.status || '') === 'done').length;
-          const total = occTotal + phaseTotal + taskTotal;
-          const done = occDone + phaseDoneCount + taskDone;
+          const taskDone = bTasks.filter(isTaskDone).length;
+          const total = taskTotal > 0 ? taskTotal : occTotal + phaseTotal;
+          const done = taskTotal > 0 ? taskDone : occDone + phaseDoneCount;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           const monthDate = parseISO(monthKey + '-01');
           const now = new Date();
           const isCurrentMonth = monthDate.getFullYear() === now.getFullYear() && monthDate.getMonth() === now.getMonth();
           const isPast = monthDate < new Date(now.getFullYear(), now.getMonth(), 1);
-          const allDone = total > 0 && (done + occCancelled) === total;
+          const allDone = total > 0 && (taskTotal > 0 ? done === total : (done + occCancelled) === total);
 
           return (
             <button
@@ -488,11 +489,18 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
               <div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
                   <span>
-                    {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
-                    {phaseTotal > 0 && occTotal > 0 && ' · '}
-                    {occTotal > 0 && `${occDone}/${occTotal} cadências`}
-                    {(phaseTotal > 0 || occTotal > 0) && taskTotal > 0 && ' · '}
-                    {taskTotal > 0 && `${taskDone}/${taskTotal} tarefas`}
+                    {taskTotal > 0 ? (
+                      <>
+                        {`${taskDone}/${taskTotal} tarefas do mês`}
+                        {occTotal > 0 && ` · ${occTotal} cadências planeadas`}
+                      </>
+                    ) : (
+                      <>
+                        {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
+                        {phaseTotal > 0 && occTotal > 0 && ' · '}
+                        {occTotal > 0 && `${occDone}/${occTotal} cadências`}
+                      </>
+                    )}
                   </span>
                   <span className="font-semibold text-foreground">{pct}%</span>
                 </div>
