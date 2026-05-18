@@ -120,7 +120,9 @@ export function AddCadenceDialog({ projectId }: Props) {
         status: 'pendente',
         sort_order: idx,
         source_recurring_item_id: null,
-        visible_in_portal: false,
+        // Reuniões do projeto envolvem o cliente → visíveis no portal por defeito.
+        // Tarefas internas continuam ocultas até serem explicitamente partilhadas.
+        visible_in_portal: itemType === 'reuniao',
       }));
       const { error } = await (supabase as any)
         .from('project_recurring_occurrences')
