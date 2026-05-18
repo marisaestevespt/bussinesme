@@ -98,8 +98,6 @@ export default function TarefasPage() {
   const [parentTaskId, setParentTaskId] = useState('');
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
   const [isSubtask, setIsSubtask] = useState(false);
-  const [recurrenceType, setRecurrenceType] = useState('');
-  const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
   const [estimatedTime, setEstimatedTime] = useState('');
   const [suggestion, setSuggestion] = useState<{ taskName: string; avgHours: number } | null>(null);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
@@ -294,7 +292,7 @@ export default function TarefasPage() {
     setEditingTask(null);
     setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setClientId(''); setNotes('');
-    setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
+    setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false);
     setEstimatedTime(''); setSuggestion(null); setSuggestionDismissed(false);
     setDialogOpen(true);
   }
