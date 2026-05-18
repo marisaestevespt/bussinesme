@@ -298,6 +298,15 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
             </Select>
           </div>
           <div>
+            <Label>Vendedor *</Label>
+            <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar vendedor" /></SelectTrigger>
+              <SelectContent>
+                {(sellersList.data || []).map(s => <SelectItem key={s.profile_id} value={s.profile_id}>{s.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label>Fonte da Venda</Label>
             <Select value={form.source} onValueChange={v => {
               if (v === '__custom__') {
