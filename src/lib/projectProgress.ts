@@ -159,7 +159,19 @@ export function isPhaseComplete(phaseDeliverables: DeliverableLike[]): boolean {
 /* ---------- Unified per-project progress (single source of truth) ---------- */
 
 export interface MonthlyTaskLike {
+  id?: string | null;
   status?: string | null;
+}
+
+export interface MonthlyOccurrenceLike {
+  status?: string | null;
+  linked_task_id?: string | null;
+}
+
+export interface MonthlyCycleProgressSource {
+  phases?: PhaseLike[];
+  occurrences?: MonthlyOccurrenceLike[];
+  tasks?: MonthlyTaskLike[];
 }
 
 export interface ProjectProgressInput {
@@ -203,4 +215,22 @@ export function computeProjectProgressFromSources(
   if (deliverables.length > 0) return deliverableProgress(deliverables);
   if (phases.length > 0) return phaseProgress(phases);
   return 0;
+}
+
+export function computeMonthlyCycleProgress({
+  phases = [],
+  occurrences = [],
+  tasks = [],
+}: MonthlyCycleProgressSource): { done: number; total: number; pct: number; standaloneTasks: MonthlyTaskLike[] } {
+  const linkedTaskIds = new Set(occurrences.map(o => o.linked_task_id).filter(Boolean) as string[]);
+  const standaloneTasks = tasks.filter(t => !t.id || !linkedTaskIds.has(t.id));
+  const done =
+    occurrences.filter(o => o.status === 'concluida').length +
+    phases.filter(isPhaseDone).length +
+    standaloneTasks.filter(t => {
+      if (!t.status) return false;
+      return ['concluida', 'concluido', 'completed', 'done'].includes(t.status);
+    }).length;
+  const total = occurrences.length + phases.length + standaloneTasks.length;
+  return { done, total, pct: percent(done, total), standaloneTasks };
 }
