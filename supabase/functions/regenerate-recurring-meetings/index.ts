@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { logRun } from '../_shared/resilience.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -72,6 +73,7 @@ function generateDates(start: Date, frequency: string, end: Date): Date[] {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  const startedAt = new Date();
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -258,6 +260,7 @@ Deno.serve(async (req) => {
       await supabase.from('events').insert(evRows);
     }
 
+    await logRun({ functionName: 'regenerate-recurring-meetings', startedAt, status: 'success', context: { created: inserted?.length ?? 0, purged } });
     return new Response(JSON.stringify({
       created: inserted?.length ?? 0,
       purged,
@@ -265,6 +268,7 @@ Deno.serve(async (req) => {
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
     console.error('regenerate-recurring-meetings error', e);
+    await logRun({ functionName: 'regenerate-recurring-meetings', startedAt, status: 'failed', errorMessage: (e as Error).message });
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
