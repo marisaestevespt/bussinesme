@@ -1132,7 +1132,16 @@ export default function ReunioesPage() {
                   </div>
                   <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
                     <span className="truncate">
-                      {m.client_name || m.project_name || (m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : '') || ''}
+                      {(() => {
+                        // Sempre cliente quando existe (direto ou via projeto). Caso contrário, departamento (reunião interna).
+                        if (m.client_name) return m.client_name;
+                        if (m.project_id) {
+                          const proj = projects.find((p: any) => p.id === m.project_id);
+                          if (proj?.client_name) return proj.client_name;
+                        }
+                        if (m.department) return DEPARTMENTS.find(d => d.value === m.department)?.label || '';
+                        return '';
+                      })()}
                     </span>
                   </div>
                 </div>
