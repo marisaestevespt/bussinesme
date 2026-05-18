@@ -17,6 +17,7 @@ import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { SettingsEdgeMonitoring } from '@/components/settings/SettingsEdgeMonitoring';
 import { SettingsReconciliation } from '@/components/settings/SettingsReconciliation';
+import { RecurringPhasesPreview } from '@/components/settings/RecurringPhasesPreview';
 import { SettingsInstance } from '@/components/settings/SettingsInstance';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -97,6 +98,7 @@ export default function DefinicoesPage() {
             <div className="space-y-10">
               <SettingsEdgeMonitoring />
               <SettingsReconciliation />
+              <RecurringPhasesPreview />
               <SettingsBackups />
             </div>
           )}
