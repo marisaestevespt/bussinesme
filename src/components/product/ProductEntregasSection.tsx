@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ProductTabHeader } from './_shared';
 import { Repeat, FolderKanban } from 'lucide-react';
+import { ProductRecurringItems } from './ProductRecurringItems';
 
 interface Template {
   id: string;
