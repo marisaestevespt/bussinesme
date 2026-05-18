@@ -223,54 +223,15 @@ export default function OperacaoPage() {
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd2 = endOfWeek(today, { weekStartsOn: 1 });
 
-  // Per-project real progress map. Uses the SAME rule as the project detail page:
-  //   recorrente mensal → tasks of current month
-  //   else → deliverables (all) > phases (all) > 0
-  // This keeps the "Saúde dos Projetos" card, project lists in Operação, and the
-  // ProjectHealthBadge inside the detail page perfectly coherent.
+  // Per-project progress map: single source of truth = `projects.progress`,
+  // maintained by the DB trigger `update_project_progress` (which calls
+  // `calculate_project_progress`). Same value used by ProjetoDetail badge,
+  // Saúde dos Projetos card and all project lists.
   const projectProgress = useMemo(() => {
-    const map = new Map<string, number>();
-    // Group deliverables by project
-    const delivByProject = new Map<string, typeof allDeliverablesForProgress>();
-    allDeliverablesForProgress.forEach(d => {
-      if (!d.project_id) return;
-      if (!delivByProject.has(d.project_id)) delivByProject.set(d.project_id, []);
-      delivByProject.get(d.project_id)!.push(d);
-    });
-    // Group phases by project
-    const phasesByProject = new Map<string, typeof allPhases>();
-    allPhases.forEach(ph => {
-      if (!ph.project_id) return;
-      if (!phasesByProject.has(ph.project_id)) phasesByProject.set(ph.project_id, []);
-      phasesByProject.get(ph.project_id)!.push(ph);
-    });
-    // Pre-compute current month tasks done/total per project (only used by recurring)
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
-    const monthlyByProject = new Map<string, { done: number; total: number }>();
-    tasks.forEach(t => {
-      if (!t.project_id || !t.deadline) return;
-      const dl = new Date(t.deadline);
-      if (dl < monthStart || dl > monthEnd) return;
-      const cur = monthlyByProject.get(t.project_id) || { done: 0, total: 0 };
-      cur.total += 1;
-      if (isTaskDone(t)) cur.done += 1;
-      monthlyByProject.set(t.project_id, cur);
-    });
-    projects.forEach(p => {
-      const dels = delivByProject.get(p.id) || [];
-      const phs = phasesByProject.get(p.id) || [];
-      const isRecMensal = p.type === 'cliente_servico_mensal' && p.project_mode === 'recorrente';
-      const monthlyFn = isRecMensal
-        ? () => monthlyByProject.get(p.id) || { done: 0, total: 0 }
-        : null;
-      map.set(
-        p.id,
-        computeProjectProgressFromSources(p as any, dels as any, phs as any, monthlyFn),
-      );
-    });
-    return map;
-  }, [projects, allDeliverablesForProgress, allPhases, tasks, today]);
+    return new Map<string, number>(
+      projects.map(p => [p.id, Math.min(100, Math.max(0, Math.round(Number((p as any).progress) || 0)))]),
+    );
+  }, [projects]);
 
   const internoMembers = useMemo(() => {
     const memberProjects = new Map<string, Set<string>>();
