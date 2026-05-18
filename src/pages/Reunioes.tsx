@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake, CalendarDays } from 'lucide-react';
+import { CalendarIcon, Plus, Users, Clock, Repeat, Video, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getMeetingTemplate } from '@/components/meeting/MEETING_TEMPLATES';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
@@ -44,17 +44,10 @@ import { Lock } from 'lucide-react';
 import { MEETING_STATUSES as CANON_MEETING_STATUSES, type MeetingStatusValue } from '@/lib/meetingStatus';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 type MeetingStatus = MeetingStatusValue;
-type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
+// Tipos de reunião foram unificados. Mantemos o alias para os registos antigos.
+type MeetingType = 'standard' | 'recorrente' | 'projeto' | 'cliente' | 'diagnostico' | 'inicial';
 
 const STATUSES = CANON_MEETING_STATUSES.map(s => ({ value: s.value, label: s.label, color: s.dotColor }));
-
-const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode; description: string }[] = [
-  { value: 'inicial' as MeetingType, label: 'Reunião Inicial', icon: <Handshake className="h-5 w-5" />, description: 'Primeira reunião com o cliente (1 por cliente)' },
-  { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica interna ou com cliente' },
-  { value: 'projeto', label: 'Reunião de Projeto', icon: <FolderOpen className="h-5 w-5" />, description: 'Reunião associada a um projeto específico' },
-  { value: 'cliente', label: 'Reunião com Cliente', icon: <UserCheck className="h-5 w-5" />, description: 'Reunião com cliente associado' },
-  { value: 'diagnostico', label: 'Reunião de Diagnóstico', icon: <Users className="h-5 w-5" />, description: 'Reunião de diagnóstico com lead ou potencial cliente' },
-];
 
 interface MeetingRow {
   id: string;
@@ -153,17 +146,6 @@ function StatusBadge({ status }: { status: MeetingStatus }) {
   return (
     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${s.color}20`, color: s.color }}>
       {s.label}
-    </span>
-  );
-}
-
-function MeetingTypeBadge({ type }: { type: MeetingType }) {
-  const colors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b' };
-  const labels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente', diagnostico: 'Diagnóstico' };
-  const c = colors[type] || '#6b7280';
-  return (
-    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: `${c}20`, color: c }}>
-      {labels[type] || type}
     </span>
   );
 }
@@ -433,31 +415,6 @@ function generateRecurrenceDates(startDate: Date, frequency: string, endDate?: D
 
 // ─── Meeting Type Picker Step ───────────────────────────────────
 
-function MeetingTypeStep({ onSelect }: { onSelect: (type: MeetingType) => void }) {
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Selecione o tipo de reunião que pretende criar:</p>
-      <div className="grid gap-3">
-        {MEETING_TYPES.map(t => (
-          <button
-            key={t.value}
-            onClick={() => onSelect(t.value)}
-            className="flex items-center gap-4 rounded-lg border border-border p-4 text-left hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              {t.icon}
-            </div>
-            <div>
-              <p className="font-medium text-foreground">{t.label}</p>
-              <p className="text-xs text-muted-foreground">{t.description}</p>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 export function MeetingFormDialog({
@@ -493,12 +450,9 @@ export function MeetingFormDialog({
   const { data: offRanges } = useOffDates();
 
   const hasDefaults = !!defaultClientId || !!defaultProjectId;
-  const hasPreselectedType = !!initialMeetingType;
-  const skipTypeStep = hasDefaults || hasPreselectedType;
-  const initialType: MeetingType = initialMeetingType
-    ?? (hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
-  const [step, setStep] = useState<'type' | 'form'>(skipTypeStep ? 'form' : 'type');
-  const [meetingType, setMeetingType] = useState<MeetingType>(initialType);
+  // Tipos de reunião foram unificados; mantemos 'standard' como valor único.
+  const initialType: MeetingType = 'standard';
+  const [meetingType] = useState<MeetingType>(initialType);
   const [title, setTitle] = useState(defaultTitle || '');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
@@ -530,12 +484,8 @@ export function MeetingFormDialog({
   // When opened with a preselected template, sync state and apply default department
   useEffect(() => {
     if (!open) return;
-    if (initialMeetingType) {
-      setMeetingType(initialMeetingType);
-      setStep('form');
-      const tpl = getMeetingTemplate(initialMeetingType as string);
-      if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
-    }
+    const tpl = getMeetingTemplate('standard');
+    if (tpl?.defaultDepartment && !department) setDepartment(tpl.defaultDepartment);
     // Always sync the title to the latest defaultTitle when the dialog opens,
     // so a late-resolved template (e.g. from a deliverable's meeting_title_template)
     // overrides the initial fallback that was captured at mount time.
@@ -545,15 +495,12 @@ export function MeetingFormDialog({
       setSelectedMembers(defaultMemberIds);
     }
     // Planned minutes: prefer caller-provided default, else the template default
-    const tplPlanned = initialMeetingType ? getMeetingTemplate(initialMeetingType as string)?.defaultDurationMinutes : undefined;
-    const want = defaultPlannedMinutes ?? tplPlanned ?? null;
+    const want = defaultPlannedMinutes ?? tpl?.defaultDurationMinutes ?? null;
     if (want != null && plannedMinutes === '') setPlannedMinutes(want);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialMeetingType, defaultTitle, defaultDepartment, defaultMemberIds, defaultPlannedMinutes]);
+  }, [open, defaultTitle, defaultDepartment, defaultMemberIds, defaultPlannedMinutes]);
 
   const resetForm = () => {
-    setStep(skipTypeStep ? 'form' : 'type');
-    setMeetingType(initialType);
     setTitle(defaultTitle || ''); setDateTime(undefined); setStatus('por_confirmar');
     setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []);
     setDepartment(defaultDepartment || (hasDefaults ? 'clientes' : ''));
@@ -563,17 +510,6 @@ export function MeetingFormDialog({
     setHolidayOverrides({});
     setVisibleInPortal(true);
     skipAutoFillRef.current = false;
-  };
-
-  const handleTypeSelect = (type: MeetingType) => {
-    setMeetingType(type);
-    setStep('form');
-    if (type === 'cliente' || type === ('inicial' as MeetingType)) setDepartment('clientes');
-    // Auto-set title for inicial meeting if client already selected
-    if (type === ('inicial' as MeetingType) && clientId) {
-      const c = clients.find((c: any) => c.id === clientId);
-      if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
-    }
   };
 
   // Projects for selected client
@@ -624,11 +560,6 @@ export function MeetingFormDialog({
 
     if (actualId) {
       setDepartment('clientes');
-      // Auto-set title for inicial meeting
-      if (meetingType === ('inicial' as MeetingType)) {
-        const c = clients.find((c: any) => c.id === actualId);
-        if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
-      }
       const cProjects = projects.filter(p => p.client_id === actualId);
       if (cProjects.length === 1) {
         setSelectedProjectIds([cProjects[0].id]);
@@ -736,7 +667,7 @@ export function MeetingFormDialog({
 
       // Create calendar event. Reunião-specific event types were retired —
       // the agenda detects meetings via the meetings table (purple pill).
-      const isClientMeeting = meetingType === 'cliente';
+      const isClientMeeting = !!clientId;
       const eventTypeId: string | null = null;
       await supabase.from('events').insert({
         title: finalTitle,
@@ -831,18 +762,11 @@ export function MeetingFormDialog({
       <Dialog open={open} onOpenChange={o => { if (!o) resetForm(); onOpenChange(o); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{step === 'type' ? 'Tipo de Reunião' : `Nova ${MEETING_TYPES.find(t => t.value === meetingType)?.label}`}</DialogTitle>
+            <DialogTitle>Nova reunião</DialogTitle>
           </DialogHeader>
 
-          {step === 'type' ? (
-            <MeetingTypeStep onSelect={handleTypeSelect} />
-          ) : (
+          {(
             <div className="space-y-4">
-              {/* Back to type selection */}
-              <Button variant="ghost" size="sm" onClick={() => setStep('type')} className="text-xs text-muted-foreground">
-                ← Alterar tipo
-              </Button>
-
               <div>
                 <Label>Nome da reunião *</Label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Reunião de Alinhamento Semanal" />
@@ -1178,7 +1102,7 @@ export default function ReunioesPage() {
                 <div className="col-span-2">Status</div>
                 <div className="col-span-4">Reunião</div>
                 <div className="col-span-3">Data / Hora</div>
-                <div className="col-span-3">Tipo / Contexto</div>
+                <div className="col-span-3">Contexto</div>
               </div>
               {filteredMeetings.map(m => {
                 const canOpen = meetingAccess[m.id] !== false;
@@ -1207,7 +1131,6 @@ export default function ReunioesPage() {
                     <InlineDateTimeEditor meetingId={m.id} dateTime={m.date_time} />
                   </div>
                   <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
-                    {m.meeting_type && <MeetingTypeBadge type={m.meeting_type} />}
                     <span className="truncate">
                       {m.client_name || m.project_name || (m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : '') || ''}
                     </span>

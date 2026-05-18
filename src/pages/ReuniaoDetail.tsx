@@ -699,12 +699,8 @@ function ReuniaoDetailPageInner() {
 
   const clientLabel = m.client_name || 'Cliente';
   const ownerLabel = ownerName || settings?.business_name || 'Owner';
-  const meetingType = m.meeting_type || 'recorrente';
   const showClientSection = true;
-  const showProjectField = meetingType === 'projeto' || meetingType === 'cliente' || meetingType === 'inicial';
-
-  const typeLabels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente', diagnostico: 'Diagnóstico', inicial: 'Inicial' };
-  const typeColors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b', inicial: '#ec4899' };
+  const showProjectField = true;
 
   const statusBadgeColors: Record<string, string> = {
     por_organizar: 'bg-info/15 text-info border-info/30',
@@ -849,9 +845,6 @@ function ReuniaoDetailPageInner() {
           placeholder="Título da reunião"
           meta={
             <>
-              <Badge className="text-[11px] font-semibold px-2 py-0.5" style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType], border: `1px solid ${typeColors[meetingType]}40` }}>
-                {typeLabels[meetingType]}
-              </Badge>
               {(isSeriesParent || isSeriesChild) && (
                 <Badge variant="outline" className="text-[10px] gap-1">
                   <Repeat className="h-3 w-3" /> Série
