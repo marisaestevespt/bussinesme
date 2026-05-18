@@ -26,6 +26,8 @@ import { MONTHS, VAT_RATES, canRenderSubscriptionForMonth, getSubscriptionDueDat
 import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './expenseBuilders';
 import { VatPreview } from '../VatPreview';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
+import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
@@ -358,14 +360,18 @@ interface NewExpenseFormState {
   location: string;
   documents: DocEntry[];
   includes_vat: boolean;
+  payment_method: string;
 }
 
 export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }: NewExpenseDialogProps) {
-  const initial: NewExpenseFormState = { description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false };
+  const initial: NewExpenseFormState = { description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false, payment_method: '' };
   const [expForm, setExpForm] = useState<NewExpenseFormState>(initial);
+  const { data: setupPaymentMethods } = useBusinessSetupPaymentMethods();
+  const paymentMethods = buildPaymentMethodOptions(setupPaymentMethods);
 
   const saveExpense = async () => {
     if (!expForm.base_value) { toast.error('Valor é obrigatório'); return; }
+    if (!expForm.payment_method) { toast.error('Seleciona o método de pagamento'); return; }
     const inputValue = parseFloat(expForm.base_value) || 0;
     const vat = parseInt(expForm.vat_rate) || 0;
     let base: number, total: number;
@@ -390,6 +396,7 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
       expense_quarter: Math.ceil(month / 3),
       expense_year: currentYear,
       status: 'por_pagar',
+      payment_method: expForm.payment_method,
     });
     toast.success('Saída adicionada');
     onOpenChange(false);
