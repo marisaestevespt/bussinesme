@@ -62,7 +62,7 @@ export function CalendarView({
                           : 'bg-primary/10 text-primary'
                     )}
                   >
-                    {t.recurrence_type && '🔁 '}{t.name}
+                    {t.name}
                   </div>
                 ))}
                 {dayTasks.length > 3 && (
