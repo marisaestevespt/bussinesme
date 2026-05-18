@@ -214,7 +214,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       <div className="flex items-center justify-between mb-3">
         <div className="text-xs text-muted-foreground">
           {totalCards > 0
-            ? `${phases.length} ${phases.length === 1 ? 'fase' : 'fases'}${recurringMonths.length > 0 ? ` · ${recurringMonths.length} ${recurringMonths.length === 1 ? 'ciclo mensal' : 'ciclos mensais'}` : ''}`
+            ? `${oneShotPhases.length} ${oneShotPhases.length === 1 ? 'fase' : 'fases'}${monthlyBuckets.length > 0 ? ` · ${monthlyBuckets.length} ${monthlyBuckets.length === 1 ? 'mês' : 'meses'}` : ''}`
             : ''}
         </div>
         {addingPhase ? (
