@@ -912,7 +912,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                     return (
                       <a
                         key={t.id}
-                        href={`/hub/tarefas/${t.id}`}
+                        href={`/hub/tarefas?id=${t.id}`}
                         target="_blank"
                         rel="noreferrer"
                         className={cn(
