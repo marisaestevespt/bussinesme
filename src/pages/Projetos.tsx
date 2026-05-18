@@ -162,7 +162,7 @@ const PROJETOS_DEFAULT_VIEWS: DefaultView[] = [
 export default function ProjetosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const sectorConfig = useSectorConfig();
   const { allViews, addView, renameView, deleteView } = useUserViews('projetos', PROJETOS_DEFAULT_VIEWS);
   const { isAreaEnabled: areaOn } = useKpiSettings();
@@ -212,7 +212,6 @@ export default function ProjetosPage() {
     getNextPageParam: (last) => last.nextPage,
   });
   const allProjects = flattenInfiniteData(projectsQuery.data?.pages);
-  const { isOwner } = useAuth();
   const { userDepartments } = usePermissions();
   // Restrição por departamento: membros não-Owner só veem projetos do(s) seu(s) dept, multi-dept ou sem dept
   const projects = useMemo(() => {
