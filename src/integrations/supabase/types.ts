@@ -9031,6 +9031,7 @@ export type Database = {
           item_type: string
           linked_sop_id: string | null
           name: string
+          phase_id: string | null
           product_id: string
           scheduled_time: string | null
           sort_order: number
@@ -9050,6 +9051,7 @@ export type Database = {
           item_type: string
           linked_sop_id?: string | null
           name: string
+          phase_id?: string | null
           product_id: string
           scheduled_time?: string | null
           sort_order?: number
@@ -9069,6 +9071,7 @@ export type Database = {
           item_type?: string
           linked_sop_id?: string | null
           name?: string
+          phase_id?: string | null
           product_id?: string
           scheduled_time?: string | null
           sort_order?: number
@@ -9077,6 +9080,13 @@ export type Database = {
           week_of_month?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "product_recurring_items_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "product_phases"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_recurring_items_product_id_fkey"
             columns: ["product_id"]
