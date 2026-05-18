@@ -434,18 +434,12 @@ export default function PortalViewPage() {
     return linked?.title || null;
   })();
 
-  // Prefer the real next pending deliverable from the project phases (the
-  // client's actual next responsibility). Only fall back to "Preencher
-  // perguntas iniciais" when there is no pending deliverable but there are
-  // unanswered initial questions in the portal.
-  const realNextStep = nextStep && nextStepMeetingTitle
+  // Next step comes strictly from the project's pending deliverables. We do
+  // not synthesize a "Preencher perguntas iniciais" step — if the product
+  // doesn't define it as a deliverable, it shouldn't appear in the portal.
+  const effectiveNextStep = nextStep && nextStepMeetingTitle
     ? { ...nextStep, name: nextStepMeetingTitle }
     : nextStep;
-  const effectiveNextStep = realNextStep
-    ? realNextStep
-    : (hasUnansweredQuestions
-        ? { name: 'Preencher perguntas iniciais', phase_name: 'Perguntas', planned_end: null, _isQuestions: true }
-        : null);
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
