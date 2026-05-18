@@ -8,13 +8,12 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarDays, Check, ChevronRight, Eye, EyeOff, Layers, Plus, Repeat, Users as UsersIcon, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, ChevronRight, Eye, EyeOff, Infinity as InfinityIcon, Layers, Plus, Repeat, Users as UsersIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import {
-  computeMonthlyCycleProgress,
   getPhaseStatusInfo,
   isDeliverableDone,
   isPhaseDone,
@@ -23,6 +22,7 @@ import { isTaskDone } from '@/lib/taskStatus';
 import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { getInitials } from '@/pages/Projetos';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface Props {
   projectId: string;
