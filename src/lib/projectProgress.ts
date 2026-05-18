@@ -1,3 +1,5 @@
+import { isTaskDone } from '@/lib/taskStatus';
+
 /**
  * Centralized project progress / deliverable status utilities.
  *
@@ -227,10 +229,7 @@ export function computeMonthlyCycleProgress({
   const done =
     occurrences.filter(o => o.status === 'concluida').length +
     phases.filter(isPhaseDone).length +
-    standaloneTasks.filter(t => {
-      if (!t.status) return false;
-      return ['concluida', 'concluido', 'completed', 'done'].includes(t.status);
-    }).length;
+    standaloneTasks.filter(isTaskDone).length;
   const total = occurrences.length + phases.length + standaloneTasks.length;
   return { done, total, pct: percent(done, total), standaloneTasks };
 }
