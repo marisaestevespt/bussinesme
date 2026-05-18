@@ -128,7 +128,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     queryKey: ['tasks-for-deps'],
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,parent_task_id,estimated_time').order('created_at', { ascending: false }).limit(500);
+      const { data } = await supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,parent_task_id,estimated_minutes').order('created_at', { ascending: false }).limit(500);
       return data || [];
     },
   });
@@ -170,19 +170,15 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setProjectId(editingTask.project_id || ''); setClientId(editingTask.client_id || ''); setNotes(editingTask.notes || '');
         setParentTaskId(editingTask.parent_task_id || '');
         setIsSubtask(!!editingTask.parent_task_id);
-        setRecurrenceType(editingTask.recurrence_type || '');
-        setRecurrenceEnd(editingTask.recurrence_end ? parseISO(editingTask.recurrence_end) : undefined);
-        setRecurrenceIntervalDays(editingTask.recurrence_interval_days != null ? String(editingTask.recurrence_interval_days) : '');
-        setEstimatedTime(editingTask.estimated_time != null ? String(editingTask.estimated_time) : '');
+        setEstimatedTime(editingTask.estimated_minutes != null ? String(editingTask.estimated_minutes / 60) : '');
         setSopId(editingTask.sop_id || '');
-        setScheduledTime(editingTask.scheduled_time || '');
         const deps = taskDependencies.filter(d => d.task_id === editingTask.id).map(d => d.depends_on_task_id);
         setDependsOnIds(deps);
       } else {
         setName(''); setStatus('por_comecar'); setPriority('alta');
         setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(defaultProjectId || ''); setClientId(defaultClientId || ''); setNotes('');
-        setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
-        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime(''); setSopId('');
+        setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false);
+        setEstimatedTime(''); setSopId('');
       }
     }
   }, [open, editingTask]);
@@ -231,7 +227,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       if (editingTask && t.id === editingTask.id) return;
       if (!t.deadline) return;
       const td = parseISO(t.deadline);
-      if (td >= wStart && td <= wEnd && t.estimated_time) committedHours += Number(t.estimated_time);
+      if (td >= wStart && td <= wEnd && t.estimated_minutes) committedHours += Number(t.estimated_minutes) / 60;
     });
     const totalAfter = committedHours + estHours;
     const occupancy = Math.round((totalAfter / weeklyHours) * 100);
@@ -372,13 +368,8 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       client_id: clientId && clientId !== 'none' ? clientId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
-      recurrence_type: recurrenceType || null,
-      recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
-      recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
-      estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
       estimated_minutes: estimatedTime ? Math.round(parseFloat(estimatedTime) * 60) : null,
       sop_id: sopId || null,
-      scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
