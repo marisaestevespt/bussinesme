@@ -1,22 +1,30 @@
 ---
 name: Deliverable-Task sync
-description: Entregas com responsible_type=equipa auto-geram tarefas ligadas via trigger; conclusao sincroniza nos dois sentidos
+description: Entregas e tarefas sincronizadas em ambos sentidos via triggers, com mapeamento canónico de 4 buckets de status
 type: feature
 ---
 
-# Sync Entregas <-> Tarefas
+# Sync Entregas ↔ Tarefas
 
 ## Triggers
-- sync_deliverable_to_task (em project_deliverables): cria/atualiza/apaga task conforme responsible_type e deliverable_type. Tipos reuniao|link|documento|aprovacao ou is_meeting=true nao geram task.
-- sync_task_status_to_deliverable (em tasks): propaga task.status -> deliverable.status.
+- `sync_deliverable_to_task` (project_deliverables): cria/atualiza/apaga task conforme responsible_type e deliverable_type. Tipos `reuniao|link|documento|aprovacao` ou `is_meeting=true` não geram task.
+- `sync_task_status_to_deliverable` (tasks): propaga task.status → deliverable.status.
 
-## Anti-loop (Fase C-3)
-Ambos os triggers usam GUC de sessao app.deliv_task_sync ('on'/'off') para impedir re-entrada cruzada.
+## Mapeamento canónico de status (bidirecional)
+| Task | ↔ | Deliverable |
+|---|---|---|
+| `por_comecar` | ↔ | `pendente` |
+| `a_fazer` / `para_aprovacao` / `precisa_alteracoes` | ↔ | `em_progresso` |
+| `aguarda_feedback` | ↔ | `aguarda_cliente` |
+| `done` | ↔ | `concluido` |
 
-## Reconciliacao
-reconcile_deliverable_tasks(_apply boolean) deteta e corrige 3 tipos de drift:
-1. missing_task - entrega de equipa sem task associada
-2. orphan_task - task com deliverable_id apontando para entrega inexistente
-3. status_drift - entrega concluida sem task done (ou vice-versa)
+Quando entrega vira `em_progresso` e a task atual já é um sub-estado válido (`a_fazer`/`para_aprovacao`/`precisa_alteracoes`), o sub-estado é preservado. Caso contrário usa `a_fazer` por defeito.
 
-UI: Definicoes -> Sistema -> "Reconciliacao Entregas <-> Tarefas" (botoes Verificar/Corrigir).
+## Anti-loop
+Ambos os triggers usam GUC `app.deliv_task_sync` ('on'/'off') para impedir re-entrada cruzada.
+
+## Reconciliação
+`reconcile_deliverable_tasks(_apply boolean)` deteta missing_task, orphan_task e status_drift. UI em Definições → Sistema.
+
+## Coluna `tasks.estimated_time`
+REMOVIDA no cleanup. Triggers usam apenas `estimated_minutes`. Nunca reintroduzir referência a `estimated_time` em funções/triggers.
