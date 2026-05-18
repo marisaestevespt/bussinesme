@@ -18,7 +18,6 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
   const planning = usePlanningData(year);
-  const navigate = useNavigate();
   const [allGoalsOpen, setAllGoalsOpen] = useState(false);
   const [newObjOpen, setNewObjOpen] = useState(false);
 
