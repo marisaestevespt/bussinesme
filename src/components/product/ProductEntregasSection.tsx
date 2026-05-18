@@ -623,6 +623,14 @@ function PhaseCard({
           <Badge variant="outline" className="text-[10px] shrink-0">Fase {phase.sort_order + 1}</Badge>
           {phase.is_onboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-warning/15 text-warning border-warning/30">Onboarding</Badge>}
           {phase.is_offboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-destructive/15 text-destructive border-destructive/30">Offboarding</Badge>}
+          {phase.is_monthly_cycle && (
+            <Badge variant="secondary" className="text-[10px] shrink-0 bg-accent/30 text-foreground border-border gap-1" title="Acontece em todos os meses do contrato, na janela de dias definida">
+              <Repeat className="h-2.5 w-2.5" /> Mini-fase mensal
+              {phase.cycle_day_start != null && phase.cycle_day_end != null && (
+                <span className="ml-1 opacity-80">· dias {phase.cycle_day_start}–{phase.cycle_day_end}</span>
+              )}
+            </Badge>
+          )}
           {phase.is_recurring && (
             <Badge variant="secondary" className="text-[10px] shrink-0 bg-primary/15 text-primary border-primary/30 gap-1">
               <Repeat className="h-2.5 w-2.5" /> Recorrente
@@ -643,19 +651,28 @@ function PhaseCard({
             <div className="flex flex-col gap-0.5">
               <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Modo</span>
               <Select
-                value={phase.is_recurring ? 'recorrente' : 'unica'}
+                value={phase.is_monthly_cycle ? 'mini_mensal' : (phase.is_recurring ? 'recorrente' : 'unica')}
                 onValueChange={(v) => {
                   if (v === 'recorrente') {
-                    onUpdatePhase(phase.id, { is_recurring: true, recurrence_frequency: phase.recurrence_frequency || 'mensal' });
+                    onUpdatePhase(phase.id, { is_recurring: true, is_monthly_cycle: false, recurrence_frequency: phase.recurrence_frequency || 'semanal' });
+                  } else if (v === 'mini_mensal') {
+                    onUpdatePhase(phase.id, {
+                      is_recurring: false,
+                      is_monthly_cycle: true,
+                      recurrence_frequency: null,
+                      cycle_day_start: phase.cycle_day_start ?? 1,
+                      cycle_day_end: phase.cycle_day_end ?? 7,
+                    });
                   } else {
-                    onUpdatePhase(phase.id, { is_recurring: false, recurrence_frequency: null });
+                    onUpdatePhase(phase.id, { is_recurring: false, is_monthly_cycle: false, recurrence_frequency: null });
                   }
                 }}
               >
-                <SelectTrigger className="h-7 text-xs w-28" title="Acontece uma vez no contrato ou repete em ciclos"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-7 text-xs w-36" title="Como esta fase se repete ao longo do contrato"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unica">Única</SelectItem>
-                  <SelectItem value="recorrente">Recorrente</SelectItem>
+                  <SelectItem value="unica">Única (1x no contrato)</SelectItem>
+                  <SelectItem value="mini_mensal">Mini-fase mensal</SelectItem>
+                  <SelectItem value="recorrente">Recorrente (ciclos)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -677,10 +694,10 @@ function PhaseCard({
               </Select>
             </div>
           )}
-          {isOwner && phase.is_recurring && (phase.recurrence_frequency === 'mensal' || phase.recurrence_frequency === 'trimestral' || !phase.recurrence_frequency) && (
+          {isOwner && (phase.is_monthly_cycle || (phase.is_recurring && (phase.recurrence_frequency === 'mensal' || phase.recurrence_frequency === 'trimestral'))) && (
             <>
               <div className="flex flex-col gap-0.5">
-                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none" title="Dia do mês em que a fase começa">Dia início</span>
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none" title="Dia do mês em que a mini-fase começa (1-31)">Dia início</span>
                 <Input
                   type="number" min={1} max={31}
                   className="h-7 w-14 text-xs text-center px-1"
@@ -693,7 +710,7 @@ function PhaseCard({
                 />
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none" title="Dia do mês em que a fase acaba (opcional)">Dia fim</span>
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none" title="Dia do mês em que a mini-fase acaba (1-31)">Dia fim</span>
                 <Input
                   type="number" min={1} max={31}
                   className="h-7 w-14 text-xs text-center px-1"
