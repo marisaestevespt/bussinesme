@@ -31,6 +31,7 @@ import {
 } from '@/lib/projectProgress';
 import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 import { useNavigate } from 'react-router-dom';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const getStatusInfo = getDeliverableStatusInfo;
 
@@ -272,6 +273,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('project_deliverables').delete().eq('id', id);
       if (error) throw error;
     },

@@ -20,6 +20,7 @@ import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWithinInt
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 // ─── Portuguese national holidays (fixed + computed) ─────
 function getPortugueseHolidays(year: number): Date[] {
@@ -227,6 +228,7 @@ function VacationDialog({ member, vacations, onClose }: { member: TeamMember; va
   };
 
   const handleDelete = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('team_member_vacations').delete().eq('id', id);
     toast.success('Removido');
     qc.invalidateQueries({ queryKey: ['escala-vacations'] });

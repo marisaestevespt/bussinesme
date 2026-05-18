@@ -6,6 +6,7 @@ import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase
 import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { computeSalary } from '@/lib/payrollCalculations';
 import { logAudit } from '@/lib/auditLog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type Expense = Tables<'financial_expenses'>;
 export type FinancialDocument = Tables<'financial_documents'>;
@@ -223,6 +224,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
   const deleteExpense = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { data: snap } = await supabase.from('financial_expenses').select('expense_name, total_with_vat, expense_id').eq('id', id).maybeSingle();
       await supabase.from('financial_expenses').delete().eq('parent_expense_id', id);
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
@@ -248,6 +250,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
   const deleteDocument = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('financial_documents').delete().eq('id', id);
       if (error) throw error;
     },
@@ -305,6 +308,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
   const deletePayroll = useMutation({
     mutationFn: async (entry: PayrollEntry) => {
+      await requireConfirm();
       if (entry.expense_id) await supabase.from('financial_expenses').delete().eq('id', entry.expense_id);
       const { error } = await supabase.from('financial_payroll').delete().eq('id', entry.id);
       if (error) throw error;
@@ -357,6 +361,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
   const deleteContractor = useMutation({
     mutationFn: async (entry: ContractorEntry) => {
+      await requireConfirm();
       if (entry.expense_id) await supabase.from('financial_expenses').delete().eq('id', entry.expense_id);
       const { error } = await supabase.from('financial_contractors').delete().eq('id', entry.id);
       if (error) throw error;
@@ -388,6 +393,7 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
   const deleteRecurringExpense = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       await supabase.from('financial_expenses').delete().eq('parent_expense_id', id);
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
       if (error) throw error;

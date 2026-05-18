@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { resolveProductId } from '@/lib/productResolver';
 import { logAudit } from '@/lib/auditLog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type CrmLead = Tables<'crm_leads'>;
 type CrmInteraction = Tables<'crm_interactions'>;
@@ -124,6 +125,7 @@ export function useCrmData() {
 
   const deleteLead = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       // Snapshot completo antes de eliminar — permite recuperação a partir do audit log
       const { data: snap } = await supabase.from('crm_leads').select('*').eq('id', id).maybeSingle();
       const { error } = await supabase.from('crm_leads').delete().eq('id', id);
@@ -162,6 +164,7 @@ export function useCrmData() {
 
   const deleteInteraction = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('crm_interactions').delete().eq('id', id);
       if (error) throw error;
     },
@@ -197,6 +200,7 @@ export function useCrmData() {
 
   const deleteLeadAction = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('crm_lead_actions').delete().eq('id', id);
       if (error) throw error;
     },

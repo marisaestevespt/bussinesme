@@ -11,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { FIXED_COLUMNS, getColumnIcon } from './business-plan/columns';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export default function ExecutiveBusinessPlanBlock() {
   const { columnKey } = useParams<{ columnKey: string }>();
@@ -56,6 +57,7 @@ export default function ExecutiveBusinessPlanBlock() {
 
   const deleteCard = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       await supabase.from('business_plan_cards').delete().eq('id', id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['bp', 'cards', columnKey] }),

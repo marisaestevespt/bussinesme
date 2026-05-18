@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Trash2, Repeat, Eye, EyeOff } from 'lucide-react';
 import { EntitySection } from '@/components/layout/entity';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface RecurringItem {
   id: string;
@@ -81,6 +82,7 @@ export function ProductRecurringItems({ productId, isOwner, phaseId, defaultFreq
 
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await (supabase as any).from('product_recurring_items').delete().eq('id', id);
       if (error) throw error;
     },

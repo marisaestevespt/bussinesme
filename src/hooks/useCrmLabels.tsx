@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export interface CrmLabel {
   id: string;
@@ -42,6 +43,7 @@ export function useCrmLabels() {
 
   const deleteLabel = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('crm_labels').delete().eq('id', id);
       if (error) throw error;
     },

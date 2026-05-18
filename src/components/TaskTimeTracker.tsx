@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { format, parseISO, differenceInMinutes, differenceInSeconds } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
@@ -143,6 +144,7 @@ export function TaskTimeTracker({ taskId, compact }: TaskTimeTrackerProps) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('task_time_entries').delete().eq('id', id);
       if (error) throw error;
     },

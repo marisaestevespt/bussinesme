@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { cleanPayload } from '@/lib/utils';
 import { startOfWeek, format } from 'date-fns';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type QuarterlyAnalysis = Tables<'executive_quarterly_analysis'>;
 
@@ -62,6 +63,7 @@ export function useExecutiveData(year = currentYear) {
 
   const deleteBrainDump = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('executive_brain_dump').delete().eq('id', id);
       if (error) throw error;
     },
@@ -96,6 +98,7 @@ export function useExecutiveData(year = currentYear) {
 
   const deleteMonthlyCheckItem = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('executive_monthly_checklists').delete().eq('id', id);
       if (error) throw error;
     },

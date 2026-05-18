@@ -46,6 +46,7 @@ import { getProductColorFromMap, useProductColors, useProductBrands, useClientPr
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAutoCalendarLabels } from '@/hooks/useAutoCalendarLabels';
 import { safeUrl } from '@/lib/url';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -437,6 +438,7 @@ function EventTypeManager({ types }: { types: EventType[] }) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('event_types').delete().eq('id', id);
       if (error) throw error;
     },
@@ -588,6 +590,7 @@ function AttachmentsSection({ eventId }: { eventId: string }) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('event_attachments').delete().eq('id', id);
       if (error) throw error;
     },
@@ -1075,6 +1078,7 @@ function EventDetailDialog({
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
+      await requireConfirm();
       if (!event) return;
       const { error } = await supabase.from('events').delete().eq('id', event.id);
       if (error) throw error;

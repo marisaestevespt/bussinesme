@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type BrainDumpStatus = 'em_ideia' | 'aplicado' | 'desconsiderado';
 
@@ -96,6 +97,7 @@ export function useBrainDump() {
 
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('executive_brain_dump').delete().eq('id', id);
       if (error) throw error;
     },
@@ -139,6 +141,7 @@ export function useBrainDump() {
 
   const deleteCategory = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('executive_brain_dump_categories').delete().eq('id', id);
       if (error) throw error;
     },

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { resolveProductId } from '@/lib/productResolver';
 import { logAudit } from '@/lib/auditLog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type Client = Tables<'clients'>;
 export type ClientHistory = Tables<'client_history'>;
@@ -59,6 +60,7 @@ export function useClients() {
 
   const deleteClient = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { data: snap } = await supabase.from('clients').select('full_name, client_id').eq('id', id).maybeSingle();
       const { error } = await supabase.from('clients').delete().eq('id', id);
       if (error) throw error;
@@ -125,6 +127,7 @@ export function useClientHistory(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('client_history').delete().eq('id', id);
       if (error) throw error;
     },
@@ -167,6 +170,7 @@ export function useClientActivities(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('client_activities').delete().eq('id', id);
       if (error) throw error;
     },
@@ -209,6 +213,7 @@ export function useClientOnboarding(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('client_onboarding').delete().eq('id', id);
       if (error) throw error;
     },
@@ -251,6 +256,7 @@ export function useClientOffboarding(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('client_offboarding').delete().eq('id', id);
       if (error) throw error;
     },

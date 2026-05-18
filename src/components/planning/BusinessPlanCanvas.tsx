@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, X, Check, Trash2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { FIXED_COLUMNS, getColumnIcon } from '@/pages/business-plan/columns';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 /**
  * Business Model Canvas — extraído de ExecutiveBusinessPlan para poder
@@ -55,6 +56,7 @@ export function BusinessPlanCanvas() {
 
   const deleteColumn = useMutation({
     mutationFn: async ({ id, key }: { id: string; key: string }) => {
+      await requireConfirm();
       await supabase.from('business_plan_cards').delete().eq('column_key', key);
       await supabase.from('business_plan_custom_columns').delete().eq('id', id);
     },

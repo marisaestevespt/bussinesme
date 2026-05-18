@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Handshake, User, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Responsibility {
   id: string;
@@ -58,6 +59,7 @@ export function ProjectResponsibilities({ projectId }: { projectId: string }) {
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('project_responsibilities' as any).delete().eq('id', id);
       if (error) throw error;
     },

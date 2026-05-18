@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Pencil, Trash2, Play, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const RECURRENCE_OPTIONS = [
   { value: 'diario', label: 'Diária' },
@@ -113,6 +114,7 @@ export function RotinasView() {
 
   const deleteRoutine = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('planning_routines').delete().eq('id', id);
       if (error) throw error;
     },

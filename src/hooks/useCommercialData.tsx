@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { resolveProductId } from '@/lib/productResolver';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { sumRevenue, saleRevenue } from '@/lib/salesCalculations';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type CommercialSale = Tables<'commercial_sales'>;
 type AnnualGoal = Tables<'commercial_annual_goals'>;
@@ -208,6 +209,7 @@ export function useCommercialData(year = currentYear) {
 
   const deleteProductGoal = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('commercial_product_goals').delete().eq('id', id);
       if (error) throw error;
     },
@@ -302,6 +304,7 @@ export function useCommercialData(year = currentYear) {
 
   const deleteSale = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('commercial_sales').delete().eq('id', id);
       if (error) throw error;
     },

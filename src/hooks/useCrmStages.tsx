@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export interface CrmStage {
   id: string;
@@ -65,6 +66,7 @@ export function useCrmStages() {
 
   const removeStage = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('crm_custom_stages').delete().eq('id', id);
       if (error) throw error;
     },

@@ -18,6 +18,7 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ProductTabHeader } from './_shared';
 import { Repeat, FolderKanban } from 'lucide-react';
 import { ProductRecurringItems } from './ProductRecurringItems';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Template {
   id: string;
@@ -975,6 +976,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
 
   const deletePhase = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       // Snapshot phase + deliverables that belonged to it (for Undo)
       const { data: phaseSnap } = await supabase
         .from('product_phases' as any)

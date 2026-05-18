@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export interface DefaultView {
   key: string;
@@ -71,6 +72,7 @@ export function useUserViews(pageKey: string, defaultViews: DefaultView[]) {
 
   const deleteView = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('user_views').delete().eq('id', id);
       if (error) throw error;
     },

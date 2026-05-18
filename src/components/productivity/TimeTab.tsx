@@ -18,6 +18,7 @@ import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CATEGORIES, PERIOD_FILTERS, getDateRange, weeksInPeriod, catLabel } from './productivity-constants';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export function TimeTab({ entries, members, clients, projects, tasks, scenario, scenarioProducts }: {
   entries: any[]; members: any[]; clients: any[]; projects: any[]; tasks: any[]; scenario: any; scenarioProducts: any[];
@@ -291,7 +292,8 @@ function TimeLogView({ entries, members, clients, projects, tasks }: { entries: 
   });
 
   const deleteEntry = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('time_entries').delete().eq('id', id); },
+    mutationFn: async (id: string) => {
+      await requireConfirm(); await supabase.from('time_entries').delete().eq('id', id); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['time_entries'] }); toast.success('Removido'); },
   });
 

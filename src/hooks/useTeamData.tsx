@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { logAudit } from '@/lib/auditLog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type TeamMember = Tables<'team_members'>;
 type PerformanceWeekly = Tables<'performance_weekly'>;
@@ -142,6 +143,7 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
 
   const deleteMember = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { data: snap } = await supabase.from('team_members').select('full_name, email').eq('id', id).maybeSingle();
       const { error } = await supabase.from('team_members').delete().eq('id', id);
       if (error) throw error;
@@ -179,6 +181,7 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
 
   const deleteOnboardingItem = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('member_onboarding').delete().eq('id', id);
       if (error) throw error;
     },
@@ -213,6 +216,7 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
 
   const deletePerfWeekly = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('performance_weekly').delete().eq('id', id);
       if (error) throw error;
     },
@@ -247,6 +251,7 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
 
   const deletePerfMonthly = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('performance_monthly').delete().eq('id', id);
       if (error) throw error;
     },
@@ -285,6 +290,7 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
 
   const deleteFeedback = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('feedback_sessions').delete().eq('id', id);
       if (error) throw error;
     },
@@ -446,6 +452,7 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
 
   const deleteContract = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('member_contracts').delete().eq('id', id);
       if (error) throw error;
     },
@@ -484,6 +491,7 @@ export function useTeamData(options: UseTeamDataOptions = {}) {
 
   const deletePayment = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('member_payments').delete().eq('id', id);
       if (error) throw error;
     },

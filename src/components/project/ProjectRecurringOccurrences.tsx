@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Repeat, X, Check, Eye, EyeOff } from 'lucide-react';
 import { EntitySection } from '@/components/layout/entity';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Occurrence {
   id: string;
@@ -59,6 +60,7 @@ export function ProjectRecurringOccurrences({
 
   const deleteOcc = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await (supabase as any).from('project_recurring_occurrences').delete().eq('id', id);
       if (error) throw error;
     },

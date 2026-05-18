@@ -38,6 +38,7 @@ import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOverdue } from '@/lib/taskStatus';
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'mensal_ultimo' | 'diario' | 'personalizado';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -308,6 +309,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
   const deleteTask = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('tasks').delete().eq('id', id);
       if (error) throw error;
     },
