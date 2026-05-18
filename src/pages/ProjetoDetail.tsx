@@ -301,7 +301,14 @@ function ProjetoDetailInner() {
     ])
   );
 
-  useEffect(() => { if (project && !local) setLocal(project); }, [project]);
+  useEffect(() => {
+    if (!project) return;
+    setLocal(prev => {
+      if (!prev) return project;
+      if (prev.progress === project.progress) return prev;
+      return { ...prev, progress: project.progress };
+    });
+  }, [project]);
 
   const updateField = (field: keyof ProjectFull, value: any) => {
     setLocal(prev => (prev ? { ...prev, [field]: value } : prev));
