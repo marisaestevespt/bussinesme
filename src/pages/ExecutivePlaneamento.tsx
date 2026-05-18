@@ -11,7 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Target, CheckCircle2, Clock, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Compass, ChevronDown, Plus, ListChecks, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
