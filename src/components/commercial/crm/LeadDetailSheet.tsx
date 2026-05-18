@@ -776,7 +776,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 title: meetingTitle.trim(),
                 date_time: dt.toISOString(),
                 status: 'por_confirmar',
-                meeting_type: 'diagnostico' as any,
+                meeting_type: 'standard' as any,
                 client_name: form.name || null,
                 department: 'comercial',
               });
