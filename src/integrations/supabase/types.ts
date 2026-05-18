@@ -8759,6 +8759,7 @@ export type Database = {
           duration_days: number | null
           duration_unit: string
           id: string
+          is_monthly_cycle: boolean
           is_offboarding: boolean
           is_onboarding: boolean
           is_recurring: boolean
@@ -8781,6 +8782,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_monthly_cycle?: boolean
           is_offboarding?: boolean
           is_onboarding?: boolean
           is_recurring?: boolean
@@ -8803,6 +8805,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_monthly_cycle?: boolean
           is_offboarding?: boolean
           is_onboarding?: boolean
           is_recurring?: boolean
@@ -9569,6 +9572,7 @@ export type Database = {
         Row: {
           assigned_to: string | null
           created_at: string
+          cycle_month_index: number | null
           deadline: string | null
           deliverable_type: Database["public"]["Enums"]["deliverable_type"]
           description: string | null
@@ -9605,6 +9609,7 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           created_at?: string
+          cycle_month_index?: number | null
           deadline?: string | null
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
@@ -9641,6 +9646,7 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           created_at?: string
+          cycle_month_index?: number | null
           deadline?: string | null
           deliverable_type?: Database["public"]["Enums"]["deliverable_type"]
           description?: string | null
@@ -9762,6 +9768,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string
+          cycle_month_index: number | null
           description: string | null
           duration_days: number | null
           duration_unit: string
@@ -9785,6 +9792,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string
+          cycle_month_index?: number | null
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
@@ -9808,6 +9816,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string
+          cycle_month_index?: number | null
           description?: string | null
           duration_days?: number | null
           duration_unit?: string
@@ -12471,6 +12480,7 @@ export type Database = {
         Args: { _project_id: string }
         Returns: Json
       }
+      generate_cycle_phases: { Args: { _project_id: string }; Returns: Json }
       get_client_portal_audit: {
         Args: { _client_id: string }
         Returns: {
