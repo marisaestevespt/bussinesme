@@ -680,242 +680,227 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Detail dialog for recurring monthly cycle */}
-      <Dialog open={!!openMonthKey} onOpenChange={open => !open && setOpenMonthKey(null)}>
+      {/* Detail dialog: Trabalho Contínuo agrupado por mês */}
+      <Dialog open={continuousOpen} onOpenChange={setContinuousOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="capitalize text-xl">
-              {openMonthKey
-                ? format(parseISO(openMonthKey + '-01'), 'MMMM yyyy', { locale: pt })
-                : 'Mês do contrato'}
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <InfinityIcon className="h-5 w-5 text-primary" />
+              Trabalho Contínuo
             </DialogTitle>
           </DialogHeader>
-          {openMonthKey && (() => {
-            const bucket = monthlyBuckets.find(([k]) => k === openMonthKey)?.[1];
-            const mini = bucket?.miniPhases || [];
-            const occs = bucket?.occurrences || [];
-            const tks = bucket?.tasks || [];
-            const taskMap = new Map(monthTasks.map(t => [t.id, t]));
-            const monthTasksFull = tks.map(t => taskMap.get(t.id)).filter(Boolean) as MonthTask[];
-            const doneOccs = occs.filter(o => o.status === 'concluida').length;
-            const doneTasks = monthTasksFull.filter(t => isTaskDone({ status: t.status } as any)).length;
+          {(() => {
             const meetingOptions = projectMeetings.map(m => ({
               value: m.id,
               label: m.title || 'Sem título',
               date: m.date_time ? format(parseISO(m.date_time), "d MMM · HH:mm", { locale: pt }) : '',
             }));
+            const nowKey = new Date().toISOString().slice(0, 7);
             return (
-            <div className="space-y-6 mt-2">
-              {(() => {
-                // Unified chronological agenda for the month.
-                // Dedupe: skip tasks that are already linked from an occurrence (they'd appear twice).
-                const linkedTaskIds = new Set(occs.map(o => o.linked_task_id).filter(Boolean) as string[]);
-                const standaloneTasks = monthTasksFull.filter(t => !linkedTaskIds.has(t.id));
-                type AgendaItem =
-                  | { kind: 'occ'; date: string; occ: RecurringOccurrence }
-                  | { kind: 'task'; date: string; task: MonthTask };
-                const agenda: AgendaItem[] = [
-                  ...occs.map(o => ({ kind: 'occ' as const, date: o.scheduled_date, occ: o })),
-                  ...standaloneTasks.map(t => ({ kind: 'task' as const, date: t.deadline || '', task: t })),
-                ].sort((a, b) => a.date.localeCompare(b.date));
-                const totalAgenda = agenda.length;
-                const doneAgenda =
-                  occs.filter(o => o.status === 'concluida').length +
-                  standaloneTasks.filter(t => isTaskDone({ status: t.status } as any)).length;
-                return (
-                  <>
-                    {(mini.length + totalAgenda) > 0 && (
-                      <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
-                        {mini.length > 0 && <span><strong>{mini.length}</strong> mini-fases</span>}
-                        {totalAgenda > 0 && <span><strong>{doneAgenda}/{totalAgenda}</strong> itens da agenda</span>}
-                      </div>
-                    )}
-                    {mini.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Mini-fases do mês</div>
-                  {mini.map(mp => {
-                    const dStart = mp.planned_start ? parseISO(mp.planned_start).getDate() : null;
-                    const dEnd = mp.planned_end ? parseISO(mp.planned_end).getDate() : null;
-                    const phaseDels = deliverables.filter(d => d.phase_id === mp.id);
-                    const dDone = phaseDels.filter(isDeliverableDone).length;
-                    const statusInfo = getPhaseStatusInfo(mp.status);
-                    return (
-                      <button
-                        key={mp.id}
-                        type="button"
-                        onClick={() => { setOpenMonthKey(null); setOpenPhaseId(mp.id); }}
-                        className="w-full text-left flex flex-col gap-1.5 px-3 py-2 rounded-md border border-border bg-card hover:border-primary/50 transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-[11px] font-mono text-muted-foreground shrink-0">
-                              {dStart != null && dEnd != null ? `${dStart}–${dEnd}` : '—'}
-                            </span>
-                            <span className="text-sm font-medium truncate">{mp.name}</span>
-                          </div>
-                          <Badge className={cn(statusInfo.color, 'border text-[10px] shrink-0')}>
-                            {statusInfo.label}
+              <div className="space-y-4 mt-2">
+                <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
+                  <span><strong>{continuousTotals.done}/{continuousTotals.total}</strong> itens concluídos no contrato</span>
+                  <span className="text-muted-foreground">·</span>
+                  <span><strong>{continuousTotals.pct}%</strong> de progresso global</span>
+                </div>
+                {continuousByMonth.length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-6">
+                    Ainda não há cadências geradas para este projeto.
+                  </div>
+                )}
+                {continuousByMonth.map(([monthKey, bucket]) => {
+                  const monthDate = parseISO(monthKey + '-01');
+                  const isCurrent = monthKey === nowKey;
+                  const isPast = monthKey < nowKey;
+                  const occs = bucket.occurrences;
+                  const tks = bucket.tasks;
+                  const totalM = occs.length + tks.length;
+                  const doneM =
+                    occs.filter(o => o.status === 'concluida').length +
+                    tks.filter(t => isTaskDone({ status: t.status } as any)).length;
+                  const allDoneM = totalM > 0 && doneM === totalM;
+                  type AgendaItem =
+                    | { kind: 'occ'; date: string; occ: RecurringOccurrence }
+                    | { kind: 'task'; date: string; task: MonthTask };
+                  const agenda: AgendaItem[] = [
+                    ...occs.map(o => ({ kind: 'occ' as const, date: o.scheduled_date, occ: o })),
+                    ...tks.map(t => ({ kind: 'task' as const, date: t.deadline || '', task: t })),
+                  ].sort((a, b) => a.date.localeCompare(b.date));
+                  return (
+                    <Collapsible key={monthKey} defaultOpen={isCurrent}>
+                      <CollapsibleTrigger className="w-full group flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-border bg-card hover:border-primary/40 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90 shrink-0" />
+                          <h4 className="text-sm font-semibold capitalize">
+                            {format(monthDate, 'MMMM yyyy', { locale: pt })}
+                          </h4>
+                          <Badge
+                            className={cn(
+                              'border text-[10px]',
+                              allDoneM
+                                ? 'bg-success/15 text-success border-success/30'
+                                : isCurrent
+                                ? 'bg-primary/15 text-primary border-primary/30'
+                                : isPast
+                                ? 'bg-warning/15 text-warning border-warning/30'
+                                : 'bg-muted text-muted-foreground border-border',
+                            )}
+                          >
+                            {allDoneM ? 'Concluído' : isCurrent ? 'Em curso' : isPast ? 'Em atraso' : 'Pendente'}
                           </Badge>
                         </div>
-                        {phaseDels.length > 0 && (
-                          <div className="text-[11px] text-muted-foreground">
-                            {dDone}/{phaseDels.length} entregas
+                        <span className="text-[11px] text-muted-foreground font-mono shrink-0">
+                          {doneM}/{totalM}
+                        </span>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-2 pt-2 pb-1 px-1">
+                        {agenda.length === 0 && (
+                          <div className="text-xs text-muted-foreground text-center py-3">
+                            Sem itens neste mês.
                           </div>
                         )}
-                      </button>
-                    );
-                  })}
-                </div>
-                    )}
-                    {agenda.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Agenda do mês</div>
-                  {agenda.map(item => {
-                    if (item.kind === 'task') {
-                      const t = item.task;
-                      const done = isTaskDone({ status: t.status } as any);
-                      const due = t.deadline ? parseISO(t.deadline) : null;
-                      return (
-                        <a
-                          key={`t-${t.id}`}
-                          href={`/hub/tarefas?id=${t.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className={cn(
-                            'flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 hover:border-primary/50 transition-colors',
-                            done && 'opacity-60'
-                          )}
-                        >
-                          <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
-                            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                            {due && <span>{format(due, "EEE d MMM", { locale: pt })}</span>}
-                          </div>
-                          <span className={cn('text-sm flex-1 truncate', done && 'line-through text-muted-foreground')}>
-                            {t.name || 'Tarefa'}
-                          </span>
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">Tarefa</span>
-                        </a>
-                      );
-                    }
-                    const o = item.occ;
-                    const date = parseISO(o.scheduled_date);
-                    const weekday = format(date, 'EEE', { locale: pt });
-                    const dayLabel = format(date, "d 'de' MMM", { locale: pt });
-                    const linkedMeeting = o.linked_meeting_id
-                      ? projectMeetings.find(m => m.id === o.linked_meeting_id)
-                      : null;
-                    return (
-                      <div
-                        key={`o-${o.id}`}
-                        className={cn(
-                          'rounded-lg border border-border bg-card p-3 space-y-2',
-                          o.status === 'cancelada' && 'opacity-50'
-                        )}
-                      >
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
-                            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="capitalize">{weekday}</span>
-                            <span>{dayLabel}</span>
-                            {o.item_type === 'reuniao' && o.scheduled_time && (
-                              <span className="text-muted-foreground">· {o.scheduled_time.slice(0, 5)}</span>
-                            )}
-                          </div>
-                          <Input
-                            className={cn('h-8 text-sm flex-1 min-w-[180px]', o.status === 'cancelada' && 'line-through')}
-                            value={o.name}
-                            onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { name: e.target.value } })}
-                          />
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
-                            {o.item_type === 'reuniao' ? 'Reunião' : 'Tarefa'}
-                          </span>
-                          <Select
-                            value={o.status}
-                            onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { status: v as RecurringOccurrence['status'] } })}
-                          >
-                            <SelectTrigger className="h-8 w-32 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pendente">Pendente</SelectItem>
-                              <SelectItem value="concluida">Concluída</SelectItem>
-                              <SelectItem value="reagendada">Reagendada</SelectItem>
-                              <SelectItem value="cancelada">Cancelada</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8"
-                            title={o.visible_in_portal ? 'Visível no portal' : 'Oculto do cliente'}
-                            onClick={() => updateOccurrence.mutate({ id: o.id, patch: { visible_in_portal: !o.visible_in_portal } })}
-                          >
-                            {o.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-destructive"
-                            title="Eliminar ocorrência"
-                            onClick={() => { if (confirm('Eliminar esta ocorrência?')) deleteOccurrence.mutate(o.id); }}
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 pl-1">
-                          <Input
-                            type="date"
-                            value={o.scheduled_date}
-                            className="h-7 w-36 text-xs"
-                            onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_date: e.target.value } })}
-                          />
-                          {o.item_type === 'reuniao' && (
-                            <>
-                              <Input
-                                type="time"
-                                value={o.scheduled_time || ''}
-                                className="h-7 w-24 text-xs"
-                                onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_time: e.target.value || null } })}
-                              />
-                              <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Reunião:</span>
+                        {agenda.map(item => {
+                          if (item.kind === 'task') {
+                            const t = item.task;
+                            const tDone = isTaskDone({ status: t.status } as any);
+                            const due = t.deadline ? parseISO(t.deadline) : null;
+                            return (
+                              <a
+                                key={`t-${t.id}`}
+                                href={`/hub/tarefas?id=${t.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={cn(
+                                  'flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 hover:border-primary/50 transition-colors',
+                                  tDone && 'opacity-60',
+                                )}
+                              >
+                                <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
+                                  <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                                  {due && <span>{format(due, "EEE d MMM", { locale: pt })}</span>}
+                                </div>
+                                <span className={cn('text-sm flex-1 truncate', tDone && 'line-through text-muted-foreground')}>
+                                  {t.name || 'Tarefa'}
+                                </span>
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">Tarefa</span>
+                              </a>
+                            );
+                          }
+                          const o = item.occ;
+                          const date = parseISO(o.scheduled_date);
+                          const weekday = format(date, 'EEE', { locale: pt });
+                          const dayLabel = format(date, "d 'de' MMM", { locale: pt });
+                          const linkedMeeting = o.linked_meeting_id
+                            ? projectMeetings.find(m => m.id === o.linked_meeting_id)
+                            : null;
+                          return (
+                            <div
+                              key={`o-${o.id}`}
+                              className={cn(
+                                'rounded-lg border border-border bg-card p-3 space-y-2',
+                                o.status === 'cancelada' && 'opacity-50',
+                              )}
+                            >
+                              <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
+                                  <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <span className="capitalize">{weekday}</span>
+                                  <span>{dayLabel}</span>
+                                  {o.item_type === 'reuniao' && o.scheduled_time && (
+                                    <span className="text-muted-foreground">· {o.scheduled_time.slice(0, 5)}</span>
+                                  )}
+                                </div>
+                                <Input
+                                  className={cn('h-8 text-sm flex-1 min-w-[180px]', o.status === 'cancelada' && 'line-through')}
+                                  value={o.name}
+                                  onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { name: e.target.value } })}
+                                />
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+                                  {o.item_type === 'reuniao' ? 'Reunião' : 'Tarefa'}
+                                </span>
                                 <Select
-                                  value={o.linked_meeting_id || '__none__'}
-                                  onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { linked_meeting_id: v === '__none__' ? null : v } })}
+                                  value={o.status}
+                                  onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { status: v as RecurringOccurrence['status'] } })}
                                 >
-                                  <SelectTrigger className="h-7 text-xs flex-1">
-                                    <SelectValue placeholder="Associar reunião…" />
+                                  <SelectTrigger className="h-8 w-32 text-xs">
+                                    <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="__none__">— Nenhuma —</SelectItem>
-                                    {meetingOptions.map(m => (
-                                      <SelectItem key={m.value} value={m.value}>
-                                        {m.label}{m.date ? ` · ${m.date}` : ''}
-                                      </SelectItem>
-                                    ))}
+                                    <SelectItem value="pendente">Pendente</SelectItem>
+                                    <SelectItem value="concluida">Concluída</SelectItem>
+                                    <SelectItem value="reagendada">Reagendada</SelectItem>
+                                    <SelectItem value="cancelada">Cancelada</SelectItem>
                                   </SelectContent>
                                 </Select>
-                                {linkedMeeting && (
-                                  <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[11px]">
-                                    <a href={`/hub/reunioes/${linkedMeeting.id}`} target="_blank" rel="noreferrer">Abrir</a>
-                                  </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  title={o.visible_in_portal ? 'Visível no portal' : 'Oculto do cliente'}
+                                  onClick={() => updateOccurrence.mutate({ id: o.id, patch: { visible_in_portal: !o.visible_in_portal } })}
+                                >
+                                  {o.visible_in_portal ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive"
+                                  title="Eliminar ocorrência"
+                                  onClick={() => { if (confirm('Eliminar esta ocorrência?')) deleteOccurrence.mutate(o.id); }}
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 pl-1">
+                                <Input
+                                  type="date"
+                                  value={o.scheduled_date}
+                                  className="h-7 w-36 text-xs"
+                                  onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_date: e.target.value } })}
+                                />
+                                {o.item_type === 'reuniao' && (
+                                  <>
+                                    <Input
+                                      type="time"
+                                      value={o.scheduled_time || ''}
+                                      className="h-7 w-24 text-xs"
+                                      onChange={(e) => updateOccurrence.mutate({ id: o.id, patch: { scheduled_time: e.target.value || null } })}
+                                    />
+                                    <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Reunião:</span>
+                                      <Select
+                                        value={o.linked_meeting_id || '__none__'}
+                                        onValueChange={(v) => updateOccurrence.mutate({ id: o.id, patch: { linked_meeting_id: v === '__none__' ? null : v } })}
+                                      >
+                                        <SelectTrigger className="h-7 text-xs flex-1">
+                                          <SelectValue placeholder="Associar reunião…" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="__none__">— Nenhuma —</SelectItem>
+                                          {meetingOptions.map(m => (
+                                            <SelectItem key={m.value} value={m.value}>
+                                              {m.label}{m.date ? ` · ${m.date}` : ''}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                      {linkedMeeting && (
+                                        <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[11px]">
+                                          <a href={`/hub/reunioes/${linkedMeeting.id}`} target="_blank" rel="noreferrer">Abrir</a>
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </>
                                 )}
                               </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                    )}
-                    {mini.length === 0 && agenda.length === 0 && (
-                      <div className="text-sm text-muted-foreground text-center py-6">Sem itens planeados neste mês.</div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
+                            </div>
+                          );
+                        })}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </div>
             );
           })()}
         </DialogContent>
