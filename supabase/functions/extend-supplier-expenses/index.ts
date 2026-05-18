@@ -50,6 +50,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const targetSupplierId: string | undefined = body?.supplier_id;
     const monthsAhead: number = Number(body?.months_ahead ?? 12);
+    // Default agora é "scan" (apenas sugere via notificação).
+    // Para realmente criar despesas, passar { apply: true } ou { mode: "apply" }.
+    const apply: boolean = body?.apply === true || body?.mode === "apply";
 
     let query = supabase
       .from("suppliers")
