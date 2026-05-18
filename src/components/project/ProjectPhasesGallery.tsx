@@ -18,7 +18,7 @@ import {
   isDeliverableDone,
   isPhaseDone,
 } from '@/lib/projectProgress';
-import { isTaskDone } from '@/lib/taskStatus';
+import { isTaskDone, TASK_STATUSES, getTaskStatusInfo } from '@/lib/taskStatus';
 import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { getInitials } from '@/pages/Projetos';
@@ -179,6 +179,21 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       queryClient.invalidateQueries({ queryKey: ['project-monthly-occurrences', projectId] });
     },
     onError: (e: Error) => toast.error('Erro ao eliminar', { description: e.message }),
+  });
+
+  const updateTaskStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ status, completed_at: status === 'done' ? new Date().toISOString() : null })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-month-tasks', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project-tasks', projectId] });
+    },
+    onError: (e: Error) => toast.error('Erro ao atualizar tarefa', { description: e.message }),
   });
 
   // One-shot phases = todas as fases normais (Onboarding, Alinhamento, Offboarding…).
@@ -683,26 +698,50 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                             const t = item.task;
                             const tDone = isTaskDone({ status: t.status } as any);
                             const due = t.deadline ? parseISO(t.deadline) : null;
+                            const statusInfo = getTaskStatusInfo(t.status);
                             return (
-                              <a
+                              <div
                                 key={`t-${t.id}`}
-                                href={`/hub/tarefas?id=${t.id}`}
-                                target="_blank"
-                                rel="noreferrer"
                                 className={cn(
-                                  'flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 hover:border-primary/50 transition-colors',
-                                  tDone && 'opacity-60',
+                                  'group flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 transition-colors hover:border-primary/40',
+                                  tDone && 'opacity-70',
                                 )}
                               >
                                 <div className="flex items-center gap-2 shrink-0 px-2 py-1 rounded bg-muted/40 text-xs font-mono">
                                   <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                                  {due && <span>{format(due, "EEE d MMM", { locale: pt })}</span>}
+                                  {due && <span className="capitalize">{format(due, "EEE d 'de' MMM", { locale: pt })}</span>}
                                 </div>
-                                <span className={cn('text-sm flex-1 truncate', tDone && 'line-through text-muted-foreground')}>
+                                <a
+                                  href={`/hub/tarefas?id=${t.id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm flex-1 truncate hover:underline"
+                                  title="Abrir tarefa"
+                                >
                                   {t.name || 'Tarefa'}
+                                </a>
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 hidden sm:inline">
+                                  Tarefa
                                 </span>
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">Tarefa</span>
-                              </a>
+                                <Select
+                                  value={t.status || 'por_comecar'}
+                                  onValueChange={(v) => updateTaskStatus.mutate({ id: t.id, status: v })}
+                                >
+                                  <SelectTrigger
+                                    className={cn(
+                                      'h-6 px-2 py-0 rounded-full border text-[10px] font-medium shrink-0 w-auto gap-1 [&>svg]:h-3 [&>svg]:w-3',
+                                      statusInfo.color,
+                                    )}
+                                  >
+                                    <SelectValue>{statusInfo.label}</SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {TASK_STATUSES.map(s => (
+                                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             );
                           }
                           const o = item.occ;
