@@ -6,9 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Plus, Trash2, GripVertical, EyeOff, Eye } from 'lucide-react';
 import {
-import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type Cat = {
   id: string;
