@@ -663,13 +663,57 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           <DialogHeader>
             <DialogTitle className="capitalize">
               {openMonthKey
-                ? `Ciclo Mensal — ${format(parseISO(openMonthKey + '-01'), 'MMMM yyyy', { locale: pt })}`
-                : 'Ciclo Mensal'}
+                ? format(parseISO(openMonthKey + '-01'), 'MMMM yyyy', { locale: pt })
+                : 'Mês do contrato'}
             </DialogTitle>
           </DialogHeader>
-          {openMonthKey && (
-            <div className="space-y-1.5 mt-2">
-              {(recurringMonths.find(([k]) => k === openMonthKey)?.[1] || []).map(o => (
+          {openMonthKey && (() => {
+            const bucket = monthlyBuckets.find(([k]) => k === openMonthKey)?.[1];
+            const mini = bucket?.miniPhases || [];
+            const occs = bucket?.occurrences || [];
+            return (
+            <div className="space-y-4 mt-2">
+              {mini.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Mini-fases do mês</div>
+                  {mini.map(mp => {
+                    const dStart = mp.planned_start ? parseISO(mp.planned_start).getDate() : null;
+                    const dEnd = mp.planned_end ? parseISO(mp.planned_end).getDate() : null;
+                    const phaseDels = deliverables.filter(d => d.phase_id === mp.id);
+                    const dDone = phaseDels.filter(isDeliverableDone).length;
+                    const statusInfo = getPhaseStatusInfo(mp.status);
+                    return (
+                      <button
+                        key={mp.id}
+                        type="button"
+                        onClick={() => { setOpenMonthKey(null); setOpenPhaseId(mp.id); }}
+                        className="w-full text-left flex flex-col gap-1.5 px-3 py-2 rounded-md border border-border bg-card hover:border-primary/50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                              {dStart != null && dEnd != null ? `${dStart}–${dEnd}` : '—'}
+                            </span>
+                            <span className="text-sm font-medium truncate">{mp.name}</span>
+                          </div>
+                          <Badge className={cn(statusInfo.color, 'border text-[10px] shrink-0')}>
+                            {statusInfo.label}
+                          </Badge>
+                        </div>
+                        {phaseDels.length > 0 && (
+                          <div className="text-[11px] text-muted-foreground">
+                            {dDone}/{phaseDels.length} entregas
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {occs.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Cadências do mês</div>
+              {occs.map(o => (
                 <div
                   key={o.id}
                   className={cn(
@@ -733,8 +777,14 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   </Button>
                 </div>
               ))}
+                </div>
+              )}
+              {mini.length === 0 && occs.length === 0 && (
+                <div className="text-sm text-muted-foreground text-center py-6">Sem mini-fases nem cadências neste mês.</div>
+              )}
             </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </>
