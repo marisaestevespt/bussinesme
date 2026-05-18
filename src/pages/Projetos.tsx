@@ -724,7 +724,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                 <TableCell><ProjectDeptBadges project={p} /></TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
-                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type, p.project_mode)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type, p.project_mode)}%</span></div></TableCell>
+                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type, p.project_mode, (p as any).client_id)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type, p.project_mode, (p as any).client_id)}%</span></div></TableCell>
                 <TableCell><div className="flex -space-x-1">{members.slice(0, 3).map(m => <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(m)} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>)}{members.length > 3 && <span className="text-xs text-muted-foreground ml-1">+{members.length - 3}</span>}</div></TableCell>
               </TableRow>
             );
@@ -737,7 +737,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 
 // ─── Gallery View ───────────────────────────────────────────────
 
-function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null) => number }) {
+function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null, clientId?: string | null) => number }) {
   const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
