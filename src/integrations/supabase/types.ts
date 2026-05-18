@@ -12894,6 +12894,18 @@ export type Database = {
           read_ct: number
         }[]
       }
+      reconcile_deliverable_tasks: {
+        Args: { _apply?: boolean }
+        Returns: {
+          deliverable_id: string
+          deliverable_name: string
+          deliverable_status: string
+          fixed: boolean
+          issue: string
+          task_id: string
+          task_status: string
+        }[]
+      }
       renew_recurring_cycles: { Args: never; Returns: number }
       resolve_deliverable_assignee: {
         Args: { _deliverable_id: string }
