@@ -433,7 +433,13 @@ export function FloatingAiChat() {
               <p className="text-[11px] text-muted-foreground">Assistente inteligente</p>
             </div>
             <div className="flex items-center gap-0.5">
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground" onClick={() => { setMessages([]); sessionStorage.removeItem(STORAGE_KEY_MESSAGES); }} title="Nova conversa">
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground" onClick={async () => {
+                if (conversationId) {
+                  await supabase.from("ai_conversations").update({ archived: true }).eq("id", conversationId);
+                }
+                setMessages([]);
+                setConversationId(null);
+              }} title="Nova conversa">
                 <RotateCcw className="h-3 w-3" />
                 Nova
               </Button>
