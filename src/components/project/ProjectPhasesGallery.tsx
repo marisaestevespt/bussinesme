@@ -418,14 +418,16 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           );
         })}
         {monthlyBuckets.map(([monthKey, bucket]) => {
-          const { miniPhases, occurrences: items } = bucket;
+          const { miniPhases, occurrences: items, tasks: bTasks } = bucket;
           const occTotal = items.length;
           const occDone = items.filter(o => o.status === 'concluida').length;
           const occCancelled = items.filter(o => o.status === 'cancelada').length;
           const phaseTotal = miniPhases.length;
           const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
-          const total = occTotal + phaseTotal;
-          const done = occDone + phaseDoneCount;
+          const taskTotal = bTasks.length;
+          const taskDone = bTasks.filter(t => (t.status || '') === 'done').length;
+          const total = occTotal + phaseTotal + taskTotal;
+          const done = occDone + phaseDoneCount + taskDone;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           const monthDate = parseISO(monthKey + '-01');
           const now = new Date();
