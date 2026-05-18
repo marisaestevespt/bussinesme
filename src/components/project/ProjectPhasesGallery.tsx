@@ -159,9 +159,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
   // Unified monthly buckets: each month aggregates mini-fases + cadências
   const monthlyBuckets = useMemo(() => {
-    const map = new Map<string, { miniPhases: Phase[]; occurrences: RecurringOccurrence[] }>();
+    const map = new Map<string, { miniPhases: Phase[]; occurrences: RecurringOccurrence[]; tasks: MonthTask[] }>();
     const ensure = (k: string) => {
-      if (!map.has(k)) map.set(k, { miniPhases: [], occurrences: [] });
+      if (!map.has(k)) map.set(k, { miniPhases: [], occurrences: [], tasks: [] });
       return map.get(k)!;
     };
     for (const p of cyclePhases) {
@@ -173,12 +173,20 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       const key = o.scheduled_date.slice(0, 7);
       ensure(key).occurrences.push(o);
     }
+    for (const t of monthTasks) {
+      const key = (t.deadline || '').slice(0, 7);
+      if (!key) continue;
+      // Only add tasks to months that already have cadências/mini-fases,
+      // so we don't invent buckets for purely one-shot work.
+      if (!map.has(key)) continue;
+      ensure(key).tasks.push(t);
+    }
     for (const v of map.values()) {
       v.miniPhases.sort((a, b) => (a.planned_start || '').localeCompare(b.planned_start || ''));
       v.occurrences.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [cyclePhases, occurrences]);
+  }, [cyclePhases, occurrences, monthTasks]);
 
   const [openMonthKey, setOpenMonthKey] = useState<string | null>(null);
 
