@@ -12381,6 +12381,10 @@ export type Database = {
         Returns: number
       }
       backfill_deliverable_tasks: { Args: never; Returns: number }
+      bootstrap_project_from_product: {
+        Args: { _project_id: string }
+        Returns: Json
+      }
       can_edit_event: { Args: { _event_id: string }; Returns: boolean }
       can_edit_marketing_metrics: { Args: never; Returns: boolean }
       can_edit_operational_kpis: { Args: never; Returns: boolean }
