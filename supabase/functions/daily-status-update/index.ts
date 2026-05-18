@@ -689,14 +689,14 @@ Deno.serve(async (req) => {
     return parts.length > 0 ? parts.join(" · ") : null;
   });
 
-  // ── 16. Fiscal tasks ──
-  await runSection("fiscal-tasks", "fiscal_tasks", async () => {
+  // ── 16. Fiscal deadline notifications (owner-only) ──
+  // NÃO criamos tarefas automáticas para prazos fiscais — apenas notificamos o Owner.
+  await runSection("fiscal-notifications", "fiscal_notifications", async () => {
     if (!ownerId) return null;
-    const currentMonth2 = today.getMonth() + 1;
     const currentYear2 = today.getFullYear();
     const { data: bsData } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt, has_accountant").limit(1).maybeSingle();
     if (!bsData) return null;
-    // When there's an accountant, fiscal tasks are NOT auto-created — accountant manages them internally.
+    // Quando há contabilista, este trata das obrigações — não notificamos.
     if ((bsData as Row).has_accountant === true) return null;
     const fiscalConfig = {
       taxIvaRegime: (bsData as Row).tax_iva_regime || "trimestral",
@@ -706,21 +706,27 @@ Deno.serve(async (req) => {
       hasAccountant: (bsData as Row).has_accountant ?? false,
     };
     const deadlines = computeFiscalDeadlinesEdge(currentYear2, fiscalConfig);
-    let fiscalTasksCreated = 0;
+    // Notificar apenas a 14 e 3 dias do prazo para evitar ruído
+    const notifyWindows = new Set([14, 3, 1, 0]);
+    let notifsCreated = 0;
     for (const dl of deadlines) {
       const dlDate = new Date(dl.date + "T00:00:00");
       const diffDays = Math.ceil((dlDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      if (diffDays > 30 || diffDays < 0) continue;
-      const { data: existingTask } = await supabase.from("tasks").select("id").eq("name", dl.name).limit(1);
-      if (existingTask && existingTask.length > 0) continue;
-      await supabase.from("tasks").insert({
-        name: dl.name, status: "por_comecar", priority: "alta",
-        deadline: dl.date, department: "contabilidade",
-        created_by: ownerId, assigned_to: ownerProfileId, tag: "Fiscal",
+      if (!notifyWindows.has(diffDays)) continue;
+      const dedupKey = `fiscal-deadline-${dl.date}-${dl.name}-${diffDays}`;
+      const { data: existing } = await supabase.from("notifications").select("id").eq("user_id", ownerId).eq("dedup_key", dedupKey).limit(1);
+      if (existing && existing.length > 0) continue;
+      const label = diffDays === 0 ? "hoje" : diffDays === 1 ? "amanhã" : `em ${diffDays} dias`;
+      await supabase.from("notifications").insert({
+        user_id: ownerId,
+        type: "fiscal_deadline",
+        title: `📅 Prazo fiscal ${label}: ${dl.name} (${dl.date})`,
+        dedup_key: dedupKey,
+        link: `/hub/financeiro`,
       });
-      fiscalTasksCreated++;
+      notifsCreated++;
     }
-    return fiscalTasksCreated > 0 ? `Fiscal tasks created: ${fiscalTasksCreated}` : null;
+    return notifsCreated > 0 ? `Fiscal notifications: ${notifsCreated}` : null;
   });
 
   // ── 17. Auto-revoke access for inactive members ──
