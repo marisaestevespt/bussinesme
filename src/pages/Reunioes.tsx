@@ -1102,7 +1102,7 @@ export default function ReunioesPage() {
                 <div className="col-span-2">Status</div>
                 <div className="col-span-4">Reunião</div>
                 <div className="col-span-3">Data / Hora</div>
-                <div className="col-span-3">Tipo / Contexto</div>
+                <div className="col-span-3">Contexto</div>
               </div>
               {filteredMeetings.map(m => {
                 const canOpen = meetingAccess[m.id] !== false;
