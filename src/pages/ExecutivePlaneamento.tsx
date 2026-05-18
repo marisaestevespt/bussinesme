@@ -53,18 +53,6 @@ export default function ExecutivePlaneamento() {
           <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano seguinte" onClick={() => setYear(year + 1)}>
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
-          {year <= new Date().getFullYear() && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="ml-3 h-7 text-xs"
-              onClick={() => navigate(`/executive/fecho-de-ano/${year}`)}
-            >
-              <Sparkles className="h-3 w-3 mr-1" />
-              Fecho de {year}
-            </Button>
-          )}
         </div>
 
         {/* Pulse — resumo rápido do ano */}
