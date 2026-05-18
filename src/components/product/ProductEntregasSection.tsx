@@ -150,29 +150,12 @@ function DeliverableRow({
   };
   const tMeta = typeMeta[template.deliverable_type || 'tarefa'] || typeMeta.tarefa;
   const linkedSopName = sops.find(s => s.id === template.linked_sop_id)?.name;
-  const cadence = (template.cadence || (template.is_recurring ? 'por_ciclo_fase' : 'unica')) as
-    'unica' | 'por_ciclo_fase' | 'propria' | 'sem_data';
-  const weekdayLabels = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const cadence = (template.cadence === 'sem_data' ? 'sem_data' : 'unica') as
+    'unica' | 'sem_data';
   const cadenceLabel = (() => {
     if (cadence === 'unica') return '1×';
     if (cadence === 'sem_data') return 'Sem data';
-    if (cadence === 'por_ciclo_fase') return 'Cada ciclo';
-    // propria
-    const f = template.recurrence_frequency;
-    if (!f) return 'Própria';
-    if (f === 'semanal' || f === 'quinzenal') {
-      const dow = template.recurrence_anchor_day;
-      const day = dow && dow >= 1 && dow <= 7 ? ` · ${weekdayLabels[dow - 1]}` : '';
-      return f === 'semanal' ? `Semanal${day}` : `Quinzenal${day}`;
-    }
-    // mensal: ou "dia X" ou "Nª <weekday>"
-    const wom = template.recurrence_week_of_month;
-    const d = template.recurrence_anchor_day;
-    if (wom && d && d >= 1 && d <= 7) {
-      const ord = wom === 5 ? 'Última' : `${wom}ª`;
-      return `Mensal · ${ord} ${weekdayLabels[d - 1]}`;
-    }
-    return d ? `Mensal · dia ${d}` : 'Mensal';
+    return '';
   })();
   const [contentOpen, setContentOpen] = useState(false);
   const dType = template.deliverable_type || 'tarefa';
@@ -402,19 +385,14 @@ function DeliverableRow({
             <Select
               value={cadence}
               onValueChange={(v) => {
-                const patch: Record<string, unknown> = { cadence: v };
-                if (v === 'propria') {
-                  // simplificado: cadência própria = sempre semanal num dia da semana
-                  patch.recurrence_frequency = 'semanal';
-                  patch.recurrence_anchor_day = template.recurrence_anchor_day ?? 5; // sexta
-                  patch.recurrence_lead_days = 5; // default fixo
-                  patch.recurrence_week_of_month = null;
-                } else {
-                  patch.recurrence_frequency = null;
-                  patch.recurrence_anchor_day = null;
-                  patch.recurrence_week_of_month = null;
-                }
-                onUpdate(template.id, patch);
+                onUpdate(template.id, {
+                  cadence: v,
+                  is_recurring: false,
+                  recurrence_frequency: null,
+                  recurrence_anchor_day: null,
+                  recurrence_lead_days: null,
+                  recurrence_week_of_month: null,
+                });
               }}
               disabled={!isOwner}
             >
@@ -423,29 +401,9 @@ function DeliverableRow({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unica">Só uma vez no início</SelectItem>
-                {isRecurring && (
-                  <SelectItem value="por_ciclo_fase">Uma vez por ciclo da fase</SelectItem>
-                )}
-                <SelectItem value="propria">Todas as semanas…</SelectItem>
                 <SelectItem value="sem_data">Sem data</SelectItem>
               </SelectContent>
             </Select>
-            {cadence === 'propria' && (
-              <Select
-                value={template.recurrence_anchor_day ? String(template.recurrence_anchor_day) : '5'}
-                onValueChange={v => onUpdate(template.id, { recurrence_anchor_day: parseInt(v) })}
-                disabled={!isOwner}
-              >
-                <SelectTrigger className="h-8 w-24 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {weekdayLabels.map((d, i) => (
-                    <SelectItem key={i+1} value={String(i+1)}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
         )}
       </div>
