@@ -454,9 +454,6 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </PopoverContent>
                 </Popover>
               </EntityProperty>
-              <EntityProperty icon={Clock} label="Hora">
-                <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="—" className={inlineInputClass} />
-              </EntityProperty>
               <EntityProperty icon={User} label="Responsável">
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
                   <SelectTrigger className={inlineTriggerClass}>
@@ -563,36 +560,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               )}
             </EntityProperties>
 
-            {/* ── Recorrência ────────────────────────────────── */}
-            <EntitySection title="Recorrência" icon={Repeat} compact>
-              <EntityProperties>
-                <EntityProperty icon={Repeat} label="Frequência">
-                  <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
-                    <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Não se repete" /></SelectTrigger>
-                    <SelectContent>{RECURRENCE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </EntityProperty>
-                {recurrenceType === 'personalizado' && (
-                  <EntityProperty icon={Hash} label="A cada X dias">
-                    <Input type="number" min="1" max="365" value={recurrenceIntervalDays} onChange={e => setRecurrenceIntervalDays(e.target.value)} placeholder="Ex: 3" className={inlineInputClass} />
-                  </EntityProperty>
-                )}
-                {recurrenceType && (
-                  <EntityProperty icon={CalendarIcon} label="Repetir até">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" className={cn(inlineTriggerClass, 'w-full justify-start font-normal', !recurrenceEnd && 'text-muted-foreground')}>
-                          {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={recurrenceEnd} onSelect={setRecurrenceEnd} initialFocus className="p-3 pointer-events-auto" />
-                      </PopoverContent>
-                    </Popover>
-                  </EntityProperty>
-                )}
-              </EntityProperties>
-            </EntitySection>
+            {/* Recorrência removida — usar Rotinas para tarefas recorrentes */}
 
             {/* ── Hierarquia ─────────────────────────────────── */}
             <EntitySection
