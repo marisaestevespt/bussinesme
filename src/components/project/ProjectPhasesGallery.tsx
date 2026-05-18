@@ -275,7 +275,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
   const offboardingPhases = oneShotPhases.filter(p => /offboarding/i.test(p.name || ''));
   const nonOffboardingPhases = oneShotPhases.filter(p => !/offboarding/i.test(p.name || ''));
-  const totalCards = oneShotPhases.length + monthlyBuckets.length;
+  const totalCards = oneShotPhases.length + (hasContinuous ? 1 : 0);
 
   return (
     <>
@@ -283,7 +283,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       <div className="flex items-center justify-between mb-3">
         <div className="text-xs text-muted-foreground">
           {totalCards > 0
-            ? `${oneShotPhases.length} ${oneShotPhases.length === 1 ? 'fase' : 'fases'}${monthlyBuckets.length > 0 ? ` · ${monthlyBuckets.length} ${monthlyBuckets.length === 1 ? 'mês' : 'meses'}` : ''}`
+            ? `${oneShotPhases.length} ${oneShotPhases.length === 1 ? 'fase' : 'fases'}${hasContinuous ? ` · trabalho contínuo (${continuousTotals.done}/${continuousTotals.total})` : ''}`
             : ''}
         </div>
         {addingPhase ? (
