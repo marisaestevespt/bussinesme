@@ -173,32 +173,29 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
     enabled: !!id,
   });
 
+  // Contract-wide tasks (entire project, all months) — used for progress
   const monthlyTasksQ = useQuery({
-    queryKey: ['project-monthly-tasks', id, opts?.monthStart],
+    queryKey: ['project-contract-tasks', id],
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
         .select('id, status, deadline')
-        .eq('project_id', id!)
-        .gte('deadline', opts!.monthStart!)
-        .lte('deadline', opts!.monthEnd!);
+        .eq('project_id', id!);
       return (data || []) as { id: string; status: string; deadline: string }[];
     },
-    enabled: !!id && !!opts?.isRecorrenteMensal && !!opts?.monthStart && !!opts?.monthEnd,
+    enabled: !!id && !!opts?.isRecorrenteMensal,
   });
 
   const monthlyOccurrencesQ = useQuery({
-    queryKey: ['project-monthly-occurrences', id, opts?.monthStart],
+    queryKey: ['project-contract-occurrences', id],
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from('project_recurring_occurrences')
         .select('id, status, linked_task_id, scheduled_date')
-        .eq('project_id', id!)
-        .gte('scheduled_date', opts!.monthStart!)
-        .lte('scheduled_date', opts!.monthEnd!);
+        .eq('project_id', id!);
       return (data || []) as MonthlyOccurrence[];
     },
-    enabled: !!id && !!opts?.isRecorrenteMensal && !!opts?.monthStart && !!opts?.monthEnd,
+    enabled: !!id && !!opts?.isRecorrenteMensal,
   });
 
   const meetingsQ = useQuery({

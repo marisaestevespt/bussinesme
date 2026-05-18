@@ -221,19 +221,16 @@ function ProjetoDetailInner() {
       .replace(/\{cliente\}/gi, clientName);
   }, [projectDeliverables, (local as any)?.client_name, (clientForProject as any)?.full_name]);
 
+  // Contract-wide progress: all phases + all occurrences + all standalone tasks
+  // for the entire contract duration (not just the current month). This means
+  // manually-added items also count towards progress.
   const monthlyCycleProgress = useMemo(() => {
-    const monthPhases = (projectPhases as any[]).filter(p =>
-      p.cycle_month_index != null &&
-      p.planned_start &&
-      p.planned_start >= monthStart &&
-      p.planned_start <= monthEnd,
-    );
     return computeMonthlyCycleProgress({
-      phases: monthPhases as any,
+      phases: projectPhases as any,
       occurrences: monthlyOccurrences as any,
       tasks: monthlyTasks as any,
     });
-  }, [projectPhases, monthlyOccurrences, monthlyTasks, monthStart, monthEnd]);
+  }, [projectPhases, monthlyOccurrences, monthlyTasks]);
 
   function getProjectProgress() {
     // Single source of truth — same rule used by Operação's "Saúde dos Projetos"
@@ -253,8 +250,8 @@ function ProjetoDetailInner() {
   function getProjectProgressSummary() {
     if (isRecorrenteMensal) {
       if (monthlyCycleLoading) return 'A carregar agenda do mês';
-      if (monthlyCycleProgress.total === 0) return 'Sem agenda este mês';
-      return `${monthlyCycleProgress.done}/${monthlyCycleProgress.total} itens do mês concluídos`;
+      if (monthlyCycleProgress.total === 0) return 'Sem agenda definida no contrato';
+      return `${monthlyCycleProgress.done}/${monthlyCycleProgress.total} itens do contrato concluídos`;
     }
 
     if (projectDeliverables.length > 0) {
@@ -821,7 +818,7 @@ function ProjetoDetailInner() {
             {/* Progresso */}
             {taskMode !== 'tarefas_livres' && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
+                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? 'Progresso do contrato' : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
                   <span className="text-sm font-medium">{getProjectProgress()}%</span>
                   <span className="text-xs text-muted-foreground">{getProjectProgressSummary()}</span>
