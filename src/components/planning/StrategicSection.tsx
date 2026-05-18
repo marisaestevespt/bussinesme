@@ -9,18 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Compass, Eye, Heart, Grid2x2, Plus, X, Pencil, Save, Trash2, ExternalLink, Sparkles, Target } from 'lucide-react';
+import { Compass, Eye, Heart, Grid2x2, Plus, X, Save, ExternalLink, Sparkles, Target } from 'lucide-react';
 import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
-
-type Directive = {
-  id: string;
-  title: string;
-  description: string | null;
-  horizon: '3_anos' | '5_anos';
-  area: string | null;
-  status: 'ativa' | 'em_revisao' | 'concluida' | 'arquivada';
-  sort_order: number;
-};
 
 type SwotItem = { id: string; quadrant: string; content: string; sort_order: number };
 
@@ -30,13 +20,6 @@ const SWOT_QUADRANTS = [
   { key: 'oportunidades', label: 'Oportunidades', hint: 'Tendências externas a aproveitar', color: 'text-primary', bg: 'bg-primary/5', border: 'border-primary/30' },
   { key: 'ameacas', label: 'Ameaças', hint: 'Riscos externos a antecipar', color: 'text-warning', bg: 'bg-warning/5', border: 'border-warning/30' },
 ] as const;
-
-const STATUS_LABEL: Record<Directive['status'], string> = {
-  ativa: 'Ativa',
-  em_revisao: 'Em revisão',
-  concluida: 'Concluída',
-  arquivada: 'Arquivada',
-};
 
 function EditableTextBlock({
   label, icon: Icon, value, placeholder, onSave, rows = 4,
