@@ -7614,44 +7614,6 @@ export type Database = {
           },
         ]
       }
-      portal_timeline_phases: {
-        Row: {
-          created_at: string
-          from_template: boolean
-          id: string
-          portal_id: string
-          sort_order: number
-          status: string
-          title: string
-        }
-        Insert: {
-          created_at?: string
-          from_template?: boolean
-          id?: string
-          portal_id: string
-          sort_order?: number
-          status?: string
-          title: string
-        }
-        Update: {
-          created_at?: string
-          from_template?: boolean
-          id?: string
-          portal_id?: string
-          sort_order?: number
-          status?: string
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portal_timeline_phases_portal_id_fkey"
-            columns: ["portal_id"]
-            isOneToOne: false
-            referencedRelation: "client_portals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       portal_visits: {
         Row: {
           email: string
@@ -12590,24 +12552,6 @@ export type Database = {
           title: string
           weekday: number
         }[]
-      }
-      get_portal_timeline_phases: {
-        Args: { _token: string }
-        Returns: {
-          created_at: string
-          from_template: boolean
-          id: string
-          portal_id: string
-          sort_order: number
-          status: string
-          title: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "portal_timeline_phases"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       get_profiles_basic: {
         Args: never
