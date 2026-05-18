@@ -621,7 +621,16 @@ function PhaseCard({
           <Badge variant="outline" className="text-[10px] shrink-0">Fase {phase.sort_order + 1}</Badge>
           {phase.is_onboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-warning/15 text-warning border-warning/30">Onboarding</Badge>}
           {phase.is_offboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-destructive/15 text-destructive border-destructive/30">Offboarding</Badge>}
-          {phase.is_recurring && <Badge variant="secondary" className="text-[10px] shrink-0 bg-primary/15 text-primary border-primary/30 gap-1"><Repeat className="h-2.5 w-2.5" /> Recorrente</Badge>}
+          {phase.is_recurring && (
+            <Badge variant="secondary" className="text-[10px] shrink-0 bg-primary/15 text-primary border-primary/30 gap-1">
+              <Repeat className="h-2.5 w-2.5" /> Recorrente
+              {phase.cycle_day_start != null && (
+                <span className="ml-1 opacity-80">
+                  · dia {phase.cycle_day_start}{phase.cycle_day_end != null && phase.cycle_day_end !== phase.cycle_day_start ? `–${phase.cycle_day_end}` : ''}
+                </span>
+              )}
+            </Badge>
+          )}
           <Input value={name} onChange={e => setName(e.target.value)}
             onBlur={() => { const t = name.trim(); if (t !== phase.name) onUpdatePhase(phase.id, { name: t }); }}
             className="h-7 text-sm font-medium border-none shadow-none p-0 focus-visible:ring-0"
