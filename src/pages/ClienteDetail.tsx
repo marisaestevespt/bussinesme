@@ -986,6 +986,22 @@ function ClienteDetailPageInner() {
         {/* Final Settlement (offboarding/terminado) */}
         {(form.status === 'em_offboarding' || form.status === 'terminado') && !isNew && (
           <EntitySection title="Liquidação Final" icon={Wallet}>
+            {form.status === 'terminado' && id && (
+              <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-border bg-muted/30 p-3">
+                <div className="text-xs text-muted-foreground">
+                  Este cliente está terminado. Se voltou a contratar, reactiva em vez de criar novo registo — preserva o histórico, NIF e ID de cliente.
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => reactivateClient.mutate(id)}
+                  disabled={reactivateClient.isPending}
+                >
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                  Reactivar cliente
+                </Button>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Valor de Liquidação (€)</Label>
