@@ -124,46 +124,6 @@ export function StrategicSection() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['strategic', 'swot'] }),
   });
 
-  // ===== Diretrizes =====
-  const dirQuery = useQuery({
-    queryKey: ['strategic', 'directives'],
-    queryFn: async () => {
-      const { data } = await supabase.from('strategic_directives').select('*').order('sort_order').order('created_at');
-      return (data || []) as Directive[];
-    },
-  });
-  const directives = dirQuery.data || [];
-
-  const [showNewDirective, setShowNewDirective] = useState(false);
-  const [dirDraft, setDirDraft] = useState<Partial<Directive>>({ title: '', description: '', horizon: '3_anos', status: 'ativa' });
-  const [editDirId, setEditDirId] = useState<string | null>(null);
-  const [editDir, setEditDir] = useState<Partial<Directive>>({});
-
-  const addDirective = useMutation({
-    mutationFn: async (d: Partial<Directive>) => {
-      const { error } = await supabase.from('strategic_directives').insert({
-        title: d.title, description: d.description || null, horizon: d.horizon || '3_anos',
-        area: d.area || null, status: d.status || 'ativa', sort_order: directives.length,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }); setShowNewDirective(false); setDirDraft({ title: '', description: '', horizon: '3_anos', status: 'ativa' }); toast.success('Diretriz adicionada'); },
-    onError: (e: any) => toast.error(e?.message || 'Erro'),
-  });
-  const updateDirective = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Directive> }) => {
-      const { error } = await supabase.from('strategic_directives').update(patch).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }); setEditDirId(null); },
-    onError: (e: any) => toast.error(e?.message || 'Erro'),
-  });
-  const deleteDirective = useMutation({
-    mutationFn: async (id: string) => {
-      await requireConfirm(); await supabase.from('strategic_directives').delete().eq('id', id); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }),
-  });
-
   return (
     <div className="space-y-6">
       {/* Section header */}
