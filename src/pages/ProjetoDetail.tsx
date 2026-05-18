@@ -1031,13 +1031,15 @@ function ProjetoDetailInner() {
                 <Workflow className="h-4 w-4" />
                 Fluxo de Trabalho
               </EntityTabsTrigger>
-              <EntityTabsTrigger
-                value="analise"
-                className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
-              >
-                <BarChart3 className="h-4 w-4" />
-                Análise de Projeto
-              </EntityTabsTrigger>
+              {canSeeFinancial && (
+                <EntityTabsTrigger
+                  value="analise"
+                  className="!rounded-lg !px-5 !py-2.5 gap-2 text-sm font-semibold data-[state=active]:shadow-md"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Análise de Projeto
+                </EntityTabsTrigger>
+              )}
               {resolvedClientId && local.client_name && (
                 <EntityTabsTrigger
                   value="portal"
@@ -1103,9 +1105,11 @@ function ProjetoDetailInner() {
             </EntityTabsContent>
 
             {/* ─── TAB 3: ANÁLISE DE PROJETO ───────────────── */}
-            <EntityTabsContent value="analise" className="mt-4 space-y-8">
-              <ProjectAnaliseTab projectAnalysis={projectAnalysis} isServicoMensal={isServicoMensal} />
-            </EntityTabsContent>
+            {canSeeFinancial && (
+              <EntityTabsContent value="analise" className="mt-4 space-y-8">
+                <ProjectAnaliseTab projectAnalysis={projectAnalysis} isServicoMensal={isServicoMensal} />
+              </EntityTabsContent>
+            )}
 
             {/* ─── TAB 3: PORTAL DE CLIENTE ────────────────── */}
             {resolvedClientId && local.client_name && (
