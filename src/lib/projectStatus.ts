@@ -5,6 +5,8 @@
  * Operação, HubEquipa, Planning, etc.).
  */
 
+import { isBefore, parseISO, startOfDay } from 'date-fns';
+
 export type ProjectStatusValue =
   | 'em_onboarding'
   | 'em_ideia'
@@ -55,4 +57,23 @@ export function isProjectDone(p: { status?: string | null } | null | undefined):
 export function isProjectTerminal(p: { status?: string | null } | null | undefined): boolean {
   if (!p?.status) return false;
   return (PROJECT_TERMINAL_STATUSES as string[]).includes(p.status);
+}
+
+/**
+ * Returns true when the project's deadline is in the past and the project
+ * is still active (i.e. not concluido / cancelado / arquivo). Compares
+ * against the start of the provided "now" (defaults to today) to avoid
+ * timezone-induced false positives.
+ */
+export function isProjectOverdue(
+  p: { status?: string | null; deadline?: string | null } | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!p?.deadline) return false;
+  if (isProjectTerminal(p)) return false;
+  try {
+    return isBefore(parseISO(p.deadline), startOfDay(now));
+  } catch {
+    return false;
+  }
 }
