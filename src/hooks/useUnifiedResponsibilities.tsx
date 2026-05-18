@@ -83,7 +83,7 @@ export function useUnifiedResponsibilities(userId?: string) {
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase.from('tasks')
-        .select('id,name,status,deadline,priority,project_id,estimated_time,created_at,tag,routine_id')
+        .select('id,name,status,deadline,priority,project_id,estimated_minutes,created_at,tag,routine_id')
         .in('assigned_to', assigneeIds).order('deadline');
       return data || [];
     },
@@ -209,7 +209,7 @@ export function useUnifiedResponsibilities(userId?: string) {
         priority: t.priority,
         isInfoOnly: false,
         completed: isTaskDone(t),
-        estimatedHours: t.estimated_time ? Number(t.estimated_time) : 0,
+        estimatedHours: t.estimated_minutes ? Number(t.estimated_minutes) / 60 : 0,
       });
     });
 
