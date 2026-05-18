@@ -148,7 +148,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
                 <div className="flex-1 max-w-[260px] h-1.5 bg-muted/40 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: pc }} />
                 </div>
-                <span className="text-xs text-muted-foreground">{done}/{total} entregas</span>
+                <span className="text-xs text-muted-foreground">{done}/{total} {progressLabel}</span>
               </div>
             )}
           </div>
